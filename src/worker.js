@@ -122,10 +122,20 @@ const tag = (block, name) => {
   return m ? decode(m[1]) : "";
 };
 
-async function fetchFeed(url) {
+// Worker держит максимум 6 исходящих соединений одновременно. Остальные ждут в очереди,
+// поэтому таймаут запускаем только когда запрос реально начался.
+let slotsBusy = 0; const slotQueue = [];
+function withSlot(fn) {
+  return new Promise((resolve, reject) => {
+    const run = () => { slotsBusy++; Promise.resolve().then(fn).then(resolve, reject).finally(() => { slotsBusy--; const n = slotQueue.shift(); if (n) n(); }); };
+    if (slotsBusy < 5) run(); else slotQueue.push(run);
+  });
+}
+async function fetchFeed(url) { return withSlot(() => fetchFeedNow(url)); }
+async function fetchFeedNow(url) {
   try {
     const r = await fetch(url, {
-      signal: AbortSignal.timeout(9000), // медленная лента пропускается, а не тормозит весь радар
+      signal: AbortSignal.timeout(7000), // медленная лента пропускается, а не тормозит весь радар
       headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" },
       cf: { cacheTtl: 300, cacheEverything: true },
     });
@@ -148,7 +158,7 @@ async function fetchFeed(url) {
 // ---------- Kraken ----------
 async function krakenTicker(pairs) {
   try {
-    const r = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${pairs.join(",")}`, { signal: AbortSignal.timeout(5000), cf: { cacheTtl: 60 } });
+    const r = await withSlot(() => fetch(`https://api.kraken.com/0/public/Ticker?pair=${pairs.join(",")}`, { signal: AbortSignal.timeout(5000), cf: { cacheTtl: 60 } }));
     const j = await r.json();
     const out = {};
     for (const [k, v] of Object.entries(j.result || {})) {
@@ -242,8 +252,8 @@ async function buildRadar(def, env) {
 let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const fresh = new Request(origin + "/__cache/radars-v3");
-  const stale = new Request(origin + "/__cache/radars-v3-stale");
+  const fresh = new Request(origin + "/__cache/radars-v4");
+  const stale = new Request(origin + "/__cache/radars-v4-stale");
   const hit = await cache.match(fresh);
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
@@ -252,11 +262,11 @@ async function allRadars(env, ctx, origin) {
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
-        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v3", 48 * 3600e3);
+        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v4", 48 * 3600e3);
         if (prev && prev.length) data = data.map((r) => (r.feed.length ? r : (prev.find((x) => x.id === r.id && x.feed && x.feed.length) || r)));
       }
       const body = JSON.stringify(data);
-      await sharedPut(env, "radars-v3", data);
+      await sharedPut(env, "radars-v4", data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -267,7 +277,7 @@ async function allRadars(env, ctx, origin) {
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
   // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
-  const shared = await sharedGet(env, "radars-v3", 6 * 3600e3);
+  const shared = await sharedGet(env, "radars-v4", 6 * 3600e3);
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
