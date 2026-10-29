@@ -190,15 +190,29 @@ async function buildRadar(def, env) {
 }
 
 // Все радары с кэшем на 5 минут (Cache API, без настройки)
+// Свежая копия живёт 5 минут, запасная — сутки. Если свежей нет, сразу отдаём запасную
+// и обновляем данные в фоне, чтобы ни люди, ни агенты не ждали сбора лент.
+let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const key = new Request(origin + "/__cache/radars-v1");
-  const hit = await cache.match(key);
+  const fresh = new Request(origin + "/__cache/radars-v2");
+  const stale = new Request(origin + "/__cache/radars-v2-stale");
+  const hit = await cache.match(fresh);
   if (hit) return hit.json();
-  const data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
-  const res = new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } });
-  ctx.waitUntil(cache.put(key, res.clone()));
-  return data;
+  const refresh = () => (refreshing ||= (async () => {
+    try {
+      const data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
+      const body = JSON.stringify(data);
+      await Promise.all([
+        cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
+        cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
+      ]);
+      return data;
+    } finally { refreshing = null; }
+  })());
+  const old = await cache.match(stale);
+  if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
+  return refresh();
 }
 
 // ---------- Реплики ведущего ----------
@@ -282,6 +296,7 @@ async function askClaude(env, items) {
     })),
   };
   const res = await fetch("https://api.anthropic.com/v1/messages", {
+    signal: AbortSignal.timeout(25000),
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -329,11 +344,20 @@ async function voiceBroadcast(env, ctx, origin, items) {
   const key = new Request(`${origin}/__cache/voice-v1-${h}`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
-  try {
-    const data = await askClaude(env, items);
+  // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
+  // а следующий запрос получит уже готовый живой текст из кэша.
+  const job = askClaude(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
-    ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } })));
+    await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
     return data;
+  });
+  ctx.waitUntil(job.catch(() => {}));
+  try {
+    const data = await Promise.race([job, new Promise((r) => setTimeout(() => r(null), 8000))]);
+    if (data) return data;
+    const fb = templateBroadcast(items);
+    fb.error = "Claude is still writing this broadcast; live text will be ready on the next request (about 10-20 s).";
+    return fb;
   } catch (e) {
     const fb = templateBroadcast(items);
     fb.error = String(e.message || e).slice(0, 200);

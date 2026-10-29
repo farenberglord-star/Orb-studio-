@@ -11,7 +11,7 @@ run_worker_first = ["/", "/index.html", "/orb7.html", "/llms.txt", "/.well-known
 [vars]
 KRAKEN_CODE = "ghqspfzq"
 MAIN_HOST = "orbstudio.org"
-# REDIRECT_WORKERS_DEV = "1"   # включить, когда orbstudio.org заработает: старый адрес будет вести на новый
+REDIRECT_WORKERS_DEV = "1"   # старый адрес workers.dev ведёт на orbstudio.org
 # ANTHROPIC_MODEL = "claude-sonnet-5-5"   # по умолчанию claude-haiku-5-5
 # KRAKEN_URL = "https://твоя-реферальная-ссылка-kraken"
 
