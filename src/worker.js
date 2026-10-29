@@ -242,15 +242,15 @@ async function buildRadar(def, env) {
 let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const fresh = new Request(origin + "/__cache/radars-v2");
-  const stale = new Request(origin + "/__cache/radars-v2-stale");
+  const fresh = new Request(origin + "/__cache/radars-v3");
+  const stale = new Request(origin + "/__cache/radars-v3-stale");
   const hit = await cache.match(fresh);
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
     try {
       const data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
       const body = JSON.stringify(data);
-      await sharedPut(env, "radars", data);
+      await sharedPut(env, "radars-v3", data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -261,7 +261,7 @@ async function allRadars(env, ctx, origin) {
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
   // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
-  const shared = await sharedGet(env, "radars", 6 * 3600e3);
+  const shared = await sharedGet(env, "radars-v3", 6 * 3600e3);
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
@@ -332,7 +332,7 @@ const SYSTEM = `Ты пишешь реплики для ИИ-ведущих но
 - Никаких инвестиционных советов, призывов купить или продать.
 - Каждая реплика есть на русском (ru) и на немецком (de). Немецкий — естественный, не дословный перевод.
 - Сегодня строго today_ru / today_de, время berlin_time (Берлин). Если упоминаешь день недели или время суток, то только эти. Не называй другой день.
-- greeting: приветствие в начале выпуска, каждый раз другое (не "добрый вечер", а свободно, с учётом времени суток), от лица Давида, 1 предложение.
+- greeting: приветствие в начале выпуска от лица Анны — робот-ведущей главного эфира Orb Studio; каждый раз другое (не шаблонное «добрый вечер»), с учётом дня и времени суток, 1 предложение. Имя ведущей в приветствии — только Анна.
 - signoff: шутливая просьба подписаться в конце, каждый раз новая, 1 предложение.
 
 Ответь только JSON без пояснений, строго такой формы:
@@ -412,18 +412,18 @@ async function voiceBroadcast(env, ctx, origin, items) {
   }
   const h = await sha(items.map((i) => i.headline).join("|"));
   const cache = caches.default;
-  const key = new Request(`${origin}/__cache/voice-v1-${h}`);
+  const key = new Request(`${origin}/__cache/voice-v2-${h}`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
   // тот же выпуск уже написан в другом дата-центре — берём из общей базы, Claude не зовём повторно
-  const shared = await sharedGet(env, "voice-" + h, 60 * 60e3);
+  const shared = await sharedGet(env, "voice2-" + h, 60 * 60e3);
   if (shared) { ctx.waitUntil(cache.put(key, new Response(JSON.stringify(shared), { headers: { "Cache-Control": "max-age=900" } }))); return shared; }
   // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
   // а следующий запрос получит уже готовый живой текст из кэша.
   const job = askClaude(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
     await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
-    await sharedPut(env, "voice-" + h, data);
+    await sharedPut(env, "voice2-" + h, data);
     return data;
   });
   ctx.waitUntil(job.catch(() => {}));
