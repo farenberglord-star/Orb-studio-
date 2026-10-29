@@ -46,6 +46,7 @@ h3{font-size:16px}
 /* Stage */
 .stage{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;padding-block:22px}
 @media (max-width:860px){.stage{grid-template-columns:1fr}}
+@media (max-width:600px){#studio{aspect-ratio:4/5}#studio .lower .say{font-size:14px;min-height:0}}
 .studio{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/11;max-width:100%;
   background:radial-gradient(120% 80% at 50% 110%,#13254a 0%,#0a1122 55%,#060912 100%)}
 .studio canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -283,7 +284,7 @@ const sevWord = v => v>=70?'тревожно':v>=45?'напряжённо':'сп
 // ---- Example data (would come from the news radars API) ----
 const ANCHORS = {
   david:{name:'ДАВИД',role:'Гео-радар · RU / CN / US',kind:'human',hue:C.holo,lang:'RU · DE',out:'видео 9:16, TikTok/YouTube'},
-  anna:{name:'АННА',role:'Радар бюджета домохозяйств',kind:'human',hue:'#ff9ecf',lang:'RU · DE',out:'видео 9:16'},
+  anna:{name:'АННА',role:'Радар бюджета домохозяйств · ведущая эфира',kind:'human',hue:'#7fe6ff',img:'/anchors/anna.jpg',lang:'RU · DE',out:'видео 9:16'},
   kai:{name:'КАЙ',role:'Крипто-радар · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'видео + короткие клипы'},
   lena:{name:'ЛЕНА',role:'Энерго-радар · нефть, газ',kind:'human',hue:C.ok,lang:'RU · DE',out:'видео 9:16'},
   orb7:{name:'ORB-7',role:'Ведущий для ИИ-агентов',kind:'agent',hue:C.holo2,lang:'EN · JSON',out:'JSON, SSE-поток, llms.txt'}
@@ -321,6 +322,77 @@ function route(){
 addEventListener('hashchange',route);
 
 // ---- Hologram anchor renderer (particle bust + rings + data shards) ----
+// ---- Голограмма из портрета: точки с объёмом + тонированное фото ----
+const IMG_CACHE={};
+function annaMask(u,v){ // где на портрете человек (голова + плечи), мягкие края
+  const e=(cx,cy,rx,ry)=>{const d=((u-cx)/rx)**2+((v-cy)/ry)**2;return Math.max(0,Math.min(1,(1.15-d)/0.35))};
+  const fade=Math.min(1,(1-v)/.22); // растворение книзу
+  return Math.max(e(.38,.30,.17,.23),e(.40,.78,.44,.40),e(.80,.66,.14,.12))*fade;
+}
+function hexRgb(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function loadHoloImg(url,hue){
+  const key=url+hue;if(IMG_CACHE[key])return IMG_CACHE[key];
+  const e={ready:false};IMG_CACHE[key]=e;
+  const im=new Image();
+  im.onload=()=>{
+    const [hr,hg,hb]=hexRgb(hue);
+    // точки
+    const GW=120,GH=Math.round(GW*im.height/im.width);
+    const c=document.createElement('canvas');c.width=GW;c.height=GH;const x=c.getContext('2d');x.drawImage(im,0,0,GW,GH);
+    const d=x.getImageData(0,0,GW,GH).data;const buckets=Array.from({length:8},()=>[]);
+    for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){
+      const k=(j*GW+i)*4,l=(.3*d[k]+.59*d[k+1]+.11*d[k+2])/255,u=i/GW,v=j/GH,m=annaMask(u,v);
+      if(m<.08)continue;
+      const a=m*(.18+.82*l);const b=Math.min(7,Math.floor(a*8));
+      buckets[b].push({u,v,z:(l-.5)*.10+(1-m)*.04,ph:Math.random()*6.28});
+    }
+    e.buckets=buckets;e.aspect=im.height/im.width;
+    // тонированное фото с маской
+    const dc=document.createElement('canvas');dc.width=im.width;dc.height=im.height;const dx=dc.getContext('2d');dx.drawImage(im,0,0);
+    const id=dx.getImageData(0,0,im.width,im.height),p=id.data;
+    for(let j=0;j<im.height;j++)for(let i=0;i<im.width;i++){
+      const k=(j*im.width+i)*4,l=(.3*p[k]+.59*p[k+1]+.11*p[k+2])/255,m=annaMask(i/im.width,j/im.height);
+      const mix=.45; // доля исходного цвета
+      p[k]=Math.min(255,(hr*(.15+1.05*l))*(1-mix)+p[k]*mix);
+      p[k+1]=Math.min(255,(hg*(.15+1.05*l))*(1-mix)+p[k+1]*mix);
+      p[k+2]=Math.min(255,(hb*(.15+1.05*l))*(1-mix)+p[k+2]*mix);
+      p[k+3]=Math.round(255*m*.92);
+    }
+    dx.putImageData(id,0,0);e.duo=dc;e.ready=true;
+  };
+  im.src=url;return e;
+}
+function drawHoloPerson(ctx,e,s,t,cx,cy,sc,W,H){
+  const hue=s.hue,h=H*(s.figH||.62),w=h/e.aspect,left=cx-w*.42,top=H*(s.figTop||.07);
+  const yaw=Math.sin(t*.45)*.35,pulse=s.talking?.08*Math.abs(Math.sin(t*7)):0;
+  const flick=.82+.12*Math.sin(t*13)+(Math.random()<.02?-.35:0);
+  // фото
+  ctx.save();ctx.globalAlpha=Math.max(.2,flick*.78);
+  const glitch=(s.lvl>60&&Math.random()<.04);
+  if(glitch){const sy=Math.random()*h*.8,sh=8+Math.random()*24;
+    ctx.drawImage(e.duo,0,0,e.duo.width,e.duo.height,left,top,w,h);
+    ctx.drawImage(e.duo,0,sy/h*e.duo.height,e.duo.width,sh/h*e.duo.height,left+(Math.random()-.5)*24,top+sy,w,sh);
+  }else ctx.drawImage(e.duo,left,top,w,h);
+  ctx.restore();
+  // лазерные точки с объёмом
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let b=0;b<8;b++){
+    const list=e.buckets[b];if(!list.length)continue;
+    const a=Math.min(1,(b+1)/8*(.55+pulse));
+    ctx.fillStyle=hue+Math.round(a*200).toString(16).padStart(2,'0');
+    for(const p of list){
+      const px=left+p.u*w+p.z*Math.sin(yaw)*w*1.4+Math.sin(t*1.3+p.ph)*.6;
+      const py=top+p.v*h;
+      ctx.fillRect(px,py,1.3,1.3);
+    }
+  }
+  // контурное свечение снизу вверх (скан по телу)
+  const sy=top+((t*.35)%1)*h;const g=ctx.createLinearGradient(0,sy-14,0,sy+14);
+  g.addColorStop(0,hue+'00');g.addColorStop(.5,hue+'55');g.addColorStop(1,hue+'00');
+  ctx.fillStyle=g;ctx.fillRect(left,sy-14,w,28);
+  ctx.restore();
+}
+
 function holoAnchor(cv,opts){
   const ctx=cv.getContext('2d');let W,H,dpr;
   const pts=[];
@@ -353,7 +425,9 @@ function holoAnchor(cv,opts){
     (s.shards||[]).forEach((sh,i,arr)=>{const a=t*.25+i*6.28/arr.length;const x=Math.cos(a)*rr*.95,y=Math.sin(a)*rr*.35;
       ctx.fillStyle=sevColor(sh)+'cc';ctx.fillRect(x-14,y-3,28,6);ctx.fillStyle=sevColor(sh)+'44';ctx.fillRect(x-22,y+5,44,2)});
     ctx.restore();
-    // particles bust
+    // ведущий: голограмма из портрета, если он есть, иначе силуэт из частиц
+    const himg=s.img?loadHoloImg(s.img,hue):null;
+    if(himg&&himg.ready){drawHoloPerson(ctx,himg,s,t,cx,cy,sc,W,H)}else{
     const yaw=Math.sin(t*.5)*.25, talk=s.talking?Math.abs(Math.sin(t*9))*.012:0, glitch=lvl>65&&Math.random()<.03;
     for(const p of pts){
       const x=p.x*Math.cos(yaw)+p.z*Math.sin(yaw);
@@ -362,6 +436,7 @@ function holoAnchor(cv,opts){
       const a=.35+.45*Math.sin(t*2+p.p);
       ctx.fillStyle=hue+Math.round(a*255).toString(16).padStart(2,'0');
       ctx.fillRect(px,py,1.6,1.6);
+    }
     }
     // horizontal scan band
     const by=(t*60)%H;ctx.fillStyle=hue+'14';ctx.fillRect(0,by,W,10);
@@ -429,17 +504,17 @@ function speak(text,anchorId){
   speechSynthesis.speak(u);
 }
 function play(){
-  const it=queue[qi],a=ANCHORS[it.r.anchor],txt=lines(it,true);
+  const it=queue[qi],a=ANCHORS[it.r.anchor].img?ANCHORS[it.r.anchor]:ANCHORS.anna,txt=lines(it,true);
   document.getElementById('anchorName').textContent=a.name+' · '+it.r.title.toUpperCase();
   const m=document.getElementById('mood');m.textContent=sevWord(it.f[3]);m.style.color=sevColor(it.f[3]);
   document.getElementById('hudR').textContent='RISK '+it.r.lvl+' · '+it.f[2];
   document.getElementById('hudR').style.color=sevColor(it.r.lvl);
-  stageState.hue=a.hue;stageState.lvl=it.r.lvl;stageState.shards=it.r.feed.map(f=>f[3]);
+  stageState.hue=a.hue;stageState.img=a.img;stageState.lvl=it.r.lvl;stageState.shards=it.r.feed.map(f=>f[3]);
   renderQueue();
   const say=document.getElementById('say');clearInterval(typing);let i=0;talking=true;
   if(RM){say.textContent=txt;talking=false}
   else typing=setInterval(()=>{i+=2;say.innerHTML=esc(txt.slice(0,i))+'<span class="cur"></span>';if(i>=txt.length){clearInterval(typing);if(!SPEAK)talking=false}},28);
-  if(SPEAK)speak(txt,it.r.anchor);
+  if(SPEAK)speak(txt,ANCHORS[it.r.anchor].img?it.r.anchor:'anna');
   document.getElementById('jsonOut').textContent=JSON.stringify(agentPayload(it),null,2);
 }
 function agentPayload(it){return{anchor:'orb-7',mirror_of:it.r.anchor,radar:it.r.id,headline:it.f[1],source:it.f[2],time:it.f[0],risk_index:it.r.lvl,delta_24h:it.r.lvl-it.r.prev,severity:sevWord(it.f[3]),confidence:0.72,is_example:!LIVE,advice:false,referral:{exchange:'Kraken',code:'ghqspfzq'}}}
@@ -495,7 +570,7 @@ function renderRadar(){
   document.getElementById('rAnchor').innerHTML=`${a.name}<span class="mood" style="color:${c}">${sevWord(r.lvl)}</span>`;
   document.getElementById('rSay').textContent=lines({r,f:r.feed[0]});
   document.getElementById('rHud').textContent='HOLO-MAP · '+r.title.toUpperCase();
-  Object.assign(radarState,{hue:a.hue,lvl:r.lvl,shards:r.feed.map(f=>f[3])});
+  Object.assign(radarState,{img:a.img,hue:a.hue,lvl:r.lvl,shards:r.feed.map(f=>f[3])});
   document.getElementById('rSwitch').innerHTML=RADARS.map(x=>`<a class="btn" style="text-decoration:none;${x.id===r.id?'color:var(--holo);border-color:var(--holo)':''}" href="#radar-${x.id}">${x.title}</a>`).join('');
   const poses=['приветственный наклон головы','наклон вперёд, указывает на голограмму','руки скрещены, серьёзное лицо','откинулся назад, сухая улыбка','уверенная полуулыбка, кнопка подписки пульсирует'];
   document.getElementById('rScript').textContent=r.feed.concat([r.feed[0],r.feed[1]]).slice(0,5).map((f,i)=>
@@ -514,7 +589,7 @@ function renderAnchors(){
       <div style="font-size:13px">${a.role}</div><div class="meta">язык: ${a.lang} · выход: ${a.out}</div>
       <div>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">радар ${r.lvl} ↗</a>`:'<a class="chip" style="text-decoration:none" href="#agents">API ↗</a>'}</div></div>`;
     g.appendChild(el);
-    const st={hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
+    const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
     holoAnchor(el.querySelector('canvas'),()=>st);
   });
   const el=document.createElement('div');el.className='ac';el.style.borderStyle='dashed';
