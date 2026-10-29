@@ -129,11 +129,24 @@ async function krakenTicker(pairs) {
 }
 
 // ---------- Оценка ----------
+// Латинские слова ищем по границе слова: короткие (war, sec, gas, oil…) только целиком,
+// чтобы «war» не находилось в «warrant»; длинные — как начало слова (sanction → sanctions).
+const KW_RE = new Map();
+function matchKw(t, k) {
+  if (!/^[a-z0-9 .+-]+$/.test(k)) return t.includes(k); // кириллица и др. — по основе слова
+  let re = KW_RE.get(k);
+  if (!re) {
+    const e = k.replace(/[.+-]/g, (c) => "\\" + c);
+    re = new RegExp(k.length <= 4 ? `\\b${e}(s|es)?\\b` : `\\b${e}`);
+    KW_RE.set(k, re);
+  }
+  return re.test(t);
+}
 function scoreItem(title, factors) {
   const t = title.toLowerCase();
   let best = 15; const hits = [];
   for (const [name, f] of Object.entries(factors)) {
-    if (f.k.some((k) => t.includes(k))) { hits.push(name); best = Math.max(best, f.w); }
+    if (f.k.some((k) => matchKw(t, k))) { hits.push(name); best = Math.max(best, f.w); }
   }
   return { weight: best, hits };
 }
@@ -171,14 +184,17 @@ async function buildRadar(def, env) {
   }
   lvl = Math.max(0, Math.min(100, lvl));
 
-  // Дельта за сутки (если есть KV)
+  // Дельта за сутки: индекс дня хранится в базе D1 (таблица hits, kind='lvl')
   let prev = lvl;
-  if (env && env.ORB_KV) {
-    const day = new Date().toISOString().slice(0, 10);
-    const yday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
-    const y = await env.ORB_KV.get(`lvl:${def.id}:${yday}`);
-    if (y !== null) prev = +y;
-    await env.ORB_KV.put(`lvl:${def.id}:${day}`, String(lvl), { expirationTtl: 7 * 864e5 });
+  if (env && env.DB) {
+    try {
+      await ensureTable(env);
+      const day = new Date().toISOString().slice(0, 10);
+      const yday = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      const y = await env.DB.prepare("SELECT n FROM hits WHERE day=?1 AND page=?2 AND kind='lvl' AND name=''").bind(yday, def.id).first();
+      if (y && y.n !== null && y.n !== undefined) prev = +y.n;
+      await env.DB.prepare("INSERT INTO hits (day, page, kind, name, n) VALUES (?1, ?2, 'lvl', '', ?3) ON CONFLICT(day, page, kind, name) DO UPDATE SET n = excluded.n").bind(day, def.id, lvl).run();
+    } catch (e) { /* без базы дельта просто 0 */ }
   }
 
   return {
@@ -264,6 +280,7 @@ const SYSTEM = `Ты пишешь реплики для ИИ-ведущих но
 - Тон соответствует серьёзности: при severity "тревожно" и при новостях о жертвах, ударах, катастрофах никаких шуток и иронии.
 - Никаких инвестиционных советов, призывов купить или продать.
 - Каждая реплика есть на русском (ru) и на немецком (de). Немецкий — естественный, не дословный перевод.
+- Сегодня строго today_ru / today_de, время berlin_time (Берлин). Если упоминаешь день недели или время суток, то только эти. Не называй другой день.
 - greeting: приветствие в начале выпуска, каждый раз другое (не "добрый вечер", а свободно, с учётом времени суток), от лица Давида, 1 предложение.
 - signoff: шутливая просьба подписаться в конце, каждый раз новая, 1 предложение.
 
@@ -286,9 +303,12 @@ function templateBroadcast(items) {
 }
 
 async function askClaude(env, items) {
-  const now = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", weekday: "long", hour: "2-digit", minute: "2-digit" });
+  const tz = { timeZone: "Europe/Berlin" };
+  const weekdayRu = new Date().toLocaleDateString("ru-RU", { ...tz, weekday: "long" });
+  const weekdayDe = new Date().toLocaleDateString("de-DE", { ...tz, weekday: "long" });
+  const hhmmB = new Date().toLocaleTimeString("de-DE", { ...tz, hour: "2-digit", minute: "2-digit" });
   const input = {
-    berlin_time: now,
+    today_ru: weekdayRu, today_de: weekdayDe, berlin_time: hhmmB,
     personas: PERSONAS,
     headlines: items.map((it, i) => ({
       i, anchor: it.anchor, radar: it.radarTitle, headline: it.headline, source: it.source,
