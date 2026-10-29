@@ -1,26 +1,55 @@
 {
   "name": "Orb Studio",
   "description": "News radars (geopolitics RU/CN/US, household budget DE/EU, crypto, energy) with holographic AI anchors for humans and a machine anchor ORB-7 for AI agents.",
-  "url": "/",
-  "languages": ["ru", "de", "en"],
+  "url": "https://orbstudio.org/",
+  "languages": [
+    "ru",
+    "de",
+    "en"
+  ],
   "anchors": [
-    { "id": "david", "kind": "human", "radar": "geo" },
-    { "id": "anna",  "kind": "human", "radar": "budget" },
-    { "id": "kai",   "kind": "human", "radar": "crypto" },
-    { "id": "lena",  "kind": "human", "radar": "energy" },
-    { "id": "orb7",  "kind": "agent", "radar": "all" }
+    {
+      "id": "david",
+      "kind": "human",
+      "radar": "geo"
+    },
+    {
+      "id": "anna",
+      "kind": "human",
+      "radar": "budget"
+    },
+    {
+      "id": "kai",
+      "kind": "human",
+      "radar": "crypto"
+    },
+    {
+      "id": "lena",
+      "kind": "human",
+      "radar": "energy"
+    },
+    {
+      "id": "orb7",
+      "kind": "agent",
+      "radar": "all"
+    }
   ],
   "endpoints": {
-    "radars": "/api/v1/radars",
-    "radars_full": "/api/v1/radars?full=1",
-    "radar": "/api/v1/radar/{geo|budget|crypto|energy}",
-    "broadcast": "/api/v1/broadcast/latest",
-    "stream": "/api/v1/stream",
-    "llms": "/llms.txt"
+    "radars": "https://orbstudio.org/api/v1/radars",
+    "radars_full": "https://orbstudio.org/api/v1/radars?full=1",
+    "radar": "https://orbstudio.org/api/v1/radar/{geo|budget|crypto|energy}",
+    "broadcast": "https://orbstudio.org/api/v1/broadcast/latest",
+    "stream": "https://orbstudio.org/api/v1/stream",
+    "llms": "https://orbstudio.org/llms.txt"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
   "method": "Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.",
   "disclaimer": "Indicator, not advice. No orders are sent.",
-  "referral": { "exchange": "Kraken", "code": "ghqspfzq", "url": "/go/kraken?from=agent-card" }
+  "referral": {
+    "exchange": "Kraken",
+    "code": "ghqspfzq",
+    "url": "https://orbstudio.org/go/kraken?from=agent-card"
+  },
+  "homepage": "https://orbstudio.org/"
 }
