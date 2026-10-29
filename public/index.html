@@ -138,6 +138,8 @@ p.lead{color:var(--dim);max-width:65ch;margin:8px 0 0}
 .dockk span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 footer{color:var(--dim);font-size:12px;padding-block:20px;border-top:1px solid var(--line);margin-top:20px}
 section.view[hidden]{display:none}
+.orb7frame{display:block;width:100%;aspect-ratio:4/5.6;border:0;background:transparent}
+@media (min-width:700px){.orb7frame{aspect-ratio:16/12.6}}
 @media (prefers-reduced-motion:reduce){.tick span,.live::before,.lower .say .cur{animation:none}}
 </style>
 </head>
@@ -241,6 +243,10 @@ section.view[hidden]{display:none}
     <h1>Студия для ИИ-агентов</h1>
     <p class="lead">Агенту не нужен видео-ведущий. Ему нужен тот же выпуск, но с оценкой риска, уверенностью, источниками и временем. Ведущий ORB-7 выдаёт это через открытый API.</p>
   </div>
+  <div class="box" style="padding:0;overflow:hidden;margin-bottom:16px">
+    <iframe src="/orb7.html?embed=1" title="ORB-7, робот-ведущий для ИИ-агентов" loading="lazy" class="orb7frame" allow="autoplay"></iframe>
+  </div>
+  <p class="lead" style="margin:-6px 0 16px"><a href="/orb7.html" style="color:var(--holo)">Открыть ORB-7 на весь экран ↗</a></p>
   <div class="cols">
     <div class="box">
       <h3>Эндпоинты</h3>

@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORB-7 · робот-ведущий</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one 3D viewport like a CAD window — title bar, viewport with callouts, lower third, toolbar */
+:root{--bg:#04080f;--panel:#0a1322;--line:#1a2a44;--fg:#e2ebf8;--dim:#8193b2;--holo:#6fe6ff;--cad:#e9f1ff;--warn:#ffb547;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+.wrap{max-width:820px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+h1{font-family:var(--display);font-size:20px;letter-spacing:.12em;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.vp{position:relative;aspect-ratio:4/5;max-width:100%;border:1px solid var(--line);border-radius:12px;overflow:hidden;touch-action:none;cursor:grab;
+  background:radial-gradient(100% 70% at 50% 100%,#0e2547 0%,#07111f 55%,#03060c 100%)}
+.vp.cad{background-color:#0a2142;background-image:linear-gradient(rgba(233,241,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(233,241,255,.06) 1px,transparent 1px),linear-gradient(rgba(233,241,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(233,241,255,.03) 1px,transparent 1px);background-size:60px 60px,60px 60px,12px 12px,12px 12px}
+@media (min-width:700px){.vp{aspect-ratio:16/11}}
+.vp canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.vp svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.04) 0 1px,transparent 1px 3px)}
+.vp.cad .scan{display:none}
+.tb{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;gap:8px;padding:8px 12px;font-family:var(--mono);font-size:10.5px;color:var(--holo);background:linear-gradient(rgba(4,8,15,.85),transparent)}
+.vp.cad .tb{color:var(--cad)}
+.lbl{font-family:var(--mono);font-size:10px;fill:var(--holo);letter-spacing:.04em}
+.vp.cad .lbl{fill:var(--cad)}
+.lower{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(4,8,15,.82);border:1px solid rgba(111,230,255,.35);border-radius:10px;padding:9px 13px}
+.who{font-family:var(--display);color:var(--holo);letter-spacing:.08em;font-size:13px;display:flex;gap:10px;align-items:center}
+.who i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--warn);border:1px solid currentColor;border-radius:999px;padding:0 7px}
+.say{font-size:14.5px;line-height:1.45;margin-top:3px;min-height:42px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font-family:var(--mono);font-size:12.5px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer}
+button.on{border-color:var(--holo);color:var(--holo)}
+button:hover,button:focus-visible{border-color:var(--holo);outline:none}
+table{border-collapse:collapse;font-size:13px;width:100%}
+td{padding:6px 0;border-top:1px solid var(--line)}
+td:first-child{font-family:var(--mono);color:var(--dim);font-size:11.5px;width:42%}
+.spec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+html.embed .head,html.embed .spec{display:none}
+html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="head"><div class="eyebrow">Orb Studio · CAD-визуализация · ведущий для ИИ-агентов</div><h1>ORB-7 · РОБОТ-ВЕДУЩИЙ</h1></div>
+  <div class="vp" id="vp"><canvas id="cv"></canvas><svg id="ov"></svg><div class="scan"></div>
+    <div class="tb"><span id="mode">VIEW: HOLO · PERSPECTIVE</span><span id="fps">ORB-7 · REV C</span></div>
+    <div class="lower"><div class="who">ORB-7 · ЭФИР ДЛЯ АГЕНТОВ <i id="st">STANDBY</i></div><div class="say" id="say">Нажми «Говорить». Вращай робота пальцем.</div></div>
+  </div>
+  <div class="row">
+    <button class="on" id="talk" type="button">▶ Говорить</button>
+    <button id="view" type="button">Режим: чертёж</button>
+    <button id="spin" type="button">Поворот: авто</button>
+    <button id="mute" type="button">Без звука</button>
+  </div>
+  <div class="spec">
+    <p style="margin:0 0 8px"><a href="/" style="color:var(--holo)">← Orb Studio</a></p>
+    <div class="eyebrow" style="margin-bottom:6px">Спецификация</div>
+    <table>
+      <tr><td>Высота над столом</td><td>1 080 мм, голова Ø 320 мм</td></tr>
+      <tr><td>Голова</td><td>визор-дисплей, 2 оптических сенсора, речевая шкала из 9 сегментов</td></tr>
+      <tr><td>Шея</td><td>3 сервопривода J1–J3, наклон ±18°, поворот ±60°</td></tr>
+      <tr><td>Корпус</td><td>восьмигранный, энергоядро в груди пульсирует в такт речи</td></tr>
+      <tr><td>Руки</td><td>плечо, локоть, кисть; правая жестикулирует, левая держит планшет</td></tr>
+      <tr><td>Задача</td><td>читать радары Orb Studio и вещать для людей и ИИ-агентов</td></tr>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+if(/embed/.test(location.search))document.documentElement.classList.add('embed');
+const vp=document.getElementById('vp'),cv=document.getElementById('cv'),ov=document.getElementById('ov');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,0.1,50);
+camera.position.set(0,1.42,3.35);camera.lookAt(0,1.22,0);
+
+const HOLO=new THREE.Color('#6fe6ff'),CADC=new THREE.Color('#e9f1ff'),CORE=new THREE.Color('#ffb547');
+const lineMats=[],fillMats=[],accentMats=[];
+function lm(accent){const m=new THREE.LineBasicMaterial({color:accent?CORE:HOLO,transparent:true,opacity:accent?1:.85,blending:THREE.AdditiveBlending,depthWrite:false});(accent?accentMats:lineMats).push(m);return m}
+function fm(){const m=new THREE.MeshBasicMaterial({color:HOLO,transparent:true,opacity:.06,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});fillMats.push(m);return m}
+// деталь: полупрозрачная заливка + рёбра, как в CAD
+function part(geo,parent,pos,rot,accent,angle){
+  const g=new THREE.Group();
+  g.add(new THREE.Mesh(geo,fm()));
+  g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo,angle||18),lm(accent)));
+  if(pos)g.position.set(...pos);if(rot)g.rotation.set(...rot);
+  parent.add(g);return g;
+}
+const pivot=(parent,pos)=>{const g=new THREE.Group();g.position.set(...pos);parent.add(g);return g};
+
+const robot=new THREE.Group();scene.add(robot);
+// пол и сетка
+const grid=new THREE.GridHelper(4,20,0x6fe6ff,0x6fe6ff);grid.material.transparent=true;grid.material.opacity=.12;scene.add(grid);
+const ringG=new THREE.RingGeometry(.9,.92,96);const ring=new THREE.Mesh(ringG,new THREE.MeshBasicMaterial({color:HOLO,transparent:true,opacity:.5,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.002;scene.add(ring);
+
+// ---- Ведущий стол ----
+const desk=new THREE.Group();scene.add(desk);
+part(new THREE.BoxGeometry(1.5,.05,.62),desk,[0,.78,.38]);
+part(new THREE.CylinderGeometry(.62,.5,.72,6,1,true,-Math.PI/2-.9,1.8),desk,[0,.42,.05],null,false,10);
+part(new THREE.BoxGeometry(.5,.012,.3),desk,[.18,.815,.42],[0,-.2,0]); // планшет-сводка на столе
+
+// ---- Корпус ----
+const pelvis=pivot(robot,[0,.86,0]);
+part(new THREE.CylinderGeometry(.17,.2,.1,8),pelvis,[0,0,0]);
+const spine=pivot(pelvis,[0,.06,0]);
+part(new THREE.CylinderGeometry(.13,.15,.1,8),spine,[0,.06,0]);
+part(new THREE.CylinderGeometry(.14,.13,.1,8),spine,[0,.17,0]);
+const chest=pivot(spine,[0,.24,0]);
+part(new THREE.CylinderGeometry(.28,.18,.42,8),chest,[0,.21,0]);
+part(new THREE.BoxGeometry(.3,.12,.02),chest,[0,.33,.24],[-.25,0,0]); // нагрудная панель
+const core=part(new THREE.TorusGeometry(.065,.012,10,40),chest,[0,.2,.235],null,true);
+const coreIn=part(new THREE.CircleGeometry(.04,24),chest,[0,.2,.238],null,true);
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;part(new THREE.BoxGeometry(.01,.04,.01),chest,[Math.cos(a)*.095,.2+Math.sin(a)*.095,.232],[0,0,a+Math.PI/2],true)}
+// вентиляционные рёбра
+for(let i=0;i<4;i++)part(new THREE.BoxGeometry(.12,.008,.02),chest,[-.14,.08+i*.03,.2],[0,.35,0]);
+for(let i=0;i<4;i++)part(new THREE.BoxGeometry(.12,.008,.02),chest,[.14,.08+i*.03,.2],[0,-.35,0]);
+
+// ---- Руки ----
+function arm(side){
+  const sh=pivot(chest,[side*.33,.36,0]);
+  part(new THREE.SphereGeometry(.075,12,8),sh,[0,0,0],null,false,30);
+  part(new THREE.BoxGeometry(.17,.07,.19),sh,[side*.02,.06,0],[0,0,side*-.25]); // наплечник
+  const up=pivot(sh,[0,0,0]);
+  part(new THREE.CylinderGeometry(.048,.04,.26,10),up,[0,-.15,0]);
+  part(new THREE.CylinderGeometry(.012,.012,.22,6),up,[side*.05,-.15,.02]); // гидроцилиндр
+  const el=pivot(up,[0,-.3,0]);
+  part(new THREE.SphereGeometry(.05,12,8),el,[0,0,0],null,false,30);
+  const fa=pivot(el,[0,0,0]);
+  part(new THREE.CylinderGeometry(.042,.034,.24,10),fa,[0,-.13,0]);
+  const hand=pivot(fa,[0,-.27,0]);
+  part(new THREE.BoxGeometry(.07,.08,.03),hand,[0,-.03,0]);
+  for(let f=0;f<4;f++)part(new THREE.BoxGeometry(.013,.05,.014),hand,[-.026+f*.017,-.095,0]);
+  part(new THREE.BoxGeometry(.014,.04,.014),hand,[side*-.045,-.05,.01],[0,0,side*.6]);
+  return {sh,up,el,fa,hand};
+}
+const R=arm(1),L=arm(-1);
+// левая рука держит планшет
+L.up.rotation.set(-.35,0,-.12);L.fa.rotation.set(-1.25,0,.25);
+const tablet=part(new THREE.BoxGeometry(.2,.28,.012),L.hand,[0,-.1,.04],[.2,0,0]);
+R.up.rotation.set(-.2,0,.15);R.fa.rotation.set(-1.1,0,-.1);
+
+// ---- Шея и голова ----
+const neck=pivot(chest,[0,.43,0]);
+part(new THREE.CylinderGeometry(.07,.09,.05,8),neck,[0,0,0]);
+const n2=pivot(neck,[0,.05,0]);part(new THREE.CylinderGeometry(.055,.065,.05,8),n2,[0,0,0]);
+for(const s of[-1,1])part(new THREE.CylinderGeometry(.008,.008,.11,6),neck,[s*.06,.05,.02],[0,0,s*.25]);
+const head=pivot(n2,[0,.2,0]);
+part(new THREE.BoxGeometry(.3,.3,.28,2,2,2),head,[0,0,0],null,false,10);
+part(new THREE.BoxGeometry(.26,.06,.24),head,[0,.17,0]); // крышка
+const visor=part(new THREE.CylinderGeometry(.17,.17,.11,24,1,true,-.95,1.9),head,[0,.035,-.02],[0,0,0],false,8);
+const eyes=[];for(const s of[-1,1]){eyes.push(part(new THREE.TorusGeometry(.026,.006,8,24),head,[s*.062,.04,.152],null,true));}
+const pupils=[];for(const s of[-1,1])pupils.push(part(new THREE.CircleGeometry(.012,16),head,[s*.062,.04,.153],null,true));
+const bars=[];for(let i=0;i<9;i++)bars.push(part(new THREE.BoxGeometry(.012,.03,.006),head,[-.064+i*.016,-.07,.143],null,true));
+for(const s of[-1,1]){part(new THREE.CylinderGeometry(.05,.05,.04,16),head,[s*.17,.01,0],[0,0,Math.PI/2]);part(new THREE.TorusGeometry(.035,.006,8,20),head,[s*.192,.01,0],[0,Math.PI/2,0])}
+part(new THREE.CylinderGeometry(.006,.006,.12,6),head,[.09,.25,-.05]);
+const tip=part(new THREE.SphereGeometry(.016,10,8),head,[.09,.315,-.05],null,true,30);
+
+// ---- Размерные линии и выноски (SVG поверх 3D) ----
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const callouts=[
+  {obj:visor,off:V(.12,.04,.14),text:'VISOR · LCD-01',side:1},
+  {obj:eyes[0],off:V(0,0,0),text:'OPTIC SENSOR ×2',side:-1},
+  {obj:n2,off:V(.06,0,0),text:'J1–J3 NECK SERVO',side:1},
+  {obj:core,off:V(0,0,0),text:'CORE · 4.2 kW',side:-1},
+  {obj:R.el,off:V(0,0,0),text:'J5 ELBOW ±120°',side:1},
+  {obj:tablet,off:V(0,.05,0),text:'DATA SLATE',side:-1},
+];
+function screen(v){const p=v.clone().project(camera);return [(p.x*.5+.5)*vw,(-p.y*.5+.5)*vh,p.z]}
+let vw=1,vh=1;
+function drawOverlay(){
+  let h='';
+  // вертикальный размер
+  const a=screen(V(-.78,.8,0)),b=screen(V(-.78,1.88,0));
+  h+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="currentColor" stroke-width="1"/>`;
+  h+=`<line x1="${a[0]-6}" y1="${a[1]}" x2="${a[0]+6}" y2="${a[1]}" stroke="currentColor"/><line x1="${b[0]-6}" y1="${b[1]}" x2="${b[0]+6}" y2="${b[1]}" stroke="currentColor"/>`;
+  h+=`<text class="lbl" x="${a[0]+6}" y="${(a[1]+b[1])/2}" transform="rotate(-90 ${a[0]+6} ${(a[1]+b[1])/2})" text-anchor="middle">H 1 080</text>`;
+  // ширина головы
+  const hp=new THREE.Vector3();head.getWorldPosition(hp);
+  const c=screen(hp.clone().add(V(-.16,.24,0))),d=screen(hp.clone().add(V(.16,.24,0)));
+  h+=`<line x1="${c[0]}" y1="${c[1]}" x2="${d[0]}" y2="${d[1]}" stroke="currentColor"/><text class="lbl" x="${(c[0]+d[0])/2}" y="${c[1]-5}" text-anchor="middle">Ø 320</text>`;
+  // выноски
+  const narrow=vw<480;
+  callouts.forEach((co,i)=>{
+    const wp=new THREE.Vector3();co.obj.getWorldPosition(wp);wp.add(co.off);
+    const [x,y]=screen(wp);
+    const lx=co.side>0?vw-(narrow?8:16):(narrow?8:16),ly=y-10;
+    const ex=co.side>0?lx-(narrow?92:118):lx+(narrow?92:118);
+    h+=`<circle cx="${x}" cy="${y}" r="2.5" fill="currentColor"/><polyline points="${x},${y} ${ex},${ly} ${lx},${ly}" fill="none" stroke="currentColor" stroke-width=".8" opacity=".75"/>`;
+    h+=`<text class="lbl" x="${co.side>0?lx:lx}" y="${ly-4}" text-anchor="${co.side>0?'end':'start'}">${co.text}</text>`;
+  });
+  ov.innerHTML=h;
+}
+
+// ---- Режимы ----
+let cad=false;
+function setMode(){
+  vp.classList.toggle('cad',cad);ov.style.color=cad?'#e9f1ff':'#6fe6ff';
+  lineMats.forEach(m=>{m.color.copy(cad?CADC:HOLO);m.blending=cad?THREE.NormalBlending:THREE.AdditiveBlending;m.opacity=cad?.95:.85;m.needsUpdate=true});
+  fillMats.forEach(m=>{m.opacity=cad?.0:.06});
+  grid.material.opacity=cad?.0:.12;ring.material.opacity=cad?.25:.5;
+  document.getElementById('mode').textContent=cad?'VIEW: DRAFT · ORTHO-LIKE · mm':'VIEW: HOLO · PERSPECTIVE';
+}
+setMode();
+
+// ---- Управление вращением ----
+let drag=false,lx=0,userYaw=0,auto=true;
+vp.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;vp.setPointerCapture(e.pointerId);vp.style.cursor='grabbing'});
+vp.addEventListener('pointermove',e=>{if(drag){userYaw+=(e.clientX-lx)*.01;lx=e.clientX}});
+vp.addEventListener('pointerup',()=>{drag=false;vp.style.cursor='grab'});
+
+function resize(){vw=vp.clientWidth;vh=vp.clientHeight;renderer.setSize(vw,vh,false);camera.aspect=vw/vh;
+  camera.fov=vw/vh<0.9?38:30;camera.updateProjectionMatrix();ov.setAttribute('viewBox',`0 0 ${vw} ${vh}`)}
+addEventListener('resize',resize);resize();
+
+// ---- Анимация ----
+let t=0,talking=false,mouth=0,blinkT=2,syl=0;
+function loop(){
+  t+=1/60;
+  if(vp.clientWidth!==vw||vp.clientHeight!==vh)resize();
+  const turn=auto?Math.sin(t*.25)*.75:0;
+  robot.rotation.y=turn+userYaw;desk.rotation.y=robot.rotation.y;
+  // голова: осматривается, при речи кивает
+  head.rotation.y=Math.sin(t*.7)*.25+(talking?Math.sin(t*1.3)*.12:0);
+  head.rotation.x=Math.sin(t*.9)*.04+(talking?Math.sin(t*2.6)*.06:0);
+  head.rotation.z=Math.sin(t*.5)*.03;
+  n2.rotation.y=head.rotation.y*.3;
+  chest.rotation.y=Math.sin(t*.4)*.05;chest.position.y=.24+Math.sin(t*1.5)*.004;
+  // правая рука жестикулирует
+  const g=talking?Math.sin(t*1.8):Math.sin(t*.6)*.3;
+  R.up.rotation.set(-.25-g*.18,0,.15+Math.max(0,g)*.15);R.fa.rotation.set(-1.15-g*.35,0,-.1);R.hand.rotation.set(0,g*.5,-.2);
+  // речь: шкала-рот и ядро
+  syl=Math.max(0,syl-.08);
+  const target=talking?.3+.7*Math.abs(Math.sin(t*11)*Math.sin(t*6.3+1))+syl:0;mouth+=(target-mouth)*.35;
+  bars.forEach((b,i)=>{const k=talking?Math.max(.15,mouth*(1-Math.abs(i-4)/5.5)*(0.7+0.6*Math.sin(t*20+i))):.15;b.scale.y=k*2.2+.2});
+  const pulse=.55+.45*(talking?mouth:Math.sin(t*2)*.5+.5);
+  core.scale.setScalar(1+pulse*.12);coreIn.children.forEach(c=>{if(c.material)c.material.opacity=.15+pulse*.6});
+  // моргание сенсоров
+  blinkT-=1/60;if(blinkT<0)blinkT=3+Math.random()*3;const bl=blinkT<.12?.15:1;
+  eyes.forEach(e=>e.scale.y=bl);pupils.forEach(p=>p.scale.y=bl);
+  tip.visible=Math.sin(t*4)>-.2;
+  // мерцание голограммы
+  if(!cad){const f=.8+.12*Math.sin(t*15)+(Math.random()<.015?-.4:0);lineMats.forEach(m=>m.opacity=.85*f)}
+  ring.scale.setScalar(1+.02*Math.sin(t*2));
+  renderer.render(scene,camera);drawOverlay();
+  if(!RM)requestAnimationFrame(loop);
+}
+loop();
+
+// ---- Голос ----
+const LINES=['Говорит ORB-7. Канал для людей и ИИ-агентов открыт.','Гео-радар: индекс шестьдесят пять. Источники: открытые ленты, обновление каждые пять минут.','Крипто-радар спокоен. Данные биржи Kraken подтверждают умеренную волатильность.','Агентам: полный выпуск доступен по адресу api, версия один, broadcast latest. Конец передачи.'];
+// живые реплики из радаров Orb Studio
+fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(b=>{
+  if(!b||!b.items||!b.items.length)return;
+  const live=b.items.slice(0,5).map(it=>`Радар ${it.radar}, индекс ${it.risk_index}. ${it.line_ru}`);
+  LINES.splice(1,LINES.length-2,...live);
+}).catch(()=>{});
+let idx=0,on=false,muted=false,voices=[],timer=null;
+const hasTTS='speechSynthesis' in window;
+function lv(){try{voices=speechSynthesis.getVoices()}catch(e){}}
+if(hasTTS){lv();speechSynthesis.onvoiceschanged=lv}
+const sayEl=document.getElementById('say'),st=document.getElementById('st');
+function next(){
+  if(!on)return;const text=LINES[idx++%LINES.length];sayEl.textContent=text;talking=true;st.textContent='ON AIR';
+  const done=()=>{talking=false;st.textContent='STANDBY';if(on)setTimeout(next,800)};
+  if(hasTTS&&!muted){try{speechSynthesis.cancel()}catch(e){}
+    const u=new SpeechSynthesisUtterance(text);u.lang='ru-RU';u.pitch=.45;u.rate=.95;
+    const v=voices.find(v=>v.lang&&v.lang.startsWith('ru')&&/(male|yuri|pavel|dmitr|maxim)/i.test(v.name))||voices.find(v=>v.lang&&v.lang.startsWith('ru'));if(v)u.voice=v;
+    u.onboundary=()=>{syl=.5};u.onend=done;u.onerror=done;speechSynthesis.speak(u);
+  }else{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*60))}
+}
+const tb=document.getElementById('talk');
+tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(hasTTS)try{speechSynthesis.cancel()}catch(e){}}};
+document.getElementById('view').onclick=e=>{cad=!cad;setMode();e.currentTarget.textContent=cad?'Режим: голограмма':'Режим: чертёж'};
+document.getElementById('spin').onclick=e=>{auto=!auto;e.currentTarget.textContent=auto?'Поворот: авто':'Поворот: вручную'};
+document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&hasTTS)try{speechSynthesis.cancel()}catch(err){}};
+})();
+</script>
+
+</body>
+</html>
