@@ -2,6 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta name="description" content="ORB-7 — робот-ведущий Orb Studio для ИИ-агентов: читает новостные радары. Данные: /api/v1/broadcast/latest.">
+<link rel="alternate" type="application/json" href="/api/v1/broadcast/latest" title="Current broadcast (JSON)">
+<link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ORB-7 · робот-ведущий</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -39,7 +42,16 @@ table{border-collapse:collapse;font-size:13px;width:100%}
 td{padding:6px 0;border-top:1px solid var(--line)}
 td:first-child{font-family:var(--mono);color:var(--dim);font-size:11.5px;width:42%}
 .spec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-html.embed .head,html.embed .spec{display:none}
+html.embed .head,html.embed .spec,html.embed .kraken,html.embed details.machine,html.embed .agentline{display:none}
+.kraken{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(155,140,255,.16),var(--panel));border:1px solid rgba(155,140,255,.45);border-radius:12px;padding:12px 14px}
+.kraken strong{font-family:var(--display);letter-spacing:.06em}.kraken code{font-family:var(--mono);color:#b9aeff}
+.kraken a{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--fg);border:1px solid #9b8cff;border-radius:8px;padding:8px 12px;text-decoration:none}
+.kraken small{flex-basis:100%;color:var(--dim);font-size:11px}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}.agentline a{color:var(--holo)}
+.counter{font-family:var(--mono);font-size:11px;color:var(--dim)}.counter b{color:var(--fg)}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}details.machine a{color:var(--holo)}
 html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
 </style>
 </head>
@@ -57,6 +69,8 @@ html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
     <button id="spin" type="button">Поворот: авто</button>
     <button id="mute" type="button">Без звука</button>
   </div>
+  <p class="agentline">🤖 Агентам: выпуск ORB-7 в JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · <a href="/.well-known/agent.json">agent.json</a> · <span class="counter" id="counter">👁 <b id="cPage">—</b> · 🤖 сегодня <b id="cAgents">—</b></span></p>
+  <div class="kraken"><strong>KRAKEN</strong><span>Котировки для ORB-7 — с Kraken API · код <code>ghqspfzq</code></span><a href="/go/kraken?from=orb7" target="_blank" rel="noopener">Открыть Kraken ↗</a><small>Реферальная ссылка · не инвестиционный совет · криптовалюты — это риск</small></div>
   <div class="spec">
     <p style="margin:0 0 8px"><a href="/" style="color:var(--holo)">← Orb Studio</a></p>
     <div class="eyebrow" style="margin-bottom:6px">Спецификация</div>
@@ -69,8 +83,21 @@ html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
       <tr><td>Задача</td><td>читать радары Orb Studio и вещать для людей и ИИ-агентов</td></tr>
     </table>
   </div>
+  <details class="machine"><summary>Текстовая версия эфира · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Живые заголовки подставляются сервером. Данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>.</p></section></details>
 </div>
 
+<script>
+// счётчик просмотров (во встроенном виде не считаем, чтобы не дублировать страницу агентов)
+if(!/embed/.test(location.search)){
+  let seen=false;try{seen=sessionStorage.getItem('orbCounted_orb7')==='1'}catch(e){}
+  (seen?fetch('/api/v1/stats?page=orb7'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"orb7"}'}))
+    .then(r=>r.ok?r.json():null).then(st=>{const c=document.getElementById('counter');
+      if(!st||!st.enabled){c.innerHTML='<img alt="visits" style="height:16px;vertical-align:middle" src="https://visitor-badge.laobi.icu/badge?page_id=orb-studio.farenberglord.workers.dev.orb7&left_text=visits">';return}
+      try{sessionStorage.setItem('orbCounted_orb7','1')}catch(e){}
+      document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');document.getElementById('cAgents').textContent=Number(st.agents_today).toLocaleString('ru-RU');
+    }).catch(()=>{});
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (()=>{

@@ -5,6 +5,8 @@ compatibility_date = "2026-10-01"
 [assets]
 directory = "./public"
 binding = "ASSETS"
+# Машинные файлы проходят через Worker, чтобы считать визиты ИИ-агентов
+run_worker_first = ["/", "/index.html", "/orb7.html", "/llms.txt", "/.well-known/*", "/robots.txt"]
 
 [vars]
 KRAKEN_CODE = "ghqspfzq"
@@ -17,3 +19,10 @@ KRAKEN_CODE = "ghqspfzq"
 # [[kv_namespaces]]
 # binding = "ORB_KV"
 # id = "ВСТАВЬ_ID"
+
+# Счётчики просмотров и ИИ-агентов (Cloudflare D1).
+# Создай базу в панели: Storage & Databases → D1 → Create → имя orb-stats, затем вставь её Database ID сюда и убери #.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "orb-stats"
+# database_id = "ВСТАВЬ_ID"

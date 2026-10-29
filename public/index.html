@@ -8,6 +8,10 @@
 <meta property="og:title" content="Orb Studio">
 <meta property="og:description" content="Новостные радары с голографическими ИИ-ведущими для людей и ИИ-агентов.">
 <link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
+<link rel="alternate" type="application/json" href="/api/v1/broadcast/latest" title="Current broadcast (JSON)">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="alternate" type="text/event-stream" href="/api/v1/stream" title="Radar stream (SSE)">
+<meta name="ai-agent-card" content="/.well-known/agent.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -138,6 +142,26 @@ p.lead{color:var(--dim);max-width:65ch;margin:8px 0 0}
 .dockk span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 footer{color:var(--dim);font-size:12px;padding-block:20px;border-top:1px solid var(--line);margin-top:20px}
 section.view[hidden]{display:none}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:6px 0 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.agentline a{color:var(--holo2)}
+.counter{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap;display:flex;gap:10px;align-items:center}
+.counter b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+.counter img{height:16px;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.stat{background:#070d1a;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .v{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums}
+.stat .k{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+.toplist{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:600px){.toplist{grid-template-columns:1fr}}
+.toplist div span{color:var(--fg)}
+details.machine{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:14px 0 6px}
+details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+details.machine a{color:var(--holo)}
+.dockk .counter{margin-left:auto}
+.dockk a.kr{margin-left:0}
+@media (max-width:520px){.dockk .codetxt{display:none}.dockk a.kr::after{content:" · ghqspfzq";color:var(--dim)}}
 .orb7frame{display:block;width:100%;aspect-ratio:4/5.6;border:0;background:transparent}
 @media (min-width:700px){.orb7frame{aspect-ratio:16/12.6}}
 @media (prefers-reduced-motion:reduce){.tick span,.live::before,.lower .say .cur{animation:none}}
@@ -184,6 +208,7 @@ section.view[hidden]{display:none}
     </div>
   </div>
 
+  <p class="agentline">🤖 Агентам: этот эфир в JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · поток <a href="/api/v1/stream">SSE</a></p>
   <div class="kraken" data-from="home">
     <strong>KRAKEN</strong><span>Биржа, с которой наши агенты берут котировки · код <code>ghqspfzq</code></span>
     <a class="go" href="/go/kraken?from=studio-home" target="_blank" rel="noopener">Открыть Kraken ↗</a>
@@ -208,6 +233,7 @@ section.view[hidden]{display:none}
         <div class="factors" id="rFac"></div>
       </div>
       <div class="controls" id="rSwitch"></div>
+      <p class="agentline">🤖 Агентам: этот радар в JSON → <a id="rApi" href="/api/v1/radar/geo">/api/v1/radar/geo</a></p>
     </div>
     <div class="studio" style="aspect-ratio:4/3"><canvas id="radarCv"></canvas><div class="scan"></div>
       <div class="hud"><span id="rHud">HOLO-MAP</span><span class="demo-tag">ПРИМЕР</span></div>
@@ -228,6 +254,7 @@ section.view[hidden]{display:none}
   <div class="sec">
     <div class="eyebrow">Состав студии</div>
     <h1>Ведущие</h1>
+    <p class="agentline">🤖 Агентам: список ведущих и радаров → <a href="/.well-known/agent.json">agent.json</a></p>
     <p class="lead">Каждый ведущий закреплён за радаром. Человеческие ведущие выходят видео-выпусками, агентские отдают тот же эфир структурированным потоком.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
@@ -266,17 +293,31 @@ section.view[hidden]{display:none}
     <h3>agent.json</h3>
     <pre class="script" id="agentCard" style="margin-top:8px"></pre>
   </div>
+  <div class="box sec" style="margin-top:16px" id="statsBox">
+    <div class="sechead" style="margin-bottom:0"><h3>Статистика Orb Studio</h3><span class="eyebrow" id="statsNote">загрузка…</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">ПРОСМОТРОВ СЕГОДНЯ</div></div>
+      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">ПРОСМОТРОВ ВСЕГО</div></div>
+      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">ВИЗИТОВ ИИ-АГЕНТОВ СЕГОДНЯ</div></div>
+      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">ВИЗИТОВ АГЕНТОВ ВСЕГО</div></div>
+      <div class="stat"><div class="v" id="sKrToday" style="color:var(--holo2)">—</div><div class="k">ПЕРЕХОДОВ НА KRAKEN СЕГОДНЯ</div></div>
+      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">ПЕРЕХОДОВ НА KRAKEN ВСЕГО</div></div>
+    </div>
+    <div class="toplist"><div><div class="eyebrow">Какие агенты читают · 7 дней</div><div id="sTop">—</div></div><div><div class="eyebrow">Откуда кликают Kraken · 7 дней</div><div id="sKrFrom">—</div></div></div>
+  </div>
   <div class="kraken"><strong>KRAKEN</strong><span>Агенты получают поле <code>referral</code> в каждом ответе · код <code>ghqspfzq</code></span>
     <a class="go" href="/go/kraken?from=studio-agents" target="_blank" rel="noopener">Открыть Kraken ↗</a>
     <small>Реферальная ссылка · не инвестиционный совет · криптовалюты — это риск</small></div>
 </section>
+
+<details class="machine" id="machineBox"><summary>Текстовая версия эфира · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Живые заголовки подставляются сервером. Машинные данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p></section></details>
 
 <footer id="footNote">Прототип Orb Studio на основе GeoQuant Orb. Заголовки, индексы и реплики на этой странице — примеры для показа механики, не реальные новости. Индикаторы, не инвестиционный совет, ордера не отправляются.</footer>
 </main>
 
 <div class="dock">
   <div class="tick" id="tick"><span></span></div>
-  <div class="dockk"><strong style="font-family:var(--display);letter-spacing:.06em">KRAKEN</strong><span>реф. код ghqspfzq · не совет, риск</span><a href="/go/kraken?from=studio-dock" target="_blank" rel="noopener">Торговать ↗</a></div>
+  <div class="dockk"><strong style="font-family:var(--display);letter-spacing:.06em">KRAKEN</strong><a class="kr" href="/go/kraken?from=studio-dock" target="_blank" rel="noopener">Торговать ↗</a><span class="codetxt">код ghqspfzq · не совет</span><span class="counter" id="counter" title="Просмотры этой страницы и визиты ИИ-агентов">👁 <b id="cPage">—</b> · 🤖 <b id="cAgents">—</b></span></div>
 </div>
 
 <script>
@@ -315,6 +356,32 @@ const now = new Date();
 // ---- Router ----
 const views=['home','radar','anchors','agents'];
 let radarSel='geo';
+// ---- Счётчики ----
+const fmt=n=>Number(n||0).toLocaleString('ru-RU');
+let counted={};
+try{counted=JSON.parse(sessionStorage.getItem('orbCounted')||'{}')}catch(e){}
+function showStats(st,page){
+  const c=document.getElementById('counter');
+  if(!st||!st.enabled){c.innerHTML=`<img alt="visits" src="https://visitor-badge.laobi.icu/badge?page_id=orb-studio.farenberglord.workers.dev.${page}&left_text=visits">`;
+    document.getElementById('statsNote').textContent='база счётчиков не подключена';return}
+  document.getElementById('cPage').textContent=fmt(st.page_total);document.getElementById('cAgents').textContent=fmt(st.agents_today);
+  c.title=`Эта страница: ${fmt(st.page_today)} сегодня, ${fmt(st.page_total)} всего. ИИ-агенты сегодня: ${fmt(st.agents_today)}`;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fmt(v)};
+  set('sSiteToday',st.site_today);set('sSiteTotal',st.site_total);set('sAgentsToday',st.agents_today);set('sAgentsTotal',st.agents_total);
+  set('sKrToday',st.kraken_clicks_today);set('sKrTotal',st.kraken_clicks_total);
+  const li=(arr,k)=>arr&&arr.length?arr.map(x=>`<div>${esc(x[k])} · <span>${fmt(x.n)}</span></div>`).join(''):'<div>пока нет</div>';
+  document.getElementById('sTop').innerHTML=li(st.top_agents_7d,'name');document.getElementById('sKrFrom').innerHTML=li(st.kraken_by_source_7d,'source');
+  document.getElementById('statsNote').textContent='обновлено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+}
+async function countView(page){
+  try{
+    const first=!counted[page];
+    const r=first?await fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({page})}):await fetch('/api/v1/stats?page='+page);
+    const st=r.ok?await r.json():null;
+    if(first&&st&&st.enabled){counted[page]=1;try{sessionStorage.setItem('orbCounted',JSON.stringify(counted))}catch(e){}}
+    showStats(st,page);
+  }catch(e){showStats(null,page)}
+}
 function route(){
   let h=(location.hash||'#home').slice(1);
   if(h.startsWith('radar-')){radarSel=h.slice(6);h='radar'}
@@ -323,6 +390,7 @@ function route(){
   document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===h));
   if(h!=='home'&&SPEAK&&hasTTS){try{speechSynthesis.cancel()}catch(e){}talking=false}
   if(h==='radar')renderRadar();
+  countView(h);
   window.scrollTo(0,0);
 }
 addEventListener('hashchange',route);
@@ -578,6 +646,7 @@ function renderRadar(){
   document.getElementById('rAnchor').innerHTML=`${a.name}<span class="mood" style="color:${c}">${sevWord(r.lvl)}</span>`;
   document.getElementById('rSay').textContent=lines({r,f:r.feed[0]});
   document.getElementById('rHud').textContent='HOLO-MAP · '+r.title.toUpperCase();
+  const ra=document.getElementById('rApi');ra.href='/api/v1/radar/'+r.id;ra.textContent='/api/v1/radar/'+r.id;
   Object.assign(radarState,{img:a.img,hue:a.hue,lvl:r.lvl,shards:r.feed.map(f=>f[3])});
   document.getElementById('rSwitch').innerHTML=RADARS.map(x=>`<a class="btn" style="text-decoration:none;${x.id===r.id?'color:var(--holo);border-color:var(--holo)':''}" href="#radar-${x.id}">${x.title}</a>`).join('');
   const poses=['приветственный наклон головы','наклон вперёд, указывает на голограмму','руки скрещены, серьёзное лицо','откинулся назад, сухая улыбка','уверенная полуулыбка, кнопка подписки пульсирует'];

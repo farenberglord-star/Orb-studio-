@@ -358,12 +358,10 @@ async function handleApi(url, request, env, ctx) {
   if (request.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" } });
 
   if (p === "/go/kraken") {
-    const from = url.searchParams.get("from") || "unknown";
-    const target = env.KRAKEN_URL || `https://geoquant-orb.pages.dev/go/kraken?from=studio-${encodeURIComponent(from)}`;
-    if (env.ORB_KV) {
-      const k = `click:${new Date().toISOString().slice(0, 10)}:${from}`;
-      ctx.waitUntil((async () => { const n = +(await env.ORB_KV.get(k)) || 0; await env.ORB_KV.put(k, String(n + 1), { expirationTtl: 90 * 864e5 }); })());
-    }
+    const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
+    const target = env.KRAKEN_URL || `https://geoquant-orb.pages.dev/go/kraken?from=${from.startsWith("studio") ? "" : "studio-"}${encodeURIComponent(from)}`;
+    const who = classifyAgent(request.headers.get("user-agent"));
+    ctx.waitUntil(recordHit(env, from, "kraken", who ? "agent:" + who : "human"));
     return Response.redirect(target, 302);
   }
 
@@ -423,9 +421,108 @@ async function handleApi(url, request, env, ctx) {
   return null;
 }
 
+// ================= Счётчики: просмотры людей и визиты ИИ-агентов =================
+// Хранилище — Cloudflare D1 (привязка DB). Без привязки счётчики выключены и сайт работает как раньше.
+const AGENT_UA = [
+  ["GPTBot", /gptbot/i], ["ChatGPT", /chatgpt-user|oai-searchbot/i], ["ClaudeBot", /claudebot|claude-user|claude-searchbot|anthropic-ai/i],
+  ["Perplexity", /perplexity/i], ["Google-AI", /google-extended|googleother|gemini/i], ["Googlebot", /googlebot/i],
+  ["Bingbot", /bingbot/i], ["Meta-AI", /meta-externalagent|facebookbot/i], ["Apple", /applebot/i], ["Bytespider", /bytespider/i],
+  ["CommonCrawl", /ccbot/i], ["Amazonbot", /amazonbot/i], ["DuckAssist", /duckassistbot/i], ["Mistral", /mistralai/i],
+  ["You.com", /youbot/i], ["Cohere", /cohere-ai/i],
+];
+function classifyAgent(ua) {
+  ua = ua || "";
+  for (const [name, re] of AGENT_UA) if (re.test(ua)) return name;
+  if (/bot|crawler|spider|agent/i.test(ua)) return "Other bot";
+  if (!/mozilla/i.test(ua)) return ua ? "Script · " + ua.split(/[\/ ]/)[0].slice(0, 20) : "Script";
+  return null; // обычный браузер
+}
+const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7"]);
+let tableReady = false;
+async function ensureTable(env) {
+  if (tableReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS hits (day TEXT NOT NULL, page TEXT NOT NULL, kind TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, page, kind, name))").run();
+  tableReady = true;
+}
+const today = () => new Date().toISOString().slice(0, 10);
+async function recordHit(env, page, kind, name) {
+  if (!env.DB) return;
+  try {
+    await ensureTable(env);
+    await env.DB.prepare("INSERT INTO hits (day, page, kind, name, n) VALUES (?1, ?2, ?3, ?4, 1) ON CONFLICT(day, page, kind, name) DO UPDATE SET n = n + 1")
+      .bind(today(), page, kind, name || "").run();
+  } catch (e) { /* счётчик никогда не ломает сайт */ }
+}
+async function readStats(env, page) {
+  if (!env.DB) return { enabled: false };
+  await ensureTable(env);
+  const d = today(), week = new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10);
+  const one = async (sql, ...b) => ((await env.DB.prepare(sql).bind(...b).first()) || {}).n || 0;
+  const [pageTotal, pageToday, siteTotal, siteToday, agentsToday, agentsTotal] = await Promise.all([
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='view' AND page=?1", page),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='view' AND page=?1 AND day=?2", page, d),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='view'"),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='view' AND day=?1", d),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='agent' AND day=?1", d),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='agent'"),
+  ]);
+  const top = (await env.DB.prepare("SELECT name, SUM(n) AS n FROM hits WHERE kind='agent' AND day>=?1 GROUP BY name ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
+  const [krakenToday, krakenTotal] = await Promise.all([
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken' AND day=?1", d),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken'"),
+  ]);
+  const krakenFrom = (await env.DB.prepare("SELECT page AS source, SUM(n) AS n FROM hits WHERE kind='kraken' AND day>=?1 GROUP BY page ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
+  return { enabled: true, page, page_total: pageTotal, page_today: pageToday, site_total: siteTotal, site_today: siteToday,
+    agents_today: agentsToday, agents_total: agentsTotal, top_agents_7d: top,
+    kraken_clicks_today: krakenToday, kraken_clicks_total: krakenTotal, kraken_by_source_7d: krakenFrom };
+}
+
+// ================= Машинный слой страниц: живые данные прямо в HTML =================
+const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function machineHtml(radars, page) {
+  const when = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
+  let h = `<p>Обновлено: ${escH(when)} (Берлин). Машинная версия: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
+  for (const r of radars) {
+    h += `<h3>${escH(r.title)} — индекс риска ${r.lvl}/100 (${escH(severity(r.lvl))}) · <a href="/api/v1/radar/${r.id}">JSON</a></h3><ul>`;
+    for (const f of r.feed.slice(0, page === "orb7" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
+    h += "</ul>";
+  }
+  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
+  return h;
+}
+function jsonLd(radars, origin) {
+  const data = {
+    "@context": "https://schema.org", "@graph": [
+      { "@type": "WebSite", name: "Orb Studio", url: origin + "/", description: "Новостные радары с голографическими ведущими для людей и ИИ-агентов." },
+      { "@type": "ItemList", name: "Радары Orb Studio", dateModified: new Date().toISOString(),
+        itemListElement: radars.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.title}: индекс ${r.lvl}/100`, url: `${origin}/api/v1/radar/${r.id}` })) },
+      { "@type": "ItemList", name: "Главные заголовки", itemListElement: radars.flatMap((r) => r.feed.slice(0, 2)).map((f, i) => ({ "@type": "ListItem", position: i + 1, name: f[1], url: f[4] || undefined })) },
+    ],
+  };
+  return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
+}
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7" };
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // визит ИИ-агента или скрипта на машинные адреса
+    if (AGENT_PATHS.test(url.pathname) || HTML_PAGES[url.pathname]) {
+      const agent = classifyAgent(request.headers.get("user-agent"));
+      if (agent) ctx.waitUntil(recordHit(env, url.pathname.slice(0, 60), "agent", agent));
+    }
+    if (url.pathname === "/api/v1/hit" && request.method === "POST") {
+      let page = "home";
+      try { page = ((await request.json()).page || "home").toString().slice(0, 20); } catch {}
+      if (!PAGES.has(page)) page = "home";
+      if (!classifyAgent(request.headers.get("user-agent"))) await recordHit(env, page, "view", "");
+      return json(await readStats(env, page), { "Cache-Control": "no-store" });
+    }
+    if (url.pathname === "/api/v1/stats") {
+      const page = (url.searchParams.get("page") || "home").slice(0, 20);
+      return json(await readStats(env, PAGES.has(page) ? page : "home"), { "Cache-Control": "no-store" });
+    }
     if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/go/")) {
       try {
         const res = await handleApi(url, request, env, ctx);
@@ -434,10 +531,22 @@ export default {
         return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, {}, 500);
       }
     }
-    // Запасной ответ для файлов агентов, если хостинг не отдал их как статику
-    if (url.pathname === "/.well-known/agent.json") return new Response(AGENT_JSON, { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
-    if (url.pathname === "/llms.txt") return new Response(LLMS_TXT, { headers: { "Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
-    return env.ASSETS.fetch(request); // статические файлы из public/
+    const asset = await env.ASSETS.fetch(request); // статические файлы из public/
+    const pg = HTML_PAGES[url.pathname];
+    if (pg && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
+      // подставляем живые заголовки в HTML, чтобы агенты без JavaScript видели настоящие данные
+      const radars = await Promise.race([allRadars(env, ctx, url.origin).catch(() => null), new Promise((r) => setTimeout(() => r(null), 1500))]);
+      if (radars && radars.length) {
+        const block = machineHtml(radars, pg), ld = jsonLd(radars, url.origin);
+        return new HTMLRewriter()
+          .on("head", { element(e) { e.append(ld, { html: true }); } })
+          .on("#machine-feed", { element(e) { e.setInnerContent(block, { html: true }); } })
+          .transform(asset);
+      }
+    }
+    if (asset.status === 404 && url.pathname === "/.well-known/agent.json") return new Response(AGENT_JSON, { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
+    if (asset.status === 404 && url.pathname === "/llms.txt") return new Response(LLMS_TXT, { headers: { "Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
+    return asset;
   },
 };
 
