@@ -45,7 +45,7 @@ table{border-collapse:collapse;font-size:13px;width:100%}
 td{padding:6px 0;border-top:1px solid var(--line)}
 td:first-child{font-family:var(--mono);color:var(--dim);font-size:11.5px;width:42%}
 .spec{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-html.embed .head,html.embed .spec,html.embed .kraken,html.embed details.machine,html.embed .agentline{display:none}
+html.embed .head,html.embed .spec,html.embed .krb,html.embed details.machine,html.embed .agentline{display:none}
 .kraken{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,rgba(155,140,255,.16),var(--panel));border:1px solid rgba(155,140,255,.45);border-radius:12px;padding:12px 14px}
 .kraken strong{font-family:var(--display);letter-spacing:.06em}.kraken code{font-family:var(--mono);color:#b9aeff}
 .kraken a{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--fg);border:1px solid #9b8cff;border-radius:8px;padding:8px 12px;text-decoration:none}
@@ -56,6 +56,32 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}details.machine a{color:var(--holo)}
 html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
+
+/* ---- Баннер Kraken ---- */
+.krb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.krb svg.krb-sonar{position:absolute;right:-60px;top:-60px;width:260px;height:260px;opacity:.55;pointer-events:none}
+.krb>*{position:relative}
+.krb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#f4f2ff}
+.krb h3 b{color:#b9aeff;font-weight:700}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.krb-px span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}
+.krb-px .up{color:#4fd8a4}.krb-px .dn{color:#ff5d7a}
+.krb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 14px;padding:0;list-style:none}
+@media (max-width:640px){.krb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.krb-facts li{background:rgba(7,11,22,.55);border:1px solid rgba(155,140,255,.18);border-radius:10px;padding:9px 10px;min-width:0}
+.krb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:17px;color:#f4f2ff}
+.krb-facts span{font-size:11.5px;color:#a3a9c9}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 8px 24px -10px rgba(155,140,255,.8)}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-code:hover,.krb-code:focus-visible{border-style:solid;outline:none}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
 </style>
 </head>
 <body>
@@ -73,7 +99,24 @@ html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
     <button id="mute" type="button">Без звука</button>
   </div>
   <p class="agentline">🤖 Агентам: выпуск ORB-7 в JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · <a href="/.well-known/agent.json">agent.json</a> · <span class="counter" id="counter">👁 <b id="cPage">—</b> · 🤖 сегодня <b id="cAgents">—</b></span></p>
-  <div class="kraken"><strong>KRAKEN</strong><span>Котировки для ORB-7 — с Kraken API · код <code>ghqspfzq</code></span><a href="/go/kraken?from=orb7" target="_blank" rel="nofollow sponsored noopener">Открыть Kraken ↗</a><small>Реферальная ссылка · не инвестиционный совет · криптовалюты — это риск</small></div>
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>ORB-7 берёт котировки с <b>Kraken</b>. Открой счёт там же</h3>
+    <p class="krb-sub">Криптобиржа Kraken: купить биткоин за евро, Kraken Pro для активной торговли, стейкинг. Котировки нашего крипто-радара — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>с 2011</b><span>одна из старейших бирж</span></li>
+      <li><b>450+</b><span>криптоактивов</span></li>
+      <li><b>MiCA</b><span>лицензия ЕС (Ирландия)</span></li>
+      <li><b>SEPA</b><span>пополнение в евро</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=orb7" target="_blank" rel="nofollow sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи (верификация, пополнение, сделка); бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
   <div class="spec">
     <p style="margin:0 0 8px"><a href="/" style="color:var(--holo)">← Orb Studio</a></p>
     <div class="eyebrow" style="margin-bottom:6px">Спецификация</div>
@@ -90,6 +133,26 @@ html.embed .wrap{padding-block:0;padding-left:0;padding-right:0;max-width:none}
 </div>
 
 <script>
+
+// ---- Баннер Kraken: живые цены и копирование кода ----
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const code=b.dataset.code,done=()=>{const t=b.innerHTML;b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)};
+  try{navigator.clipboard.writeText(code).then(done,()=>{const r=document.createRange();r.selectNodeContents(b.querySelector('b'));const s=getSelection();s.removeAllRanges();s.addRange(r)})}catch(err){}
+});
+
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
 // счётчик просмотров (во встроенном виде не считаем, чтобы не дублировать страницу агентов)
 if(!/embed/.test(location.search)){
   let seen=false;try{seen=sessionStorage.getItem('orbCounted_orb7')==='1'}catch(e){}
