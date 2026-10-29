@@ -543,9 +543,10 @@ async function boot(){
     const j=await r.json();
     if(Array.isArray(j.radars)&&j.radars.some(x=>x.feed&&x.feed.length)){RADARS=j.radars.filter(x=>x.feed&&x.feed.length);LIVE=true}
   }catch(e){}
-  try{if(LIVE){const b=await fetch('/api/v1/broadcast/latest');if(b.ok){const bj=await b.json();setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2)}}}catch(e){}
   buildQueue();renderRadars();renderAnchors();renderTicker();play();route();
   if(LIVE)markLive();
+  // Живой текст ведущих догружается в фоне и не задерживает показ новостей
+  if(LIVE)fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(bj=>{if(!bj)return;setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2);if(!SPEAK&&!talking)play()}).catch(()=>{});
 }
 buildQueue();renderTicker();
 boot();
