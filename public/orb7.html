@@ -164,6 +164,7 @@ if(!/embed/.test(location.search)){
     }).catch(()=>{});
 }
 </script>
+<script src="/tts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (()=>{
@@ -370,17 +371,15 @@ const sayEl=document.getElementById('say'),st=document.getElementById('st');
 function next(){
   if(!on)return;const text=LINES[idx++%LINES.length];sayEl.textContent=text;talking=true;st.textContent='ON AIR';
   const done=()=>{talking=false;st.textContent='STANDBY';if(on)setTimeout(next,800)};
-  if(hasTTS&&!muted){try{speechSynthesis.cancel()}catch(e){}
-    const u=new SpeechSynthesisUtterance(text);u.lang='ru-RU';u.pitch=.45;u.rate=.95;
-    const v=voices.find(v=>v.lang&&v.lang.startsWith('ru')&&/(male|yuri|pavel|dmitr|maxim)/i.test(v.name))||voices.find(v=>v.lang&&v.lang.startsWith('ru'));if(v)u.voice=v;
-    u.onboundary=()=>{syl=.5};u.onend=done;u.onerror=done;speechSynthesis.speak(u);
+  if(window.OrbTTS&&OrbTTS.ok&&!muted){
+    OrbTTS.speak(text,{lang:'ru-RU',pitch:.45,rate:.95,gender:'m'},{onEnd:done,onBoundary:()=>{syl=.5},onError:()=>{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*55))}});
   }else{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*60))}
 }
 const tb=document.getElementById('talk');
-tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(hasTTS)try{speechSynthesis.cancel()}catch(e){}}};
+tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(window.OrbTTS)OrbTTS.stop();}};
 document.getElementById('view').onclick=e=>{cad=!cad;setMode();e.currentTarget.textContent=cad?'Режим: голограмма':'Режим: чертёж'};
 document.getElementById('spin').onclick=e=>{auto=!auto;e.currentTarget.textContent=auto?'Поворот: авто':'Поворот: вручную'};
-document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&hasTTS)try{speechSynthesis.cancel()}catch(err){}};
+document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&window.OrbTTS)OrbTTS.stop();};
 })();
 </script>
 

@@ -135,6 +135,7 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_orbi')==='1'}catch(e)
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_orbi','1')}catch(e){}
     document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');document.getElementById('cAgents').textContent=Number(st.agents_today).toLocaleString('ru-RU');}).catch(()=>{});
 </script>
+<script src="/tts.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (()=>{
@@ -324,17 +325,15 @@ const sayEl=document.getElementById('say'),st=document.getElementById('st');
 function next(){
   if(!on)return;const arr=LINES[lang],text=arr[idx++%arr.length];sayEl.textContent=text;talking=true;st.textContent='ON AIR';
   const done=()=>{talking=false;st.textContent='STANDBY';if(on)setTimeout(next,700)};
-  if(hasTTS&&!muted){try{speechSynthesis.cancel()}catch(e){}
-    const u=new SpeechSynthesisUtterance(text);u.lang=lang==='de'?'de-DE':'ru-RU';u.pitch=.75;u.rate=1;
-    const pre=u.lang.slice(0,2);const v=voices.find(v=>v.lang&&v.lang.startsWith(pre)&&/(male|yuri|pavel|dmitr|maxim|hans|markus|stefan)/i.test(v.name))||voices.find(v=>v.lang&&v.lang.startsWith(pre));if(v)u.voice=v;
-    u.onboundary=()=>{syl=.5};u.onend=done;u.onerror=done;speechSynthesis.speak(u);
+  if(window.OrbTTS&&OrbTTS.ok&&!muted){
+    OrbTTS.speak(text,{lang:lang==='de'?'de-DE':'ru-RU',pitch:.75,rate:1,gender:'m'},{onEnd:done,onBoundary:()=>{syl=.5},onError:()=>{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*55))}});
   }else{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*60))}
 }
 const tb=document.getElementById('talk');
-tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(hasTTS)try{speechSynthesis.cancel()}catch(e){}}};
-document.getElementById('lang').onclick=e=>{lang=lang==='ru'?'de':'ru';e.currentTarget.textContent=lang==='ru'?'RU → DE':'DE → RU';if(on){if(hasTTS)try{speechSynthesis.cancel()}catch(err){}next()}};
+tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(window.OrbTTS)OrbTTS.stop();}};
+document.getElementById('lang').onclick=e=>{lang=lang==='ru'?'de':'ru';e.currentTarget.textContent=lang==='ru'?'RU → DE':'DE → RU';if(on){if(window.OrbTTS)OrbTTS.stop();next()}};
 document.getElementById('cam').onclick=e=>{camI=(camI+1)%CAMS.length;userYaw=0;e.currentTarget.textContent='Камера: '+CAMS[camI].name};
-document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&hasTTS)try{speechSynthesis.cancel()}catch(err){}};
+document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&window.OrbTTS)OrbTTS.stop();};
 })();
 </script>
 

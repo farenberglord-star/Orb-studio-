@@ -411,6 +411,7 @@ details.machine a{color:var(--holo)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/anna-robot.js"></script>
+<script src="/tts.js"></script>
 <script>
 (()=>{
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -500,7 +501,7 @@ function route(){
   if(!views.includes(h))h='home';
   views.forEach(v=>document.getElementById('v-'+v).hidden=v!==h);
   document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===h));
-  if(h!=='home'&&SPEAK&&hasTTS){try{speechSynthesis.cancel()}catch(e){}talking=false}
+  if(h!=='home'&&SPEAK&&hasTTS){OrbTTS.stop();talking=false}
   if(h==='radar')renderRadar();
   countView(h);
   window.scrollTo(0,0);
@@ -672,7 +673,7 @@ function renderQueue(){
 }
 // ---- Озвучка (Web Speech API, бесплатно, в браузере) ----
 let SPEAK=false,VOICES=[];
-const hasTTS='speechSynthesis' in window;
+const hasTTS=!!(window.OrbTTS&&OrbTTS.ok);
 function loadVoices(){try{VOICES=speechSynthesis.getVoices()}catch(e){}}
 if(hasTTS){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
 const FEMALE=/(female|anna|milena|katya|irina|elena|svetlana|alena|daria|petra|anna|marlene|vicki|hedda|katja|helena|sabine|google русский$)/i;
@@ -686,15 +687,11 @@ function pickVoice(lang,g){
   return list.find(v=>want.test(v.name)&&!/fe?male/i.test(v.name)===false)||list.find(v=>want.test(v.name))||list.find(v=>!avoid.test(v.name))||list[0];
 }
 function speak(text,anchorId){
-  if(!hasTTS)return;
-  try{speechSynthesis.cancel()}catch(e){}
-  const c=VOICE_CFG[anchorId]||VOICE_CFG.david,lang=LANG==='de'?'de-DE':'ru-RU';
-  const u=new SpeechSynthesisUtterance(text);u.lang=lang;u.pitch=c.pitch;u.rate=c.rate;
-  const v=pickVoice(lang,c.g);if(v)u.voice=v;
+  if(!window.OrbTTS)return;
+  const c=VOICE_CFG[anchorId]||VOICE_CFG.anna,lang=LANG==='de'?'de-DE':'ru-RU';
   talking=true;
-  u.onend=()=>{talking=false;if(SPEAK&&!document.getElementById('v-home').hidden)setTimeout(()=>{if(SPEAK){qi=(qi+1)%Math.min(6,queue.length);play()}},900)};
-  u.onerror=()=>{talking=false};
-  speechSynthesis.speak(u);
+  const advance=()=>{talking=false;if(SPEAK&&!document.getElementById('v-home').hidden)setTimeout(()=>{if(SPEAK){qi=(qi+1)%Math.min(6,queue.length);play()}},900)};
+  OrbTTS.speak(text,{lang,pitch:c.pitch,rate:c.rate,gender:c.g},{onEnd:advance,onError:()=>setTimeout(advance,Math.max(2500,text.length*55))});
 }
 function play(){
   const it=queue[qi],a=ANCHORS[it.r.anchor].img?ANCHORS[it.r.anchor]:ANCHORS.anna,txt=lines(it,true);
@@ -718,8 +715,8 @@ document.getElementById('btnListen').onclick=e=>{
   const b=e.currentTarget;
   if(!hasTTS){b.textContent='Озвучка не поддерживается в этом браузере';return}
   SPEAK=!SPEAK;
-  if(SPEAK){b.textContent='⏸ Пауза';loadVoices();play()}
-  else{b.textContent='🔊 Слушать эфир';try{speechSynthesis.cancel()}catch(err){}talking=false}
+  if(SPEAK){b.textContent='⏸ Пауза';OrbTTS.loadVoices();play()}
+  else{b.textContent='🔊 Слушать эфир';OrbTTS.stop();talking=false}
 };
 document.getElementById('btnLang').onclick=e=>{LANG=LANG==='ru'?'de':'ru';e.currentTarget.textContent=LANG==='ru'?'RU → DE':'DE → RU';play()};
 document.getElementById('btnAgent').onclick=()=>{const b=document.getElementById('jsonBox');b.hidden=!b.hidden};
