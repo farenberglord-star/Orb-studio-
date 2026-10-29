@@ -125,7 +125,7 @@ const tag = (block, name) => {
 async function fetchFeed(url) {
   try {
     const r = await fetch(url, {
-      signal: AbortSignal.timeout(6000), // медленная лента пропускается, а не тормозит весь радар
+      signal: AbortSignal.timeout(9000), // медленная лента пропускается, а не тормозит весь радар
       headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" },
       cf: { cacheTtl: 300, cacheEverything: true },
     });
@@ -248,7 +248,13 @@ async function allRadars(env, ctx, origin) {
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
     try {
-      const data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
+      let data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
+      // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
+      if (data.some((r) => !r.feed.length)) {
+        const prevResp = await cache.match(stale);
+        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v3", 48 * 3600e3);
+        if (prev && prev.length) data = data.map((r) => (r.feed.length ? r : (prev.find((x) => x.id === r.id && x.feed && x.feed.length) || r)));
+      }
       const body = JSON.stringify(data);
       await sharedPut(env, "radars-v3", data);
       await Promise.all([
