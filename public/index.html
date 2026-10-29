@@ -206,7 +206,8 @@ details.machine a{color:var(--holo)}
     <a href="#home" data-v="home">Эфир</a>
     <a href="#radar" data-v="radar">Радар</a>
     <a href="#anchors" data-v="anchors">Ведущие</a>
-    <a href="#agents" data-v="agents">Для ИИ-агентов</a>
+    <a href="#agents" data-v="agents">Агентам</a>
+    <a href="/orbi.html">ORBI 🤖</a>
   </nav>
 </div></header>
 
@@ -421,6 +422,7 @@ const ANCHORS = {
   anna:{name:'АННА',role:'Радар бюджета домохозяйств · ведущая эфира',kind:'human',hue:'#7fe6ff',img:'/anchors/anna.jpg',lang:'RU · DE',out:'видео 9:16'},
   kai:{name:'КАЙ',role:'Крипто-радар · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'видео + короткие клипы'},
   lena:{name:'ЛЕНА',role:'Энерго-радар · нефть, газ',kind:'human',hue:C.ok,lang:'RU · DE',out:'видео 9:16'},
+  orbi:{name:'ORBI',role:'Робот-ведущий студии · все радары',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-эфир в студии',page:'/orbi.html'},
   orb7:{name:'ORB-7',role:'Ведущий для ИИ-агентов',kind:'agent',hue:C.holo2,lang:'EN · JSON',out:'JSON, SSE-поток, llms.txt'}
 };
 const EXAMPLE = [
@@ -769,9 +771,9 @@ function renderAnchors(){
   Object.entries(ANCHORS).forEach(([id,a])=>{
     const r=RADARS.find(x=>x.anchor===id);
     const el=document.createElement('div');el.className='ac';
-    el.innerHTML=`<canvas></canvas><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip ${a.kind==='agent'?'a':'h'}">${a.kind==='agent'?'для агентов':'для людей'}</span></div>
+    el.innerHTML=`<canvas></canvas><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip ${a.kind==='human'?'h':'a'}">${a.kind==='agent'?'для агентов':a.kind==='robot'?'робот':'для людей'}</span></div>
       <div style="font-size:13px">${a.role}</div><div class="meta">язык: ${a.lang} · выход: ${a.out}</div>
-      <div>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">радар ${r.lvl} ↗</a>`:'<a class="chip" style="text-decoration:none" href="#agents">API ↗</a>'}</div></div>`;
+      <div>${a.page?`<a class="chip" style="text-decoration:none" href="${a.page}">смотреть эфир ↗</a>`:r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">радар ${r.lvl} ↗</a>`:'<a class="chip" style="text-decoration:none" href="#agents">API ↗</a>'}</div></div>`;
     g.appendChild(el);
     const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
     holoAnchor(el.querySelector('canvas'),()=>st);

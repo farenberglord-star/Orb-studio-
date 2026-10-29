@@ -486,7 +486,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -542,7 +542,7 @@ function machineHtml(radars, page) {
   let h = `<p>Обновлено: ${escH(when)} (Берлин). Машинная версия: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
   for (const r of radars) {
     h += `<h3>${escH(r.title)} — индекс риска ${r.lvl}/100 (${escH(severity(r.lvl))}) · <a href="/api/v1/radar/${r.id}">JSON</a></h3><ul>`;
-    for (const f of r.feed.slice(0, page === "orb7" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
+    for (const f of r.feed.slice(0, page === "orb7" || page === "orbi" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
     h += "</ul>";
   }
   h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}" rel="nofollow sponsored">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
@@ -559,7 +559,7 @@ function jsonLd(radars, origin) {
   };
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orbi.html": "orbi" };
 
 export default {
   async fetch(request, env, ctx) {

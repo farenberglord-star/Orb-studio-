@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORBI · робот-ведущий Orb Studio</title>
+<meta name="description" content="ORBI — 3D робот-ведущий Orb Studio. Читает живые новостные радары (гео, бюджет, крипто с Kraken, энергия) на русском и немецком.">
+<link rel="canonical" href="https://orbstudio.org/orbi.html">
+<meta property="og:url" content="https://orbstudio.org/orbi.html">
+<meta property="og:site_name" content="Orb Studio">
+<link rel="alternate" type="application/json" href="/api/v1/broadcast/latest" title="Current broadcast (JSON)">
+<link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one TV-studio viewport with lower third, controls underneath */
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:12px}
+h1{font-family:var(--display);font-size:20px;letter-spacing:.12em;margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.vp{position:relative;aspect-ratio:4/5;max-width:100%;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#03050b;touch-action:none;cursor:grab}
+@media (min-width:700px){.vp{aspect-ratio:16/10}}
+.vp canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bug{position:absolute;top:12px;left:12px;display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:11px}
+.bug b{background:var(--hot);color:#fff;border-radius:4px;padding:2px 7px;letter-spacing:.1em}
+.bug span{color:var(--holo)}
+.clock{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.lower{position:absolute;left:10px;right:10px;bottom:10px;background:rgba(5,8,16,.84);border:1px solid rgba(111,230,255,.35);border-radius:10px;padding:9px 13px}
+.who{font-family:var(--display);color:var(--holo);letter-spacing:.08em;font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.who i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--warm);border:1px solid currentColor;border-radius:999px;padding:0 7px}
+.say{font-size:14.5px;line-height:1.45;margin-top:3px;min-height:42px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font-family:var(--mono);font-size:12.5px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px 13px;cursor:pointer}
+button.on{border-color:var(--holo);color:var(--holo)}
+button:hover,button:focus-visible{border-color:var(--holo);outline:none}
+p.note{color:var(--dim);font-size:13px;margin:0;max-width:65ch}
+
+/* ---- Баннер Kraken ---- */
+.krb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.krb svg.krb-sonar{position:absolute;right:-60px;top:-60px;width:260px;height:260px;opacity:.55;pointer-events:none}
+.krb>*{position:relative}
+.krb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#f4f2ff}
+.krb h3 b{color:#b9aeff;font-weight:700}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.krb-px span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}
+.krb-px .up{color:#4fd8a4}.krb-px .dn{color:#ff5d7a}
+.krb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 14px;padding:0;list-style:none}
+@media (max-width:640px){.krb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.krb-facts li{background:rgba(7,11,22,.55);border:1px solid rgba(155,140,255,.18);border-radius:10px;padding:9px 10px;min-width:0}
+.krb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:17px;color:#f4f2ff}
+.krb-facts span{font-size:11.5px;color:#a3a9c9}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 8px 24px -10px rgba(155,140,255,.8)}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-code:hover,.krb-code:focus-visible{border-style:solid;outline:none}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}.agentline a{color:var(--holo)}
+.counter b{color:var(--fg)}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}details.machine a{color:var(--holo)}
+.back{color:var(--holo);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div><div class="eyebrow"><a class="back" href="/">← Orb Studio</a> · робот-ведущий · живые радары</div><h1>РОБОТ-ВЕДУЩИЙ ORBI</h1></div>
+  <div class="vp" id="vp"><canvas id="cv"></canvas>
+    <div class="bug"><b>LIVE</b><span>ORB STUDIO</span></div>
+    <div class="clock" id="clock">--:--</div>
+    <div class="lower"><div class="who">ORBI · НОВОСТИ РАДАРОВ <i id="st">STANDBY</i></div><div class="say" id="say">Нажми «Говорить». Студию можно вращать пальцем.</div></div>
+  </div>
+  <div class="row">
+    <button class="on" id="talk" type="button">▶ Говорить</button>
+    <button id="lang" type="button">RU → DE</button>
+    <button id="cam" type="button">Камера: общий план</button>
+    <button id="mute" type="button">Без звука</button>
+  </div>
+  <p class="note">ORBI — студийный робот-ведущий Orb Studio. Читает живые новостные радары: тексты пишет Claude по свежим заголовкам, голос — из твоего браузера. Обновление каждые 5 минут.</p>
+  <p class="agentline">🤖 Агентам: этот эфир в JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · <a href="/.well-known/agent.json">agent.json</a> · <span class="counter" id="counter">👁 <b id="cPage">—</b> · 🤖 сегодня <b id="cAgents">—</b></span></p>
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>ORBI читает рынок по котировкам <b>Kraken</b>. Торговать — там же</h3>
+    <p class="krb-sub">Криптобиржа Kraken: купить биткоин за евро, Kraken Pro для активной торговли, стейкинг. Котировки нашего крипто-радара — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>с 2011</b><span>одна из старейших бирж</span></li>
+      <li><b>450+</b><span>криптоактивов</span></li>
+      <li><b>MiCA</b><span>лицензия ЕС (Ирландия)</span></li>
+      <li><b>SEPA</b><span>пополнение в евро</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=orbi" target="_blank" rel="nofollow sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи (верификация, пополнение, сделка); бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
+  <details class="machine"><summary>Текстовая версия эфира · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Живые заголовки подставляются сервером. Данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>.</p></section></details>
+</div>
+
+<script>
+
+// ---- Баннер Kraken: живые цены и копирование кода ----
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const code=b.dataset.code,done=()=>{const t=b.innerHTML;b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)};
+  try{navigator.clipboard.writeText(code).then(done,()=>{const r=document.createRange();r.selectNodeContents(b.querySelector('b'));const s=getSelection();s.removeAllRanges();s.addRange(r)})}catch(err){}
+});
+
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_orbi')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=orbi'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"orbi"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_orbi','1')}catch(e){}
+    document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');document.getElementById('cAgents').textContent=Number(st.agents_today).toLocaleString('ru-RU');}).catch(()=>{});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(()=>{
+const vp=document.getElementById('vp'),cv=document.getElementById('cv');
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setPixelRatio(Math.min(1.75,devicePixelRatio||1));
+renderer.outputEncoding=THREE.sRGBEncoding;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#03050b');scene.fog=new THREE.Fog('#03050b',6,14);
+const camera=new THREE.PerspectiveCamera(30,1,.1,40);
+
+// ---------- Свет ----------
+scene.add(new THREE.HemisphereLight(0x9fb8ff,0x0a0d18,.55));
+const key=new THREE.DirectionalLight(0xffffff,1.6);key.position.set(-2.5,3.5,3.5);scene.add(key);
+const rimC=new THREE.PointLight(0x6fe6ff,2.2,6);rimC.position.set(1.6,2.2,-1.2);scene.add(rimC);
+const rimP=new THREE.PointLight(0x9b8cff,1.6,6);rimP.position.set(-1.8,1.6,-1.0);scene.add(rimP);
+const faceL=new THREE.PointLight(0x6fe6ff,.8,1.2);scene.add(faceL);
+
+// ---------- Материалы ----------
+const shell=new THREE.MeshStandardMaterial({color:0xeef2f8,metalness:.35,roughness:.22});
+const graphite=new THREE.MeshStandardMaterial({color:0x2a3142,metalness:.7,roughness:.35});
+const glass=new THREE.MeshStandardMaterial({color:0x04060c,metalness:.2,roughness:.06});
+const glow=new THREE.MeshBasicMaterial({color:0x6fe6ff});
+const glowP=new THREE.MeshBasicMaterial({color:0x9b8cff});
+
+// ---------- Студия: пол, LED-стена, стол ----------
+const floor=new THREE.Mesh(new THREE.CircleGeometry(6,64),new THREE.MeshStandardMaterial({color:0x0a0f1d,metalness:.6,roughness:.4}));
+floor.rotation.x=-Math.PI/2;scene.add(floor);
+const ring=new THREE.Mesh(new THREE.RingGeometry(1.25,1.28,96),glow);ring.rotation.x=-Math.PI/2;ring.position.y=.003;scene.add(ring);
+
+// LED-стена: изогнутый экран с canvas-текстурой
+const wallC=document.createElement('canvas');wallC.width=1536;wallC.height=512;const wx=wallC.getContext('2d');
+const wallTex=new THREE.CanvasTexture(wallC);wallTex.encoding=THREE.sRGBEncoding;wallTex.wrapS=THREE.RepeatWrapping;wallTex.repeat.x=-1; // изнутри цилиндра текстура зеркальна
+const wall=new THREE.Mesh(new THREE.CylinderGeometry(4.2,4.2,2.6,64,1,true,-Math.PI*0.32,Math.PI*0.64),new THREE.MeshBasicMaterial({map:wallTex,side:THREE.BackSide,toneMapped:false}));
+wall.position.set(0,1.55,1.2);wall.rotation.y=Math.PI;scene.add(wall);
+const HEAD=['Гео-радар 68: учения у побережья Тайваня','Бюджет 51: аренда в городах Германии растёт','Крипто-радар 57: BTC/EUR на росте объёма','Энерго 43: Brent в узком коридоре','ORB STUDIO · новости для людей и ИИ-агентов'];
+const bars=Array.from({length:28},(_,i)=>.3+.6*Math.abs(Math.sin(i*1.7)));
+function drawWall(t){
+  const W=wallC.width,H=wallC.height;
+  const g=wx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b1b3d');g.addColorStop(1,'#060b1c');wx.fillStyle=g;wx.fillRect(0,0,W,H);
+  wx.strokeStyle='rgba(111,230,255,.08)';wx.lineWidth=1;
+  for(let x=0;x<W;x+=48){wx.beginPath();wx.moveTo(x,0);wx.lineTo(x,H);wx.stroke()}
+  for(let y=0;y<H;y+=48){wx.beginPath();wx.moveTo(0,y);wx.lineTo(W,y);wx.stroke()}
+  // «карта» из точек слева
+  wx.fillStyle='rgba(111,230,255,.55)';
+  for(let i=0;i<420;i++){const a=i*2.399,r=Math.sqrt(i)*7.2;const x=230+Math.cos(a)*r*1.6,y=230+Math.sin(a)*r*.9;if((Math.sin(x*.05)+Math.cos(y*.07))>.1)wx.fillRect(x,y,3,3)}
+  wx.strokeStyle='rgba(255,181,71,.8)';wx.lineWidth=2;wx.beginPath();wx.arc(300,190,10+6*Math.sin(t*3),0,6.28);wx.stroke();
+  wx.strokeStyle='rgba(255,93,122,.8)';wx.beginPath();wx.arc(170,260,8+5*Math.sin(t*2.4+1),0,6.28);wx.stroke();
+  // график справа
+  const bx=1080;wx.fillStyle='rgba(155,140,255,.85)';
+  bars.forEach((b,i)=>{const h=(b+.25*Math.sin(t*1.5+i))*170;wx.fillRect(bx+i*14,330-h,9,h)});
+  wx.strokeStyle='rgba(111,230,255,.9)';wx.lineWidth=3;wx.beginPath();
+  for(let i=0;i<=40;i++){const x=bx+i*10,y=150-60*Math.sin(i*.35+t*.8)-i*1.2;i?wx.lineTo(x,y):wx.moveTo(x,y)}wx.stroke();
+  // заголовок по центру
+  wx.fillStyle='rgba(228,235,248,.9)';wx.font='600 40px "Chakra Petch", sans-serif';wx.textAlign='center';wx.fillText('ORB STUDIO',W/2,90);
+  wx.fillStyle='rgba(111,230,255,.85)';wx.font='26px "JetBrains Mono", monospace';wx.fillText('NEWS RADAR · LIVE',W/2,130);
+  // бегущая строка
+  wx.fillStyle='rgba(255,93,122,.9)';wx.fillRect(0,H-70,W,70);
+  wx.fillStyle='#fff';wx.font='600 30px "IBM Plex Sans", sans-serif';wx.textAlign='left';
+  const txt=HEAD.join('   ●   ')+'   ●   ';const tw=wx.measureText(txt).width;const off=-((t*120)%tw);
+  wx.fillText(txt,off,H-24);wx.fillText(txt,off+tw,H-24);
+  wallTex.needsUpdate=true;
+}
+
+// стол
+const desk=new THREE.Group();scene.add(desk);
+const top=new THREE.Mesh(new THREE.BoxGeometry(1.9,.05,.75),new THREE.MeshStandardMaterial({color:0x10182b,metalness:.5,roughness:.15}));top.position.set(0,.8,.42);desk.add(top);
+const front=new THREE.Mesh(new THREE.CylinderGeometry(.95,.75,.78,48,1,true,-Math.PI/2-.95,1.9),new THREE.MeshStandardMaterial({color:0x0b1222,metalness:.6,roughness:.3,side:THREE.DoubleSide}));front.position.set(0,.4,.02);desk.add(front);
+const edge=new THREE.Mesh(new THREE.BoxGeometry(1.9,.012,.012),glow);edge.position.set(0,.776,.8);desk.add(edge);
+const logoC=document.createElement('canvas');logoC.width=512;logoC.height=96;const lx=logoC.getContext('2d');
+lx.fillStyle='rgba(111,230,255,.95)';lx.font='700 54px "Chakra Petch", sans-serif';lx.textAlign='center';lx.fillText('ORB STUDIO',256,66);
+const logoTex=new THREE.CanvasTexture(logoC);logoTex.encoding=THREE.sRGBEncoding;
+const logo=new THREE.Mesh(new THREE.PlaneGeometry(.8,.15),new THREE.MeshBasicMaterial({map:logoTex,transparent:true,toneMapped:false}));logo.position.set(0,.46,.94);desk.add(logo);
+
+// ---------- Робот ----------
+const robot=new THREE.Group();scene.add(robot);
+const mesh=(geo,mat,parent,pos,rot,scale)=>{const m=new THREE.Mesh(geo,mat);if(pos)m.position.set(...pos);if(rot)m.rotation.set(...rot);if(scale)m.scale.set(...scale);parent.add(m);return m};
+const pivot=(parent,pos)=>{const g=new THREE.Group();g.position.set(...pos);parent.add(g);return g};
+// торс
+const torso=pivot(robot,[0,.85,0]);
+mesh(new THREE.CylinderGeometry(.27,.19,.5,32),shell,torso,[0,.25,0]);
+mesh(new THREE.SphereGeometry(.27,32,16,0,Math.PI*2,0,Math.PI/2),shell,torso,[0,.5,0],null,[1,.32,.85]);
+mesh(new THREE.CylinderGeometry(.19,.16,.14,32),graphite,torso,[0,-.05,0]);
+const core=mesh(new THREE.TorusGeometry(.05,.012,12,40),glow,torso,[0,.3,.215]);
+const coreIn=mesh(new THREE.CircleGeometry(.032,24),new THREE.MeshBasicMaterial({color:0x6fe6ff,transparent:true,opacity:.6}),torso,[0,.3,.216]);
+mesh(new THREE.BoxGeometry(.3,.008,.01),glowP,torso,[0,.44,.18],[-.5,0,0]);
+// шея и голова
+const neck=pivot(torso,[0,.56,0]);
+mesh(new THREE.CylinderGeometry(.06,.08,.12,20),graphite,neck,[0,.04,0]);
+const head=pivot(neck,[0,.27,0]);
+mesh(new THREE.SphereGeometry(.2,48,32),shell,head,[0,0,0],null,[.95,1.05,.95]);
+const visor=mesh(new THREE.SphereGeometry(.202,48,32,-Math.PI*0.5-.85,1.7,Math.PI*0.28,Math.PI*0.42),glass,head,[0,0,.004],[0,Math.PI,0],[.95,1.05,.95]);
+// лицо-экран: canvas-текстура на изогнутой поверхности перед визором
+const faceC=document.createElement('canvas');faceC.width=512;faceC.height=256;const fx=faceC.getContext('2d');
+const faceTex=new THREE.CanvasTexture(faceC);faceTex.encoding=THREE.sRGBEncoding;
+const face=mesh(new THREE.CylinderGeometry(.2,.2,.16,40,1,true,-.78,1.56),new THREE.MeshBasicMaterial({map:faceTex,transparent:true,toneMapped:false,side:THREE.DoubleSide}),head,[0,.0,0],[0,0,0],[1,1,1]);
+// уши-модули
+for(const s of[-1,1]){mesh(new THREE.CylinderGeometry(.06,.06,.05,28),graphite,head,[s*.19,0,0],[0,0,Math.PI/2]);mesh(new THREE.TorusGeometry(.045,.007,10,30),glow,head,[s*.217,0,0],[0,Math.PI/2,0])}
+const ant=mesh(new THREE.SphereGeometry(.014,12,10),glowP,head,[0,.235,-.03]);
+mesh(new THREE.CylinderGeometry(.004,.004,.05,6),graphite,head,[0,.205,-.03]);
+// руки
+function arm(side){
+  const sh=pivot(torso,[side*.31,.44,0]);
+  mesh(new THREE.SphereGeometry(.075,24,16),shell,sh);
+  const up=pivot(sh,[0,0,0]);
+  mesh(new THREE.CylinderGeometry(.045,.04,.26,20),graphite,up,[0,-.15,0]);
+  const el=pivot(up,[0,-.3,0]);mesh(new THREE.SphereGeometry(.048,20,14),shell,el);
+  const fa=pivot(el,[0,0,0]);mesh(new THREE.CylinderGeometry(.045,.035,.24,20),shell,fa,[0,-.13,0]);
+  const hand=pivot(fa,[0,-.27,0]);mesh(new THREE.BoxGeometry(.07,.08,.035),graphite,hand,[0,-.02,0]);
+  for(let f=0;f<4;f++)mesh(new THREE.BoxGeometry(.013,.045,.015),graphite,hand,[-.026+f*.017,-.08,0]);
+  return {sh,up,el,fa,hand};
+}
+const R=arm(1),L=arm(-1);
+L.up.rotation.set(-.55,0,-.1);L.fa.rotation.set(-1.0,0,.35);
+const tablet=mesh(new THREE.BoxGeometry(.22,.3,.012),graphite,L.hand,[.02,-.1,.05],[.35,0,.2]);
+mesh(new THREE.PlaneGeometry(.19,.26),glowP,tablet,[0,0,.007]);
+
+// ---------- Лицо: глаза и рот ----------
+let mouth=0,talking=false,blink=0,nextBlink=2,look=0,syl=0;
+function drawFace(t){
+  const W=faceC.width,H=faceC.height;fx.clearRect(0,0,W,H);
+  fx.shadowColor='#6fe6ff';fx.shadowBlur=18;fx.fillStyle='#8ff0ff';
+  const eh=Math.max(4,46*(1-blink)),ew=78,ey=96,gx=look*14;
+  for(const ex of[W/2-92,W/2+92]){const x=ex+gx-ew/2,y=ey-eh/2;const r=Math.min(eh,ew)/2;fx.beginPath();fx.moveTo(x+r,y);fx.arcTo(x+ew,y,x+ew,y+eh,r);fx.arcTo(x+ew,y+eh,x,y+eh,r);fx.arcTo(x,y+eh,x,y,r);fx.arcTo(x,y,x+ew,y,r);fx.fill()}
+  // рот-эквалайзер
+  fx.shadowBlur=12;const n=15;
+  for(let i=0;i<n;i++){const k=1-Math.abs(i-(n-1)/2)/((n-1)/2+1);const h=4+(talking?mouth*44*k*(.6+.4*Math.sin(t*22+i*1.3)):2);fx.fillRect(W/2-n*7+i*14,186-h/2,8,h)}
+  fx.shadowBlur=0;faceTex.needsUpdate=true;
+}
+
+// ---------- Камера ----------
+const CAMS=[{p:[0,1.45,3.6],l:[0,1.25,0],name:'общий план'},{p:[0,1.6,2.0],l:[0,1.5,0],name:'крупный план'},{p:[1.6,1.45,2.8],l:[0,1.25,0],name:'сбоку'}];
+let camI=0,camP=new THREE.Vector3(...CAMS[0].p),camL=new THREE.Vector3(...CAMS[0].l),userYaw=0,drag=false,lxp=0;
+vp.addEventListener('pointerdown',e=>{drag=true;lxp=e.clientX;vp.setPointerCapture(e.pointerId)});
+vp.addEventListener('pointermove',e=>{if(drag){userYaw=Math.max(-.9,Math.min(.9,userYaw+(e.clientX-lxp)*.006));lxp=e.clientX}});
+vp.addEventListener('pointerup',()=>drag=false);
+let vw=1,vh=1;
+function resize(){vw=vp.clientWidth;vh=vp.clientHeight;renderer.setSize(vw,vh,false);camera.aspect=vw/vh;camera.fov=vw/vh<.9?40:28;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+// ---------- Цикл ----------
+let t=0,wallTick=0;
+function loop(){
+  t+=1/60;if(vp.clientWidth!==vw||vp.clientHeight!==vh)resize();
+  nextBlink-=1/60;if(nextBlink<0){blink=1;nextBlink=2.5+Math.random()*3}blink=Math.max(0,blink-.12);
+  look=Math.sin(t*.6)*.6+(talking?Math.sin(t*1.7)*.3:0);
+  syl=Math.max(0,syl-.08);const target=talking?.35+.65*Math.abs(Math.sin(t*10.7)*Math.sin(t*6.1+1))+syl:0;mouth+=(target-mouth)*.35;
+  head.rotation.y=Math.sin(t*.55)*.18+(talking?Math.sin(t*1.25)*.1:0);
+  head.rotation.x=Math.sin(t*.8)*.03+(talking?Math.sin(t*2.5)*.05:0);
+  head.rotation.z=Math.sin(t*.45)*.04;
+  torso.rotation.y=Math.sin(t*.35)*.05;torso.position.y=.85+Math.sin(t*1.4)*.004;
+  const g=talking?Math.sin(t*1.7):Math.sin(t*.5)*.25;
+  R.up.rotation.set(-.35-g*.2,0,.12+Math.max(0,g)*.18);R.fa.rotation.set(-1.05-g*.35,0,-.1);R.hand.rotation.set(0,g*.6,-.2);
+  const pulse=talking?mouth:.5+.5*Math.sin(t*2);core.scale.setScalar(1+pulse*.15);coreIn.material.opacity=.3+pulse*.6;
+  ant.visible=Math.sin(t*4)>-.3;
+  const hp=new THREE.Vector3();head.getWorldPosition(hp);faceL.position.set(hp.x,hp.y,hp.z+.3);faceL.intensity=.5+mouth*.8;
+  drawFace(t);if((wallTick++)%2===0)drawWall(t);
+  // камера: плавный переход + поворот пальцем
+  const C=CAMS[camI];const target2=new THREE.Vector3(...C.p).applyAxisAngle(new THREE.Vector3(0,1,0),userYaw);
+  camP.lerp(target2,.05);camL.lerp(new THREE.Vector3(...C.l),.05);camera.position.copy(camP);camera.lookAt(camL);
+  rimC.intensity=2+.4*Math.sin(t*1.3);ring.scale.setScalar(1+.015*Math.sin(t*2));
+  renderer.render(scene,camera);
+  if(!RM)requestAnimationFrame(loop);
+}
+loop();
+const clk=document.getElementById('clock');setInterval(()=>{clk.textContent=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+' · BERLIN'},1000);
+
+// ---------- Голос ----------
+const LINES={ru:['Добрый вечер! В эфире ORBI, робот-ведущий Orb Studio.','Гео-радар на шестидесяти восьми: Китай объявил новые учения у побережья Тайваня.','Бюджет домохозяйств: аренда в крупных городах Германии продолжает расти.','Крипто-радар: биткоин в евро прибавляет на росте объёма. Помните о рисках.','Подпишитесь, пока я не начал читать вам прогноз погоды в двоичном коде!'],
+ de:['Guten Abend! Hier ist ORBI, der Roboter-Moderator von Orb Studio.','Geo-Radar bei achtundsechzig: China kündigt neue Manöver vor Taiwan an.','Haushaltsbudget: Die Mieten in deutschen Großstädten steigen weiter.','Krypto-Radar: Bitcoin in Euro legt bei steigendem Volumen zu. Denken Sie an die Risiken.','Abonnieren Sie, bevor ich das Wetter in Binärcode vorlese!']};
+// живой выпуск из радаров: реплики Claude (RU/DE) и заголовки для LED-стены
+fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(b=>{
+  if(!b||!b.items||!b.items.length)return;
+  const it=b.items.slice(0,6);
+  LINES.ru=[b.greeting&&b.greeting.ru,...it.map(x=>x.line_ru),b.signoff&&b.signoff.ru].filter(Boolean);
+  LINES.de=[b.greeting&&b.greeting.de,...it.map(x=>x.line_de),b.signoff&&b.signoff.de].filter(Boolean);
+  const names={geo:'Гео',budget:'Бюджет',crypto:'Крипто',energy:'Энерго'};
+  HEAD.length=0;it.forEach(x=>HEAD.push(`${names[x.radar]||x.radar} ${x.risk_index}: ${x.headline}`.slice(0,90)));HEAD.push('ORB STUDIO · orbstudio.org');
+  idx=0;
+}).catch(()=>{});
+let lang='ru',idx=0,on=false,muted=false,voices=[],timer=null;
+const hasTTS='speechSynthesis' in window;
+function lv(){try{voices=speechSynthesis.getVoices()}catch(e){}}
+if(hasTTS){lv();speechSynthesis.onvoiceschanged=lv}
+const sayEl=document.getElementById('say'),st=document.getElementById('st');
+function next(){
+  if(!on)return;const arr=LINES[lang],text=arr[idx++%arr.length];sayEl.textContent=text;talking=true;st.textContent='ON AIR';
+  const done=()=>{talking=false;st.textContent='STANDBY';if(on)setTimeout(next,700)};
+  if(hasTTS&&!muted){try{speechSynthesis.cancel()}catch(e){}
+    const u=new SpeechSynthesisUtterance(text);u.lang=lang==='de'?'de-DE':'ru-RU';u.pitch=.75;u.rate=1;
+    const pre=u.lang.slice(0,2);const v=voices.find(v=>v.lang&&v.lang.startsWith(pre)&&/(male|yuri|pavel|dmitr|maxim|hans|markus|stefan)/i.test(v.name))||voices.find(v=>v.lang&&v.lang.startsWith(pre));if(v)u.voice=v;
+    u.onboundary=()=>{syl=.5};u.onend=done;u.onerror=done;speechSynthesis.speak(u);
+  }else{clearTimeout(timer);timer=setTimeout(done,Math.max(2500,text.length*60))}
+}
+const tb=document.getElementById('talk');
+tb.onclick=()=>{on=!on;tb.textContent=on?'⏸ Пауза':'▶ Говорить';if(on){lv();next()}else{talking=false;st.textContent='STANDBY';clearTimeout(timer);if(hasTTS)try{speechSynthesis.cancel()}catch(e){}}};
+document.getElementById('lang').onclick=e=>{lang=lang==='ru'?'de':'ru';e.currentTarget.textContent=lang==='ru'?'RU → DE':'DE → RU';if(on){if(hasTTS)try{speechSynthesis.cancel()}catch(err){}next()}};
+document.getElementById('cam').onclick=e=>{camI=(camI+1)%CAMS.length;userYaw=0;e.currentTarget.textContent='Камера: '+CAMS[camI].name};
+document.getElementById('mute').onclick=e=>{muted=!muted;e.currentTarget.textContent=muted?'Со звуком':'Без звука';if(muted&&hasTTS)try{speechSynthesis.cancel()}catch(err){}};
+})();
+</script>
+
+</body>
+</html>
