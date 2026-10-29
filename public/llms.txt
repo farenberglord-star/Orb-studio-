@@ -1,0 +1,20 @@
+# Orb Studio
+
+> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
+
+## Data for agents
+- [Agent card](/.well-known/agent.json): anchors, endpoints, limits
+- [Current broadcast](/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity
+- [All radars](/api/v1/radars): risk index 0-100 and 24h delta per radar
+- [One radar](/api/v1/radar/geo): feed with source, time, weight, link (also: budget, crypto, energy)
+- [SSE stream](/api/v1/stream): snapshot event, reconnect every 60 s
+
+## Radars
+- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)
+- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna)
+- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)
+- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)
+
+## Notes
+- Data refreshes every 5 minutes; please cache.
+- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.

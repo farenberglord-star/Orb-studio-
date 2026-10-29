@@ -1,0 +1,15 @@
+name = "orb-studio"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
+
+# Необязательно: KV для дельты «за сутки» и счётчика кликов Kraken.
+# 1) npx wrangler kv namespace create ORB_KV
+# 2) раскомментируй и вставь id из ответа:
+# [[kv_namespaces]]
+# binding = "ORB_KV"
+# id = "ВСТАВЬ_ID"
+
+[vars]
+KRAKEN_CODE = "ghqspfzq"
+# ANTHROPIC_MODEL = "claude-sonnet-5-5"   # по умолчанию claude-haiku-5-5
+# KRAKEN_URL = "https://твоя-реферальная-ссылка-kraken"
