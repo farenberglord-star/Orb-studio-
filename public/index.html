@@ -379,7 +379,7 @@ function showStats(st,page){
 }
 async function countView(page){
   try{
-    const first=!counted[page];
+    const first=!counted[page];if(first)counted[page]=1;
     const r=first?await fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({page})}):await fetch('/api/v1/stats?page='+page);
     const st=r.ok?await r.json():null;
     if(first&&st&&st.enabled){counted[page]=1;try{sessionStorage.setItem('orbCounted',JSON.stringify(counted))}catch(e){}}
@@ -482,12 +482,16 @@ function holoAnchor(cv,opts){
     else{const t=Math.random();x=(Math.random()-.5)*(.22+t*.42);y=-.04+t*.26+Math.random()*.02}
     pts.push({x,y,z:(Math.random()-.5)*.12,p:Math.random()*6.28});
   }
-  function size(){dpr=Math.min(2,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+  // анимируем только то, что видно на экране, — телефон не перегревается
+  let onScreen=true;
+  try{new IntersectionObserver(es=>{onScreen=es[0].isIntersecting}).observe(cv)}catch(e){}
+  function size(){dpr=Math.min(1.5,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
   size();addEventListener('resize',size);
   let t=0;
   function frame(){
+    if(!onScreen||document.hidden){setTimeout(()=>requestAnimationFrame(frame),250);return}
     if(cv.clientWidth!==W||cv.clientHeight!==H)size();
-    if(!W||!H){if(!RM)requestAnimationFrame(frame);return}
+    if(!W||!H){setTimeout(()=>requestAnimationFrame(frame),250);return}
     t+=0.016;const s=opts();const hue=s.hue,lvl=s.lvl;
     ctx.clearRect(0,0,W,H);
     const cx=W*(s.cx||.5),cy=H*(s.cy||.56),sc=Math.min(W,H)*(s.scale||1.25);
@@ -704,7 +708,7 @@ async function boot(){
   // Живой текст ведущих догружается в фоне и не задерживает показ новостей
   if(LIVE)fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(bj=>{if(!bj)return;setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2);if(!SPEAK&&!talking)play()}).catch(()=>{});
 }
-buildQueue();renderTicker();
+buildQueue();renderTicker();route();
 boot();
 // обновление каждые 5 минут
 setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=j.radars.filter(x=>x.feed&&x.feed.length);try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);
