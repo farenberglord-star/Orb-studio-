@@ -454,12 +454,14 @@ async function voiceBroadcast(env, ctx, origin, items) {
     await sharedPut(env, "voice2-" + h, data);
     return data;
   });
-  ctx.waitUntil(job.catch(() => {}));
+  ctx.waitUntil(job.catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 300) })));
   try {
     const data = await Promise.race([job, new Promise((r) => setTimeout(() => r(null), 8000))]);
     if (data) return data;
     const fb = templateBroadcast(items);
     fb.error = "Claude is still writing this broadcast; live text will be ready on the next request (about 10-20 s).";
+    const last = await sharedGet(env, "voice-last-error", 30 * 60e3);
+    if (last) fb.error += " Last background error: " + last.at + " — " + last.error;
     return fb;
   } catch (e) {
     const fb = templateBroadcast(items);
