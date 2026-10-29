@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 directory = "./public"
 binding = "ASSETS"
 # Машинные файлы проходят через Worker, чтобы считать визиты ИИ-агентов
-run_worker_first = ["/", "/index.html", "/orb7.html", "/orbi.html", "/llms.txt", "/.well-known/*", "/robots.txt"]
+run_worker_first = ["/", "/index.html", "/orb7.html", "/orb7", "/orbi.html", "/orbi", "/llms.txt", "/.well-known/*", "/robots.txt"]
 
 [vars]
 KRAKEN_CODE = "ghqspfzq"

@@ -125,6 +125,7 @@ const tag = (block, name) => {
 async function fetchFeed(url) {
   try {
     const r = await fetch(url, {
+      signal: AbortSignal.timeout(6000), // медленная лента пропускается, а не тормозит весь радар
       headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" },
       cf: { cacheTtl: 300, cacheEverything: true },
     });
@@ -147,7 +148,7 @@ async function fetchFeed(url) {
 // ---------- Kraken ----------
 async function krakenTicker(pairs) {
   try {
-    const r = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${pairs.join(",")}`, { cf: { cacheTtl: 60 } });
+    const r = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${pairs.join(",")}`, { signal: AbortSignal.timeout(5000), cf: { cacheTtl: 60 } });
     const j = await r.json();
     const out = {};
     for (const [k, v] of Object.entries(j.result || {})) {
@@ -249,6 +250,7 @@ async function allRadars(env, ctx, origin) {
     try {
       const data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
       const body = JSON.stringify(data);
+      await sharedPut(env, "radars", data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -258,7 +260,26 @@ async function allRadars(env, ctx, origin) {
   })());
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
+  // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
+  const shared = await sharedGet(env, "radars", 6 * 3600e3);
+  if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
+}
+async function sharedGet(env, key, maxAgeMs) {
+  if (!env || !env.DB) return null;
+  try {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS shared (k TEXT PRIMARY KEY, v TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+    const row = await env.DB.prepare("SELECT v, ts FROM shared WHERE k=?1").bind(key).first();
+    if (!row || Date.now() - row.ts > maxAgeMs) return null;
+    return JSON.parse(row.v);
+  } catch (e) { return null; }
+}
+async function sharedPut(env, key, value) {
+  if (!env || !env.DB) return;
+  try {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS shared (k TEXT PRIMARY KEY, v TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+    await env.DB.prepare("INSERT INTO shared (k, v, ts) VALUES (?1, ?2, ?3) ON CONFLICT(k) DO UPDATE SET v=excluded.v, ts=excluded.ts").bind(key, JSON.stringify(value), Date.now()).run();
+  } catch (e) {}
 }
 
 // ---------- Реплики ведущего ----------
@@ -394,11 +415,15 @@ async function voiceBroadcast(env, ctx, origin, items) {
   const key = new Request(`${origin}/__cache/voice-v1-${h}`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
+  // тот же выпуск уже написан в другом дата-центре — берём из общей базы, Claude не зовём повторно
+  const shared = await sharedGet(env, "voice-" + h, 60 * 60e3);
+  if (shared) { ctx.waitUntil(cache.put(key, new Response(JSON.stringify(shared), { headers: { "Cache-Control": "max-age=900" } }))); return shared; }
   // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
   // а следующий запрос получит уже готовый живой текст из кэша.
   const job = askClaude(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
     await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
+    await sharedPut(env, "voice-" + h, data);
     return data;
   });
   ctx.waitUntil(job.catch(() => {}));
@@ -589,7 +614,7 @@ function jsonLd(radars, origin) {
   };
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orbi.html": "orbi" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -643,5 +668,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"anna\",\n      \"kind\": \"robot\",\n      \"radars\": [\n        \"budget\",\n        \"geo\",\n        \"politics\",\n        \"economy\"\n      ]\n    },\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radar\": \"geo\"\n    },\n    {\n      \"id\": \"kai\",\n      \"kind\": \"human\",\n      \"radar\": \"crypto\"\n    },\n    {\n      \"id\": \"lena\",\n      \"kind\": \"human\",\n      \"radar\": \"energy\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"all\",\n      \"page\": \"https://orbstudio.org/orbi.html\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\"\n}\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"anna\",\n      \"kind\": \"robot\",\n      \"radars\": [\n        \"budget\",\n        \"geo\",\n        \"politics\",\n        \"economy\"\n      ]\n    },\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radar\": \"geo\"\n    },\n    {\n      \"id\": \"kai\",\n      \"kind\": \"human\",\n      \"radar\": \"crypto\"\n    },\n    {\n      \"id\": \"lena\",\n      \"kind\": \"human\",\n      \"radar\": \"energy\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"all\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\"\n}\n";
 const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: Anna, robot)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: Anna, robot)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna, robot)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n";

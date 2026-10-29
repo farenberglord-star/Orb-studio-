@@ -208,7 +208,7 @@ details.machine a{color:var(--holo)}
     <a href="#radar" data-v="radar">Радар</a>
     <a href="#anchors" data-v="anchors">Ведущие</a>
     <a href="#agents" data-v="agents">Агентам</a>
-    <a href="/orbi.html">ORBI 🤖</a>
+    <a href="/orbi">ORBI 🤖</a>
   </nav>
 </div></header>
 
@@ -345,9 +345,9 @@ details.machine a{color:var(--holo)}
     <p class="lead">Агенту не нужен видео-ведущий. Ему нужен тот же выпуск, но с оценкой риска, уверенностью, источниками и временем. Ведущий ORB-7 выдаёт это через открытый API.</p>
   </div>
   <div class="box" style="padding:0;overflow:hidden;margin-bottom:16px">
-    <iframe src="/orb7.html?embed=1" title="ORB-7, робот-ведущий для ИИ-агентов" loading="lazy" class="orb7frame" allow="autoplay"></iframe>
+    <iframe src="/orb7?embed=1" title="ORB-7, робот-ведущий для ИИ-агентов" loading="lazy" class="orb7frame" allow="autoplay"></iframe>
   </div>
-  <p class="lead" style="margin:-6px 0 16px"><a href="/orb7.html" style="color:var(--holo)">Открыть ORB-7 на весь экран ↗</a></p>
+  <p class="lead" style="margin:-6px 0 16px"><a href="/orb7" style="color:var(--holo)">Открыть ORB-7 на весь экран ↗</a></p>
   <div class="cols">
     <div class="box">
       <h3>Эндпоинты</h3>
@@ -426,7 +426,7 @@ const ANCHORS = {
   anna:{name:'АННА',role:'Робот-ведущая эфира: бюджет, геополитика, политика, экономика',kind:'robot',hue:'#7fe6ff',lang:'RU · DE',out:'видео 9:16'},
   kai:{name:'КАЙ',role:'Крипто-радар · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'видео + короткие клипы'},
   lena:{name:'ЛЕНА',role:'Энерго-радар · нефть, газ',kind:'human',hue:C.ok,lang:'RU · DE',out:'видео 9:16'},
-  orbi:{name:'ORBI',role:'Робот-ведущий студии · все радары',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-эфир в студии',page:'/orbi.html'},
+  orbi:{name:'ORBI',role:'Робот-ведущий студии · все радары',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-эфир в студии',page:'/orbi'},
   orb7:{name:'ORB-7',role:'Ведущий для ИИ-агентов',kind:'agent',hue:C.holo2,lang:'EN · JSON',out:'JSON, SSE-поток, llms.txt'}
 };
 const EXAMPLE = [
