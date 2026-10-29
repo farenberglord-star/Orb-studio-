@@ -198,7 +198,7 @@ async function buildRadar(def, env) {
   const lists = await Promise.all(def.feeds.map(fetchFeed));
   const seen = new Set();
   const items = lists.flat()
-    .filter((i) => { const k = i.title.toLowerCase().slice(0, 60); if (seen.has(k)) return false; seen.add(k); return true; })
+    .filter((i) => { const k = dedupeKey(i.title); if (seen.has(k)) return false; seen.add(k); return true; })
     .filter((i) => Date.now() - i.ts < 72 * 3600e3)
     .map((i) => ({ ...i, ...scoreItem(i.title, def.factors) }))
     .sort((a, b) => b.weight - a.weight || b.ts - a.ts)
@@ -369,6 +369,18 @@ function templateBroadcast(items) {
   };
 }
 
+// один и тот же заголовок с пометками EXCLUSIVE/BREAKING/UPDATE и т. п. считаем одной новостью
+function dedupeKey(t) {
+  return t.toLowerCase().replace(/^\s*(exclusive|breaking|update|updated|analysis|live|eilmeldung|exklusiv|срочно|эксклюзив)\s*[:\-–—|]\s*/i, "")
+    .replace(/[^a-zа-яёäöüß0-9]+/gi, " ").trim().slice(0, 55);
+}
+// выпуск пишут два параллельных запроса к Claude — так он укладывается во время ответа
+async function askClaudeSplit(env, items) {
+  if (items.length <= 6) return askClaude(env, items);
+  const half = Math.ceil(items.length / 2);
+  const [a, b] = await Promise.all([askClaude(env, items.slice(0, half)), askClaude(env, items.slice(half))]);
+  return { voice: "claude", model: a.model, greeting: a.greeting, signoff: b.signoff || a.signoff, lines: [...a.lines, ...b.lines] };
+}
 async function askClaude(env, items) {
   const tz = { timeZone: "Europe/Berlin" };
   const weekdayRu = new Date().toLocaleDateString("ru-RU", { ...tz, weekday: "long" });
@@ -392,7 +404,7 @@ async function askClaude(env, items) {
     },
     body: JSON.stringify({
       model: env.ANTHROPIC_MODEL || "claude-haiku-5-5",
-      max_tokens: 4500,
+      max_tokens: 2500,
       system: SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(input) }],
     }),
@@ -436,7 +448,7 @@ async function voiceBroadcast(env, ctx, origin, items) {
   if (shared) { ctx.waitUntil(cache.put(key, new Response(JSON.stringify(shared), { headers: { "Cache-Control": "max-age=900" } }))); return shared; }
   // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
   // а следующий запрос получит уже готовый живой текст из кэша.
-  const job = askClaude(env, items).then(async (data) => {
+  const job = askClaudeSplit(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
     await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
     await sharedPut(env, "voice2-" + h, data);
