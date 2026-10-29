@@ -8,14 +8,16 @@
 orb-studio/
 ├─ public/                     ← всё, что загружается на Cloudflare Pages
 │  ├─ index.html               ← Эфир, Радар, Ведущие, Для ИИ-агентов
-│  ├─ _worker.js               ← вся серверная часть: API, голос ведущих, Kraken-редирект
 │  ├─ llms.txt                 ← описание сайта для языковых моделей
 │  ├─ robots.txt
 │  ├─ _headers
 │  └─ .well-known/agent.json   ← визитка для ИИ-агентов
-├─ wrangler.toml
+├─ src/worker.js               ← вся серверная часть: API, голос ведущих, Kraken-редирект
+├─ wrangler.toml               ← Worker со статикой из public/
 └─ package.json
 ```
+
+**Деплой:** репозиторий подключён к Cloudflare Workers Builds. Каждый push в `main` сам запускает `npx wrangler deploy`.
 
 ## Деплой через Cloudflare API (для агента без терминала)
 

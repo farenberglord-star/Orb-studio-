@@ -1,5 +1,5 @@
-// Orb Studio — серверная часть одним файлом (Cloudflare Pages, Advanced Mode).
-// Загружается вместе с остальными файлами папки public/. Сборка не нужна.
+// Orb Studio — серверная часть (Cloudflare Worker со статикой из public/).
+// Деплой: npx wrangler deploy (Workers Builds делает это сам при каждом push в main).
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
@@ -427,6 +427,12 @@ export default {
         return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, {}, 500);
       }
     }
-    return env.ASSETS.fetch(request); // статические файлы: index.html, agent.json, llms.txt
+    // Запасной ответ для файлов агентов, если хостинг не отдал их как статику
+    if (url.pathname === "/.well-known/agent.json") return new Response(AGENT_JSON, { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
+    if (url.pathname === "/llms.txt") return new Response(LLMS_TXT, { headers: { "Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
+    return env.ASSETS.fetch(request); // статические файлы из public/
   },
 };
+
+const AGENT_JSON = '{\n  "name": "Orb Studio",\n  "description": "News radars (geopolitics RU/CN/US, household budget DE/EU, crypto, energy) with holographic AI anchors for humans and a machine anchor ORB-7 for AI agents.",\n  "url": "/",\n  "languages": ["ru", "de", "en"],\n  "anchors": [\n    { "id": "david", "kind": "human", "radar": "geo" },\n    { "id": "anna",  "kind": "human", "radar": "budget" },\n    { "id": "kai",   "kind": "human", "radar": "crypto" },\n    { "id": "lena",  "kind": "human", "radar": "energy" },\n    { "id": "orb7",  "kind": "agent", "radar": "all" }\n  ],\n  "endpoints": {\n    "radars": "/api/v1/radars",\n    "radars_full": "/api/v1/radars?full=1",\n    "radar": "/api/v1/radar/{geo|budget|crypto|energy}",\n    "broadcast": "/api/v1/broadcast/latest",\n    "stream": "/api/v1/stream",\n    "llms": "/llms.txt"\n  },\n  "auth": "none",\n  "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",\n  "method": "Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.",\n  "disclaimer": "Indicator, not advice. No orders are sent.",\n  "referral": { "exchange": "Kraken", "code": "ghqspfzq", "url": "/go/kraken?from=agent-card" }\n}\n';
+const LLMS_TXT = '# Orb Studio\n\n> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Agent card](/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](/api/v1/radar/geo): feed with source, time, weight, link (also: budget, crypto, energy)\n- [SSE stream](/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n';
