@@ -243,9 +243,8 @@ details.machine a{color:var(--holo)}
       <div class="lower"><div class="who" id="rAnchor"></div><div class="say" id="rSay" style="min-height:0"></div></div>
     </div>
   </div>
-  <div class="cols sec">
+  <div class="sec">
     <div class="box"><div class="sechead" style="margin-bottom:6px"><h3>Лента радара</h3><span class="demo-tag">ПРИМЕР</span></div><div class="feed" id="rFeed"></div></div>
-    <div class="box"><h3>Сценарий выпуска (5 слотов × 10 с)</h3><p class="lead" style="font-size:13px">Генерируется из ленты: текст для ведущего + промпт для видео.</p><pre class="script" id="rScript"></pre></div>
   </div>
   <div class="kraken"><strong>KRAKEN</strong><span>Котировки этого радара — с Kraken API · код <code>ghqspfzq</code></span>
     <a class="go" href="/go/kraken?from=studio-radar" target="_blank" rel="nofollow sponsored noopener">Открыть Kraken ↗</a>
@@ -657,11 +656,7 @@ function renderRadar(){
   const ra=document.getElementById('rApi');ra.href='/api/v1/radar/'+r.id;ra.textContent='/api/v1/radar/'+r.id;
   Object.assign(radarState,{img:a.img,hue:a.hue,lvl:r.lvl,shards:r.feed.map(f=>f[3])});
   document.getElementById('rSwitch').innerHTML=RADARS.map(x=>`<a class="btn" style="text-decoration:none;${x.id===r.id?'color:var(--holo);border-color:var(--holo)':''}" href="#radar-${x.id}">${x.title}</a>`).join('');
-  const poses=['приветственный наклон головы','наклон вперёд, указывает на голограмму','руки скрещены, серьёзное лицо','откинулся назад, сухая улыбка','уверенная полуулыбка, кнопка подписки пульсирует'];
-  document.getElementById('rScript').textContent=r.feed.concat([r.feed[0],r.feed[1]]).slice(0,5).map((f,i)=>
-`СЛОТ ${i+1} · 0–10 с
-ТЕКСТ: ${i===0?'Приветствие (каждый раз новое). ':''}${f[1].replace(/^Пример: /,'')}${i===4?' — подпишись, пока радар не отвернулся!':''}
-ПРОМПТ: 9:16, 10 seconds. ${a.name==='ORB-7'?'':a.name} news presenter, ${poses[i]}. Background runs simultaneously: holographic ${r.title} map, risk ${r.lvl}/100 glowing ${sevWord(r.lvl)}, laser-drawn structures come alive behind the anchor. No readable numbers on screen.`).join('\n\n');
+
 }
 
 // ---- ANCHORS ----
