@@ -21,8 +21,7 @@ KRAKEN_CODE = "ghqspfzq"
 # id = "ВСТАВЬ_ID"
 
 # Счётчики просмотров и ИИ-агентов (Cloudflare D1).
-# Создай базу в панели: Storage & Databases → D1 → Create → имя orb-stats, затем вставь её Database ID сюда и убери #.
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "orb-stats"
-# database_id = "ВСТАВЬ_ID"
+[[d1_databases]]
+binding = "DB"
+database_name = "orb-stats"
+database_id = "cc198d25-bd17-4f41-8785-6eea22bb6667"
