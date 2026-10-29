@@ -408,6 +408,8 @@ function holoAnchor(cv,opts){
   size();addEventListener('resize',size);
   let t=0;
   function frame(){
+    if(cv.clientWidth!==W||cv.clientHeight!==H)size();
+    if(!W||!H){if(!RM)requestAnimationFrame(frame);return}
     t+=0.016;const s=opts();const hue=s.hue,lvl=s.lvl;
     ctx.clearRect(0,0,W,H);
     const cx=W*(s.cx||.5),cy=H*(s.cy||.56),sc=Math.min(W,H)*(s.scale||1.25);
