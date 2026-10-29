@@ -351,7 +351,7 @@ const SYSTEM = `Ты пишешь реплики для ИИ-ведущих но
 - greeting: приветствие в начале выпуска от лица Анны — робот-ведущей главного эфира Orb Studio; каждый раз другое (не шаблонное «добрый вечер»), с учётом дня и времени суток, 1 предложение. Имя ведущей в приветствии — только Анна.
 - signoff: шутливая просьба подписаться в конце, каждый раз новая, 1 предложение.
 
-Ответь только JSON без пояснений, строго такой формы:
+Верни результат через инструмент write_broadcast. Структура:
 {"greeting":{"ru":"…","de":"…"},"lines":[{"i":0,"ru":"…","de":"…"}],"signoff":{"ru":"…","de":"…"}}
 где i — номер заголовка из входных данных.`;
 
@@ -381,6 +381,20 @@ async function askClaudeSplit(env, items) {
   const [a, b] = await Promise.all([askClaude(env, items.slice(0, half)), askClaude(env, items.slice(half))]);
   return { voice: "claude", model: a.model, greeting: a.greeting, signoff: b.signoff || a.signoff, lines: [...a.lines, ...b.lines] };
 }
+const RU_DE = { type: "object", properties: { ru: { type: "string" }, de: { type: "string" } }, required: ["ru", "de"] };
+const BROADCAST_TOOL = {
+  name: "write_broadcast",
+  description: "Записать реплики ведущих для выпуска Orb Studio.",
+  input_schema: {
+    type: "object",
+    properties: {
+      greeting: RU_DE,
+      lines: { type: "array", items: { type: "object", properties: { i: { type: "integer" }, ru: { type: "string" }, de: { type: "string" } }, required: ["i", "ru", "de"] } },
+      signoff: RU_DE,
+    },
+    required: ["greeting", "lines", "signoff"],
+  },
+};
 async function askClaude(env, items) {
   const tz = { timeZone: "Europe/Berlin" };
   const weekdayRu = new Date().toLocaleDateString("ru-RU", { ...tz, weekday: "long" });
@@ -407,14 +421,21 @@ async function askClaude(env, items) {
       max_tokens: 2500,
       system: SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(input) }],
+      // ответ через инструмент со строгой схемой — JSON всегда корректный, даже с кавычками в тексте
+      tools: [BROADCAST_TOOL],
+      tool_choice: { type: "tool", name: BROADCAST_TOOL.name },
     }),
   });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const j = await res.json();
-  const text = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
-  const m = text.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("No JSON in model reply");
-  const out = JSON.parse(m[0]);
+  const tool = (j.content || []).find((c) => c.type === "tool_use");
+  let out = tool && tool.input;
+  if (!out) {
+    const text = (j.content || []).filter((c) => c.type === "text").map((c) => c.text).join("");
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error("No broadcast in model reply");
+    out = JSON.parse(m[0]);
+  }
   const byI = new Map((out.lines || []).map((l) => [l.i, l]));
   return {
     voice: "claude",
