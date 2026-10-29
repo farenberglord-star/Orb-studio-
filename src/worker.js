@@ -404,8 +404,12 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/go/kraken") {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.KRAKEN_URL || `https://geoquant-orb.pages.dev/go/kraken?from=${from.startsWith("studio") ? "" : "studio-"}${encodeURIComponent(from)}`;
+    // человек = обычный браузер И переход по ссылке как документ (Sec-Fetch-Dest: document);
+    // боты, которые притворяются браузером, этот заголовок обычно не присылают
     const who = classifyAgent(request.headers.get("user-agent"));
-    ctx.waitUntil(recordHit(env, from, "kraken", who ? "agent:" + who : "human"));
+    const dest = request.headers.get("sec-fetch-dest");
+    const label = who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified");
+    ctx.waitUntil(recordHit(env, from, "kraken", label));
     return Response.redirect(target, 302);
   }
 
@@ -516,10 +520,19 @@ async function readStats(env, page) {
     one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken' AND day=?1", d),
     one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken'"),
   ]);
-  const krakenFrom = (await env.DB.prepare("SELECT page AS source, SUM(n) AS n FROM hits WHERE kind='kraken' AND day>=?1 GROUP BY page ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
+  const [krHumansToday, krHumansTotal] = await Promise.all([
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken' AND name='human' AND day=?1", d),
+    one("SELECT SUM(n) AS n FROM hits WHERE kind='kraken' AND name='human'"),
+  ]);
+  const krakenFrom = (await env.DB.prepare("SELECT page AS source, SUM(n) AS n FROM hits WHERE kind='kraken' AND name='human' AND day>=?1 GROUP BY page ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
+  const krakenBots = (await env.DB.prepare("SELECT substr(name, 7) AS name, SUM(n) AS n FROM hits WHERE kind='kraken' AND name LIKE 'agent:%' AND day>=?1 GROUP BY name ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
   return { enabled: true, page, page_total: pageTotal, page_today: pageToday, site_total: siteTotal, site_today: siteToday,
     agents_today: agentsToday, agents_total: agentsTotal, top_agents_7d: top,
-    kraken_clicks_today: krakenToday, kraken_clicks_total: krakenTotal, kraken_by_source_7d: krakenFrom };
+    kraken_clicks_today: krakenToday, kraken_clicks_total: krakenTotal,
+    kraken_humans_today: krHumansToday, kraken_humans_total: krHumansTotal,
+    kraken_bots_today: krakenToday - krHumansToday, kraken_bots_total: krakenTotal - krHumansTotal,
+    kraken_by_source_7d: krakenFrom, kraken_bots_7d: krakenBots,
+    note: "Kraken clicks before 2026-10-29 18:40 were classified by User-Agent only." };
 }
 
 // ================= Машинный слой страниц: живые данные прямо в HTML =================
@@ -532,7 +545,7 @@ function machineHtml(radars, page) {
     for (const f of r.feed.slice(0, page === "orb7" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
     h += "</ul>";
   }
-  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
+  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}" rel="nofollow sponsored">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
   return h;
 }
 function jsonLd(radars, origin) {
