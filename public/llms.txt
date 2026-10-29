@@ -8,12 +8,14 @@ Site: https://orbstudio.org
 - [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits
 - [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity
 - [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar
-- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: budget, crypto, energy)
+- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy)
 - [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s
 
 ## Radars
 - geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)
-- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna)
+- politics: governments, elections, laws in Germany/EU/US (anchor: Anna, robot)
+- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: Anna, robot)
+- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna, robot)
 - crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)
 - energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)
 

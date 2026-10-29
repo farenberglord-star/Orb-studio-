@@ -1,6 +1,6 @@
 {
   "name": "Orb Studio",
-  "description": "News radars (geopolitics RU/CN/US, household budget DE/EU, crypto, energy) with holographic AI anchors for humans and a machine anchor ORB-7 for AI agents.",
+  "description": "News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.",
   "url": "https://orbstudio.org/",
   "languages": [
     "ru",
@@ -9,14 +9,19 @@
   ],
   "anchors": [
     {
+      "id": "anna",
+      "kind": "robot",
+      "radars": [
+        "budget",
+        "geo",
+        "politics",
+        "economy"
+      ]
+    },
+    {
       "id": "david",
       "kind": "human",
       "radar": "geo"
-    },
-    {
-      "id": "anna",
-      "kind": "human",
-      "radar": "budget"
     },
     {
       "id": "kai",
@@ -29,6 +34,12 @@
       "radar": "energy"
     },
     {
+      "id": "orbi",
+      "kind": "robot",
+      "radar": "all",
+      "page": "https://orbstudio.org/orbi.html"
+    },
+    {
       "id": "orb7",
       "kind": "agent",
       "radar": "all"
@@ -37,7 +48,7 @@
   "endpoints": {
     "radars": "https://orbstudio.org/api/v1/radars",
     "radars_full": "https://orbstudio.org/api/v1/radars?full=1",
-    "radar": "https://orbstudio.org/api/v1/radar/{geo|budget|crypto|energy}",
+    "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}",
     "broadcast": "https://orbstudio.org/api/v1/broadcast/latest",
     "stream": "https://orbstudio.org/api/v1/stream",
     "llms": "https://orbstudio.org/llms.txt"

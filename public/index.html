@@ -58,6 +58,7 @@ h3{font-size:16px}
 .studio{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/11;max-width:100%;
   background:radial-gradient(120% 80% at 50% 110%,#13254a 0%,#0a1122 55%,#060912 100%)}
 .studio canvas{position:absolute;inset:0;width:100%;height:100%}
+.studio canvas.robotcv{z-index:1}.studio .scan{z-index:2}.studio .hud,.studio .lower{z-index:3}
 .studio .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(95,227,255,.05) 0 1px,transparent 1px 3px);mix-blend-mode:screen}
 .studio .hud{position:absolute;left:14px;right:14px;top:12px;display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11px;color:var(--holo)}
 .studio .lower{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(6,10,20,.78);border:1px solid color-mix(in srgb,var(--holo) 35%,transparent);border-radius:10px;padding:10px 14px}
@@ -217,7 +218,7 @@ details.machine a{color:var(--holo)}
 <section class="view" id="v-home">
   <div class="stage">
     <div class="studio" id="studio">
-      <canvas id="stageCv"></canvas><div class="scan"></div>
+      <canvas id="stageCv"></canvas><canvas id="robotCv" class="robotcv"></canvas><div class="scan"></div>
       <div class="hud"><span id="hudL">CAM 1 · ГОЛО-СЛОЙ ACTIVE</span><span id="hudR">RISK —</span></div>
       <div class="lower">
         <div class="who"><span id="anchorName">ДАВИД</span><span class="mood" id="mood">спокойно</span><span class="demo-tag">ПРИМЕР</span><span class="mood" id="voiceTag" style="color:var(--dim)" hidden>шаблон</span></div>
@@ -408,6 +409,8 @@ details.machine a{color:var(--holo)}
   <div class="dockk"><strong style="font-family:var(--display);letter-spacing:.06em">KRAKEN</strong><a class="kr" href="/go/kraken?from=studio-dock" target="_blank" rel="nofollow sponsored noopener">Торговать ↗</a><span class="codetxt">код ghqspfzq · не совет</span><span class="counter" id="counter" title="Просмотры этой страницы и визиты ИИ-агентов">👁 <b id="cPage">—</b> · 🤖 <b id="cAgents">—</b></span></div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/anna-robot.js"></script>
 <script>
 (()=>{
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -419,7 +422,7 @@ const sevWord = v => v>=70?'тревожно':v>=45?'напряжённо':'сп
 // ---- Example data (would come from the news radars API) ----
 const ANCHORS = {
   david:{name:'ДАВИД',role:'Гео-радар · RU / CN / US',kind:'human',hue:C.holo,lang:'RU · DE',out:'видео 9:16, TikTok/YouTube'},
-  anna:{name:'АННА',role:'Радар бюджета домохозяйств · ведущая эфира',kind:'human',hue:'#7fe6ff',img:'/anchors/anna.jpg',lang:'RU · DE',out:'видео 9:16'},
+  anna:{name:'АННА',role:'Робот-ведущая эфира: бюджет, геополитика, политика, экономика',kind:'robot',hue:'#7fe6ff',lang:'RU · DE',out:'видео 9:16'},
   kai:{name:'КАЙ',role:'Крипто-радар · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'видео + короткие клипы'},
   lena:{name:'ЛЕНА',role:'Энерго-радар · нефть, газ',kind:'human',hue:C.ok,lang:'RU · DE',out:'видео 9:16'},
   orbi:{name:'ORBI',role:'Робот-ведущий студии · все радары',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-эфир в студии',page:'/orbi.html'},
@@ -636,7 +639,8 @@ function holoAnchor(cv,opts){
 
 // ---- HOME ----
 const queue=[];
-function buildQueue(){queue.length=0;RADARS.forEach(r=>r.feed.slice(0,3).forEach(f=>queue.push({r,f})));queue.sort((a,b)=>b.f[3]-a.f[3]||b.f[0].localeCompare(a.f[0]));qi=0}
+const HOME_RADARS=['budget','geo','politics','economy'];
+function buildQueue(){queue.length=0;const src=RADARS.filter(r=>HOME_RADARS.includes(r.id));(src.length?src:RADARS).forEach(r=>r.feed.slice(0,3).forEach(f=>queue.push({r,f})));queue.sort((a,b)=>b.f[3]-a.f[3]||b.f[0].localeCompare(a.f[0]));qi=0}
 let qi=0,typing=null,talking=false;
 function templateLine(item){
   const v=item.f[3],d=item.r.lvl-item.r.prev;
@@ -698,7 +702,7 @@ function play(){
   const m=document.getElementById('mood');m.textContent=sevWord(it.f[3]);m.style.color=sevColor(it.f[3]);
   document.getElementById('hudR').textContent='RISK '+it.r.lvl+' · '+it.f[2];
   document.getElementById('hudR').style.color=sevColor(it.r.lvl);
-  stageState.hue=a.hue;stageState.img=a.img;stageState.lvl=it.r.lvl;stageState.shards=it.r.feed.map(f=>f[3]);
+  stageState.hue=a.hue;stageState.img=a.img;stageState.sev=it.f[3];stageState.lvl=it.r.lvl;stageState.shards=it.r.feed.map(f=>f[3]);
   renderQueue();
   const say=document.getElementById('say');clearInterval(typing);let i=0;talking=true;
   if(RM){say.textContent=txt;talking=false}
@@ -811,6 +815,8 @@ async function boot(){
   if(LIVE)fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(bj=>{if(!bj)return;setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2);if(!SPEAK&&!talking)play()}).catch(()=>{});
 }
 buildQueue();renderTicker();route();
+// Анна-робот на главной сцене; если 3D недоступно, остаётся голограмма из частиц
+try{if(window.AnnaRobot&&AnnaRobot.init(document.getElementById('robotCv'),()=>({talking,lvl:stageState.lvl,sev:stageState.sev}))){document.getElementById('stageCv').hidden=true}else{document.getElementById('robotCv').hidden=true}}catch(e){document.getElementById('robotCv').hidden=true}
 boot();
 // обновление каждые 5 минут
 setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=j.radars.filter(x=>x.feed&&x.feed.length);try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);

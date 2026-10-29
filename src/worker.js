@@ -7,7 +7,7 @@
 
 const ANCHORS = {
   david: { name: "Давид", role: "Гео-радар · RU / CN / US", kind: "human" },
-  anna:  { name: "Анна",  role: "Радар бюджета домохозяйств", kind: "human" },
+  anna:  { name: "Анна",  role: "Робот-ведущая главного эфира: бюджет, геополитика, политика, экономика", kind: "robot" },
   kai:   { name: "Кай",   role: "Крипто-радар · Kraken", kind: "human" },
   lena:  { name: "Лена",  role: "Энерго-радар", kind: "human" },
   orb7:  { name: "ORB-7", role: "Ведущий для ИИ-агентов", kind: "agent" },
@@ -47,6 +47,36 @@ const RADARS = [
       "Энергия":  { w: 60, k: ["strompreis","gaspreis","heizkosten","energiepreis","тариф"] },
       "Аренда":   { w: 60, k: ["miete","mietpreis","wohnung","аренд"] },
       "Ставки":   { w: 50, k: ["ezb","zins","leitzins","ecb","rate","ставк"] },
+    },
+  },
+  {
+    id: "politics", title: "Политика", anchor: "anna",
+    lead: "Правительства, выборы и законы: Германия, ЕС, США.",
+    feeds: [
+      gnews("Bundesregierung OR Bundestag OR Koalition when:1d", "de", "DE"),
+      gnews("European Commission OR European Parliament when:2d"),
+      gnews("White House OR Congress OR Senate when:1d"),
+    ],
+    factors: {
+      "Кризисы":       { w: 75, k: ["no-confidence","resign","resignation","impeach","scandal","collapse","protest","coup","rücktritt","misstrauen","отставк","протест","кризис правительств"] },
+      "Выборы":        { w: 55, k: ["election","elections","vote","votes","ballot","poll","polls","wahl","wahlen","umfrage","выбор","голосован"] },
+      "Правительство": { w: 50, k: ["government","coalition","minister","cabinet","chancellor","president","regierung","koalition","kanzler","правительств","министр","президент"] },
+      "Законы":        { w: 45, k: ["law","bill","legislation","regulation","gesetz","verordnung","reform","закон","реформ"] },
+    },
+  },
+  {
+    id: "economy", title: "Экономика", anchor: "anna",
+    lead: "Рост, рецессия, ставки, рынок труда: Германия, еврозона, США.",
+    feeds: [
+      gnews("Konjunktur OR Wirtschaft OR Rezession OR DAX when:1d", "de", "DE"),
+      gnews("economy OR GDP OR recession OR unemployment when:1d"),
+      gnews("ECB OR Fed interest rates when:2d"),
+    ],
+    factors: {
+      "Рецессия":  { w: 75, k: ["recession","rezession","slump","contraction","downturn","crisis","krise","insolvenz","рецесс","кризис"] },
+      "Ставки":    { w: 55, k: ["rate","rates","interest","zins","zinsen","leitzins","ecb","ezb","fed","ставк"] },
+      "Работа":    { w: 50, k: ["unemployment","jobs","layoffs","arbeitslos","stellenabbau","kurzarbeit","безработ","увольнен"] },
+      "Рост":      { w: 40, k: ["gdp","growth","bip","wachstum","konjunktur","ввп","рост экономики"] },
     },
   },
   {
@@ -267,7 +297,7 @@ const json = (data, extra = {}, status = 200) =>
 
 const PERSONAS = {
   david: "Давид — ведущий гео-радара (Россия, Китай, США). Сдержанный, точный, с сухой иронией там, где новость это позволяет. Говорит как опытный международный обозреватель.",
-  anna:  "Анна — ведущая радара бюджета домохозяйств в Германии. Тёплая, практичная, объясняет, что новость значит для кошелька обычной семьи.",
+  anna:  "Анна — робот-ведущая главного эфира Orb Studio: бюджет домохозяйств, геополитика, политика и экономика. Тёплая, ясная, спокойная; коротко объясняет, что новость значит для обычной семьи в Германии и Европе.",
   kai:   "Кай — ведущий крипто-радара. Энергичный, говорит коротко, всегда помнит про риск и никогда не даёт торговых советов.",
   lena:  "Лена — ведущая энерго-радара. Спокойная, аналитичная, связывает нефть и газ с ценами для людей.",
 };
@@ -325,7 +355,7 @@ async function askClaude(env, items) {
     },
     body: JSON.stringify({
       model: env.ANTHROPIC_MODEL || "claude-haiku-5-5",
-      max_tokens: 3000,
+      max_tokens: 4500,
       system: SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(input) }],
     }),
@@ -613,5 +643,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, household budget DE/EU, crypto, energy) with holographic AI anchors for humans and a machine anchor ORB-7 for AI agents.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radar\": \"geo\"\n    },\n    {\n      \"id\": \"anna\",\n      \"kind\": \"human\",\n      \"radar\": \"budget\"\n    },\n    {\n      \"id\": \"kai\",\n      \"kind\": \"human\",\n      \"radar\": \"crypto\"\n    },\n    {\n      \"id\": \"lena\",\n      \"kind\": \"human\",\n      \"radar\": \"energy\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|budget|crypto|energy}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\"\n}\n";
-const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: budget, crypto, energy)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"anna\",\n      \"kind\": \"robot\",\n      \"radars\": [\n        \"budget\",\n        \"geo\",\n        \"politics\",\n        \"economy\"\n      ]\n    },\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radar\": \"geo\"\n    },\n    {\n      \"id\": \"kai\",\n      \"kind\": \"human\",\n      \"radar\": \"crypto\"\n    },\n    {\n      \"id\": \"lena\",\n      \"kind\": \"human\",\n      \"radar\": \"energy\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"all\",\n      \"page\": \"https://orbstudio.org/orbi.html\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\"\n}\n";
+const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: Anna, robot)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: Anna, robot)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna, robot)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n";
