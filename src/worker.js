@@ -316,7 +316,14 @@ async function askClaude(env, items) {
 
 // items: [{anchor, radarTitle, headline, source, severity, risk_index, delta_24h, template}]
 async function voiceBroadcast(env, ctx, origin, items) {
-  if (!env.ANTHROPIC_API_KEY || !items.length) return templateBroadcast(items);
+  if (!items.length) return templateBroadcast(items);
+  if (!env.ANTHROPIC_API_KEY) {
+    const fb = templateBroadcast(items);
+    const near = Object.keys(env || {}).filter((k) => /anthropic|sk-ant/i.test(k)).map((k) => k.slice(0, 12) + "…");
+    fb.error = "ANTHROPIC_API_KEY not found. Add it in Worker → Settings → Variables and Secrets: name ANTHROPIC_API_KEY, type Secret, environment Production."
+      + (near.length ? " Similar names found: " + near.join(", ") : "");
+    return fb;
+  }
   const h = await sha(items.map((i) => i.headline).join("|"));
   const cache = caches.default;
   const key = new Request(`${origin}/__cache/voice-v1-${h}`);
