@@ -116,7 +116,7 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 .anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
 .ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
 .ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -873,7 +873,7 @@ function renderAnchors(){
   const el=document.createElement('div');el.className='ac ac-solo';
   el.innerHTML=`<div class="ttwrap" id="ttWrap"><canvas></canvas></div><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip h">for humans</span></div>
     <div style="font-size:13px">${a.role}</div><div class="meta" id="ttMeta">language: ${a.lang} · format: ${a.out}</div>
-    <div class="ttbtns"><button class="chip" type="button" id="ttPrev" hidden>◂ prev</button><button class="chip" type="button" id="ttNext" hidden>next ▸</button>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">radar ${r.lvl} ↗</a>`:''}<a class="chip" id="ttProfile" style="text-decoration:none" target="_blank" rel="noopener" hidden>TikTok ↗</a></div></div>`;
+    <div class="ttbtns"><button class="chip" type="button" id="ttPrev" hidden>◂ prev</button><button class="chip" type="button" id="ttNext" hidden>next ▸</button>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">radar ${r.lvl} ↗</a>`:''}<a class="chip" id="ttProfile" style="text-decoration:none" target="_blank" rel="noopener" hidden>TikTok ↗</a></div><details class="ttx" id="ttTextBox" hidden><summary>Episode transcript</summary><div id="ttText"></div></details></div>`;
   g.appendChild(el);
   const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
   holoAnchor(el.querySelector('canvas'),()=>st);
@@ -882,7 +882,7 @@ function renderAnchors(){
 let TT=null;
 async function davidTikTok(){
   if(TT)return TT.mount();
-  let cfg=null;try{cfg=await (await fetch('/api/v1/david/videos')).json()}catch(e){}
+  let cfg=null;try{const d=await (await fetch('/api/v1/david/episodes')).json();cfg={eps:d.episodes||[],videos:(d.episodes||[]).map(e=>e.id),profile:'/go/tiktok?from=studio-profile'}}catch(e){}
   if(!cfg||!cfg.videos||!cfg.videos.length)return; // нет роликов — остаётся голограмма
   let i=0,timer=null;
   const wrap=()=>document.getElementById('ttWrap');
@@ -894,6 +894,11 @@ async function davidTikTok(){
     const m=document.getElementById('ttMeta');if(m)m.textContent=`Episode ${i%cfg.videos.length+1} of ${cfg.videos.length} · on a loop`;
     ['ttPrev','ttNext'].forEach(b=>{const e=document.getElementById(b);if(e)e.hidden=one});
     const p=document.getElementById('ttProfile');if(p&&cfg.profile){p.href=cfg.profile;p.hidden=false}
+    // текст выпуска: реплики Давида на языке страницы, иначе подпись из TikTok
+    const ep=cfg.eps[i%cfg.eps.length]||{},tb=document.getElementById('ttTextBox'),tx=document.getElementById('ttText');
+    if(tb&&tx){const tr=ep.transcript||{},lines=tr[PAGE_LANG]||tr.de||tr.ru||[];
+      const body=lines.length?lines.map(l=>`<p>${esc(l)}</p>`).join(''):(ep.summary||ep.caption?`<p>${esc(ep.summary||ep.caption)}</p>`:'');
+      tx.innerHTML=(ep.title?`<b>${esc(ep.title)}</b>`:'')+(ep.date?` <small>${esc(ep.date)}</small>`:'')+body+`<p><a href="/go/tiktok?v=${ep.id}&from=studio-text" target="_blank" rel="noopener">Watch on TikTok ↗</a></p>`;tb.hidden=!(ep.title||body);}
     clearTimeout(timer);if(!one)timer=setTimeout(()=>TT.go(1),3*60e3); // запасной переход, если плеер не сообщил о конце
   },go(d){i=(i+d+cfg.videos.length)%cfg.videos.length;TT.mount();}};
   document.addEventListener('click',e=>{if(e.target.id==='ttNext')TT.go(1);if(e.target.id==='ttPrev')TT.go(-1);});

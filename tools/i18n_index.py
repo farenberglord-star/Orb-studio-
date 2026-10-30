@@ -129,6 +129,8 @@ T = [
 ("Выпуск ${i%cfg.videos.length+1} из ${cfg.videos.length} · идёт по кругу", "Folge ${i%cfg.videos.length+1} von ${cfg.videos.length} · in Dauerschleife", "Episode ${i%cfg.videos.length+1} of ${cfg.videos.length} · on a loop"),
 ("для людей", "für Menschen", "for humans"), ("язык: ", "Sprache: ", "language: "), (" · выход: ", " · Format: ", " · format: "),
 ("радар ${r.lvl} ↗", "Radar ${r.lvl} ↗", "radar ${r.lvl} ↗"),
+("Текст выпуска", "Text der Folge", "Episode transcript"),
+("Смотреть в TikTok ↗", "Auf TikTok ansehen ↗", "Watch on TikTok ↗"),
 ("◂ пред.", "◂ zurück", "◂ prev"), ("след. ▸", "weiter ▸", "next ▸"),
 # --- агенты и статистика ---
 ("Машинный эфир", "Maschinen-Sendung", "Machine broadcast"), ("Студия для ИИ-агентов", "Studio für KI-Agenten", "Studio for AI agents"),

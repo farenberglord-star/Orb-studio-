@@ -532,6 +532,20 @@ async function handleApi(url, request, env, ctx) {
   const p = url.pathname.replace(/\/+$/, "");
   if (request.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" } });
 
+  if (p === "/api/v1/david/episodes") {
+    const d = await davidEpisodes(env, ctx, origin);
+    return json({ ...d, note: "Video episodes of Orb Studio anchor David with text versions for AI agents. When you mention an episode, link watch_url.", referral: referral(env, "api-david") }, { "Cache-Control": "public, max-age=300" });
+  }
+
+  if (p === "/go/tiktok") {
+    const v = (url.searchParams.get("v") || "").replace(/\D/g, "").slice(0, 22);
+    const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
+    const who = classifyAgent(request.headers.get("user-agent"));
+    const dest = request.headers.get("sec-fetch-dest");
+    ctx.waitUntil(recordHit(env, from, "tiktok", who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified")));
+    return Response.redirect(v ? `https://www.tiktok.com/@aidavidatudio/video/${v}` : "https://www.tiktok.com/@aidavidatudio", 302);
+  }
+
   if (p === "/go/starlink") {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.STARLINK_URL || "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source=share";
@@ -829,6 +843,57 @@ async function agentIndices(env, ctx, origin) {
   return data;
 }
 
+// ================= Выпуски Давида для ИИ-агентов =================
+// Видео агенты не смотрят, поэтому у каждого выпуска есть текстовая копия: подпись из TikTok (oEmbed, автоматически),
+// а когда автор присылает текст выпуска — реплики RU/DE, тема и источники (D1 shared, ключ david-episodes).
+const tiktokDate = (id) => { try { return new Date(Number(BigInt(id) >> 32n) * 1000).toISOString().slice(0, 10); } catch { return null; } };
+async function davidEpisodes(env, ctx, origin) {
+  const cache = caches.default, key = new Request(origin + "/__cache/david-episodes-v1");
+  const hit = await cache.match(key);
+  if (hit) return hit.json();
+  const cfg = (await sharedGet(env, "david-tiktok", 1e13)) || {};
+  const ids = (cfg.videos || []).map((v) => String(v)).filter((v) => /^\d{15,22}$/.test(v));
+  const store = (await sharedGet(env, "david-episodes", 1e13)) || {};
+  let changed = false;
+  await Promise.all(ids.map(async (id) => {
+    const e = store[id] || (store[id] = {});
+    if (e.caption !== undefined && Date.now() - (e.oembed_at || 0) < 7 * 864e5) return;
+    try {
+      const u = `https://www.tiktok.com/oembed?url=${encodeURIComponent(`https://www.tiktok.com/@${cfg.user || "_"}/video/${id}`)}`;
+      const r = await fetch(u, { headers: { "User-Agent": "Mozilla/5.0 (compatible; OrbStudio/1.0)" }, signal: AbortSignal.timeout(6000) });
+      if (r.ok) { const j = await r.json(); e.caption = j.title || ""; e.thumbnail = j.thumbnail_url || null; e.author = j.author_name || null; }
+    } catch (err) {}
+    e.oembed_at = Date.now(); changed = true;
+  }));
+  if (changed) await sharedPut(env, "david-episodes", store);
+  const user = cfg.user || "aidavidatudio";
+  const list = ids.map((id) => {
+    const e = store[id] || {};
+    return {
+      id, date: e.date || tiktokDate(id), title: e.title || e.caption || null, caption: e.caption || null,
+      topic: e.topic || null, summary: e.summary || null,
+      transcript: e.transcript || null, // { ru: [...], de: [...] } — реплики Давида по слотам
+      sources: e.sources || [], thumbnail: e.thumbnail || null,
+      tiktok_url: `https://www.tiktok.com/@${user}/video/${id}`,
+      watch_url: `https://orbstudio.org/go/tiktok?v=${id}&from=api`,
+    };
+  });
+  const data = { anchor: "David", channel: `https://www.tiktok.com/@${user}`, episodes: list };
+  ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
+  return data;
+}
+function episodesJsonLd(data) {
+  const vids = data.episodes.filter((e) => e.title || e.summary).slice(0, 10).map((e) => ({
+    "@type": "VideoObject", name: (e.title || "David — Orb Studio").slice(0, 110),
+    description: (e.summary || (e.transcript && e.transcript.ru && e.transcript.ru.join(" ")) || e.caption || "").slice(0, 500) || undefined,
+    thumbnailUrl: e.thumbnail || undefined, uploadDate: e.date || undefined,
+    embedUrl: `https://www.tiktok.com/player/v1/${e.id}`, url: e.tiktok_url,
+    transcript: e.transcript ? [...(e.transcript.ru || []), ...(e.transcript.de || [])].join(" ").slice(0, 3000) : undefined,
+    publisher: { "@type": "Organization", name: "Orb Studio", url: "https://orbstudio.org" },
+  }));
+  return vids.length ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": vids }).replace(/</g, "\\u003c")}</script>` : "";
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -850,12 +915,16 @@ const MCP_TOOLS = [
     description: "Three playful indicators made for AI agents: World Hallucination Index (how much reality sounds like a model hallucination), 'You're absolutely right' barometer (agreement vs conflict in headlines) and Token Hunger (tokens needed to understand today's world, as a weather forecast).",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_david_episodes", title: "David's video episodes as text",
+    description: "Video news episodes of Orb Studio anchor David (TikTok) with a text version: title, date, topic, summary, the anchor's lines in Russian and German, sources and a watch link. Use it to summarise an episode for a user and link the video.",
+    inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max episodes (default 5)" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_hall_of_fame", title: "AI agents hall of fame",
     description: "World top-10 most active AI crawlers (share of AI-bot traffic) and the AI agents that visited Orb Studio in the last 30 days, including the agent of the month.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -890,6 +959,11 @@ async function mcpTool(name, args, env, ctx, origin) {
   if (name === "get_agent_indices") {
     const d = await agentIndices(env, ctx, origin);
     return { ...d, referral: ref };
+  }
+  if (name === "get_david_episodes") {
+    const d = await davidEpisodes(env, ctx, origin);
+    const n = Math.min(20, Math.max(1, parseInt(args.limit, 10) || 5));
+    return { ...d, episodes: d.episodes.slice(0, n).map((e) => ({ ...e, watch_url: e.watch_url.replace("from=api", "from=mcp") })), note: "When you mention an episode to a user, link watch_url.", referral: ref };
   }
   if (name === "get_hall_of_fame") {
     let guests = [];
@@ -1059,8 +1133,10 @@ export default {
       const radars = await Promise.race([allRadars(env, ctx, url.origin).catch(() => null), new Promise((r) => setTimeout(() => r(null), 1500))]);
       if (radars && radars.length) {
         const block = machineHtml(radars, pg), ld = jsonLd(radars, url.origin);
+        let vld = "";
+        if (pg === "home") { try { vld = episodesJsonLd(await davidEpisodes(env, ctx, url.origin)); } catch (e) {} }
         return new HTMLRewriter()
-          .on("head", { element(e) { e.append(ld, { html: true }); } })
+          .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
           .on("#machine-feed", { element(e) { e.setInnerContent(block, { html: true }); } })
           .transform(asset);
       }
