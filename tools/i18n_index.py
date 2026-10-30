@@ -161,6 +161,8 @@ T = [
 ("Ваш голос учтён. Можно передумать до конца дня.", "Ihre Stimme zählt. Sie können sie bis Tagesende ändern.", "Your vote is counted. You can change it until the end of the day."),
 ("Не получилось проголосовать.", "Abstimmung fehlgeschlagen.", "Couldn't record your vote."),
 ("Архив 🗄", "Archiv 🗄", "Archive 🗄"),
+("Загрузка…", "Lädt…", "Loading…"),
+("'Политика'", "'Politik'", "'Politics'"), ("'Экономика'", "'Wirtschaft'", "'Economy'"), ("'Открытый веб'", "'Offenes Web'", "'Open web'"),
 ("◂ пред.", "◂ zurück", "◂ prev"), ("след. ▸", "weiter ▸", "next ▸"),
 # --- агенты и статистика ---
 ("Машинный эфир", "Maschinen-Sendung", "Machine broadcast"), ("Студия для ИИ-агентов", "Studio für KI-Agenten", "Studio for AI agents"),

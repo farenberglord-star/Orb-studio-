@@ -283,7 +283,7 @@ details.machine a{color:var(--holo)}
   <section class="vote" id="voteBox" aria-label="Top story of the day: AI vs humans">
     <div class="vh"><span class="vt">TOP STORY OF THE DAY · AI VS HUMANS</span><span class="vs" id="voteSum"></span></div>
     <p class="vl">Which story matters most today? Humans vote here, AI agents vote via MCP — let’s see if we agree.</p>
-    <div id="voteList"><p class="vl">Загрузка…</p></div>
+    <div id="voteList"><p class="vl">Loading…</p></div>
     <p class="vl" id="voteMsg" role="status"></p>
   </section>
   <style>.vote{background:var(--panel,#0b1222);border:1px solid rgba(155,140,255,.45);border-radius:14px;padding:12px 14px;margin:12px 0}.vh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.vt{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:#b9aeff}.vs{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:var(--dim,#8796b6)}.vl{font-size:13px;color:var(--dim,#8796b6);margin:6px 0}.vc{border-top:1px solid var(--line,#1b2944);padding:9px 0;display:flex;gap:10px;align-items:center}.vc:first-child{border-top:0}.vc .vtx{flex:1;min-width:0;font-size:13.5px;line-height:1.4}.vc .vtx small{display:block;color:var(--dim,#8796b6);font-size:11.5px}.vc .vb{display:flex;flex-direction:column;gap:3px;width:92px;flex-shrink:0;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px}.vc .vb i{display:block;height:4px;border-radius:2px;background:#1b2944;overflow:hidden}.vc .vb i b{display:block;height:100%}.vc button{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:transparent;color:var(--fg,#e4ebf8);border:1px solid var(--line,#1b2944);border-radius:8px;padding:7px 10px;cursor:pointer;flex-shrink:0}.vc button.on{border-color:#b9aeff;color:#b9aeff}.vc .lead2{color:#b9aeff;font-size:10.5px}</style>
@@ -909,7 +909,7 @@ function renderAnchors(){
 }
 let TT=null;
 // ---- голосование «ИИ против людей» ----
-const VOTE_NAMES=()=>{const T=window.I18N_RADAR||{};const ru={geo:'Geo radar',budget:'Household budget',politics:'Политика',economy:'Экономика',crypto:'Crypto radar',energy:'Energy radar',web:'Открытый веб'};return id=>(T[id]&&T[id].title)||ru[id]||id;};
+const VOTE_NAMES=()=>{const T=window.I18N_RADAR||{};const ru={geo:'Geo radar',budget:'Household budget',politics:'Politics',economy:'Economy',crypto:'Crypto radar',energy:'Energy radar',web:'Open web'};return id=>(T[id]&&T[id].title)||ru[id]||id;};
 let MYVOTE=null;try{const v=JSON.parse(localStorage.getItem('orbVote')||'null');if(v&&v.day===new Date().toISOString().slice(0,10))MYVOTE=v.choice}catch(e){}
 function renderVote(d){
   const box=document.getElementById('voteList');if(!box||!d||!d.candidates)return;
