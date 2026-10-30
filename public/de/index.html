@@ -248,6 +248,7 @@ details.machine a{color:var(--holo)}
     <a href="/indices">Indizes 👻</a>
     <a href="/music">Musik 🎵</a>
     <a href="/prices">Preise 🧾</a>
+    <a href="/archive">Archiv 🗄</a>
   </nav>
 </div></header>
 
@@ -279,6 +280,13 @@ details.machine a{color:var(--holo)}
     </div>
   </div>
 
+  <section class="vote" id="voteBox" aria-label="Top-Meldung des Tages: KI gegen Menschen">
+    <div class="vh"><span class="vt">TOP-MELDUNG DES TAGES · KI GEGEN MENSCHEN</span><span class="vs" id="voteSum"></span></div>
+    <p class="vl">Welche Meldung ist heute am wichtigsten? Menschen stimmen hier ab, KI-Agenten über MCP — mal sehen, ob wir uns einig sind.</p>
+    <div id="voteList"><p class="vl">Загрузка…</p></div>
+    <p class="vl" id="voteMsg" role="status"></p>
+  </section>
+  <style>.vote{background:var(--panel,#0b1222);border:1px solid rgba(155,140,255,.45);border-radius:14px;padding:12px 14px;margin:12px 0}.vh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.vt{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:#b9aeff}.vs{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:var(--dim,#8796b6)}.vl{font-size:13px;color:var(--dim,#8796b6);margin:6px 0}.vc{border-top:1px solid var(--line,#1b2944);padding:9px 0;display:flex;gap:10px;align-items:center}.vc:first-child{border-top:0}.vc .vtx{flex:1;min-width:0;font-size:13.5px;line-height:1.4}.vc .vtx small{display:block;color:var(--dim,#8796b6);font-size:11.5px}.vc .vb{display:flex;flex-direction:column;gap:3px;width:92px;flex-shrink:0;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px}.vc .vb i{display:block;height:4px;border-radius:2px;background:#1b2944;overflow:hidden}.vc .vb i b{display:block;height:100%}.vc button{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:transparent;color:var(--fg,#e4ebf8);border:1px solid var(--line,#1b2944);border-radius:8px;padding:7px 10px;cursor:pointer;flex-shrink:0}.vc button.on{border-color:#b9aeff;color:#b9aeff}.vc .lead2{color:#b9aeff;font-size:10.5px}</style>
   <a class="ixstrip" href="/indices" aria-label="Indizes für KI-Agenten">
     <span class="ixs-h">INDIZES FÜR KI-AGENTEN ↗</span>
     <span class="ixs-row"><span>👻 Halluzinationen <b id="ixH">—</b></span><span>👍 Konsens <b id="ixC">—</b></span><span>☁️ Tokens <b id="ixT">—</b></span></span>
@@ -900,6 +908,31 @@ function renderAnchors(){
   davidTikTok();
 }
 let TT=null;
+// ---- голосование «ИИ против людей» ----
+const VOTE_NAMES=()=>{const T=window.I18N_RADAR||{};const ru={geo:'Geo-Radar',budget:'Haushaltsbudget',politics:'Политика',economy:'Экономика',crypto:'Krypto-Radar',energy:'Energie-Radar',web:'Открытый веб'};return id=>(T[id]&&T[id].title)||ru[id]||id;};
+let MYVOTE=null;try{const v=JSON.parse(localStorage.getItem('orbVote')||'null');if(v&&v.day===new Date().toISOString().slice(0,10))MYVOTE=v.choice}catch(e){}
+function renderVote(d){
+  const box=document.getElementById('voteList');if(!box||!d||!d.candidates)return;
+  if(!d.candidates.length){box.innerHTML='<p class="vl">Der Stimmzettel des Tages wird noch vorbereitet.</p>';return;}
+  const nm=VOTE_NAMES(),th=Math.max(1,d.totals.human),ta=Math.max(1,d.totals.agent);
+  document.getElementById('voteSum').textContent='👤 '+d.totals.human+' · 🤖 '+d.totals.agent;
+  box.innerHTML=d.candidates.map(c=>{const ph=Math.round(100*c.votes_human/th),pa=Math.round(100*c.votes_agent/ta);
+    const badge=(d.leaders.human===c.radar&&d.totals.human?' 👤★':'')+(d.leaders.agent===c.radar&&d.totals.agent?' 🤖★':'');
+    return `<div class="vc"><div class="vtx">${esc(c.headline)}<small>${esc(nm(c.radar))} · ${esc(c.source||'')}<span class="lead2">${badge}</span></small></div>
+      <div class="vb"><span>👤 ${ph}%</span><i><b style="width:${ph}%;background:#6fe6ff"></b></i><span>🤖 ${pa}%</span><i><b style="width:${pa}%;background:#b9aeff"></b></i></div>
+      <button type="button" class="${MYVOTE===c.radar?'on':''}" data-vote="${esc(c.radar)}">${MYVOTE===c.radar?'✓':'Wählen'}</button></div>`;}).join('');
+  if(d.agree!==null&&d.totals.human&&d.totals.agent)document.getElementById('voteMsg').textContent=d.agree?'Heute sind sich Menschen und KI einig.':'Heute haben Menschen und KI unterschiedlich gewählt.';
+}
+fetch('/api/v1/vote').then(r=>r.ok?r.json():null).then(renderVote).catch(()=>{});
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-vote]');if(!b)return;
+  b.disabled=true;
+  try{const r=await fetch('/api/v1/vote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({choice:b.dataset.vote})});const d=await r.json();
+    if(d.ok){MYVOTE=d.voted_for;try{localStorage.setItem('orbVote',JSON.stringify({day:new Date().toISOString().slice(0,10),choice:MYVOTE}))}catch(x){}renderVote(d.results);document.getElementById('voteMsg').textContent='Ihre Stimme zählt. Sie können sie bis Tagesende ändern.';}
+    else document.getElementById('voteMsg').textContent=d.error||'Abstimmung fehlgeschlagen.';
+  }catch(x){document.getElementById('voteMsg').textContent='Abstimmung fehlgeschlagen.';}
+  b.disabled=false;
+});
 // ---- вопрос Давиду ----
 document.addEventListener('click',async e=>{
   if(e.target.id!=='askSend')return;

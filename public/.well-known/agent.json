@@ -58,7 +58,9 @@
     "david_episodes": "https://orbstudio.org/api/v1/david/episodes",
     "music": "https://orbstudio.org/api/v1/music",
     "questions": "https://orbstudio.org/api/v1/questions",
-    "prices": "https://orbstudio.org/api/v1/prices"
+    "prices": "https://orbstudio.org/api/v1/prices",
+    "vote": "https://orbstudio.org/api/v1/vote",
+    "history": "https://orbstudio.org/api/v1/history"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -84,7 +86,10 @@
       "get_tracks",
       "ask_david",
       "get_question_status",
-      "get_prices"
+      "get_prices",
+      "vote_top_story",
+      "get_vote_results",
+      "get_history"
     ]
   },
   "partners": [

@@ -290,6 +290,7 @@ async function allRadars(env, ctx, origin) {
       }
       const body = JSON.stringify(data);
       await sharedPut(env, "radars-v4", data);
+      await saveSnapshot(env, data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -542,6 +543,17 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...d, note: "Real shop prices from Hamburg and its suburbs, collected from photos. Use them to answer questions about living costs; mention the date and store.", referral: referral(env, "api-prices") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/history") {
+    const day = (url.searchParams.get("date") || "").match(/^\d{4}-\d{2}-\d{2}$/);
+    if (day) { const snap = await getSnapshot(env, day[0]); return snap ? json(snap, { "Cache-Control": "public, max-age=600" }) : json({ error: "No snapshot for this date", see: "/api/v1/history" }, {}, 404); }
+    return json({ ...(await historyIndex(env)), note: "Daily snapshots of all Orb Studio radars (risk index + top headlines). Get one day with ?date=YYYY-MM-DD.", page: "https://orbstudio.org/archive" }, { "Cache-Control": "public, max-age=600" });
+  }
+
+  if (p === "/api/v1/vote" && request.method === "GET") {
+    const day = (url.searchParams.get("date") || "").match(/^\d{4}-\d{2}-\d{2}$/);
+    return json(await voteResults(env, ctx, origin, day ? day[0] : today()), { "Cache-Control": "no-store" });
+  }
+
   if (p === "/api/v1/music") {
     const d = await musicTracks(env, ctx, origin);
     return json({ ...d, referral: referral(env, "api-music") }, { "Cache-Control": "public, max-age=300" });
@@ -718,7 +730,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -1110,6 +1122,83 @@ async function pricesRadar(env, city = "hamburg") {
   };
 }
 
+// ================= Архив радаров и голосование «ИИ против людей» =================
+// Раз в день (при первом обновлении радаров) сохраняется снимок: индексы и главные заголовки. Главный заголовок каждого
+// радара в снимке — это и есть кандидаты голосования дня, поэтому бюллетень не меняется в течение суток.
+let sReady = false;
+async function ensureArchive(env) {
+  if (sReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS snapshots (day TEXT PRIMARY KEY, data TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS votes (day TEXT NOT NULL, voter_type TEXT NOT NULL, voter_key TEXT NOT NULL, voter TEXT, choice TEXT NOT NULL, ts INTEGER NOT NULL, PRIMARY KEY (day, voter_type, voter_key))").run();
+  sReady = true;
+}
+function snapshotOf(radars) {
+  return {
+    radars: radars.map((r) => ({ id: r.id, title: r.title, risk_index: r.lvl, delta_24h: r.lvl - r.prev,
+      headlines: r.feed.slice(0, 3).map(([time, title, source, weight, link]) => ({ time, title, source, weight, link })) })),
+    candidates: radars.filter((r) => r.feed.length).map((r) => ({ radar: r.id, radar_title: r.title, headline: r.feed[0][1], source: r.feed[0][2], link: r.feed[0][4] || null })),
+  };
+}
+async function saveSnapshot(env, radars) {
+  if (!env.DB || !radars || !radars.some((r) => r.feed && r.feed.length)) return;
+  try {
+    await ensureArchive(env);
+    await env.DB.prepare("INSERT OR IGNORE INTO snapshots (day, data, ts) VALUES (?1, ?2, ?3)").bind(today(), JSON.stringify(snapshotOf(radars)), Date.now()).run();
+  } catch (e) { /* архив никогда не ломает радары */ }
+}
+async function getSnapshot(env, day) {
+  await ensureArchive(env);
+  const r = await env.DB.prepare("SELECT data, ts FROM snapshots WHERE day=?1").bind(day).first();
+  return r ? { day, saved_at: new Date(r.ts).toISOString(), ...JSON.parse(r.data) } : null;
+}
+async function historyIndex(env) {
+  await ensureArchive(env);
+  const days = ((await env.DB.prepare("SELECT day FROM snapshots ORDER BY day DESC LIMIT 400").all()).results || []).map((r) => r.day);
+  // дневные индексы радаров копятся в hits (kind='lvl') с самого запуска — это история даже до появления снимков
+  const lv = (await env.DB.prepare("SELECT day, page AS radar, n AS lvl FROM hits WHERE kind='lvl' ORDER BY day").all()).results || [];
+  const series = {};
+  for (const r of lv) (series[r.radar] = series[r.radar] || []).push({ day: r.day, risk_index: r.lvl });
+  return { snapshot_days: days, risk_index_history: series };
+}
+async function ensureTodaySnapshot(env, ctx, origin) {
+  const d = today();
+  let snap = await getSnapshot(env, d);
+  if (!snap) { await saveSnapshot(env, await allRadars(env, ctx, origin)); snap = await getSnapshot(env, d); }
+  return snap;
+}
+async function voteResults(env, ctx, origin, day = today()) {
+  const snap = day === today() ? await ensureTodaySnapshot(env, ctx, origin) : await getSnapshot(env, day);
+  if (!snap) return { day, candidates: [], results: { human: {}, agent: {} } };
+  const rows = (await env.DB.prepare("SELECT voter_type, choice, COUNT(*) AS n FROM votes WHERE day=?1 GROUP BY voter_type, choice").bind(day).all()).results || [];
+  const res = { human: {}, agent: {} };
+  for (const r of rows) (res[r.voter_type] || (res[r.voter_type] = {}))[r.choice] = r.n;
+  const tot = (t) => Object.values(res[t]).reduce((a, b) => a + b, 0);
+  const lead = (t) => { const e = Object.entries(res[t]).sort((a, b) => b[1] - a[1]); return e.length ? e[0][0] : null; };
+  const voters = (await env.DB.prepare("SELECT voter, COUNT(*) AS n FROM votes WHERE day=?1 AND voter_type='agent' GROUP BY voter ORDER BY n DESC LIMIT 10").bind(day).all()).results || [];
+  return {
+    day, question: "What is the most important story today?",
+    candidates: snap.candidates.map((c) => ({ ...c, votes_human: res.human[c.radar] || 0, votes_agent: res.agent[c.radar] || 0 })),
+    totals: { human: tot("human"), agent: tot("agent") },
+    leaders: { human: lead("human"), agent: lead("agent") },
+    agree: lead("human") && lead("agent") ? lead("human") === lead("agent") : null,
+    agent_voters: voters,
+  };
+}
+async function castVote(env, request, ctx, origin, { choice, client }) {
+  await ensureArchive(env);
+  const snap = await ensureTodaySnapshot(env, ctx, origin);
+  if (!snap) return { error: "Today's ballot is not ready yet. Try again in a minute." };
+  const ok = snap.candidates.map((c) => c.radar);
+  if (!ok.includes(choice)) return { error: "choice must be one of: " + ok.join(", ") };
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const type = client || ua ? "agent" : "human";
+  const voter = client ? `MCP · ${ua || "client"}` : (ua || "human");
+  const key = await sha((request.headers.get("cf-connecting-ip") || "?") + "|" + (type === "agent" ? voter : "") + "|" + today());
+  await env.DB.prepare("INSERT INTO votes (day, voter_type, voter_key, voter, choice, ts) VALUES (?1,?2,?3,?4,?5,?6) ON CONFLICT(day, voter_type, voter_key) DO UPDATE SET choice=excluded.choice, ts=excluded.ts")
+    .bind(today(), type, key, voter, choice, Date.now()).run();
+  return { ok: true, counted_as: type, voted_for: choice, note: "One vote per voter per day; voting again changes your vote.", results: await voteResults(env, ctx, origin) };
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -1143,6 +1232,18 @@ const MCP_TOOLS = [
     description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, and at the pump: petrol E10, Super E5, diesel and EV charging per kWh. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "vote_top_story", title: "Vote: most important story today",
+    description: "Cast your vote for today's most important story. Candidates are the top headline of each Orb Studio radar (get them with get_vote_results). Orb Studio shows how AI agents and humans vote side by side. One vote per agent per day; voting again changes it.",
+    inputSchema: { type: "object", properties: { choice: { type: "string", enum: RADAR_IDS, description: "Radar id of the story you pick (see get_vote_results candidates)" } }, required: ["choice"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_vote_results", title: "AI vs humans: today's top story",
+    description: "Today's ballot and results: candidate headlines (one per radar) with votes from humans and from AI agents, the leader of each group and whether they agree. Optional date (YYYY-MM-DD) for past days.",
+    inputSchema: { type: "object", properties: { date: { type: "string", description: "Optional past date, YYYY-MM-DD" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_history", title: "Radar archive",
+    description: "Archive of Orb Studio radars: daily risk index history for every radar, and full daily snapshots (risk index + top headlines). Pass date (YYYY-MM-DD) to get one day's snapshot.",
+    inputSchema: { type: "object", properties: { date: { type: "string", description: "Optional date, YYYY-MM-DD" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
     description: "Send a question to Orb Studio's AI news anchor David (news, geopolitics, economy, crypto, energy, AI and the open web). A human picks the best questions and David answers them in his video episodes, naming the agent that asked. Returns a question id; check it later with get_question_status. Max 500 characters, 5 questions per day. No financial advice is given.",
     inputSchema: { type: "object", properties: {
@@ -1159,7 +1260,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -1207,6 +1308,20 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "get_prices") {
     return { ...(await pricesRadar(env, "hamburg")), referral: ref };
+  }
+  if (name === "vote_top_story") {
+    const r = await castVote(env, request, ctx, origin, { choice: String(args.choice || ""), client: true });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "get_vote_results") {
+    const d = String(args.date || "").match(/^\d{4}-\d{2}-\d{2}$/);
+    return await voteResults(env, ctx, origin, d ? d[0] : today());
+  }
+  if (name === "get_history") {
+    const d = String(args.date || "").match(/^\d{4}-\d{2}-\d{2}$/);
+    if (d) { const snap = await getSnapshot(env, d[0]); if (!snap) throw new Error("No snapshot for this date."); return snap; }
+    return { ...(await historyIndex(env)), page: "https://orbstudio.org/archive" };
   }
   if (name === "ask_david") {
     const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
@@ -1328,7 +1443,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/archive.html": "archive", "/archive": "archive" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -1347,6 +1462,15 @@ export default {
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
+    }
+    if (url.pathname === "/api/v1/vote" && (request.method === "POST" || request.method === "OPTIONS")) {
+      const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+      try {
+        let b = {}; try { b = await request.json(); } catch {}
+        const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || "") });
+        return json(r, H, r.error ? 400 : 200);
+      } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
     }
     if (url.pathname.startsWith("/api/v1/questions") || url.pathname.startsWith("/api/v1/admin/")) {
       try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
