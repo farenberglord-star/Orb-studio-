@@ -113,10 +113,8 @@ const RADARS = [
     id: "web", title: "Открытый веб", anchor: "orbi",
     lead: "Насколько интернет открыт для ИИ-агентов: блокировки ботов, суды за парсинг, платный доступ для краулеров.",
     feeds: [
-      gnews("\"AI crawler\" OR \"AI bots\" OR GPTBot OR ClaudeBot OR \"AI scraping\" when:3d"),
-      gnews("publishers AI lawsuit OR \"AI training\" copyright OR scraping lawsuit when:3d"),
-      gnews("Cloudflare AI OR robots.txt OR \"pay per crawl\" OR \"AI agents\" web access when:3d"),
-      gnews("KI-Crawler OR KI-Bots OR Urheberrecht KI OR \"KI-Training\" when:3d", "de", "DE"),
+      gnews("\"AI crawler\" OR \"AI bots\" OR \"AI scraping\" OR robots.txt when:3d"),
+      gnews("AI copyright lawsuit OR publishers AI licensing when:3d"),
     ],
     factors: {
       "Блокировки": { w: 70, k: ["block","blocks","blocking","ban","bans","robots.txt","opt-out","opt out","wall","sperr","блокир"] },
@@ -269,8 +267,8 @@ async function buildRadar(def, env) {
 let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const fresh = new Request(origin + "/__cache/radars-v5");
-  const stale = new Request(origin + "/__cache/radars-v5-stale");
+  const fresh = new Request(origin + "/__cache/radars-v4");
+  const stale = new Request(origin + "/__cache/radars-v4-stale");
   const hit = await cache.match(fresh);
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
@@ -279,11 +277,11 @@ async function allRadars(env, ctx, origin) {
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
-        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v5", 48 * 3600e3);
+        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v4", 48 * 3600e3);
         if (prev && prev.length) data = data.map((r) => (r.feed.length ? r : (prev.find((x) => x.id === r.id && x.feed && x.feed.length) || r)));
       }
       const body = JSON.stringify(data);
-      await sharedPut(env, "radars-v5", data);
+      await sharedPut(env, "radars-v4", data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -294,7 +292,7 @@ async function allRadars(env, ctx, origin) {
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
   // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
-  const shared = await sharedGet(env, "radars-v5", 6 * 3600e3);
+  const shared = await sharedGet(env, "radars-v4", 6 * 3600e3);
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
@@ -732,7 +730,7 @@ const ODD_RE = /\b(bizarre|strange|weird|unusual|surpris\w*|shock\w*|unprecedent
 const SERIOUS_RE = /\b(president|minister|government|parliament|senat\w*|congress|bank|market|stock|bitcoin|crypto|police|army|court|mayor|election|kanzler|regierung|bundestag)\b/i;
 const AGREE_RE = /\b(agree\w*|deal|accord|unanim\w*|backs|support\w*|consensus|approv\w*|ceasefire|truce|pact|joint|einig\w*|zustimm\w*|abkommen|согласи\w*|договор\w*)\b/i;
 const FIGHT_RE = /\b(clash\w*|dispute\w*|reject\w*|oppos\w*|row|split|protest\w*|strike\w*|attack\w*|war|tension\w*|warn\w*|threat\w*|sanction\w*|tariff\w*|condemn\w*|accus\w*|veto|fight\w*|streit|ablehn\w*|krieg|конфликт\w*|удар\w*)\b/i;
-const WEIRD_FEEDS = [gnews("bizarre OR weird when:2d"), gnews("odd news when:2d"), "https://rss.upi.com/news/odd_news.rss", gnews("kurios OR skurril when:2d", "de", "DE")];
+const WEIRD_FEEDS = ["https://rss.upi.com/news/odd_news.rss"];
 const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
 async function agentIndices(env, ctx, origin) {
   const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
