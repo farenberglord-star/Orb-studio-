@@ -554,10 +554,32 @@ async function handleApi(url, request, env, ctx) {
   }
 
   if (p === "/api/v1/david/videos") {
-    // Список выпусков Давида из TikTok: хранится в D1 (shared, ключ david-tiktok), меняется без передеплоя
+    // Список выпусков Давида из TikTok: хранится в D1 (shared, ключ david-tiktok), меняется без передеплоя.
+    // Короткие ссылки vm.tiktok.com раскрываются здесь один раз и сохраняются как ID.
     const cfg = (await sharedGet(env, "david-tiktok", 1e13)) || {};
-    const ids = (cfg.videos || []).map((v) => String(v).match(/(\d{15,22})/)).filter(Boolean).map((m) => m[1]);
-    return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids }, { "Cache-Control": "public, max-age=120" });
+    let changed = false;
+    const list = await Promise.all((cfg.videos || []).map(async (v) => {
+      v = String(v).trim();
+      const m = v.match(/(\d{15,22})/);
+      if (m) return m[1];
+      try {
+        let u = v;
+        for (let k = 0; k < 4; k++) {
+          const r = await fetch(u, { redirect: "manual", headers: { "User-Agent": "Mozilla/5.0 (compatible; OrbStudio/1.0)" }, signal: AbortSignal.timeout(6000) });
+          const loc = r.headers.get("location");
+          if (!loc) break;
+          u = new URL(loc, u).toString();
+          const id = u.match(/\/video\/(\d{15,22})/);
+          const usr = u.match(/tiktok\.com\/@([\w.]+)/);
+          if (usr && !cfg.user) { cfg.user = usr[1]; changed = true; }
+          if (id) { changed = true; return id[1]; }
+        }
+      } catch (e) {}
+      return v; // не удалось — пробуем в следующий раз
+    }));
+    if (changed) { cfg.videos = list; await sharedPut(env, "david-tiktok", cfg); }
+    const ids = list.map((v) => String(v).match(/^(\d{15,22})$/)).filter(Boolean).map((m) => m[1]);
+    return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids, pending: list.length - ids.length }, { "Cache-Control": "public, max-age=120" });
   }
 
   if (p === "/api/v1/radars") {
