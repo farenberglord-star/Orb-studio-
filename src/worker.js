@@ -563,6 +563,19 @@ async function handleApi(url, request, env, ctx) {
     });
   }
 
+  if (p === "/api/v1/hall-of-fame") {
+    let guests = [];
+    try { guests = await hallGuests(env); } catch (e) {}
+    return json({
+      generated_at: new Date().toISOString(), title: "Orb Studio — AI agents hall of fame",
+      updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
+      orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
+      how_to_get_listed: "Visit https://orbstudio.org with an honest, identifiable User-Agent. Known AI crawlers are counted automatically.",
+      sources: HALL.sources,
+      referral: referral(env, "api-hall"),
+    }, { "Cache-Control": "public, max-age=300" });
+  }
+
   if (p === "/api/v1/stream") {
     const data = await allRadars(env, ctx, origin);
     const snap = data.map(({ id, lvl, prev }) => ({ id, risk_index: lvl, delta_24h: lvl - prev }));
@@ -580,7 +593,7 @@ async function handleApi(url, request, env, ctx) {
 const AGENT_UA = [
   ["GPTBot", /gptbot/i], ["ChatGPT", /chatgpt-user|oai-searchbot/i], ["ClaudeBot", /claudebot|claude-user|claude-searchbot|anthropic-ai/i],
   ["Perplexity", /perplexity/i], ["Google-AI", /google-extended|googleother|gemini/i], ["Googlebot", /googlebot/i],
-  ["Bingbot", /bingbot/i], ["Meta-AI", /meta-externalagent|facebookbot/i], ["Apple", /applebot/i], ["Bytespider", /bytespider/i],
+  ["Bingbot", /bingbot/i], ["Meta-AI", /meta-externalagent|meta-webindexer|facebookbot/i], ["Apple", /applebot/i], ["Bytespider", /bytespider/i],
   ["CommonCrawl", /ccbot/i], ["Amazonbot", /amazonbot/i], ["DuckAssist", /duckassistbot/i], ["Mistral", /mistralai/i],
   ["You.com", /youbot/i], ["Cohere", /cohere-ai/i],
 ];
@@ -592,7 +605,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -641,6 +654,42 @@ async function readStats(env, page) {
     note: "Kraken clicks before 2026-10-29 18:40 were classified by User-Agent only." };
 }
 
+
+// ================= Доска почёта ИИ-агентов =================
+// Мировой топ-10: Cloudflare Radar / SEOmator (сентябрь 2026), DataDome AI Traffic Report Q3 2026.
+// Обновлять вручную раз в месяц: поле updated и значения share.
+const HALL = {
+  updated: "2026-10",
+  metric: "share of AI-bot requests on Cloudflare's network (approximate, latest month available)",
+  world: [
+    { rank: 1, name: "Googlebot", operator: "Google", share: "≈25%", trend: "flat", purpose: "Поиск Google и ИИ-ответы (AI Overviews)", note: "Лидер, но доля за год упала с 43%" },
+    { rank: 2, name: "Meta-ExternalAgent", operator: "Meta", share: "13,1%", trend: "up", purpose: "Обучение Llama и Meta AI", note: "№2 с августа 2026" },
+    { rank: 3, name: "ClaudeBot", operator: "Anthropic", share: "12,0%", trend: "up", purpose: "Обучение моделей Claude", note: "+159% за квартал (DataDome Q3)" },
+    { rank: 4, name: "Meta-WebIndexer", operator: "Meta", share: null, trend: "up", purpose: "Индекс для ответов Meta AI", note: "В сентябре обогнал ExternalAgent у DataDome" },
+    { rank: 5, name: "GPTBot", operator: "OpenAI", share: "6,2%", trend: "down", purpose: "Обучение моделей GPT", note: "Доля упала вдвое с января" },
+    { rank: 6, name: "Bytespider", operator: "ByteDance", share: null, trend: "up", purpose: "Обучение Doubao", note: "Весной вырос с 3,5% до 10,25%" },
+    { rank: 7, name: "Bingbot", operator: "Microsoft", share: "≈8%", trend: "flat", purpose: "Поиск Bing и Copilot", note: "Стабилен" },
+    { rank: 8, name: "Applebot", operator: "Apple", share: "≈7%", trend: "flat", purpose: "Siri и Apple Intelligence", note: "Рост после запуска Apple Intelligence" },
+    { rank: 9, name: "Amazonbot", operator: "Amazon", share: "≈5%", trend: "flat", purpose: "Alexa и обучение моделей", note: "Стабилен" },
+    { rank: 10, name: "OAI-SearchBot", operator: "OpenAI", share: "3,6%", trend: "up", purpose: "Поиск ChatGPT", note: "Доля выросла вдвое за год" },
+  ],
+  sources: [
+    { title: "SEOmator — Monthly AI Crawler Report, September 2026 (Cloudflare Radar)", url: "https://seomator.com/blog/ai-search-optimisation-insights" },
+    { title: "DataDome — AI Traffic Report Q3 2026", url: "https://helpnetsecurity.com/2026/10/19/datadome-ai-agent-traffic-report" },
+    { title: "Cloudflare Radar — AI Insights", url: "https://radar.cloudflare.com/ai-insights" },
+  ],
+};
+const KNOWN_AI = AGENT_UA.map(([n]) => n);
+async function hallGuests(env) {
+  if (!env.DB) return [];
+  await ensureTable(env);
+  const since = new Date(Date.now() - 29 * 864e5).toISOString().slice(0, 10);
+  const marks = KNOWN_AI.map((_, i) => "?" + (i + 2)).join(",");
+  const rows = (await env.DB.prepare(`SELECT name, SUM(n) AS n, MAX(day) AS last_day FROM hits WHERE kind='agent' AND day>=?1 AND name IN (${marks}) GROUP BY name ORDER BY n DESC LIMIT 10`)
+    .bind(since, ...KNOWN_AI).all()).results || [];
+  return rows;
+}
+
 // ================= Машинный слой страниц: живые данные прямо в HTML =================
 const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function machineHtml(radars, page) {
@@ -665,7 +714,7 @@ function jsonLd(radars, origin) {
   };
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall" };
 
 export default {
   async fetch(request, env, ctx) {

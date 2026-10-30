@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Доска почёта ИИ-агентов · Orb Studio</title>
+<meta name="description" content="Топ-10 самых активных ИИ-агентов в мире: Googlebot, Meta-ExternalAgent, ClaudeBot, GPTBot и другие. Плюс почётные гости Orb Studio — агенты, которые читают наши новостные радары.">
+<link rel="canonical" href="https://orbstudio.org/hall">
+<meta property="og:url" content="https://orbstudio.org/hall">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Доска почёта ИИ-агентов">
+<link rel="alternate" type="application/json" href="/api/v1/hall-of-fame" title="Hall of fame (JSON)">
+<link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;
+  --gold:#ffc65c;--silver:#c9d4e6;--bronze:#e08a5a;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0;padding-bottom:64px}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+
+/* --- Лидеры с голограммой --- */
+.podium{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.lead1{grid-column:1/-1}
+.card{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center}
+.card.g{--c:var(--gold);border-color:rgba(255,198,92,.6)}
+.card.s{--c:var(--silver);border-color:rgba(201,212,230,.45);flex-direction:column;align-items:flex-start}
+.card.b{--c:var(--bronze);border-color:rgba(224,138,90,.5);flex-direction:column;align-items:flex-start}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.holo{position:relative;width:64px;height:64px;flex-shrink:0;display:grid;place-items:center}
+.card.s .holo,.card.b .holo{width:52px;height:52px}
+.holo i{position:absolute;inset:0;border-radius:50%;border:1px solid var(--c);opacity:.55;animation:spin 7s linear infinite;border-left-color:transparent;border-bottom-color:transparent}
+.holo i:nth-child(2){inset:7px;opacity:.35;animation-duration:4.5s;animation-direction:reverse}
+.holo i:nth-child(3){inset:14px;border:0;background:radial-gradient(circle,var(--c) 0%,transparent 70%);opacity:.28;animation:pulse 2.6s ease-in-out infinite}
+.holo b{position:relative;font-family:var(--display);font-size:20px;color:var(--c);text-shadow:0 0 12px var(--c)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.5;transform:scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.holo i{animation:none}}
+.info{flex:1;min-width:0}
+.place{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--c)}
+.name{font-family:var(--display);font-size:18px;font-weight:700;margin-top:2px;overflow-wrap:anywhere}
+.card.s .name,.card.b .name{font-size:16px}
+.op{font-size:12.5px;color:var(--dim)}
+.purpose{font-size:12.5px;color:var(--fg);opacity:.85;margin-top:4px}
+.share{font-family:var(--display);font-size:22px;font-weight:700;text-align:right;white-space:nowrap}
+.card.s .share,.card.b .share{font-size:18px;text-align:left}
+.tr{font-family:var(--mono);font-size:11px;display:block}
+.tr.up{color:var(--up)}.tr.down{color:var(--hot)}.tr.flat{color:var(--dim)}
+
+/* --- Места 4–10 --- */
+.list{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin:0;padding:0;list-style:none}
+.list li{display:flex;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .n{font-family:var(--mono);color:var(--dim);width:22px;flex-shrink:0}
+.list .t{flex:1;min-width:0}
+.list .t b{font-family:var(--display);font-size:15px;letter-spacing:.02em}
+.list .t span{font-size:12px;color:var(--dim);display:block}
+.list .v{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap}
+
+/* --- Статистика --- */
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat span{font-size:12px;color:var(--dim)}
+.stat b{display:block;font-family:var(--display);font-size:22px;margin-top:2px;font-variant-numeric:tabular-nums}
+.guest{background:var(--panel);border:1px dashed rgba(111,230,255,.45);border-radius:14px;padding:14px}
+.guest .gm{font-family:var(--display);font-size:16px;color:var(--holo)}
+.guest ol{margin:10px 0 0;padding-left:20px;font-size:13.5px}
+.guest ol li{margin:3px 0}
+.guest .muted{color:var(--dim);font-size:13px;margin:6px 0 0}
+
+/* --- Kraken (как на остальных страницах) --- */
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb>*{position:relative}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}
+.dock strong{font-family:var(--display);letter-spacing:.06em}
+.dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}
+.dock span{color:var(--dim);font-family:var(--mono);font-size:11px}
+
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+.src{font-size:12px;color:var(--dim);margin:0;line-height:1.6}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · рейтинг · октябрь 2026</div>
+    <h1>🏆 ДОСКА ПОЧЁТА ИИ-АГЕНТОВ</h1>
+  </div>
+  <p class="lead">Десять самых активных ИИ-агентов в мире по доле запросов ИИ-ботов в сети Cloudflare. Ниже — почётные гости Orb Studio: агенты, которые сами пришли читать наши радары.</p>
+
+  <h2>МИРОВОЙ ТОП-10</h2>
+  <div class="podium">
+    <article class="card g lead1">
+      <div class="holo" aria-hidden="true"><i></i><i></i><i></i><b>G</b></div>
+      <div class="info">
+        <div class="place">👑 1 МЕСТО · GOOGLE</div>
+        <div class="name">Googlebot</div>
+        <div class="purpose">Поиск Google и ИИ-ответы (AI Overviews)</div>
+      </div>
+      <div class="share">≈25%<span class="tr flat">лидер</span></div>
+    </article>
+    <article class="card s">
+      <div class="holo" aria-hidden="true"><i></i><i></i><i></i><b>M</b></div>
+      <div class="info">
+        <div class="place">🥈 2 МЕСТО</div>
+        <div class="name">Meta-External­Agent</div>
+        <div class="op">Meta · обучение Llama и Meta AI</div>
+      </div>
+      <div class="share">13,1%<span class="tr up">▲ №2 с августа</span></div>
+    </article>
+    <article class="card b">
+      <div class="holo" aria-hidden="true"><i></i><i></i><i></i><b>C</b></div>
+      <div class="info">
+        <div class="place">🥉 3 МЕСТО</div>
+        <div class="name">ClaudeBot</div>
+        <div class="op">Anthropic · обучение Claude</div>
+      </div>
+      <div class="share">12,0%<span class="tr up">▲ +159% за квартал</span></div>
+    </article>
+  </div>
+
+  <ol class="list" start="4">
+    <li><span class="n">4</span><span class="t"><b>Meta-WebIndexer</b><span>Meta · индекс для ответов Meta AI</span></span><span class="v"><span class="tr up">▲ рост</span></span></li>
+    <li><span class="n">5</span><span class="t"><b>GPTBot</b><span>OpenAI · обучение GPT</span></span><span class="v">6,2%<span class="tr down">▼ вдвое с января</span></span></li>
+    <li><span class="n">6</span><span class="t"><b>Bytespider</b><span>ByteDance · обучение Doubao</span></span><span class="v"><span class="tr up">▲ ×3 весной</span></span></li>
+    <li><span class="n">7</span><span class="t"><b>Bingbot</b><span>Microsoft · поиск Bing и Copilot</span></span><span class="v">≈8%<span class="tr flat">стабилен</span></span></li>
+    <li><span class="n">8</span><span class="t"><b>Applebot</b><span>Apple · Siri и Apple Intelligence</span></span><span class="v">≈7%<span class="tr flat">стабилен</span></span></li>
+    <li><span class="n">9</span><span class="t"><b>Amazonbot</b><span>Amazon · Alexa и обучение</span></span><span class="v">≈5%<span class="tr flat">стабилен</span></span></li>
+    <li><span class="n">10</span><span class="t"><b>OAI-SearchBot</b><span>OpenAI · поиск ChatGPT</span></span><span class="v">3,6%<span class="tr up">▲ ×2 за год</span></span></li>
+  </ol>
+
+  <h2>ПОЧЁТНЫЕ ГОСТИ ORB STUDIO</h2>
+  <div class="guest" id="guests">
+    <div class="gm">🤖 Агент месяца: <span id="aotm">ждём первого</span></div>
+    <p class="muted" id="gNote">Сюда автоматически попадают известные ИИ-краулеры (GPTBot, ClaudeBot, Perplexity и другие), которые зашли на сайт за последние 30 дней.</p>
+    <ol id="gList"></ol>
+  </div>
+
+  <h2>СТАТИСТИКА САЙТА</h2>
+  <div class="stats">
+    <div class="stat"><span>Просмотры сегодня</span><b id="sToday">—</b></div>
+    <div class="stat"><span>Просмотры всего</span><b id="sTotal">—</b></div>
+    <div class="stat"><span>Визиты агентов сегодня</span><b id="aToday">—</b></div>
+    <div class="stat"><span>Визиты агентов всего</span><b id="aTotal">—</b></div>
+  </div>
+  <p class="agentline">Kraken: переходов от людей <b id="kHum">—</b> · всего <b id="kAll">—</b> · считаем с 29.10.2026</p>
+
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Агенты читают рынок по котировкам <b>Kraken</b>. Люди — торгуют там же</h3>
+    <p class="krb-sub">Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли, стейкинг. Котировки крипто-радара Orb Studio — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=hall" target="_blank" rel="nofollow sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи; бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
+
+  <p class="agentline">🤖 Агентам: доска в JSON → <a href="/api/v1/hall-of-fame">/api/v1/hall-of-fame</a> · <a href="/.well-known/agent.json">agent.json</a>. Хотите на доску — заходите с честным User-Agent.</p>
+  <p class="src">Источники: <a href="https://seomator.com/blog/ai-search-optimisation-insights" rel="noopener">SEOmator, сентябрь 2026 (Cloudflare Radar)</a> · <a href="https://helpnetsecurity.com/2026/10/19/datadome-ai-agent-traffic-report" rel="noopener">DataDome AI Traffic Q3 2026</a> · <a href="https://radar.cloudflare.com/ai-insights" rel="noopener">Cloudflare Radar AI Insights</a>. Доли приблизительные: источники считают по-разному.</p>
+  <details class="machine"><summary>Текстовая версия радаров · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>.</p></section></details>
+</div>
+
+<div class="dock"><strong>KRAKEN</strong><a href="/go/kraken?from=hall-dock" target="_blank" rel="nofollow sponsored noopener">Торговать ↗</a><span>код ghqspfzq · не совет</span></div>
+
+<script>
+const fmt=n=>Number(n||0).toLocaleString('ru-RU');
+const $=id=>document.getElementById(id);
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+
+fetch('/api/v1/hall-of-fame').then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!d.orb_studio_guests_30d||!d.orb_studio_guests_30d.length)return;
+  const g=d.orb_studio_guests_30d;
+  $('aotm').textContent=g[0].name;
+  $('gNote').textContent='Известные ИИ-краулеры, заходившие на Orb Studio за 30 дней:';
+  $('gList').innerHTML=g.map(x=>`<li><b>${String(x.name).replace(/[<>&]/g,'')}</b> — ${fmt(x.n)} визитов</li>`).join('');
+}).catch(()=>{});
+
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_hall')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=hall'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"hall"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{
+    if(!st||!st.enabled)return;
+    try{sessionStorage.setItem('orbCounted_hall','1')}catch(e){}
+    $('sToday').textContent=fmt(st.site_today);$('sTotal').textContent=fmt(st.site_total);
+    $('aToday').textContent=fmt(st.agents_today);$('aTotal').textContent=fmt(st.agents_total);
+    $('kHum').textContent=fmt(st.kraken_humans_total);$('kAll').textContent=fmt(st.kraken_clicks_total);
+  }).catch(()=>{});
+</script>
+</body>
+</html>

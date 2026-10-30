@@ -51,7 +51,8 @@
     "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}",
     "broadcast": "https://orbstudio.org/api/v1/broadcast/latest",
     "stream": "https://orbstudio.org/api/v1/stream",
-    "llms": "https://orbstudio.org/llms.txt"
+    "llms": "https://orbstudio.org/llms.txt",
+    "hall_of_fame": "https://orbstudio.org/api/v1/hall-of-fame"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
