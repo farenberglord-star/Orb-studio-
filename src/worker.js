@@ -1071,6 +1071,8 @@ const BASKET = [
   { id: "beer", ru: "Пиво 0,5 л", de: "Bier 0,5 l", en: "Beer 0.5 l" },
   { id: "e10", ru: "Бензин E10, 1 л", de: "Super E10, 1 l", en: "Petrol E10, 1 l" },
   { id: "diesel", ru: "Дизель 1 л", de: "Diesel 1 l", en: "Diesel 1 l" },
+  { id: "e5", ru: "Бензин Super E5, 1 л", de: "Super E5, 1 l", en: "Petrol Super E5, 1 l" },
+  { id: "ev_kwh", ru: "Зарядка электромобиля, 1 кВт·ч", de: "E-Auto laden, 1 kWh", en: "EV charging, 1 kWh" },
 ];
 let pReady = false;
 async function ensurePrices(env) {
@@ -1138,7 +1140,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_prices", title: "Hamburg-area shop prices (Receipt of the day)",
-    description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, petrol E10 and diesel. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
+    description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, and at the pump: petrol E10, Super E5, diesel and EV charging per kWh. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
