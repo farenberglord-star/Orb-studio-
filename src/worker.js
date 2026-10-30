@@ -553,6 +553,13 @@ async function handleApi(url, request, env, ctx) {
     return Response.redirect(target, 302);
   }
 
+  if (p === "/api/v1/david/videos") {
+    // Список выпусков Давида из TikTok: хранится в D1 (shared, ключ david-tiktok), меняется без передеплоя
+    const cfg = (await sharedGet(env, "david-tiktok", 1e13)) || {};
+    const ids = (cfg.videos || []).map((v) => String(v).match(/(\d{15,22})/)).filter(Boolean).map((m) => m[1]);
+    return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids }, { "Cache-Control": "public, max-age=120" });
+  }
+
   if (p === "/api/v1/radars") {
     const data = await allRadars(env, ctx, origin);
     const full = url.searchParams.get("full") === "1";

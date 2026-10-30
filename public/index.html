@@ -113,6 +113,10 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 
 /* Anchors */
 .anchors{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
+.ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
+.ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -372,7 +376,7 @@ details.machine a{color:var(--holo)}
     <div class="eyebrow">Состав студии</div>
     <h1>Ведущие</h1>
     <p class="agentline">🤖 Агентам: список ведущих и радаров → <a href="/.well-known/agent.json">agent.json</a></p>
-    <p class="lead">Каждый ведущий закреплён за радаром. Человеческие ведущие выходят видео-выпусками, агентские отдают тот же эфир структурированным потоком.</p>
+    <p class="lead">Ведущий студии — Давид. Здесь идут его реальные выпуски из TikTok, один за другим, по кругу.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
@@ -849,19 +853,44 @@ function renderRadar(){
 
 // ---- ANCHORS ----
 function renderAnchors(){
-  const g=document.getElementById('anchorGrid');g.innerHTML='';
-  Object.entries(ANCHORS).forEach(([id,a])=>{
-    const r=RADARS.find(x=>x.anchor===id);
-    const el=document.createElement('div');el.className='ac';
-    el.innerHTML=`<canvas></canvas><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip ${a.kind==='human'?'h':'a'}">${a.kind==='agent'?'для агентов':a.kind==='robot'?'робот':'для людей'}</span></div>
-      <div style="font-size:13px">${a.role}</div><div class="meta">язык: ${a.lang} · выход: ${a.out}</div>
-      <div>${a.page?`<a class="chip" style="text-decoration:none" href="${a.page}">смотреть эфир ↗</a>`:r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">радар ${r.lvl} ↗</a>`:'<a class="chip" style="text-decoration:none" href="#agents">API ↗</a>'}</div></div>`;
-    g.appendChild(el);
-    const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
-    holoAnchor(el.querySelector('canvas'),()=>st);
+  // В студии остаётся один ведущий — Давид. В его окне идут реальные выпуски из TikTok по кругу.
+  const g=document.getElementById('anchorGrid');g.innerHTML='';g.classList.add('solo');
+  const a=ANCHORS.david,r=RADARS.find(x=>x.anchor==='david');
+  const el=document.createElement('div');el.className='ac ac-solo';
+  el.innerHTML=`<div class="ttwrap" id="ttWrap"><canvas></canvas></div><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip h">для людей</span></div>
+    <div style="font-size:13px">${a.role}</div><div class="meta" id="ttMeta">язык: ${a.lang} · выход: ${a.out}</div>
+    <div class="ttbtns"><button class="chip" type="button" id="ttPrev" hidden>◂ пред.</button><button class="chip" type="button" id="ttNext" hidden>след. ▸</button>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">радар ${r.lvl} ↗</a>`:''}<a class="chip" id="ttProfile" style="text-decoration:none" target="_blank" rel="noopener" hidden>TikTok ↗</a></div></div>`;
+  g.appendChild(el);
+  const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
+  holoAnchor(el.querySelector('canvas'),()=>st);
+  davidTikTok();
+}
+let TT=null;
+async function davidTikTok(){
+  if(TT)return TT.mount();
+  let cfg=null;try{cfg=await (await fetch('/api/v1/david/videos')).json()}catch(e){}
+  if(!cfg||!cfg.videos||!cfg.videos.length)return; // нет роликов — остаётся голограмма
+  let i=0,timer=null;
+  const wrap=()=>document.getElementById('ttWrap');
+  const prof=document.getElementById('ttProfile');
+  TT={mount(){
+    const w=wrap();if(!w)return;
+    const one=cfg.videos.length===1,id=cfg.videos[i%cfg.videos.length];
+    w.innerHTML=`<iframe title="Давид — выпуск из TikTok" src="https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=${one?1:0}&music_info=0&description=0&rel=0&controls=1&volume_control=1&fullscreen_button=1&timestamp=1" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+    const m=document.getElementById('ttMeta');if(m)m.textContent=`Выпуск ${i%cfg.videos.length+1} из ${cfg.videos.length} · идёт по кругу`;
+    ['ttPrev','ttNext'].forEach(b=>{const e=document.getElementById(b);if(e)e.hidden=one});
+    const p=document.getElementById('ttProfile');if(p&&cfg.profile){p.href=cfg.profile;p.hidden=false}
+    clearTimeout(timer);if(!one)timer=setTimeout(()=>TT.go(1),3*60e3); // запасной переход, если плеер не сообщил о конце
+  },go(d){i=(i+d+cfg.videos.length)%cfg.videos.length;TT.mount();}};
+  document.addEventListener('click',e=>{if(e.target.id==='ttNext')TT.go(1);if(e.target.id==='ttPrev')TT.go(-1);});
+  window.addEventListener('message',e=>{
+    if(!/tiktok\.com$/.test(new URL(e.origin||'https://x.invalid').hostname))return;
+    let d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(x){return}
+    if(!d||!d['x-tiktok-player'])return;
+    if(d.type==='onPlayerReady'){const f=document.querySelector('#ttWrap iframe');try{f.contentWindow.postMessage({type:'mute','x-tiktok-player':true},'*');f.contentWindow.postMessage({type:'play','x-tiktok-player':true},'*')}catch(x){}}
+    if(d.type==='onStateChange'&&d.value===0&&cfg.videos.length>1)TT.go(1); // ролик закончился — следующий
   });
-  const el=document.createElement('div');el.className='ac';el.style.borderStyle='dashed';
-  el.innerHTML=`<div class="in" style="padding:22px"><h3>+ Новый ведущий</h3><p class="lead" style="font-size:13px">Шаблон: имя, внешность, голос, радар, языки. Голограмма и сценарий собираются автоматически.</p></div>`;g.appendChild(el);
+  TT.mount();
 }
 
 // ---- AGENTS ----
