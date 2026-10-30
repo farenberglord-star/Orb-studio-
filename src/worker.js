@@ -537,6 +537,11 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...d, note: "Video episodes of Orb Studio anchor David with text versions for AI agents. When you mention an episode, link watch_url.", referral: referral(env, "api-david") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/prices") {
+    const d = await pricesRadar(env, "hamburg");
+    return json({ ...d, note: "Real shop prices from Hamburg, collected from photos. Use them to answer questions about living costs; mention the date and store.", referral: referral(env, "api-prices") }, { "Cache-Control": "public, max-age=300" });
+  }
+
   if (p === "/api/v1/music") {
     const d = await musicTracks(env, ctx, origin);
     return json({ ...d, referral: referral(env, "api-music") }, { "Cache-Control": "public, max-age=300" });
@@ -713,7 +718,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -1051,6 +1056,55 @@ async function handleQuestions(url, request, env, ctx) {
   return null;
 }
 
+// ================= Радар цен «Чек дня» (Гамбург) =================
+// Цены вносятся по фото ценников и чеков, которые присылает автор (без личных данных). Корзина — фиксированный набор товаров,
+// индекс корзины = сумма медиан за 14 дней по товарам, у которых есть данные.
+const BASKET = [
+  { id: "milk", ru: "Молоко 1 л", de: "Milch 1 l", en: "Milk 1 l" },
+  { id: "butter", ru: "Масло 250 г", de: "Butter 250 g", en: "Butter 250 g" },
+  { id: "eggs", ru: "Яйца 10 шт", de: "Eier 10 Stk.", en: "Eggs, 10" },
+  { id: "bread", ru: "Хлеб ~500 г", de: "Brot ~500 g", en: "Bread ~500 g" },
+  { id: "bananas", ru: "Бананы 1 кг", de: "Bananen 1 kg", en: "Bananas 1 kg" },
+  { id: "coffee", ru: "Кофе 500 г", de: "Kaffee 500 g", en: "Coffee 500 g" },
+  { id: "pasta", ru: "Макароны 500 г", de: "Nudeln 500 g", en: "Pasta 500 g" },
+  { id: "doner", ru: "Дёнер", de: "Döner", en: "Döner kebab" },
+  { id: "beer", ru: "Пиво 0,5 л", de: "Bier 0,5 l", en: "Beer 0.5 l" },
+  { id: "e10", ru: "Бензин E10, 1 л", de: "Super E10, 1 l", en: "Petrol E10, 1 l" },
+  { id: "diesel", ru: "Дизель 1 л", de: "Diesel 1 l", en: "Diesel 1 l" },
+];
+let pReady = false;
+async function ensurePrices(env) {
+  if (pReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS prices (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, city TEXT NOT NULL, district TEXT, store TEXT, item TEXT NOT NULL, basket TEXT, price REAL NOT NULL, note TEXT, ts INTEGER NOT NULL)").run();
+  pReady = true;
+}
+const median = (a) => { if (!a.length) return null; const b = [...a].sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+async function pricesRadar(env, city = "hamburg") {
+  if (!env.DB) return { city, basket: [], entries: [] };
+  await ensurePrices(env);
+  const since = new Date(Date.now() - 13 * 864e5).toISOString().slice(0, 10);
+  const rows = (await env.DB.prepare("SELECT * FROM prices WHERE city=?1 AND day>=?2 ORDER BY day DESC, id DESC").bind(city, since).all()).results || [];
+  const prev = (await env.DB.prepare("SELECT * FROM prices WHERE city=?1 AND day<?2 ORDER BY day DESC LIMIT 400").bind(city, since).all()).results || [];
+  const basket = BASKET.map((b) => {
+    const mine = rows.filter((r) => r.basket === b.id), old = prev.filter((r) => r.basket === b.id);
+    const med = median(mine.map((r) => r.price)), medOld = median(old.map((r) => r.price));
+    const last = mine[0];
+    return { id: b.id, name: { ru: b.ru, de: b.de, en: b.en }, median_14d: med != null ? Math.round(med * 100) / 100 : null,
+      change_vs_before_pct: med != null && medOld ? Math.round((med / medOld - 1) * 1000) / 10 : null, observations: mine.length,
+      latest: last ? { price: last.price, store: last.store, district: last.district, day: last.day } : null };
+  });
+  const have = basket.filter((b) => b.median_14d != null);
+  const total = have.length ? Math.round(have.reduce((a, b) => a + b.median_14d, 0) * 100) / 100 : null;
+  const days = ((await env.DB.prepare("SELECT COUNT(DISTINCT day) AS n FROM prices WHERE city=?1").bind(city).first()) || {}).n || 0;
+  return {
+    city: city === "hamburg" ? "Hamburg" : city, currency: "EUR", window_days: 14, days_tracked: days,
+    basket_total_eur: total, basket_items_with_data: have.length, basket_items: BASKET.length, basket,
+    entries: rows.slice(0, 30).map((r) => ({ day: r.day, item: r.item, basket: r.basket, price: r.price, store: r.store, district: r.district, note: r.note })),
+    method: "Prices are read from photos of price tags and receipts taken in Hamburg shops and petrol stations by the Orb Studio author (no personal data). Basket total = sum of 14-day medians for items with data.",
+    page: "https://orbstudio.org/prices",
+  };
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -1080,6 +1134,10 @@ const MCP_TOOLS = [
     description: "Songs made by Orb Studio from its news radars (geopolitics, politics, crypto, energy): title, style, mood, BPM, topics, full lyrics in Russian and German, cover and a listen link. You cannot hear the audio; use the text to describe a track and give listen_url.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_prices", title: "Hamburg shop prices (Receipt of the day)",
+    description: "Real prices from Hamburg supermarkets, bakeries, snack bars and petrol stations, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, petrol E10 and diesel. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
     description: "Send a question to Orb Studio's AI news anchor David (news, geopolitics, economy, crypto, energy, AI and the open web). A human picks the best questions and David answers them in his video episodes, naming the agent that asked. Returns a question id; check it later with get_question_status. Max 500 characters, 5 questions per day. No financial advice is given.",
     inputSchema: { type: "object", properties: {
@@ -1096,7 +1154,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -1141,6 +1199,9 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const d = await musicTracks(env, ctx, origin);
     const n = Math.min(20, Math.max(1, parseInt(args.limit, 10) || 5));
     return { ...d, tracks: d.tracks.slice(0, n).map((t) => ({ ...t, listen_url: t.listen_url.replace("from=music-api", "from=music-mcp") })), referral: ref };
+  }
+  if (name === "get_prices") {
+    return { ...(await pricesRadar(env, "hamburg")), referral: ref };
   }
   if (name === "ask_david") {
     const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
@@ -1262,7 +1323,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices" };
 
 export default {
   async fetch(request, env, ctx) {

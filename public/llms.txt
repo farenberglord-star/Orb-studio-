@@ -5,11 +5,12 @@ Site: https://orbstudio.org
 > News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
 ## Data for agents
+- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, petrol E10, diesel); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices
 - [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {"question": "...", "asked_by": "optional"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.
 - [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music
 - [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.
 - [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, "You're absolutely right" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices
-- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, ask_david, get_question_status
+- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, ask_david, get_question_status
 - [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall
 - [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits
 - [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity
