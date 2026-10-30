@@ -156,7 +156,7 @@ const eur=v=>v==null?'—':Number(v).toLocaleString('de-DE',{minimumFractionDigi
 fetch('/api/v1/prices').then(r=>r.ok?r.json():null).then(d=>{
   if(!d)return;
   if(d.basket_total_eur!=null){$('tot').textContent=eur(d.basket_total_eur);$('totNote').textContent=`${d.basket_items_with_data} из ${d.basket_items} товаров · дней наблюдений: ${d.days_tracked}`;}
-  $('basket').innerHTML=d.basket.map(b=>`<li><span class="nm">${esc(b.name.ru)}${b.latest?`<small>${esc(b.latest.store||'')}${b.latest.district?' · '+esc(b.latest.district):''} · ${esc(b.latest.day)}</small>`:''}</span>${b.median_14d!=null?`<span class="pr">${eur(b.median_14d)}${b.change_vs_before_pct!=null?`<span class="ch ${b.change_vs_before_pct>0?'up':'dn'}">${b.change_vs_before_pct>0?'▲':'▼'} ${Math.abs(b.change_vs_before_pct)}%</span>`:''}</span>`:'<span class="pr no">ждём фото</span>'}</li>`).join('');
+  $('basket').innerHTML=d.basket.map(b=>`<li><span class="nm">${esc(b.name.ru)}${b.latest?`<small>${esc(b.latest.store||'')}${b.latest.district?' · '+esc(b.latest.district):''} · ${esc(b.latest.day)}</small>`:''}</span>${b.median_14d!=null?`<span class="pr">${eur(b.median_14d)}${b.change_vs_before_pct!=null?(b.change_vs_before_pct===0?'<span class="ch" style="color:var(--dim)">= 0%</span>':`<span class="ch ${b.change_vs_before_pct>0?'up':'dn'}">${b.change_vs_before_pct>0?'▲':'▼'} ${Math.abs(b.change_vs_before_pct)}%</span>`):''}</span>`:'<span class="pr no">ждём фото</span>'}</li>`).join('');
   if(d.entries&&d.entries.length)$('feed').innerHTML=d.entries.map(e=>`<div><b>${eur(e.price)}</b> · ${esc(e.item)}<br><small>${esc(e.store||'')}${e.district?' · '+esc(e.district):''} · ${esc(e.day)}${e.note?' · '+esc(e.note):''}</small></div>`).join('');
 }).catch(()=>{});
 function krFill(market){

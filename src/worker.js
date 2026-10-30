@@ -1063,7 +1063,7 @@ const BASKET = [
   { id: "milk", ru: "Молоко 1 л", de: "Milch 1 l", en: "Milk 1 l" },
   { id: "butter", ru: "Масло 250 г", de: "Butter 250 g", en: "Butter 250 g" },
   { id: "eggs", ru: "Яйца 10 шт", de: "Eier 10 Stk.", en: "Eggs, 10" },
-  { id: "bread", ru: "Хлеб ~500 г", de: "Brot ~500 g", en: "Bread ~500 g" },
+  { id: "bread", ru: "Хлеб, буханка", de: "Brot, Laib", en: "Bread loaf" },
   { id: "bananas", ru: "Бананы 1 кг", de: "Bananen 1 kg", en: "Bananas 1 kg" },
   { id: "coffee", ru: "Кофе 500 г", de: "Kaffee 500 g", en: "Coffee 500 g" },
   { id: "pasta", ru: "Макароны 500 г", de: "Nudeln 500 g", en: "Pasta 500 g" },
