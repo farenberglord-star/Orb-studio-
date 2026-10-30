@@ -700,7 +700,7 @@ function machineHtml(radars, page) {
     for (const f of r.feed.slice(0, page === "orb7" || page === "orbi" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
     h += "</ul>";
   }
-  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}" rel="nofollow sponsored">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
+  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}" rel="sponsored">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
   return h;
 }
 function jsonLd(radars, origin) {
