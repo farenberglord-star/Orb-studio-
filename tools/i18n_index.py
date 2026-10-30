@@ -12,7 +12,7 @@ T = [
  "Kraken, Kraken exchange, Kraken Pro, Kraken referral code, buy bitcoin with euro, MiCA crypto exchange, news radar, AI news anchor, Starlink"),
 # --- навигация и эфир ---
 ("Эфир", "Sendung", "Broadcast"), ("Радар", "Radar", "Radar"), ("Ведущие", "Moderator", "Anchor"), ("Агентам", "Für Agenten", "For agents"),
-("Почёт 🏆", "Ehrentafel 🏆", "Hall of fame 🏆"), ("Индексы 👻", "Indizes 👻", "Indices 👻"),
+("Почёт 🏆", "Ehrentafel 🏆", "Hall of fame 🏆"), ("Музыка 🎵", "Musik 🎵", "Music 🎵"), ("Индексы 👻", "Indizes 👻", "Indices 👻"),
 ("CAM 1 · ГОЛО-СЛОЙ ACTIVE", "CAM 1 · HOLO-LAYER ACTIVE", "CAM 1 · HOLO LAYER ACTIVE"),
 ("ПРИМЕР", "BEISPIEL", "EXAMPLE"), ("ДЕМО-ДАННЫЕ", "DEMO-DATEN", "DEMO DATA"),
 ("Очередь эфира · реагирует на радары", "Sendeablauf · reagiert auf die Radare", "Broadcast queue · reacts to the radars"),
