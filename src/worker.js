@@ -57,6 +57,8 @@ const RADARS = [
       gnews("Bundesregierung OR Bundestag OR Koalition when:1d", "de", "DE"),
       gnews("European Commission OR European Parliament when:2d"),
       gnews("White House OR Congress OR Senate when:1d"),
+      "https://www.tagesschau.de/index~rss2.xml",
+      "https://rss.dw.com/rdf/rss-en-top",
     ],
     factors: {
       "Кризисы":       { w: 75, k: ["no-confidence","resign","resignation","impeach","scandal","collapse","protest","coup","rücktritt","misstrauen","отставк","протест","кризис правительств"] },
@@ -101,6 +103,7 @@ const RADARS = [
     feeds: [
       gnews("Brent OR OPEC OR \"oil price\" when:1d"),
       gnews("LNG OR \"gas price\" OR TTF when:2d"),
+      "https://oilprice.com/rss/main",
     ],
     factors: {
       "Нефть":    { w: 55, k: ["brent","crude","oil","wti","нефт"] },
@@ -112,9 +115,13 @@ const RADARS = [
   {
     id: "web", title: "Открытый веб", anchor: "orbi",
     lead: "Насколько интернет открыт для ИИ-агентов: блокировки ботов, суды за парсинг, платный доступ для краулеров.",
+    filter: /\b(ai|bots?|crawl\w*|scrap\w*|robots\.txt|copyright|llms?|openai|anthropic|perplexity|chatgpt|claude|gemini|agents?|ki|urheberrecht|publishers?|paywall)\b/i,
     feeds: [
-      gnews("\"AI crawler\" OR \"AI bots\" OR \"AI scraping\" OR robots.txt when:3d"),
-      gnews("AI copyright lawsuit OR publishers AI licensing when:3d"),
+      "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "https://www.wired.com/feed/tag/ai/latest/rss",
+      "https://feeds.arstechnica.com/arstechnica/technology-lab",
+      "https://www.heise.de/rss/heise.rdf",
+      "https://blog.cloudflare.com/rss/",
     ],
     factors: {
       "Блокировки": { w: 70, k: ["block","blocks","blocking","ban","bans","robots.txt","opt-out","opt out","wall","sperr","блокир"] },
@@ -215,6 +222,7 @@ async function buildRadar(def, env) {
   const items = lists.flat()
     .filter((i) => { const k = dedupeKey(i.title); if (seen.has(k)) return false; seen.add(k); return true; })
     .filter((i) => Date.now() - i.ts < 72 * 3600e3)
+    .filter((i) => !def.filter || def.filter.test(i.title))
     .map((i) => ({ ...i, ...scoreItem(i.title, def.factors) }))
     .sort((a, b) => b.weight - a.weight || b.ts - a.ts)
     .slice(0, 12);
