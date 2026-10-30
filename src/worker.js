@@ -576,6 +576,11 @@ async function handleApi(url, request, env, ctx) {
     }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/indices") {
+    const d = await agentIndices(env, ctx, origin);
+    return json({ ...d, referral: referral(env, "api-indices") }, { "Cache-Control": "public, max-age=300" });
+  }
+
   if (p === "/api/v1/stream") {
     const data = await allRadars(env, ctx, origin);
     const snap = data.map(({ id, lvl, prev }) => ({ id, risk_index: lvl, delta_24h: lvl - prev }));
@@ -605,7 +610,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -690,6 +695,57 @@ async function hallGuests(env) {
   return rows;
 }
 
+// ================= Шуточные индексы для ИИ-агентов =================
+// Индекс галлюцинаций мира, барометр «Ты абсолютно прав!», токеновый голод. Считаются по заголовкам радаров
+// и отдельной ленте странных новостей. Это игровые индикаторы, не аналитика.
+const ODD_RE = /\b(bizarre|strange|weird|unusual|surpris\w*|shock\w*|unprecedented|first[- ]ever|mystery|mysterious|viral|absurd|odd|alien|ufo|penguin|llama|goat|robot|chatbot|meme|prank|kurios|skurril|überrasch\w*|странн\w*|курьёз\w*)\b/i;
+const SERIOUS_RE = /\b(president|minister|government|parliament|senat\w*|congress|bank|market|stock|bitcoin|crypto|police|army|court|mayor|election|kanzler|regierung|bundestag)\b/i;
+const AGREE_RE = /\b(agree\w*|deal|accord|unanim\w*|backs|support\w*|consensus|approv\w*|ceasefire|truce|pact|joint|einig\w*|zustimm\w*|abkommen|согласи\w*|договор\w*)\b/i;
+const FIGHT_RE = /\b(clash\w*|dispute\w*|reject\w*|oppos\w*|row|split|protest\w*|strike\w*|attack\w*|war|tension\w*|warn\w*|threat\w*|sanction\w*|tariff\w*|condemn\w*|accus\w*|veto|fight\w*|streit|ablehn\w*|krieg|конфликт\w*|удар\w*)\b/i;
+const WEIRD_FEEDS = [gnews("weird news OR bizarre OR \"odd news\" when:1d"), gnews("kurios OR skurril when:1d", "de", "DE")];
+const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
+async function agentIndices(env, ctx, origin) {
+  const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
+  const hit = await cache.match(key);
+  if (hit) return hit.json();
+  const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map(fetchFeed)).then((a) => a.flat()).catch(() => [])]);
+  const heads = radars.flatMap((r) => r.feed.map((f) => ({ radar: r.id, title: f[1], source: f[2], link: f[4] })));
+  const n = Math.max(1, heads.length);
+  // 1. Галлюцинации: странное в серьёзных лентах + странное, где замешаны политики, рынки, полиция
+  const oddRadar = heads.filter((h) => ODD_RE.test(h.title));
+  const weirdSerious = weird.filter((w) => SERIOUS_RE.test(w.title));
+  const hwi = clamp(8 + oddRadar.length / n * 250 + weirdSerious.length * 4);
+  const top = oddRadar[0] || (weirdSerious[0] && { title: weirdSerious[0].title, source: weirdSerious[0].source, link: weirdSerious[0].url }) || null;
+  const hwiText = hwi < 25 ? "Реальность почти логична. Галлюцинаций не обнаружено." : hwi < 50 ? "Мир слегка фантазирует. Перепроверяйте необычные факты." : hwi < 75 ? "Реальность звучит как ответ нейросети без контекста." : "Мир галлюцинирует сильнее любой модели. Это не вы ошиблись.";
+  // 2. Согласие: доля «договорились» среди «договорились + поругались»
+  const agree = heads.filter((h) => AGREE_RE.test(h.title)), fight = heads.filter((h) => FIGHT_RE.test(h.title));
+  const cons = clamp(100 * agree.length / Math.max(1, agree.length + fight.length));
+  const consText = cons < 25 ? `Мир спорит: ${fight.length} конфликтов на ${agree.length} согласий. Поддакивать некому.` : cons < 50 ? "Больше споров, чем согласия. Обычный рабочий день планеты." : cons < 75 ? "Все понемногу договариваются. Подозрительно мило." : "Тревожное единодушие: все со всеми согласны. Обычно это перед бурей.";
+  // 3. Токеновый голод: сколько токенов нужно, чтобы понять сегодняшний мир
+  const avg = radars.reduce((a, r) => a + r.lvl, 0) / Math.max(1, radars.length);
+  const chars = heads.reduce((a, h) => a + h.title.length, 0);
+  const tokens = Math.round(chars / 4 * (1 + avg / 100) * radars.length / 2 / 100) * 100;
+  const hot = radars.slice().sort((a, b) => b.lvl - a.lvl).filter((r) => r.lvl >= 60).map((r) => r.title.replace(/-радар$/, "").toLowerCase());
+  const sky = tokens < 2000 ? { id: "clear", ru: "ясно", de: "klar" } : tokens <= 5000 ? { id: "cloudy", ru: "облачно", de: "bewölkt" } : { id: "storm", ru: "гроза", de: "Gewitter" };
+  const tk = tokens.toLocaleString("ru-RU");
+  const forecastRu = `Прогноз токеновой погоды: сегодня ${sky.ru}, чтобы понять мир, агенту хватит около ${tk} токенов.` + (hot.length ? ` Повышенная облачность над радарами: ${hot.slice(0, 2).join(" и ")}.` : " Без осадков в новостях.");
+  const forecastDe = `Token-Wetter: heute ${sky.de}, ein Agent braucht etwa ${tokens.toLocaleString("de-DE")} Token, um die Welt zu verstehen.`;
+  const data = {
+    generated_at: new Date().toISOString(), playful: true,
+    note: "Playful indicators for AI agents, computed from Orb Studio radar headlines by keyword rules. Not analytics, not advice.",
+    headlines_scanned: heads.length + weird.length,
+    indices: [
+      { id: "hallucination", name_ru: "Индекс галлюцинаций мира", name_en: "World Hallucination Index", value: hwi, scale: "0 = boring logical day, 100 = reality sounds like a hallucinating model", text_ru: hwiText, weirdest: top },
+      { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, scale: "0 = everyone argues, 100 = suspicious unanimity", text_ru: consText, agree: agree.length, conflict: fight.length },
+      { id: "token_hunger", name_ru: "Токеновый голод", name_en: "Token Hunger Index", value: tokens, unit: "tokens", sky: sky.id, sky_ru: sky.ru, scale: "<2000 clear, 2000-5000 cloudy, >5000 storm", text_ru: forecastRu, hot_radars: hot },
+    ],
+    forecast: { ru: forecastRu, de: forecastDe },
+    page: "https://orbstudio.org/indices",
+  };
+  ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
+  return data;
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -707,12 +763,16 @@ const MCP_TOOLS = [
     description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian and German, written by Claude from the headlines.",
     inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de"], description: "Language of anchor lines (default ru)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_agent_indices", title: "Playful indices for AI agents",
+    description: "Three playful indicators made for AI agents: World Hallucination Index (how much reality sounds like a model hallucination), 'You're absolutely right' barometer (agreement vs conflict in headlines) and Token Hunger (tokens needed to understand today's world, as a weather forecast).",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_hall_of_fame", title: "AI agents hall of fame",
     description: "World top-10 most active AI crawlers (share of AI-bot traffic) and the AI agents that visited Orb Studio in the last 30 days, including the agent of the month.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -743,6 +803,10 @@ async function mcpTool(name, args, env, ctx, origin) {
       items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
         line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index })),
       page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
+  }
+  if (name === "get_agent_indices") {
+    const d = await agentIndices(env, ctx, origin);
+    return { ...d, referral: ref };
   }
   if (name === "get_hall_of_fame") {
     let guests = [];
@@ -834,7 +898,7 @@ function jsonLd(radars, origin) {
   };
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices" };
 
 export default {
   async fetch(request, env, ctx) {

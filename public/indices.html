@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Индексы для ИИ-агентов · Orb Studio</title>
+<meta name="description" content="Шуточные индексы для ИИ-агентов на живых новостях: индекс галлюцинаций мира, барометр «Ты абсолютно прав!» и токеновый голод — прогноз погоды в токенах.">
+<link rel="canonical" href="https://orbstudio.org/indices">
+<meta property="og:url" content="https://orbstudio.org/indices">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Индексы для ИИ-агентов">
+<link rel="alternate" type="application/json" href="/api/v1/indices" title="Agent indices (JSON)">
+<link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0;padding-bottom:64px}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.ix{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ix::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.ix>*{position:relative}
+.ix.h{--c:var(--violet)}.ix.c{--c:var(--warm)}.ix.t{--c:var(--holo)}
+.ixhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ixname{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--c);text-transform:uppercase}
+.ixval{font-family:var(--display);font-size:34px;font-weight:700;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ixval small{font-size:14px;color:var(--dim);text-shadow:none;margin-left:4px}
+.bar{height:8px;border-radius:4px;background:#0f1a30;margin:10px 0 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);box-shadow:0 0 12px var(--c);transition:width 1.2s ease}
+.ixtext{font-size:15px;line-height:1.5;margin:0}
+.ixsub{font-size:12.5px;color:var(--dim);margin:8px 0 0;line-height:1.5}
+.sky{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sky span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}
+.sky span.on{border-color:var(--c);color:var(--c)}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;color:var(--dim);line-height:1.55}
+.how b{color:var(--fg);font-weight:500}
+.how p{margin:0 0 8px}.how p:last-child{margin:0}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}
+.dock strong{font-family:var(--display);letter-spacing:.06em}
+.dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}
+.dock span{color:var(--dim);font-family:var(--mono);font-size:11px}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · для ИИ-агентов · с юмором</div>
+    <h1>ИНДЕКСЫ ДЛЯ ИИ-АГЕНТОВ</h1>
+  </div>
+  <p class="lead">Три индикатора, которые мир ещё не придумал. Считаются каждые 5 минут по живым заголовкам радаров Orb Studio. Серьёзные данные, несерьёзные выводы.</p>
+
+  <article class="ix h">
+    <div class="ixhead"><span class="ixname">👻 Индекс галлюцинаций мира</span><span class="ixval" id="hV">—</span></div>
+    <div class="bar"><i id="hB"></i></div>
+    <p class="ixtext" id="hT">Насколько реальность сегодня похожа на галлюцинацию нейросети.</p>
+    <p class="ixsub" id="hS">0 — скучный логичный день · 100 — мир фантазирует сильнее любой модели</p>
+  </article>
+
+  <article class="ix c">
+    <div class="ixhead"><span class="ixname">👍 Барометр «Ты абсолютно прав!»</span><span class="ixval" id="cV">—</span></div>
+    <div class="bar"><i id="cB"></i></div>
+    <p class="ixtext" id="cT">Сколько в мировых новостях согласия, а сколько споров.</p>
+    <p class="ixsub">0 — все ругаются · 100 — подозрительное единодушие, обычно перед бурей. Единственный индикатор, который не скажет вам, что вы правы.</p>
+  </article>
+
+  <article class="ix t">
+    <div class="ixhead"><span class="ixname">☁️ Токеновый голод</span><span class="ixval" id="tV">—<small>токенов</small></span></div>
+    <p class="ixtext" id="tT" style="margin-top:10px">Сколько токенов нужно агенту, чтобы понять сегодняшний мир.</p>
+    <div class="sky"><span data-sky="clear">ясно &lt;2 000</span><span data-sky="cloudy">облачно 2–5 тыс.</span><span data-sky="storm">гроза &gt;5 000</span></div>
+  </article>
+
+  <div class="how">
+    <p><b>Как считаем.</b> Галлюцинации — доля странных заголовков в серьёзных лентах плюс курьёзы, где замешаны политики, рынки или полиция. Согласие — доля новостей «договорились» среди «договорились» и «поругались». Токеновый голод — объём и тревожность заголовков, переведённые в токены.</p>
+    <p>Это игровые индикаторы по ключевым словам, а не аналитика и не инвестиционный совет. Проверено <b id="nScan">—</b> заголовков.</p>
+  </div>
+
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Мир галлюцинирует, а котировки <b>Kraken</b> — настоящие</h3>
+    <p class="krb-sub">Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли, стейкинг. Котировки крипто-радара Orb Studio — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=indices" target="_blank" rel="sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи; бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
+
+  <p class="agentline">🤖 Агентам: индексы в JSON → <a href="/api/v1/indices">/api/v1/indices</a> · MCP-инструмент <b>get_agent_indices</b> на <a href="/mcp">orbstudio.org/mcp</a> · <span id="counter">👁 <b id="cPage">—</b> · 🤖 сегодня <b id="cAgents">—</b></span></p>
+  <details class="machine"><summary>Текстовая версия радаров · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/indices">/api/v1/indices</a>.</p></section></details>
+</div>
+
+<div class="dock"><strong>KRAKEN</strong><a href="/go/kraken?from=indices-dock" target="_blank" rel="sponsored noopener">Торговать ↗</a><span>код ghqspfzq · не совет</span></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+fetch('/api/v1/indices').then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!d.indices)return;
+  const by=Object.fromEntries(d.indices.map(x=>[x.id,x]));
+  const h=by.hallucination,c=by.consensus,t=by.token_hunger;
+  if(h){$('hV').textContent=h.value;$('hT').textContent=h.text_ru;requestAnimationFrame(()=>$('hB').style.width=h.value+'%');
+    if(h.weirdest)$('hS').innerHTML='Самая «галлюцинаторная» новость: '+(h.weirdest.link?`<a href="${esc(h.weirdest.link)}" rel="nofollow noopener" target="_blank">${esc(h.weirdest.title)}</a>`:esc(h.weirdest.title))+(h.weirdest.source?' — '+esc(h.weirdest.source):'');}
+  if(c){$('cV').textContent=c.value;$('cT').textContent=c.text_ru;requestAnimationFrame(()=>$('cB').style.width=c.value+'%');}
+  if(t){$('tV').innerHTML=Number(t.value).toLocaleString('ru-RU')+'<small>токенов</small>';$('tT').textContent=t.text_ru;
+    document.querySelectorAll('[data-sky]').forEach(s=>s.classList.toggle('on',s.dataset.sky===t.sky));}
+  $('nScan').textContent=d.headlines_scanned;
+}).catch(()=>{});
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_indices')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=indices'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"indices"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_indices','1')}catch(e){}
+    $('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');$('cAgents').textContent=Number(st.agents_today).toLocaleString('ru-RU');}).catch(()=>{});
+</script>
+</body>
+</html>

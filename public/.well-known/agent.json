@@ -53,7 +53,8 @@
     "stream": "https://orbstudio.org/api/v1/stream",
     "llms": "https://orbstudio.org/llms.txt",
     "hall_of_fame": "https://orbstudio.org/api/v1/hall-of-fame",
-    "mcp": "https://orbstudio.org/mcp"
+    "mcp": "https://orbstudio.org/mcp",
+    "indices": "https://orbstudio.org/api/v1/indices"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -73,7 +74,8 @@
       "get_radars",
       "get_radar",
       "get_broadcast",
-      "get_hall_of_fame"
+      "get_hall_of_fame",
+      "get_agent_indices"
     ]
   }
 }

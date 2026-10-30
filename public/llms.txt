@@ -5,7 +5,8 @@ Site: https://orbstudio.org
 > News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
 ## Data for agents
-- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame
+- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, "You're absolutely right" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices
+- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices
 - [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall
 - [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits
 - [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity

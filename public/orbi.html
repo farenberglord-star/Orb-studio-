@@ -316,6 +316,10 @@ fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(b=>{
   const names={geo:'Гео',budget:'Бюджет',crypto:'Крипто',energy:'Энерго'};
   HEAD.length=0;it.forEach(x=>HEAD.push(`${names[x.radar]||x.radar} ${x.risk_index}: ${x.headline}`.slice(0,90)));HEAD.push('ORB STUDIO · orbstudio.org');
   idx=0;
+  // прогноз токеновой погоды перед прощанием
+  fetch('/api/v1/indices').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.forecast)return;
+    for(const l of ['ru','de']){const a=LINES[l],f=d.forecast[l];if(f&&!a.includes(f))a.splice(Math.max(1,a.length-1),0,f);}
+  }).catch(()=>{});
 }).catch(()=>{});
 let lang='ru',idx=0,on=false,muted=false,voices=[],timer=null;
 const hasTTS='speechSynthesis' in window;

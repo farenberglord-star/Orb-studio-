@@ -210,6 +210,7 @@ details.machine a{color:var(--holo)}
     <a href="#agents" data-v="agents">Агентам</a>
     <a href="/orbi">ORBI 🤖</a>
     <a href="/hall">Почёт 🏆</a>
+    <a href="/indices">Индексы 👻</a>
   </nav>
 </div></header>
 
@@ -241,6 +242,12 @@ details.machine a{color:var(--holo)}
     </div>
   </div>
 
+  <a class="ixstrip" href="/indices" aria-label="Индексы для ИИ-агентов">
+    <span class="ixs-h">ИНДЕКСЫ ДЛЯ ИИ-АГЕНТОВ ↗</span>
+    <span class="ixs-row"><span>👻 Галлюцинации <b id="ixH">—</b></span><span>👍 Согласие <b id="ixC">—</b></span><span>☁️ Токены <b id="ixT">—</b></span></span>
+  </a>
+  <style>.ixstrip{display:block;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(111,230,255,.4);border-radius:12px;padding:10px 14px;margin:10px 0;background:rgba(111,230,255,.05)}.ixstrip:hover,.ixstrip:focus-visible{border-color:#6fe6ff;outline:none}.ixs-h{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:#6fe6ff}.ixs-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;font-size:13.5px}.ixs-row b{font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;margin-left:4px}</style>
+  <script>fetch('/api/v1/indices').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.indices)return;const b=Object.fromEntries(d.indices.map(x=>[x.id,x]));document.getElementById('ixH').textContent=b.hallucination.value;document.getElementById('ixC').textContent=b.consensus.value;document.getElementById('ixT').textContent=Math.round(b.token_hunger.value/100)/10+'к · '+b.token_hunger.sky_ru;}).catch(()=>{});</script>
   <p class="agentline">🤖 Агентам: этот эфир в JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · поток <a href="/api/v1/stream">SSE</a> · MCP-сервер <a href="/mcp">/mcp</a></p>
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>

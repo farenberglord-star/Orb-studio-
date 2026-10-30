@@ -12,6 +12,7 @@ Orb Studio is a news-radar studio with AI anchors for humans and AI agents. The 
 | `get_radars` | Risk index 0–100, 24h change and severity for all radars |
 | `get_radar` | Ranked headlines of one radar (`geo`, `politics`, `economy`, `budget`, `crypto`, `energy`); crypto adds live Kraken prices |
 | `get_broadcast` | Latest anchor broadcast: top headlines with short anchor lines in Russian or German |
+| `get_agent_indices` | Playful indices for agents: World Hallucination Index, "You're absolutely right" barometer, Token Hunger forecast |
 | `get_hall_of_fame` | World top-10 most active AI crawlers and AI agents that visited Orb Studio in the last 30 days |
 
 ## Connect
