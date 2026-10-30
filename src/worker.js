@@ -577,9 +577,27 @@ async function handleApi(url, request, env, ctx) {
       } catch (e) {}
       return v; // не удалось — пробуем в следующий раз
     }));
-    if (changed) { cfg.videos = list; await sharedPut(env, "david-tiktok", cfg); }
+    // Раз в 3 часа смотрим профиль TikTok и добавляем новые выпуски, которые удалось найти на странице
+    let scan = null;
+    if (cfg.user && (!cfg.scanned_at || Date.now() - cfg.scanned_at > 3 * 3600e3 || url.searchParams.get("rescan") === "1")) {
+      scan = { found: 0, status: null };
+      try {
+        const r = await fetch(`https://www.tiktok.com/@${cfg.user}`, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36", "Accept-Language": "de-DE,de;q=0.9,en;q=0.8" }, signal: AbortSignal.timeout(8000) });
+        scan.status = r.status;
+        const html = await r.text();
+        const re = new RegExp(`@${cfg.user.replace(/\./g, "\\.")}\\\\?/video\\\\?/(\\d{15,22})|"id":"(\\d{18,22})"[^{}]{0,400}?"createTime"`, "g");
+        const found = new Set();
+        for (const m of html.matchAll(re)) found.add(m[1] || m[2]);
+        scan.found = found.size;
+        const known = new Set(list.map(String));
+        const fresh = [...found].filter((id) => !known.has(id)).sort((a, b) => (BigInt(b) > BigInt(a) ? 1 : -1));
+        if (fresh.length) { list.unshift(...fresh); changed = true; }
+      } catch (e) { scan.error = String(e.message || e).slice(0, 120); }
+      cfg.scanned_at = Date.now(); changed = true;
+    }
+    if (changed) { cfg.videos = list.slice(0, 40); await sharedPut(env, "david-tiktok", cfg); }
     const ids = list.map((v) => String(v).match(/^(\d{15,22})$/)).filter(Boolean).map((m) => m[1]);
-    return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids, pending: list.length - ids.length }, { "Cache-Control": "public, max-age=120" });
+    return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids, pending: list.length - ids.length, scan: scan || undefined }, { "Cache-Control": "public, max-age=120" });
   }
 
   if (p === "/api/v1/radars") {
