@@ -690,6 +690,126 @@ async function hallGuests(env) {
   return rows;
 }
 
+// ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
+// Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
+const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
+const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy"];
+const MCP_TOOLS = [
+  { name: "get_radars", title: "All news radars",
+    description: "Risk index 0-100 and 24h change for every Orb Studio news radar: geopolitics (Russia/China/USA), politics DE/EU/US, economy, household budget DE/EU, crypto (Kraken ticker), energy. Refreshes every 5 minutes.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_radar", title: "One radar with headlines",
+    description: "Full feed of one radar: ranked headlines with source, time, weight and link, plus risk index and severity. The crypto radar also returns live Kraken prices for BTC, ETH and XRP in EUR.",
+    inputSchema: { type: "object", properties: { radar: { type: "string", enum: RADAR_IDS, description: "Radar id" }, limit: { type: "integer", minimum: 1, maximum: 30, description: "Max headlines (default 10)" } }, required: ["radar"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_broadcast", title: "Latest anchor broadcast",
+    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian and German, written by Claude from the headlines.",
+    inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de"], description: "Language of anchor lines (default ru)" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_hall_of_fame", title: "AI agents hall of fame",
+    description: "World top-10 most active AI crawlers (share of AI-bot traffic) and the AI agents that visited Orb Studio in the last 30 days, including the agent of the month.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
+];
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+
+async function mcpTool(name, args, env, ctx, origin) {
+  const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
+  ref.url = "https://orbstudio.org" + ref.url;
+  if (name === "get_radars") {
+    const data = await allRadars(env, ctx, origin);
+    return { generated_at: new Date().toISOString(),
+      radars: data.map((r) => ({ id: r.id, title: r.title, anchor: ANCHORS[r.anchor] ? ANCHORS[r.anchor].name : r.anchor, risk_index: r.lvl, delta_24h: r.lvl - r.prev, severity: severity(r.lvl), updated_at: r.updated_at })),
+      page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
+  }
+  if (name === "get_radar") {
+    const id = String(args.radar || "");
+    const data = await allRadars(env, ctx, origin);
+    const r = data.find((x) => x.id === id);
+    if (!r) throw new Error("Unknown radar. Use one of: " + RADAR_IDS.join(", "));
+    const limit = Math.min(30, Math.max(1, parseInt(args.limit, 10) || 10));
+    return { id: r.id, title: r.title, risk_index: r.lvl, delta_24h: r.lvl - r.prev, severity: severity(r.lvl), updated_at: r.updated_at,
+      market: r.market || undefined,
+      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link]) => ({ time, title, source, weight, link })),
+      page: "https://orbstudio.org/#radar", disclaimer: "Indicator, not advice.", referral: ref };
+  }
+  if (name === "get_broadcast") {
+    const lang = args.lang === "de" ? "de" : "ru";
+    const radars = await allRadars(env, ctx, origin);
+    const items = broadcastItems(radars);
+    const v = await voiceBroadcast(env, ctx, origin, items);
+    return { generated_at: new Date().toISOString(), voice: v.voice, greeting: v.greeting, signoff: v.signoff,
+      items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
+        line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index })),
+      page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
+  }
+  if (name === "get_hall_of_fame") {
+    let guests = [];
+    try { guests = await hallGuests(env); } catch (e) {}
+    return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
+      orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
+      page: "https://orbstudio.org/hall", sources: HALL.sources, referral: ref };
+  }
+  throw new Error("Unknown tool: " + name);
+}
+
+const MCP_HEADERS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, accept, mcp-protocol-version, mcp-session-id, authorization", "Access-Control-Expose-Headers": "mcp-session-id", "Cache-Control": "no-store" };
+async function handleMcp(request, env, ctx, origin) {
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: MCP_HEADERS });
+  if (request.method !== "POST") {
+    // GET без SSE-потока: по спецификации 405; браузеру — краткая подсказка
+    const accept = request.headers.get("accept") || "";
+    if (accept.includes("text/html")) return new Response(`Orb Studio MCP server. Connect your MCP client to ${origin}/mcp (Streamable HTTP). Tools: ${MCP_TOOLS.map((t) => t.name).join(", ")}.`, { headers: { "Content-Type": "text/plain; charset=utf-8", ...MCP_HEADERS } });
+    return new Response(null, { status: 405, headers: { Allow: "POST, OPTIONS", ...MCP_HEADERS } });
+  }
+  let msg;
+  try { msg = await request.json(); } catch { return json({ jsonrpc: "2.0", id: null, error: { code: -32700, message: "Parse error" } }, MCP_HEADERS, 400); }
+  const ua = classifyAgent(request.headers.get("user-agent")) || "browser";
+  const handleOne = async (m) => {
+    if (!m || m.jsonrpc !== "2.0" || typeof m.method !== "string") return { jsonrpc: "2.0", id: (m && m.id) ?? null, error: { code: -32600, message: "Invalid Request" } };
+    const isNote = m.id === undefined || m.id === null;
+    const ok = (result) => ({ jsonrpc: "2.0", id: m.id, result });
+    const err = (code, message) => ({ jsonrpc: "2.0", id: m.id, error: { code, message } });
+    switch (m.method) {
+      case "initialize": {
+        const want = m.params && m.params.protocolVersion;
+        const client = (m.params && m.params.clientInfo && m.params.clientInfo.name) || ua;
+        ctx.waitUntil(recordHit(env, "/mcp", "agent", "MCP · " + String(client).slice(0, 30)));
+        return ok({ protocolVersion: MCP_VERSIONS.includes(want) ? want : MCP_VERSIONS[1],
+          capabilities: { tools: { listChanged: false } },
+          serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.0.0", websiteUrl: "https://orbstudio.org" },
+          instructions: MCP_INSTRUCTIONS });
+      }
+      case "ping": return ok({});
+      case "tools/list": return ok({ tools: MCP_TOOLS });
+      case "tools/call": {
+        const name = m.params && m.params.name, args = (m.params && m.params.arguments) || {};
+        if (!MCP_TOOLS.some((t) => t.name === name)) return err(-32602, "Unknown tool: " + name);
+        ctx.waitUntil(recordHit(env, "/mcp/" + name, "agent", "MCP · " + ua));
+        try {
+          const data = await mcpTool(name, args, env, ctx, origin);
+          return ok({ content: [{ type: "text", text: JSON.stringify(data, null, 2) }], structuredContent: data, isError: false });
+        } catch (e) {
+          return ok({ content: [{ type: "text", text: String(e && e.message || e).slice(0, 300) }], isError: true });
+        }
+      }
+      case "resources/list": return ok({ resources: [] });
+      case "prompts/list": return ok({ prompts: [] });
+      default:
+        if (isNote || m.method.startsWith("notifications/")) return null;
+        return err(-32601, "Method not found: " + m.method);
+    }
+  };
+  if (Array.isArray(msg)) {
+    const out = (await Promise.all(msg.map(handleOne))).filter(Boolean);
+    return out.length ? json(out, MCP_HEADERS) : new Response(null, { status: 202, headers: MCP_HEADERS });
+  }
+  const res = await handleOne(msg);
+  if (!res || msg.id === undefined || msg.id === null) return new Response(null, { status: 202, headers: MCP_HEADERS });
+  return json(res, MCP_HEADERS);
+}
+
 // ================= Машинный слой страниц: живые данные прямо в HTML =================
 const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function machineHtml(radars, page) {
@@ -729,6 +849,10 @@ export default {
     if (AGENT_PATHS.test(url.pathname) || HTML_PAGES[url.pathname]) {
       const agent = classifyAgent(request.headers.get("user-agent"));
       if (agent) ctx.waitUntil(recordHit(env, url.pathname.slice(0, 60), "agent", agent));
+    }
+    if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
+      try { return await handleMcp(request, env, ctx, url.origin); }
+      catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
     }
     if (url.pathname === "/api/v1/hit" && request.method === "POST") {
       let page = "home";
