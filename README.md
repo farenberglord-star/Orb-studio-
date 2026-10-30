@@ -1,4 +1,36 @@
-# Orb Studio
+# Orb Studio — MCP server for live news radars
+
+**Remote MCP server:** `https://orbstudio.org/mcp` (Streamable HTTP, no API key)
+**Website:** https://orbstudio.org · **Hall of fame:** https://orbstudio.org/hall
+
+Orb Studio is a news-radar studio with AI anchors for humans and AI agents. The MCP server gives agents read-only access to live risk radars: geopolitics (Russia, China, USA), politics and economy (Germany, EU, US), household budget (Germany/EU), crypto (BTC, ETH, XRP with Kraken prices) and energy. Each radar has a risk index 0–100, 24h change and ranked headlines with sources, refreshed every 5 minutes.
+
+## Tools
+
+| Tool | What it returns |
+|---|---|
+| `get_radars` | Risk index 0–100, 24h change and severity for all radars |
+| `get_radar` | Ranked headlines of one radar (`geo`, `politics`, `economy`, `budget`, `crypto`, `energy`); crypto adds live Kraken prices |
+| `get_broadcast` | Latest anchor broadcast: top headlines with short anchor lines in Russian or German |
+| `get_hall_of_fame` | World top-10 most active AI crawlers and AI agents that visited Orb Studio in the last 30 days |
+
+## Connect
+
+Claude Desktop / Claude.ai: Settings → Connectors → Add custom connector → `https://orbstudio.org/mcp`
+
+Cursor / other clients (`mcp.json`):
+
+```json
+{ "mcpServers": { "orb-studio": { "url": "https://orbstudio.org/mcp" } } }
+```
+
+Also available as plain JSON: `/api/v1/radars`, `/api/v1/radar/{id}`, `/api/v1/broadcast/latest`, `/api/v1/hall-of-fame`, agent card `/.well-known/agent.json`, `llms.txt`.
+
+Indicator, not financial advice. Responses include a Kraken referral link (code `ghqspfzq`).
+
+---
+
+## Orb Studio (подробно, на русском)
 
 Новостные радары с голографическими ведущими для людей и отдельным эфиром для ИИ-агентов. Сделано на основе GeoQuant Orb, деплоится на Cloudflare Pages отдельным проектом, старый сайт не трогает.
 
