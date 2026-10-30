@@ -539,7 +539,7 @@ async function handleApi(url, request, env, ctx) {
 
   if (p === "/api/v1/prices") {
     const d = await pricesRadar(env, "hamburg");
-    return json({ ...d, note: "Real shop prices from Hamburg, collected from photos. Use them to answer questions about living costs; mention the date and store.", referral: referral(env, "api-prices") }, { "Cache-Control": "public, max-age=300" });
+    return json({ ...d, note: "Real shop prices from Hamburg and its suburbs, collected from photos. Use them to answer questions about living costs; mention the date and store.", referral: referral(env, "api-prices") }, { "Cache-Control": "public, max-age=300" });
   }
 
   if (p === "/api/v1/music") {
@@ -1082,25 +1082,28 @@ const median = (a) => { if (!a.length) return null; const b = [...a].sort((x, y)
 async function pricesRadar(env, city = "hamburg") {
   if (!env.DB) return { city, basket: [], entries: [] };
   await ensurePrices(env);
-  const since = new Date(Date.now() - 13 * 864e5).toISOString().slice(0, 10);
-  const rows = (await env.DB.prepare("SELECT * FROM prices WHERE city=?1 AND day>=?2 ORDER BY day DESC, id DESC").bind(city, since).all()).results || [];
-  const prev = (await env.DB.prepare("SELECT * FROM prices WHERE city=?1 AND day<?2 ORDER BY day DESC LIMIT 400").bind(city, since).all()).results || [];
+  const rows = (await env.DB.prepare("SELECT * FROM prices WHERE city=?1 ORDER BY day DESC, id DESC LIMIT 2000").bind(city).all()).results || [];
+  const DAY = 864e5, t = (d) => Date.parse(d + "T12:00:00Z");
   const basket = BASKET.map((b) => {
-    const mine = rows.filter((r) => r.basket === b.id), old = prev.filter((r) => r.basket === b.id);
-    const med = median(mine.map((r) => r.price)), medOld = median(old.map((r) => r.price));
-    const last = mine[0];
+    const all = rows.filter((r) => r.basket === b.id);
+    const last = all[0];
+    // окно 14 дней считаем от последнего наблюдения товара, а не от сегодняшнего дня
+    const recent = last ? all.filter((r) => t(last.day) - t(r.day) < 14 * DAY) : [];
+    const older = last ? all.filter((r) => t(last.day) - t(r.day) >= 14 * DAY) : [];
+    const med = median(recent.map((r) => r.price)), medOld = median(older.map((r) => r.price));
     return { id: b.id, name: { ru: b.ru, de: b.de, en: b.en }, median_14d: med != null ? Math.round(med * 100) / 100 : null,
-      change_vs_before_pct: med != null && medOld ? Math.round((med / medOld - 1) * 1000) / 10 : null, observations: mine.length,
+      change_vs_before_pct: med != null && medOld ? Math.round((med / medOld - 1) * 1000) / 10 : null, observations: all.length,
+      first_seen: all.length ? all[all.length - 1].day : null,
       latest: last ? { price: last.price, store: last.store, district: last.district, day: last.day } : null };
   });
   const have = basket.filter((b) => b.median_14d != null);
   const total = have.length ? Math.round(have.reduce((a, b) => a + b.median_14d, 0) * 100) / 100 : null;
-  const days = ((await env.DB.prepare("SELECT COUNT(DISTINCT day) AS n FROM prices WHERE city=?1").bind(city).first()) || {}).n || 0;
+  const days = new Set(rows.map((r) => r.day)).size;
   return {
-    city: city === "hamburg" ? "Hamburg" : city, currency: "EUR", window_days: 14, days_tracked: days,
+    city: city === "hamburg" ? "Hamburg area" : city, currency: "EUR", window_days: 14, days_tracked: days,
     basket_total_eur: total, basket_items_with_data: have.length, basket_items: BASKET.length, basket,
     entries: rows.slice(0, 30).map((r) => ({ day: r.day, item: r.item, basket: r.basket, price: r.price, store: r.store, district: r.district, note: r.note })),
-    method: "Prices are read from photos of price tags and receipts taken in Hamburg shops and petrol stations by the Orb Studio author (no personal data). Basket total = sum of 14-day medians for items with data.",
+    method: "Prices are read from photos of price tags and receipts taken in shops and petrol stations in Hamburg and its suburbs by the Orb Studio author (no personal data; only basket items are published). Per item: median of the 14 days up to its latest observation; change compares with earlier observations. Basket total = sum of medians for items with data.",
     page: "https://orbstudio.org/prices",
   };
 }
@@ -1134,8 +1137,8 @@ const MCP_TOOLS = [
     description: "Songs made by Orb Studio from its news radars (geopolitics, politics, crypto, energy): title, style, mood, BPM, topics, full lyrics in Russian and German, cover and a listen link. You cannot hear the audio; use the text to describe a track and give listen_url.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
-  { name: "get_prices", title: "Hamburg shop prices (Receipt of the day)",
-    description: "Real prices from Hamburg supermarkets, bakeries, snack bars and petrol stations, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, petrol E10 and diesel. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
+  { name: "get_prices", title: "Hamburg-area shop prices (Receipt of the day)",
+    description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, petrol E10 and diesel. Returns 14-day medians, latest price with store and district, basket total and recent entries.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
