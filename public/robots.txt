@@ -3,4 +3,4 @@ Allow: /
 # реферальный редирект — не для обхода ботами
 Disallow: /go/
 
-Sitemap: https://orbstudio.org/llms.txt
+Sitemap: https://orbstudio.org/sitemap.xml
