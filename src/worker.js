@@ -545,6 +545,19 @@ async function handleApi(url, request, env, ctx) {
     return Response.redirect(target, 302);
   }
 
+  if (p === "/api/v1/debug/feeds") {
+    const def = RADARS.find((d) => d.id === url.searchParams.get("radar")) || RADARS[0];
+    const out = await Promise.all(def.feeds.map(async (u) => {
+      const t = Date.now();
+      try {
+        const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } });
+        const x = await r.text();
+        return { url: u, status: r.status, items: (x.match(/<item[\s>]/gi) || []).length, ms: Date.now() - t, head: x.slice(0, 120) };
+      } catch (e) { return { url: u, error: String(e.message || e), ms: Date.now() - t }; }
+    }));
+    return json({ radar: def.id, feeds: out }, { "Cache-Control": "no-store" });
+  }
+
   if (p === "/api/v1/radars") {
     const data = await allRadars(env, ctx, origin);
     const full = url.searchParams.get("full") === "1";
