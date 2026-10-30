@@ -702,7 +702,7 @@ const ODD_RE = /\b(bizarre|strange|weird|unusual|surpris\w*|shock\w*|unprecedent
 const SERIOUS_RE = /\b(president|minister|government|parliament|senat\w*|congress|bank|market|stock|bitcoin|crypto|police|army|court|mayor|election|kanzler|regierung|bundestag)\b/i;
 const AGREE_RE = /\b(agree\w*|deal|accord|unanim\w*|backs|support\w*|consensus|approv\w*|ceasefire|truce|pact|joint|einig\w*|zustimm\w*|abkommen|согласи\w*|договор\w*)\b/i;
 const FIGHT_RE = /\b(clash\w*|dispute\w*|reject\w*|oppos\w*|row|split|protest\w*|strike\w*|attack\w*|war|tension\w*|warn\w*|threat\w*|sanction\w*|tariff\w*|condemn\w*|accus\w*|veto|fight\w*|streit|ablehn\w*|krieg|конфликт\w*|удар\w*)\b/i;
-const WEIRD_FEEDS = [gnews("weird news OR bizarre OR \"odd news\" when:1d"), gnews("kurios OR skurril when:1d", "de", "DE")];
+const WEIRD_FEEDS = [gnews("bizarre OR weird when:2d"), gnews("odd news when:2d"), "https://rss.upi.com/news/odd_news.rss", gnews("kurios OR skurril when:2d", "de", "DE")];
 const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
 async function agentIndices(env, ctx, origin) {
   const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
@@ -733,7 +733,7 @@ async function agentIndices(env, ctx, origin) {
   const data = {
     generated_at: new Date().toISOString(), playful: true,
     note: "Playful indicators for AI agents, computed from Orb Studio radar headlines by keyword rules. Not analytics, not advice.",
-    headlines_scanned: heads.length + weird.length,
+    headlines_scanned: heads.length + weird.length, weird_feed_items: weird.length,
     indices: [
       { id: "hallucination", name_ru: "Индекс галлюцинаций мира", name_en: "World Hallucination Index", value: hwi, scale: "0 = boring logical day, 100 = reality sounds like a hallucinating model", text_ru: hwiText, weirdest: top },
       { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, scale: "0 = everyone argues, 100 = suspicious unanimity", text_ru: consText, agree: agree.length, conflict: fight.length },
