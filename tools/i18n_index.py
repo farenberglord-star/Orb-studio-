@@ -162,6 +162,10 @@ T = [
 ("Не получилось проголосовать.", "Abstimmung fehlgeschlagen.", "Couldn't record your vote."),
 ("Архив 🗄", "Archiv 🗄", "Archive 🗄"),
 ("Загрузка…", "Lädt…", "Loading…"),
+("Радар ловит сигналы со всего мира. Твой дом на связи — через <b>STARLINK</b>", "Das Radar empfängt Signale aus aller Welt. Dein Zuhause bleibt verbunden — mit <b>STARLINK</b>", "The radar catches signals from all over the world. Keep your home connected with <b>STARLINK</b>"),
+("Давид выходит в эфир отовсюду. С интернетом <b>STARLINK</b> — и ты", "David sendet von überall. Mit <b>STARLINK</b>-Internet kannst du das auch", "David broadcasts from anywhere. With <b>STARLINK</b> internet, so can you"),
+("Агентам — API. Людям — интернет <b>STARLINK</b> там, где нет кабеля", "Agenten bekommen die API. Menschen bekommen <b>STARLINK</b>-Internet, wo kein Kabel liegt", "Agents get the API. People get <b>STARLINK</b> internet where there is no cable"),
+
 ("'Политика'", "'Politik'", "'Politics'"), ("'Экономика'", "'Wirtschaft'", "'Economy'"), ("'Открытый веб'", "'Offenes Web'", "'Open web'"),
 ("◂ пред.", "◂ zurück", "◂ prev"), ("след. ▸", "weiter ▸", "next ▸"),
 # --- агенты и статистика ---
