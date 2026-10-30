@@ -223,6 +223,10 @@ details.machine a{color:var(--holo)}
 .slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
 .slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
 </style>
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 </head>
 <body>
 
@@ -528,7 +532,12 @@ const EXAMPLE = [
    fac:[['Brent',45],['Газ TTF',39],['Танкеры',52],['ОПЕК+',37]],
    feed:[['08:58','Пример: Brent торгуется в узком коридоре перед данными по запасам','Yahoo · Brent',42],['08:02','Пример: заполненность хранилищ ЕС выше среднего за пять лет','GIE · EU',30],['06:45','Пример: изменения маршрутов танкеров в Красном море','Lloyd’s List',57]]}
 ];
-let RADARS = EXAMPLE, LIVE = false, VOICE = null, LANG = 'ru';
+const PAGE_LANG = ['de','en'].includes(document.documentElement.lang) ? document.documentElement.lang : 'ru';
+const LOC = {ru:'ru-RU',de:'de-DE',en:'en-GB'}[PAGE_LANG];
+const ALT_LANG = PAGE_LANG==='ru'?'de':PAGE_LANG==='de'?'en':'de';
+// названия радаров и факторов на языке страницы (таблица I18N_RADAR есть только в /de/ и /en/)
+function i18nRadars(list){const T=window.I18N_RADAR;if(!T)return list;list.forEach(r=>{const t=T[r.id];if(!t)return;r.title=t.title||r.title;r.lead=t.lead||r.lead;if(t.fac&&r.fac)r.fac=r.fac.map(([n,v])=>[t.fac[n]||n,v]);});return list;}
+let RADARS = EXAMPLE, LIVE = false, VOICE = null, LANG = PAGE_LANG;
 const now = new Date();
 
 // ---- Router ----
@@ -554,7 +563,7 @@ document.addEventListener('click',e=>{
 });
 
 // ---- Счётчики ----
-const fmt=n=>Number(n||0).toLocaleString('ru-RU');
+const fmt=n=>Number(n||0).toLocaleString(LOC);
 let counted={};
 try{counted=JSON.parse(sessionStorage.getItem('orbCounted')||'{}')}catch(e){}
 function showStats(st,page){
@@ -569,7 +578,7 @@ function showStats(st,page){
   const bt=document.getElementById('sKrBotsToday'),bT=document.getElementById('sKrBotsTotal');if(bt)bt.textContent='+ боты: '+fmt(st.kraken_bots_today);if(bT)bT.textContent='+ боты: '+fmt(st.kraken_bots_total);
   const li=(arr,k)=>arr&&arr.length?arr.map(x=>`<div>${esc(x[k])} · <span>${fmt(x.n)}</span></div>`).join(''):'<div>пока нет</div>';
   document.getElementById('sTop').innerHTML=li(st.top_agents_7d,'name');document.getElementById('sKrFrom').innerHTML=li(st.kraken_by_source_7d,'source');
-  document.getElementById('statsNote').textContent='обновлено '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('statsNote').textContent='обновлено '+new Date().toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
 }
 async function countView(page){
   try{
@@ -744,7 +753,7 @@ const lines=(item,withFrame)=>{
   return t;
 };
 function setVoice(b){
-  VOICE={map:new Map((b.items||[]).map(x=>[x.headline,{ru:x.line_ru,de:x.line_de}])),greeting:b.greeting,signoff:b.signoff,kind:b.voice};
+  VOICE={map:new Map((b.items||[]).map(x=>[x.headline,{ru:x.line_ru,de:x.line_de,en:x.line_en}])),greeting:b.greeting,signoff:b.signoff,kind:b.voice};
   const t=document.getElementById('voiceTag');t.hidden=false;
   t.textContent=b.voice==='claude'?'живой текст':'шаблон';t.style.color=b.voice==='claude'?'var(--holo2)':'var(--dim)';
 }
@@ -773,7 +782,7 @@ function pickVoice(lang,g){
 }
 function speak(text,anchorId){
   if(!window.OrbTTS)return;
-  const c=VOICE_CFG[anchorId]||VOICE_CFG.anna,lang=LANG==='de'?'de-DE':'ru-RU';
+  const c=VOICE_CFG[anchorId]||VOICE_CFG.anna,lang={ru:'ru-RU',de:'de-DE',en:'en-US'}[LANG];
   talking=true;
   const advance=()=>{talking=false;if(SPEAK&&!document.getElementById('v-home').hidden)setTimeout(()=>{if(SPEAK){qi=(qi+1)%Math.min(6,queue.length);play()}},900)};
   OrbTTS.speak(text,{lang,pitch:c.pitch,rate:c.rate,gender:c.g},{onEnd:advance,onError:()=>setTimeout(advance,Math.max(2500,text.length*55))});
@@ -803,7 +812,7 @@ document.getElementById('btnListen').onclick=e=>{
   if(SPEAK){b.textContent='⏸ Пауза';OrbTTS.loadVoices();play()}
   else{b.textContent='🔊 Слушать эфир';OrbTTS.stop();talking=false}
 };
-document.getElementById('btnLang').onclick=e=>{LANG=LANG==='ru'?'de':'ru';e.currentTarget.textContent=LANG==='ru'?'RU → DE':'DE → RU';play()};
+document.getElementById('btnLang').onclick=e=>{LANG=LANG===PAGE_LANG?ALT_LANG:PAGE_LANG;e.currentTarget.textContent=LANG.toUpperCase()+' → '+(LANG===PAGE_LANG?ALT_LANG:PAGE_LANG).toUpperCase();play()};
 document.getElementById('btnAgent').onclick=()=>{const b=document.getElementById('jsonBox');b.hidden=!b.hidden};
 if(!RM)setInterval(()=>{if(!SPEAK&&!talking&&!document.getElementById('v-home').hidden){qi=(qi+1)%Math.min(6,queue.length);play()}},9000);
 
@@ -913,7 +922,7 @@ async function boot(){
   try{
     const r=await fetch('/api/v1/radars?full=1');if(!r.ok)throw 0;
     const j=await r.json();
-    if(Array.isArray(j.radars)&&j.radars.some(x=>x.feed&&x.feed.length)){RADARS=j.radars.filter(x=>x.feed&&x.feed.length);LIVE=true}
+    if(Array.isArray(j.radars)&&j.radars.some(x=>x.feed&&x.feed.length)){RADARS=i18nRadars(j.radars.filter(x=>x.feed&&x.feed.length));LIVE=true}
   }catch(e){}
   buildQueue();renderRadars();renderAnchors();renderTicker();play();route();
   if(LIVE)markLive();
@@ -926,7 +935,7 @@ buildQueue();renderTicker();route();
 try{if(window.AnnaRobot&&AnnaRobot.init(document.getElementById('robotCv'),()=>({talking,lvl:stageState.lvl,sev:stageState.sev}))){document.getElementById('stageCv').hidden=true}else{document.getElementById('robotCv').hidden=true}}catch(e){document.getElementById('robotCv').hidden=true}
 boot();
 // обновление каждые 5 минут
-setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=j.radars.filter(x=>x.feed&&x.feed.length);try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);
+setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=i18nRadars(j.radars.filter(x=>x.feed&&x.feed.length));try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);
 })();
 </script>
 </body>

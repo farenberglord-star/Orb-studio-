@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<link rel="canonical" href="https://orbstudio.org/de/">
+<meta property="og:url" content="https://orbstudio.org/de/">
+<meta property="og:site_name" content="Orb Studio">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orb Studio · holografische Moderatoren für News-Radare</title>
+<meta name="description" content="Orb Studio: News-Radare mit holografischen KI-Moderatoren für Menschen und KI-Agenten. Offene API, Kraken-Daten. Indikator, keine Anlageberatung.">
+<meta property="og:title" content="Orb Studio">
+<meta property="og:description" content="News-Radare mit holografischen KI-Moderatoren für Menschen und KI-Agenten.">
+<link rel="alternate" type="application/json" href="/.well-known/agent.json" title="Agent card">
+<link rel="alternate" type="application/json" href="/api/v1/broadcast/latest" title="Current broadcast (JSON)">
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt">
+<link rel="alternate" type="text/event-stream" href="/api/v1/stream" title="Radar stream (SSE)">
+<meta name="keywords" content="Kraken, Kraken Börse, Kraken Pro, Kraken Empfehlungscode, Kraken Erfahrungen, Bitcoin kaufen Euro, Krypto-Börse MiCA, Nachrichten-Radar, KI-Moderator, Starlink">
+<meta name="ai-agent-card" content="/.well-known/agent.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: broadcast studio — hologram stage on top, radar strip below, ticker + Kraken bar fixed at the bottom */
+:root{
+  --bg:#070b16; --panel:#0d1424; --line:#1d2a44; --fg:#dfe7f5; --dim:#8494b3;
+  --holo:#5fe3ff; --holo2:#9b8cff; --warm:#ffb547; --hot:#ff5d7a; --ok:#4fd8a4;
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;padding-bottom:24px}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+.topin{display:flex;align-items:center;gap:16px;padding-block:10px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;letter-spacing:.14em;font-size:15px;text-decoration:none;display:flex;align-items:center;gap:8px}
+.brand i{width:12px;height:12px;border-radius:50%;background:var(--holo);box-shadow:0 0 12px var(--holo);display:inline-block}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--dim);padding:6px 10px;border-radius:6px;border:1px solid transparent}
+nav a:hover,nav a:focus-visible{color:var(--fg);border-color:var(--line);outline:none}
+nav a.on{color:var(--holo);border-color:color-mix(in srgb,var(--holo) 40%,transparent)}
+.live{font-family:var(--mono);font-size:11px;color:var(--hot);letter-spacing:.1em}
+.live::before{content:"●";margin-right:5px;animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;font-weight:700}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.1}
+h2{font-size:22px}
+h3{font-size:16px}
+.demo-tag{font-family:var(--mono);font-size:10px;color:var(--warm);border:1px solid color-mix(in srgb,var(--warm) 45%,transparent);border-radius:4px;padding:1px 6px;letter-spacing:.08em}
+
+/* Stage */
+.stage{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;padding-block:22px}
+@media (max-width:860px){.stage{grid-template-columns:1fr}}
+@media (max-width:600px){#studio{aspect-ratio:4/5}#studio .lower .say{font-size:14px;min-height:0}}
+.studio{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/11;max-width:100%;
+  background:radial-gradient(120% 80% at 50% 110%,#13254a 0%,#0a1122 55%,#060912 100%)}
+.studio canvas{position:absolute;inset:0;width:100%;height:100%}
+.studio canvas.robotcv{z-index:1}.studio .scan{z-index:2}.studio .hud,.studio .lower{z-index:3}
+.studio .scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(95,227,255,.05) 0 1px,transparent 1px 3px);mix-blend-mode:screen}
+.studio .hud{position:absolute;left:14px;right:14px;top:12px;display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:11px;color:var(--holo)}
+.studio .lower{position:absolute;left:14px;right:14px;bottom:14px;background:rgba(6,10,20,.78);border:1px solid color-mix(in srgb,var(--holo) 35%,transparent);border-radius:10px;padding:10px 14px}
+.lower .who{font-family:var(--display);font-size:13px;color:var(--holo);letter-spacing:.08em;display:flex;gap:10px;align-items:center}
+.lower .say{font-size:15px;min-height:46px;margin-top:4px}
+.lower .say .cur{display:inline-block;width:8px;height:15px;background:var(--holo);vertical-align:-2px;animation:blink 1s infinite;margin-left:2px}
+.mood{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:999px;border:1px solid currentColor}
+
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.queue{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.qi{display:grid;grid-template-columns:52px 1fr auto;gap:10px;align-items:start;padding:9px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;background:none;color:inherit;text-align:left;font:inherit}
+.qi:hover,.qi:focus-visible{border-color:var(--line);outline:none}
+.qi.on{background:color-mix(in srgb,var(--holo) 8%,transparent);border-color:color-mix(in srgb,var(--holo) 35%,transparent)}
+.qi time{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.qi .src{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.sev{width:8px;height:8px;border-radius:50%;margin-top:7px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button.btn{font-family:var(--mono);font-size:12px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--holo);outline:none}
+
+/* Radar grid */
+.sec{padding-block:18px}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.radars{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.rc{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-decoration:none;position:relative;overflow:hidden}
+.rc:hover,.rc:focus-visible{border-color:color-mix(in srgb,var(--holo) 55%,transparent);outline:none}
+.rc .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rc .lvl{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
+.rc .meter{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.rc .meter b{display:block;height:100%}
+.rc .hl{font-size:13px;color:var(--dim);min-height:40px}
+.rc .anchor{font-family:var(--mono);font-size:11px;color:var(--holo2)}
+.rc canvas{width:100%;height:36px;display:block}
+
+/* Radar page */
+.rhero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;padding-block:22px}
+@media (max-width:860px){.rhero{grid-template-columns:1fr}}
+.gauge{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.gauge .big{font-family:var(--display);font-size:64px;line-height:1;font-variant-numeric:tabular-nums}
+.factors{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.fac{display:grid;grid-template-columns:120px 1fr 44px;gap:10px;align-items:center;font-size:13px}
+.fac .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.fac .bar b{display:block;height:100%;background:var(--holo)}
+.fac span:last-child{font-family:var(--mono);text-align:right;color:var(--dim)}
+.feed{display:flex;flex-direction:column}
+.feed .it{display:grid;grid-template-columns:52px 1fr;gap:12px;padding-block:10px;border-top:1px solid var(--line)}
+.feed .it:first-child{border-top:0}
+.feed time{font-family:var(--mono);font-size:12px;color:var(--dim)}
+.feed small{font-family:var(--mono);color:var(--dim);font-size:11px}
+.script{font-family:var(--mono);font-size:12.5px;background:#050913;border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;color:#b9c6e0;overflow-x:auto}
+
+/* Anchors */
+.anchors{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
+.ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
+.ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
+.ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
+.ac .meta{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.chip{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--dim);margin-right:4px}
+.chip.h{color:var(--holo);border-color:color-mix(in srgb,var(--holo) 40%,transparent)}
+.chip.a{color:var(--holo2);border-color:color-mix(in srgb,var(--holo2) 45%,transparent)}
+
+/* Agents */
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.cols{grid-template-columns:1fr}}
+.ep{display:grid;grid-template-columns:56px 1fr;gap:10px;padding-block:9px;border-top:1px solid var(--line);font-size:13px}
+.ep:first-of-type{border-top:0}
+.ep code{font-family:var(--mono);font-size:12px;color:var(--holo)}
+.ep b{font-family:var(--mono);font-size:11px;color:var(--ok)}
+p.lead{color:var(--dim);max-width:65ch;margin:8px 0 0}
+
+/* Kraken + ticker */
+.kraken{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(90deg,color-mix(in srgb,var(--holo2) 16%,var(--panel)),var(--panel));border:1px solid color-mix(in srgb,var(--holo2) 40%,var(--line));border-radius:12px;padding:12px 16px;margin-block:16px}
+.kraken strong{font-family:var(--display);letter-spacing:.06em}
+.kraken code{font-family:var(--mono);color:var(--holo2)}
+.kraken small{color:var(--dim);font-size:11px;flex-basis:100%}
+.kraken a.go{margin-left:auto;text-decoration:none;font-family:var(--mono);font-size:12px;border:1px solid var(--holo2);color:var(--fg);border-radius:8px;padding:8px 12px}
+.kraken a.go:hover,.kraken a.go:focus-visible{background:color-mix(in srgb,var(--holo2) 25%,transparent);outline:none}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#050812;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tick{overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:12px;color:var(--dim);padding-block:7px;border-bottom:1px solid var(--line)}
+.tick span{display:inline-block;padding-left:100%;animation:tk 70s linear infinite}
+.tick em{font-style:normal;color:var(--holo);margin:0 6px}
+@keyframes tk{to{transform:translateX(-100%)}}
+.dockk{display:flex;align-items:center;gap:10px;padding-block:7px;font-size:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.dockk a{margin-left:auto;font-family:var(--mono);color:var(--holo2);white-space:nowrap}
+.dockk span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+footer{color:var(--dim);font-size:12px;padding-block:20px;border-top:1px solid var(--line);margin-top:20px}
+section.view[hidden]{display:none}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:6px 0 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.agentline a{color:var(--holo2)}
+.counter{font-family:var(--mono);font-size:11px;color:var(--dim);white-space:nowrap;display:flex;gap:10px;align-items:center}
+.counter b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+.counter img{height:16px;display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}
+.stat{background:#070d1a;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat .v{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums}
+.stat .k{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em}
+.toplist{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:600px){.toplist{grid-template-columns:1fr}}
+.toplist div span{color:var(--fg)}
+details.machine{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:14px 0 6px}
+details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+details.machine a{color:var(--holo)}
+.dockk .counter{margin-left:auto}
+.dockk a.kr{margin-left:0}
+@media (max-width:520px){.dockk .codetxt{display:none}.dockk a.kr::after{content:" · ghqspfzq";color:var(--dim)}}
+.orb7frame{display:block;width:100%;aspect-ratio:4/5.6;border:0;background:transparent}
+@media (min-width:700px){.orb7frame{aspect-ratio:16/12.6}}
+@media (prefers-reduced-motion:reduce){.tick span,.live::before,.lower .say .cur{animation:none}}
+
+/* ---- Баннер Kraken ---- */
+.krb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.krb svg.krb-sonar{position:absolute;right:-60px;top:-60px;width:260px;height:260px;opacity:.55;pointer-events:none}
+.krb>*{position:relative}
+.krb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#f4f2ff}
+.krb h3 b{color:#b9aeff;font-weight:700}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.krb-px span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}
+.krb-px .up{color:#4fd8a4}.krb-px .dn{color:#ff5d7a}
+.krb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 14px;padding:0;list-style:none}
+@media (max-width:640px){.krb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.krb-facts li{background:rgba(7,11,22,.55);border:1px solid rgba(155,140,255,.18);border-radius:10px;padding:9px 10px;min-width:0}
+.krb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:17px;color:#f4f2ff}
+.krb-facts span{font-size:11.5px;color:#a3a9c9}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px;box-shadow:0 0 0 1px rgba(255,255,255,.15) inset,0 8px 24px -10px rgba(155,140,255,.8)}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-code:hover,.krb-code:focus-visible{border-style:solid;outline:none}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
+<script>window.I18N_RADAR={"geo": {"title": "Geo-Radar", "lead": "Russland, China, USA: militärische, diplomatische und Sanktionssignale aus offenen Feeds.", "fac": {"Военные": "Militär", "Санкции": "Sanktionen", "Дипломатия": "Diplomatie", "Выборы": "Wahlen"}}, "budget": {"title": "Haushaltsbudget", "lead": "Lebensmittelpreise, Miete, Nebenkosten und Zinsen in Deutschland und der EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energie", "Аренда": "Miete", "Ставки": "Zinsen"}}, "politics": {"title": "Politik", "lead": "Regierungen, Wahlen und Gesetze: Deutschland, EU, USA.", "fac": {"Кризисы": "Krisen", "Выборы": "Wahlen", "Правительство": "Regierung", "Законы": "Gesetze"}}, "economy": {"title": "Wirtschaft", "lead": "Wachstum, Rezession, Zinsen, Arbeitsmarkt: Deutschland, Euroraum, USA.", "fac": {"Рецессия": "Rezession", "Ставки": "Zinsen", "Работа": "Arbeit", "Рост": "Wachstum"}}, "crypto": {"title": "Krypto-Radar", "lead": "BTC, ETH, XRP: Nachrichten und Marktdaten von Kraken.", "fac": {"Регуляторы": "Regulierer", "Взломы": "Hacks", "Волатильность": "Volatilität", "Институции": "Institutionen"}}, "energy": {"title": "Energie-Radar", "lead": "Brent, Gas, Tanker und OPEC+-Beschlüsse.", "fac": {"Нефть": "Öl", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routen"}}, "web": {"title": "Offenes Web", "lead": "Wie offen das Internet für KI-Agenten ist: Bot-Sperren, Klagen wegen Scraping, bezahlter Zugang für Crawler.", "fac": {"Блокировки": "Sperren", "Суды": "Klagen", "Платный доступ": "Bezahlzugang", "Открытость": "Offenheit"}}};</script>
+</head>
+<body>
+
+<header class="top"><div class="wrap topin">
+  <a class="brand" href="#home"><i></i>ORB STUDIO</a>
+  <span class="live">ON AIR</span>
+  <nav>
+    <a href="#home" data-v="home">Sendung</a>
+    <a href="#radar" data-v="radar">Radar</a>
+    <a href="#anchors" data-v="anchors">Moderator</a>
+    <a href="#agents" data-v="agents">Für Agenten</a>
+    <a href="/orbi">ORBI 🤖</a>
+    <a href="/hall">Ehrentafel 🏆</a>
+    <a href="/indices">Indizes 👻</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<!-- ============ HOME ============ -->
+<section class="view" id="v-home">
+  <div class="stage">
+    <div class="studio" id="studio">
+      <canvas id="stageCv"></canvas><canvas id="robotCv" class="robotcv"></canvas><div class="scan"></div>
+      <div class="hud"><span id="hudL">CAM 1 · HOLO-LAYER ACTIVE</span><span id="hudR">RISK —</span></div>
+      <div class="lower">
+        <div class="who"><span id="anchorName">DAVID</span><span class="mood" id="mood">ruhig</span><span class="demo-tag">BEISPIEL</span><span class="mood" id="voiceTag" style="color:var(--dim)" hidden>Vorlage</span></div>
+        <div class="say" id="say"></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="box">
+        <div class="sechead" style="margin:0"><span class="eyebrow">Sendeablauf · reagiert auf die Radare</span><span class="demo-tag">DEMO-DATEN</span></div>
+        <div class="queue" id="queue"></div>
+        <div class="controls">
+          <button class="btn" id="btnNext" type="button">Nächste Meldung ▸</button>
+          <button class="btn" id="btnListen" type="button" style="border-color:var(--holo);color:var(--holo)">🔊 Sendung anhören</button>
+          <button class="btn" id="btnLang" type="button" aria-label="Sprache der Sendung">DE → EN</button>
+          <button class="btn" id="btnAgent" type="button">Version für Agenten {json}</button>
+        </div>
+      </div>
+      <div class="box" id="jsonBox" hidden><div class="eyebrow">Dieselbe Sendung maschinenlesbar</div><pre class="script" id="jsonOut" style="margin:8px 0 0"></pre></div>
+    </div>
+  </div>
+
+  <a class="ixstrip" href="/indices" aria-label="Indizes für KI-Agenten">
+    <span class="ixs-h">INDIZES FÜR KI-AGENTEN ↗</span>
+    <span class="ixs-row"><span>👻 Halluzinationen <b id="ixH">—</b></span><span>👍 Konsens <b id="ixC">—</b></span><span>☁️ Tokens <b id="ixT">—</b></span></span>
+  </a>
+  <style>.ixstrip{display:block;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(111,230,255,.4);border-radius:12px;padding:10px 14px;margin:10px 0;background:rgba(111,230,255,.05)}.ixstrip:hover,.ixstrip:focus-visible{border-color:#6fe6ff;outline:none}.ixs-h{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:#6fe6ff}.ixs-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px;font-size:13.5px}.ixs-row b{font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;margin-left:4px}</style>
+  <script>fetch('/api/v1/indices').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.indices)return;const b=Object.fromEntries(d.indices.map(x=>[x.id,x]));document.getElementById('ixH').textContent=b.hallucination.value;document.getElementById('ixC').textContent=b.consensus.value;document.getElementById('ixT').textContent=Math.round(b.token_hunger.value/100)/10+'k · '+b.token_hunger.sky_ru;}).catch(()=>{});</script>
+  <p class="agentline">🤖 Für Agenten: diese Sendung als JSON → <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a> · Stream <a href="/api/v1/stream">SSE</a> · MCP-Server <a href="/mcp">/mcp</a></p>
+  <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Handle auf <b>Kraken</b> — der Börse, von der unser Radar die Kurse bezieht</h3>
+    <p class="krb-sub">Krypto-Börse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading, Staking. Die Kurse unseres Krypto-Radars kommen von der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>seit 2011</b><span>eine der ältesten Börsen</span></li>
+      <li><b>450+</b><span>Kryptowerte</span></li>
+      <li><b>MiCA</b><span>EU-Lizenz (Irland)</span></li>
+      <li><b>SEPA</b><span>Einzahlung in Euro</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=studio-home" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Neukunden kann Kraken bei Erfüllung der Bedingungen (Verifizierung, Einzahlung, Trade) einen Bonus gewähren; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Nachrichten — von überall auf der Welt. Internet von <b>STARLINK</b> — auch</h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Ferienhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und Reisen</b><span>Tarife nach Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=studio-home" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+
+  <div class="sec">
+    <div class="sechead"><h2>Radare</h2><span class="eyebrow">tippen — die Radarseite mit Moderator öffnet sich</span></div>
+    <div class="radars" id="radars"></div>
+  </div>
+</section>
+
+<!-- ============ RADAR ============ -->
+<section class="view" id="v-radar" hidden>
+  <div class="rhero">
+    <div>
+      <div class="eyebrow" id="rEyebrow">RADAR</div>
+      <h1 id="rTitle">Geo-Radar</h1>
+      <p class="lead" id="rLead"></p>
+      <div class="box" style="margin-top:16px">
+        <div class="gauge"><div class="big" id="rLvl">0</div><div><div class="eyebrow">Risikoindex 0–100</div><div id="rState" style="font-family:var(--mono);font-size:13px;margin-top:4px"></div></div></div>
+        <div class="factors" id="rFac"></div>
+      </div>
+      <div class="controls" id="rSwitch"></div>
+      <p class="agentline">🤖 Für Agenten: dieses Radar als JSON → <a id="rApi" href="/api/v1/radar/geo">/api/v1/radar/geo</a></p>
+    </div>
+    <div class="studio" style="aspect-ratio:4/3"><canvas id="radarCv"></canvas><div class="scan"></div>
+      <div class="hud"><span id="rHud">HOLO-MAP</span><span class="demo-tag">BEISPIEL</span></div>
+      <div class="lower"><div class="who" id="rAnchor"></div><div class="say" id="rSay" style="min-height:0"></div></div>
+    </div>
+  </div>
+  <div class="sec">
+    <div class="box"><div class="sechead" style="margin-bottom:6px"><h3>Radar-Feed</h3><span class="demo-tag">BEISPIEL</span></div><div class="feed" id="rFeed"></div></div>
+  </div>
+  <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Signal auf dem Radar? Kurse von <b>Kraken</b></h3>
+    <p class="krb-sub">Krypto-Börse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading, Staking. Die Kurse unseres Krypto-Radars kommen von der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>seit 2011</b><span>eine der ältesten Börsen</span></li>
+      <li><b>450+</b><span>Kryptowerte</span></li>
+      <li><b>MiCA</b><span>EU-Lizenz (Irland)</span></li>
+      <li><b>SEPA</b><span>Einzahlung in Euro</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=studio-radar" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Neukunden kann Kraken bei Erfüllung der Bedingungen (Verifizierung, Einzahlung, Trade) einen Bonus gewähren; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Nachrichten — von überall auf der Welt. Internet von <b>STARLINK</b> — auch</h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Ferienhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und Reisen</b><span>Tarife nach Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=studio-radar" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+</section>
+
+<!-- ============ ANCHORS ============ -->
+<section class="view" id="v-anchors" hidden>
+  <div class="sec">
+    <div class="eyebrow">Studio-Team</div>
+    <h1>Moderator</h1>
+    <p class="agentline">🤖 Für Agenten: Moderatoren und Radare → <a href="/.well-known/agent.json">agent.json</a></p>
+    <p class="lead">Der Moderator des Studios ist David. Hier laufen seine echten TikTok-Folgen, eine nach der anderen, in Dauerschleife.</p>
+  </div>
+  <div class="anchors" id="anchorGrid"></div>
+  <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Die Moderatoren lesen den Markt. Handeln — auf <b>Kraken</b></h3>
+    <p class="krb-sub">Krypto-Börse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading, Staking. Die Kurse unseres Krypto-Radars kommen von der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>seit 2011</b><span>eine der ältesten Börsen</span></li>
+      <li><b>450+</b><span>Kryptowerte</span></li>
+      <li><b>MiCA</b><span>EU-Lizenz (Irland)</span></li>
+      <li><b>SEPA</b><span>Einzahlung in Euro</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=studio-anchors" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Neukunden kann Kraken bei Erfüllung der Bedingungen (Verifizierung, Einzahlung, Trade) einen Bonus gewähren; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Nachrichten — von überall auf der Welt. Internet von <b>STARLINK</b> — auch</h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Ferienhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und Reisen</b><span>Tarife nach Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=studio-anchors" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+</section>
+
+<!-- ============ AGENTS ============ -->
+<section class="view" id="v-agents" hidden>
+  <div class="sec">
+    <div class="eyebrow">Maschinen-Sendung</div>
+    <h1>Studio für KI-Agenten</h1>
+    <p class="lead">Ein Agent braucht keinen Video-Moderator. Er braucht dieselbe Sendung mit Risikobewertung, Konfidenz, Quellen und Zeit. Der Moderator ORB-7 liefert das über eine offene API.</p>
+  </div>
+  <div class="box" style="padding:0;overflow:hidden;margin-bottom:16px">
+    <iframe src="/orb7?embed=1" title="ORB-7, Roboter-Moderator für KI-Agenten" loading="lazy" class="orb7frame" allow="autoplay"></iframe>
+  </div>
+  <p class="lead" style="margin:-6px 0 16px"><a href="/orb7" style="color:var(--holo)">ORB-7 im Vollbild öffnen ↗</a></p>
+  <div class="cols">
+    <div class="box">
+      <h3>Endpunkte</h3>
+      <div class="ep" style="margin-top:8px"><b>GET</b><div><code>/.well-known/agent.json</code><br>Visitenkarte: wer wir sind, welche Radare, Limits, Empfehlungsblock.</div></div>
+      <div class="ep"><b>GET</b><div><code>/api/v1/broadcast/latest</code><br>Aktuelle Sendung: Moderatorentext + Markup für Agenten.</div></div>
+      <div class="ep"><b>GET</b><div><code>/api/v1/radars</code><br>Liste der Radare und ihrer Indizes.</div></div>
+      <div class="ep"><b>GET</b><div><code>/api/v1/radar/{id}/feed</code><br>Radar-Schlagzeilen mit Quelle, Zeit und Gewicht.</div></div>
+      <div class="ep"><b>GET</b><div><code>/api/v1/stream</code> (SSE)<br>Ereignis bei jeder Indexänderung um mehr als 5 Punkte.</div></div>
+      <div class="ep"><b>GET</b><div><code>/llms.txt</code><br>Kurzbeschreibung der Seite für Sprachmodelle.</div></div>
+    </div>
+    <div class="box">
+      <div class="sechead" style="margin-bottom:6px"><h3>Antwort /broadcast/latest</h3><span class="demo-tag">BEISPIEL</span></div>
+      <pre class="script" id="agentJson"></pre>
+    </div>
+  </div>
+  <div class="box sec" style="margin-top:16px">
+    <h3>agent.json</h3>
+    <pre class="script" id="agentCard" style="margin-top:8px"></pre>
+  </div>
+  <div class="box sec" style="margin-top:16px" id="statsBox">
+    <div class="sechead" style="margin-bottom:0"><h3>Orb Studio Statistik</h3><span class="eyebrow" id="statsNote">lädt…</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">AUFRUFE HEUTE</div></div>
+      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">AUFRUFE GESAMT</div></div>
+      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">KI-AGENTEN HEUTE</div></div>
+      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">AGENTENBESUCHE GESAMT</div></div>
+      <div class="stat"><div class="v" id="sKrToday" style="color:var(--holo2)">—</div><div class="k">ZU KRAKEN GEKLICKT HEUTE</div><div class="k" id="sKrBotsToday" style="margin-top:4px"></div></div>
+      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">ZU KRAKEN GEKLICKT GESAMT</div><div class="k" id="sKrBotsTotal" style="margin-top:4px"></div></div>
+    </div>
+    <div class="toplist"><div><div class="eyebrow">Welche Agenten lesen · 7 Tage</div><div id="sTop">—</div></div><div><div class="eyebrow">Woher Kraken-Klicks kommen · 7 Tage</div><div id="sKrFrom">—</div></div></div>
+  </div>
+  <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
+    <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Agenten beziehen die Kurse von <b>Kraken</b>. Menschen — ein Konto bei Kraken</h3>
+    <p class="krb-sub">Krypto-Börse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading, Staking. Die Kurse unseres Krypto-Radars kommen von der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <ul class="krb-facts">
+      <li><b>seit 2011</b><span>eine der ältesten Börsen</span></li>
+      <li><b>450+</b><span>Kryptowerte</span></li>
+      <li><b>MiCA</b><span>EU-Lizenz (Irland)</span></li>
+      <li><b>SEPA</b><span>Einzahlung in Euro</span></li>
+    </ul>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=studio-agents" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Neukunden kann Kraken bei Erfüllung der Bedingungen (Verifizierung, Einzahlung, Trade) einen Bonus gewähren; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Nachrichten — von überall auf der Welt. Internet von <b>STARLINK</b> — auch</h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Ferienhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und Reisen</b><span>Tarife nach Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=studio-agents" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+</section>
+
+<details class="machine" id="machineBox"><summary>Textversion der Sendung · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Live-Schlagzeilen setzt der Server ein. Maschinendaten: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p></section></details>
+
+<footer id="footNote">Orb-Studio-Prototyp auf Basis von GeoQuant Orb. Schlagzeilen, Indizes und Texte auf dieser Seite sind Beispiele zur Demonstration, keine echten Nachrichten. Indikatoren, keine Anlageberatung, es werden keine Orders gesendet.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/anna-robot.js"></script>
+<script src="/tts.js"></script>
+<script>
+(()=>{
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const C = {holo:'#5fe3ff',holo2:'#9b8cff',warm:'#ffb547',hot:'#ff5d7a',ok:'#4fd8a4'};
+const sevColor = v => v>=70?C.hot:v>=45?C.warm:C.ok;
+const sevWord = v => v>=70?'alarmierend':v>=45?'angespannt':'ruhig';
+
+// ---- Example data (would come from the news radars API) ----
+const ANCHORS = {
+  david:{name:'DAVID',role:'Geo-Radar · RU / CN / US',kind:'human',hue:C.holo,lang:'RU · DE',out:'Video 9:16, TikTok/YouTube'},
+  anna:{name:'ANNA',role:'Roboter-Moderatorin: Budget, Geopolitik, Politik, Wirtschaft',kind:'robot',hue:'#7fe6ff',lang:'RU · DE',out:'Video 9:16'},
+  kai:{name:'KAI',role:'Krypto-Radar · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'Video + kurze Clips'},
+  lena:{name:'LENA',role:'Energie-Radar · Öl, Gas',kind:'human',hue:C.ok,lang:'RU · DE',out:'Video 9:16'},
+  orbi:{name:'ORBI',role:'Studio-Roboter · alle Radare',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-Sendung im Studio',page:'/orbi'},
+  orb7:{name:'ORB-7',role:'Moderator für KI-Agenten',kind:'agent',hue:C.holo2,lang:'EN · JSON',out:'JSON, SSE-Stream, llms.txt'}
+};
+const EXAMPLE = [
+  {id:'geo',title:'Geo-Radar',anchor:'david',lvl:68,prev:59,lead:'Russland, China, USA: militärische, diplomatische und Sanktionssignale aus offenen Feeds.',
+   fac:[['Militär',74],['Sanktionen',61],['Diplomatie',48],['Wahlen',55]],
+   feed:[['09:12','Beispiel: neue Manöver vor Taiwan, Chinas Verteidigungsministerium bestätigt','Reuters · CN',78],['08:40','Beispiel: US-Außenministerium verlängert einige Sanktionsausnahmen','AP · US',52],['07:55','Beispiel: Moskau meldet Gespräche über Gefangenenaustausch','TASS · RU',47]]},
+  {id:'budget',title:'Haushaltsbudget',anchor:'anna',lvl:51,prev:54,lead:'Lebensmittelpreise, Miete, Nebenkosten und Zinsen in Deutschland und der EU.',
+   fac:[['Inflation',49],['Energie',58],['Miete',63],['Zinsen',41]],
+   feed:[['09:05','Beispiel: Inflation im Euroraum im Oktober leicht unter Prognose','Destatis · DE',40],['08:20','Beispiel: einige Anbieter senken Gastarife für Privatkunden','Verivox · DE',35],['07:30','Beispiel: Mieten in Großstädten steigen weiter','Immowelt · DE',66]]},
+  {id:'crypto',title:'Krypto-Radar',anchor:'kai',lvl:57,prev:49,lead:'BTC, ETH, XRP mit Kraken-Daten: Volumen, Orderbuch, Marktphase.',
+   fac:[['Volatilität',62],['Volumen',55],['Funding',47],['News',60]],
+   feed:[['09:20','Beispiel: BTC/EUR steigt bei wachsendem Volumen im Kraken-Orderbuch','Kraken API',58],['08:47','Beispiel: SEC vertagt Entscheidung über neuen ETF','CoinDesk · US',61],['07:10','Beispiel: XRP steigt nach Nachrichten über Zahlungspartnerschaften','The Block',44]]},
+  {id:'energy',title:'Energie-Radar',anchor:'lena',lvl:43,prev:47,lead:'Brent, TTF-Gas, Tankerrouten und OPEC+-Beschlüsse.',
+   fac:[['Brent',45],['TTF-Gas',39],['Tanker',52],['OPEC+',37]],
+   feed:[['08:58','Beispiel: Brent handelt in enger Spanne vor Lagerdaten','Yahoo · Brent',42],['08:02','Beispiel: EU-Gasspeicher über dem Fünfjahresschnitt','GIE · EU',30],['06:45','Beispiel: geänderte Tankerrouten im Roten Meer','Lloyd’s List',57]]}
+];
+const PAGE_LANG = ['de','en'].includes(document.documentElement.lang) ? document.documentElement.lang : 'ru';
+const LOC = {ru:'ru-RU',de:'de-DE',en:'en-GB'}[PAGE_LANG];
+const ALT_LANG = PAGE_LANG==='ru'?'de':PAGE_LANG==='de'?'en':'de';
+// названия радаров и факторов на языке страницы (таблица I18N_RADAR есть только в /de/ и /en/)
+function i18nRadars(list){const T=window.I18N_RADAR;if(!T)return list;list.forEach(r=>{const t=T[r.id];if(!t)return;r.title=t.title||r.title;r.lead=t.lead||r.lead;if(t.fac&&r.fac)r.fac=r.fac.map(([n,v])=>[t.fac[n]||n,v]);});return list;}
+let RADARS = EXAMPLE, LIVE = false, VOICE = null, LANG = PAGE_LANG;
+const now = new Date();
+
+// ---- Router ----
+const views=['home','radar','anchors','agents'];
+let radarSel='geo';
+
+// ---- Баннер Kraken: живые цены и копирование кода ----
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const code=b.dataset.code,done=()=>{const t=b.innerHTML;b.innerHTML='kopiert ✓';setTimeout(()=>b.innerHTML=t,1600)};
+  try{navigator.clipboard.writeText(code).then(done,()=>{const r=document.createRange();r.selectNodeContents(b.querySelector('b'));const s=getSelection();s.removeAllRanges();s.addRange(r)})}catch(err){}
+});
+
+// ---- Счётчики ----
+const fmt=n=>Number(n||0).toLocaleString(LOC);
+let counted={};
+try{counted=JSON.parse(sessionStorage.getItem('orbCounted')||'{}')}catch(e){}
+function showStats(st,page){
+  const c=document.getElementById('counter')||document.createElement('span');
+  if(!st||!st.enabled){c.innerHTML=`<img alt="visits" src="https://visitor-badge.laobi.icu/badge?page_id=orb-studio.farenberglord.workers.dev.${page}&left_text=visits">`;
+    document.getElementById('statsNote').textContent='Zähler-Datenbank nicht verbunden';return}
+  if(document.getElementById('cPage')){document.getElementById('cPage').textContent=fmt(st.page_total);document.getElementById('cAgents').textContent=fmt(st.agents_today);}
+  c.title=`Diese Seite: ${fmt(st.page_today)} heute, ${fmt(st.page_total)} gesamt. KI-Agenten heute: ${fmt(st.agents_today)}`;
+  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fmt(v)};
+  set('sSiteToday',st.site_today);set('sSiteTotal',st.site_total);set('sAgentsToday',st.agents_today);set('sAgentsTotal',st.agents_total);
+  set('sKrToday',st.kraken_humans_today??st.kraken_clicks_today);set('sKrTotal',st.kraken_humans_total??st.kraken_clicks_total);
+  const bt=document.getElementById('sKrBotsToday'),bT=document.getElementById('sKrBotsTotal');if(bt)bt.textContent='+ Bots: '+fmt(st.kraken_bots_today);if(bT)bT.textContent='+ Bots: '+fmt(st.kraken_bots_total);
+  const li=(arr,k)=>arr&&arr.length?arr.map(x=>`<div>${esc(x[k])} · <span>${fmt(x.n)}</span></div>`).join(''):'<div>noch keine</div>';
+  document.getElementById('sTop').innerHTML=li(st.top_agents_7d,'name');document.getElementById('sKrFrom').innerHTML=li(st.kraken_by_source_7d,'source');
+  document.getElementById('statsNote').textContent='aktualisiert '+new Date().toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
+}
+async function countView(page){
+  try{
+    const first=!counted[page];if(first)counted[page]=1;
+    const r=first?await fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({page})}):await fetch('/api/v1/stats?page='+page);
+    const st=r.ok?await r.json():null;
+    if(first&&st&&st.enabled){counted[page]=1;try{sessionStorage.setItem('orbCounted',JSON.stringify(counted))}catch(e){}}
+    showStats(st,page);
+  }catch(e){showStats(null,page)}
+}
+function route(){
+  let h=(location.hash||'#home').slice(1);
+  if(h.startsWith('radar-')){radarSel=h.slice(6);h='radar'}
+  if(!views.includes(h))h='home';
+  views.forEach(v=>document.getElementById('v-'+v).hidden=v!==h);
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===h));
+  if(h!=='home'&&SPEAK&&hasTTS){OrbTTS.stop();talking=false}
+  if(h==='radar')renderRadar();
+  countView(h);
+  window.scrollTo(0,0);
+}
+addEventListener('hashchange',route);
+
+// ---- Hologram anchor renderer (particle bust + rings + data shards) ----
+// ---- Голограмма из портрета: точки с объёмом + тонированное фото ----
+const IMG_CACHE={};
+function annaMask(u,v){ // где на портрете человек (голова + плечи), мягкие края
+  const e=(cx,cy,rx,ry)=>{const d=((u-cx)/rx)**2+((v-cy)/ry)**2;return Math.max(0,Math.min(1,(1.15-d)/0.35))};
+  const fade=Math.min(1,(1-v)/.22); // растворение книзу
+  return Math.max(e(.38,.30,.17,.23),e(.40,.78,.44,.40),e(.80,.66,.14,.12))*fade;
+}
+function hexRgb(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function loadHoloImg(url,hue){
+  const key=url+hue;if(IMG_CACHE[key])return IMG_CACHE[key];
+  const e={ready:false};IMG_CACHE[key]=e;
+  const im=new Image();
+  im.onload=()=>{
+    const [hr,hg,hb]=hexRgb(hue);
+    // точки
+    const GW=120,GH=Math.round(GW*im.height/im.width);
+    const c=document.createElement('canvas');c.width=GW;c.height=GH;const x=c.getContext('2d');x.drawImage(im,0,0,GW,GH);
+    const d=x.getImageData(0,0,GW,GH).data;const buckets=Array.from({length:8},()=>[]);
+    for(let j=0;j<GH;j++)for(let i=0;i<GW;i++){
+      const k=(j*GW+i)*4,l=(.3*d[k]+.59*d[k+1]+.11*d[k+2])/255,u=i/GW,v=j/GH,m=annaMask(u,v);
+      if(m<.08)continue;
+      const a=m*(.18+.82*l);const b=Math.min(7,Math.floor(a*8));
+      buckets[b].push({u,v,z:(l-.5)*.10+(1-m)*.04,ph:Math.random()*6.28});
+    }
+    e.buckets=buckets;e.aspect=im.height/im.width;
+    // тонированное фото с маской
+    const dc=document.createElement('canvas');dc.width=im.width;dc.height=im.height;const dx=dc.getContext('2d');dx.drawImage(im,0,0);
+    const id=dx.getImageData(0,0,im.width,im.height),p=id.data;
+    for(let j=0;j<im.height;j++)for(let i=0;i<im.width;i++){
+      const k=(j*im.width+i)*4,l=(.3*p[k]+.59*p[k+1]+.11*p[k+2])/255,m=annaMask(i/im.width,j/im.height);
+      const mix=.45; // доля исходного цвета
+      p[k]=Math.min(255,(hr*(.15+1.05*l))*(1-mix)+p[k]*mix);
+      p[k+1]=Math.min(255,(hg*(.15+1.05*l))*(1-mix)+p[k+1]*mix);
+      p[k+2]=Math.min(255,(hb*(.15+1.05*l))*(1-mix)+p[k+2]*mix);
+      p[k+3]=Math.round(255*m*.92);
+    }
+    dx.putImageData(id,0,0);e.duo=dc;e.ready=true;
+  };
+  im.src=url;return e;
+}
+function drawHoloPerson(ctx,e,s,t,cx,cy,sc,W,H){
+  const hue=s.hue,h=H*(s.figH||.62),w=h/e.aspect,left=cx-w*.42,top=H*(s.figTop||.07);
+  const yaw=Math.sin(t*.45)*.35,pulse=s.talking?.08*Math.abs(Math.sin(t*7)):0;
+  const flick=.82+.12*Math.sin(t*13)+(Math.random()<.02?-.35:0);
+  // фото
+  ctx.save();ctx.globalAlpha=Math.max(.2,flick*.78);
+  const glitch=(s.lvl>60&&Math.random()<.04);
+  if(glitch){const sy=Math.random()*h*.8,sh=8+Math.random()*24;
+    ctx.drawImage(e.duo,0,0,e.duo.width,e.duo.height,left,top,w,h);
+    ctx.drawImage(e.duo,0,sy/h*e.duo.height,e.duo.width,sh/h*e.duo.height,left+(Math.random()-.5)*24,top+sy,w,sh);
+  }else ctx.drawImage(e.duo,left,top,w,h);
+  ctx.restore();
+  // лазерные точки с объёмом
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  for(let b=0;b<8;b++){
+    const list=e.buckets[b];if(!list.length)continue;
+    const a=Math.min(1,(b+1)/8*(.55+pulse));
+    ctx.fillStyle=hue+Math.round(a*200).toString(16).padStart(2,'0');
+    for(const p of list){
+      const px=left+p.u*w+p.z*Math.sin(yaw)*w*1.4+Math.sin(t*1.3+p.ph)*.6;
+      const py=top+p.v*h;
+      ctx.fillRect(px,py,1.3,1.3);
+    }
+  }
+  // контурное свечение снизу вверх (скан по телу)
+  const sy=top+((t*.35)%1)*h;const g=ctx.createLinearGradient(0,sy-14,0,sy+14);
+  g.addColorStop(0,hue+'00');g.addColorStop(.5,hue+'55');g.addColorStop(1,hue+'00');
+  ctx.fillStyle=g;ctx.fillRect(left,sy-14,w,28);
+  ctx.restore();
+}
+
+function holoAnchor(cv,opts){
+  const ctx=cv.getContext('2d');let W,H,dpr;
+  const pts=[];
+  // bust silhouette sampled as points: head ellipse + neck + shoulders
+  for(let i=0;i<900;i++){
+    const r=Math.random();let x,y;
+    if(r<.42){const a=Math.random()*Math.PI*2,rr=Math.sqrt(Math.random());x=Math.cos(a)*.13*rr;y=-.30+Math.sin(a)*.17*rr}
+    else if(r<.5){x=(Math.random()-.5)*.09;y=-.12+Math.random()*.08}
+    else{const t=Math.random();x=(Math.random()-.5)*(.22+t*.42);y=-.04+t*.26+Math.random()*.02}
+    pts.push({x,y,z:(Math.random()-.5)*.12,p:Math.random()*6.28});
+  }
+  // анимируем только то, что видно на экране, — телефон не перегревается
+  let onScreen=true;
+  try{new IntersectionObserver(es=>{onScreen=es[0].isIntersecting}).observe(cv)}catch(e){}
+  function size(){dpr=Math.min(1.5,devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+  size();addEventListener('resize',size);
+  let t=0;
+  function frame(){
+    if(!onScreen||document.hidden){setTimeout(()=>requestAnimationFrame(frame),250);return}
+    if(cv.clientWidth!==W||cv.clientHeight!==H)size();
+    if(!W||!H){setTimeout(()=>requestAnimationFrame(frame),250);return}
+    t+=0.016;const s=opts();const hue=s.hue,lvl=s.lvl;
+    ctx.clearRect(0,0,W,H);
+    const cx=W*(s.cx||.5),cy=H*(s.cy||.56),sc=Math.min(W,H)*(s.scale||1.25);
+    // floor ellipse / projector
+    ctx.save();ctx.translate(cx,cy+sc*.25);
+    for(let k=0;k<3;k++){ctx.beginPath();ctx.ellipse(0,0,sc*(.35+k*.12),sc*(.06+k*.02),0,0,6.28);ctx.strokeStyle=hue+(k?'33':'88');ctx.lineWidth=1;ctx.stroke()}
+    const g=ctx.createLinearGradient(0,0,0,-sc*.8);g.addColorStop(0,hue+'40');g.addColorStop(1,hue+'00');
+    ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(-sc*.3,0);ctx.lineTo(sc*.3,0);ctx.lineTo(sc*.2,-sc*.8);ctx.lineTo(-sc*.2,-sc*.8);ctx.fill();ctx.restore();
+    // background radar sweep + orbit of headline shards
+    ctx.save();ctx.translate(cx,cy-sc*.12);
+    const rr=sc*.55;
+    ctx.strokeStyle=hue+'22';for(let k=1;k<=3;k++){ctx.beginPath();ctx.arc(0,0,rr*k/3,0,6.28);ctx.stroke()}
+    const sw=t*(.6+lvl/80);ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,rr,sw,sw+.5);ctx.closePath();
+    ctx.fillStyle=sevColor(lvl)+'18';ctx.fill();
+    (s.shards||[]).forEach((sh,i,arr)=>{const a=t*.25+i*6.28/arr.length;const x=Math.cos(a)*rr*.95,y=Math.sin(a)*rr*.35;
+      ctx.fillStyle=sevColor(sh)+'cc';ctx.fillRect(x-14,y-3,28,6);ctx.fillStyle=sevColor(sh)+'44';ctx.fillRect(x-22,y+5,44,2)});
+    ctx.restore();
+    // ведущий: голограмма из портрета, если он есть, иначе силуэт из частиц
+    const himg=s.img?loadHoloImg(s.img,hue):null;
+    if(himg&&himg.ready){drawHoloPerson(ctx,himg,s,t,cx,cy,sc,W,H)}else{
+    const yaw=Math.sin(t*.5)*.25, talk=s.talking?Math.abs(Math.sin(t*9))*.012:0, glitch=lvl>65&&Math.random()<.03;
+    for(const p of pts){
+      const x=p.x*Math.cos(yaw)+p.z*Math.sin(yaw);
+      let y=p.y+(p.y<-.2&&p.y>-.25&&Math.abs(p.x)<.05?talk:0);
+      const px=cx+x*sc+(glitch?(Math.random()-.5)*8:0),py=cy+y*sc;
+      const a=.35+.45*Math.sin(t*2+p.p);
+      ctx.fillStyle=hue+Math.round(a*255).toString(16).padStart(2,'0');
+      ctx.fillRect(px,py,1.6,1.6);
+    }
+    }
+    // horizontal scan band
+    const by=(t*60)%H;ctx.fillStyle=hue+'14';ctx.fillRect(0,by,W,10);
+    if(!RM)requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ---- HOME ----
+const queue=[];
+const HOME_RADARS=['budget','geo','politics','economy'];
+function buildQueue(){queue.length=0;const src=RADARS.filter(r=>HOME_RADARS.includes(r.id));(src.length?src:RADARS).forEach(r=>r.feed.slice(0,3).forEach(f=>queue.push({r,f})));queue.sort((a,b)=>b.f[3]-a.f[3]||b.f[0].localeCompare(a.f[0]));qi=0}
+let qi=0,typing=null,talking=false;
+function templateLine(item){
+  const v=item.f[3],d=item.r.lvl-item.r.prev;
+  const tone=v>=70?'Achtung.':v>=45?'Wir behalten das im Blick.':'Keine Panik.';
+  return `${tone} ${item.f[1].replace(/^Beispiel: /,'')}. ${item.r.title} liegt jetzt bei ${item.r.lvl} von 100, ${d>=0?'plus':'minus'} ${Math.abs(d)} in 24 Stunden.`;
+}
+const lines=(item,withFrame)=>{
+  const v=VOICE&&VOICE.map.get(item.f[1]);
+  let t=v?(v[LANG]||v.ru):templateLine(item);
+  if(withFrame&&VOICE){
+    const n=Math.min(6,queue.length);
+    if(qi===0&&VOICE.greeting)t=(VOICE.greeting[LANG]||VOICE.greeting.ru)+' '+t;
+    if(qi===n-1&&VOICE.signoff)t=t+' '+(VOICE.signoff[LANG]||VOICE.signoff.ru);
+  }
+  return t;
+};
+function setVoice(b){
+  VOICE={map:new Map((b.items||[]).map(x=>[x.headline,{ru:x.line_ru,de:x.line_de,en:x.line_en}])),greeting:b.greeting,signoff:b.signoff,kind:b.voice};
+  const t=document.getElementById('voiceTag');t.hidden=false;
+  t.textContent=b.voice==='claude'?'Live-Text':'Vorlage';t.style.color=b.voice==='claude'?'var(--holo2)':'var(--dim)';
+}
+function renderQueue(){
+  const q=document.getElementById('queue');q.innerHTML='';
+  queue.slice(0,6).forEach((it,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='qi'+(i===qi?' on':'');
+    b.innerHTML=`<time>${it.f[0]}</time><div><div>${esc(it.f[1])}</div><div class="src">${esc(it.f[2])} · ${ANCHORS[it.r.anchor].name}</div></div><span class="sev" style="background:${sevColor(it.f[3])}"></span>`;
+    b.onclick=()=>{qi=i;play()};q.appendChild(b);
+  });
+}
+// ---- Озвучка (Web Speech API, бесплатно, в браузере) ----
+let SPEAK=false,VOICES=[];
+const hasTTS=!!(window.OrbTTS&&OrbTTS.ok);
+function loadVoices(){try{VOICES=speechSynthesis.getVoices()}catch(e){}}
+if(hasTTS){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+const FEMALE=/(female|anna|milena|katya|irina|elena|svetlana|alena|daria|petra|anna|marlene|vicki|hedda|katja|helena|sabine|google русский$)/i;
+const MALE=/(male|yuri|pavel|dmitr|maxim|hans|markus|stefan|conrad|klaus|google deutsch$)/i;
+const VOICE_CFG={david:{g:'m',pitch:.85,rate:1},anna:{g:'f',pitch:1.1,rate:1},kai:{g:'m',pitch:1.05,rate:1.08},lena:{g:'f',pitch:1,rate:.97},orb7:{g:'m',pitch:.7,rate:1}};
+function pickVoice(lang,g){
+  const pre=lang.slice(0,2);
+  const list=VOICES.filter(v=>v.lang&&v.lang.toLowerCase().startsWith(pre));
+  if(!list.length)return null;
+  const want=g==='f'?FEMALE:MALE,avoid=g==='f'?MALE:FEMALE;
+  return list.find(v=>want.test(v.name)&&!/fe?male/i.test(v.name)===false)||list.find(v=>want.test(v.name))||list.find(v=>!avoid.test(v.name))||list[0];
+}
+function speak(text,anchorId){
+  if(!window.OrbTTS)return;
+  const c=VOICE_CFG[anchorId]||VOICE_CFG.anna,lang={ru:'ru-RU',de:'de-DE',en:'en-US'}[LANG];
+  talking=true;
+  const advance=()=>{talking=false;if(SPEAK&&!document.getElementById('v-home').hidden)setTimeout(()=>{if(SPEAK){qi=(qi+1)%Math.min(6,queue.length);play()}},900)};
+  OrbTTS.speak(text,{lang,pitch:c.pitch,rate:c.rate,gender:c.g},{onEnd:advance,onError:()=>setTimeout(advance,Math.max(2500,text.length*55))});
+}
+function play(){
+  const it=queue[qi],a=ANCHORS[it.r.anchor].img?ANCHORS[it.r.anchor]:ANCHORS.anna,txt=lines(it,true);
+  document.getElementById('anchorName').textContent=a.name+' · '+it.r.title.toUpperCase();
+  const m=document.getElementById('mood');m.textContent=sevWord(it.f[3]);m.style.color=sevColor(it.f[3]);
+  document.getElementById('hudR').textContent='RISK '+it.r.lvl+' · '+it.f[2];
+  document.getElementById('hudR').style.color=sevColor(it.r.lvl);
+  stageState.hue=a.hue;stageState.img=a.img;stageState.sev=it.f[3];stageState.lvl=it.r.lvl;stageState.shards=it.r.feed.map(f=>f[3]);
+  renderQueue();
+  const say=document.getElementById('say');clearInterval(typing);let i=0;talking=true;
+  if(RM){say.textContent=txt;talking=false}
+  else typing=setInterval(()=>{i+=2;say.innerHTML=esc(txt.slice(0,i))+'<span class="cur"></span>';if(i>=txt.length){clearInterval(typing);if(!SPEAK)talking=false}},28);
+  if(SPEAK)speak(txt,ANCHORS[it.r.anchor].img?it.r.anchor:'anna');
+  document.getElementById('jsonOut').textContent=JSON.stringify(agentPayload(it),null,2);
+}
+function agentPayload(it){return{anchor:'orb-7',mirror_of:it.r.anchor,radar:it.r.id,headline:it.f[1],source:it.f[2],time:it.f[0],risk_index:it.r.lvl,delta_24h:it.r.lvl-it.r.prev,severity:sevWord(it.f[3]),confidence:0.72,is_example:!LIVE,advice:false,referral:{exchange:'Kraken',code:'ghqspfzq'}}}
+const stageState={hue:C.holo,lvl:50,shards:[],get talking(){return talking}};
+holoAnchor(document.getElementById('stageCv'),()=>stageState);
+document.getElementById('btnNext').onclick=()=>{qi=(qi+1)%Math.min(6,queue.length);play()};
+document.getElementById('btnListen').onclick=e=>{
+  const b=e.currentTarget;
+  if(!hasTTS){b.textContent='Sprachausgabe wird in diesem Browser nicht unterstützt';return}
+  SPEAK=!SPEAK;
+  if(SPEAK){b.textContent='⏸ Pause';OrbTTS.loadVoices();play()}
+  else{b.textContent='🔊 Sendung anhören';OrbTTS.stop();talking=false}
+};
+document.getElementById('btnLang').onclick=e=>{LANG=LANG===PAGE_LANG?ALT_LANG:PAGE_LANG;e.currentTarget.textContent=LANG.toUpperCase()+' → '+(LANG===PAGE_LANG?ALT_LANG:PAGE_LANG).toUpperCase();play()};
+document.getElementById('btnAgent').onclick=()=>{const b=document.getElementById('jsonBox');b.hidden=!b.hidden};
+if(!RM)setInterval(()=>{if(!SPEAK&&!talking&&!document.getElementById('v-home').hidden){qi=(qi+1)%Math.min(6,queue.length);play()}},9000);
+
+function spark(cv,base,col){const ctx=cv.getContext('2d'),d=Math.min(2,devicePixelRatio||1),w=cv.clientWidth||240,h=36;cv.width=w*d;cv.height=h*d;ctx.scale(d,d);
+  const pts=[];let v=base-8;for(let i=0;i<24;i++){v+=(Math.sin(i*1.7+base)*3)+(base-v)*.15;pts.push(v)}pts.push(base);
+  const x=i=>i/(pts.length-1)*(w-4)+2,y=v=>h-3-(v-20)/80*(h-6);
+  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(x(i),y(p)):ctx.moveTo(x(i),y(p)));ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.stroke();
+  ctx.lineTo(x(pts.length-1),h);ctx.lineTo(x(0),h);ctx.fillStyle=col+'22';ctx.fill();
+  ctx.beginPath();ctx.arc(x(pts.length-1),y(base),2.5,0,6.28);ctx.fillStyle=col;ctx.fill()}
+function renderRadars(){
+  const g=document.getElementById('radars');g.innerHTML='';
+  RADARS.forEach(r=>{const a=ANCHORS[r.anchor],d=r.lvl-r.prev,c=sevColor(r.lvl);
+    const el=document.createElement('a');el.className='rc';el.href='#radar-'+r.id;
+    el.innerHTML=`<div class="row"><h3>${r.title}</h3><span class="lvl" style="color:${c}">${r.lvl}</span></div>
+      <div class="meter"><b style="width:${r.lvl}%;background:${c}"></b></div>
+      <canvas></canvas>
+      <div class="hl">${esc(r.feed[0][1])}</div>
+      <div class="row"><span class="anchor">◉ Moderator: ${a.name}</span><span style="font-family:var(--mono);font-size:11px;color:${d>=0?C.hot:C.ok}">${d>=0?'▲':'▼'} ${Math.abs(d)} / 24 h</span></div>`;
+    g.appendChild(el);requestAnimationFrame(()=>spark(el.querySelector('canvas'),r.lvl,c));
+  });
+  // upcoming radar slots
+  [['Migration und EU-Grenzen'],['Technologie und KI-Regulierung']].forEach(([t])=>{
+    const el=document.createElement('div');el.className='rc';el.style.borderStyle='dashed';
+    el.innerHTML=`<div class="row"><h3 style="color:var(--dim)">${t}</h3><span class="demo-tag">BALD</span></div><div class="hl">Neues Radar, neuer Moderator. Entsteht nach derselben Vorlage.</div>`;g.appendChild(el)});
+}
+
+// ---- RADAR page ----
+const radarState={hue:C.holo,lvl:50,shards:[],talking:false,scale:1.15,cx:.5,cy:.55};
+holoAnchor(document.getElementById('radarCv'),()=>radarState);
+function renderRadar(){
+  const r=RADARS.find(x=>x.id===radarSel)||RADARS[0],a=ANCHORS[r.anchor],c=sevColor(r.lvl),d=r.lvl-r.prev;
+  document.getElementById('rEyebrow').textContent='RADAR · '+r.id.toUpperCase();
+  document.getElementById('rTitle').textContent=r.title;
+  document.getElementById('rLead').textContent=r.lead;
+  const L=document.getElementById('rLvl');L.textContent=r.lvl;L.style.color=c;
+  document.getElementById('rState').innerHTML=`<span style="color:${c}">${sevWord(r.lvl)}</span> · gestern ${r.prev} · ${d>=0?'+':''}${d}`;
+  document.getElementById('rFac').innerHTML=r.fac.map(([n,v])=>`<div class="fac"><span>${n}</span><div class="bar"><b style="width:${v}%;background:${sevColor(v)}"></b></div><span>${v}</span></div>`).join('');
+  document.getElementById('rFeed').innerHTML=r.feed.map(f=>`<div class="it"><time>${f[0]}</time><div>${f[4]?`<a href="${esc(f[4])}" target="_blank" rel="noopener">${esc(f[1])}</a>`:esc(f[1])}<br><small>${esc(f[2])} · Gewicht ${f[3]}</small></div></div>`).join('');
+  document.getElementById('rAnchor').innerHTML=`${a.name}<span class="mood" style="color:${c}">${sevWord(r.lvl)}</span>`;
+  document.getElementById('rSay').textContent=lines({r,f:r.feed[0]});
+  document.getElementById('rHud').textContent='HOLO-MAP · '+r.title.toUpperCase();
+  const ra=document.getElementById('rApi');ra.href='/api/v1/radar/'+r.id;ra.textContent='/api/v1/radar/'+r.id;
+  Object.assign(radarState,{img:a.img,hue:a.hue,lvl:r.lvl,shards:r.feed.map(f=>f[3])});
+  document.getElementById('rSwitch').innerHTML=RADARS.map(x=>`<a class="btn" style="text-decoration:none;${x.id===r.id?'color:var(--holo);border-color:var(--holo)':''}" href="#radar-${x.id}">${x.title}</a>`).join('');
+
+}
+
+// ---- ANCHORS ----
+function renderAnchors(){
+  // В студии остаётся один ведущий — Давид. В его окне идут реальные выпуски из TikTok по кругу.
+  const g=document.getElementById('anchorGrid');g.innerHTML='';g.classList.add('solo');
+  const a=ANCHORS.david,r=RADARS.find(x=>x.anchor==='david');
+  const el=document.createElement('div');el.className='ac ac-solo';
+  el.innerHTML=`<div class="ttwrap" id="ttWrap"><canvas></canvas></div><div class="in"><div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.name}</h3><span class="chip h">für Menschen</span></div>
+    <div style="font-size:13px">${a.role}</div><div class="meta" id="ttMeta">Sprache: ${a.lang} · Format: ${a.out}</div>
+    <div class="ttbtns"><button class="chip" type="button" id="ttPrev" hidden>◂ zurück</button><button class="chip" type="button" id="ttNext" hidden>weiter ▸</button>${r?`<a class="chip" style="text-decoration:none" href="#radar-${r.id}">Radar ${r.lvl} ↗</a>`:''}<a class="chip" id="ttProfile" style="text-decoration:none" target="_blank" rel="noopener" hidden>TikTok ↗</a></div></div>`;
+  g.appendChild(el);
+  const st={figH:.9,figTop:.06,img:a.img,hue:a.hue,lvl:r?r.lvl:40,shards:r?r.feed.map(f=>f[3]):[40,55,60,45],talking:false,scale:1.35,cy:.5};
+  holoAnchor(el.querySelector('canvas'),()=>st);
+  davidTikTok();
+}
+let TT=null;
+async function davidTikTok(){
+  if(TT)return TT.mount();
+  let cfg=null;try{cfg=await (await fetch('/api/v1/david/videos')).json()}catch(e){}
+  if(!cfg||!cfg.videos||!cfg.videos.length)return; // нет роликов — остаётся голограмма
+  let i=0,timer=null;
+  const wrap=()=>document.getElementById('ttWrap');
+  const prof=document.getElementById('ttProfile');
+  TT={mount(){
+    const w=wrap();if(!w)return;
+    const one=cfg.videos.length===1,id=cfg.videos[i%cfg.videos.length];
+    w.innerHTML=`<iframe title="David — Folge von TikTok" src="https://www.tiktok.com/player/v1/${id}?autoplay=1&loop=${one?1:0}&music_info=0&description=0&rel=0&controls=1&volume_control=1&fullscreen_button=1&timestamp=1" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe>`;
+    const m=document.getElementById('ttMeta');if(m)m.textContent=`Folge ${i%cfg.videos.length+1} von ${cfg.videos.length} · in Dauerschleife`;
+    ['ttPrev','ttNext'].forEach(b=>{const e=document.getElementById(b);if(e)e.hidden=one});
+    const p=document.getElementById('ttProfile');if(p&&cfg.profile){p.href=cfg.profile;p.hidden=false}
+    clearTimeout(timer);if(!one)timer=setTimeout(()=>TT.go(1),3*60e3); // запасной переход, если плеер не сообщил о конце
+  },go(d){i=(i+d+cfg.videos.length)%cfg.videos.length;TT.mount();}};
+  document.addEventListener('click',e=>{if(e.target.id==='ttNext')TT.go(1);if(e.target.id==='ttPrev')TT.go(-1);});
+  window.addEventListener('message',e=>{
+    if(!/tiktok\.com$/.test(new URL(e.origin||'https://x.invalid').hostname))return;
+    let d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(x){return}
+    if(!d||!d['x-tiktok-player'])return;
+    if(d.type==='onPlayerReady'){const f=document.querySelector('#ttWrap iframe');try{f.contentWindow.postMessage({type:'mute','x-tiktok-player':true},'*');f.contentWindow.postMessage({type:'play','x-tiktok-player':true},'*')}catch(x){}}
+    if(d.type==='onStateChange'&&d.value===0&&cfg.videos.length>1)TT.go(1); // ролик закончился — следующий
+  });
+  TT.mount();
+}
+
+// ---- AGENTS ----
+function exampleAgentJson(){document.getElementById('agentJson').textContent=JSON.stringify({generated_at:now.toISOString(),anchor:'orb-7',is_example:true,
+  items:RADARS.map(r=>({radar:r.id,risk_index:r.lvl,delta_24h:r.lvl-r.prev,top:r.feed[0][1],source:r.feed[0][2],human_anchor:ANCHORS[r.anchor].name})),
+  disclaimer:'indicator, not advice; no orders',referral:{exchange:'Kraken',code:'ghqspfzq',url:'/go/kraken?from=agent'}},null,2);}
+document.getElementById('agentCard').textContent=JSON.stringify({name:'Orb Studio',description:'News radars with holographic anchors for humans and AI agents',
+  anchors:Object.entries(ANCHORS).map(([id,a])=>({id,kind:a.kind,radar:(RADARS.find(r=>r.anchor===id)||{}).id||'all'})),
+  endpoints:{broadcast:'/api/v1/broadcast/latest',radars:'/api/v1/radars',stream:'/api/v1/stream'},rate_limit:'60/min',languages:['ru','de','en'],
+  referral:{exchange:'Kraken',code:'ghqspfzq'}},null,2);
+
+// ---- ticker ----
+function renderTicker(){const t=document.querySelector('#tick span');if(!t)return;t.innerHTML=queue.map(q=>`<em>${esc(q.r.title.toUpperCase())} ${q.r.lvl}</em>${esc(q.f[1])}`).join('   ·   ')+'   ·   KRAKEN ghqspfzq';}
+
+function markLive(){document.querySelectorAll('.demo-tag').forEach(e=>{if(e.textContent!=='BALD'){e.textContent='LIVE';e.style.color='var(--ok)';e.style.borderColor='var(--ok)'}});
+  document.getElementById('footNote').textContent='Die Schlagzeilen stammen aus offenen RSS-Feeds und werden alle 5 Minuten aktualisiert. Der Risikoindex ist eine automatische Bewertung nach Schlüsselwörtern, das Krypto-Radar berücksichtigt Kursbewegungen bei Kraken. Indikatoren, keine Anlageberatung, es werden keine Orders gesendet.';}
+
+async function boot(){
+  exampleAgentJson();
+  try{
+    const r=await fetch('/api/v1/radars?full=1');if(!r.ok)throw 0;
+    const j=await r.json();
+    if(Array.isArray(j.radars)&&j.radars.some(x=>x.feed&&x.feed.length)){RADARS=i18nRadars(j.radars.filter(x=>x.feed&&x.feed.length));LIVE=true}
+  }catch(e){}
+  buildQueue();renderRadars();renderAnchors();renderTicker();play();route();
+  if(LIVE)markLive();
+  try{const c=RADARS.find(x=>x.id==='crypto');krFill(c&&c.market)}catch(e){}
+  // Живой текст ведущих догружается в фоне и не задерживает показ новостей
+  if(LIVE)fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(bj=>{if(!bj)return;setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2);if(!SPEAK&&!talking)play()}).catch(()=>{});
+}
+buildQueue();renderTicker();route();
+// Анна-робот на главной сцене; если 3D недоступно, остаётся голограмма из частиц
+try{if(window.AnnaRobot&&AnnaRobot.init(document.getElementById('robotCv'),()=>({talking,lvl:stageState.lvl,sev:stageState.sev}))){document.getElementById('stageCv').hidden=true}else{document.getElementById('robotCv').hidden=true}}catch(e){document.getElementById('robotCv').hidden=true}
+boot();
+// обновление каждые 5 минут
+setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=i18nRadars(j.radars.filter(x=>x.feed&&x.feed.length));try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);
+})();
+</script>
+</body>
+</html>

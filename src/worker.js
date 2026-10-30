@@ -371,13 +371,13 @@ const SYSTEM = `Ты пишешь реплики для ИИ-ведущих но
 - 1–2 предложения, не больше 35 слов на реплику. Живая разговорная речь ведущего, без канцелярита.
 - Тон соответствует серьёзности: при severity "тревожно" и при новостях о жертвах, ударах, катастрофах никаких шуток и иронии.
 - Никаких инвестиционных советов, призывов купить или продать.
-- Каждая реплика есть на русском (ru) и на немецком (de). Немецкий — естественный, не дословный перевод.
-- Сегодня строго today_ru / today_de, время berlin_time (Берлин). Если упоминаешь день недели или время суток, то только эти. Не называй другой день.
+- Каждая реплика есть на русском (ru), немецком (de) и английском (en). Немецкий и английский — естественные, не дословный перевод.
+- Сегодня строго today_ru / today_de / today_en, время berlin_time (Берлин). Если упоминаешь день недели или время суток, то только эти. Не называй другой день.
 - greeting: приветствие в начале выпуска от лица Анны — робот-ведущей главного эфира Orb Studio; каждый раз другое (не шаблонное «добрый вечер»), с учётом дня и времени суток, 1 предложение. Имя ведущей в приветствии — только Анна.
 - signoff: шутливая просьба подписаться в конце, каждый раз новая, 1 предложение.
 
 Верни результат через инструмент write_broadcast. Структура:
-{"greeting":{"ru":"…","de":"…"},"lines":[{"i":0,"ru":"…","de":"…"}],"signoff":{"ru":"…","de":"…"}}
+{"greeting":{"ru":"…","de":"…","en":"…"},"lines":[{"i":0,"ru":"…","de":"…","en":"…"}],"signoff":{"ru":"…","de":"…","en":"…"}}
 где i — номер заголовка из входных данных.`;
 
 async function sha(s) {
@@ -388,9 +388,9 @@ async function sha(s) {
 function templateBroadcast(items) {
   return {
     voice: "template",
-    greeting: { ru: "Это Orb Studio, радары на связи.", de: "Hier ist Orb Studio, die Radare sind live." },
-    signoff: { ru: "Подпишись, чтобы радар не скучал.", de: "Abonniere, damit das Radar nicht allein ist." },
-    lines: items.map((it) => ({ ru: it.template, de: it.template })),
+    greeting: { ru: "Это Orb Studio, радары на связи.", de: "Hier ist Orb Studio, die Radare sind live.", en: "This is Orb Studio, the radars are live." },
+    signoff: { ru: "Подпишись, чтобы радар не скучал.", de: "Abonniere, damit das Radar nicht allein ist.", en: "Subscribe so the radar never feels lonely." },
+    lines: items.map((it) => ({ ru: it.template, de: it.template, en: it.headline })),
   };
 }
 
@@ -406,7 +406,7 @@ async function askClaudeSplit(env, items) {
   const [a, b] = await Promise.all([askClaude(env, items.slice(0, half)), askClaude(env, items.slice(half))]);
   return { voice: "claude", model: a.model, greeting: a.greeting, signoff: b.signoff || a.signoff, lines: [...a.lines, ...b.lines] };
 }
-const RU_DE = { type: "object", properties: { ru: { type: "string" }, de: { type: "string" } }, required: ["ru", "de"] };
+const RU_DE = { type: "object", properties: { ru: { type: "string" }, de: { type: "string" }, en: { type: "string" } }, required: ["ru", "de", "en"] };
 const BROADCAST_TOOL = {
   name: "write_broadcast",
   description: "Записать реплики ведущих для выпуска Orb Studio.",
@@ -414,7 +414,7 @@ const BROADCAST_TOOL = {
     type: "object",
     properties: {
       greeting: RU_DE,
-      lines: { type: "array", items: { type: "object", properties: { i: { type: "integer" }, ru: { type: "string" }, de: { type: "string" } }, required: ["i", "ru", "de"] } },
+      lines: { type: "array", items: { type: "object", properties: { i: { type: "integer" }, ru: { type: "string" }, de: { type: "string" }, en: { type: "string" } }, required: ["i", "ru", "de", "en"] } },
       signoff: RU_DE,
     },
     required: ["greeting", "lines", "signoff"],
@@ -426,7 +426,7 @@ async function askClaude(env, items) {
   const weekdayDe = new Date().toLocaleDateString("de-DE", { ...tz, weekday: "long" });
   const hhmmB = new Date().toLocaleTimeString("de-DE", { ...tz, hour: "2-digit", minute: "2-digit" });
   const input = {
-    today_ru: weekdayRu, today_de: weekdayDe, berlin_time: hhmmB,
+    today_ru: weekdayRu, today_de: weekdayDe, today_en: new Date().toLocaleDateString("en-GB", { ...tz, weekday: "long" }), berlin_time: hhmmB,
     personas: PERSONAS,
     headlines: items.map((it, i) => ({
       i, anchor: it.anchor, radar: it.radarTitle, headline: it.headline, source: it.source,
@@ -443,7 +443,7 @@ async function askClaude(env, items) {
     },
     body: JSON.stringify({
       model: env.ANTHROPIC_MODEL || "claude-haiku-5-5",
-      max_tokens: 2500,
+      max_tokens: 3600,
       system: SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(input) }],
       // ответ через инструмент со строгой схемой — JSON всегда корректный, даже с кавычками в тексте
@@ -469,7 +469,7 @@ async function askClaude(env, items) {
     signoff: out.signoff,
     lines: items.map((it, i) => {
       const l = byI.get(i);
-      return l && l.ru ? { ru: l.ru, de: l.de || l.ru } : { ru: it.template, de: it.template };
+      return l && l.ru ? { ru: l.ru, de: l.de || l.ru, en: l.en || it.headline } : { ru: it.template, de: it.template, en: it.headline };
     }),
   };
 }
@@ -486,18 +486,18 @@ async function voiceBroadcast(env, ctx, origin, items) {
   }
   const h = await sha(items.map((i) => i.headline).join("|"));
   const cache = caches.default;
-  const key = new Request(`${origin}/__cache/voice-v2-${h}`);
+  const key = new Request(`${origin}/__cache/voice-v3-${h}`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
   // тот же выпуск уже написан в другом дата-центре — берём из общей базы, Claude не зовём повторно
-  const shared = await sharedGet(env, "voice2-" + h, 60 * 60e3);
+  const shared = await sharedGet(env, "voice3-" + h, 60 * 60e3);
   if (shared) { ctx.waitUntil(cache.put(key, new Response(JSON.stringify(shared), { headers: { "Cache-Control": "max-age=900" } }))); return shared; }
   // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
   // а следующий запрос получит уже готовый живой текст из кэша.
   const job = askClaudeSplit(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
     await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
-    await sharedPut(env, "voice2-" + h, data);
+    await sharedPut(env, "voice3-" + h, data);
     return data;
   });
   ctx.waitUntil(job.catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 300) })));
@@ -633,7 +633,7 @@ async function handleApi(url, request, env, ctx) {
       voice: v.voice, model: v.model || null, greeting: v.greeting, signoff: v.signoff,
       items: items.map((it, i) => ({
         radar: it.radar, human_anchor: ANCHORS[it.anchor].name,
-        line_ru: v.lines[i].ru, line_de: v.lines[i].de,
+        line_ru: v.lines[i].ru, line_de: v.lines[i].de, line_en: v.lines[i].en || it.headline,
         headline: it.headline, source: it.source, time: it.time, link: it.link,
         weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h,
       })),
@@ -843,8 +843,8 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { radar: { type: "string", enum: RADAR_IDS, description: "Radar id" }, limit: { type: "integer", minimum: 1, maximum: 30, description: "Max headlines (default 10)" } }, required: ["radar"], additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_broadcast", title: "Latest anchor broadcast",
-    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian and German, written by Claude from the headlines.",
-    inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de"], description: "Language of anchor lines (default ru)" } }, additionalProperties: false },
+    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines.",
+    inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de", "en"], description: "Language of anchor lines (default en)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_agent_indices", title: "Playful indices for AI agents",
     description: "Three playful indicators made for AI agents: World Hallucination Index (how much reality sounds like a model hallucination), 'You're absolutely right' barometer (agreement vs conflict in headlines) and Token Hunger (tokens needed to understand today's world, as a weather forecast).",
@@ -878,7 +878,7 @@ async function mcpTool(name, args, env, ctx, origin) {
       page: "https://orbstudio.org/#radar", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_broadcast") {
-    const lang = args.lang === "de" ? "de" : "ru";
+    const lang = ["ru", "de", "en"].includes(args.lang) ? args.lang : "en";
     const radars = await allRadars(env, ctx, origin);
     const items = broadcastItems(radars);
     const v = await voiceBroadcast(env, ctx, origin, items);
@@ -981,7 +981,25 @@ function jsonLd(radars, origin) {
   };
   return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices" };
+// Язык страницы: сначала язык браузера, потом страна посетителя (Cloudflare), иначе английский
+const RU_LANGS = new Set(["ru", "be", "kk", "ky"]);
+const DE_COUNTRIES = new Set(["DE", "AT", "CH", "LI", "LU"]);
+const RU_COUNTRIES = new Set(["RU", "BY", "KZ", "KG"]);
+function pickLang(request) {
+  const al = (request.headers.get("accept-language") || "").toLowerCase();
+  const prefs = al.split(",").map((p) => { const [tag, ...rest] = p.trim().split(";"); const q = rest.find((x) => x.trim().startsWith("q=")); return { l: tag.split("-")[0], q: q ? parseFloat(q.split("=")[1]) || 0 : 1 }; })
+    .filter((x) => x.l).sort((a, b) => b.q - a.q);
+  for (const { l } of prefs) {
+    if (RU_LANGS.has(l)) return "ru";
+    if (l === "de") return "de";
+    if (l === "en") return "en";
+  }
+  const c = (request.cf && request.cf.country) || "";
+  if (DE_COUNTRIES.has(c)) return "de";
+  if (RU_COUNTRIES.has(c)) return "ru";
+  return "en";
+}
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -1020,8 +1038,22 @@ export default {
         return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, {}, 500);
       }
     }
-    const asset = await env.ASSETS.fetch(request); // статические файлы из public/
-    const pg = HTML_PAGES[url.pathname];
+    // главная: автоматически отдаём версию на языке посетителя; /ru/, /de/, /en/ — постоянные адреса для поисковиков
+    let assetReq = request, autoLang = null;
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      autoLang = pickLang(request);
+      if (autoLang !== "ru") assetReq = new Request(new URL(`/${autoLang}/`, url.origin), request);
+    } else if (url.pathname === "/ru/" || url.pathname === "/ru") {
+      assetReq = new Request(new URL("/", url.origin), request);
+    }
+    let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
+    if (autoLang) {
+      asset = new Response(asset.body, asset);
+      asset.headers.set("Vary", "Accept-Language");
+      asset.headers.set("Content-Language", autoLang);
+      asset.headers.set("Cache-Control", "private, max-age=60");
+    }
+    const pg = HTML_PAGES[url.pathname] || (url.pathname === "/ru" ? "home" : undefined);
     if (pg && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       // подставляем живые заголовки в HTML, чтобы агенты без JavaScript видели настоящие данные
       const radars = await Promise.race([allRadars(env, ctx, url.origin).catch(() => null), new Promise((r) => setTimeout(() => r(null), 1500))]);
