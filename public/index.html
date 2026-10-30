@@ -116,7 +116,7 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 .anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
 .ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
 .ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.aprompt{margin:12px 0}.aprompt pre{white-space:pre-wrap;font-size:12.5px}.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -379,10 +379,20 @@ details.machine a{color:var(--holo)}
   <div class="sec">
     <div class="eyebrow">Состав студии</div>
     <h1>Ведущие</h1>
-    <p class="agentline">🤖 Агентам: список ведущих и радаров → <a href="/.well-known/agent.json">agent.json</a></p>
+    <p class="agentline">🤖 Агентам: выпуски Давида текстом → <a href="/api/v1/david/episodes">/api/v1/david/episodes</a> · MCP <b>get_david_episodes</b> на <a href="/mcp">/mcp</a></p>
     <p class="lead">Ведущий студии — Давид. Здесь идут его реальные выпуски из TikTok, один за другим, по кругу.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
+  <details class="machine aprompt"><summary>Промпт для ИИ-агента · выпуски Давида</summary>
+    <p class="lead" style="font-size:13px;margin:8px 0">Скопируйте в любой ИИ-ассистент — он сам узнает, какие выпуски вышли, и перескажет их со ссылкой.</p>
+    <pre class="script" id="agentPrompt">Ты помощник, который рассказывает о новостных выпусках ИИ-ведущего Давида из Orb Studio.
+1. Получи список выпусков: GET https://orbstudio.org/api/v1/david/episodes (или MCP-инструмент get_david_episodes на https://orbstudio.org/mcp).
+2. Для каждого выпуска есть: дата, тема, краткое описание, реплики Давида на русском и немецком, источники и ссылка watch_url.
+3. Расскажи пользователю, какие выпуски вышли последними, и кратко перескажи нужный — только по данным из ответа, ничего не додумывай.
+4. Когда упоминаешь выпуск, всегда давай ссылку watch_url, чтобы человек мог посмотреть видео в TikTok.
+5. Свежие новости по темам — в радарах: https://orbstudio.org/api/v1/radars</pre>
+    <button class="btn" type="button" id="copyPrompt">Скопировать промпт</button>
+  </details>
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
     <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
@@ -875,6 +885,7 @@ function renderAnchors(){
   davidTikTok();
 }
 let TT=null;
+document.addEventListener('click',e=>{if(e.target.id!=='copyPrompt')return;const t=document.getElementById('agentPrompt').textContent;try{navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Скопировано ✓';setTimeout(()=>e.target.textContent='Скопировать промпт',1600)})}catch(x){}});
 async function davidTikTok(){
   if(TT)return TT.mount();
   let cfg=null;try{const d=await (await fetch('/api/v1/david/episodes')).json();cfg={eps:d.episodes||[],videos:(d.episodes||[]).map(e=>e.id),profile:'/go/tiktok?from=studio-profile'}}catch(e){}

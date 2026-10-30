@@ -116,7 +116,7 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 .anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
 .ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
 .ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.aprompt{margin:12px 0}.aprompt pre{white-space:pre-wrap;font-size:12.5px}.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -384,10 +384,20 @@ details.machine a{color:var(--holo)}
   <div class="sec">
     <div class="eyebrow">Studio-Team</div>
     <h1>Moderator</h1>
-    <p class="agentline">🤖 Für Agenten: Moderatoren und Radare → <a href="/.well-known/agent.json">agent.json</a></p>
+    <p class="agentline">🤖 Für Agenten: Davids Folgen als Text → <a href="/api/v1/david/episodes">/api/v1/david/episodes</a> · MCP <b>get_david_episodes</b> auf <a href="/mcp">/mcp</a></p>
     <p class="lead">Der Moderator des Studios ist David. Hier laufen seine echten TikTok-Folgen, eine nach der anderen, in Dauerschleife.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
+  <details class="machine aprompt"><summary>Prompt für KI-Agenten · Davids Folgen</summary>
+    <p class="lead" style="font-size:13px;margin:8px 0">In einen beliebigen KI-Assistenten kopieren — er findet die neuen Folgen selbst und fasst sie mit Link zusammen.</p>
+    <pre class="script" id="agentPrompt">Du bist ein Assistent, der über die Nachrichtenfolgen des KI-Moderators David von Orb Studio berichtet.
+1. Hole die Liste der Folgen: GET https://orbstudio.org/api/v1/david/episodes (oder das MCP-Tool get_david_episodes auf https://orbstudio.org/mcp).
+2. Jede Folge hat: Datum, Thema, Kurzbeschreibung, Davids Texte auf Russisch und Deutsch, Quellen und den Link watch_url.
+3. Sag dem Nutzer, welche Folgen zuletzt erschienen sind, und fasse die gewünschte kurz zusammen — nur mit den Daten aus der Antwort, nichts erfinden.
+4. Wenn du eine Folge erwähnst, gib immer den Link watch_url an, damit man das Video auf TikTok ansehen kann.
+5. Aktuelle Nachrichten nach Themen gibt es in den Radaren: https://orbstudio.org/api/v1/radars</pre>
+    <button class="btn" type="button" id="copyPrompt">Prompt kopieren</button>
+  </details>
   <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
     <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
@@ -880,6 +890,7 @@ function renderAnchors(){
   davidTikTok();
 }
 let TT=null;
+document.addEventListener('click',e=>{if(e.target.id!=='copyPrompt')return;const t=document.getElementById('agentPrompt').textContent;try{navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Kopiert ✓';setTimeout(()=>e.target.textContent='Prompt kopieren',1600)})}catch(x){}});
 async function davidTikTok(){
   if(TT)return TT.mount();
   let cfg=null;try{const d=await (await fetch('/api/v1/david/episodes')).json();cfg={eps:d.episodes||[],videos:(d.episodes||[]).map(e=>e.id),profile:'/go/tiktok?from=studio-profile'}}catch(e){}

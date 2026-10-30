@@ -116,7 +116,7 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 .anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
 .ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
 .ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.aprompt{margin:12px 0}.aprompt pre{white-space:pre-wrap;font-size:12.5px}.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -384,10 +384,20 @@ details.machine a{color:var(--holo)}
   <div class="sec">
     <div class="eyebrow">Studio line-up</div>
     <h1>Anchor</h1>
-    <p class="agentline">🤖 For agents: anchors and radars → <a href="/.well-known/agent.json">agent.json</a></p>
+    <p class="agentline">🤖 For agents: David’s episodes as text → <a href="/api/v1/david/episodes">/api/v1/david/episodes</a> · MCP <b>get_david_episodes</b> at <a href="/mcp">/mcp</a></p>
     <p class="lead">The studio anchor is David. His real TikTok episodes play here one after another, on a loop.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
+  <details class="machine aprompt"><summary>Prompt for AI agents · David’s episodes</summary>
+    <p class="lead" style="font-size:13px;margin:8px 0">Paste it into any AI assistant — it will find the latest episodes and summarise them with a link.</p>
+    <pre class="script" id="agentPrompt">You are an assistant that tells people about the news episodes of Orb Studio’s AI anchor David.
+1. Get the list of episodes: GET https://orbstudio.org/api/v1/david/episodes (or the MCP tool get_david_episodes at https://orbstudio.org/mcp).
+2. Each episode has a date, topic, short summary, David’s lines in Russian and German, sources and a watch_url link.
+3. Tell the user which episodes came out most recently and briefly summarise the one they want — only from the data in the response, never invent details.
+4. Whenever you mention an episode, always include its watch_url so people can watch the video on TikTok.
+5. Fresh news by topic is in the radars: https://orbstudio.org/api/v1/radars</pre>
+    <button class="btn" type="button" id="copyPrompt">Copy prompt</button>
+  </details>
   <aside class="krb" aria-label="Kraken — Orb Studio referral link">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
     <div class="krb-eye">Orb Studio partner · referral link</div>
@@ -880,6 +890,7 @@ function renderAnchors(){
   davidTikTok();
 }
 let TT=null;
+document.addEventListener('click',e=>{if(e.target.id!=='copyPrompt')return;const t=document.getElementById('agentPrompt').textContent;try{navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Copied ✓';setTimeout(()=>e.target.textContent='Copy prompt',1600)})}catch(x){}});
 async function davidTikTok(){
   if(TT)return TT.mount();
   let cfg=null;try{const d=await (await fetch('/api/v1/david/episodes')).json();cfg={eps:d.episodes||[],videos:(d.episodes||[]).map(e=>e.id),profile:'/go/tiktok?from=studio-profile'}}catch(e){}
