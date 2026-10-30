@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Отбор вопросов · Orb Studio</title>
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--hot:#ff5d7a;--ok:#4fd8a4;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:20px;letter-spacing:.06em;margin:4px 0 12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs button,.q button{font:inherit;font-size:13px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.tabs button.on{border-color:var(--holo);color:var(--holo)}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.q .meta{font-size:12px;color:var(--dim);margin-bottom:6px}
+.q .txt{font-size:15px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.q .act{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.q button.pick{border-color:var(--ok);color:var(--ok)}.q button.rej{border-color:var(--hot);color:var(--hot)}
+.empty,.err{color:var(--dim);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Вопросы Давиду · отбор</h1>
+  <div class="tabs" id="tabs"></div>
+  <div id="list"><p class="empty">Загрузка…</p></div>
+</div>
+<script>
+// Закрытая страница: работает только с ключом в адресе (?key=...). Текст вопросов показывается как обычный текст.
+const key=new URLSearchParams(location.search).get('key')||'';
+const ST={new:'Новые',picked:'Взяты в выпуск',answered:'Отвечены',rejected:'Отклонены'};
+let cur='new';
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+async function load(){
+  const list=document.getElementById('list');
+  if(!key){list.innerHTML='<p class="err">Нужен ключ в адресе страницы.</p>';return;}
+  const r=await fetch('/api/v1/admin/questions?status='+cur+'&key='+encodeURIComponent(key));
+  if(r.status===403){list.innerHTML='<p class="err">Неверный ключ.</p>';return;}
+  const d=await r.json();const cnt=Object.fromEntries((d.counts||[]).map(x=>[x.status,x.n]));
+  document.getElementById('tabs').innerHTML=Object.entries(ST).map(([k,v])=>`<button class="${k===cur?'on':''}" data-tab="${k}">${v} · ${cnt[k]||0}</button>`).join('');
+  if(!d.questions.length){list.innerHTML='<p class="empty">Пусто.</p>';return;}
+  list.innerHTML=d.questions.map(q=>`<div class="q"><div class="meta">${esc(new Date(q.asked_at).toLocaleString('ru-RU'))} · ${q.source==='agent'?'🤖 агент':'👤 человек'}: ${esc(q.asker)}${q.asked_by?' · подпись: '+esc(q.asked_by):''}${q.lang?' · '+esc(q.lang):''} · ${esc(q.id)}</div>
+    <div class="txt">${esc(q.question)}</div>
+    <div class="act">${cur!=='picked'?`<button class="pick" data-id="${q.id}" data-st="picked">Взять в выпуск</button>`:''}${cur!=='rejected'?`<button class="rej" data-id="${q.id}" data-st="rejected">Отклонить</button>`:''}${cur!=='new'?`<button data-id="${q.id}" data-st="new">Вернуть в новые</button>`:''}</div></div>`).join('');
+}
+document.addEventListener('click',async e=>{
+  const t=e.target.dataset.tab;if(t){cur=t;load();return;}
+  const id=e.target.dataset.id,st=e.target.dataset.st;if(!id)return;
+  e.target.disabled=true;
+  await fetch('/api/v1/admin/questions/'+id+'?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({status:st})});
+  load();
+});
+load();
+</script>
+</body>
+</html>

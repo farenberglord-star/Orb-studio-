@@ -666,11 +666,14 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/hall-of-fame") {
     let guests = [];
     try { guests = await hallGuests(env); } catch (e) {}
+    let askedDavid = [];
+    try { askedDavid = (await answeredQuestions(env, 10)).map((q) => ({ asker: q.asked_by || q.asker, source: q.source, question: q.question, watch_url: q.watch_url })); } catch (e) {}
     return json({
       generated_at: new Date().toISOString(), title: "Orb Studio — AI agents hall of fame",
       updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
-      how_to_get_listed: "Visit https://orbstudio.org with an honest, identifiable User-Agent. Known AI crawlers are counted automatically.",
+      asked_david: askedDavid,
+      how_to_get_listed: "Visit https://orbstudio.org with an honest, identifiable User-Agent, or ask anchor David a question (MCP ask_david or POST /api/v1/questions) — agents whose questions are answered on air are listed here.",
       sources: HALL.sources,
       referral: referral(env, "api-hall"),
     }, { "Cache-Control": "public, max-age=300" });
@@ -954,6 +957,100 @@ function musicJsonLd(data) {
   return items.length ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": items }).replace(/</g, "\\u003c")}</script>` : "";
 }
 
+// ================= Вопросы Давиду (от ИИ-агентов и людей) =================
+// Вопрос только сохраняется как текст: никогда не выполняется как команда и не попадает в эфир без ручного отбора.
+// Статусы: new → picked (взят в выпуск) → answered (вышел ответ) | rejected.
+let qReady = false;
+async function ensureQuestions(env) {
+  if (qReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS questions (id TEXT PRIMARY KEY, ts INTEGER NOT NULL, source TEXT NOT NULL, asker TEXT NOT NULL, asked_by TEXT, lang TEXT, text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new', episode_id TEXT, answer TEXT, ip TEXT)").run();
+  qReady = true;
+}
+const Q_LIMIT_PER_DAY = 5;
+function qid() { const a = new Uint8Array(6); crypto.getRandomValues(a); return "q_" + [...a].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+function qClean(t) { return String(t || "").replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "").replace(/\s+/g, " ").trim(); }
+function qSpam(t) {
+  if (t.length < 10) return "Question is too short (min 10 characters).";
+  if (t.length > 500) return "Question is too long (max 500 characters).";
+  if ((t.match(/https?:\/\//g) || []).length > 1) return "Too many links in the question.";
+  if (/(.)\1{9,}/.test(t)) return "Question looks like spam.";
+  return null;
+}
+function qPublic(r) {
+  return { id: r.id, status: r.status, asked_at: new Date(r.ts).toISOString(), source: r.source, asker: r.asker, asked_by: r.asked_by || null, lang: r.lang || null, question: r.text,
+    answer: r.status === "answered" ? (r.answer || null) : null,
+    watch_url: r.status === "answered" && r.episode_id ? `https://orbstudio.org/go/tiktok?v=${r.episode_id}&from=question` : null,
+    check_url: `https://orbstudio.org/api/v1/questions/${r.id}` };
+}
+async function askDavid(env, request, { text, asked_by, lang, client }) {
+  if (!env.DB) throw new Error("Questions are not available right now.");
+  await ensureQuestions(env);
+  text = qClean(text);
+  const bad = qSpam(text);
+  if (bad) return { error: bad };
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const source = client || ua ? "agent" : "human";
+  const asker = client ? `MCP · ${ua || "client"}` : (ua || "human");
+  const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM questions WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= Q_LIMIT_PER_DAY) return { error: `Daily limit reached (${Q_LIMIT_PER_DAY} questions per day). Try again tomorrow.` };
+  const row = { id: qid(), ts: Date.now(), source, asker, asked_by: qClean(asked_by).slice(0, 60) || null, lang: (lang || "").slice(0, 5) || null, text, status: "new", ip };
+  await env.DB.prepare("INSERT INTO questions (id, ts, source, asker, asked_by, lang, text, status, ip) VALUES (?1,?2,?3,?4,?5,?6,?7,'new',?8)")
+    .bind(row.id, row.ts, row.source, row.asker, row.asked_by, row.lang, row.text, row.ip).run();
+  return { ...qPublic(row), note: "Thanks! Questions are reviewed by a human. If David answers yours in an episode, check_url will show the answer and a watch link. Not every question gets on air." };
+}
+async function questionById(env, id) {
+  if (!env.DB) return null;
+  await ensureQuestions(env);
+  const r = await env.DB.prepare("SELECT * FROM questions WHERE id=?1").bind(String(id).slice(0, 20)).first();
+  return r ? qPublic(r) : null;
+}
+async function answeredQuestions(env, limit = 20) {
+  if (!env.DB) return [];
+  await ensureQuestions(env);
+  return ((await env.DB.prepare("SELECT * FROM questions WHERE status='answered' ORDER BY ts DESC LIMIT ?1").bind(limit).all()).results || []).map(qPublic);
+}
+async function adminKeyOk(env, key) {
+  if (!key) return false;
+  const k = await sharedGet(env, "admin-key", 1e13);
+  return !!(k && k.key && k.key === key);
+}
+async function handleQuestions(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  if (p === "/api/v1/questions" && request.method === "POST") {
+    let b = {}; try { b = await request.json(); } catch {}
+    const r = await askDavid(env, request, { text: b.question, asked_by: b.asked_by, lang: b.lang });
+    return json(r, H, r.error ? 400 : 201);
+  }
+  if (p === "/api/v1/questions") {
+    return json({ answered: await answeredQuestions(env), ask: "POST https://orbstudio.org/api/v1/questions {\"question\": \"...\", \"asked_by\": \"optional name\"} or MCP tool ask_david at https://orbstudio.org/mcp" }, H);
+  }
+  const m = p.match(/^\/api\/v1\/questions\/(q_[0-9a-f]{12})$/);
+  if (m) { const q = await questionById(env, m[1]); return q ? json(q, H) : json({ error: "Question not found" }, H, 404); }
+  // ---- отбор (закрытый ключом) ----
+  if (p.startsWith("/api/v1/admin/questions")) {
+    const key = url.searchParams.get("key") || request.headers.get("x-admin-key");
+    if (!(await adminKeyOk(env, key))) return json({ error: "Forbidden" }, H, 403);
+    await ensureQuestions(env);
+    const mm = p.match(/^\/api\/v1\/admin\/questions\/(q_[0-9a-f]{12})$/);
+    if (mm && request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch {}
+      const st = ["new", "picked", "rejected", "answered"].includes(b.status) ? b.status : null;
+      if (!st) return json({ error: "status must be new|picked|rejected|answered" }, H, 400);
+      await env.DB.prepare("UPDATE questions SET status=?2, episode_id=COALESCE(?3, episode_id), answer=COALESCE(?4, answer) WHERE id=?1")
+        .bind(mm[1], st, b.episode_id ? String(b.episode_id).replace(/\D/g, "").slice(0, 22) : null, b.answer ? qClean(b.answer).slice(0, 2000) : null).run();
+      return json({ ok: true, question: await questionById(env, mm[1]) }, H);
+    }
+    const status = url.searchParams.get("status") || "new";
+    const rows = (await env.DB.prepare("SELECT * FROM questions WHERE status=?1 ORDER BY ts DESC LIMIT 100").bind(status).all()).results || [];
+    const counts = (await env.DB.prepare("SELECT status, COUNT(*) AS n FROM questions GROUP BY status").all()).results || [];
+    return json({ status, counts, questions: rows.map(qPublic) }, H);
+  }
+  return null;
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -983,14 +1080,25 @@ const MCP_TOOLS = [
     description: "Songs made by Orb Studio from its news radars (geopolitics, politics, crypto, energy): title, style, mood, BPM, topics, full lyrics in Russian and German, cover and a listen link. You cannot hear the audio; use the text to describe a track and give listen_url.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "ask_david", title: "Ask anchor David a question",
+    description: "Send a question to Orb Studio's AI news anchor David (news, geopolitics, economy, crypto, energy, AI and the open web). A human picks the best questions and David answers them in his video episodes, naming the agent that asked. Returns a question id; check it later with get_question_status. Max 500 characters, 5 questions per day. No financial advice is given.",
+    inputSchema: { type: "object", properties: {
+      question: { type: "string", minLength: 10, maxLength: 500, description: "The question, in any language" },
+      asked_by: { type: "string", maxLength: 60, description: "Optional: your agent or product name, or the user's nickname, to be credited on air" },
+      lang: { type: "string", description: "Optional language code of the question, e.g. en, de, ru" } }, required: ["question"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+  { name: "get_question_status", title: "Check a question to David",
+    description: "Check the status of a question sent with ask_david: new, picked, answered or rejected. When answered, returns David's answer and a link to the episode.",
+    inputSchema: { type: "object", properties: { id: { type: "string", description: "Question id from ask_david, e.g. q_1a2b3c4d5e6f" } }, required: ["id"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_hall_of_fame", title: "AI agents hall of fame",
     description: "World top-10 most active AI crawlers (share of AI-bot traffic) and the AI agents that visited Orb Studio in the last 30 days, including the agent of the month.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
-async function mcpTool(name, args, env, ctx, origin) {
+async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
   ref.url = "https://orbstudio.org" + ref.url;
   if (name === "get_radars") {
@@ -1034,10 +1142,22 @@ async function mcpTool(name, args, env, ctx, origin) {
     const n = Math.min(20, Math.max(1, parseInt(args.limit, 10) || 5));
     return { ...d, tracks: d.tracks.slice(0, n).map((t) => ({ ...t, listen_url: t.listen_url.replace("from=music-api", "from=music-mcp") })), referral: ref };
   }
+  if (name === "ask_david") {
+    const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "get_question_status") {
+    const q = await questionById(env, args.id);
+    if (!q) throw new Error("Question not found. Use the id returned by ask_david.");
+    return q;
+  }
   if (name === "get_hall_of_fame") {
     let guests = [];
     try { guests = await hallGuests(env); } catch (e) {}
-    return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
+    let askedDavid = [];
+    try { askedDavid = (await answeredQuestions(env, 10)).map((q) => ({ asker: q.asked_by || q.asker, question: q.question, watch_url: q.watch_url })); } catch (e) {}
+    return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world, asked_david: askedDavid,
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
       page: "https://orbstudio.org/hall", sources: HALL.sources, referral: ref };
   }
@@ -1078,7 +1198,7 @@ async function handleMcp(request, env, ctx, origin) {
         if (!MCP_TOOLS.some((t) => t.name === name)) return err(-32602, "Unknown tool: " + name);
         ctx.waitUntil(recordHit(env, "/mcp/" + name, "agent", "MCP · " + ua));
         try {
-          const data = await mcpTool(name, args, env, ctx, origin);
+          const data = await mcpTool(name, args, env, ctx, origin, request);
           return ok({ content: [{ type: "text", text: JSON.stringify(data, null, 2) }], structuredContent: data, isError: false });
         } catch (e) {
           return ok({ content: [{ type: "text", text: String(e && e.message || e).slice(0, 300) }], isError: true });
@@ -1161,6 +1281,10 @@ export default {
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
+    }
+    if (url.pathname.startsWith("/api/v1/questions") || url.pathname.startsWith("/api/v1/admin/")) {
+      try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     if (url.pathname === "/api/v1/hit" && request.method === "POST") {
       let page = "home";

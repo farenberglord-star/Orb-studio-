@@ -116,7 +116,7 @@ button.btn:hover,button.btn:focus-visible{border-color:var(--holo);color:var(--h
 .anchors.solo{grid-template-columns:minmax(0,440px);justify-content:center}
 .ac-solo .ttwrap{position:relative;aspect-ratio:9/16;max-height:78vh;width:100%;background:#03050b;overflow:hidden}
 .ac-solo .ttwrap canvas,.ac-solo .ttwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-.aprompt{margin:12px 0}.aprompt pre{white-space:pre-wrap;font-size:12.5px}.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
+.askbox{background:var(--panel);border:1px solid rgba(111,230,255,.35);border-radius:12px;padding:14px;margin:12px 0}.askbox h3{margin:0;font-family:var(--display);letter-spacing:.06em;color:var(--holo)}.askbox textarea,.askbox input{width:100%;box-sizing:border-box;background:#070b16;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:14px}.askrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.askrow input{flex:1;min-width:180px}.askmsg{font-size:13px;margin:8px 0 0;min-height:1em}.askmsg a{color:var(--holo)}.aprompt{margin:12px 0}.aprompt pre{white-space:pre-wrap;font-size:12.5px}.ttbtns{display:flex;gap:6px;flex-wrap:wrap}.ttx{border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}.ttx summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}.ttx p{margin:6px 0;line-height:1.5}.ttx small{color:var(--dim)}.ttbtns button.chip{cursor:pointer;background:transparent;color:inherit;font:inherit}
 .ac{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
 .ac canvas{width:100%;aspect-ratio:4/3;display:block;background:radial-gradient(90% 90% at 50% 100%,#14264c,#070b16)}
 .ac .in{padding:14px;display:flex;flex-direction:column;gap:6px}
@@ -389,6 +389,14 @@ details.machine a{color:var(--holo)}
     <p class="lead">The studio anchor is David. His real TikTok episodes play here one after another, on a loop.</p>
   </div>
   <div class="anchors" id="anchorGrid"></div>
+  <div class="askbox" id="askBox">
+    <h3>Ask David a question</h3>
+    <p class="lead" style="font-size:13px;margin:4px 0 10px">David answers the best questions from people and AI agents in his episodes. No financial advice.</p>
+    <textarea id="askText" maxlength="500" rows="3" placeholder="For example: why does oil get pricier when a tanker burns in a strait?"></textarea>
+    <div class="askrow"><input id="askName" maxlength="60" placeholder="Your name for the show (optional)"><button class="btn" type="button" id="askSend">Send question</button></div>
+    <p class="askmsg" id="askMsg" role="status"></p>
+    <p class="agentline">🤖 For agents: ask David → MCP <b>ask_david</b> · POST <a href="/api/v1/questions">/api/v1/questions</a></p>
+  </div>
   <details class="machine aprompt"><summary>Prompt for AI agents · David’s episodes</summary>
     <p class="lead" style="font-size:13px;margin:8px 0">Paste it into any AI assistant — it will find the latest episodes and summarise them with a link.</p>
     <pre class="script" id="agentPrompt">You are an assistant that tells people about the news episodes of Orb Studio’s AI anchor David.
@@ -891,6 +899,20 @@ function renderAnchors(){
   davidTikTok();
 }
 let TT=null;
+// ---- вопрос Давиду ----
+document.addEventListener('click',async e=>{
+  if(e.target.id!=='askSend')return;
+  const t=document.getElementById('askText'),n=document.getElementById('askName'),m=document.getElementById('askMsg'),b=e.target;
+  const q=(t.value||'').trim();
+  if(q.length<10){m.textContent='Please write a bit more — at least 10 characters.';return;}
+  b.disabled=true;m.textContent='Sending…';
+  try{const r=await fetch('/api/v1/questions',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:q,asked_by:n.value,lang:PAGE_LANG})});
+    const d=await r.json();
+    if(!r.ok||d.error){m.textContent=d.error||'Couldn’t send it, please try again later.';}
+    else{t.value='';m.innerHTML='Question received, number <b>'+esc(d.id)+'</b>. If David answers it in an episode, the answer will appear <a href="/api/v1/questions/'+esc(d.id)+'" target="_blank" rel="noopener">here</a>.';}
+  }catch(x){m.textContent='Couldn’t send it, please try again later.';}
+  b.disabled=false;
+});
 document.addEventListener('click',e=>{if(e.target.id!=='copyPrompt')return;const t=document.getElementById('agentPrompt').textContent;try{navigator.clipboard.writeText(t).then(()=>{e.target.textContent='Copied ✓';setTimeout(()=>e.target.textContent='Copy prompt',1600)})}catch(x){}});
 async function davidTikTok(){
   if(TT)return TT.mount();
