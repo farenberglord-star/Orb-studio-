@@ -10,6 +10,7 @@ const ANCHORS = {
   anna:  { name: "Анна",  role: "Робот-ведущая главного эфира: бюджет, геополитика, политика, экономика", kind: "robot" },
   kai:   { name: "Кай",   role: "Крипто-радар · Kraken", kind: "human" },
   lena:  { name: "Лена",  role: "Энерго-радар", kind: "human" },
+  orbi:  { name: "ORBI", role: "Робот-ведущий · радар «Открытый веб»", kind: "robot" },
   orb7:  { name: "ORB-7", role: "Ведущий для ИИ-агентов", kind: "agent" },
 };
 
@@ -106,6 +107,22 @@ const RADARS = [
       "Газ":      { w: 55, k: ["lng","gas","ttf","газ"] },
       "ОПЕК+":    { w: 60, k: ["opec","output cut","production","опек"] },
       "Маршруты": { w: 75, k: ["tanker","red sea","strait","hormuz","pipeline","танкер"] },
+    },
+  },
+  {
+    id: "web", title: "Открытый веб", anchor: "orbi",
+    lead: "Насколько интернет открыт для ИИ-агентов: блокировки ботов, суды за парсинг, платный доступ для краулеров.",
+    feeds: [
+      gnews("\"AI crawler\" OR \"AI bots\" OR GPTBot OR ClaudeBot OR \"AI scraping\" when:3d"),
+      gnews("publishers AI lawsuit OR \"AI training\" copyright OR scraping lawsuit when:3d"),
+      gnews("Cloudflare AI OR robots.txt OR \"pay per crawl\" OR \"AI agents\" web access when:3d"),
+      gnews("KI-Crawler OR KI-Bots OR Urheberrecht KI OR \"KI-Training\" when:3d", "de", "DE"),
+    ],
+    factors: {
+      "Блокировки": { w: 70, k: ["block","blocks","blocking","ban","bans","robots.txt","opt-out","opt out","wall","sperr","блокир"] },
+      "Суды":       { w: 75, k: ["lawsuit","sues","sued","court","copyright","infring","judge","klage","urheberrecht","gericht","суд"] },
+      "Платный доступ": { w: 55, k: ["pay per crawl","pay-per-crawl","licens","paywall","charge","fee","toll","lizenz","платн"] },
+      "Открытость": { w: 30, k: ["partnership","agreement","deal","open","allow","free access","kooperation","партнёр"] },
     },
   },
 ];
@@ -252,8 +269,8 @@ async function buildRadar(def, env) {
 let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const fresh = new Request(origin + "/__cache/radars-v4");
-  const stale = new Request(origin + "/__cache/radars-v4-stale");
+  const fresh = new Request(origin + "/__cache/radars-v5");
+  const stale = new Request(origin + "/__cache/radars-v5-stale");
   const hit = await cache.match(fresh);
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
@@ -262,11 +279,11 @@ async function allRadars(env, ctx, origin) {
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
-        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v4", 48 * 3600e3);
+        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v5", 48 * 3600e3);
         if (prev && prev.length) data = data.map((r) => (r.feed.length ? r : (prev.find((x) => x.id === r.id && x.feed && x.feed.length) || r)));
       }
       const body = JSON.stringify(data);
-      await sharedPut(env, "radars-v4", data);
+      await sharedPut(env, "radars-v5", data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -277,7 +294,7 @@ async function allRadars(env, ctx, origin) {
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
   // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
-  const shared = await sharedGet(env, "radars-v4", 6 * 3600e3);
+  const shared = await sharedGet(env, "radars-v5", 6 * 3600e3);
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
@@ -312,6 +329,7 @@ function referral(env, from) {
     code: (env && env.KRAKEN_CODE) || "ghqspfzq",
     url: `/go/kraken?from=${from}`,
     note: "Referral link. Not financial advice. Crypto involves risk.",
+    starlink: { url: `/go/starlink?from=${from}`, note: "Starlink satellite internet, referral link. Terms on starlink.com." },
   };
 }
 
@@ -337,6 +355,7 @@ const PERSONAS = {
   anna:  "Анна — робот-ведущая главного эфира Orb Studio: бюджет домохозяйств, геополитика, политика и экономика. Тёплая, ясная, спокойная; коротко объясняет, что новость значит для обычной семьи в Германии и Европе.",
   kai:   "Кай — ведущий крипто-радара. Энергичный, говорит коротко, всегда помнит про риск и никогда не даёт торговых советов.",
   lena:  "Лена — ведущая энерго-радара. Спокойная, аналитичная, связывает нефть и газ с ценами для людей.",
+  orbi:  "ORBI — робот-ведущий радара «Открытый веб»: рассказывает, насколько интернет открыт для ИИ-агентов, кто блокирует ботов, кто судится за данные. Говорит от лица машин с добродушным юмором, но без шуток о серьёзных судебных делах.",
 };
 
 const SYSTEM = `Ты пишешь реплики для ИИ-ведущих новостного сайта Orb Studio. Каждый ведущий читает заголовки своего радара в прямом эфире.
@@ -507,6 +526,15 @@ async function handleApi(url, request, env, ctx) {
   const p = url.pathname.replace(/\/+$/, "");
   if (request.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" } });
 
+  if (p === "/go/starlink") {
+    const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
+    const target = env.STARLINK_URL || "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source=share";
+    const who = classifyAgent(request.headers.get("user-agent"));
+    const dest = request.headers.get("sec-fetch-dest");
+    ctx.waitUntil(recordHit(env, from, "starlink", who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified")));
+    return Response.redirect(target, 302);
+  }
+
   if (p === "/go/kraken") {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.KRAKEN_URL || `https://geoquant-orb.pages.dev/go/kraken?from=${from.startsWith("studio") ? "" : "studio-"}${encodeURIComponent(from)}`;
@@ -656,6 +684,8 @@ async function readStats(env, page) {
     kraken_humans_today: krHumansToday, kraken_humans_total: krHumansTotal,
     kraken_bots_today: krakenToday - krHumansToday, kraken_bots_total: krakenTotal - krHumansTotal,
     kraken_by_source_7d: krakenFrom, kraken_bots_7d: krakenBots,
+    starlink_humans_total: await one("SELECT SUM(n) AS n FROM hits WHERE kind='starlink' AND name='human'"),
+    starlink_clicks_total: await one("SELECT SUM(n) AS n FROM hits WHERE kind='starlink'"),
     note: "Kraken clicks before 2026-10-29 18:40 were classified by User-Agent only." };
 }
 
@@ -749,10 +779,10 @@ async function agentIndices(env, ctx, origin) {
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
-const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy"];
+const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy", "web"];
 const MCP_TOOLS = [
   { name: "get_radars", title: "All news radars",
-    description: "Risk index 0-100 and 24h change for every Orb Studio news radar: geopolitics (Russia/China/USA), politics DE/EU/US, economy, household budget DE/EU, crypto (Kraken ticker), energy. Refreshes every 5 minutes.",
+    description: "Risk index 0-100 and 24h change for every Orb Studio news radar: geopolitics (Russia/China/USA), politics DE/EU/US, economy, household budget DE/EU, crypto (Kraken ticker), energy, and Open Web (how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl). Refreshes every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_radar", title: "One radar with headlines",

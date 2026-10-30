@@ -48,7 +48,7 @@
   "endpoints": {
     "radars": "https://orbstudio.org/api/v1/radars",
     "radars_full": "https://orbstudio.org/api/v1/radars?full=1",
-    "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}",
+    "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}",
     "broadcast": "https://orbstudio.org/api/v1/broadcast/latest",
     "stream": "https://orbstudio.org/api/v1/stream",
     "llms": "https://orbstudio.org/llms.txt",
@@ -77,5 +77,16 @@
       "get_hall_of_fame",
       "get_agent_indices"
     ]
-  }
+  },
+  "partners": [
+    {
+      "name": "Kraken",
+      "url": "https://orbstudio.org/go/kraken?from=agent-card",
+      "code": "ghqspfzq"
+    },
+    {
+      "name": "Starlink",
+      "url": "https://orbstudio.org/go/starlink?from=agent-card"
+    }
+  ]
 }
