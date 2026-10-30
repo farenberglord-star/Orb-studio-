@@ -603,7 +603,7 @@ async function handleApi(url, request, env, ctx) {
         const found = new Set();
         for (const m of html.matchAll(re)) found.add(m[1] || m[2]);
         scan.found = found.size;
-        const known = new Set(list.map(String));
+        const known = new Set([...list.map(String), ...(cfg.hidden || []).map(String)]); // скрытые выпуски не возвращаем
         const fresh = [...found].filter((id) => !known.has(id)).sort((a, b) => (BigInt(b) > BigInt(a) ? 1 : -1));
         if (fresh.length) { list.unshift(...fresh); changed = true; }
       } catch (e) { scan.error = String(e.message || e).slice(0, 120); }
