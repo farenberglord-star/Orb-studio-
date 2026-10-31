@@ -167,18 +167,39 @@ function withSlot(fn) {
     if (slotsBusy < 5) run(); else slotQueue.push(run);
   });
 }
-// Ленты кэшируются в общей базе D1, чтобы один запрос обслуживал все дата-центры Cloudflare.
+// Ленты кэшируются в общей базе D1, чтобы один запрос к ленте обслуживал все дата-центры Cloudflare.
+// Весь кэш лент читается ОДНИМ запросом и пишется ОДНИМ пакетом (у Workers лимит обращений на запуск).
 // Google News — раз в 20 минут (он ограничивает автоматические запросы), прямые ленты изданий — раз в 10 минут.
-// Если лента не ответила, берём её прошлую копию (до 48 часов), а не показываем пустоту.
-async function fetchFeed(url, env) {
-  if (!env || !env.DB) return withSlot(() => fetchFeedNow(url));
-  const key = "feed:" + (await sha(url));
+// Если лента не ответила, берём её прошлую копию (до 48 часов). За один запуск — не больше 30 сетевых запросов к лентам.
+const feedKey = (u) => "feed:" + u.replace(/^https?:\/\//, "").slice(0, 300);
+async function loadFeedCache(env, urls) {
+  const fc = { map: new Map(), writes: [], budget: 30 };
+  if (!env || !env.DB || !urls.length) return fc;
+  try {
+    const keys = urls.map(feedKey);
+    const rows = (await env.DB.prepare(`SELECT k, v, ts FROM shared WHERE k IN (${keys.map((_, i) => "?" + (i + 1)).join(",")})`).bind(...keys).all()).results || [];
+    for (const r of rows) fc.map.set(r.k, { ts: r.ts, items: JSON.parse(r.v) });
+  } catch (e) {}
+  return fc;
+}
+async function saveFeedCache(env, fc) {
+  if (!env || !env.DB || !fc || !fc.writes.length) return;
+  try {
+    const st = env.DB.prepare("INSERT INTO shared (k, v, ts) VALUES (?1, ?2, ?3) ON CONFLICT(k) DO UPDATE SET v=excluded.v, ts=excluded.ts");
+    await env.DB.batch(fc.writes.map(([k, v]) => st.bind(k, JSON.stringify(v), Date.now())));
+  } catch (e) {}
+}
+async function fetchFeed(url, env, fc) {
+  if (!fc) return withSlot(() => fetchFeedNow(url));
+  const k = feedKey(url), c = fc.map.get(k);
   const fresh = url.includes("news.google.com") ? 20 * 60e3 : 10 * 60e3;
-  const hit = await sharedGet(env, key, fresh);
-  if (hit) return hit;
-  const items = await withSlot(() => fetchFeedNow(url));
-  if (items.length) { await sharedPut(env, key, items); return items; }
-  return (await sharedGet(env, key, 48 * 3600e3)) || [];
+  if (c && Date.now() - c.ts < fresh) return c.items;
+  if (fc.budget > 0) {
+    fc.budget--;
+    const items = await withSlot(() => fetchFeedNow(url));
+    if (items.length) { fc.writes.push([k, items]); return items; }
+  }
+  return c && Date.now() - c.ts < 48 * 3600e3 ? c.items : [];
 }
 async function fetchFeedNow(url) {
   try {
@@ -242,8 +263,8 @@ function scoreItem(title, factors) {
 
 const hhmm = (ts) => new Date(ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
-async function buildRadar(def, env) {
-  const lists = await Promise.all(def.feeds.map((u) => fetchFeed(u, env)));
+async function buildRadar(def, env, fc) {
+  const lists = await Promise.all(def.feeds.map((u) => fetchFeed(u, env, fc)));
   const seen = new Set();
   const items = lists.flat()
     .filter((i) => { const k = dedupeKey(i.title); if (seen.has(k)) return false; seen.add(k); return true; })
@@ -330,7 +351,9 @@ async function allRadars(env, ctx, origin) {
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
     try {
-      let data = await Promise.all(RADARS.map((d) => buildRadar(d, env)));
+      const fc = await loadFeedCache(env, [...new Set(RADARS.flatMap((d) => d.feeds))]);
+      let data = await Promise.all(RADARS.map((d) => buildRadar(d, env, fc)));
+      await saveFeedCache(env, fc);
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
@@ -354,10 +377,16 @@ async function allRadars(env, ctx, origin) {
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
+let sharedReady = false;
+async function ensureShared(env) {
+  if (sharedReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS shared (k TEXT PRIMARY KEY, v TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+  sharedReady = true;
+}
 async function sharedGet(env, key, maxAgeMs) {
   if (!env || !env.DB) return null;
   try {
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS shared (k TEXT PRIMARY KEY, v TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+    await ensureShared(env);
     const row = await env.DB.prepare("SELECT v, ts FROM shared WHERE k=?1").bind(key).first();
     if (!row || Date.now() - row.ts > maxAgeMs) return null;
     return JSON.parse(row.v);
@@ -366,7 +395,7 @@ async function sharedGet(env, key, maxAgeMs) {
 async function sharedPut(env, key, value) {
   if (!env || !env.DB) return;
   try {
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS shared (k TEXT PRIMARY KEY, v TEXT NOT NULL, ts INTEGER NOT NULL)").run();
+    await ensureShared(env);
     await env.DB.prepare("INSERT INTO shared (k, v, ts) VALUES (?1, ?2, ?3) ON CONFLICT(k) DO UPDATE SET v=excluded.v, ts=excluded.ts").bind(key, JSON.stringify(value), Date.now()).run();
   } catch (e) {}
 }
@@ -973,7 +1002,7 @@ async function agentIndices(env, ctx, origin) {
   const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
   const hit = await cache.match(key);
   if (hit) return hit.json();
-  const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map((u) => fetchFeed(u, env))).then((a) => a.flat()).catch(() => [])]);
+  const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map((u) => fetchFeed(u))).then((a) => a.flat()).catch(() => [])]);
   const heads = radars.flatMap((r) => r.feed.map((f) => ({ radar: r.id, title: f[1], source: f[2], link: f[4] })));
   const n = Math.max(1, heads.length);
   // 1. Галлюцинации: странное в серьёзных лентах + странное, где замешаны политики, рынки, полиция
