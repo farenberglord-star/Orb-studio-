@@ -1008,5 +1008,6 @@ boot();
 setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=await r.json();if(j.radars&&j.radars.length){RADARS=i18nRadars(j.radars.filter(x=>x.feed&&x.feed.length));try{const b=await fetch('/api/v1/broadcast/latest');if(b.ok)setVoice(await b.json())}catch(e){}buildQueue();renderRadars();renderTicker()}}catch(e){}},300000);
 })();
 </script>
+<script src="/banners.js" defer></script>
 </body>
 </html>

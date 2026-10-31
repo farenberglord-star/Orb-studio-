@@ -195,5 +195,6 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_music')==='1'}catch(e
 (seen?fetch('/api/v1/stats?page=music'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"music"}'}))
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_music','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');}).catch(()=>{});
 </script>
+<script src="/banners.js" defer></script>
 </body>
 </html>
