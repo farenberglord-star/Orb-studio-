@@ -527,6 +527,7 @@ function broadcastItems(radars) {
 const IMP_NODES = {
   US: { x: 228, y: 142, ru: "США", re: /\bu\.s\.(?![a-z])|\b(usa|united states|america|american|washington|white house|pentagon|trump|federal reserve|fed|wall street|congress)\b|сша|вашингтон|америк|белый дом|пентагон|трамп/i },
   EU: { x: 528, y: 108, ru: "ЕС", re: /\b(eu|europe|european|brussels|germany|german|berlin|france|french|paris|ecb|euro|eurozone|deutschland|bundes\w*|ezb|merz|scholz|macron)\b|европ|ес\b|герман|берлин|франц|брюссел/i },
+  CA: { x: 222, y: 94, ru: "Канада", re: /\b(canada|canadian|ottawa|carney)\b|канад/i },
   GB: { x: 494, y: 100, ru: "Британия", re: /\b(uk|britain|british|london|starmer)\b|британ|лондон/i },
   UA: { x: 586, y: 114, ru: "Украина", re: /\b(ukraine|ukrainian|kyiv|kiev|zelensky\w*)\b|украин|киев|зеленск/i },
   RU: { x: 667, y: 83, ru: "Россия", re: /\b(russia|russian|kremlin|moscow|putin|russland|russische\w*)\b|росси|кремл|москв|путин/i },
@@ -552,7 +553,7 @@ function impulseLayer(radarId, title) {
 function impulsePlaces(title) {
   const hits = [];
   for (const [id, n] of Object.entries(IMP_NODES)) {
-    const m = title.match(n.re);
+    const m = title.match(n.re) || (id === "US" ? title.match(/\bUS\b/) : null);
     if (m) hits.push({ id, at: m.index });
   }
   return hits.sort((a, b) => a.at - b.at).map((h) => h.id);
@@ -583,7 +584,8 @@ async function impulses(env, ctx, origin, limit = 12) {
       });
     }
   }
-  out.sort((a, b) => b.strength - a.strength);
+  // сначала импульсы с дугой (два места), затем по силе
+  out.sort((a, b) => (a.local - b.local) || (b.strength - a.strength));
   return {
     generated_at: new Date().toISOString(),
     method: "Headlines from Orb Studio radars (public RSS). Countries and chokepoints are matched by keywords; the first place named is the source, the second the target. bearing_deg is the screen direction the impulse comes from on an equirectangular map (0 = north). A headline that names one place is a local impulse with no arc. Heuristic, not a forecast.",
