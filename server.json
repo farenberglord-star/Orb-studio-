@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.farenberglord-star/orb-studio",
+  "title": "Orb Studio",
+  "description": "Live news radars with risk index, real Hamburg shop & fuel prices, and AI anchor David Q&A.",
+  "version": "1.0.0",
+  "websiteUrl": "https://orbstudio.org",
+  "repository": {
+    "url": "https://github.com/farenberglord-star/Orb-studio-",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://orbstudio.org/mcp"
+    }
+  ]
+}
