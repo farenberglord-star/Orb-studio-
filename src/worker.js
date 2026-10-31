@@ -20,10 +20,13 @@ const RADARS = [
     id: "geo", title: "Гео-радар", anchor: "david",
     lead: "Россия, Китай, США: военные, дипломатические и санкционные сигналы из открытых лент.",
     feeds: [
-      gnews("Russia OR Kremlin when:1d"),
-      gnews("China OR Beijing OR Taiwan when:1d"),
-      gnews("White House OR Pentagon OR \"State Department\" when:1d"),
+      "https://www.theguardian.com/world/russia/rss",
+      "https://www.theguardian.com/world/china/rss",
+      "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml",
+      "https://kyivindependent.com/news-archive/rss/",
+      "https://www.scmp.com/rss/91/feed",
       "https://feeds.bbci.co.uk/news/world/rss.xml",
+      gnews("Russia OR China OR Pentagon when:1d"),
     ],
     factors: {
       "Военные":    { w: 90, k: ["missile","strike","drone","troops","military","attack","war","drill","rakete","angriff","krieg","ракет","удар","войск","атак","учени"] },
@@ -35,10 +38,13 @@ const RADARS = [
   {
     id: "budget", title: "Бюджет домохозяйств", anchor: "david",
     lead: "Цены на продукты, аренда, коммуналка и ставки в Германии и ЕС.",
+    filter: /(preis|inflation|teuer|kosten|miete|wohn|strom|gas|heiz|energie|tank|benzin|diesel|zins|ezb|kredit|rente|lohn|gehalt|steuer|verbraucher|lebensmittel|sparen|geld|euro|haushalt|bürgergeld|sozial|cost|price|rent)/i,
     feeds: [
-      gnews("Inflation OR Verbraucherpreise when:2d", "de", "DE"),
-      gnews("Miete OR Mietpreise OR Strompreis OR Gaspreis when:2d", "de", "DE"),
-      gnews("EZB Zinsen when:3d", "de", "DE"),
+      "https://www.tagesschau.de/wirtschaft/index~rss2.xml",
+      "https://www.spiegel.de/wirtschaft/index.rss",
+      "https://www.n-tv.de/ratgeber/rss",
+      "https://www.handelsblatt.com/contentexport/feed/finanzen",
+      gnews("Inflation OR Miete OR Strompreis OR Gaspreis when:2d", "de", "DE"),
     ],
     factors: {
       "Инфляция": { w: 65, k: ["inflation","teuer","preisanstieg","verbraucherpreis","инфляц"] },
@@ -51,11 +57,11 @@ const RADARS = [
     id: "politics", title: "Политика", anchor: "david",
     lead: "Правительства, выборы и законы: Германия, ЕС, США.",
     feeds: [
-      gnews("Bundesregierung OR Bundestag OR Koalition when:1d", "de", "DE"),
+      "https://www.tagesschau.de/inland/index~rss2.xml",
+      "https://www.spiegel.de/politik/index.rss",
+      "https://feeds.npr.org/1014/rss.xml",
+      "https://rss.dw.com/rdf/rss-en-all",
       gnews("European Commission OR European Parliament when:2d"),
-      gnews("White House OR Congress OR Senate when:1d"),
-      "https://www.tagesschau.de/index~rss2.xml",
-      "https://rss.dw.com/rdf/rss-en-top",
     ],
     factors: {
       "Кризисы":       { w: 75, k: ["no-confidence","resign","resignation","impeach","scandal","collapse","protest","coup","rücktritt","misstrauen","отставк","протест","кризис правительств"] },
@@ -67,9 +73,14 @@ const RADARS = [
   {
     id: "economy", title: "Экономика", anchor: "david",
     lead: "Рост, рецессия, ставки, рынок труда: Германия, еврозона, США.",
+    filter: /(wirtschaft|konjunktur|rezession|bip|wachstum|industrie|export|arbeits|jobs|zins|ezb|ecb|fed|inflation|dax|börse|aktie|economy|economic|recession|gdp|growth|rate|unemploy|market|stocks|trade|tariff|bank)/i,
     feeds: [
-      gnews("Konjunktur OR Wirtschaft OR Rezession OR DAX when:1d", "de", "DE"),
-      gnews("economy OR GDP OR recession OR unemployment when:1d"),
+      "https://www.handelsblatt.com/contentexport/feed/wirtschaft",
+      "https://www.n-tv.de/wirtschaft/rss",
+      "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "https://www.theguardian.com/business/rss",
+      "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258",
+      "https://rss.dw.com/rdf/rss-en-bus",
       gnews("ECB OR Fed interest rates when:2d"),
     ],
     factors: {
@@ -84,6 +95,9 @@ const RADARS = [
     lead: "BTC, ETH, XRP: новости и рыночные данные Kraken.",
     feeds: [
       "https://www.coindesk.com/arc/outboundfeeds/rss/",
+      "https://cointelegraph.com/rss",
+      "https://decrypt.co/feed",
+      "https://www.theblock.co/rss.xml",
       gnews("bitcoin OR ethereum OR XRP when:1d"),
     ],
     kraken: ["XBTEUR", "ETHEUR", "XRPEUR"],
@@ -97,10 +111,13 @@ const RADARS = [
   {
     id: "energy", title: "Энерго-радар", anchor: "david",
     lead: "Brent, газ, танкеры и решения ОПЕК+.",
+    filter: /(oil|brent|crude|wti|opec|gas|lng|ttf|energy|power|electric|fuel|diesel|petrol|refin|pipeline|tanker|hormuz|red sea|öl|ölpreis|energie|strom|gaspreis|sprit|benzin|нефт|газ)/i,
     feeds: [
-      gnews("Brent OR OPEC OR \"oil price\" when:1d"),
-      gnews("LNG OR \"gas price\" OR TTF when:2d"),
       "https://oilprice.com/rss/main",
+      "https://www.rigzone.com/news/rss/rigzone_latest.aspx",
+      "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "https://www.handelsblatt.com/contentexport/feed/wirtschaft",
+      gnews("Brent OR OPEC OR LNG when:1d"),
     ],
     factors: {
       "Нефть":    { w: 55, k: ["brent","crude","oil","wti","нефт"] },
@@ -150,7 +167,19 @@ function withSlot(fn) {
     if (slotsBusy < 5) run(); else slotQueue.push(run);
   });
 }
-async function fetchFeed(url) { return withSlot(() => fetchFeedNow(url)); }
+// Ленты кэшируются в общей базе D1, чтобы один запрос обслуживал все дата-центры Cloudflare.
+// Google News — раз в 20 минут (он ограничивает автоматические запросы), прямые ленты изданий — раз в 10 минут.
+// Если лента не ответила, берём её прошлую копию (до 48 часов), а не показываем пустоту.
+async function fetchFeed(url, env) {
+  if (!env || !env.DB) return withSlot(() => fetchFeedNow(url));
+  const key = "feed:" + (await sha(url));
+  const fresh = url.includes("news.google.com") ? 20 * 60e3 : 10 * 60e3;
+  const hit = await sharedGet(env, key, fresh);
+  if (hit) return hit;
+  const items = await withSlot(() => fetchFeedNow(url));
+  if (items.length) { await sharedPut(env, key, items); return items; }
+  return (await sharedGet(env, key, 48 * 3600e3)) || [];
+}
 async function fetchFeedNow(url) {
   try {
     const r = await fetch(url, {
@@ -214,7 +243,7 @@ function scoreItem(title, factors) {
 const hhmm = (ts) => new Date(ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Berlin" });
 
 async function buildRadar(def, env) {
-  const lists = await Promise.all(def.feeds.map(fetchFeed));
+  const lists = await Promise.all(def.feeds.map((u) => fetchFeed(u, env)));
   const seen = new Set();
   const items = lists.flat()
     .filter((i) => { const k = dedupeKey(i.title); if (seen.has(k)) return false; seen.add(k); return true; })
@@ -745,12 +774,6 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...(await impulses(env, ctx, origin, n)), referral: referral(env, "api-impulses") }, { "Cache-Control": "public, max-age=300" });
   }
 
-  if (p === "/api/v1/debug/feedtest") {
-    const C = ["https://feeds.bbci.co.uk/news/world/europe/rss.xml", "https://feeds.bbci.co.uk/news/world/asia/rss.xml", "https://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml", "https://feeds.bbci.co.uk/news/business/rss.xml", "https://rss.dw.com/rdf/rss-en-all", "https://rss.dw.com/rdf/rss-en-bus", "https://rss.dw.com/xml/rss-de-wirtschaft", "https://rss.dw.com/xml/rss-de-all", "https://www.tagesschau.de/wirtschaft/index~rss2.xml", "https://www.tagesschau.de/inland/index~rss2.xml", "https://www.tagesschau.de/ausland/index~rss2.xml", "https://www.handelsblatt.com/contentexport/feed/schlagzeilen", "https://www.handelsblatt.com/contentexport/feed/wirtschaft", "https://www.handelsblatt.com/contentexport/feed/finanzen", "https://www.spiegel.de/wirtschaft/index.rss", "https://www.spiegel.de/politik/index.rss", "https://www.theguardian.com/world/rss", "https://www.theguardian.com/business/rss", "https://www.theguardian.com/us-news/rss", "https://www.theguardian.com/world/russia/rss", "https://www.theguardian.com/world/china/rss", "https://www.aljazeera.com/xml/rss/all.xml", "https://feeds.npr.org/1014/rss.xml", "https://www.politico.eu/feed/", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100727362", "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258", "https://cointelegraph.com/rss", "https://decrypt.co/feed", "https://www.theblock.co/rss.xml", "https://www.rigzone.com/news/rss/rigzone_latest.aspx", "https://www.n-tv.de/wirtschaft/rss", "https://www.n-tv.de/ratgeber/rss", "https://kyivindependent.com/news-archive/rss/", "https://www.scmp.com/rss/91/feed", "https://www.reuters.com/world/rss", "https://breakingdefense.com/feed/", "https://defensescoop.com/feed/"];
-    const out = await Promise.all(C.map(async (u) => { const t = Date.now(); try { const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } }); const x = await r.text(); const items = x.split(/<item[\s>]|<entry[\s>]/i).length - 1; const d = (x.match(/<(?:pubDate|updated|dc:date)>([^<]+)</i) || [])[1] || ""; return { u, s: r.status, items, ms: Date.now() - t, first: d.slice(0, 30) }; } catch (e) { return { u, err: String(e.message || e).slice(0, 60) }; } }));
-    return json(out, { "Cache-Control": "no-store" });
-  }
-
   if (p === "/api/v1/radars") {
     const data = await allRadars(env, ctx, origin);
     const full = url.searchParams.get("full") === "1";
@@ -950,7 +973,7 @@ async function agentIndices(env, ctx, origin) {
   const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
   const hit = await cache.match(key);
   if (hit) return hit.json();
-  const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map(fetchFeed)).then((a) => a.flat()).catch(() => [])]);
+  const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map((u) => fetchFeed(u, env))).then((a) => a.flat()).catch(() => [])]);
   const heads = radars.flatMap((r) => r.feed.map((f) => ({ radar: r.id, title: f[1], source: f[2], link: f[4] })));
   const n = Math.max(1, heads.length);
   // 1. Галлюцинации: странное в серьёзных лентах + странное, где замешаны политики, рынки, полиция
