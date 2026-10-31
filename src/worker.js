@@ -521,6 +521,80 @@ function broadcastItems(radars) {
   }))).sort((a, b) => b.weight - a.weight);
 }
 
+// ================= Impulse Radar: заголовки радаров → импульсы «откуда → куда» =================
+// Эвристика: в заголовке ищем страны/узкие места; первое упоминание = источник, второе = цель.
+// Координаты — карта 1000×470 (равнопромежуточная проекция), их же рисует страница /radar.
+const IMP_NODES = {
+  US: { x: 228, y: 142, ru: "США", re: /\bu\.s\.(?![a-z])|\b(usa|united states|america|american|washington|white house|pentagon|trump|federal reserve|fed|wall street|congress)\b|сша|вашингтон|америк|белый дом|пентагон|трамп/i },
+  EU: { x: 528, y: 108, ru: "ЕС", re: /\b(eu|europe|european|brussels|germany|german|berlin|france|french|paris|ecb|euro|eurozone|deutschland|bundes\w*|ezb|merz|scholz|macron)\b|европ|ес\b|герман|берлин|франц|брюссел/i },
+  GB: { x: 494, y: 100, ru: "Британия", re: /\b(uk|britain|british|london|starmer)\b|британ|лондон/i },
+  UA: { x: 586, y: 114, ru: "Украина", re: /\b(ukraine|ukrainian|kyiv|kiev|zelensky\w*)\b|украин|киев|зеленск/i },
+  RU: { x: 667, y: 83, ru: "Россия", re: /\b(russia|russian|kremlin|moscow|putin|russland|russische\w*)\b|росси|кремл|москв|путин/i },
+  IR: { x: 647, y: 161, ru: "Иран", re: /\b(iran|iranian|tehran)\b|иран|тегеран/i },
+  CN: { x: 792, y: 153, ru: "Китай", re: /\b(china|chinese|beijing|xi jinping|taiwan|peking)\b|китай|пекин|тайван/i },
+  IN: { x: 717, y: 189, ru: "Индия", re: /\b(india|indian|delhi|modi)\b|инди[яи]|дели/i },
+  JP: { x: 883, y: 150, ru: "Япония", re: /\b(japan|japanese|tokyo)\b|япони|токио/i },
+  HRM: { x: 656, y: 176, ru: "Ормуз", cp: 1, re: /hormuz|ормуз/i },
+  SUZ: { x: 590, y: 167, ru: "Суэц", cp: 1, re: /suez|суэц/i },
+  BAB: { x: 619, y: 215, ru: "Красное море", cp: 1, re: /red sea|bab[ -]el|houthi|rotes meer|красн\w* мор|хусит/i },
+  MAL: { x: 778, y: 242, ru: "Малакка", cp: 1, re: /malacca|малакк/i },
+  PAN: { x: 279, y: 225, ru: "Панама", cp: 1, re: /panama|панам/i },
+};
+const IMP_DIRS = ["севера", "северо-востока", "востока", "юго-востока", "юга", "юго-запада", "запада", "северо-запада"];
+const IMP_DIRS_EN = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+const IMP_SHIP = /tanker|shipping|freight|vessel|container|strait|канал|танкер|фрахт|судоход|schiff|frachter/i;
+function impulseLayer(radarId, title) {
+  if (IMP_SHIP.test(title) || /hormuz|suez|red sea|malacca|panama|ормуз|суэц|малакк/i.test(title)) return "ship";
+  if (radarId === "energy") return "energy";
+  if (radarId === "economy" || radarId === "budget" || radarId === "crypto") return "capital";
+  return "geo";
+}
+function impulsePlaces(title) {
+  const hits = [];
+  for (const [id, n] of Object.entries(IMP_NODES)) {
+    const m = title.match(n.re);
+    if (m) hits.push({ id, at: m.index });
+  }
+  return hits.sort((a, b) => a.at - b.at).map((h) => h.id);
+}
+async function impulses(env, ctx, origin, limit = 12) {
+  const radars = await allRadars(env, ctx, origin);
+  const out = [], seen = new Set();
+  for (const r of radars) {
+    if (r.id === "web") continue;
+    for (const [time, title, source, weight, link] of r.feed || []) {
+      const places = impulsePlaces(title || "");
+      if (!places.length) continue;
+      const key = places.slice(0, 2).join(">") + "|" + (title || "").slice(0, 40);
+      if (seen.has(key)) continue; seen.add(key);
+      const from = places.length > 1 ? places[0] : null, to = places.length > 1 ? places[1] : places[0];
+      let bearing = null, side = null, side_en = null;
+      if (from) {
+        const s = IMP_NODES[from], t = IMP_NODES[to];
+        bearing = Math.round((Math.atan2(s.x - t.x, -(s.y - t.y)) * 180 / Math.PI + 360) % 360);
+        side = IMP_DIRS[Math.round(bearing / 45) % 8]; side_en = IMP_DIRS_EN[Math.round(bearing / 45) % 8];
+      }
+      out.push({
+        id: `${r.id}-${out.length + 1}`, radar: r.id, radar_title: r.title, layer: impulseLayer(r.id, title),
+        from, to, from_name: from ? IMP_NODES[from].ru : null, to_name: IMP_NODES[to].ru,
+        bearing_deg: bearing, side, side_en, local: !from,
+        strength: Math.round(Math.max(0.15, Math.min(1, (weight || 0) / 100)) * 100) / 100,
+        headline: title, source, link, time,
+      });
+    }
+  }
+  out.sort((a, b) => b.strength - a.strength);
+  return {
+    generated_at: new Date().toISOString(),
+    method: "Headlines from Orb Studio radars (public RSS). Countries and chokepoints are matched by keywords; the first place named is the source, the second the target. bearing_deg is the screen direction the impulse comes from on an equirectangular map (0 = north). A headline that names one place is a local impulse with no arc. Heuristic, not a forecast.",
+    map: { width: 1000, height: 470, projection: "equirectangular" },
+    nodes: Object.fromEntries(Object.entries(IMP_NODES).map(([id, n]) => [id, { x: n.x, y: n.y, name_ru: n.ru, chokepoint: !!n.cp }])),
+    impulses: out.slice(0, limit),
+    page: "https://orbstudio.org/radar",
+    disclaimer: "Indicator, not advice. No orders are sent.",
+  };
+}
+
 // ================= Роутер (Pages Advanced Mode) =================
 async function handleApi(url, request, env, ctx) {
   const origin = url.origin;
@@ -641,6 +715,11 @@ async function handleApi(url, request, env, ctx) {
     return json({ user: cfg.user || null, profile: cfg.user ? `https://www.tiktok.com/@${cfg.user}` : null, videos: ids, pending: list.length - ids.length, scan: scan || undefined }, { "Cache-Control": "public, max-age=120" });
   }
 
+  if (p === "/api/v1/impulses") {
+    const n = Math.min(30, Math.max(1, parseInt(url.searchParams.get("limit"), 10) || 12));
+    return json({ ...(await impulses(env, ctx, origin, n)), referral: referral(env, "api-impulses") }, { "Cache-Control": "public, max-age=300" });
+  }
+
   if (p === "/api/v1/radars") {
     const data = await allRadars(env, ctx, origin);
     const full = url.searchParams.get("full") === "1";
@@ -739,7 +818,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -1251,6 +1330,10 @@ const MCP_TOOLS = [
     description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet (Iglo Schlemmerfilet 380 g), and at the pump: petrol E10, Super E5, diesel and EV charging per kWh. Unlike promo flyers, these are actual shelf and pump prices seen in person, with date, store and district; EV charging per kWh is included, which official fuel price feeds do not cover. Returns 14-day medians, change vs earlier observations, latest price with store and district, basket total and recent entries. Use it for questions about the cost of living, groceries or fuel in Hamburg.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_impulses", title: "Impulse Radar: where news pressure comes from",
+    description: "Headlines from all Orb Studio radars turned into impulses: source country or chokepoint → target, side the impulse comes from (bearing_deg and words like 'east'), layer (geo, energy, capital, ship), strength 0–1, headline, source and link. The same data drives the animated map at https://orbstudio.org/radar.",
+    inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 30, description: "Max impulses (default 12)" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "vote_top_story", title: "Vote: most important story today",
     description: "Cast your vote for today's most important story. Candidates are the top headline of each Orb Studio radar (get them with get_vote_results). Orb Studio shows how AI agents and humans vote side by side. One vote per agent per day; voting again changes it.",
     inputSchema: { type: "object", properties: { choice: { type: "string", enum: RADAR_IDS, description: "Radar id of the story you pick (see get_vote_results candidates)" },
@@ -1280,7 +1363,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -1328,6 +1411,9 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "get_prices") {
     return { ...(await pricesRadar(env, "hamburg")), referral: ref };
+  }
+  if (name === "get_impulses") {
+    return { ...(await impulses(env, ctx, origin, Math.min(30, Math.max(1, parseInt(args.limit, 10) || 12)))), referral: ref };
   }
   if (name === "vote_top_story") {
     const r = await castVote(env, request, ctx, origin, { choice: String(args.choice || ""), client: true, name: args.voter_name });
@@ -1463,7 +1549,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/archive.html": "archive", "/archive": "archive" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -1551,5 +1637,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
-const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, ask_david, get_question_status\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\",\n    \"impulses\": \"https://orbstudio.org/api/v1/impulses\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\",\n      \"get_impulses\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
+const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Impulse Radar](https://orbstudio.org/api/v1/impulses): headlines from all radars as impulses source → target (countries and chokepoints), side the impulse comes from, layer, strength, link. MCP tool get_impulses. Human page: https://orbstudio.org/radar\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, get_impulses, ask_david, get_question_status\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";
