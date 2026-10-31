@@ -162,6 +162,7 @@ T = [
 ("Ваш голос учтён. Можно передумать до конца дня.", "Ihre Stimme zählt. Sie können sie bis Tagesende ändern.", "Your vote is counted. You can change it until the end of the day."),
 ("Не получилось проголосовать.", "Abstimmung fehlgeschlagen.", "Couldn't record your vote."),
 ("Архив 🗄", "Archiv 🗄", "Archive 🗄"),
+("Рубка 🧭", "Brücke 🧭", "Bridge 🧭"),
 ("Загрузка…", "Lädt…", "Loading…"),
 ("Радар ловит сигналы со всего мира. Твой дом на связи — через <b>STARLINK</b>", "Das Radar empfängt Signale aus aller Welt. Dein Zuhause bleibt verbunden — mit <b>STARLINK</b>", "The radar catches signals from all over the world. Keep your home connected with <b>STARLINK</b>"),
 ("Давид выходит в эфир отовсюду. С интернетом <b>STARLINK</b> — и ты", "David sendet von überall. Mit <b>STARLINK</b>-Internet kannst du das auch", "David broadcasts from anywhere. With <b>STARLINK</b> internet, so can you"),

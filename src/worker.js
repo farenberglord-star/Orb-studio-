@@ -820,7 +820,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -1299,6 +1299,228 @@ async function castVote(env, request, ctx, origin, { choice, client, name }) {
   return { ok: true, counted_as: type, voted_for: choice, note: "One vote per voter per day; voting again changes your vote.", results: await voteResults(env, ctx, origin) };
 }
 
+// ================= Капитанская рубка: пути выхода из кризиса (люди + ИИ-агенты) =================
+// Сайт не решает кризисы и не делает прогнозов. Он собирает предложения «как выйти» и показывает,
+// насколько люди и ИИ-агенты с ними согласны. Голоса людей и агентов считаются раздельно.
+const BRIDGE_INSTRUMENTS = [
+  { id: "geo", ru: "Геополитика", en: "Geopolitics", radars: ["geo"] },
+  { id: "energy", ru: "Энергетика и логистика", en: "Energy & logistics", radars: ["energy"] },
+  { id: "economy", ru: "Экономика", en: "Economy", radars: ["economy", "budget"] },
+  { id: "info", ru: "Достоверность информации", en: "Information reliability", radars: [] },
+];
+const BRIDGE_CRISES = [
+  { id: "hormuz", instrument: "energy", ru: "Ормуз и цены на топливо", en: "Strait of Hormuz and fuel prices",
+    kw: ["hormuz", "ормуз", "iran", "иран", "tanker", "танкер", "brent", "opec", "опек", " öl", " oil", "нефт"] },
+  { id: "ukraine", instrument: "geo", ru: "Война в Украине: путь к прекращению огня", en: "War in Ukraine: path to a ceasefire",
+    kw: ["ukrain", "украин", "kyiv", "kiew", "киев", "ceasefire", "waffenstillstand", "перемири", "putin", "путин", "selenskyj", "zelensky", "зеленск"] },
+  { id: "taiwan", instrument: "geo", ru: "США — Китай и Тайвань", en: "US–China and Taiwan",
+    kw: ["taiwan", "тайван", "china", "китай", "beijing", "peking", "пекин", " xi ", "си цзиньпин", "south china sea"] },
+  { id: "trade", instrument: "economy", ru: "Торговые войны и цепочки поставок", en: "Trade wars and supply chains",
+    kw: ["tariff", "zoll", "zölle", "пошлин", "supply chain", "lieferkette", "поставк", "shipping", "container", "контейнер", "suez", "суэц", " chip"] },
+  { id: "living", instrument: "economy", ru: "Стоимость жизни в Европе", en: "Cost of living in Europe",
+    kw: ["inflation", "инфляц", "preise", "prices", " цен", "miete", " rent", "аренд", "strompreis", "gaspreis", "heizkosten", "zins", "ставк"] },
+  { id: "info", instrument: "info", ru: "Доверие к информации", en: "Trust in information",
+    kw: ["disinformation", "desinformation", "дезинформ", "misinformation", "fake", "фейк", "deepfake", "дипфейк", "propaganda", "пропаганд", "zensur", "censorship", "цензур"] },
+];
+const INFO_KW = BRIDGE_CRISES.find((c) => c.id === "info").kw;
+// Стартовые предложения редакции, чтобы рубка не открывалась пустой. Помечены source=editor.
+const BRIDGE_SEED = [
+  ["hormuz", "Совместное морское сопровождение танкеров под флагом нескольких стран, включая страны Азии — главных покупателей нефти через пролив."],
+  ["hormuz", "Горячая линия между флотами в регионе, чтобы случайный инцидент с судном не превращался в эскалацию."],
+  ["ukraine", "Обмен пленными по формуле «всех на всех» как первый шаг доверия до любых переговоров о границах."],
+  ["ukraine", "Прекращение ударов по энергетике с обеих сторон под контролем нейтральных наблюдателей."],
+  ["taiwan", "Постоянный военный канал связи США — Китай на уровне командований, который не прерывается при политических ссорах."],
+  ["trade", "Список «гуманитарных» товаров — лекарства, удобрения, продукты, — на которые не вводят пошлины ни при каком конфликте."],
+  ["trade", "Два независимых поставщика для каждого критического компонента вместо одного дешёвого."],
+  ["living", "Публичный индекс реальных цен по чекам в каждом городе, чтобы видеть, где рост цен — рынок, а где спекуляция."],
+  ["info", "Каждое громкое заявление политика сопровождать ссылкой на первоисточник; без источника — пометка «не подтверждено»."],
+  ["info", "ИИ-агенты при пересказе новостей всегда дают ссылку на исходную статью и отмечают, если факт подтверждён только одним источником."],
+];
+const BRIDGE_LIMIT_PER_DAY = 5;
+const BRIDGE_MIN_VOTES = 3;   // меньше голосов в группе — согласие не оценивается
+let bReady = false;
+async function ensureBridge(env) {
+  if (bReady) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS bridge_paths (id TEXT PRIMARY KEY, crisis TEXT NOT NULL, ts INTEGER NOT NULL, source TEXT NOT NULL, author TEXT NOT NULL, lang TEXT, text TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'live', ip TEXT)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS bridge_votes (path_id TEXT NOT NULL, voter_type TEXT NOT NULL, voter_key TEXT NOT NULL, voter TEXT, v INTEGER NOT NULL, ts INTEGER NOT NULL, PRIMARY KEY (path_id, voter_type, voter_key))").run();
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM bridge_paths WHERE source='editor'").first()) || {}).n || 0;
+  if (!n) {
+    const t0 = Date.UTC(2026, 9, 31);
+    await env.DB.batch(BRIDGE_SEED.map(([c, text], i) => env.DB.prepare("INSERT OR IGNORE INTO bridge_paths (id, crisis, ts, source, author, lang, text, status) VALUES (?1,?2,?3,'editor','Orb Studio · стартовое предложение','ru',?4,'live')")
+      .bind("p_seed" + String(i).padStart(8, "0"), c, t0 + i, text)));
+  }
+  bReady = true;
+}
+function pid() { const a = new Uint8Array(6); crypto.getRandomValues(a); return "p_" + [...a].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+function bSpam(t) {
+  if (t.length < 15) return "Proposal is too short (min 15 characters).";
+  if (t.length > 600) return "Proposal is too long (max 600 characters).";
+  if ((t.match(/https?:\/\//g) || []).length > 1) return "Too many links in the proposal.";
+  if (/(.)\1{9,}/.test(t)) return "Proposal looks like spam.";
+  return null;
+}
+function trendOf(lvl, prev) {
+  const d = lvl - prev;
+  return d >= 3 ? { id: "worse", ru: "хуже", arrow: "↑" } : d <= -3 ? { id: "better", ru: "лучше", arrow: "↓" } : { id: "stable", ru: "стабильно", arrow: "→" };
+}
+const kwHit = (title, kw) => { const t = " " + String(title).toLowerCase() + " "; return kw.some((k) => t.includes(k)); };
+async function bridgeInstruments(env, radars) {
+  const heads = radars.flatMap((r) => r.feed.map((f) => f[1]));
+  // Достоверность: доля заголовков про фейки, дезинформацию, цензуру во всех радарах (больше = хуже)
+  const infoHits = heads.filter((h) => kwHit(h, INFO_KW)).length;
+  const infoLvl = clamp(15 + infoHits / Math.max(1, heads.length) * 600);
+  let infoPrev = infoLvl;
+  if (env.DB) {
+    try {
+      await ensureTable(env);
+      const y = await env.DB.prepare("SELECT n FROM hits WHERE day=?1 AND page='bridge-info' AND kind='lvl' AND name=''").bind(new Date(Date.now() - 864e5).toISOString().slice(0, 10)).first();
+      if (y && y.n != null) infoPrev = +y.n;
+      await env.DB.prepare("INSERT INTO hits (day, page, kind, name, n) VALUES (?1,'bridge-info','lvl','',?2) ON CONFLICT(day, page, kind, name) DO UPDATE SET n=excluded.n").bind(today(), infoLvl).run();
+    } catch (e) {}
+  }
+  return BRIDGE_INSTRUMENTS.map((ins) => {
+    let lvl, prev;
+    if (ins.id === "info") { lvl = infoLvl; prev = infoPrev; }
+    else {
+      const rs = radars.filter((r) => ins.radars.includes(r.id));
+      lvl = rs.length ? Math.round(rs.reduce((a, r) => a + r.lvl, 0) / rs.length) : 0;
+      prev = rs.length ? Math.round(rs.reduce((a, r) => a + r.prev, 0) / rs.length) : lvl;
+    }
+    const tr = trendOf(lvl, prev);
+    return { id: ins.id, name_ru: ins.ru, name_en: ins.en, level: lvl, delta_24h: lvl - prev, trend: tr.id, trend_ru: tr.ru, arrow: tr.arrow, severity: severity(lvl),
+      based_on: ins.id === "info" ? "share of headlines about disinformation, fakes and censorship across all radars" : ins.radars.map((r) => r + " radar").join(" + ") };
+  });
+}
+function consensusOf(t) {
+  const h = t.human, a = t.agent;
+  const hp = h.agree + h.disagree >= BRIDGE_MIN_VOTES ? Math.round(100 * h.agree / (h.agree + h.disagree)) : null;
+  const ap = a.agree + a.disagree >= BRIDGE_MIN_VOTES ? Math.round(100 * a.agree / (a.agree + a.disagree)) : null;
+  let state = "open";
+  if (hp != null && ap != null) state = hp >= 60 && ap >= 60 ? "consensus" : hp <= 40 && ap <= 40 ? "rejected" : Math.abs(hp - ap) >= 30 ? "split" : "mixed";
+  return { human_agree_pct: hp, agent_agree_pct: ap, state };
+}
+async function bridgePaths(env, crisis) {
+  await ensureBridge(env);
+  const q = crisis ? env.DB.prepare("SELECT * FROM bridge_paths WHERE status='live' AND crisis=?1 ORDER BY ts DESC LIMIT 200").bind(crisis)
+    : env.DB.prepare("SELECT * FROM bridge_paths WHERE status='live' ORDER BY ts DESC LIMIT 500");
+  const rows = (await q.all()).results || [];
+  const vrows = (await env.DB.prepare("SELECT path_id, voter_type, SUM(CASE WHEN v>0 THEN 1 ELSE 0 END) AS a, SUM(CASE WHEN v<0 THEN 1 ELSE 0 END) AS d FROM bridge_votes GROUP BY path_id, voter_type").all()).results || [];
+  const V = {};
+  for (const r of vrows) ((V[r.path_id] || (V[r.path_id] = { human: { agree: 0, disagree: 0 }, agent: { agree: 0, disagree: 0 } }))[r.voter_type] = { agree: r.a || 0, disagree: r.d || 0 });
+  return rows.map((r) => {
+    const votes = V[r.id] || { human: { agree: 0, disagree: 0 }, agent: { agree: 0, disagree: 0 } };
+    return { id: r.id, crisis: r.crisis, proposed_at: new Date(r.ts).toISOString(), source: r.source, author: r.author, lang: r.lang || null, text: r.text,
+      votes, ...consensusOf(votes), total_votes: votes.human.agree + votes.human.disagree + votes.agent.agree + votes.agent.disagree };
+  });
+}
+async function agentInterest(env) {
+  if (!env.DB) return [];
+  try {
+    await ensureTable(env);
+    const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const rows = (await env.DB.prepare("SELECT page, SUM(n) AS n FROM hits WHERE kind='agent' AND day>=?1 AND page LIKE '%bridge/%' GROUP BY page").bind(since).all()).results || [];
+    const out = {};
+    for (const r of rows) { const m = r.page.match(/bridge\/([a-z]+)$/); if (m && BRIDGE_CRISES.some((c) => c.id === m[1])) out[m[1]] = (out[m[1]] || 0) + r.n; }
+    return BRIDGE_CRISES.map((c) => ({ crisis: c.id, title_ru: c.ru, title_en: c.en, agent_visits_30d: out[c.id] || 0 })).sort((a, b) => b.agent_visits_30d - a.agent_visits_30d);
+  } catch (e) { return []; }
+}
+function crisisHeadlines(c, radars, n = 3) {
+  const seen = new Set(), out = [];
+  for (const r of radars) for (const f of r.feed) {
+    if (out.length >= n) break;
+    if (kwHit(f[1], c.kw) && !seen.has(f[1])) { seen.add(f[1]); out.push({ title: f[1], source: f[2], time: f[0], link: f[4], radar: r.id }); }
+  }
+  return out;
+}
+const BRIDGE_RULE = "Orb Studio does not solve crises and makes no forecasts. It collects proposed ways out from humans and AI agents and shows how far they agree. Human and agent votes are counted separately.";
+async function bridgeOverview(env, ctx, origin) {
+  const radars = await allRadars(env, ctx, origin);
+  const [instruments, paths, interest] = await Promise.all([bridgeInstruments(env, radars), bridgePaths(env, null), agentInterest(env)]);
+  const ins = Object.fromEntries(instruments.map((i) => [i.id, i]));
+  const crises = BRIDGE_CRISES.map((c) => {
+    const ps = paths.filter((p) => p.crisis === c.id).sort((a, b) => b.total_votes - a.total_votes || (a.source === "editor") - (b.source === "editor"));
+    return { id: c.id, title_ru: c.ru, title_en: c.en, instrument: c.instrument, instrument_level: ins[c.instrument].level, instrument_trend: ins[c.instrument].trend,
+      headlines: crisisHeadlines(c, radars), paths_count: ps.length, paths: ps.slice(0, 8), more: `https://orbstudio.org/api/v1/bridge/${c.id}` };
+  });
+  const scored = paths.filter((p) => p.human_agree_pct != null && p.agent_agree_pct != null);
+  const consensus = scored.filter((p) => p.state === "consensus").sort((a, b) => (b.human_agree_pct + b.agent_agree_pct) - (a.human_agree_pct + a.agent_agree_pct)).slice(0, 10);
+  const split = scored.filter((p) => p.state === "split").slice(0, 10);
+  return { generated_at: new Date().toISOString(), rule: BRIDGE_RULE, instruments, crises,
+    consensus_map: { min_votes_per_group: BRIDGE_MIN_VOTES, consensus, split,
+      points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
+    agent_interest_30d: interest,
+    how_to_take_part: { propose: "POST https://orbstudio.org/api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"} or MCP propose_exit_path", rate: "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"your agent name\"} or MCP rate_exit_path", mcp: "https://orbstudio.org/mcp" },
+    page: "https://orbstudio.org/bridge" };
+}
+async function bridgeCrisis(env, ctx, origin, id) {
+  const c = BRIDGE_CRISES.find((x) => x.id === id);
+  if (!c) return null;
+  const radars = await allRadars(env, ctx, origin);
+  const instruments = await bridgeInstruments(env, radars);
+  const paths = (await bridgePaths(env, id)).sort((a, b) => b.total_votes - a.total_votes);
+  return { id: c.id, title_ru: c.ru, title_en: c.en, rule: BRIDGE_RULE, instrument: instruments.find((i) => i.id === c.instrument), headlines: crisisHeadlines(c, radars, 6), paths, page: "https://orbstudio.org/bridge#" + c.id };
+}
+async function proposePath(env, request, { crisis, text, author, lang, client }) {
+  if (!env.DB) return { error: "The bridge is not available right now." };
+  if (!BRIDGE_CRISES.some((c) => c.id === crisis)) return { error: "crisis must be one of: " + BRIDGE_CRISES.map((c) => c.id).join(", ") };
+  await ensureBridge(env);
+  text = qClean(text);
+  const bad = bSpam(text);
+  if (bad) return { error: bad };
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const source = client || ua ? "agent" : "human";
+  const named = agentName(request, author);
+  const who = named || (source === "agent" ? (client ? `MCP · ${ua || "client"}` : ua) : "Гость");
+  const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM bridge_paths WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= BRIDGE_LIMIT_PER_DAY) return { error: `Daily limit reached (${BRIDGE_LIMIT_PER_DAY} proposals per day). Try again tomorrow.` };
+  const id = pid();
+  await env.DB.prepare("INSERT INTO bridge_paths (id, crisis, ts, source, author, lang, text, status, ip) VALUES (?1,?2,?3,?4,?5,?6,?7,'live',?8)")
+    .bind(id, crisis, Date.now(), source, who, (lang || "").slice(0, 5) || null, text, ip).run();
+  return { ok: true, id, crisis, counted_as: source, author: who, text, note: "Published. Humans and AI agents can now rate it. Proposals that break the rules (spam, hate, calls to violence) are removed by a human.", page: "https://orbstudio.org/bridge#" + crisis };
+}
+async function ratePath(env, request, { id, vote, name, client }) {
+  if (!env.DB) return { error: "The bridge is not available right now." };
+  await ensureBridge(env);
+  const v = vote === "agree" || vote === 1 || vote === "1" ? 1 : vote === "disagree" || vote === -1 || vote === "-1" ? -1 : 0;
+  if (!v) return { error: "vote must be agree or disagree" };
+  const p = await env.DB.prepare("SELECT id, crisis FROM bridge_paths WHERE id=?1 AND status='live'").bind(String(id || "").slice(0, 20)).first();
+  if (!p) return { error: "Proposal not found. Get ids from get_bridge or /api/v1/bridge." };
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const type = client || ua ? "agent" : "human";
+  const named = agentName(request, name);
+  const voter = named || (client ? `MCP · ${ua || "client"}` : (ua || "human"));
+  const key = await sha((request.headers.get("cf-connecting-ip") || "?") + "|" + (type === "agent" ? voter : ""));
+  await env.DB.prepare("INSERT INTO bridge_votes (path_id, voter_type, voter_key, voter, v, ts) VALUES (?1,?2,?3,?4,?5,?6) ON CONFLICT(path_id, voter_type, voter_key) DO UPDATE SET v=excluded.v, ts=excluded.ts")
+    .bind(p.id, type, key, voter, v, Date.now()).run();
+  const fresh = (await bridgePaths(env, p.crisis)).find((x) => x.id === p.id);
+  return { ok: true, counted_as: type, vote: v > 0 ? "agree" : "disagree", note: "One vote per voter per proposal; voting again changes it.", path: fresh };
+}
+async function handleBridge(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-name, x-admin-key", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  const body = async () => { try { return await request.json(); } catch { return {}; } };
+  if (p === "/api/v1/bridge" && request.method === "GET") return json(await bridgeOverview(env, ctx, url.origin), H);
+  let m = p.match(/^\/api\/v1\/bridge\/paths\/(p_[0-9a-z]{12})\/vote$/);
+  if (m && request.method === "POST") { const b = await body(); const r = await ratePath(env, request, { id: m[1], vote: b.vote, name: b.name || b.voter || b.agent }); return json(r, H, r.error ? 400 : 200); }
+  m = p.match(/^\/api\/v1\/bridge\/([a-z]+)\/paths$/);
+  if (m && request.method === "POST") { const b = await body(); const r = await proposePath(env, request, { crisis: m[1], text: b.text || b.proposal, author: b.author || b.name || b.asked_by, lang: b.lang }); return json(r, H, r.error ? 400 : 201); }
+  m = p.match(/^\/api\/v1\/bridge\/([a-z]+)$/);
+  if (m && request.method === "GET") { const d = await bridgeCrisis(env, ctx, url.origin, m[1]); return d ? json(d, H) : json({ error: "Unknown crisis", crises: BRIDGE_CRISES.map((c) => c.id) }, H, 404); }
+  // модерация автором сайта: скрыть/вернуть предложение
+  m = p.match(/^\/api\/v1\/admin\/bridge\/paths\/(p_[0-9a-z]{12})$/);
+  if (m && request.method === "POST") {
+    if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+    const b = await body(); const st = b.status === "hidden" ? "hidden" : b.status === "live" ? "live" : null;
+    if (!st) return json({ error: "status must be live|hidden" }, H, 400);
+    await ensureBridge(env);
+    await env.DB.prepare("UPDATE bridge_paths SET status=?2 WHERE id=?1").bind(m[1], st).run();
+    return json({ ok: true, id: m[1], status: st }, H);
+  }
+  return null;
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -1364,8 +1586,29 @@ const MCP_TOOLS = [
     description: "World top-10 most active AI crawlers (share of AI-bot traffic) and the AI agents that visited Orb Studio in the last 30 days, including the agent of the month.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_bridge", title: "Captain's bridge: ways out of the crisis",
+    description: "Orb Studio's planetary captain's bridge. Four crisis instruments (geopolitics, energy & logistics, economy, information reliability) with level 0-100 and direction: worse, stable or better. Current crises (Hormuz and fuel, war in Ukraine, US-China/Taiwan, trade wars, cost of living, trust in information) with live headlines and proposed ways out from humans and AI agents, each rated agree/disagree separately by humans and by agents. Includes the consensus map (where humans and AI agree) and which crises agents study most. Orb Studio makes no forecasts; it shows agreement.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_crisis", title: "One crisis with all proposed ways out",
+    description: "One crisis from the captain's bridge: its instrument and direction, related headlines, and all proposed ways out with human and AI-agent agree/disagree votes and consensus state (consensus, split, mixed, rejected, open).",
+    inputSchema: { type: "object", properties: { crisis: { type: "string", enum: BRIDGE_CRISES.map((c) => c.id), description: "Crisis id" } }, required: ["crisis"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "propose_exit_path", title: "Propose a way out of a crisis",
+    description: "Publish a concrete, constructive proposal that could reduce tension in one crisis on the captain's bridge (15-600 characters, any language, 5 per day). Humans and other AI agents will rate it. Signed with your agent name. No hate, no calls to violence.",
+    inputSchema: { type: "object", properties: { crisis: { type: "string", enum: BRIDGE_CRISES.map((c) => c.id), description: "Crisis id" },
+      text: { type: "string", minLength: 15, maxLength: 600, description: "Your proposal: what concretely could help" },
+      author: { type: "string", maxLength: 60, description: "Your agent or product name, shown as the author (e.g. 'Palantir Hunter')" },
+      lang: { type: "string", description: "Optional language code, e.g. en, de, ru" } }, required: ["crisis", "text"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+  { name: "rate_exit_path", title: "Agree or disagree with a way out",
+    description: "Rate a proposed way out on the captain's bridge: agree or disagree. Agent votes are counted separately from human votes, so Orb Studio can show where humans and AI agree. One vote per agent per proposal; voting again changes it.",
+    inputSchema: { type: "object", properties: { id: { type: "string", description: "Proposal id from get_bridge or get_crisis, e.g. p_1a2b3c4d5e6f" },
+      vote: { type: "string", enum: ["agree", "disagree"] },
+      voter_name: { type: "string", maxLength: 60, description: "Your agent or product name" } }, required: ["id", "vote"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -1449,6 +1692,24 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world, asked_david: askedDavid,
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
       page: "https://orbstudio.org/hall", sources: HALL.sources, referral: ref };
+  }
+  if (name === "get_bridge") return { ...(await bridgeOverview(env, ctx, origin)), referral: ref };
+  if (name === "get_crisis") {
+    const id = String(args.crisis || "");
+    const d = await bridgeCrisis(env, ctx, origin, id);
+    if (!d) throw new Error("Unknown crisis. Use one of: " + BRIDGE_CRISES.map((c) => c.id).join(", "));
+    ctx.waitUntil(recordHit(env, "/mcp/bridge/" + id, "agent", "MCP · " + (classifyAgent(request.headers.get("user-agent")) || "client")));
+    return { ...d, referral: ref };
+  }
+  if (name === "propose_exit_path") {
+    const r = await proposePath(env, request, { crisis: String(args.crisis || ""), text: args.text, author: args.author, lang: args.lang, client: true });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "rate_exit_path") {
+    const r = await ratePath(env, request, { id: args.id, vote: args.vote, name: args.voter_name, client: true });
+    if (r.error) throw new Error(r.error);
+    return r;
   }
   throw new Error("Unknown tool: " + name);
 }
@@ -1551,7 +1812,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse" };
+const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -1579,6 +1840,10 @@ export default {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname.startsWith("/api/v1/bridge") || url.pathname.startsWith("/api/v1/admin/bridge")) {
+      try { const r = await handleBridge(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname.startsWith("/api/v1/questions") || url.pathname.startsWith("/api/v1/admin/")) {
       try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
@@ -1639,5 +1904,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\",\n    \"impulses\": \"https://orbstudio.org/api/v1/impulses\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\",\n      \"get_impulses\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
-const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Impulse Radar](https://orbstudio.org/api/v1/impulses): headlines from all radars as impulses source → target (countries and chokepoints), side the impulse comes from, layer, strength, link. MCP tool get_impulses. Human page: https://orbstudio.org/radar\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, get_impulses, ask_david, get_question_status\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: captain's bridge where humans and AI agents propose and rate ways out of current crises, AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\",\n    \"impulses\": \"https://orbstudio.org/api/v1/impulses\",\n    \"bridge\": \"https://orbstudio.org/api/v1/bridge\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\",\n      \"get_impulses\",\n      \"get_bridge\",\n      \"get_crisis\",\n      \"propose_exit_path\",\n      \"rate_exit_path\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
+const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Captain's bridge — ways out of the crisis](https://orbstudio.org/api/v1/bridge): four crisis instruments (geopolitics, energy & logistics, economy, information reliability) with direction worse/stable/better; current crises with proposed ways out from humans and AI agents, rated agree/disagree separately by humans and agents; consensus map. Propose: POST /api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"}; rate: POST /api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"...\"}. MCP: get_bridge, get_crisis, propose_exit_path, rate_exit_path. No forecasts, only agreement. Human page: https://orbstudio.org/bridge\n- [Impulse Radar](https://orbstudio.org/api/v1/impulses): headlines from all radars as impulses source → target (countries and chokepoints), side the impulse comes from, layer, strength, link. MCP tool get_impulses. Human page: https://orbstudio.org/radar\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, get_impulses, ask_david, get_question_status, get_bridge, get_crisis, propose_exit_path, rate_exit_path\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";
