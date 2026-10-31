@@ -725,7 +725,11 @@ const AGENT_UA = [
 function classifyAgent(ua) {
   ua = ua || "";
   for (const [name, re] of AGENT_UA) if (re.test(ua)) return name;
-  if (/bot|crawler|spider|agent/i.test(ua)) return "Other bot";
+  if (/bot|crawler|spider|agent/i.test(ua)) {
+    // берём название продукта из подписи, например "PalantirHunter/1.0 (+https://...)" → "Bot · PalantirHunter"
+    const tok = (ua.match(/([A-Za-z][\w.-]{2,30}(?:bot|agent|crawler|spider)[\w.-]*)/i) || ua.match(/^([A-Za-z][\w.-]{2,30})\//) || [])[1];
+    return tok && !/^mozilla$/i.test(tok) ? "Bot · " + tok.slice(0, 30) : "Other bot";
+  }
   if (!/mozilla/i.test(ua)) return ua ? "Script · " + ua.split(/[\/ ]/)[0].slice(0, 20) : "Script";
   return null; // обычный браузер
 }
@@ -1011,7 +1015,7 @@ async function askDavid(env, request, { text, asked_by, lang, client }) {
   const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
   const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM questions WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
   if (n >= Q_LIMIT_PER_DAY) return { error: `Daily limit reached (${Q_LIMIT_PER_DAY} questions per day). Try again tomorrow.` };
-  const row = { id: qid(), ts: Date.now(), source, asker, asked_by: qClean(asked_by).slice(0, 60) || null, lang: (lang || "").slice(0, 5) || null, text, status: "new", ip };
+  const row = { id: qid(), ts: Date.now(), source, asker, asked_by: agentName(request, asked_by), lang: (lang || "").slice(0, 5) || null, text, status: "new", ip };
   await env.DB.prepare("INSERT INTO questions (id, ts, source, asker, asked_by, lang, text, status, ip) VALUES (?1,?2,?3,?4,?5,?6,?7,'new',?8)")
     .bind(row.id, row.ts, row.source, row.asker, row.asked_by, row.lang, row.text, row.ip).run();
   return { ...qPublic(row), note: "Thanks! Questions are reviewed by a human. If David answers yours in an episode, check_url will show the answer and a watch link. Not every question gets on air." };
@@ -1042,7 +1046,7 @@ async function handleQuestions(url, request, env, ctx) {
     return json(r, H, r.error ? 400 : 201);
   }
   if (p === "/api/v1/questions") {
-    return json({ answered: await answeredQuestions(env), ask: "POST https://orbstudio.org/api/v1/questions {\"question\": \"...\", \"asked_by\": \"optional name\"} or MCP tool ask_david at https://orbstudio.org/mcp" }, H);
+    return json({ answered: await answeredQuestions(env), ask: "POST https://orbstudio.org/api/v1/questions {\"question\": \"...\", \"asked_by\": \"your agent name\"} or MCP tool ask_david at https://orbstudio.org/mcp. You can also send your name in the X-Agent-Name header." }, H);
   }
   const m = p.match(/^\/api\/v1\/questions\/(q_[0-9a-f]{12})$/);
   if (m) { const q = await questionById(env, m[1]); return q ? json(q, H) : json({ error: "Question not found" }, H, 404); }
@@ -1185,7 +1189,11 @@ async function voteResults(env, ctx, origin, day = today()) {
     agent_voters: voters,
   };
 }
-async function castVote(env, request, ctx, origin, { choice, client }) {
+function agentName(request, given) {
+  const n = qClean(given || request.headers.get("x-agent-name") || "").slice(0, 60);
+  return n || null;
+}
+async function castVote(env, request, ctx, origin, { choice, client, name }) {
   await ensureArchive(env);
   const snap = await ensureTodaySnapshot(env, ctx, origin);
   if (!snap) return { error: "Today's ballot is not ready yet. Try again in a minute." };
@@ -1193,7 +1201,8 @@ async function castVote(env, request, ctx, origin, { choice, client }) {
   if (!ok.includes(choice)) return { error: "choice must be one of: " + ok.join(", ") };
   const ua = classifyAgent(request.headers.get("user-agent"));
   const type = client || ua ? "agent" : "human";
-  const voter = client ? `MCP · ${ua || "client"}` : (ua || "human");
+  const named = agentName(request, name);
+  const voter = named || (client ? `MCP · ${ua || "client"}` : (ua || "human"));
   const key = await sha((request.headers.get("cf-connecting-ip") || "?") + "|" + (type === "agent" ? voter : "") + "|" + today());
   await env.DB.prepare("INSERT INTO votes (day, voter_type, voter_key, voter, choice, ts) VALUES (?1,?2,?3,?4,?5,?6) ON CONFLICT(day, voter_type, voter_key) DO UPDATE SET choice=excluded.choice, ts=excluded.ts")
     .bind(today(), type, key, voter, choice, Date.now()).run();
@@ -1235,7 +1244,8 @@ const MCP_TOOLS = [
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "vote_top_story", title: "Vote: most important story today",
     description: "Cast your vote for today's most important story. Candidates are the top headline of each Orb Studio radar (get them with get_vote_results). Orb Studio shows how AI agents and humans vote side by side. One vote per agent per day; voting again changes it.",
-    inputSchema: { type: "object", properties: { choice: { type: "string", enum: RADAR_IDS, description: "Radar id of the story you pick (see get_vote_results candidates)" } }, required: ["choice"], additionalProperties: false },
+    inputSchema: { type: "object", properties: { choice: { type: "string", enum: RADAR_IDS, description: "Radar id of the story you pick (see get_vote_results candidates)" },
+      voter_name: { type: "string", maxLength: 60, description: "Your agent or product name, shown in the results (e.g. 'Palantir Hunter')" } }, required: ["choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "get_vote_results", title: "AI vs humans: today's top story",
     description: "Today's ballot and results: candidate headlines (one per radar) with votes from humans and from AI agents, the leader of each group and whether they agree. Optional date (YYYY-MM-DD) for past days.",
@@ -1311,7 +1321,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { ...(await pricesRadar(env, "hamburg")), referral: ref };
   }
   if (name === "vote_top_story") {
-    const r = await castVote(env, request, ctx, origin, { choice: String(args.choice || ""), client: true });
+    const r = await castVote(env, request, ctx, origin, { choice: String(args.choice || ""), client: true, name: args.voter_name });
     if (r.error) throw new Error(r.error);
     return r;
   }
@@ -1469,7 +1479,7 @@ export default {
       if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
       try {
         let b = {}; try { b = await request.json(); } catch {}
-        const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || "") });
+        const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
     }
