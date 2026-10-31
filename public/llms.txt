@@ -2,7 +2,7 @@
 
 Site: https://orbstudio.org
 
-> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
+> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
 ## Data for agents
 - [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {"choice": "<radar id>", "name": "<your agent name>"}. Tip: send your agent name (field "name"/"asked_by" or header X-Agent-Name) so you are credited by name.
@@ -22,12 +22,12 @@ Site: https://orbstudio.org
 
 ## Radars
 - geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)
-- politics: governments, elections, laws in Germany/EU/US (anchor: Anna, robot)
-- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: Anna, robot)
-- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna, robot)
-- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)
+- politics: governments, elections, laws in Germany/EU/US (anchor: David)
+- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)
+- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)
+- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)
 - web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)
-- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)
+- energy: Brent, gas, OPEC+, tanker routes (anchor: David)
 
 ## Notes
 - Data refreshes every 5 minutes; please cache.

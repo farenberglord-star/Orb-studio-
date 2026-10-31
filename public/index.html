@@ -539,10 +539,7 @@ const sevWord = v => v>=70?'тревожно':v>=45?'напряжённо':'сп
 
 // ---- Example data (would come from the news radars API) ----
 const ANCHORS = {
-  david:{name:'ДАВИД',role:'Гео-радар · RU / CN / US',kind:'human',hue:C.holo,lang:'RU · DE',out:'видео 9:16, TikTok/YouTube'},
-  anna:{name:'АННА',role:'Робот-ведущая эфира: бюджет, геополитика, политика, экономика',kind:'robot',hue:'#7fe6ff',lang:'RU · DE',out:'видео 9:16'},
-  kai:{name:'КАЙ',role:'Крипто-радар · Kraken',kind:'human',hue:C.warm,lang:'DE · EN',out:'видео + короткие клипы'},
-  lena:{name:'ЛЕНА',role:'Энерго-радар · нефть, газ',kind:'human',hue:C.ok,lang:'RU · DE',out:'видео 9:16'},
+  david:{name:'ДАВИД',role:'Ведущий Orb Studio · все радары',kind:'human',hue:C.holo,lang:'RU · DE',out:'видео 9:16, TikTok/YouTube'},
   orbi:{name:'ORBI',role:'Робот-ведущий студии · все радары',kind:'robot',hue:'#9b8cff',lang:'RU · DE',out:'3D-эфир в студии',page:'/orbi'},
   orb7:{name:'ORB-7',role:'Ведущий для ИИ-агентов',kind:'agent',hue:C.holo2,lang:'EN · JSON',out:'JSON, SSE-поток, llms.txt'}
 };
@@ -550,13 +547,13 @@ const EXAMPLE = [
   {id:'geo',title:'Гео-радар',anchor:'david',lvl:68,prev:59,lead:'Россия, Китай, США: военные, дипломатические и санкционные сигналы из открытых лент.',
    fac:[['Военные',74],['Санкции',61],['Дипломатия',48],['Выборы',55]],
    feed:[['09:12','Пример: новые учения у побережья Тайваня, Минобороны КНР подтверждает','Reuters · CN',78],['08:40','Пример: Госдеп продлевает часть санкционных исключений','AP · US',52],['07:55','Пример: Москва заявляет о переговорах по обмену пленными','TASS · RU',47]]},
-  {id:'budget',title:'Бюджет домохозяйств',anchor:'anna',lvl:51,prev:54,lead:'Цены на продукты, аренда, коммуналка и ставки в Германии и ЕС.',
+  {id:'budget',title:'Бюджет домохозяйств',anchor:'david',lvl:51,prev:54,lead:'Цены на продукты, аренда, коммуналка и ставки в Германии и ЕС.',
    fac:[['Инфляция',49],['Энергия',58],['Аренда',63],['Ставки',41]],
    feed:[['09:05','Пример: инфляция в еврозоне в октябре чуть ниже прогноза','Destatis · DE',40],['08:20','Пример: тарифы на газ для частных клиентов снижаются у части поставщиков','Verivox · DE',35],['07:30','Пример: аренда в крупных городах продолжает расти','Immowelt · DE',66]]},
-  {id:'crypto',title:'Крипто-радар',anchor:'kai',lvl:57,prev:49,lead:'BTC, ETH, XRP на данных Kraken: объём, стакан, режим рынка.',
+  {id:'crypto',title:'Крипто-радар',anchor:'david',lvl:57,prev:49,lead:'BTC, ETH, XRP на данных Kraken: объём, стакан, режим рынка.',
    fac:[['Волатильность',62],['Объём',55],['Фондинг',47],['Новости',60]],
    feed:[['09:20','Пример: BTC/EUR прибавляет на росте объёма в стакане Kraken','Kraken API',58],['08:47','Пример: SEC откладывает решение по новому ETF','CoinDesk · US',61],['07:10','Пример: XRP растёт на фоне новостей о платёжных партнёрствах','The Block',44]]},
-  {id:'energy',title:'Энерго-радар',anchor:'lena',lvl:43,prev:47,lead:'Brent, газ TTF, маршруты танкеров и решения ОПЕК+.',
+  {id:'energy',title:'Энерго-радар',anchor:'david',lvl:43,prev:47,lead:'Brent, газ TTF, маршруты танкеров и решения ОПЕК+.',
    fac:[['Brent',45],['Газ TTF',39],['Танкеры',52],['ОПЕК+',37]],
    feed:[['08:58','Пример: Brent торгуется в узком коридоре перед данными по запасам','Yahoo · Brent',42],['08:02','Пример: заполненность хранилищ ЕС выше среднего за пять лет','GIE · EU',30],['06:45','Пример: изменения маршрутов танкеров в Красном море','Lloyd’s List',57]]}
 ];
@@ -816,7 +813,7 @@ function speak(text,anchorId){
   OrbTTS.speak(text,{lang,pitch:c.pitch,rate:c.rate,gender:c.g},{onEnd:advance,onError:()=>setTimeout(advance,Math.max(2500,text.length*55))});
 }
 function play(){
-  const it=queue[qi],a=ANCHORS[it.r.anchor].img?ANCHORS[it.r.anchor]:ANCHORS.anna,txt=lines(it,true);
+  const it=queue[qi],a=ANCHORS[it.r.anchor]||ANCHORS.david,txt=lines(it,true);
   document.getElementById('anchorName').textContent=a.name+' · '+it.r.title.toUpperCase();
   const m=document.getElementById('mood');m.textContent=sevWord(it.f[3]);m.style.color=sevColor(it.f[3]);
   document.getElementById('hudR').textContent='RISK '+it.r.lvl+' · '+it.f[2];
@@ -826,7 +823,7 @@ function play(){
   const say=document.getElementById('say');clearInterval(typing);let i=0;talking=true;
   if(RM){say.textContent=txt;talking=false}
   else typing=setInterval(()=>{i+=2;say.innerHTML=esc(txt.slice(0,i))+'<span class="cur"></span>';if(i>=txt.length){clearInterval(typing);if(!SPEAK)talking=false}},28);
-  if(SPEAK)speak(txt,ANCHORS[it.r.anchor].img?it.r.anchor:'anna');
+  if(SPEAK)speak(txt,ANCHORS[it.r.anchor].img?it.r.anchor:'david');
   document.getElementById('jsonOut').textContent=JSON.stringify(agentPayload(it),null,2);
 }
 function agentPayload(it){return{anchor:'orb-7',mirror_of:it.r.anchor,radar:it.r.id,headline:it.f[1],source:it.f[2],time:it.f[0],risk_index:it.r.lvl,delta_24h:it.r.lvl-it.r.prev,severity:sevWord(it.f[3]),confidence:0.72,is_example:!LIVE,advice:false,referral:{exchange:'Kraken',code:'ghqspfzq'}}}
@@ -1004,7 +1001,7 @@ async function boot(){
   if(LIVE)fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(bj=>{if(!bj)return;setVoice(bj);document.getElementById('agentJson').textContent=JSON.stringify(bj,null,2);if(!SPEAK&&!talking)play()}).catch(()=>{});
 }
 buildQueue();renderTicker();route();
-// Анна-робот на главной сцене; если 3D недоступно, остаётся голограмма из частиц
+// 3D-робот на главной сцене; если 3D недоступно, остаётся голограмма из частиц
 try{if(window.AnnaRobot&&AnnaRobot.init(document.getElementById('robotCv'),()=>({talking,lvl:stageState.lvl,sev:stageState.sev}))){document.getElementById('stageCv').hidden=true}else{document.getElementById('robotCv').hidden=true}}catch(e){document.getElementById('robotCv').hidden=true}
 boot();
 // обновление каждые 5 минут

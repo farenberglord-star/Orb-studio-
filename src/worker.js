@@ -6,10 +6,7 @@
 // Работает без базы данных. Если подключён KV с именем ORB_KV, хранит вчерашний индекс для дельты.
 
 const ANCHORS = {
-  david: { name: "Давид", role: "Гео-радар · RU / CN / US", kind: "human" },
-  anna:  { name: "Анна",  role: "Робот-ведущая главного эфира: бюджет, геополитика, политика, экономика", kind: "robot" },
-  kai:   { name: "Кай",   role: "Крипто-радар · Kraken", kind: "human" },
-  lena:  { name: "Лена",  role: "Энерго-радар", kind: "human" },
+  david: { name: "Давид", role: "Ведущий Orb Studio: все новостные радары · видео-выпуски в TikTok", kind: "human" },
   orbi:  { name: "ORBI", role: "Робот-ведущий · радар «Открытый веб»", kind: "robot" },
   orb7:  { name: "ORB-7", role: "Ведущий для ИИ-агентов", kind: "agent" },
 };
@@ -36,7 +33,7 @@ const RADARS = [
     },
   },
   {
-    id: "budget", title: "Бюджет домохозяйств", anchor: "anna",
+    id: "budget", title: "Бюджет домохозяйств", anchor: "david",
     lead: "Цены на продукты, аренда, коммуналка и ставки в Германии и ЕС.",
     feeds: [
       gnews("Inflation OR Verbraucherpreise when:2d", "de", "DE"),
@@ -51,7 +48,7 @@ const RADARS = [
     },
   },
   {
-    id: "politics", title: "Политика", anchor: "anna",
+    id: "politics", title: "Политика", anchor: "david",
     lead: "Правительства, выборы и законы: Германия, ЕС, США.",
     feeds: [
       gnews("Bundesregierung OR Bundestag OR Koalition when:1d", "de", "DE"),
@@ -68,7 +65,7 @@ const RADARS = [
     },
   },
   {
-    id: "economy", title: "Экономика", anchor: "anna",
+    id: "economy", title: "Экономика", anchor: "david",
     lead: "Рост, рецессия, ставки, рынок труда: Германия, еврозона, США.",
     feeds: [
       gnews("Konjunktur OR Wirtschaft OR Rezession OR DAX when:1d", "de", "DE"),
@@ -83,7 +80,7 @@ const RADARS = [
     },
   },
   {
-    id: "crypto", title: "Крипто-радар", anchor: "kai",
+    id: "crypto", title: "Крипто-радар", anchor: "david",
     lead: "BTC, ETH, XRP: новости и рыночные данные Kraken.",
     feeds: [
       "https://www.coindesk.com/arc/outboundfeeds/rss/",
@@ -98,7 +95,7 @@ const RADARS = [
     },
   },
   {
-    id: "energy", title: "Энерго-радар", anchor: "lena",
+    id: "energy", title: "Энерго-радар", anchor: "david",
     lead: "Brent, газ, танкеры и решения ОПЕК+.",
     feeds: [
       gnews("Brent OR OPEC OR \"oil price\" when:1d"),
@@ -275,8 +272,8 @@ async function buildRadar(def, env) {
 let refreshing = null;
 async function allRadars(env, ctx, origin) {
   const cache = caches.default;
-  const fresh = new Request(origin + "/__cache/radars-v4");
-  const stale = new Request(origin + "/__cache/radars-v4-stale");
+  const fresh = new Request(origin + "/__cache/radars-v6");
+  const stale = new Request(origin + "/__cache/radars-v6-stale");
   const hit = await cache.match(fresh);
   if (hit) return hit.json();
   const refresh = () => (refreshing ||= (async () => {
@@ -285,11 +282,11 @@ async function allRadars(env, ctx, origin) {
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
-        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v4", 48 * 3600e3);
+        const prev = prevResp ? await prevResp.json() : await sharedGet(env, "radars-v6", 48 * 3600e3);
         if (prev && prev.length) data = data.map((r) => (r.feed.length ? r : (prev.find((x) => x.id === r.id && x.feed && x.feed.length) || r)));
       }
       const body = JSON.stringify(data);
-      await sharedPut(env, "radars-v4", data);
+      await sharedPut(env, "radars-v6", data);
       await saveSnapshot(env, data);
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
@@ -301,7 +298,7 @@ async function allRadars(env, ctx, origin) {
   const old = await cache.match(stale);
   if (old) { ctx.waitUntil(refresh().catch(() => {})); return old.json(); }
   // кэш этого дата-центра пуст — берём последнюю копию из общей базы D1 (до 6 часов)
-  const shared = await sharedGet(env, "radars-v4", 6 * 3600e3);
+  const shared = await sharedGet(env, "radars-v6", 6 * 3600e3);
   if (shared) { ctx.waitUntil(refresh().catch(() => {})); return shared; }
   return refresh();
 }
@@ -358,10 +355,7 @@ const json = (data, extra = {}, status = 200) =>
 
 
 const PERSONAS = {
-  david: "Давид — ведущий гео-радара (Россия, Китай, США). Сдержанный, точный, с сухой иронией там, где новость это позволяет. Говорит как опытный международный обозреватель.",
-  anna:  "Анна — робот-ведущая главного эфира Orb Studio: бюджет домохозяйств, геополитика, политика и экономика. Тёплая, ясная, спокойная; коротко объясняет, что новость значит для обычной семьи в Германии и Европе.",
-  kai:   "Кай — ведущий крипто-радара. Энергичный, говорит коротко, всегда помнит про риск и никогда не даёт торговых советов.",
-  lena:  "Лена — ведущая энерго-радара. Спокойная, аналитичная, связывает нефть и газ с ценами для людей.",
+  david: "Давид — ведущий Orb Studio: геополитика, политика, экономика, бюджет домохозяйств, крипто и энергетика. Сдержанный, точный, с сухой иронией там, где новость это позволяет. Коротко объясняет, что новость значит для обычной семьи в Германии и Европе. О крипте всегда напоминает про риск и никогда не даёт торговых советов.",
   orbi:  "ORBI — робот-ведущий радара «Открытый веб»: рассказывает, насколько интернет открыт для ИИ-агентов, кто блокирует ботов, кто судится за данные. Говорит от лица машин с добродушным юмором, но без шуток о серьёзных судебных делах.",
 };
 
@@ -374,7 +368,7 @@ const SYSTEM = `Ты пишешь реплики для ИИ-ведущих но
 - Никаких инвестиционных советов, призывов купить или продать.
 - Каждая реплика есть на русском (ru), немецком (de) и английском (en). Немецкий и английский — естественные, не дословный перевод.
 - Сегодня строго today_ru / today_de / today_en, время berlin_time (Берлин). Если упоминаешь день недели или время суток, то только эти. Не называй другой день.
-- greeting: приветствие в начале выпуска от лица Анны — робот-ведущей главного эфира Orb Studio; каждый раз другое (не шаблонное «добрый вечер»), с учётом дня и времени суток, 1 предложение. Имя ведущей в приветствии — только Анна.
+- greeting: приветствие в начале выпуска от лица Давида — ведущего Orb Studio; каждый раз другое (не шаблонное «добрый вечер»), с учётом дня и времени суток, 1 предложение. Имя ведущего в приветствии — только Давид.
 - signoff: шутливая просьба подписаться в конце, каждый раз новая, 1 предложение.
 
 Верни результат через инструмент write_broadcast. Структура:
@@ -487,18 +481,18 @@ async function voiceBroadcast(env, ctx, origin, items) {
   }
   const h = await sha(items.map((i) => i.headline).join("|"));
   const cache = caches.default;
-  const key = new Request(`${origin}/__cache/voice-v3-${h}`);
+  const key = new Request(`${origin}/__cache/voice-v4-${h}`);
   const hit = await cache.match(key);
   if (hit) return hit.json();
   // тот же выпуск уже написан в другом дата-центре — берём из общей базы, Claude не зовём повторно
-  const shared = await sharedGet(env, "voice3-" + h, 60 * 60e3);
+  const shared = await sharedGet(env, "voice4-" + h, 60 * 60e3);
   if (shared) { ctx.waitUntil(cache.put(key, new Response(JSON.stringify(shared), { headers: { "Cache-Control": "max-age=900" } }))); return shared; }
   // Claude пишет выпуск в фоне; если ответ не успел за 8 секунд, сейчас отдаём шаблон,
   // а следующий запрос получит уже готовый живой текст из кэша.
   const job = askClaudeSplit(env, items).then(async (data) => {
     data.generated_at = new Date().toISOString();
     await cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=900" } }));
-    await sharedPut(env, "voice3-" + h, data);
+    await sharedPut(env, "voice4-" + h, data);
     return data;
   });
   ctx.waitUntil(job.catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 300) })));
@@ -1542,5 +1536,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"anna\",\n      \"kind\": \"robot\",\n      \"radars\": [\n        \"budget\",\n        \"geo\",\n        \"politics\",\n        \"economy\"\n      ]\n    },\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radar\": \"geo\"\n    },\n    {\n      \"id\": \"kai\",\n      \"kind\": \"human\",\n      \"radar\": \"crypto\"\n    },\n    {\n      \"id\": \"lena\",\n      \"kind\": \"human\",\n      \"radar\": \"energy\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"all\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\"\n}\n";
-const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with holographic AI anchors for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: Anna, robot)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: Anna, robot)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: Anna, robot)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: Kai)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: Lena)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, Hamburg-area prices, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\"\n    ]\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
+const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, ask_david, get_question_status\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";

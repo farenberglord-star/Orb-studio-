@@ -115,6 +115,7 @@ T = [
 ("Пример: изменения маршрутов танкеров в Красном море", "Beispiel: geänderte Tankerrouten im Roten Meer", "Example: tanker routes shift in the Red Sea"),
 # --- ведущие ---
 ("ДАВИД", "DAVID", "DAVID"), ("АННА", "ANNA", "ANNA"), ("КАЙ", "KAI", "KAI"), ("ЛЕНА", "LENA", "LENA"),
+("Ведущий Orb Studio · все радары", "Moderator von Orb Studio · alle Radare", "Orb Studio anchor · all radars"),
 ("Робот-ведущая эфира: бюджет, геополитика, политика, экономика", "Roboter-Moderatorin: Budget, Geopolitik, Politik, Wirtschaft", "Robot anchor: budget, geopolitics, politics, economy"),
 ("видео 9:16, TikTok/YouTube", "Video 9:16, TikTok/YouTube", "9:16 video, TikTok/YouTube"),
 ("видео + короткие клипы", "Video + kurze Clips", "video + short clips"), ("видео 9:16", "Video 9:16", "9:16 video"),

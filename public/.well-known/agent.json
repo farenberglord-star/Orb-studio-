@@ -1,6 +1,6 @@
 {
   "name": "Orb Studio",
-  "description": "News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy) with AI anchors for humans — main anchor Anna (robot) — and a machine anchor ORB-7 for AI agents.",
+  "description": "News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, Hamburg-area prices, music, radar archive.",
   "url": "https://orbstudio.org/",
   "languages": [
     "ru",
@@ -9,34 +9,23 @@
   ],
   "anchors": [
     {
-      "id": "anna",
-      "kind": "robot",
-      "radars": [
-        "budget",
-        "geo",
-        "politics",
-        "economy"
-      ]
-    },
-    {
       "id": "david",
       "kind": "human",
-      "radar": "geo"
-    },
-    {
-      "id": "kai",
-      "kind": "human",
-      "radar": "crypto"
-    },
-    {
-      "id": "lena",
-      "kind": "human",
-      "radar": "energy"
+      "radars": [
+        "geo",
+        "politics",
+        "economy",
+        "budget",
+        "crypto",
+        "energy"
+      ],
+      "episodes": "https://orbstudio.org/api/v1/david/episodes",
+      "channel": "https://www.tiktok.com/@aidavidatudio"
     },
     {
       "id": "orbi",
       "kind": "robot",
-      "radar": "all",
+      "radar": "web",
       "page": "https://orbstudio.org/orbi"
     },
     {
