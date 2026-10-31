@@ -871,7 +871,7 @@ async function agentIndices(env, ctx, origin) {
 // а когда автор присылает текст выпуска — реплики RU/DE, тема и источники (D1 shared, ключ david-episodes).
 const tiktokDate = (id) => { try { return new Date(Number(BigInt(id) >> 32n) * 1000).toISOString().slice(0, 10); } catch { return null; } };
 async function davidEpisodes(env, ctx, origin) {
-  const cache = caches.default, key = new Request(origin + "/__cache/david-episodes-v1");
+  const cache = caches.default, key = new Request(origin + "/__cache/david-episodes-v2");
   const hit = await cache.match(key);
   if (hit) return hit.json();
   const cfg = (await sharedGet(env, "david-tiktok", 1e13)) || {};
@@ -896,6 +896,9 @@ async function davidEpisodes(env, ctx, origin) {
       id, date: e.date || tiktokDate(id), title: e.title || e.caption || null, caption: e.caption || null,
       topic: e.topic || null, summary: e.summary || null,
       transcript: e.transcript || null, // { ru: [...], de: [...] } — реплики Давида по слотам
+      visuals: e.visuals || null, // что видно на экране по слотам (для агентов, которые не смотрят видео)
+      style: e.style || null,
+      answers_question: e.answers_question ? { id: e.answers_question, check_url: `https://orbstudio.org/api/v1/questions/${e.answers_question}` } : null,
       sources: e.sources || [], thumbnail: e.thumbnail || null,
       tiktok_url: `https://www.tiktok.com/@${user}/video/${id}`,
       watch_url: `https://orbstudio.org/go/tiktok?v=${id}&from=api`,
