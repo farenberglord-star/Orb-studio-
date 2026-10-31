@@ -1404,7 +1404,8 @@ async function bridgeInstruments(env, radars) {
   // Арбитр: доля главных заголовков, которые подтверждает только одно издание
   const ver = radars.flatMap((r) => r.verify || []);
   const singlePct = ver.length ? 100 * ver.filter((n) => n <= 1).length / ver.length : null;
-  const infoLvl = singlePct == null ? kwLvl : clamp(0.6 * singlePct + 0.4 * kwLvl);
+  // В стрелку не входит: ленты радаров — в основном отдельные издания, поэтому «один источник» пока говорит о составе лент, а не о мире
+  const infoLvl = kwLvl;
   let infoPrev = infoLvl;
   if (env.DB) {
     try {
@@ -1424,7 +1425,7 @@ async function bridgeInstruments(env, radars) {
     }
     const tr = trendOf(lvl, prev);
     return { id: ins.id, name_ru: ins.ru, name_en: ins.en, level: lvl, ...(ins.id === "info" && singlePct != null ? { single_source_pct: Math.round(singlePct) } : {}), delta_24h: lvl - prev, trend: tr.id, trend_ru: tr.ru, arrow: tr.arrow, severity: severity(lvl),
-      based_on: ins.id === "info" ? "60% share of top headlines confirmed by only one outlet (Arbiter) + 40% share of headlines about disinformation, fakes and censorship" : ins.radars.map((r) => r + " radar").join(" + ") };
+      based_on: ins.id === "info" ? "share of headlines about disinformation, fakes and censorship across all radars; single_source_pct (Arbiter) is shown for reference and not included in the level" : ins.radars.map((r) => r + " radar").join(" + ") };
   });
 }
 function consensusOf(t) {

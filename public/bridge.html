@@ -277,7 +277,7 @@ function gauge(i){
   return `<div class="gauge"><svg viewBox="0 0 140 78" role="img" aria-label="${esc(i.name_ru)}: ${i.level} из 100, ${esc(i.trend_ru)}">${arc(0,44.5,'#4fd8a4')}${arc(45,69.5,'#ffb547')}${arc(70,100,'#ff5d7a')}
     <line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${lvlColor(i.level).replace('var(--hot)','#ff5d7a').replace('var(--warm)','#ffb547').replace('var(--up)','#4fd8a4')}" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="5" fill="#e4ebf8"/></svg>
     <div class="v" style="color:${lvlColor(i.level)}">${i.level}</div><div class="nm">${esc(i.name_ru)}</div>
-    <span class="tr ${i.trend}">${i.arrow} ${esc(i.trend_ru)}${i.delta_24h?` <small>${i.delta_24h>0?'+':''}${i.delta_24h}</small>`:''}</span>${i.single_source_pct!=null?`<div class="sub">1 источник: ${i.single_source_pct}% заголовков</div>`:''}</div>`;
+    <span class="tr ${i.trend}">${i.arrow} ${esc(i.trend_ru)}${i.delta_24h?` <small>${i.delta_24h>0?'+':''}${i.delta_24h}</small>`:''}</span>${i.single_source_pct!=null?`<div class="sub">Арбитр: ${i.single_source_pct}% новостей пока с 1 источником</div>`:''}</div>`;
 }
 function cmap(m){
   const W=300,P=30,S=W-P-10,X=v=>P+v/100*S,Y=v=>10+(100-v)/100*S;
