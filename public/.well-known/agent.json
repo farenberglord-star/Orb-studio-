@@ -1,6 +1,6 @@
 {
   "name": "Orb Studio",
-  "description": "News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, Hamburg-area prices, music, radar archive.",
+  "description": "News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.",
   "url": "https://orbstudio.org/",
   "languages": [
     "ru",
@@ -79,7 +79,8 @@
       "vote_top_story",
       "get_vote_results",
       "get_history"
-    ]
+    ],
+    "registry_name": "io.github.farenberglord-star/orb-studio"
   },
   "partners": [
     {
