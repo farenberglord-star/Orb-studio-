@@ -215,7 +215,7 @@ async function fetchFeedNow(url) {
       let title = tag(b, "title");
       let source = tag(b, "source");
       // Google News: "Заголовок - Издание"
-      if (!source && / - [^-]+$/.test(title)) source = title.split(" - ").pop();
+      if (!source && url.includes("news.google.com") && / - [^-]+$/.test(title)) source = title.split(" - ").pop(); // только Google News: «Заголовок - Издание»
       if (source && title.endsWith(" - " + source)) title = title.slice(0, -(source.length + 3));
       if (!source) source = new URL(url).hostname.replace(/^www\.|^feeds\./, "");
       const pub = Date.parse(tag(b, "pubDate")) || Date.now();
