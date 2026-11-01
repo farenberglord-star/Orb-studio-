@@ -2429,6 +2429,14 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe")) {
+        const res = [];
+        for (const u of ["https://ll.thespacedevs.com/2.3.0/launch/upcoming/?lsp__name=SpaceX&limit=2", "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=2", "https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=2"]) {
+          try { const r = await fetch(u, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } }); res.push({ u, status: r.status, body: (await r.text()).slice(0, 300) }); }
+          catch (e) { res.push({ u, error: String(e).slice(0, 200) }); }
+        }
+        return json(res, H);
+      }
       let sx = null; try { sx = await spacexLaunches(env); } catch (e) { sx = { error: String(e) }; }
       return json({ events: d.events, feeds: out, cached: fc.map.size, spacex: sx && { up: (sx.up || []).length, past: (sx.past || []).length, first: (sx.up || [])[0] || null } }, H);
     }
