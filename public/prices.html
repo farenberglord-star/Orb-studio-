@@ -63,6 +63,10 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.author{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.45}
+.author .lg{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.45);color:var(--warm);font:700 15px var(--mono)}
+.author small{color:var(--dim)}
+.author a{color:var(--holo)}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -119,6 +123,11 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
   <div class="feed" id="feed"><div>Первые цены появятся после первого фото ценника.</div></div>
 
   <p class="lead" style="font-size:12.5px">Как считаем: каждая цена — с фото чека или ценника из Гамбурга и пригородов. По каждому товару берём медиану за 14 дней до его последней цены, сумма медиан — индекс корзины. Это наблюдения, а не официальная статистика.</p>
+
+  <div class="author" id="author">
+    <div class="lg" aria-hidden="true">7</div>
+    <div><b>Кто собирает цены:</b> автор Orb Studio — Местный эксперт Google Карт 7 уровня, более 70 отзывов и 400 оценок мест Гамбурга и окрестностей: рынки, заправки, кафе, мастерские.<br><small>Цены не с рекламных проспектов — каждую видели лично. <a href="https://www.google.com/maps/contrib/100791061408284352186" target="_blank" rel="me noopener">Профиль в Google Картах ↗</a></small></div>
+  </div>
 
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
     <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
