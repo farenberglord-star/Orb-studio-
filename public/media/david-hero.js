@@ -39,7 +39,9 @@
       rs.slice(0,4).forEach(function(r){ lines.push(NAMES[r.id]+': '+r.risk_index+', '+trend(r.delta_24h||0)+'.'); });
     }).catch(function(){}).then(function(){
       var sy=document.getElementById('say'), t=sy&&sy.textContent.trim();
-      if(t&&!/[а-яё]/i.test(t)) lines.push('Das Hauptthema: '+t.slice(0,220));
+      // заголовок читаем только на немецкой странице: немецкий голос не должен читать русский или английский текст
+      var de=/^de/i.test(document.documentElement.lang||'');
+      if(t&&de&&!/[а-яё]/i.test(t)) lines.push('Das Hauptthema: '+t.slice(0,220));
       lines.push('Das war der Überblick. Bis gleich.');
       say(lines,0);
     });
