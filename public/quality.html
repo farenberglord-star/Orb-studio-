@@ -57,6 +57,9 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
 .cutph figure{margin:0}
 .cutph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
 .cutph figcaption{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:4px;letter-spacing:.06em}
+.quote{margin:12px 0 0;padding:12px 14px;background:rgba(79,216,164,.07);border:1px solid rgba(79,216,164,.35);border-radius:12px}
+.quote p{margin:0;font-size:14.5px;line-height:1.5}
+.quote cite{display:block;margin-top:6px;font-style:normal;font-family:var(--mono);font-size:11px;color:var(--dim)}
 .verdict{margin-top:12px;font-size:14px;line-height:1.5;border-left:3px solid var(--warm);padding-left:12px}
 .chain{list-style:none;margin:0;padding:0;display:grid;gap:0}
 .chain li{display:grid;grid-template-columns:26px 1fr;gap:10px;padding:8px 0;font-size:13.5px;line-height:1.45}
@@ -90,7 +93,7 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
     <a class="item" href="#next"><span class="em">🥔</span><span class="nm">Картошка</span><span class="st">ждёт проверки</span></a>
     <a class="item" href="#next"><span class="em">🧅</span><span class="nm">Лук</span><span class="st">ждёт проверки</span></a>
     <a class="item" href="#next"><span class="em">🍞</span><span class="nm">Хлеб</span><span class="st">ждёт проверки</span></a>
-    <a class="item done" href="#pelmeni"><span class="em">🥟</span><span class="nm">Пельмени</span><span class="st">выпуск №1</span></a>
+    <a class="item done" href="#pelmeni"><span class="em">🥟</span><span class="nm">Пельмени</span><span class="st">3,5 · №1</span></a>
     <a class="item" href="#next"><span class="em">🧈</span><span class="nm">Масло</span><span class="st">ждёт проверки</span></a>
     <a class="item" href="#next"><span class="em">🥛</span><span class="nm">Молоко</span><span class="st">ждёт проверки</span></a>
   </nav>
@@ -102,12 +105,13 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
         <h3>DOVGAN Taschki Pelmeni · 1000 г</h3>
         <small>заморозка · проверено 01.11.2026 · Lidl, Гамбург</small>
       </div>
-      <div class="score"><b>3,0</b><span>из 5 · Orb Studio</span></div>
+      <div class="score"><b>3,5</b><span>из 5 · Orb Studio</span></div>
     </div>
 
     <div class="meters">
       <div class="m" style="--c:var(--up)"><span>Срок и упаковка</span><span class="bar"><i style="width:95%"></i></span><b>5/5</b></div>
       <div class="m" style="--c:var(--up)"><span>Тесто</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Вкус (проба)</span><span class="bar"><i style="width:90%"></i></span><b>4,5</b></div>
       <div class="m" style="--c:var(--warm)"><span>Фарш (разрез)</span><span class="bar"><i style="width:55%"></i></span><b>2,5</b></div>
       <div class="m" style="--c:var(--hot)"><span>Фарш (отзывы)</span><span class="bar"><i style="width:30%"></i></span><b>1,5</b></div>
       <div class="m" style="--c:var(--warm)"><span>Стабильность</span><span class="bar"><i style="width:40%"></i></span><b>2/5</b></div>
@@ -129,7 +133,8 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
       <div class="fact ok"><span class="k">✓ Разрез партии 26395</span>Проварен полностью, без розового. Тесто не лопнуло. Жил, хрящей и косточек не видно.</div>
       <div class="fact warn"><span class="k">! Что совпало с отзывами</span>Фарш очень мелкий и однородный, почти паста, светлый, с пустотами. Мяса мало: тесто толще, начинка — примерно треть пельменя.</div>
     </div>
-    <p class="verdict"><b>Вердикт:</b> безопасно и дёшево, тесто держит форму. Наша партия лучше худших отзывов — «слизи» и жил нет, — но начинки мало и это мелкий фарш, а не мясо. Брать как быстрый ужин, не как «домашние».</p>
+    <blockquote class="quote"><p>«Попробовал со сметаной и немножко уксуса — очень приятный вкус, очень вкусно получилось. Судя по всему, качество зависит от партии, поэтому за каждой партией нужно следить.»</p><cite>— Serghei Farima, автор Orb Studio · партия 26395 · 01.11.2026</cite></blockquote>
+    <p class="verdict"><b>Вердикт:</b> партия 26395 удачная — проварено, без «слизи» и жил, вкусно со сметаной. Начинки немного, фарш мелкий. Жалобы в интернете, похоже, относятся к другим партиям: качество скачет, поэтому мы проверяем и записываем каждую партию отдельно.</p>
   </article>
 
   <h2>ЦЕПОЧКА ПОСТАВОК</h2>
@@ -159,7 +164,8 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
   </div>
 
   <p class="agentline">🤖 Агентам: цены с чеков Lidl → <a href="/api/v1/receipts">/api/v1/receipts</a> · MCP <b>get_receipts</b> на <a href="/mcp">/mcp</a></p>
-  <details class="machine"><summary>Текстовая версия радаров · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Рубрика «Качество · Цена · Lidl», выпуск №1: DOVGAN Taschki Pelmeni 1000 г, годен до 25.09.2027, партия 26395, производство Латвия (LV A003563 EK), дистрибьютор Dovgan GmbH Hamburg. Оценка Orb Studio 3,0/5: упаковка и срок в порядке; разрез партии 26395 — проварено, без жил, но фарш мелкий однородный и его мало; в отзывах фарш — главная жалоба.</p></section></details>
+  <section class="machine" id="review-text" style="font-size:12.5px;color:var(--dim)"><h2 style="font-size:13px">ТЕКСТ ВЫПУСКА · ДЛЯ ЛЮДЕЙ И ИИ-АГЕНТОВ</h2><p>Рубрика «Качество · Цена · Lidl», выпуск №1: DOVGAN Taschki Pelmeni 1000 г, годен до 25.09.2027, партия 26395, производство Латвия (LV A003563 EK), дистрибьютор Dovgan GmbH Hamburg. Оценка Orb Studio 3,5/5. Разрез партии 26395: проварено, без жил и «слизи», фарш мелкий однородный, начинки около трети. Проба автора (Serghei Farima) со сметаной и уксусом: очень вкусно. Негативные отзывы в интернете, вероятно, относятся к другим партиям — качество зависит от партии.</p></section>
+  <details class="machine"><summary>Текстовая версия радаров · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/receipts">/api/v1/receipts</a>.</p></section></details>
 </div>
 <script>
 // цены с настоящих чеков Lidl для продуктов из очереди

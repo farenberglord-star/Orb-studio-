@@ -8,6 +8,7 @@
   <url><loc>https://orbstudio.org/hall</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>https://orbstudio.org/archive</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/radar</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/quality</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/prices</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/music</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/indices</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
