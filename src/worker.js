@@ -2277,10 +2277,14 @@ async function spacexLaunches(env) {
   const c = await sharedGet(env, "ll2-spacex", 30 * 60e3);
   if (c) return c;
   const get = async (kind) => {
-    for (const v of ["2.3.0", "2.2.0"]) {
+    // основной сервер ограничивает бесплатные запросы по IP (у Cloudflare адреса общие), поэтому есть запасные адреса
+    const q = `?lsp__name=SpaceX&limit=${kind === "upcoming" ? 10 : 8}`;
+    const urls = [`https://ll.thespacedevs.com/2.3.0/launches/${kind}/${q}`, `https://ll.thespacedevs.com/2.2.0/launch/${kind}/${q}`,
+      `https://lldev.thespacedevs.com/2.3.0/launches/${kind}/${q}`, `https://lldev.thespacedevs.com/2.2.0/launch/${kind}/${q}`];
+    for (const u of urls) {
       try {
-        const r = await fetch(`https://ll.thespacedevs.com/${v}/launch/${kind}/?lsp__name=SpaceX&limit=${kind === "upcoming" ? 8 : 6}`, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
-        if (r.ok) { const j = await r.json(); if (Array.isArray(j.results)) return j.results; }
+        const r = await fetch(u, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
+        if (r.ok) { const j = await r.json(); if (Array.isArray(j.results)) return j.results.filter((l) => /spacex/i.test(JSON.stringify(l.launch_service_provider || l.lsp_name || "")) || /falcon|starship|starlink/i.test(l.name || "")); }
       } catch (e) {}
     }
     return null;
@@ -2431,8 +2435,8 @@ async function handleLive(url, request, env, ctx) {
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
       if (url.searchParams.get("probe")) {
         const res = [];
-        for (const u of ["https://ll.thespacedevs.com/2.3.0/launch/upcoming/?lsp__name=SpaceX&limit=2", "https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=2", "https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=2"]) {
-          try { const r = await fetch(u, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } }); res.push({ u, status: r.status, body: (await r.text()).slice(0, 300) }); }
+        for (const u of ["https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__name=SpaceX&limit=2", "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/?lsp__name=SpaceX&limit=2", "https://lldev.thespacedevs.com/2.3.0/launches/previous/?lsp__name=SpaceX&limit=2"]) {
+          try { const r = await fetch(u, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } }); const t = await r.text(); let brief = t.slice(0, 300); try { brief = (JSON.parse(t).results || []).map((l) => [l.name, l.net, l.status && l.status.abbrev, typeof l.image]); } catch (e) {} res.push({ u, status: r.status, body: brief }); }
           catch (e) { res.push({ u, error: String(e).slice(0, 200) }); }
         }
         return json(res, H);
