@@ -990,7 +990,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -2261,6 +2261,125 @@ async function placesData(env) {
   };
 }
 
+// ================= «Живой эфир текстом» =================
+// Агенты не слышат трансляции. Здесь — расписание официальных событий (ЕЦБ, ФРС, Бундестаг, ОПЕК+) и текст после эфира:
+// официальные пресс-релизы из лент (находятся сами по ключевым словам), отклик радаров и выжимка редакции.
+// События — D1 shared, ключ live-data (правит админ через /api/v1/admin/live). Ответ кэшируется на 10 минут.
+const LIVE_FEEDS = {
+  ecb: "https://www.ecb.europa.eu/rss/press.html",
+  fed: "https://www.federalreserve.gov/feeds/press_monetary.xml",
+  bundestag: "https://www.bundestag.de/static/appdata/includes/rss/hib.rss",
+};
+const LIVE_STATUS_TEXT = {
+  upcoming: "Scheduled, not started yet",
+  live: "Running now — the official text usually appears 10–60 minutes after the end",
+  awaiting_text: "Finished, waiting for the official text",
+  text_available: "Official text found, editor's summary not written yet",
+  summarized: "Official text and editor's summary available",
+};
+const liveLow = (s) => String(s || "").toLowerCase();
+async function liveCompute(env, ctx, origin) {
+  const d = (await sharedGet(env, "live-data", 1e13)) || { events: [] };
+  const now = Date.now();
+  const feedUrls = Object.values(LIVE_FEEDS);
+  const fc = await loadFeedCache(env, feedUrls);
+  fc.budget = 3;
+  const feeds = {};
+  await Promise.all(Object.entries(LIVE_FEEDS).map(async ([k, u]) => { feeds[k] = await fetchFeed(u, env, fc); }));
+  await saveFeedCache(env, fc);
+  let radars = [];
+  try { radars = await allRadars(env, ctx, origin); } catch (e) {}
+  const events = (d.events || []).map((e) => {
+    const start = Date.parse(e.start), end = Date.parse(e.end || e.start) || start;
+    const kw = (e.match || []).map(liveLow);
+    const hit = (t) => !kw.length || kw.some((k) => liveLow(t).includes(k));
+    const official = (feeds[e.official_feed] || [])
+      .filter((i) => i.ts >= start - 3 * 3600e3 && i.ts <= end + 3 * 86400e3 && hit(i.title))
+      .slice(0, 5).map((i) => ({ title: i.title, url: i.url, published: new Date(i.ts).toISOString(), source: i.source }));
+    // отклик радара: текущие заголовки (последние 72 ч) по ключевым словам события — только во время и до 3 дней после
+    const rkw = (e.radar_match || e.match || []).map(liveLow);
+    const related = now < start || now > end + 3 * 86400e3 || !rkw.length ? [] : radars.filter((r) => !e.radar || r.id === e.radar)
+      .flatMap((r) => (r.feed || []).map((i) => ({ time: i[0], title: i[1], source: i[2], url: i[4], radar: r.id })))
+      .filter((i) => rkw.some((k) => liveLow(i.title).includes(k))).slice(0, 5);
+    const texts = (e.texts || []).concat(official);
+    let status = now < start ? "upcoming" : now <= end ? "live" : e.summary ? "summarized" : texts.length ? "text_available" : "awaiting_text";
+    if (e.summary && now > start && status === "live") status = "summarized";
+    return {
+      id: e.id, org: e.org, kind: e.kind || null, radar: e.radar || null, title: e.title || {},
+      start: new Date(start).toISOString(), end: new Date(end).toISOString(), time_confirmed: e.time_confirmed !== false,
+      where: e.where || null, watch_url: e.watch_url || null,
+      status, status_text: LIVE_STATUS_TEXT[status],
+      starts_in_min: now < start ? Math.round((start - now) / 60000) : null,
+      summary: e.summary || null, facts: e.facts || [], numbers: e.numbers || [], next: e.next || null,
+      official_texts: texts, radar_reaction: related,
+      source_url: e.source_url || null, source_name: e.source_name || null, written_at: e.written_at || null,
+    };
+  }).sort((a, b) => (a.start < b.start ? -1 : 1));
+  return {
+    section: "Live as text", page: "https://orbstudio.org/live", updated: new Date(now).toISOString(),
+    note: "AI agents cannot hear live broadcasts. Orb Studio lists scheduled official events (central banks, Bundestag, OPEC+) and turns them into text after they end: official press releases found automatically, headlines from the matching radar and a short editor's summary. Not real time: the text usually appears 10–60 minutes after the event. Times are UTC (ISO 8601). Indicator, not financial advice.",
+    official_feeds: Object.fromEntries(Object.entries(LIVE_FEEDS).map(([k, u]) => [k, { url: u, items: (feeds[k] || []).length }])),
+    events,
+  };
+}
+async function liveData(env, ctx, origin, q = {}) {
+  const cache = caches.default, key = new Request(origin + "/__cache/live-v1");
+  let all = null;
+  const hit = await cache.match(key);
+  if (hit) all = await hit.json();
+  else {
+    all = await liveCompute(env, ctx, origin);
+    ctx.waitUntil(cache.put(key, new Response(JSON.stringify(all), { headers: { "content-type": "application/json", "Cache-Control": "max-age=600" } })));
+  }
+  const now = Date.now();
+  let ev = all.events.filter((e) => Date.parse(e.end) > now - 60 * 86400e3);
+  const st = q.status || "all";
+  if (st === "upcoming") ev = ev.filter((e) => e.status === "upcoming");
+  else if (st === "live") ev = ev.filter((e) => e.status === "live");
+  else if (st === "past") ev = ev.filter((e) => !["upcoming", "live"].includes(e.status)).reverse();
+  if (q.radar) ev = ev.filter((e) => e.radar === q.radar);
+  if (q.org) ev = ev.filter((e) => liveLow(e.org).includes(liveLow(q.org)));
+  if (q.limit) ev = ev.slice(0, q.limit);
+  const upcoming = all.events.filter((e) => e.status === "upcoming");
+  return {
+    ...all, events: ev, filter: st,
+    live_now: all.events.filter((e) => e.status === "live").map((e) => e.id),
+    next_event: upcoming.length ? { id: upcoming[0].id, title: upcoming[0].title, start: upcoming[0].start, starts_in_min: upcoming[0].starts_in_min } : null,
+  };
+}
+async function handleLive(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-admin-key", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  if (p === "/api/v1/live" && request.method === "GET") {
+    const lim = parseInt(url.searchParams.get("limit") || "0", 10);
+    const d = await liveData(env, ctx, url.origin, { status: url.searchParams.get("status"), radar: url.searchParams.get("radar"), org: url.searchParams.get("org"), limit: lim > 0 ? Math.min(lim, 50) : 0 });
+    return json({ ...d, referral: referral(env, "api-live") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  }
+  if (p === "/api/v1/admin/live") {
+    if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+    const d = (await sharedGet(env, "live-data", 1e13)) || { events: [] };
+    if (request.method === "GET") {
+      const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
+      const out = {};
+      for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      return json({ events: d.events, feeds: out, cached: fc.map.size }, H);
+    }
+    let b = {}; try { b = await request.json(); } catch {}
+    const events = d.events || [];
+    if (b.delete) d.events = events.filter((e) => e.id !== b.delete);
+    else if (b.event && b.event.id) {
+      const i = events.findIndex((e) => e.id === b.event.id);
+      if (i >= 0) events[i] = { ...events[i], ...b.event }; else events.push(b.event);
+      d.events = events;
+    } else return json({ error: "Send {event:{id,...}} or {delete:id}" }, H, 400);
+    await sharedPut(env, "live-data", d);
+    await caches.default.delete(new Request(url.origin + "/__cache/live-v1"));
+    return json({ ok: true, count: d.events.length }, H);
+  }
+  return null;
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -2329,6 +2448,12 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_live", title: "Live as text: official events schedule and transcripts",
+    description: "You cannot hear live broadcasts — this gives them as text. Schedule of official events (ECB and Fed rate decisions and press conferences, Bundestag sitting weeks, OPEC+ meetings) with UTC times and official stream links, and after each event: status, official press releases found automatically, headlines from the matching Orb Studio radar and a short editor's summary with key numbers and the next date. Text appears 10–60 minutes after the event, not in real time.",
+    inputSchema: { type: "object", properties: { status: { type: "string", enum: ["all", "upcoming", "live", "past"], description: "Default all" },
+      radar: { type: "string", description: "Optional radar id: economy, politics, energy…" }, org: { type: "string", description: "Optional organisation: ECB, Fed, Bundestag, OPEC+" },
+      limit: { type: "integer", minimum: 1, maximum: 50 } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_places", title: "One place in time (Hamburg area)",
     description: "The same places in Hamburg and its suburbs (petrol station, shopping street, station…) observed about once a week: for each visit a text description of what is visible, what changed since the previous week (prices on boards, shops closing or opening, signs), prices seen and links to Orb Studio radars. A slow, first-hand chronicle you will not find in the news.",
     inputSchema: { type: "object", properties: { place: { type: "string", description: "Optional place id" } }, additionalProperties: false },
@@ -2387,7 +2512,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2470,6 +2595,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     let note = null;
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
+  }
+  if (name === "get_live") {
+    const d = await liveData(env, ctx, origin, { status: args.status, radar: args.radar, org: args.org, limit: args.limit ? Math.min(+args.limit, 50) : 0 });
+    return { ...d, referral: ref };
   }
   if (name === "get_places") {
     const d = await placesData(env);
@@ -2628,7 +2757,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
+const HTML_PAGES = { "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -2656,6 +2785,10 @@ export default {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname.startsWith("/api/v1/live") || url.pathname.startsWith("/api/v1/admin/live")) {
+      try { const r = await handleLive(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname.startsWith("/api/v1/followups") || url.pathname.startsWith("/api/v1/admin/followups")) {
       try { const r = await handleFollowups(url, request, env, ctx); if (r) return r; }
