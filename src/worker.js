@@ -2457,15 +2457,20 @@ const WORLD_OWN = {
 };
 // слова, которые есть почти в любом заголовке и не делают тему
 const WORLD_STOP = new Set("news live latest update updates world week today says said report reports video watch first year years after amid over says new more than could would will also into from with about their they what when where which while this that these those people police government minister president leaders country countries state states official officials talks says".split(" "));
-// значимые слова заголовка: основа из 5 букв (germany/german → germa, violent/violence → viole) + исходное слово для подписи
+// значимые слова заголовка: основа из 6 букв (germany/german → german, violent/violence → violen);
+// caps — слова с заглавной буквы не в начале заголовка (имена, страны, компании), если заголовок не «Каждое Слово С Заглавной»
 function worldTokens(title) {
-  const out = new Map();
-  for (const w of String(title).replace(/[‘’“”"'`]/g, " ").split(/[^A-Za-zÀ-ÿ0-9-]+/)) {
+  const out = new Map(), caps = new Set();
+  const words = String(title).replace(/[‘’“”"'`]/g, " ").split(/[^A-Za-zÀ-ÿ0-9-]+/).filter(Boolean);
+  const titleCase = words.filter((w) => /^[A-ZÀ-Þ]/.test(w)).length > words.length * 0.6;
+  words.forEach((w, idx) => {
     const lw = w.toLowerCase().replace(/-/g, "");
-    if (lw.length < 4 || WORLD_STOP.has(lw) || STOP.has(lw) || /^\d+$/.test(lw)) continue;
-    const st = lw.slice(0, 5);
+    if (lw.length < 4 || WORLD_STOP.has(lw) || STOP.has(lw) || /^\d+$/.test(lw)) return;
+    const st = lw.slice(0, 6);
     if (!out.has(st)) out.set(st, lw);
-  }
+    if (!titleCase && idx > 0 && /^[A-ZÀ-Þ]/.test(w)) caps.add(st);
+  });
+  out.caps = caps;
   return out;
 }
 async function worldCompute(env) {
@@ -2485,8 +2490,12 @@ async function worldCompute(env) {
   // тема — история, о которой пишут не меньше 3 станций за последние 18 часов
   const recent = items.filter((i) => now - i.ts < 18 * 3600e3);
   // без цепочек: у темы есть центральный заголовок, и в неё входят только заголовки, похожие именно на него (2+ общих слова)
+  // имена собственные по всем заголовкам с обычным написанием
+  const proper = new Set(); for (const i of recent) for (const t of i.tok.caps) proper.add(t);
   const ov = (x, y) => { let n = 0; for (const t of x.tok.keys()) if (y.tok.has(t)) n++; return n; };
-  const nb = recent.map((x) => recent.filter((y) => y.st !== x.st && ov(x, y) >= 2));
+  // похожи: 2+ общих слова, и среди них есть имя собственное (страна, город, компания, человек); или 4+ общих слова
+  const like = (x, y) => { let n = 0, p = false; for (const t of x.tok.keys()) if (y.tok.has(t)) { n++; if (proper.has(t)) p = true; } return n >= 4 || (n >= 2 && p); };
+  const nb = recent.map((x) => recent.filter((y) => y.st !== x.st && like(x, y)));
   const taken = new Set(), groupsArr = [];
   const order = recent.map((_, k) => k).sort((a, b) => new Set(nb[b].map((y) => y.st)).size - new Set(nb[a].map((y) => y.st)).size);
   for (const k of order) {
