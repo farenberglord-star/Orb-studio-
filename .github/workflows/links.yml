@@ -1,0 +1,34 @@
+name: Проверка ссылок
+
+# Ищет битые ссылки во всех страницах сайта и README.
+# Запускается при изменении страниц, раз в неделю и вручную.
+# Сайты, которые блокируют ботов (Kraken, Starlink, соцсети), не считаются ошибкой
+# при ответах 403/429 — проверяется только, что адрес вообще существует.
+
+on:
+  push:
+    branches: [main]
+    paths: ["public/**", "README.md"]
+  schedule:
+    - cron: "43 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --root-dir ${{ github.workspace }}/public
+            --accept 200..=299,403,429
+            --max-retries 2
+            --timeout 20
+            --exclude-path public/admin.html
+            'public/**/*.html'
+            README.md
+          fail: true

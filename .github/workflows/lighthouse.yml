@@ -1,0 +1,34 @@
+name: Lighthouse (скорость и SEO)
+
+# Проверяет живой сайт orbstudio.org: скорость, SEO, доступность, лучшие практики.
+# Запускается после каждого обновления (с паузой, пока Cloudflare выкладывает версию),
+# раз в неделю и вручную (Actions → Lighthouse → Run workflow).
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: [".github/**", "README.md"]
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Подождать деплой Cloudflare
+        if: github.event_name == 'push'
+        run: sleep 150
+
+      - name: Lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://orbstudio.org/
+            https://orbstudio.org/prices
+            https://orbstudio.org/radar
+            https://orbstudio.org/bridge
+            https://orbstudio.org/hall
+          runs: 1
+          uploadArtifacts: true
+          temporaryPublicStorage: true
