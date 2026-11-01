@@ -2334,7 +2334,7 @@ function spacexEvent(l, src) {
 function geminiEvents(feeds) {
   const seen = new Set(), out = [];
   for (const k of ["google", "deepmind"]) for (const i of feeds[k] || []) {
-    if (!/gemini/i.test(i.title) || Date.now() - i.ts > 21 * 86400e3) continue;
+    if (!/gemini/i.test(i.title) || /^(how to|\d+ (ways|tips))\b/i.test(i.title) || Date.now() - i.ts > 21 * 86400e3) continue;
     const key = i.title.toLowerCase().slice(0, 50); if (seen.has(key)) continue; seen.add(key);
     out.push({ id: "google-" + i.ts.toString(36), org: k === "deepmind" ? "Google DeepMind" : "Google", kind: "announcement", radar: "web", auto: true,
       start: new Date(i.ts).toISOString(), end: new Date(i.ts).toISOString(), time_confirmed: true,
@@ -2342,7 +2342,7 @@ function geminiEvents(feeds) {
       texts: [{ title: i.title, url: i.url, source: i.source, published: new Date(i.ts).toISOString() }],
       official_feed: null, match: [], radar_match: ["gemini"], source_url: i.url, source_name: k === "deepmind" ? "Google DeepMind blog" : "Google blog" });
   }
-  return out.slice(0, 6);
+  return out.slice(0, 4);
 }
 const LIVE_STATUS_TEXT = {
   upcoming: "Scheduled, not started yet",
@@ -2365,7 +2365,8 @@ async function liveCompute(env, ctx, origin) {
   try { radars = await allRadars(env, ctx, origin); } catch (e) {}
   let launches = { up: [], past: [] };
   try { launches = await spacexLaunches(env); } catch (e) {}
-  const auto = [...launches.past, ...launches.up].filter((l) => l && l.net).map((l) => spacexEvent(l, launches.src)).concat(geminiEvents(feeds)).filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i);
+  // без даты (статус TBD, «конец месяца 00:00») — не показываем; будущие — только с датой Go/TBC или в ближайшие 3 недели
+  const auto = [...launches.past, ...launches.up.filter((l) => l && l.status !== "TBD" && (["Go", "TBC"].includes(l.status) || Date.parse(l.net) - Date.now() < 21 * 86400e3))].filter((l) => l && l.net).map((l) => spacexEvent(l, launches.src)).concat(geminiEvents(feeds)).filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i);
   const events = (d.events || []).concat(auto.filter((a) => !(d.events || []).some((e) => e.id === a.id))).map((e) => {
     const start = Date.parse(e.start), end = Date.parse(e.end || e.start) || start;
     const kw = (e.match || []).map(liveLow);
