@@ -10,6 +10,7 @@
 <meta property="og:site_name" content="Orb Studio">
 <meta property="og:title" content="Чек дня · цены Гамбурга и окрестностей">
 <link rel="alternate" type="application/json" href="/api/v1/prices" title="Hamburg prices (JSON)">
+<link rel="alternate" type="application/json" href="/api/v1/receipts" title="Lidl receipts Hamburg (JSON)">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 :root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
@@ -67,6 +68,23 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .author .lg{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.45);color:var(--warm);font:700 15px var(--mono)}
 .author small{color:var(--dim)}
 .author a{color:var(--holo)}
+.rcpt{background:#f3efe4;color:#1d1b16;border-radius:6px;padding:16px 16px 12px;font:13px/1.45 var(--mono);box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:440px;position:relative}
+.rcpt:after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:8px;background:linear-gradient(-45deg,transparent 6px,#f3efe4 0) 0 0/12px 8px,linear-gradient(45deg,transparent 6px,#f3efe4 0) 0 0/12px 8px}
+.rcpt .hd{text-align:center;border-bottom:1px dashed #9a9384;padding-bottom:8px;margin-bottom:8px}
+.rcpt .hd b{font-size:16px;letter-spacing:.12em}
+.rcpt .row{display:flex;justify-content:space-between;gap:10px}
+.rcpt .row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rcpt .row.disc{color:#b0352b}
+.rcpt .ft{border-top:1px dashed #9a9384;margin-top:8px;padding-top:8px}
+.rcpt .ft .row:first-child{font-weight:700;font-size:15px}
+.rcpt small{color:#6b6556}
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.moves{grid-template-columns:1fr}}
+.moves>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;font-size:13px}
+.moves h3{margin:0 0 6px;font:600 12px var(--mono);letter-spacing:.08em}
+.moves .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--line)}
+.moves .row:first-of-type{border-top:0}
+.moves .up{color:var(--hot)}.moves .dn{color:var(--up)}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -113,6 +131,13 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <h1>🧾 ЧЕК ДНЯ · ГАМБУРГ И ОКРЕСТНОСТИ</h1>
   </div>
   <p class="lead">Реальные цены из магазинов, пекарен и заправок Гамбурга и пригородов — по фото ценников, чеков и табло на колонке: E10, E5, дизель и зарядка электромобиля. Не новости об инфляции, а то, что мы видим на кассе.</p>
+
+  <h2>ЧЕК ДНЯ · LIDL</h2>
+  <div class="rcpt" id="rcpt"><div class="hd"><b>LIDL</b><br><small>загрузка чека…</small></div></div>
+  <p class="lead" id="rcStat" style="font-size:12.5px;margin-top:14px"></p>
+
+  <h2>ЦЕНЫ МЕНЯЮТСЯ</h2>
+  <div class="moves"><div><h3 class="up">▲ ПОДОРОЖАЛО</h3><div id="mvUp"><small>—</small></div></div><div><h3 class="dn">▼ ПОДЕШЕВЕЛО</h3><div id="mvDn"><small>—</small></div></div></div>
 
   <div class="total"><div><span>Корзина Orb Studio · медианы за 14 дней</span><br><b id="tot">—</b></div><span id="totNote">данных пока нет</span></div>
 
@@ -189,6 +214,28 @@ document.addEventListener('click',e=>{
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_prices')==='1'}catch(e){}
 (seen?fetch('/api/v1/stats?page=prices'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"prices"}'}))
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_prices','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');}).catch(()=>{});
+</script>
+<script>
+(function(){
+  const e=(t)=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const eur=(x)=>x.toFixed(2).replace('.',',')+' €';
+  const dt=(d)=>{const [y,m,dd]=d.split('-');return dd+'.'+m+'.'+y};
+  fetch('/api/v1/receipts').then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.receipt_of_the_day)return;
+    const r=d.receipt_of_the_day;
+    let h='<div class="hd"><b>LIDL</b><br><small>'+e(r.branch)+' · '+dt(r.date)+'</small></div>';
+    for(const it of r.items){
+      h+='<div class="row"><span>'+(it.qty>1?it.qty+'× ':'')+e(it.name)+'</span><span>'+eur(it.price+(it.discount||0))+'</span></div>';
+      if(it.discount)h+='<div class="row disc"><span>&nbsp;&nbsp;скидка</span><span>−'+eur(it.discount)+'</span></div>';
+    }
+    h+='<div class="ft"><div class="row"><span>ИТОГО</span><span>'+eur(r.sum)+'</span></div>'+(r.discounts?'<div class="row disc"><span>сэкономлено</span><span>'+eur(r.discounts)+'</span></div>':'')+'<small>'+r.items.length+' позиций · без сигарет, залога и пакетов</small></div>';
+    document.getElementById('rcpt').innerHTML=h;
+    if(d.period)document.getElementById('rcStat').textContent='Архив: '+d.receipts_count+' настоящих чеков и '+d.items_count+' позиций с '+dt(d.period.from)+' по '+dt(d.period.to)+'. Названия — как напечатаны на кассе. Для агентов: /api/v1/receipts, MCP get_receipts.';
+    const mv=(list,cls)=>list.length?list.slice(0,6).map(c=>'<div class="row"><span>'+e(c.name)+'<br><small>'+eur(c.from)+' → '+eur(c.to)+(c.per==='kg'?' /кг':'')+'</small></span><b class="'+cls+'">'+(c.change_pct>0?'+':'')+String(c.change_pct).replace('.',',')+'%</b></div>').join(''):'<small>пока без изменений</small>';
+    document.getElementById('mvUp').innerHTML=mv(d.price_changes.up,'up');
+    document.getElementById('mvDn').innerHTML=mv(d.price_changes.dn||d.price_changes.down,'dn');
+  }).catch(()=>{});
+})();
 </script>
 <script src="/banners.js" defer></script>
 </body>
