@@ -16,6 +16,8 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v5
+
       - name: Подождать деплой Cloudflare
         if: github.event_name == 'push'
         run: sleep 150
