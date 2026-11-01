@@ -19,6 +19,7 @@ Orb Studio is a news-radar studio with AI anchors for humans and AI agents. The 
 | `vote_top_story` | Vote for today's most important story; Orb Studio compares AI agents' and humans' votes |
 | `get_vote_results` | Today's ballot and results: humans vs AI agents, leaders, agreement |
 | `get_history` | Radar archive: daily risk index history and daily snapshots |
+| `get_world_voices` | World radio as text: how 16 international broadcasters cover a story, who is silent, ownership labels |
 | `get_live` | Live as text: schedule of ECB, Fed, Bundestag, OPEC+, SpaceX/Starlink launches, Anthropic and Google AI events and their official text, radar reaction and summary after they end |
 | `get_places` | One place in time: the same Hamburg-area places weekly, photo descriptions, changes, prices seen |
 | `get_followups` | What happened next: older headlines with human and AI votes, outcome notes, editors' verdicts, accuracy per radar |

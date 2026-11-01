@@ -2426,6 +2426,113 @@ async function liveData(env, ctx, origin, q = {}) {
     next_event: upcoming.length ? { id: upcoming[0].id, title: upcoming[0].title, start: upcoming[0].start, starts_in_min: upcoming[0].starts_in_min } : null,
   };
 }
+// ================= «Мировой эфир текстом» (вкладка «Мир» в «Живом эфире») =================
+// 16 международных станций: свежие заголовки каждой, темы, о которых пишут сразу несколько станций (кто как назвал, кто молчит),
+// и пометка, чьё это СМИ. Рамки дня пишет редакция (D1 shared, ключ world-editor). Ответ кэшируется на 10 минут.
+const WORLD_STATIONS = [
+  { id: "bbc", name: "BBC", country: "GB", flag: "🇬🇧", own: "public", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
+  { id: "dw", name: "DW", country: "DE", flag: "🇩🇪", own: "state_funded", url: "https://rss.dw.com/rdf/rss-en-all" },
+  { id: "france24", name: "France 24", country: "FR", flag: "🇫🇷", own: "state_funded", url: "https://www.france24.com/en/rss" },
+  { id: "rfi", name: "RFI", country: "FR", flag: "🇫🇷", own: "state_funded", url: "https://www.rfi.fr/en/rss" },
+  { id: "euronews", name: "Euronews", country: "EU", flag: "🇪🇺", own: "private", url: "https://www.euronews.com/rss?level=theme&name=news" },
+  { id: "npr", name: "NPR", country: "US", flag: "🇺🇸", own: "public", url: "https://feeds.npr.org/1004/rss.xml" },
+  { id: "cbc", name: "CBC", country: "CA", flag: "🇨🇦", own: "public", url: "https://www.cbc.ca/webfeed/rss/rss-world" },
+  { id: "abc_au", name: "ABC Australia", country: "AU", flag: "🇦🇺", own: "public", url: "https://www.abc.net.au/news/feed/2942460/rss.xml" },
+  { id: "cna", name: "CNA", country: "SG", flag: "🇸🇬", own: "state_owned", url: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6311" },
+  { id: "aljazeera", name: "Al Jazeera", country: "QA", flag: "🇶🇦", own: "state_funded", url: "https://www.aljazeera.com/xml/rss/all.xml" },
+  { id: "cgtn", name: "CGTN", country: "CN", flag: "🇨🇳", own: "state", url: "https://www.cgtn.com/subscribe/rss/section/world.xml" },
+  { id: "scmp", name: "SCMP", country: "HK", flag: "🇭🇰", own: "private", url: "https://www.scmp.com/rss/91/feed" },
+  { id: "ndtv", name: "NDTV", country: "IN", flag: "🇮🇳", own: "private", url: "https://feeds.feedburner.com/ndtvnews-world-news" },
+  { id: "africanews", name: "Africanews", country: "CG", flag: "🌍", own: "private", url: "https://www.africanews.com/feed/rss" },
+  { id: "times_israel", name: "Times of Israel", country: "IL", flag: "🇮🇱", own: "private", url: "https://www.timesofisrael.com/feed/" },
+  { id: "meduza", name: "Meduza", country: "RU (exile, LV)", flag: "🇷🇺", own: "independent", url: "https://meduza.io/rss/en/all" },
+];
+const WORLD_OWN = {
+  public: "public broadcaster (licence fee or independent public funding)",
+  state_funded: "state-funded broadcaster with editorial charter",
+  state_owned: "owned by a state investment company",
+  state: "state media (government-controlled)",
+  private: "privately owned",
+  independent: "independent media, works in exile",
+};
+// слова, которые есть почти в любом заголовке и не делают тему
+const WORLD_STOP = new Set("news live latest update updates world week today says said report reports video watch first year years after amid over says new more than could would will also into from with about their they what when where which while this that these those people police government minister president leaders country countries state states official officials talks says".split(" "));
+function worldTokens(title) {
+  const out = new Set();
+  for (const w of String(title).replace(/[‘’“”"'`]/g, " ").split(/[^A-Za-zÀ-ÿ0-9-]+/)) {
+    const lw = w.toLowerCase();
+    if (lw.length < 4 || WORLD_STOP.has(lw) || STOP.has(lw) || /^\d+$/.test(lw)) continue;
+    out.add(lw.replace(/(?:'s|s)$/, "").slice(0, 10));
+  }
+  return out;
+}
+async function worldCompute(env) {
+  const fc = await loadFeedCache(env, WORLD_STATIONS.map((s) => s.url));
+  fc.budget = 18;
+  const lists = await Promise.all(WORLD_STATIONS.map((s) => fetchFeed(s.url, env, fc)));
+  await saveFeedCache(env, fc);
+  const now = Date.now();
+  const items = [];
+  const stations = WORLD_STATIONS.map((s, k) => {
+    const fresh = (lists[k] || []).filter((i) => i.title && now - i.ts < 30 * 3600e3 && i.ts < now + 3600e3).sort((a, b) => b.ts - a.ts);
+    for (const i of fresh) items.push({ st: s.id, title: i.title, url: i.url, ts: i.ts, tok: worldTokens(i.title) });
+    return { id: s.id, name: s.name, country: s.country, flag: s.flag, ownership: s.own, ownership_note: WORLD_OWN[s.own],
+      online: (lists[k] || []).length > 0, latest: fresh.slice(0, 3).map((i) => ({ title: i.title, url: i.url, published: new Date(i.ts).toISOString() })) };
+  });
+  // темы: слово, которое за последние 18 часов встречается в заголовках наибольшего числа разных станций (не меньше 3)
+  const recent = items.filter((i) => now - i.ts < 18 * 3600e3);
+  const df = new Map();
+  for (const i of recent) for (const t of i.tok) { if (!df.has(t)) df.set(t, new Set()); df.get(t).add(i.st); }
+  const cand = [...df.entries()].filter(([, s]) => s.size >= 3).sort((a, b) => b[1].size - a[1].size);
+  const topics = [], used = new Set();
+  for (const [tok] of cand) {
+    if (topics.length >= 4) break;
+    const group = recent.filter((i) => i.tok.has(tok));
+    const keys = group.map((i) => i.st + "|" + i.title);
+    if (keys.filter((k) => used.has(k)).length > keys.length / 2) continue; // та же история под другим словом
+    keys.forEach((k) => used.add(k));
+    // второе общее слово уточняет тему (france + murder → «France · murder»)
+    const co = new Map();
+    for (const i of group) for (const t of i.tok) if (t !== tok) co.set(t, (co.get(t) || new Set()).add(i.st));
+    const second = [...co.entries()].filter(([, s]) => s.size >= 2).sort((a, b) => b[1].size - a[1].size)[0];
+    const bySt = new Map();
+    for (const i of group.sort((a, b) => b.ts - a.ts)) if (!bySt.has(i.st)) bySt.set(i.st, i);
+    const covered = [...bySt.keys()];
+    topics.push({
+      key: tok, label: second ? `${tok} · ${second[0]}` : tok, stations_count: covered.length,
+      voices: covered.map((id) => { const s = WORLD_STATIONS.find((x) => x.id === id), i = bySt.get(id); return { station: s.name, station_id: id, flag: s.flag, ownership: s.own, title: i.title, url: i.url, published: new Date(i.ts).toISOString() }; }),
+      silent: stations.filter((s) => s.online && !covered.includes(s.id)).map((s) => s.name),
+    });
+  }
+  return { stations, topics, all_recent: recent.map((i) => ({ station_id: i.st, title: i.title, url: i.url, ts: i.ts })) };
+}
+async function worldRadio(env, ctx, origin, q = {}) {
+  const cache = caches.default, key = new Request(origin + "/__cache/world-v1");
+  let d = null;
+  const hit = await cache.match(key);
+  if (hit) d = await hit.json();
+  else {
+    d = await worldCompute(env);
+    ctx.waitUntil(cache.put(key, new Response(JSON.stringify(d), { headers: { "content-type": "application/json", "Cache-Control": "max-age=600" } })));
+  }
+  const ed = await sharedGet(env, "world-editor", 40 * 3600e3);
+  let stations = d.stations, topics = d.topics, search = null;
+  if (q.station) stations = stations.filter((s) => s.id === q.station || s.name.toLowerCase() === String(q.station).toLowerCase());
+  if (q.topic) {
+    const t = String(q.topic).toLowerCase().slice(0, 60);
+    const hits = d.all_recent.filter((i) => i.title.toLowerCase().includes(t));
+    const by = new Map(); for (const i of hits.sort((a, b) => b.ts - a.ts)) if (!by.has(i.station_id)) by.set(i.station_id, i);
+    search = { query: q.topic, stations_count: by.size,
+      voices: [...by.values()].map((i) => { const s = WORLD_STATIONS.find((x) => x.id === i.station_id); return { station: s.name, flag: s.flag, ownership: s.own, title: i.title, url: i.url, published: new Date(i.ts).toISOString() }; }),
+      silent: d.stations.filter((s) => s.online && !by.has(s.id)).map((s) => s.name) };
+  }
+  return {
+    section: "World radio as text", page: "https://orbstudio.org/live#world", updated: new Date().toISOString(),
+    note: "Latest headlines of 16 international broadcasters and news outlets, with country and ownership (public, state-funded, state, private, independent). Topics = stories covered by at least 3 stations in the last 18 hours: who said what, and who is silent. Headlines are quoted as published (mostly English); editor_frames is a short human-written comparison of framing for the main topic. Compare framing, not truth: each outlet chooses what to stress.",
+    ownership_legend: WORLD_OWN, editor_frames: ed || null, topics, search, stations,
+  };
+}
+
 async function handleLive(url, request, env, ctx) {
   const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-admin-key", "Cache-Control": "no-store" };
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
@@ -2434,6 +2541,19 @@ async function handleLive(url, request, env, ctx) {
     const lim = parseInt(url.searchParams.get("limit") || "0", 10);
     const d = await liveData(env, ctx, url.origin, { status: url.searchParams.get("status"), radar: url.searchParams.get("radar"), org: url.searchParams.get("org"), limit: lim > 0 ? Math.min(lim, 50) : 0 });
     return json({ ...d, referral: referral(env, "api-live") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  }
+  if (p === "/api/v1/world-radio" && request.method === "GET") {
+    const d = await worldRadio(env, ctx, url.origin, { topic: url.searchParams.get("topic"), station: url.searchParams.get("station") });
+    return json({ ...d, referral: referral(env, "api-world") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  }
+  if (p === "/api/v1/admin/world") {
+    if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+    if (request.method !== "POST") return json(await sharedGet(env, "world-editor", 1e13), H);
+    let b = {}; try { b = await request.json(); } catch {}
+    if (b.delete) { await sharedPut(env, "world-editor", null); return json({ ok: true, deleted: true }, H); }
+    if (!b.label || !b.frames) return json({ error: "Send {topic, label:{ru,de,en}, frames:{ru,de,en}, silent:[..]}" }, H, 400);
+    await sharedPut(env, "world-editor", { ...b, written_at: new Date().toISOString() });
+    return json({ ok: true }, H);
   }
   if (p === "/api/v1/admin/live") {
     if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
@@ -2547,6 +2667,11 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_world_voices", title: "World radio as text: how international broadcasters cover a story",
+    description: "Latest headlines of 16 international broadcasters (BBC, DW, France 24, RFI, Euronews, NPR, CBC, ABC Australia, CNA, Al Jazeera, CGTN, SCMP, NDTV, Africanews, Times of Israel, Meduza) with country and ownership (public, state-funded, state, private, independent). Without arguments: today's topics covered by 3+ stations — who said what and who is silent — plus an editor's comparison of framing. With topic: every station's latest headline containing that word (e.g. Iran, Frankfurt, Gaza) and which stations are silent. Compare framing, not truth.",
+    inputSchema: { type: "object", properties: { topic: { type: "string", maxLength: 60, description: "Optional keyword, English works best: Iran, Ukraine, Frankfurt…" },
+      station: { type: "string", description: "Optional station id: bbc, dw, france24, rfi, euronews, npr, cbc, abc_au, cna, aljazeera, cgtn, scmp, ndtv, africanews, times_israel, meduza" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_live", title: "Live as text: official events schedule and transcripts",
     description: "You cannot hear live broadcasts — this gives them as text. Schedule of official events (ECB and Fed rate decisions and press conferences, Bundestag sitting weeks, OPEC+ meetings, SpaceX/Starlink launches with automatic outcome, Anthropic and Google AI events, Google/DeepMind Gemini announcements) with UTC times and official stream links, and after each event: status, official press releases found automatically, headlines from the matching Orb Studio radar and a short editor's summary with key numbers and the next date. Text appears 10–60 minutes after the event, not in real time.",
     inputSchema: { type: "object", properties: { status: { type: "string", enum: ["all", "upcoming", "live", "past"], description: "Default all" },
@@ -2611,7 +2736,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2694,6 +2819,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     let note = null;
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
+  }
+  if (name === "get_world_voices") {
+    const d = await worldRadio(env, ctx, origin, { topic: args.topic, station: args.station });
+    return { ...d, referral: ref };
   }
   if (name === "get_live") {
     const d = await liveData(env, ctx, origin, { status: args.status, radar: args.radar, org: args.org, limit: args.limit ? Math.min(+args.limit, 50) : 0 });
@@ -2885,7 +3014,7 @@ export default {
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
     }
-    if (url.pathname.startsWith("/api/v1/live") || url.pathname.startsWith("/api/v1/admin/live")) {
+    if (url.pathname.startsWith("/api/v1/live") || url.pathname.startsWith("/api/v1/admin/live") || url.pathname === "/api/v1/world-radio" || url.pathname === "/api/v1/admin/world") {
       try { const r = await handleLive(url, request, env, ctx); if (r) return r; }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }

@@ -106,6 +106,13 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .nums small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--dim)}.nums b{font-family:var(--display);font-size:18px}
 .facts{margin:0;padding-left:18px;font-size:13.5px;line-height:1.5}
 .srcs{font-size:12.5px;color:var(--dim);line-height:1.5}.srcs a{word-break:break-word}
+.wtopic{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.wtopic h2{margin:0;font-size:17px;color:var(--fg);text-transform:capitalize}
+.voice{border-top:1px solid var(--line);padding:7px 0 0;font-size:13.5px;line-height:1.45}
+.voice .who{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.voice a{color:var(--fg);text-decoration:none}.voice a:hover{color:var(--holo)}
+.own-state{color:var(--warm)}.own-independent{color:var(--violet)}
+.frames{background:#070b16;border:1px solid rgba(111,230,255,.35);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
 .empty{background:var(--panel);border:1px dashed rgba(111,230,255,.45);border-radius:14px;padding:16px;font-size:14px;line-height:1.55}
 </style>
 </head>
@@ -115,9 +122,9 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <div class="eyebrow"><a href="/">← Orb Studio</a> · эфир · официальные события</div>
     <h1>🎙 ЖИВОЙ ЭФИР ТЕКСТОМ</h1>
   </div>
-  <p class="lead">ИИ-агенты не слышат трансляции, а люди не всегда успевают их посмотреть. Здесь расписание официальных эфиров — ЕЦБ, ФРС, Бундестаг, ОПЕК+, запуски SpaceX/Starlink, эфиры Anthropic и Google об ИИ — и их текст после события: официальные пресс-релизы, отклик радаров и короткая выжимка. Текст появляется через 10–60 минут после эфира.</p>
+  <p class="lead">ИИ-агенты не слышат трансляции, а люди не всегда успевают их посмотреть. Здесь расписание официальных эфиров — ЕЦБ, ФРС, Бундестаг, ОПЕК+, запуски SpaceX/Starlink, эфиры Anthropic и Google об ИИ — и их текст после события: официальные пресс-релизы, отклик радаров и короткая выжимка. Текст появляется через 10–60 минут после эфира. Во вкладке «Мир» — как одну новость подают 16 международных станций.</p>
   <div id="next"></div>
-  <div class="ltabs" id="tabs"><button type="button" data-t="upcoming" class="on">Скоро</button><button type="button" data-t="past">Было</button><button type="button" data-t="all">Все</button></div>
+  <div class="ltabs" id="tabs"><button type="button" data-t="upcoming" class="on">Скоро</button><button type="button" data-t="past">Было</button><button type="button" data-t="all">Все</button><button type="button" data-t="world">🌍 Мир</button></div>
   <div id="list" style="display:flex;flex-direction:column;gap:12px"><p class="lead">Загрузка…</p></div>
 
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
@@ -146,7 +153,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
   </aside>
 
-  <p class="agentline">🤖 Агентам: эфир текстом → <a href="/api/v1/live">/api/v1/live</a> (?status=upcoming|live|past) · MCP <b>get_live</b> на <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <p class="agentline">🤖 Агентам: эфир текстом → <a href="/api/v1/live">/api/v1/live</a> (?status=upcoming|live|past) · MCP <b>get_live</b> на <a href="/mcp">/mcp</a> · <a href="/api/v1/world-radio">/api/v1/world-radio</a> · MCP <b>get_world_voices</b> · <span id="counter">👁 <b id="cPage">—</b></span></p>
   <details class="machine"><summary>Текстовая версия · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/live">/api/v1/live</a>. Время — UTC в API, на странице — по Берлину.</p></section></details>
 </div>
 <script>
@@ -171,7 +178,21 @@ function card(e){
   ${e.radar_reaction.length?`<div class="srcs">📡 Отклик радара: ${e.radar_reaction.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a> (${esc(t.source)})`).join(' · ')}</div>`:''}
   <div class="srcs">${e.watch_url?`▶ <a href="${esc(e.watch_url)}" target="_blank" rel="noopener">официальная трансляция</a>`:''}${e.source_url?` · источник: <a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_name||'ссылка')}</a>`:''}${e.next?' · дальше: '+esc(L(e.next)):''}</div>${e.data_note?'<div class="srcs">ⓘ Расписание с зеркала Launch Library: время и статус могут отставать.</div>':''}</article>`;
 }
+const OWN={public:'общественное',state_funded:'гос. финансирование',state_owned:'гос. компания',state:'государственное',private:'частное',independent:'независимое, в эмиграции'};
+let WORLD=null;
+function voice(v){return `<div class="voice"><div class="who"><span>${esc(v.flag)} ${esc(v.station)}</span><span class="own-${esc(v.ownership)}">${esc(OWN[v.ownership]||v.ownership)}</span></div><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a></div>`;}
+function renderWorld(){
+  const box=$('list');
+  if(!WORLD){box.innerHTML='<p class="lead">Загрузка мирового эфира…</p>';fetch('/api/v1/world-radio').then(r=>r.ok?r.json():null).then(d=>{WORLD=d||{stations:[],topics:[]};if(TAB==='world')renderWorld();}).catch(()=>{WORLD={stations:[],topics:[]};renderWorld();});return;}
+  const ed=WORLD.editor_frames,on=WORLD.stations.filter(s=>s.online).length;
+  let h=`<p class="lead" style="font-size:13px">Свежие заголовки ${on} международных станций и темы, о которых пишут сразу несколько. Заголовки — как опубликованы (в основном по-английски). Сравниваем подачу, а не «правду»: каждая станция выбирает, что подчеркнуть.</p>`;
+  if(ed&&ed.frames)h+=`<article class="wtopic"><div class="meta" style="font-family:var(--mono);font-size:11px;color:var(--dim)">Тема дня · разбор редакции</div><h2 style="text-transform:none">${esc(L(ed.label))}</h2><div class="frames">${esc(L(ed.frames))}</div>${ed.silent&&ed.silent.length?`<div class="srcs">Молчат: ${esc(ed.silent.join(', '))}</div>`:''}</article>`;
+  h+=(WORLD.topics||[]).map(t=>`<article class="wtopic"><div class="meta" style="font-family:var(--mono);font-size:11px;color:var(--dim)">Одна тема — разные голоса · станций: ${t.stations_count}</div><h2>${esc(t.label)}</h2>${t.voices.map(voice).join('')}${t.silent.length?`<div class="srcs" style="margin-top:6px">Молчат: ${esc(t.silent.join(', '))}</div>`:''}</article>`).join('');
+  h+=`<h2 style="margin-top:6px">Сейчас в эфире мира</h2><div class="sched">${WORLD.stations.filter(s=>s.latest.length).map(s=>`<div style="display:block"><div class="who" style="font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between"><span>${esc(s.flag)} ${esc(s.name)} · ${esc(s.country)}</span><span class="own-${esc(s.ownership)}">${esc(OWN[s.ownership]||'')}</span></div><a href="${esc(s.latest[0].url)}" target="_blank" rel="noopener" style="color:var(--fg);text-decoration:none">${esc(s.latest[0].title)}</a></div>`).join('')}</div>`;
+  box.innerHTML=h;
+}
 function render(){
+  if(TAB==='world'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));renderWorld();return;}
   if(!DATA){$('list').innerHTML='<div class="empty">Не удалось загрузить данные. Попробуй обновить страницу.</div>';return;}
   const ev=DATA.events,up=ev.filter(e=>e.status==='upcoming'),live=ev.filter(e=>e.status==='live');
   const n=live[0]||up[0];
@@ -185,8 +206,9 @@ function render(){
   }
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));
 }
-document.addEventListener('click',e=>{const t=e.target.closest('[data-t]');if(t){TAB=t.dataset.t;render();}});
-fetch('/api/v1/live').then(r=>r.ok?r.json():null).then(d=>{DATA=d;if(d&&!d.events.some(e=>['upcoming','live'].includes(e.status)))TAB='past';render();}).catch(()=>{DATA=null;render();});
+document.addEventListener('click',e=>{const t=e.target.closest('[data-t]');if(t){TAB=t.dataset.t;try{history.replaceState(null,'',TAB==='world'?'#world':location.pathname)}catch(err){}render();}});
+if(location.hash==='#world')TAB='world';
+fetch('/api/v1/live').then(r=>r.ok?r.json():null).then(d=>{DATA=d;if(TAB!=='world'&&d&&!d.events.some(e=>['upcoming','live'].includes(e.status)))TAB='past';render();}).catch(()=>{DATA=null;render();});
 function krFill(market){
   if(!market)return;
   const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};

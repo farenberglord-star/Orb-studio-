@@ -57,7 +57,8 @@
     "quality": "https://orbstudio.org/api/v1/quality",
     "followups": "https://orbstudio.org/api/v1/followups",
     "places": "https://orbstudio.org/api/v1/places",
-    "live": "https://orbstudio.org/api/v1/live"
+    "live": "https://orbstudio.org/api/v1/live",
+    "world_radio": "https://orbstudio.org/api/v1/world-radio"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -94,7 +95,8 @@
       "get_followups",
       "report_outcome",
       "get_places",
-      "get_live"
+      "get_live",
+      "get_world_voices"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio"
   },
