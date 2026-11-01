@@ -2442,6 +2442,17 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe") === "world") {
+        const W = { bbc: "https://feeds.bbci.co.uk/news/world/rss.xml", dw: "https://rss.dw.com/rdf/rss-en-all", france24: "https://www.france24.com/en/rss", rfi: "https://www.rfi.fr/en/rss",
+          euronews: "https://www.euronews.com/rss?level=theme&name=news", npr: "https://feeds.npr.org/1004/rss.xml", cbc: "https://www.cbc.ca/webfeed/rss/rss-world",
+          nhk: "https://www3.nhk.or.jp/nhkworld/en/news/rss.xml", nhk_ja: "https://www3.nhk.or.jp/rss/news/cat6.xml", abc_au: "https://www.abc.net.au/news/feed/2942460/rss.xml",
+          cna: "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6311", aljazeera: "https://www.aljazeera.com/xml/rss/all.xml",
+          trt: "https://www.trtworld.com/rss", cgtn: "https://www.cgtn.com/subscribe/rss/section/world.xml", voa: "https://www.voanews.com/rss", ndtv: "https://feeds.feedburner.com/ndtvnews-world-news",
+          africanews: "https://www.africanews.com/feed/rss", scmp: "https://www.scmp.com/rss/91/feed", times_israel: "https://www.timesofisrael.com/feed/", meduza: "https://meduza.io/rss/en/all", kyodo: "https://english.kyodonews.net/rss/news.xml" };
+        const res = {};
+        await Promise.all(Object.entries(W).map(async ([k, u]) => { const it = await fetchFeedNow(u); res[k] = { n: it.length, top: it.slice(0, 4).map((i) => [new Date(i.ts).toISOString().slice(5, 16), i.title]) }; }));
+        return json(res, H);
+      }
       if (url.searchParams.get("probe")) {
         const res = [];
         for (const u of ["https://ll.thespacedevs.com/2.3.0/launches/upcoming/?lsp__name=SpaceX&limit=2", "https://lldev.thespacedevs.com/2.3.0/launches/upcoming/?lsp__name=SpaceX&limit=2", "https://lldev.thespacedevs.com/2.3.0/launches/previous/?lsp__name=SpaceX&limit=2"]) {
