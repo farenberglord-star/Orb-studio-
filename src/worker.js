@@ -2484,15 +2484,21 @@ async function worldCompute(env) {
   // темы: заголовки разных станций, у которых совпадают хотя бы 2 значимых слова, склеиваются в одну историю;
   // тема — история, о которой пишут не меньше 3 станций за последние 18 часов
   const recent = items.filter((i) => now - i.ts < 18 * 3600e3);
-  const par = recent.map((_, k) => k);
-  const find = (k) => (par[k] === k ? k : (par[k] = find(par[k])));
-  for (let a = 0; a < recent.length; a++) for (let b = a + 1; b < recent.length; b++) {
-    if (recent[a].st === recent[b].st) continue;
-    let n = 0; for (const t of recent[a].tok.keys()) if (recent[b].tok.has(t) && ++n >= 2) break;
-    if (n >= 2) par[find(a)] = find(b);
+  // без цепочек: у темы есть центральный заголовок, и в неё входят только заголовки, похожие именно на него (2+ общих слова)
+  const ov = (x, y) => { let n = 0; for (const t of x.tok.keys()) if (y.tok.has(t)) n++; return n; };
+  const nb = recent.map((x) => recent.filter((y) => y.st !== x.st && ov(x, y) >= 2));
+  const taken = new Set(), groupsArr = [];
+  const order = recent.map((_, k) => k).sort((a, b) => new Set(nb[b].map((y) => y.st)).size - new Set(nb[a].map((y) => y.st)).size);
+  for (const k of order) {
+    if (taken.has(recent[k])) continue;
+    const seed = recent[k], best = new Map();
+    for (const y of nb[k]) { if (taken.has(y)) continue; const o = ov(seed, y), c = best.get(y.st); if (!c || o > c.o || (o === c.o && y.ts > c.y.ts)) best.set(y.st, { y, o }); }
+    if (best.size < 2) continue;
+    const g = [seed, ...[...best.values()].map((v) => v.y)];
+    g.forEach((x) => taken.add(x));
+    groupsArr.push(g);
   }
-  const groups = new Map();
-  recent.forEach((i, k) => { const r = find(k); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(i); });
+  const groups = new Map(groupsArr.map((g, k) => [k, g]));
   const topics = [...groups.values()].map((group) => {
     const bySt = new Map();
     for (const i of group.slice().sort((a, b) => b.ts - a.ts)) if (!bySt.has(i.st)) bySt.set(i.st, i);
