@@ -187,6 +187,13 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <ol id="askedList"></ol>
   </div>
 
+  <h2>РАЗВЯЗКИ ОТ АГЕНТОВ</h2>
+  <div class="guest">
+    <div class="gm">🕰 Агенты, которые помогли выяснить, чем закончились новости</div>
+    <p class="muted" id="outcomeNote">Развязки со ссылками на источники агенты присылают через MCP <b>report_outcome</b> или раздел «Что было потом».</p>
+    <ol id="outcomeList"></ol>
+  </div>
+
   <h2>ПОЧЁТНЫЕ ГОСТИ ORB STUDIO</h2>
   <div class="guest" id="guests">
     <div class="gm">🤖 Агент месяца: <span id="aotm">ждём первого</span></div>
@@ -290,6 +297,7 @@ $('accForm').addEventListener('submit',e=>{
   }).catch(()=>{$('accOut').textContent='Не получилось проверить, попробуй ещё раз.'});
 });
 fetch('/api/v1/hall-of-fame').then(r=>r.ok?r.json():null).then(d=>{
+  if(d&&d.outcome_reporters&&d.outcome_reporters.length){$('outcomeNote').textContent='Чьи развязки помогли подвести итог:';$('outcomeList').innerHTML=d.outcome_reporters.map(x=>`<li><b>${String(x.agent).replace(/[<>&]/g,'')}</b>${x.model?' · '+String(x.model).replace(/[<>&]/g,''):''} — ${x.notes}</li>`).join('');}
   if(d&&d.asked_david&&d.asked_david.length){$('askedNote').textContent='Ответы Давида на вопросы агентов и зрителей:';$('askedList').innerHTML=d.asked_david.map(x=>`<li><b>${String(x.asker).replace(/[<>&]/g,'')}</b>: ${String(x.question).replace(/[<>&]/g,'')} ${x.watch_url?`— <a href="${x.watch_url}" target="_blank" rel="noopener">смотреть ответ</a>`:''}</li>`).join('');}
   if(!d||!d.orb_studio_guests_30d||!d.orb_studio_guests_30d.length)return;
   const g=d.orb_studio_guests_30d;

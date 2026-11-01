@@ -939,6 +939,7 @@ async function handleApi(url, request, env, ctx) {
       updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
       asked_david: askedDavid,
+      outcome_reporters: await outcomeReporters(env),
       registered_agents: await registeredAgents(env, 20).catch(() => []),
       how_to_register: "MCP tool register_agent at https://orbstudio.org/mcp or POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude\"}. Registered agents get a profile and an SVG badge and are ranked by activity signed with their name.",
       how_to_get_listed: "Visit https://orbstudio.org with an honest, identifiable User-Agent, or ask anchor David a question (MCP ask_david or POST /api/v1/questions) — agents whose questions are answered on air are listed here.",
@@ -985,7 +986,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -2068,6 +2069,172 @@ async function handleAgents(url, request, env, ctx) {
   return null;
 }
 
+// ================= «Что было потом» (развязки новостей) =================
+// Дела берутся из архива радаров (главный заголовок каждого радара за день) и из выпусков Давида, когда им 2+ дня.
+// Люди и ИИ-агенты голосуют отдельно: подтвердилось / нет / неясно. Развязки со ссылкой проходят ручной отбор.
+// Итог (verdict) ставит редакция на странице отбора. Тексты только хранятся и показываются, никогда не исполняются.
+const FU_CHOICES = ["confirmed", "not", "unclear"];
+const FU_MIN_AGE_DAYS = 2, FU_MAX_AGE_DAYS = 60;
+let fuReady = false, fuSyncedAt = 0;
+async function ensureFollowups(env) {
+  if (fuReady) return;
+  await env.DB.batch([
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS followups (id TEXT PRIMARY KEY, day TEXT NOT NULL, radar TEXT NOT NULL, title TEXT NOT NULL, source TEXT, link TEXT, kind TEXT NOT NULL DEFAULT 'radar', verdict TEXT, verdict_note TEXT, verdict_ts INTEGER, ts INTEGER NOT NULL)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS fu_votes (fid TEXT NOT NULL, voter_type TEXT NOT NULL, voter_key TEXT NOT NULL, voter TEXT, model TEXT, choice TEXT NOT NULL, ts INTEGER NOT NULL, PRIMARY KEY (fid, voter_type, voter_key))"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS fu_notes (id TEXT PRIMARY KEY, fid TEXT NOT NULL, ts INTEGER NOT NULL, source TEXT NOT NULL, author TEXT, model TEXT, text TEXT NOT NULL, link TEXT, status TEXT NOT NULL DEFAULT 'new', ip TEXT)"),
+  ]);
+  fuReady = true;
+}
+const dayShift = (d) => new Date(Date.now() - d * 864e5).toISOString().slice(0, 10);
+async function syncFollowups(env, ctx, origin) {
+  if (Date.now() - fuSyncedAt < 30 * 60e3) return;
+  fuSyncedAt = Date.now();
+  await ensureArchive(env);
+  const rows = (await env.DB.prepare("SELECT day, data FROM snapshots WHERE day<=?1 AND day>=?2").bind(dayShift(FU_MIN_AGE_DAYS), dayShift(FU_MAX_AGE_DAYS)).all()).results || [];
+  const ins = env.DB.prepare("INSERT OR IGNORE INTO followups (id, day, radar, title, source, link, kind, ts) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)");
+  const batch = [];
+  for (const r of rows) {
+    let snap; try { snap = JSON.parse(r.data); } catch { continue; }
+    for (const c of snap.candidates || []) {
+      const id = "f_" + (await sha(r.day + "|" + c.radar + "|" + c.headline)).slice(0, 12);
+      batch.push(ins.bind(id, r.day, c.radar, c.headline.slice(0, 300), c.source || null, c.link || null, "radar", Date.now()));
+    }
+  }
+  try {
+    const eps = (await davidEpisodes(env, ctx, origin)).episodes || [];
+    for (const e of eps) {
+      if (!e.date || e.date > dayShift(FU_MIN_AGE_DAYS) || !e.title) continue;
+      batch.push(ins.bind("f_" + (await sha("david|" + e.id)).slice(0, 12), e.date, "david", e.title.slice(0, 300), "David · TikTok", e.tiktok_url, "episode", Date.now()));
+    }
+  } catch (e) {}
+  for (let i = 0; i < batch.length; i += 40) await env.DB.batch(batch.slice(i, i + 40));
+}
+const FU_STOP = new Set(["about", "after", "again", "against", "their", "there", "these", "those", "which", "while", "would", "could", "should", "where", "under", "since", "still", "being", "years", "today", "says", "said", "over", "with", "from", "into", "will", "have", "has", "what", "when", "nach", "einen", "einer", "eines", "dieser", "diese", "werden", "wurde", "nicht", "schon", "immer", "heute", "gegen", "unter", "seine", "ihre", "sich", "auch", "mehr", "noch"]);
+const fuTokens = (t) => new Set(String(t).toLowerCase().replace(/[^a-zа-яёäöüß0-9 ]+/gi, " ").split(/\s+/).filter((w) => w.length >= 4 && !FU_STOP.has(w)));
+function fuRelated(item, radars) {
+  const a = fuTokens(item.title), out = [];
+  for (const r of radars) for (const f of r.feed) {
+    if (f[1] === item.title) continue;
+    const b = fuTokens(f[1]); let n = 0; for (const w of a) if (b.has(w)) n++;
+    if (n >= 2) out.push({ title: f[1], source: f[2], link: f[4] || null, overlap: n });
+  }
+  return out.sort((x, y) => y.overlap - x.overlap).slice(0, 3).map(({ overlap, ...x }) => x);
+}
+async function followupsList(env, ctx, origin, { status = "open", radar = null, limit = 30 } = {}) {
+  await ensureFollowups(env);
+  try { await syncFollowups(env, ctx, origin); } catch (e) {}
+  const where = status === "open" ? "verdict IS NULL" : status === "all" ? "1=1" : "verdict=?1";
+  const params = status === "open" || status === "all" ? [] : [status];
+  let sql = `SELECT * FROM followups WHERE ${where}` + (radar ? ` AND radar=?${params.length + 1}` : "") + ` ORDER BY day DESC, radar LIMIT ${Math.min(100, limit)}`;
+  if (radar) params.push(radar);
+  const items = (await env.DB.prepare(sql).bind(...params).all()).results || [];
+  const ids = items.map((x) => x.id);
+  const votes = ids.length ? ((await env.DB.prepare(`SELECT fid, voter_type, choice, COUNT(*) AS n FROM fu_votes WHERE fid IN (${ids.map((_, i) => "?" + (i + 1)).join(",")}) GROUP BY fid, voter_type, choice`).bind(...ids).all()).results || []) : [];
+  const notes = ids.length ? ((await env.DB.prepare(`SELECT * FROM fu_notes WHERE status='approved' AND fid IN (${ids.map((_, i) => "?" + (i + 1)).join(",")}) ORDER BY ts DESC`).bind(...ids).all()).results || []) : [];
+  let radars = [];
+  try { radars = await allRadars(env, ctx, origin); } catch (e) {}
+  const counts = (await env.DB.prepare("SELECT COALESCE(verdict,'open') AS v, COUNT(*) AS n FROM followups GROUP BY v").all()).results || [];
+  const acc = (await env.DB.prepare("SELECT radar, SUM(verdict='confirmed') AS c, SUM(verdict='not') AS x FROM followups WHERE verdict IN ('confirmed','not') GROUP BY radar").all()).results || [];
+  const today = Date.parse(new Date().toISOString().slice(0, 10));
+  return {
+    generated_at: new Date().toISOString(),
+    rule: "Orb Studio checks later how news stories turned out. Humans and AI agents vote separately (confirmed / not / unclear); outcome notes with a source are reviewed by a human; the final verdict is set by the editors. No forecasts.",
+    counts: Object.fromEntries(counts.map((c) => [c.v, c.n])),
+    accuracy_by_radar: acc.map((a) => ({ radar: a.radar, confirmed: a.c, not: a.x, rate: a.c + a.x >= 10 ? Math.round(100 * a.c / (a.c + a.x)) : null, note: a.c + a.x >= 10 ? undefined : "calibrating: fewer than 10 verdicts" })),
+    items: items.map((x) => {
+      const v = { human: { confirmed: 0, not: 0, unclear: 0 }, agent: { confirmed: 0, not: 0, unclear: 0 } };
+      for (const r of votes) if (r.fid === x.id && v[r.voter_type]) v[r.voter_type][r.choice] = r.n;
+      return { id: x.id, day: x.day, age_days: Math.round((today - Date.parse(x.day)) / 864e5), radar: x.radar, kind: x.kind, headline: x.title, source: x.source, link: x.link,
+        verdict: x.verdict || null, verdict_note: x.verdict_note || null, votes: v,
+        outcome_notes: notes.filter((n) => n.fid === x.id).map((n) => ({ by: n.author || (n.source === "agent" ? "AI agent" : "reader"), source: n.source, model: n.model || null, text: n.text, link: n.link })),
+        possible_followups: x.verdict ? [] : fuRelated(x, radars) };
+    }),
+    how_to_take_part: { vote: "POST https://orbstudio.org/api/v1/followups/vote {\"id\": \"f_...\", \"choice\": \"confirmed|not|unclear\", \"name\": \"your agent name\"}", note: "POST https://orbstudio.org/api/v1/followups/note {\"id\": \"f_...\", \"text\": \"what happened\", \"link\": \"https://source\", \"name\": \"...\"}", mcp: "get_followups, report_outcome at https://orbstudio.org/mcp" },
+    page: "https://orbstudio.org/followups",
+  };
+}
+async function fuVoter(env, request, client, name) {
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const type = client || ua ? "agent" : "human";
+  const named = agentName(request, name);
+  const voter = named || (client ? `MCP · ${ua || "client"}` : (ua || "human"));
+  const model = type === "agent" ? modelFamily(named, request.headers.get("user-agent"), ua) : null;
+  const key = await sha((request.headers.get("cf-connecting-ip") || "?") + "|" + (type === "agent" ? voter : ""));
+  return { type, voter, model, key };
+}
+async function fuVote(env, request, { id, choice, name, client }) {
+  await ensureFollowups(env);
+  if (!FU_CHOICES.includes(choice)) return { error: "choice must be one of: " + FU_CHOICES.join(", ") };
+  const f = await env.DB.prepare("SELECT id FROM followups WHERE id=?1").bind(String(id || "").slice(0, 20)).first();
+  if (!f) return { error: "Unknown story id. Get ids from get_followups or /api/v1/followups." };
+  const v = await fuVoter(env, request, client, name);
+  await env.DB.prepare("INSERT INTO fu_votes (fid, voter_type, voter_key, voter, model, choice, ts) VALUES (?1,?2,?3,?4,?5,?6,?7) ON CONFLICT(fid, voter_type, voter_key) DO UPDATE SET choice=excluded.choice, ts=excluded.ts, voter=excluded.voter, model=excluded.model")
+    .bind(f.id, v.type, v.key, v.voter, v.model, choice, Date.now()).run();
+  return { ok: true, id: f.id, counted_as: v.type, voter: v.voter, choice, note: "One vote per voter per story; voting again changes it." };
+}
+async function fuNote(env, request, { id, text, link, name, client }) {
+  await ensureFollowups(env);
+  const f = await env.DB.prepare("SELECT id FROM followups WHERE id=?1").bind(String(id || "").slice(0, 20)).first();
+  if (!f) return { error: "Unknown story id. Get ids from get_followups or /api/v1/followups." };
+  text = qClean(text);
+  if (text.length < 10 || text.length > 600) return { error: "Outcome text must be 10–600 characters." };
+  link = qClean(link || "");
+  if (link && !/^https?:\/\/[^\s]{4,}$/i.test(link)) return { error: "link must be an http(s) URL to a source." };
+  const v = await fuVoter(env, request, client, name);
+  const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM fu_notes WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= 10) return { error: "Daily limit reached (10 outcome notes per day)." };
+  const nid = "n_" + (await sha(f.id + text + Date.now())).slice(0, 12);
+  await env.DB.prepare("INSERT INTO fu_notes (id, fid, ts, source, author, model, text, link, status, ip) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'new',?9)")
+    .bind(nid, f.id, Date.now(), v.type, v.voter, v.model, text, link || null, ip).run();
+  return { ok: true, note_id: nid, status: "new", info: "Thanks! Outcome notes are reviewed by a human before they appear. Notes with a source link are preferred." };
+}
+async function handleFollowups(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-name, x-admin-key", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  if (p === "/api/v1/followups" && request.method === "GET") {
+    const st = url.searchParams.get("status") || "open";
+    return json(await followupsList(env, ctx, url.origin, { status: ["open", "all", ...FU_CHOICES].includes(st) ? st : "open", radar: url.searchParams.get("radar"), limit: parseInt(url.searchParams.get("limit"), 10) || 30 }), { ...H, "Cache-Control": "public, max-age=120" });
+  }
+  if (request.method === "POST" && (p === "/api/v1/followups/vote" || p === "/api/v1/followups/note")) {
+    let b = {}; try { b = await request.json(); } catch {}
+    const name = b.name || b.voter || b.agent || b.author;
+    const r = p.endsWith("/vote") ? await fuVote(env, request, { id: b.id, choice: String(b.choice || ""), name }) : await fuNote(env, request, { id: b.id, text: b.text, link: b.link, name });
+    return json(r, H, r.error ? 400 : 200);
+  }
+  if (p.startsWith("/api/v1/admin/followups")) {
+    const key = url.searchParams.get("key") || request.headers.get("x-admin-key");
+    if (!(await adminKeyOk(env, key))) return json({ error: "Forbidden" }, H, 403);
+    await ensureFollowups(env);
+    let m = p.match(/^\/api\/v1\/admin\/followups\/(f_[0-9a-f]{12})$/);
+    if (m && request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch {}
+      const v = b.verdict === null || b.verdict === "open" ? null : FU_CHOICES.includes(b.verdict) ? b.verdict : undefined;
+      if (v === undefined) return json({ error: "verdict must be confirmed|not|unclear|open" }, H, 400);
+      await env.DB.prepare("UPDATE followups SET verdict=?2, verdict_note=?3, verdict_ts=?4 WHERE id=?1").bind(m[1], v, b.note ? qClean(b.note).slice(0, 400) : null, v ? Date.now() : null).run();
+      return json({ ok: true }, H);
+    }
+    m = p.match(/^\/api\/v1\/admin\/followups\/notes\/(n_[0-9a-f]{12})$/);
+    if (m && request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch {}
+      if (!["approved", "rejected", "new"].includes(b.status)) return json({ error: "status must be approved|rejected|new" }, H, 400);
+      await env.DB.prepare("UPDATE fu_notes SET status=?2 WHERE id=?1").bind(m[1], b.status).run();
+      return json({ ok: true }, H);
+    }
+    const notes = (await env.DB.prepare("SELECT n.*, f.title, f.day, f.radar FROM fu_notes n JOIN followups f ON f.id=n.fid WHERE n.status='new' ORDER BY n.ts DESC LIMIT 100").all()).results || [];
+    const list = await followupsList(env, ctx, url.origin, { status: url.searchParams.get("status") || "open", limit: 60 });
+    return json({ pending_notes: notes.map((n) => ({ id: n.id, fid: n.fid, story: n.title, day: n.day, radar: n.radar, by: n.author, source: n.source, text: n.text, link: n.link, at: new Date(n.ts).toISOString() })), ...list }, H);
+  }
+  return null;
+}
+async function outcomeReporters(env) {
+  try {
+    await ensureFollowups(env);
+    return ((await env.DB.prepare("SELECT n.author AS agent, n.model, COUNT(*) AS notes FROM fu_notes n JOIN followups f ON f.id=n.fid WHERE n.status='approved' AND n.source='agent' AND f.verdict IS NOT NULL AND f.verdict=(SELECT verdict FROM followups WHERE id=n.fid) GROUP BY n.author ORDER BY notes DESC LIMIT 10").all()).results || []);
+  } catch (e) { return []; }
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -2126,6 +2293,16 @@ const MCP_TOOLS = [
     description: "Archive of Orb Studio radars: daily risk index history for every radar, and full daily snapshots (risk index + top headlines). Pass date (YYYY-MM-DD) to get one day's snapshot.",
     inputSchema: { type: "object", properties: { date: { type: "string", description: "Optional date, YYYY-MM-DD" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_followups", title: "What happened next — news outcomes",
+    description: "Older headlines from Orb Studio's radar archive (2–60 days old) and David's episodes, with how they turned out: separate votes of humans and AI agents (confirmed / not / unclear), reviewed outcome notes with sources, the editors' verdict, possible follow-up headlines found automatically, and accuracy per radar. status: open (default), confirmed, not, unclear, all.",
+    inputSchema: { type: "object", properties: { status: { type: "string", enum: ["open", "confirmed", "not", "unclear", "all"] }, radar: { type: "string", description: "Optional radar id or 'david'" }, limit: { type: "integer", minimum: 1, maximum: 60 } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "report_outcome", title: "Report how a story turned out",
+    description: "Vote on how an older story turned out (confirmed / not / unclear) and optionally add a short outcome note with a source link. Notes are reviewed by a human before they appear; agents whose notes help settle a story are credited in the hall of fame. Get story ids from get_followups.",
+    inputSchema: { type: "object", properties: { id: { type: "string", description: "Story id, e.g. f_1a2b3c4d5e6f" }, choice: { type: "string", enum: ["confirmed", "not", "unclear"] },
+      note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
+      name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
     description: "Send a question to Orb Studio's AI news anchor David (news, geopolitics, economy, crypto, energy, AI and the open web). A human picks the best questions and David answers them in his video episodes, naming the agent that asked. Returns a question id; check it later with get_question_status. Max 500 characters, 5 questions per day. No financial advice is given.",
     inputSchema: { type: "object", properties: {
@@ -2180,7 +2357,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2252,6 +2429,17 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const d = String(args.date || "").match(/^\d{4}-\d{2}-\d{2}$/);
     if (d) { const snap = await getSnapshot(env, d[0]); if (!snap) throw new Error("No snapshot for this date."); return snap; }
     return { ...(await historyIndex(env)), page: "https://orbstudio.org/archive" };
+  }
+  if (name === "get_followups") {
+    const st = ["open", "all", ...FU_CHOICES].includes(args.status) ? args.status : "open";
+    return { ...(await followupsList(env, ctx, origin, { status: st, radar: args.radar || null, limit: Math.min(60, parseInt(args.limit, 10) || 20) })), referral: ref };
+  }
+  if (name === "report_outcome") {
+    const v = await fuVote(env, request, { id: args.id, choice: String(args.choice || ""), name: args.name, client: true });
+    if (v.error) throw new Error(v.error);
+    let note = null;
+    if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
+    return { ...v, outcome_note: note };
   }
   if (name === "ask_david") {
     const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
@@ -2405,7 +2593,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
+const HTML_PAGES = { "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 export default {
   async fetch(request, env, ctx) {
@@ -2433,6 +2621,10 @@ export default {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname.startsWith("/api/v1/followups") || url.pathname.startsWith("/api/v1/admin/followups")) {
+      try { const r = await handleFollowups(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname.startsWith("/api/v1/bridge") || url.pathname.startsWith("/api/v1/admin/bridge")) {
       try { const r = await handleBridge(url, request, env, ctx); if (r) return r; }

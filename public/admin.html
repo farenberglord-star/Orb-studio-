@@ -55,5 +55,33 @@ document.addEventListener('click',async e=>{
 });
 load();
 </script>
+
+<div class="wrap" id="fuAdmin">
+  <h1 style="margin-top:24px">Что было потом · развязки и итоги</h1>
+  <div id="fuNotes"><p class="empty">Загрузка…</p></div>
+  <h1 style="font-size:16px;margin-top:18px">Дела без итога</h1>
+  <div id="fuItems"></div>
+</div>
+<script>
+// Развязки: одобрить или отклонить присланные заметки, поставить итог делу. Тексты показываются как обычный текст.
+(function(){
+const key=new URLSearchParams(location.search).get('key')||'';
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+async function load(){
+  if(!key)return;
+  const r=await fetch('/api/v1/admin/followups?key='+encodeURIComponent(key));if(!r.ok){document.getElementById('fuNotes').innerHTML='<p class="err">Нет доступа.</p>';return;}
+  const d=await r.json();
+  document.getElementById('fuNotes').innerHTML=d.pending_notes.length?d.pending_notes.map(n=>`<div class="q"><div class="meta">${esc(new Date(n.at).toLocaleString('ru-RU'))} · ${n.source==='agent'?'🤖':'👤'} ${esc(n.by)} · к делу: ${esc(n.story)}</div><div class="txt">${esc(n.text)}${n.link?'\n'+esc(n.link):''}</div><div class="act"><button class="pick" data-note="${n.id}" data-st="approved">Одобрить</button><button class="rej" data-note="${n.id}" data-st="rejected">Отклонить</button></div></div>`).join(''):'<p class="empty">Новых развязок нет.</p>';
+  document.getElementById('fuItems').innerHTML=d.items.length?d.items.map(x=>`<div class="q"><div class="meta">${esc(x.radar)} · ${esc(x.day)} · 👤 ${x.votes.human.confirmed}/${x.votes.human.not}/${x.votes.human.unclear} · 🤖 ${x.votes.agent.confirmed}/${x.votes.agent.not}/${x.votes.agent.unclear} (да/нет/неясно)</div><div class="txt">${esc(x.headline)}</div><div class="act"><button class="pick" data-fu="${x.id}" data-v="confirmed">Подтвердилось</button><button class="rej" data-fu="${x.id}" data-v="not">Не подтвердилось</button><button data-fu="${x.id}" data-v="unclear">Неясно</button></div></div>`).join(''):'<p class="empty">Нет дел без итога.</p>';
+}
+document.addEventListener('click',async e=>{
+  const n=e.target.dataset.note,f=e.target.dataset.fu;if(!n&&!f)return;e.target.disabled=true;
+  if(n)await fetch('/api/v1/admin/followups/notes/'+n+'?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({status:e.target.dataset.st})});
+  if(f){const note=prompt('Короткое пояснение к итогу (можно оставить пустым)')||'';await fetch('/api/v1/admin/followups/'+f+'?key='+encodeURIComponent(key),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({verdict:e.target.dataset.v,note})});}
+  load();
+});
+load();
+})();
+</script>
 </body>
 </html>
