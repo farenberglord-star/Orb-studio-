@@ -2271,11 +2271,14 @@ const LIVE_FEEDS = {
   bundestag: "https://www.bundestag.de/static/appdata/includes/rss/hib.rss",
   google: "https://blog.google/rss/",
   deepmind: "https://deepmind.google/blog/rss.xml",
+  space: "https://spaceflightnow.com/feed/",
+  spacecom: "https://www.space.com/feeds/all",
 };
 // Запуски SpaceX (в т.ч. Starlink) — открытый Launch Library 2 (без ключа, ~15 запросов в час): кэш в D1 на 30 минут.
 async function spacexLaunches(env) {
   const c = await sharedGet(env, "ll2-spacex", 30 * 60e3);
   if (c) return c;
+  let src = null;
   const get = async (kind) => {
     // основной сервер ограничивает бесплатные запросы по IP (у Cloudflare адреса общие), поэтому есть запасные адреса
     const q = `?lsp__name=SpaceX&limit=${kind === "upcoming" ? 10 : 8}`;
@@ -2283,6 +2286,7 @@ async function spacexLaunches(env) {
       `https://lldev.thespacedevs.com/2.3.0/launches/${kind}/${q}`, `https://lldev.thespacedevs.com/2.2.0/launch/${kind}/${q}`];
     for (const u of urls) {
       try {
+        src = u.includes("lldev") ? "dev" : "prod";
         const r = await fetch(u, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
         if (r.ok) { const j = await r.json(); if (Array.isArray(j.results)) return j.results.filter((l) => /spacex/i.test(JSON.stringify(l.launch_service_provider || l.lsp_name || "")) || /falcon|starship|starlink/i.test(l.name || "")); }
       } catch (e) {}
@@ -2299,11 +2303,11 @@ async function spacexLaunches(env) {
     pad: (l.pad && l.pad.name) || null, place: (l.pad && l.pad.location && l.pad.location.name) || null,
     webcast: !!l.webcast_live, image: typeof l.image === "string" ? l.image : (l.image && l.image.image_url) || null,
   });
-  const out = { up: (up || []).map(slim), past: (past || []).map(slim) };
+  const out = { up: (up || []).map(slim), past: (past || []).map(slim), src };
   await sharedPut(env, "ll2-spacex", out);
   return out;
 }
-function spacexEvent(l) {
+function spacexEvent(l, src) {
   const ok = l.status === "Success", fail = /fail/i.test(l.status || ""), partial = /partial/i.test(l.status || "");
   const nm = l.mission || l.name, where = [l.pad, l.place].filter(Boolean).join(", ");
   const head = ok ? { ru: `${nm}: запуск успешен`, de: `${nm}: Start erfolgreich`, en: `${nm}: launch successful` }
@@ -2319,7 +2323,10 @@ function spacexEvent(l) {
       ru: `${l.rocket || "Ракета"} стартовала ${l.place ? "с площадки " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", орбита: " + l.orbit : ""}. ${ok ? "Запуск успешен." : "Запуск не удался" + (l.fail ? ": " + l.fail : ".")} Описание миссии (англ.): ${l.desc || "—"}`,
       de: `${l.rocket || "Rakete"} gestartet${l.place ? " von " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", Orbit: " + l.orbit : ""}. ${ok ? "Start erfolgreich." : "Start fehlgeschlagen" + (l.fail ? ": " + l.fail : ".")} Mission (engl.): ${l.desc || "—"}`,
       en: `${l.rocket || "Rocket"} launched${l.place ? " from " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", orbit: " + l.orbit : ""}. ${ok ? "Launch successful." : "Launch failed" + (l.fail ? ": " + l.fail : ".")} Mission: ${l.desc || "—"}` } } : null,
-    official_feed: null, match: [], radar_match: [],
+    // итог из новостей о космосе: Starlink — по слову starlink в окне 18 часов, другие миссии — по названию миссии
+    official_feed: ["space", "spacecom"], text_window_h: 18,
+    match: /starlink/i.test(nm) ? ["starlink"] : [String(nm).toLowerCase().replace(/^.*\|\s*/, "")], radar_match: [],
+    data_note: src === "dev" ? "Schedule from the Launch Library development mirror; times and statuses may lag by hours or days." : null,
     source_url: "https://thespacedevs.com/llapi", source_name: "Launch Library 2 (The Space Devs)",
   };
 }
@@ -2358,13 +2365,14 @@ async function liveCompute(env, ctx, origin) {
   try { radars = await allRadars(env, ctx, origin); } catch (e) {}
   let launches = { up: [], past: [] };
   try { launches = await spacexLaunches(env); } catch (e) {}
-  const auto = [...launches.past, ...launches.up].filter((l) => l && l.net).map(spacexEvent).concat(geminiEvents(feeds)).filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i);
+  const auto = [...launches.past, ...launches.up].filter((l) => l && l.net).map((l) => spacexEvent(l, launches.src)).concat(geminiEvents(feeds)).filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i);
   const events = (d.events || []).concat(auto.filter((a) => !(d.events || []).some((e) => e.id === a.id))).map((e) => {
     const start = Date.parse(e.start), end = Date.parse(e.end || e.start) || start;
     const kw = (e.match || []).map(liveLow);
     const hit = (t) => !kw.length || kw.some((k) => liveLow(t).includes(k));
-    const official = (feeds[e.official_feed] || [])
-      .filter((i) => i.ts >= start - 3 * 3600e3 && i.ts <= end + 3 * 86400e3 && hit(i.title))
+    const winEnd = end + (e.text_window_h ? e.text_window_h * 3600e3 : 3 * 86400e3);
+    const official = [].concat(e.official_feed || []).flatMap((f) => feeds[f] || [])
+      .filter((i) => i.ts >= start - 3 * 3600e3 && i.ts <= winEnd && hit(i.title))
       .slice(0, 5).map((i) => ({ title: i.title, url: i.url, published: new Date(i.ts).toISOString(), source: i.source }));
     // отклик радара: текущие заголовки (последние 72 ч) по ключевым словам события — только во время и до 3 дней после
     const rkw = (e.radar_match || e.match || []).map(liveLow);
@@ -2382,7 +2390,7 @@ async function liveCompute(env, ctx, origin) {
       starts_in_min: now < start ? Math.round((start - now) / 60000) : null,
       summary: e.summary || null, facts: e.facts || [], numbers: e.numbers || [], next: e.next || null,
       official_texts: texts, radar_reaction: related,
-      source_url: e.source_url || null, source_name: e.source_name || null, written_at: e.written_at || null,
+      source_url: e.source_url || null, source_name: e.source_name || null, written_at: e.written_at || null, data_note: e.data_note || null,
     };
   }).sort((a, b) => (a.start < b.start ? -1 : 1));
   return {

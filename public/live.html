@@ -167,9 +167,9 @@ function card(e){
   ${e.numbers&&e.numbers.length?`<div class="nums">${e.numbers.map(n=>`<div><small>${esc(L(n.label))}</small><b>${esc(n.value)}</b></div>`).join('')}</div>`:''}
   ${e.facts&&e.facts.length?`<ul class="facts">${e.facts.map(f=>`<li>${esc(L(f))}</li>`).join('')}</ul>`:''}
   ${e.where&&e.status==='upcoming'?`<div class="srcs">${esc(L(e.where))}</div>`:''}
-  ${e.official_texts.length?`<div class="srcs">📄 Официальный текст: ${e.official_texts.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>`).join(' · ')}</div>`:''}
+  ${e.official_texts.length?`<div class="srcs">📄 ${e.kind==='launch'?'Сообщения о запуске':e.kind==='announcement'?'Объявление':'Официальный текст'}: ${e.official_texts.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>`).join(' · ')}</div>`:''}
   ${e.radar_reaction.length?`<div class="srcs">📡 Отклик радара: ${e.radar_reaction.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a> (${esc(t.source)})`).join(' · ')}</div>`:''}
-  <div class="srcs">${e.watch_url?`▶ <a href="${esc(e.watch_url)}" target="_blank" rel="noopener">официальная трансляция</a>`:''}${e.source_url?` · источник: <a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_name||'ссылка')}</a>`:''}${e.next?' · дальше: '+esc(L(e.next)):''}</div></article>`;
+  <div class="srcs">${e.watch_url?`▶ <a href="${esc(e.watch_url)}" target="_blank" rel="noopener">официальная трансляция</a>`:''}${e.source_url?` · источник: <a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_name||'ссылка')}</a>`:''}${e.next?' · дальше: '+esc(L(e.next)):''}</div>${e.data_note?'<div class="srcs">ⓘ Расписание с зеркала Launch Library: время и статус могут отставать.</div>':''}</article>`;
 }
 function render(){
   if(!DATA){$('list').innerHTML='<div class="empty">Не удалось загрузить данные. Попробуй обновить страницу.</div>';return;}
