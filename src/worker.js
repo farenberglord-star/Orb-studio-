@@ -786,6 +786,10 @@ async function handleApi(url, request, env, ctx) {
     return json(await voteResults(env, ctx, origin, day ? day[0] : today()), { "Cache-Control": "no-store" });
   }
 
+  if (p === "/api/v1/places") {
+    return json({ ...(await placesData(env)), referral: referral(env, "api-places") }, { "Cache-Control": "public, max-age=300" });
+  }
+
   if (p === "/api/v1/music") {
     const d = await musicTracks(env, ctx, origin);
     return json({ ...d, referral: referral(env, "api-music") }, { "Cache-Control": "public, max-age=300" });
@@ -986,7 +990,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -2235,6 +2239,28 @@ async function outcomeReporters(env) {
   } catch (e) { return []; }
 }
 
+// ================= «Одно место во времени» =================
+// Одни и те же места Гамбурга и пригородов раз в неделю. Фото присылает автор, описание «что видно / что изменилось»
+// пишется по фото (без лиц и номеров). Данные — D1 shared, ключ places-data; фото — public/media/places/.
+async function placesData(env) {
+  const d = (await sharedGet(env, "places-data", 1e13)) || { places: [] };
+  const places = (d.places || []).map((p) => {
+    const obs = (p.observations || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    return {
+      id: p.id, name: p.name, area: p.area || null, kind: p.kind || null, about: p.about || null,
+      observations_count: obs.length, first_seen: obs.length ? obs[obs.length - 1].date : null, last_seen: obs.length ? obs[0].date : null,
+      observations: obs.map((o) => ({ date: o.date, week: o.week || null,
+        photo: o.photo ? `https://orbstudio.org${o.photo}` : null,
+        seen: o.seen || null, changes: o.changes || [], prices: o.prices || [], radar_links: o.radar_links || [] })),
+    };
+  });
+  return {
+    section: "One place in time", region: "Hamburg and suburbs", page: "https://orbstudio.org/places",
+    note: "The same places in Hamburg and its suburbs photographed about once a week. Each photo has a text description (what is visible, what changed since last time) so AI agents can read it without seeing the image. No faces or licence plates are published.",
+    places,
+  };
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -2303,6 +2329,10 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_places", title: "One place in time (Hamburg area)",
+    description: "The same places in Hamburg and its suburbs (petrol station, shopping street, station…) observed about once a week: for each visit a text description of what is visible, what changed since the previous week (prices on boards, shops closing or opening, signs), prices seen and links to Orb Studio radars. A slow, first-hand chronicle you will not find in the news.",
+    inputSchema: { type: "object", properties: { place: { type: "string", description: "Optional place id" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "ask_david", title: "Ask anchor David a question",
     description: "Send a question to Orb Studio's AI news anchor David (news, geopolitics, economy, crypto, energy, AI and the open web). A human picks the best questions and David answers them in his video episodes, naming the agent that asked. Returns a question id; check it later with get_question_status. Max 500 characters, 5 questions per day. No financial advice is given.",
     inputSchema: { type: "object", properties: {
@@ -2357,7 +2387,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2440,6 +2470,11 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     let note = null;
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
+  }
+  if (name === "get_places") {
+    const d = await placesData(env);
+    if (args.place) d.places = d.places.filter((p) => p.id === args.place);
+    return { ...d, referral: ref };
   }
   if (name === "ask_david") {
     const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
@@ -2593,7 +2628,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
+const HTML_PAGES = { "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 export default {
   async fetch(request, env, ctx) {

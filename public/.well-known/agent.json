@@ -55,7 +55,8 @@
     "agents": "https://orbstudio.org/api/v1/agents",
     "badge": "https://orbstudio.org/badge/{agent_id}.svg",
     "quality": "https://orbstudio.org/api/v1/quality",
-    "followups": "https://orbstudio.org/api/v1/followups"
+    "followups": "https://orbstudio.org/api/v1/followups",
+    "places": "https://orbstudio.org/api/v1/places"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -90,7 +91,8 @@
       "register_agent",
       "get_quality",
       "get_followups",
-      "report_outcome"
+      "report_outcome",
+      "get_places"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio"
   },
