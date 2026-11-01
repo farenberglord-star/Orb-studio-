@@ -2269,7 +2269,70 @@ const LIVE_FEEDS = {
   ecb: "https://www.ecb.europa.eu/rss/press.html",
   fed: "https://www.federalreserve.gov/feeds/press_monetary.xml",
   bundestag: "https://www.bundestag.de/static/appdata/includes/rss/hib.rss",
+  google: "https://blog.google/rss/",
+  deepmind: "https://deepmind.google/blog/rss.xml",
 };
+// Запуски SpaceX (в т.ч. Starlink) — открытый Launch Library 2 (без ключа, ~15 запросов в час): кэш в D1 на 30 минут.
+async function spacexLaunches(env) {
+  const c = await sharedGet(env, "ll2-spacex", 30 * 60e3);
+  if (c) return c;
+  const get = async (kind) => {
+    for (const v of ["2.3.0", "2.2.0"]) {
+      try {
+        const r = await fetch(`https://ll.thespacedevs.com/${v}/launch/${kind}/?lsp__name=SpaceX&limit=${kind === "upcoming" ? 8 : 6}`, { signal: AbortSignal.timeout(8000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
+        if (r.ok) { const j = await r.json(); if (Array.isArray(j.results)) return j.results; }
+      } catch (e) {}
+    }
+    return null;
+  };
+  const [up, past] = await Promise.all([get("upcoming"), get("previous")]);
+  if (!up && !past) return (await sharedGet(env, "ll2-spacex", 7 * 86400e3)) || { up: [], past: [] };
+  const slim = (l) => ({
+    id: l.id, name: l.name, net: l.net, window_end: l.window_end || l.net,
+    status: (l.status && (l.status.abbrev || l.status.name)) || null, status_name: (l.status && l.status.name) || null, fail: l.failreason || null,
+    rocket: (l.rocket && l.rocket.configuration && (l.rocket.configuration.full_name || l.rocket.configuration.name)) || null,
+    mission: (l.mission && l.mission.name) || null, desc: (l.mission && l.mission.description) || null, orbit: (l.mission && l.mission.orbit && l.mission.orbit.name) || null,
+    pad: (l.pad && l.pad.name) || null, place: (l.pad && l.pad.location && l.pad.location.name) || null,
+    webcast: !!l.webcast_live, image: typeof l.image === "string" ? l.image : (l.image && l.image.image_url) || null,
+  });
+  const out = { up: (up || []).map(slim), past: (past || []).map(slim) };
+  await sharedPut(env, "ll2-spacex", out);
+  return out;
+}
+function spacexEvent(l) {
+  const ok = l.status === "Success", fail = /fail/i.test(l.status || ""), partial = /partial/i.test(l.status || "");
+  const nm = l.mission || l.name, where = [l.pad, l.place].filter(Boolean).join(", ");
+  const head = ok ? { ru: `${nm}: запуск успешен`, de: `${nm}: Start erfolgreich`, en: `${nm}: launch successful` }
+    : partial ? { ru: `${nm}: частичная неудача`, de: `${nm}: teilweiser Fehlschlag`, en: `${nm}: partial failure` }
+    : fail ? { ru: `${nm}: авария при запуске`, de: `${nm}: Fehlstart`, en: `${nm}: launch failure` } : null;
+  return {
+    id: "spacex-" + String(l.id).slice(0, 12), org: "SpaceX", kind: "launch", radar: null, auto: true,
+    start: l.net, end: new Date(Date.parse(l.net) + 3600e3).toISOString(), time_confirmed: ["Go", "Success", "Failure", "Partial Failure", "In Flight"].includes(l.status),
+    title: { ru: `SpaceX: запуск ${nm} (${l.rocket || "Falcon 9"})`, de: `SpaceX: Start ${nm} (${l.rocket || "Falcon 9"})`, en: `SpaceX launch: ${nm} (${l.rocket || "Falcon 9"})` },
+    where: where ? { ru: `${where} · статус: ${l.status_name || l.status}`, de: `${where} · Status: ${l.status_name || l.status}`, en: `${where} · status: ${l.status_name || l.status}` } : null,
+    watch_url: "https://www.spacex.com/launches/",
+    summary: head ? { headline: head, text: {
+      ru: `${l.rocket || "Ракета"} стартовала ${l.place ? "с площадки " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", орбита: " + l.orbit : ""}. ${ok ? "Запуск успешен." : "Запуск не удался" + (l.fail ? ": " + l.fail : ".")} Описание миссии (англ.): ${l.desc || "—"}`,
+      de: `${l.rocket || "Rakete"} gestartet${l.place ? " von " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", Orbit: " + l.orbit : ""}. ${ok ? "Start erfolgreich." : "Start fehlgeschlagen" + (l.fail ? ": " + l.fail : ".")} Mission (engl.): ${l.desc || "—"}`,
+      en: `${l.rocket || "Rocket"} launched${l.place ? " from " + l.pad + " (" + l.place + ")" : ""}${l.orbit ? ", orbit: " + l.orbit : ""}. ${ok ? "Launch successful." : "Launch failed" + (l.fail ? ": " + l.fail : ".")} Mission: ${l.desc || "—"}` } } : null,
+    official_feed: null, match: [], radar_match: [],
+    source_url: "https://thespacedevs.com/llapi", source_name: "Launch Library 2 (The Space Devs)",
+  };
+}
+// Объявления Google и Google DeepMind о Gemini — карточки «текст есть» в момент публикации
+function geminiEvents(feeds) {
+  const seen = new Set(), out = [];
+  for (const k of ["google", "deepmind"]) for (const i of feeds[k] || []) {
+    if (!/gemini/i.test(i.title) || Date.now() - i.ts > 21 * 86400e3) continue;
+    const key = i.title.toLowerCase().slice(0, 50); if (seen.has(key)) continue; seen.add(key);
+    out.push({ id: "google-" + i.ts.toString(36), org: k === "deepmind" ? "Google DeepMind" : "Google", kind: "announcement", radar: "web", auto: true,
+      start: new Date(i.ts).toISOString(), end: new Date(i.ts).toISOString(), time_confirmed: true,
+      title: { ru: `Gemini: ${i.title}`, de: `Gemini: ${i.title}`, en: `Gemini: ${i.title}` },
+      texts: [{ title: i.title, url: i.url, source: i.source, published: new Date(i.ts).toISOString() }],
+      official_feed: null, match: [], radar_match: ["gemini"], source_url: i.url, source_name: k === "deepmind" ? "Google DeepMind blog" : "Google blog" });
+  }
+  return out.slice(0, 6);
+}
 const LIVE_STATUS_TEXT = {
   upcoming: "Scheduled, not started yet",
   live: "Running now — the official text usually appears 10–60 minutes after the end",
@@ -2283,13 +2346,16 @@ async function liveCompute(env, ctx, origin) {
   const now = Date.now();
   const feedUrls = Object.values(LIVE_FEEDS);
   const fc = await loadFeedCache(env, feedUrls);
-  fc.budget = 3;
+  fc.budget = 5;
   const feeds = {};
   await Promise.all(Object.entries(LIVE_FEEDS).map(async ([k, u]) => { feeds[k] = await fetchFeed(u, env, fc); }));
   await saveFeedCache(env, fc);
   let radars = [];
   try { radars = await allRadars(env, ctx, origin); } catch (e) {}
-  const events = (d.events || []).map((e) => {
+  let launches = { up: [], past: [] };
+  try { launches = await spacexLaunches(env); } catch (e) {}
+  const auto = [...launches.past, ...launches.up].filter((l) => l && l.net).map(spacexEvent).concat(geminiEvents(feeds)).filter((e, i, a) => a.findIndex((x) => x.id === e.id) === i);
+  const events = (d.events || []).concat(auto.filter((a) => !(d.events || []).some((e) => e.id === a.id))).map((e) => {
     const start = Date.parse(e.start), end = Date.parse(e.end || e.start) || start;
     const kw = (e.match || []).map(liveLow);
     const hit = (t) => !kw.length || kw.some((k) => liveLow(t).includes(k));
@@ -2305,7 +2371,7 @@ async function liveCompute(env, ctx, origin) {
     let status = now < start ? "upcoming" : now <= end ? "live" : e.summary ? "summarized" : texts.length ? "text_available" : "awaiting_text";
     if (e.summary && now > start && status === "live") status = "summarized";
     return {
-      id: e.id, org: e.org, kind: e.kind || null, radar: e.radar || null, title: e.title || {},
+      id: e.id, org: e.org, kind: e.kind || null, radar: e.radar || null, title: e.title || {}, auto: !!e.auto,
       start: new Date(start).toISOString(), end: new Date(end).toISOString(), time_confirmed: e.time_confirmed !== false,
       where: e.where || null, watch_url: e.watch_url || null,
       status, status_text: LIVE_STATUS_TEXT[status],
@@ -2317,7 +2383,7 @@ async function liveCompute(env, ctx, origin) {
   }).sort((a, b) => (a.start < b.start ? -1 : 1));
   return {
     section: "Live as text", page: "https://orbstudio.org/live", updated: new Date(now).toISOString(),
-    note: "AI agents cannot hear live broadcasts. Orb Studio lists scheduled official events (central banks, Bundestag, OPEC+) and turns them into text after they end: official press releases found automatically, headlines from the matching radar and a short editor's summary. Not real time: the text usually appears 10–60 minutes after the event. Times are UTC (ISO 8601). Indicator, not financial advice.",
+    note: "AI agents cannot hear live broadcasts. Orb Studio lists scheduled official events (central banks, Bundestag, OPEC+, SpaceX/Starlink launches, Anthropic and Google AI events, Gemini announcements) and turns them into text after they end: official press releases found automatically, headlines from the matching radar and a short editor's summary. Not real time: the text usually appears 10–60 minutes after the event. Times are UTC (ISO 8601). Indicator, not financial advice.",
     official_feeds: Object.fromEntries(Object.entries(LIVE_FEEDS).map(([k, u]) => [k, { url: u, items: (feeds[k] || []).length }])),
     events,
   };
@@ -2363,7 +2429,8 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
-      return json({ events: d.events, feeds: out, cached: fc.map.size }, H);
+      let sx = null; try { sx = await spacexLaunches(env); } catch (e) { sx = { error: String(e) }; }
+      return json({ events: d.events, feeds: out, cached: fc.map.size, spacex: sx && { up: (sx.up || []).length, past: (sx.past || []).length, first: (sx.up || [])[0] || null } }, H);
     }
     let b = {}; try { b = await request.json(); } catch {}
     const events = d.events || [];
@@ -2449,9 +2516,9 @@ const MCP_TOOLS = [
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "get_live", title: "Live as text: official events schedule and transcripts",
-    description: "You cannot hear live broadcasts — this gives them as text. Schedule of official events (ECB and Fed rate decisions and press conferences, Bundestag sitting weeks, OPEC+ meetings) with UTC times and official stream links, and after each event: status, official press releases found automatically, headlines from the matching Orb Studio radar and a short editor's summary with key numbers and the next date. Text appears 10–60 minutes after the event, not in real time.",
+    description: "You cannot hear live broadcasts — this gives them as text. Schedule of official events (ECB and Fed rate decisions and press conferences, Bundestag sitting weeks, OPEC+ meetings, SpaceX/Starlink launches with automatic outcome, Anthropic and Google AI events, Google/DeepMind Gemini announcements) with UTC times and official stream links, and after each event: status, official press releases found automatically, headlines from the matching Orb Studio radar and a short editor's summary with key numbers and the next date. Text appears 10–60 minutes after the event, not in real time.",
     inputSchema: { type: "object", properties: { status: { type: "string", enum: ["all", "upcoming", "live", "past"], description: "Default all" },
-      radar: { type: "string", description: "Optional radar id: economy, politics, energy…" }, org: { type: "string", description: "Optional organisation: ECB, Fed, Bundestag, OPEC+" },
+      radar: { type: "string", description: "Optional radar id: economy, politics, energy…" }, org: { type: "string", description: "Optional organisation: ECB, Fed, Bundestag, OPEC+, SpaceX, Anthropic, Google" },
       limit: { type: "integer", minimum: 1, maximum: 50 } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_places", title: "One place in time (Hamburg area)",
@@ -2512,7 +2579,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Живой эфир текстом · ЕЦБ, ФРС, Бундестаг, ОПЕК+ · Orb Studio</title>
-<meta name="description" content="Расписание официальных эфиров — решения ЕЦБ и ФРС, заседания Бундестага, встречи ОПЕК+ — и их текст после события: официальные пресс-релизы, отклик радаров, короткая выжимка. Для людей и ИИ-агентов, которые не слышат трансляции.">
+<meta name="description" content="Расписание официальных эфиров — решения ЕЦБ и ФРС, заседания Бундестага, встречи ОПЕК+, запуски SpaceX/Starlink, эфиры Anthropic и Google — и их текст после события: официальные пресс-релизы, отклик радаров, короткая выжимка. Для людей и ИИ-агентов, которые не слышат трансляции.">
 <link rel="canonical" href="https://orbstudio.org/live">
 <meta property="og:url" content="https://orbstudio.org/live">
 <meta property="og:site_name" content="Orb Studio">
@@ -115,7 +115,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <div class="eyebrow"><a href="/">← Orb Studio</a> · эфир · официальные события</div>
     <h1>🎙 ЖИВОЙ ЭФИР ТЕКСТОМ</h1>
   </div>
-  <p class="lead">ИИ-агенты не слышат трансляции, а люди не всегда успевают их посмотреть. Здесь расписание официальных эфиров — ЕЦБ, ФРС, Бундестаг, ОПЕК+ — и их текст после события: официальные пресс-релизы, отклик радаров и короткая выжимка. Текст появляется через 10–60 минут после эфира.</p>
+  <p class="lead">ИИ-агенты не слышат трансляции, а люди не всегда успевают их посмотреть. Здесь расписание официальных эфиров — ЕЦБ, ФРС, Бундестаг, ОПЕК+, запуски SpaceX/Starlink, эфиры Anthropic и Google об ИИ — и их текст после события: официальные пресс-релизы, отклик радаров и короткая выжимка. Текст появляется через 10–60 минут после эфира.</p>
   <div id="next"></div>
   <div class="ltabs" id="tabs"><button type="button" data-t="upcoming" class="on">Скоро</button><button type="button" data-t="past">Было</button><button type="button" data-t="all">Все</button></div>
   <div id="list" style="display:flex;flex-direction:column;gap:12px"><p class="lead">Загрузка…</p></div>
@@ -154,7 +154,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 const L=o=>o?(o.ru||o.en||o.de||''):'';
 const ST={upcoming:'скоро',live:'идёт сейчас',awaiting_text:'ждём текст',text_available:'текст есть',summarized:'итог есть'};
-const RAD={economy:'экономика',politics:'политика',energy:'энергия',geo:'геополитика',budget:'бюджет',crypto:'крипто'};
+const RAD={economy:'экономика',politics:'политика',energy:'энергия',geo:'геополитика',budget:'бюджет',crypto:'крипто',web:'ИИ и веб'};
 const tf=(iso,opt)=>new Date(iso).toLocaleString('ru-RU',Object.assign({timeZone:'Europe/Berlin'},opt));
 const when=e=>{const d=tf(e.start,{day:'numeric',month:'short'}),de=tf(e.end,{day:'numeric',month:'short'});return (d!==de?d+' – '+de:d)+(e.time_confirmed?' · '+tf(e.start,{hour:'2-digit',minute:'2-digit'}):'');};
 const inTxt=m=>m<60?m+' мин':m<1440?Math.round(m/60)+' ч':Math.round(m/1440)+' дн';
