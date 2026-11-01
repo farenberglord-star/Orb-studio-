@@ -1,6 +1,8 @@
 name: Проверка ссылок
 
 # Ищет битые ссылки во всех страницах сайта и README.
+# Внутренние ссылки (/prices, /go/kraken …) проверяются на живом orbstudio.org,
+# потому что их отдаёт Worker, а не файлы. API-адреса пропускаются.
 # Запускается при изменении страниц, раз в неделю и вручную.
 # Сайты, которые блокируют ботов (Kraken, Starlink, соцсети), не считаются ошибкой
 # при ответах 403/429 — проверяется только, что адрес вообще существует.
@@ -24,7 +26,9 @@ jobs:
         with:
           args: >-
             --no-progress
-            --root-dir ${{ github.workspace }}/public
+            --base-url https://orbstudio.org
+            --exclude '^https://orbstudio.org/api/'
+            --exclude localhost
             --accept 200..=299,403,429
             --max-retries 2
             --timeout 20
