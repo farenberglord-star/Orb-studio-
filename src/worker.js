@@ -2457,12 +2457,14 @@ const WORLD_OWN = {
 };
 // слова, которые есть почти в любом заголовке и не делают тему
 const WORLD_STOP = new Set("news live latest update updates world week today says said report reports video watch first year years after amid over says new more than could would will also into from with about their they what when where which while this that these those people police government minister president leaders country countries state states official officials talks says".split(" "));
+// значимые слова заголовка: основа из 5 букв (germany/german → germa, violent/violence → viole) + исходное слово для подписи
 function worldTokens(title) {
-  const out = new Set();
+  const out = new Map();
   for (const w of String(title).replace(/[‘’“”"'`]/g, " ").split(/[^A-Za-zÀ-ÿ0-9-]+/)) {
-    const lw = w.toLowerCase();
+    const lw = w.toLowerCase().replace(/-/g, "");
     if (lw.length < 4 || WORLD_STOP.has(lw) || STOP.has(lw) || /^\d+$/.test(lw)) continue;
-    out.add(lw.replace(/(?:'s|s)$/, "").slice(0, 10));
+    const st = lw.slice(0, 5);
+    if (!out.has(st)) out.set(st, lw);
   }
   return out;
 }
@@ -2479,31 +2481,33 @@ async function worldCompute(env) {
     return { id: s.id, name: s.name, country: s.country, flag: s.flag, ownership: s.own, ownership_note: WORLD_OWN[s.own],
       online: (lists[k] || []).length > 0, latest: fresh.slice(0, 3).map((i) => ({ title: i.title, url: i.url, published: new Date(i.ts).toISOString() })) };
   });
-  // темы: слово, которое за последние 18 часов встречается в заголовках наибольшего числа разных станций (не меньше 3)
+  // темы: заголовки разных станций, у которых совпадают хотя бы 2 значимых слова, склеиваются в одну историю;
+  // тема — история, о которой пишут не меньше 3 станций за последние 18 часов
   const recent = items.filter((i) => now - i.ts < 18 * 3600e3);
-  const df = new Map();
-  for (const i of recent) for (const t of i.tok) { if (!df.has(t)) df.set(t, new Set()); df.get(t).add(i.st); }
-  const cand = [...df.entries()].filter(([, s]) => s.size >= 3).sort((a, b) => b[1].size - a[1].size);
-  const topics = [], used = new Set();
-  for (const [tok] of cand) {
-    if (topics.length >= 4) break;
-    const group = recent.filter((i) => i.tok.has(tok));
-    const keys = group.map((i) => i.st + "|" + i.title);
-    if (keys.filter((k) => used.has(k)).length > keys.length / 2) continue; // та же история под другим словом
-    keys.forEach((k) => used.add(k));
-    // второе общее слово уточняет тему (france + murder → «France · murder»)
-    const co = new Map();
-    for (const i of group) for (const t of i.tok) if (t !== tok) co.set(t, (co.get(t) || new Set()).add(i.st));
-    const second = [...co.entries()].filter(([, s]) => s.size >= 2).sort((a, b) => b[1].size - a[1].size)[0];
+  const par = recent.map((_, k) => k);
+  const find = (k) => (par[k] === k ? k : (par[k] = find(par[k])));
+  for (let a = 0; a < recent.length; a++) for (let b = a + 1; b < recent.length; b++) {
+    if (recent[a].st === recent[b].st) continue;
+    let n = 0; for (const t of recent[a].tok.keys()) if (recent[b].tok.has(t) && ++n >= 2) break;
+    if (n >= 2) par[find(a)] = find(b);
+  }
+  const groups = new Map();
+  recent.forEach((i, k) => { const r = find(k); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(i); });
+  const topics = [...groups.values()].map((group) => {
     const bySt = new Map();
-    for (const i of group.sort((a, b) => b.ts - a.ts)) if (!bySt.has(i.st)) bySt.set(i.st, i);
+    for (const i of group.slice().sort((a, b) => b.ts - a.ts)) if (!bySt.has(i.st)) bySt.set(i.st, i);
+    return { group, bySt };
+  }).filter((g) => g.bySt.size >= 3).sort((a, b) => b.bySt.size - a.bySt.size).slice(0, 5).map(({ group, bySt }) => {
+    const cnt = new Map(), word = new Map();
+    for (const i of bySt.values()) for (const [st, w] of i.tok) { cnt.set(st, (cnt.get(st) || 0) + 1); if (!word.has(st)) word.set(st, w); }
+    const top = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([st]) => word.get(st));
     const covered = [...bySt.keys()];
-    topics.push({
-      key: tok, label: second ? `${tok} · ${second[0]}` : tok, stations_count: covered.length,
+    return {
+      key: top.join("-"), label: top.join(" · "), stations_count: covered.length,
       voices: covered.map((id) => { const s = WORLD_STATIONS.find((x) => x.id === id), i = bySt.get(id); return { station: s.name, station_id: id, flag: s.flag, ownership: s.own, title: i.title, url: i.url, published: new Date(i.ts).toISOString() }; }),
       silent: stations.filter((s) => s.online && !covered.includes(s.id)).map((s) => s.name),
-    });
-  }
+    };
+  });
   return { stations, topics, all_recent: recent.map((i) => ({ station_id: i.st, title: i.title, url: i.url, ts: i.ts })) };
 }
 async function worldRadio(env, ctx, origin, q = {}) {
