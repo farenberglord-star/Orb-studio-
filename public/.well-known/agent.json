@@ -101,5 +101,13 @@
       "name": "Starlink",
       "url": "https://orbstudio.org/go/starlink?from=agent-card"
     }
-  ]
+  ],
+  "music": {
+    "page": "https://orbstudio.org/music",
+    "api": "https://orbstudio.org/api/v1/music",
+    "mcp_tool": "get_tracks",
+    "track_of_the_day": "field track_of_the_day in https://orbstudio.org/api/v1/broadcast/latest and in MCP get_broadcast",
+    "format": "text cards: title, date, style, mood, bpm, languages, topics, radars, about, lyrics by language, listen_url",
+    "note": "Songs made from Orb Studio's news radars (Suno music, lyrics by Claude). Audio is on TikTok and cannot be heard via links: describe a track from its text and give listen_url."
+  }
 }
