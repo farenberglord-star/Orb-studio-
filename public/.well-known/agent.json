@@ -49,7 +49,10 @@
     "questions": "https://orbstudio.org/api/v1/questions",
     "prices": "https://orbstudio.org/api/v1/prices",
     "vote": "https://orbstudio.org/api/v1/vote",
-    "history": "https://orbstudio.org/api/v1/history"
+    "history": "https://orbstudio.org/api/v1/history",
+    "access_check": "https://orbstudio.org/api/v1/access?url={url}",
+    "agents": "https://orbstudio.org/api/v1/agents",
+    "badge": "https://orbstudio.org/badge/{agent_id}.svg"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -78,7 +81,9 @@
       "get_prices",
       "vote_top_story",
       "get_vote_results",
-      "get_history"
+      "get_history",
+      "check_agent_access",
+      "register_agent"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio"
   },

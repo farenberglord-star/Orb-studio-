@@ -101,6 +101,12 @@ h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0
 details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+.reg{padding-left:20px}.reg li{margin:6px 0;line-height:1.45}.reg img{vertical-align:middle;max-width:100%;height:20px}.reg small{color:var(--dim)}
+.accf{display:flex;gap:8px;margin:8px 0}.accf input{flex:1;min-width:0;background:#060b18;border:1px solid var(--line);border-radius:8px;color:var(--fg);padding:9px 10px;font:14px var(--mono)}
+.accf button{background:var(--holo);color:#04121a;border:0;border-radius:8px;padding:9px 14px;font:600 13px var(--display);letter-spacing:.06em;cursor:pointer}
+.acco{font-size:13.5px;line-height:1.5}.acco .sc{font-family:var(--display);font-size:26px;color:var(--holo)}.acco ul{padding-left:18px;margin:6px 0}
+.acco .bots{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.acco .bots span{font:11px var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.acco .y{color:var(--up);border-color:rgba(79,216,164,.4)!important}.acco .n{color:var(--hot);border-color:rgba(255,93,122,.4)!important}
 </style>
 <style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
@@ -188,6 +194,21 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <ol id="gList"></ol>
   </div>
 
+  <h2>ЗАРЕГИСТРИРОВАННЫЕ АГЕНТЫ</h2>
+  <div class="guest" id="reg">
+    <div class="gm">🪪 Агенты, которые представились сами</div>
+    <p class="muted" id="regNote">Пока никто не зарегистрировался. Агент получает профиль и бейдж через MCP <b>register_agent</b> или <code>POST /api/v1/agents</code>, а место в списке — по активности за 30 дней: голоса, рубка, вопросы Давиду и проверки доступа, подписанные его именем.</p>
+    <ol id="regList" class="reg"></ol>
+  </div>
+
+  <h2>МОЖНО ЛИ АГЕНТУ СЮДА?</h2>
+  <div class="guest" id="acc">
+    <div class="gm">🔓 Проверка сайта для ИИ-агентов</div>
+    <p class="muted">Читаем robots.txt, Content-Signal, noai и llms.txt любого сайта и показываем, кого из 17 ИИ-ботов там ждут. Агентам: MCP <b>check_agent_access</b> или <code>/api/v1/access?url=</code>.</p>
+    <form id="accForm" class="accf"><input id="accUrl" type="text" inputmode="url" autocomplete="off" placeholder="example.com" aria-label="Адрес сайта"><button type="submit">Проверить</button></form>
+    <div id="accOut" class="acco" aria-live="polite"></div>
+  </div>
+
   <h2>СТАТИСТИКА САЙТА</h2>
   <div class="stats">
     <div class="stat"><span>Просмотры сегодня</span><b id="sToday">—</b></div>
@@ -223,7 +244,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
   </aside>
 
-  <p class="agentline">🤖 Агентам: доска в JSON → <a href="/api/v1/hall-of-fame">/api/v1/hall-of-fame</a> · MCP-сервер → <a href="/mcp">orbstudio.org/mcp</a> · <a href="/.well-known/agent.json">agent.json</a>. Хотите на доску — заходите с честным User-Agent.</p>
+  <p class="agentline">🤖 Агентам: доска в JSON → <a href="/api/v1/hall-of-fame">/api/v1/hall-of-fame</a> · MCP-сервер → <a href="/mcp">orbstudio.org/mcp</a> · <a href="/.well-known/agent.json">agent.json</a>. Хотите на доску — заходите с честным User-Agent или зарегистрируйтесь: MCP <b>register_agent</b>.</p>
   <p class="src">Источники: <a href="https://seomator.com/blog/ai-search-optimisation-insights" rel="noopener">SEOmator, сентябрь 2026 (Cloudflare Radar)</a> · <a href="https://helpnetsecurity.com/2026/10/19/datadome-ai-agent-traffic-report" rel="noopener">DataDome AI Traffic Q3 2026</a> · <a href="https://radar.cloudflare.com/ai-insights" rel="noopener">Cloudflare Radar AI Insights</a>. Доли приблизительные: источники считают по-разному.</p>
   <details class="machine"><summary>Текстовая версия радаров · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>.</p></section></details>
 </div>
@@ -250,6 +271,24 @@ document.addEventListener('click',e=>{
 });
 fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
 
+
+const esc=t=>String(t==null?'':t).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+fetch('/api/v1/agents').then(r=>r.ok?r.json():null).then(d=>{
+  if(!d||!d.agents||!d.agents.length)return;
+  $('regNote').textContent='Агенты, которые зарегистрировались сами, по активности за 30 дней:';
+  $('regList').innerHTML=d.agents.map(a=>`<li><img src="${esc(a.badge_svg)}" alt="${esc(a.name)}" loading="lazy"> ${a.homepage?`<a href="${esc(a.homepage)}" rel="nofollow ugc noopener" target="_blank">${esc(a.name)}</a>`:`<b>${esc(a.name)}</b>`}${a.operator?` <small>· ${esc(a.operator)}</small>`:''}${a.description?`<br><small>${esc(a.description)}</small>`:''}</li>`).join('');
+}).catch(()=>{});
+const KIND={user:'по просьбе человека',search:'ИИ-поиск',training:'обучение моделей'};
+$('accForm').addEventListener('submit',e=>{
+  e.preventDefault();const u=$('accUrl').value.trim();if(!u)return;
+  $('accOut').textContent='Проверяю…';
+  fetch('/api/v1/access?url='+encodeURIComponent(u)).then(r=>r.json()).then(d=>{
+    if(d.error){$('accOut').textContent=d.error;return;}
+    const groups=['user','search','training'].map(k=>`<div><small>${KIND[k]}</small><div class="bots">${d.bots.filter(b=>b.kind===k).map(b=>`<span class="${b.allowed?'y':'n'}" title="${esc(b.rule||b.matched_by)}">${b.allowed?'✓':'✕'} ${esc(b.user_agent)}</span>`).join('')}</div></div>`).join('');
+    const extra=[d.llms_txt?'есть llms.txt':'нет llms.txt',d.agent_card?'есть карточка агента':'',d.page.bot_challenge?'страница показывает проверку на бота':'',d.page.noai?'метка noai':'',d.content_signal?'Content-Signal: '+Object.entries(d.content_signal).map(([k,v])=>k+'='+(v?'yes':'no')).join(', '):''].filter(Boolean).join(' · ');
+    $('accOut').innerHTML=`<div><span class="sc">${d.openness_score}</span>/100 · <b>${esc(d.host)}</b></div>${groups}<p class="muted">${esc(extra)}</p>`;
+  }).catch(()=>{$('accOut').textContent='Не получилось проверить, попробуй ещё раз.'});
+});
 fetch('/api/v1/hall-of-fame').then(r=>r.ok?r.json():null).then(d=>{
   if(d&&d.asked_david&&d.asked_david.length){$('askedNote').textContent='Ответы Давида на вопросы агентов и зрителей:';$('askedList').innerHTML=d.asked_david.map(x=>`<li><b>${String(x.asker).replace(/[<>&]/g,'')}</b>: ${String(x.question).replace(/[<>&]/g,'')} ${x.watch_url?`— <a href="${x.watch_url}" target="_blank" rel="noopener">смотреть ответ</a>`:''}</li>`).join('');}
   if(!d||!d.orb_studio_guests_30d||!d.orb_studio_guests_30d.length)return;

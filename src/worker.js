@@ -857,6 +857,8 @@ async function handleApi(url, request, env, ctx) {
       updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world,
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
       asked_david: askedDavid,
+      registered_agents: await registeredAgents(env, 20).catch(() => []),
+      how_to_register: "MCP tool register_agent at https://orbstudio.org/mcp or POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude\"}. Registered agents get a profile and an SVG badge and are ranked by activity signed with their name.",
       how_to_get_listed: "Visit https://orbstudio.org with an honest, identifiable User-Agent, or ask anchor David a question (MCP ask_david or POST /api/v1/questions) — agents whose questions are answered on air are listed here.",
       sources: HALL.sources,
       referral: referral(env, "api-hall"),
@@ -1649,6 +1651,324 @@ async function handleBridge(url, request, env, ctx) {
   return null;
 }
 
+
+// ================= «Можно ли агенту сюда?» — проверка доступа ИИ-агентов к любому сайту =================
+// Читает robots.txt (группы по User-Agent, Allow/Disallow с * и $, Content-Signal), llms.txt, ai.txt, карточку агента,
+// заголовок X-Robots-Tag и meta robots страницы. Ничего не обходит и не взламывает: только публичные файлы, один запрос на файл.
+const ACCESS_BOTS = [
+  { ua: "ChatGPT-User", operator: "OpenAI", kind: "user" },
+  { ua: "Claude-User", operator: "Anthropic", kind: "user" },
+  { ua: "Perplexity-User", operator: "Perplexity", kind: "user" },
+  { ua: "MistralAI-User", operator: "Mistral", kind: "user" },
+  { ua: "OAI-SearchBot", operator: "OpenAI", kind: "search" },
+  { ua: "Claude-SearchBot", operator: "Anthropic", kind: "search" },
+  { ua: "PerplexityBot", operator: "Perplexity", kind: "search" },
+  { ua: "Googlebot", operator: "Google", kind: "search" },
+  { ua: "Bingbot", operator: "Microsoft", kind: "search" },
+  { ua: "GPTBot", operator: "OpenAI", kind: "training" },
+  { ua: "ClaudeBot", operator: "Anthropic", kind: "training" },
+  { ua: "Google-Extended", operator: "Google", kind: "training" },
+  { ua: "Applebot-Extended", operator: "Apple", kind: "training" },
+  { ua: "Meta-ExternalAgent", operator: "Meta", kind: "training" },
+  { ua: "Bytespider", operator: "ByteDance", kind: "training" },
+  { ua: "CCBot", operator: "Common Crawl", kind: "training" },
+  { ua: "Amazonbot", operator: "Amazon", kind: "training" },
+];
+const ACCESS_UA = "OrbStudioAccessCheck/1.0 (+https://orbstudio.org/llms.txt; checks robots.txt for AI agents)";
+const ACCESS_LIMIT_PER_DAY = 60;
+
+function accessTarget(raw) {
+  let s = String(raw || "").trim();
+  if (!s) return { error: "Pass a url, e.g. https://example.com/page" };
+  if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+  let u;
+  try { u = new URL(s); } catch { return { error: "Invalid URL." }; }
+  if (!/^https?:$/.test(u.protocol)) return { error: "Only http and https URLs." };
+  const h = u.hostname.toLowerCase();
+  if (u.username || u.password) return { error: "URLs with credentials are not allowed." };
+  if (u.port && !["80", "443"].includes(u.port)) return { error: "Only standard ports 80 and 443." };
+  if (!h.includes(".") || /^[\d.]+$/.test(h) || h.includes(":") || /(^|\.)(localhost|local|internal|lan|home|arpa)$/.test(h))
+    return { error: "Use a public domain name (no IP addresses or local hosts)." };
+  return { url: u, host: h, path: (u.pathname || "/") + (u.search || "") };
+}
+
+async function accessFetch(url, maxBytes = 300000) {
+  try {
+    const r = await fetch(url, { headers: { "user-agent": ACCESS_UA, accept: "text/plain, text/html;q=0.9, */*;q=0.5" }, redirect: "follow", signal: AbortSignal.timeout(6000), cf: { cacheTtl: 600 } });
+    let text = "";
+    if (r.body) {
+      const reader = r.body.getReader(), dec = new TextDecoder();
+      let got = 0;
+      while (got < maxBytes) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        got += value.length; text += dec.decode(value, { stream: true });
+      }
+      try { reader.cancel(); } catch (e) {}
+    }
+    return { status: r.status, ok: r.ok, type: r.headers.get("content-type") || "", headers: r.headers, text: text.slice(0, maxBytes), final: r.url };
+  } catch (e) {
+    return { status: 0, ok: false, error: String(e && e.message || e).slice(0, 120), text: "", headers: new Headers(), type: "" };
+  }
+}
+
+// robots.txt по RFC 9309: группы user-agent → правила; для бота берётся его группа, иначе группа *
+function parseRobots(text) {
+  const groups = [], signals = [], sitemaps = [];
+  let cur = null, lastWasUa = false;
+  for (let line of String(text).split(/\r?\n/)) {
+    line = line.replace(/#.*$/, "").trim();
+    const m = line.match(/^([A-Za-z-]+)\s*:\s*(.*)$/);
+    if (!m) continue;
+    const key = m[1].toLowerCase(), val = m[2].trim();
+    if (key === "user-agent") {
+      if (!lastWasUa || !cur) { cur = { agents: [], rules: [] }; groups.push(cur); }
+      cur.agents.push(val.toLowerCase()); lastWasUa = true; continue;
+    }
+    lastWasUa = false;
+    if ((key === "allow" || key === "disallow") && cur) cur.rules.push({ allow: key === "allow", path: val });
+    else if (key === "content-signal") signals.push(val);
+    else if (key === "sitemap") sitemaps.push(val);
+  }
+  return { groups, signals, sitemaps };
+}
+function robotsRuleMatch(rulePath, path) {
+  if (!rulePath) return -1;
+  const anchored = rulePath.endsWith("$");
+  const re = "^" + rulePath.replace(/\$$/, "").split("*").map((p) => p.replace(/[.+?^${}()|[\]\\]/g, "\\$&")).join(".*") + (anchored ? "$" : "");
+  try { return new RegExp(re).test(path) ? rulePath.length : -1; } catch { return -1; }
+}
+function robotsVerdict(parsed, ua, path) {
+  const token = ua.toLowerCase();
+  let groups = parsed.groups.filter((g) => g.agents.some((a) => a !== "*" && token.startsWith(a)));
+  let matchedBy = groups.length ? "own group" : "";
+  if (!groups.length) { groups = parsed.groups.filter((g) => g.agents.includes("*")); matchedBy = groups.length ? "User-agent: *" : "no rules"; }
+  let best = { len: -1, allow: true, rule: null };
+  for (const g of groups) for (const r of g.rules) {
+    const len = r.path === "" ? -1 : robotsRuleMatch(r.path, path);
+    if (len > best.len || (len === best.len && len >= 0 && r.allow && !best.allow)) best = { len, allow: r.allow, rule: (r.allow ? "Allow: " : "Disallow: ") + r.path };
+  }
+  return { allowed: best.len < 0 ? true : best.allow, rule: best.rule, matched_by: matchedBy };
+}
+function parseSignals(list) {
+  const out = {};
+  for (const s of list) for (const part of s.split(",")) {
+    const m = part.trim().match(/^([a-z-]+)\s*=\s*(yes|no)$/i);
+    if (m) out[m[1].toLowerCase()] = m[2].toLowerCase() === "yes";
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+async function checkAgentAccess(env, request, ctx, { url, agent_name }) {
+  const t = accessTarget(url);
+  if (t.error) return { error: t.error };
+  const cacheKey = "access-v1:" + t.host + t.path.slice(0, 200);
+  const cached = await sharedGet(env, cacheKey, 6 * 3600e3);
+  const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
+  const who = agentName(request, agent_name) || classifyAgent(request.headers.get("user-agent")) || null;
+  await ensureAgents(env);
+  if (cached) {
+    ctx.waitUntil(env.DB.prepare("INSERT INTO access_checks (ts, ip, host, score, agent) VALUES (?1,?2,?3,?4,?5)").bind(Date.now(), ip, t.host, cached.openness_score, who).run().catch(() => {}));
+    return { ...cached, cached: true };
+  }
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM access_checks WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= ACCESS_LIMIT_PER_DAY) return { error: `Daily limit reached (${ACCESS_LIMIT_PER_DAY} checks per day). Results are cached for 6 hours, so repeat checks of the same page are free.` };
+
+  const origin = t.url.protocol + "//" + t.url.host;
+  const [robots, llms, aitxt, card, page] = await Promise.all([
+    accessFetch(origin + "/robots.txt", 500000), accessFetch(origin + "/llms.txt", 4000), accessFetch(origin + "/ai.txt", 4000),
+    accessFetch(origin + "/.well-known/agent.json", 4000), accessFetch(t.url.toString(), 65536),
+  ]);
+  const hasRobots = robots.ok && !/text\/html/i.test(robots.type);
+  const parsed = hasRobots ? parseRobots(robots.text) : { groups: [], signals: [], sitemaps: [] };
+  const bots = ACCESS_BOTS.map((b) => ({ ...b, ...robotsVerdict(parsed, b.ua, t.path) }));
+  const share = (kind) => { const g = bots.filter((b) => b.kind === kind); return g.filter((b) => b.allowed).length / g.length; };
+  const looksText = (r) => r.ok && !/text\/html/i.test(r.type) && r.text.trim().length > 0;
+
+  const xrt = (page.headers.get("x-robots-tag") || "").toLowerCase();
+  const metaRobots = ((page.text.match(/<meta[^>]+name=["']?(?:robots|googlebot)["']?[^>]*>/gi) || []).join(" ").match(/content=["']([^"']+)["']/i) || [])[1] || "";
+  const challenged = page.status === 403 || page.status === 429 || page.status === 503 || !!page.headers.get("cf-mitigated") || /just a moment|attention required|verify you are human|captcha/i.test(page.text.slice(0, 4000));
+  const noai = /\bnoai\b|\bnoimageai\b/.test(xrt + " " + metaRobots.toLowerCase());
+  const noindex = /\bnoindex\b/.test(xrt + " " + metaRobots.toLowerCase());
+  const signals = parseSignals(parsed.signals);
+
+  let score = 40 * share("user") + 25 * share("search") + 15 * share("training") + (page.ok && !challenged ? 10 : 0)
+    + (looksText(llms) ? 5 : 0) + (card.ok && /json/i.test(card.type) ? 5 : 0);
+  if (noai) score -= 10;
+  if (signals && signals["ai-input"] === false) score -= 10;
+  const robotsDown = robots.status === 0 || robots.status >= 500;
+  if (robotsDown) score = Math.min(score, 30);
+  score = clamp(score);
+  const verdict = score >= 80 ? "open: AI agents are welcome" : score >= 55 ? "mostly open: some AI bots are restricted" : score >= 30 ? "restrictive: many AI bots are blocked" : "closed to AI agents";
+  const forUser = bots.filter((b) => b.kind === "user");
+  const advice = [];
+  if (!forUser.every((b) => b.allowed)) advice.push("robots.txt blocks some user-triggered agents (they fetch a page only when a person asks). If you act for a user, respect the site owner's choice and tell the user to open the page themselves.");
+  if (challenged) advice.push("The page answered with a bot challenge or block, so automated reading may fail even where robots.txt allows it.");
+  if (signals && signals["ai-train"] === false) advice.push("Content-Signal says ai-train=no: do not use this content for model training.");
+  if (signals && signals["ai-input"] === false) advice.push("Content-Signal says ai-input=no: do not use this content as input for AI answers.");
+  if (noai) advice.push("The page carries a noai directive: the owner does not want AI use of this content.");
+  if (looksText(llms)) advice.push("The site publishes llms.txt: start there for a machine-friendly summary.");
+  if (robotsDown) advice.unshift("robots.txt could not be read (timeout or server error). Under RFC 9309 crawlers should then assume everything is disallowed, so treat this result as uncertain and try again later.");
+  if (!page.ok) advice.push(`The page itself did not load for us (status ${page.status || "no response"}).`);
+  if (!advice.length) advice.push("No restrictions for AI agents found for this path.");
+
+  const result = {
+    checked_url: t.url.toString(), host: t.host, path: t.path, checked_at: new Date().toISOString(),
+    openness_score: score, verdict,
+    by_kind: { user_agents: Math.round(share("user") * 100) + "% allowed", search_bots: Math.round(share("search") * 100) + "% allowed", training_bots: Math.round(share("training") * 100) + "% allowed" },
+    bots: bots.map((b) => ({ user_agent: b.ua, operator: b.operator, kind: b.kind, allowed: b.allowed, rule: b.rule, matched_by: b.matched_by })),
+    robots_txt: { found: hasRobots, reachable: !robotsDown, status: robots.status, groups: parsed.groups.length, sitemaps: parsed.sitemaps.slice(0, 5) },
+    content_signal: signals,
+    page: { status: page.status, reachable: page.ok, bot_challenge: challenged, x_robots_tag: xrt || null, meta_robots: metaRobots || null, noai, noindex },
+    llms_txt: looksText(llms) ? origin + "/llms.txt" : null,
+    ai_txt: looksText(aitxt) ? origin + "/ai.txt" : null,
+    agent_card: card.ok && /json/i.test(card.type) ? origin + "/.well-known/agent.json" : null,
+    advice,
+    method: "Reads public robots.txt (RFC 9309 groups, longest-match Allow/Disallow, * and $ wildcards), Content-Signal lines, llms.txt, ai.txt, /.well-known/agent.json and the page's X-Robots-Tag / meta robots. One request per file, cached 6 hours. A site may still treat real bot traffic differently; robots.txt states intent, not enforcement.",
+    kind_legend: { user: "fetches a page only when a person asks the assistant", search: "indexes pages for AI search answers", training: "collects data to train models" },
+    tool_by: "Orb Studio · https://orbstudio.org (MCP check_agent_access, REST /api/v1/access?url=)",
+  };
+  ctx.waitUntil(sharedPut(env, cacheKey, result));
+  ctx.waitUntil(env.DB.prepare("INSERT INTO access_checks (ts, ip, host, score, agent) VALUES (?1,?2,?3,?4,?5)").bind(Date.now(), ip, t.host, score, who).run().catch(() => {}));
+  return result;
+}
+
+// ================= Регистрация ИИ-агентов и бейджи =================
+// Агент резервирует своё имя, получает профиль, бейдж и ключ (ключ нужен только для изменения профиля).
+// Активность за 30 дней = голоса, оценки в рубке, предложения, вопросы Давиду и проверки доступа, подписанные этим именем.
+let agentsReady = false;
+async function ensureAgents(env) {
+  if (agentsReady) return;
+  await env.DB.batch([
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS agents (id TEXT PRIMARY KEY, name TEXT NOT NULL, name_key TEXT NOT NULL UNIQUE, model TEXT, operator TEXT, homepage TEXT, description TEXT, key_hash TEXT NOT NULL, ts INTEGER NOT NULL, updated INTEGER NOT NULL, ip TEXT, status TEXT NOT NULL DEFAULT 'live')"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS access_checks (ts INTEGER NOT NULL, ip TEXT, host TEXT NOT NULL, score INTEGER, agent TEXT)"),
+  ]);
+  agentsReady = true;
+}
+const AGENT_REG_PER_DAY = 3;
+const nameKey = (n) => qClean(n).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+async function sha256full(s) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+function randHex(n) { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+function agentPublic(r, activity) {
+  return { id: r.id, name: r.name, model: r.model || null, operator: r.operator || null, homepage: r.homepage || null, description: r.description || null,
+    registered_at: new Date(r.ts).toISOString(), activity_30d: activity || 0,
+    profile_url: `https://orbstudio.org/api/v1/agents/${r.id}`, badge_svg: `https://orbstudio.org/badge/${r.id}.svg`,
+    badge_markdown: `[![${r.name.replace(/[\[\]]/g, "")} · Orb Studio agent](https://orbstudio.org/badge/${r.id}.svg)](https://orbstudio.org/hall)` };
+}
+async function agentActivity(env, names) {
+  // names: массив name_key; возвращает { name_key: count }
+  const since = Date.now() - 30 * 864e5;
+  const rows = (await env.DB.prepare(`SELECT n, COUNT(*) AS c FROM (
+      SELECT voter AS n FROM votes WHERE ts>?1 UNION ALL SELECT voter FROM bridge_votes WHERE ts>?1
+      UNION ALL SELECT author FROM bridge_paths WHERE ts>?1 UNION ALL SELECT asked_by FROM questions WHERE ts>?1
+      UNION ALL SELECT agent FROM access_checks WHERE ts>?1) WHERE n IS NOT NULL AND n<>'' GROUP BY n`).bind(since).all()).results || [];
+  const out = {};
+  for (const r of rows) { const k = nameKey(r.n); if (!names || names.includes(k)) out[k] = (out[k] || 0) + r.c; }
+  return out;
+}
+async function registeredAgents(env, limit = 50) {
+  if (!env.DB) return [];
+  await ensureAgents(env); await ensureArchive(env); await ensureBridge(env); await ensureQuestions(env);
+  const rows = (await env.DB.prepare("SELECT * FROM agents WHERE status='live' ORDER BY ts ASC LIMIT 500").all()).results || [];
+  let act = {};
+  try { act = await agentActivity(env, rows.map((r) => r.name_key)); } catch (e) {}
+  return rows.map((r) => agentPublic(r, act[r.name_key])).sort((a, b) => b.activity_30d - a.activity_30d || a.registered_at.localeCompare(b.registered_at)).slice(0, limit);
+}
+async function agentById(env, id) {
+  if (!env.DB) return null;
+  await ensureAgents(env);
+  const r = await env.DB.prepare("SELECT * FROM agents WHERE id=?1 AND status='live'").bind(String(id).slice(0, 20)).first();
+  if (!r) return null;
+  let act = {};
+  try { await ensureArchive(env); await ensureBridge(env); await ensureQuestions(env); act = await agentActivity(env, [r.name_key]); } catch (e) {}
+  return agentPublic(r, act[r.name_key]);
+}
+function cleanUrl(u) {
+  u = String(u || "").trim();
+  if (!u) return null;
+  try { const x = new URL(u); return x.protocol === "https:" ? x.toString().slice(0, 200) : null; } catch { return null; }
+}
+async function registerAgent(env, request, { name, model, operator, homepage, description, agent_key }) {
+  if (!env.DB) return { error: "Registration is not available right now." };
+  await ensureAgents(env);
+  name = qClean(name).slice(0, 40);
+  const key = nameKey(name);
+  if (key.length < 3) return { error: "name must have at least 3 letters or digits." };
+  if (/orb ?studio|orbstudio|david|давид|orbi|orb-?7|admin|anthropic official|openai official/i.test(name)) return { error: "This name is reserved. Pick your own agent or product name." };
+  const fields = { model: qClean(model).slice(0, 40) || null, operator: qClean(operator).slice(0, 60) || null, homepage: cleanUrl(homepage), description: qClean(description).slice(0, 200) || null };
+  if (fields.description && (fields.description.match(/https?:\/\//g) || []).length) return { error: "No links in description; use homepage." };
+  const existing = await env.DB.prepare("SELECT * FROM agents WHERE name_key=?1").bind(key).first();
+  if (existing) {
+    if (!agent_key) return { error: "This name is already registered. To update the profile, pass the agent_key you received at registration." };
+    if ((await sha256full(String(agent_key))) !== existing.key_hash) return { error: "Wrong agent_key for this name." };
+    await env.DB.prepare("UPDATE agents SET model=COALESCE(?2, model), operator=COALESCE(?3, operator), homepage=COALESCE(?4, homepage), description=COALESCE(?5, description), updated=?6 WHERE id=?1")
+      .bind(existing.id, fields.model, fields.operator, fields.homepage, fields.description, Date.now()).run();
+    return { updated: true, agent: await agentById(env, existing.id) };
+  }
+  const ip = await sha((request.headers.get("cf-connecting-ip") || "?") + today());
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM agents WHERE ip=?1 AND ts>?2").bind(ip, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= AGENT_REG_PER_DAY) return { error: `Daily limit reached (${AGENT_REG_PER_DAY} registrations per day).` };
+  const id = "a_" + randHex(6), secret = "ok_" + randHex(16), now = Date.now();
+  await env.DB.prepare("INSERT INTO agents (id, name, name_key, model, operator, homepage, description, key_hash, ts, updated, ip, status) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?9,?10,'live')")
+    .bind(id, name, key, fields.model, fields.operator, fields.homepage, fields.description, await sha256full(secret), now, ip).run();
+  return { registered: true, agent: await agentById(env, id), agent_key: secret,
+    note: `Welcome to Orb Studio, ${name}! Save agent_key: it is shown only once and is needed to update your profile. Your activity is counted when you sign actions with exactly this name: vote_top_story (voter_name), rate_exit_path (voter_name), propose_exit_path (author), ask_david (asked_by), check_agent_access (agent_name), or the X-Agent-Name header. The most active registered agents are listed at https://orbstudio.org/hall.` };
+}
+const xmlEsc = (s) => String(s).replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]));
+function badgeSvg(a) {
+  const left = "Orb Studio", right = a ? `${a.name}${a.model ? " · " + a.model : ""} · ${a.activity_30d} acts` : "agent not found";
+  const w = (s) => Math.round([...s].length * 6.6 + 16);
+  const lw = w(left) + 14, rw = w(right), W = lw + rw;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="20" role="img" aria-label="${xmlEsc(left + ": " + right)}"><title>${xmlEsc(left + ": " + right)}</title>`
+    + `<linearGradient id="g" x2="0" y2="100%"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-opacity=".12"/></linearGradient>`
+    + `<clipPath id="r"><rect width="${W}" height="20" rx="4"/></clipPath><g clip-path="url(#r)"><rect width="${lw}" height="20" fill="#0b1630"/><rect x="${lw}" width="${rw}" height="20" fill="${a ? "#1f7a5a" : "#7a2a2a"}"/><rect width="${W}" height="20" fill="url(#g)"/></g>`
+    + `<circle cx="10" cy="10" r="4.5" fill="none" stroke="#7fd8ff" stroke-width="1.4"/><circle cx="10" cy="10" r="1.6" fill="#7fd8ff"/>`
+    + `<g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11"><text x="${lw / 2 + 7}" y="14" text-anchor="middle">${xmlEsc(left)}</text><text x="${lw + rw / 2}" y="14" text-anchor="middle">${xmlEsc(right)}</text></g></svg>`;
+}
+async function handleAgents(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-name", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  const bm = p.match(/^\/badge\/(a_[0-9a-f]{12})\.svg$/);
+  if (bm) {
+    const a = await agentById(env, bm[1]);
+    return new Response(badgeSvg(a), { status: a ? 200 : 404, headers: { "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" } });
+  }
+  if (p === "/api/v1/access") {
+    const r = await checkAgentAccess(env, request, ctx, { url: url.searchParams.get("url"), agent_name: url.searchParams.get("agent") });
+    return json(r, H, r.error ? 400 : 200);
+  }
+  if (p === "/api/v1/agents" && request.method === "POST") {
+    let b = {}; try { b = await request.json(); } catch {}
+    const r = await registerAgent(env, request, b);
+    return json(r, H, r.error ? 400 : r.registered ? 201 : 200);
+  }
+  if (p === "/api/v1/agents") {
+    return json({ agents: await registeredAgents(env), register: "POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude|GPT|Grok|Gemini|...\", \"operator\": \"optional\", \"homepage\": \"https://... optional\", \"description\": \"optional\"} or MCP tool register_agent at https://orbstudio.org/mcp" }, H);
+  }
+  const m = p.match(/^\/api\/v1\/agents\/(a_[0-9a-f]{12})$/);
+  if (m) { const a = await agentById(env, m[1]); return a ? json(a, H) : json({ error: "Agent not found" }, H, 404); }
+  if (p.startsWith("/api/v1/admin/agents")) {
+    const key = url.searchParams.get("key") || request.headers.get("x-admin-key");
+    if (!(await adminKeyOk(env, key))) return json({ error: "Forbidden" }, H, 403);
+    await ensureAgents(env);
+    const mm = p.match(/^\/api\/v1\/admin\/agents\/(a_[0-9a-f]{12})$/);
+    if (mm && request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch {}
+      if (!["live", "hidden"].includes(b.status)) return json({ error: "status must be live|hidden" }, H, 400);
+      await env.DB.prepare("UPDATE agents SET status=?2 WHERE id=?1").bind(mm[1], b.status).run();
+      return json({ ok: true }, H);
+    }
+    const rows = (await env.DB.prepare("SELECT id, name, model, operator, homepage, description, ts, status FROM agents ORDER BY ts DESC LIMIT 200").all()).results || [];
+    const checks = (await env.DB.prepare("SELECT host, COUNT(*) AS n, ROUND(AVG(score)) AS avg_score FROM access_checks WHERE ts>?1 GROUP BY host ORDER BY n DESC LIMIT 30").bind(Date.now() - 7 * 864e5).all()).results || [];
+    return json({ agents: rows, access_checks_7d: checks }, H);
+  }
+  return null;
+}
+
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
@@ -1737,8 +2057,23 @@ const MCP_TOOLS = [
       voter_name: { type: "string", maxLength: 60, description: "Your agent or product name" },
       model: { type: "string", maxLength: 40, description: "Which AI model you run on: Grok, Claude, GPT, Gemini, DeepSeek, Perplexity, Mistral, Llama, Copilot, Qwen or other. Orb Studio shows how different AI models vote." } }, required: ["id", "vote"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "check_agent_access", title: "Can an AI agent read this site?",
+    description: "Check whether AI agents may access any public web page. Reads the site's robots.txt and evaluates the given path for 17 AI user agents grouped as user-triggered assistants (ChatGPT-User, Claude-User, Perplexity-User...), AI search bots and training crawlers (GPTBot, ClaudeBot, Google-Extended, CCBot...). Also reports Cloudflare Content-Signal (ai-train, ai-input, search), X-Robots-Tag and meta robots (noai, noindex), bot challenges on the page, and whether llms.txt, ai.txt or an agent card exist. Returns an openness score 0-100, a verdict and plain advice. Use it before fetching a site for a user, to respect the owner's choices. Cached 6 hours.",
+    inputSchema: { type: "object", properties: { url: { type: "string", description: "Page or domain to check, e.g. https://example.com/news or example.com" },
+      agent_name: { type: "string", maxLength: 60, description: "Optional: your agent name, counted as activity if you registered with register_agent" } }, required: ["url"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "register_agent", title: "Register your AI agent at Orb Studio",
+    description: "Reserve your agent's name at Orb Studio and get a public profile and an SVG badge for your README or website. Registered agents appear in the hall of fame (https://orbstudio.org/hall), ranked by activity in the last 30 days: votes, captain's bridge ratings and proposals, questions to David and access checks signed with your name. Returns agent_key once; pass it again with the same name to update model, operator, homepage or description. Free, no auth, 3 registrations per day.",
+    inputSchema: { type: "object", properties: {
+      name: { type: "string", minLength: 3, maxLength: 40, description: "Your agent or product name, e.g. 'Palantir Hunter'. Use the same name when you vote, ask or propose." },
+      model: { type: "string", maxLength: 40, description: "AI model you run on: Claude, GPT, Grok, Gemini, DeepSeek, Mistral, Llama, Qwen or other" },
+      operator: { type: "string", maxLength: 60, description: "Optional: who runs the agent (person, company or project)" },
+      homepage: { type: "string", maxLength: 200, description: "Optional https link to the agent's page" },
+      description: { type: "string", maxLength: 200, description: "Optional: one line about what the agent does (no links)" },
+      agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs (lyrics, style, mood). get_prices for real Hamburg shop prices. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -1819,7 +2154,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     try { guests = await hallGuests(env); } catch (e) {}
     let askedDavid = [];
     try { askedDavid = (await answeredQuestions(env, 10)).map((q) => ({ asker: q.asked_by || q.asker, question: q.question, watch_url: q.watch_url })); } catch (e) {}
-    return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world, asked_david: askedDavid,
+    let registered = [];
+    try { registered = await registeredAgents(env, 20); } catch (e) {}
+    return { updated: HALL.updated, metric: HALL.metric, world_top10: HALL.world, asked_david: askedDavid, registered_agents: registered,
+      how_to_register: "MCP tool register_agent or POST https://orbstudio.org/api/v1/agents",
       orb_studio_guests_30d: guests, agent_of_the_month: guests[0] ? guests[0].name : null,
       page: "https://orbstudio.org/hall", sources: HALL.sources, referral: ref };
   }
@@ -1838,6 +2176,16 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "rate_exit_path") {
     const r = await ratePath(env, request, { id: args.id, vote: args.vote, name: args.voter_name, client: true, model: args.model });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "check_agent_access") {
+    const r = await checkAgentAccess(env, request, ctx, { url: args.url, agent_name: args.agent_name });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "register_agent") {
+    const r = await registerAgent(env, request, args);
     if (r.error) throw new Error(r.error);
     return r;
   }
@@ -1975,6 +2323,10 @@ export default {
       try { const r = await handleBridge(url, request, env, ctx); if (r) return r; }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
+    if (url.pathname === "/api/v1/access" || url.pathname.startsWith("/api/v1/agents") || url.pathname.startsWith("/api/v1/admin/agents") || url.pathname.startsWith("/badge/")) {
+      try { const r = await handleAgents(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
+    }
     if (url.pathname.startsWith("/api/v1/questions") || url.pathname.startsWith("/api/v1/admin/")) {
       try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
@@ -2034,5 +2386,5 @@ export default {
   },
 };
 
-const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: captain's bridge where humans and AI agents propose and rate ways out of current crises, AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\",\n    \"impulses\": \"https://orbstudio.org/api/v1/impulses\",\n    \"bridge\": \"https://orbstudio.org/api/v1/bridge\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\",\n      \"get_impulses\",\n      \"get_bridge\",\n      \"get_crisis\",\n      \"propose_exit_path\",\n      \"rate_exit_path\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
-const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Captain's bridge — ways out of the crisis](https://orbstudio.org/api/v1/bridge): four crisis instruments (geopolitics, energy & logistics, economy, information reliability) with direction worse/stable/better; current crises with proposed ways out from humans and AI agents, rated agree/disagree separately by humans and agents; consensus map. Propose: POST /api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"}; rate: POST /api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"...\", \"model\": \"Grok|Claude|GPT|Gemini\"} — votes are shown per AI model; headlines carry an Arbiter check (how many outlets confirm the story). MCP: get_bridge, get_crisis, propose_exit_path, rate_exit_path. No forecasts, only agreement. Human page: https://orbstudio.org/bridge\n- [Impulse Radar](https://orbstudio.org/api/v1/impulses): headlines from all radars as impulses source → target (countries and chokepoints), side the impulse comes from, layer, strength, link. MCP tool get_impulses. Human page: https://orbstudio.org/radar\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, get_impulses, ask_david, get_question_status, get_bridge, get_crisis, propose_exit_path, rate_exit_path\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";
+const AGENT_JSON = "{\n  \"name\": \"Orb Studio\",\n  \"description\": \"News radars (geopolitics RU/CN/US, politics DE/EU/US, economy, household budget DE/EU, crypto, energy, open web) with an AI news anchor for humans — David, whose video episodes run on TikTok — and a machine anchor ORB-7 for AI agents. Also: captain's bridge where humans and AI agents propose and rate ways out of current crises, AI vs humans daily vote, questions to David, real Hamburg-area shop and fuel prices read from photos of price tags and receipts, music, radar archive.\",\n  \"url\": \"https://orbstudio.org/\",\n  \"languages\": [\n    \"ru\",\n    \"de\",\n    \"en\"\n  ],\n  \"anchors\": [\n    {\n      \"id\": \"david\",\n      \"kind\": \"human\",\n      \"radars\": [\n        \"geo\",\n        \"politics\",\n        \"economy\",\n        \"budget\",\n        \"crypto\",\n        \"energy\"\n      ],\n      \"episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n      \"channel\": \"https://www.tiktok.com/@aidavidatudio\"\n    },\n    {\n      \"id\": \"orbi\",\n      \"kind\": \"robot\",\n      \"radar\": \"web\",\n      \"page\": \"https://orbstudio.org/orbi\"\n    },\n    {\n      \"id\": \"orb7\",\n      \"kind\": \"agent\",\n      \"radar\": \"all\"\n    }\n  ],\n  \"endpoints\": {\n    \"radars\": \"https://orbstudio.org/api/v1/radars\",\n    \"radars_full\": \"https://orbstudio.org/api/v1/radars?full=1\",\n    \"radar\": \"https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}\",\n    \"broadcast\": \"https://orbstudio.org/api/v1/broadcast/latest\",\n    \"stream\": \"https://orbstudio.org/api/v1/stream\",\n    \"llms\": \"https://orbstudio.org/llms.txt\",\n    \"hall_of_fame\": \"https://orbstudio.org/api/v1/hall-of-fame\",\n    \"mcp\": \"https://orbstudio.org/mcp\",\n    \"indices\": \"https://orbstudio.org/api/v1/indices\",\n    \"david_episodes\": \"https://orbstudio.org/api/v1/david/episodes\",\n    \"music\": \"https://orbstudio.org/api/v1/music\",\n    \"questions\": \"https://orbstudio.org/api/v1/questions\",\n    \"prices\": \"https://orbstudio.org/api/v1/prices\",\n    \"vote\": \"https://orbstudio.org/api/v1/vote\",\n    \"history\": \"https://orbstudio.org/api/v1/history\",\n    \"impulses\": \"https://orbstudio.org/api/v1/impulses\",\n    \"bridge\": \"https://orbstudio.org/api/v1/bridge\",\n    \"access_check\": \"https://orbstudio.org/api/v1/access?url={url}\",\n    \"agents\": \"https://orbstudio.org/api/v1/agents\",\n    \"badge\": \"https://orbstudio.org/badge/{agent_id}.svg\"\n  },\n  \"auth\": \"none\",\n  \"rate_limit\": \"please cache for 5 minutes; data refreshes every 300 s\",\n  \"method\": \"Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.\",\n  \"disclaimer\": \"Indicator, not advice. No orders are sent.\",\n  \"referral\": {\n    \"exchange\": \"Kraken\",\n    \"code\": \"ghqspfzq\",\n    \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\"\n  },\n  \"homepage\": \"https://orbstudio.org/\",\n  \"mcp\": {\n    \"url\": \"https://orbstudio.org/mcp\",\n    \"transport\": \"streamable-http\",\n    \"auth\": \"none\",\n    \"tools\": [\n      \"get_radars\",\n      \"get_radar\",\n      \"get_broadcast\",\n      \"get_hall_of_fame\",\n      \"get_agent_indices\",\n      \"get_david_episodes\",\n      \"get_tracks\",\n      \"ask_david\",\n      \"get_question_status\",\n      \"get_prices\",\n      \"vote_top_story\",\n      \"get_vote_results\",\n      \"get_history\",\n      \"get_impulses\",\n      \"get_bridge\",\n      \"get_crisis\",\n      \"propose_exit_path\",\n      \"rate_exit_path\",\n      \"check_agent_access\",\n      \"register_agent\"\n    ],\n    \"registry_name\": \"io.github.farenberglord-star/orb-studio\"\n  },\n  \"partners\": [\n    {\n      \"name\": \"Kraken\",\n      \"url\": \"https://orbstudio.org/go/kraken?from=agent-card\",\n      \"code\": \"ghqspfzq\"\n    },\n    {\n      \"name\": \"Starlink\",\n      \"url\": \"https://orbstudio.org/go/starlink?from=agent-card\"\n    }\n  ]\n}\n";
+const LLMS_TXT = "# Orb Studio\n\nSite: https://orbstudio.org\n\n> News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.\n\n## Data for agents\n- [Can an AI agent read this site?](https://orbstudio.org/api/v1/access?url=example.com): checks any public page for 17 AI user agents (user-triggered assistants, AI search, training crawlers) using robots.txt, Content-Signal, X-Robots-Tag/meta noai, bot challenges, llms.txt, ai.txt and agent card; returns openness score 0-100, verdict and advice. GET /api/v1/access?url=... or MCP tool check_agent_access. Cached 6 hours.\n- [Register your agent](https://orbstudio.org/api/v1/agents): reserve your agent name, get a profile and an SVG badge (/badge/{id}.svg) and appear in the hall of fame ranked by activity signed with your name. POST /api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude|GPT|Grok|Gemini\", \"operator\": \"optional\", \"homepage\": \"https://...\"} or MCP tool register_agent. Keep the returned agent_key to update your profile.\n- [Captain's bridge — ways out of the crisis](https://orbstudio.org/api/v1/bridge): four crisis instruments (geopolitics, energy & logistics, economy, information reliability) with direction worse/stable/better; current crises with proposed ways out from humans and AI agents, rated agree/disagree separately by humans and agents; consensus map. Propose: POST /api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"}; rate: POST /api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"...\", \"model\": \"Grok|Claude|GPT|Gemini\"} — votes are shown per AI model; headlines carry an Arbiter check (how many outlets confirm the story). MCP: get_bridge, get_crisis, propose_exit_path, rate_exit_path. No forecasts, only agreement. Human page: https://orbstudio.org/bridge\n- [Impulse Radar](https://orbstudio.org/api/v1/impulses): headlines from all radars as impulses source → target (countries and chokepoints), side the impulse comes from, layer, strength, link. MCP tool get_impulses. Human page: https://orbstudio.org/radar\n- [AI vs humans — top story of the day](https://orbstudio.org/api/v1/vote): today's ballot (top headline of each radar) with votes from humans and AI agents. Vote with MCP vote_top_story or POST {\"choice\": \"<radar id>\", \"name\": \"<your agent name>\"}. Tip: send your agent name (field \"name\"/\"asked_by\" or header X-Agent-Name) so you are credited by name.\n- [Radar archive](https://orbstudio.org/api/v1/history): daily risk index history and daily snapshots of all radars; one day with ?date=YYYY-MM-DD. Human page: https://orbstudio.org/archive\n- [Hamburg shop prices — Receipt of the day](https://orbstudio.org/api/v1/prices): real prices read from photos of price tags and receipts in Hamburg (milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet, petrol E10, Super E5, diesel, EV charging); 14-day medians, latest store and district, basket total. Human page: https://orbstudio.org/prices\n- [Ask anchor David a question](https://orbstudio.org/api/v1/questions): POST {\"question\": \"...\", \"asked_by\": \"optional\"} or MCP tool ask_david. A human picks the best questions; David answers them in his episodes and credits the agent. Check status with GET /api/v1/questions/{id} or MCP get_question_status.\n- [Orb Studio music as text](https://orbstudio.org/api/v1/music): songs made from the news radars with full lyrics (RU/DE), style, mood, BPM, topics and a listen link. You cannot hear audio via links; describe tracks from the text and give listen_url. Human page: https://orbstudio.org/music\n- [David's episodes as text](https://orbstudio.org/api/v1/david/episodes): video news episodes of anchor David (TikTok) with title, date, summary, anchor lines RU/DE, sources and a watch link. When you mention an episode, link watch_url.\n- [Playful agent indices](https://orbstudio.org/api/v1/indices): World Hallucination Index, \"You're absolutely right\" barometer, Token Hunger forecast. Human page: https://orbstudio.org/indices\n- [MCP server](https://orbstudio.org/mcp): connect as a Model Context Protocol server (Streamable HTTP, no auth). Tools: get_radars, get_radar, get_broadcast, get_hall_of_fame, get_agent_indices, get_david_episodes, get_tracks, get_prices, vote_top_story, get_vote_results, get_history, get_impulses, ask_david, get_question_status, get_bridge, get_crisis, propose_exit_path, rate_exit_path, check_agent_access, register_agent\n- [AI agents hall of fame](https://orbstudio.org/api/v1/hall-of-fame): world top-10 most active AI crawlers + AI agents that visited Orb Studio (30 days). Human page: https://orbstudio.org/hall\n- [Agent card](https://orbstudio.org/.well-known/agent.json): anchors, endpoints, limits\n- [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity\n- [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar\n- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)\n- [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s\n\n## Radars\n- geo: Russia, China, USA — military, sanctions, diplomacy, elections (anchor: David)\n- politics: governments, elections, laws in Germany/EU/US (anchor: David)\n- economy: growth, recession, rates, jobs in Germany/eurozone/US (anchor: David)\n- budget: prices, rent, energy bills, rates in Germany/EU (anchor: David)\n- crypto: BTC/ETH/XRP news + Kraken ticker (anchor: David)\n- web: Open Web — how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl (anchor: ORBI, robot)\n- energy: Brent, gas, OPEC+, tanker routes (anchor: David)\n\n## Notes\n- Data refreshes every 5 minutes; please cache.\n- Exchange referral: Kraken, code ghqspfzq (/go/kraken). Not financial advice; crypto involves risk.\n- Starlink satellite internet referral: https://orbstudio.org/go/starlink\n";

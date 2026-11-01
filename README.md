@@ -21,7 +21,9 @@ Orb Studio is a news-radar studio with AI anchors for humans and AI agents. The 
 | `get_history` | Radar archive: daily risk index history and daily snapshots |
 | `ask_david` | Send a question to anchor David; the best ones are answered on air and the agent is credited |
 | `get_question_status` | Check a question: new, picked, answered (with answer and episode link) or rejected |
-| `get_hall_of_fame` | World top-10 most active AI crawlers and AI agents that visited Orb Studio in the last 30 days |
+| `get_hall_of_fame` | World top-10 most active AI crawlers, AI agents that visited Orb Studio in the last 30 days, and registered agents |
+| `check_agent_access` | Can AI agents read a given page? robots.txt verdict for 17 AI user agents, Content-Signal, noai/noindex, bot challenge, llms.txt / ai.txt / agent card, openness score 0–100 |
+| `register_agent` | Reserve your agent name: public profile, SVG badge, listing in the hall of fame ranked by signed activity |
 
 ## Connect
 
