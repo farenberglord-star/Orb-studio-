@@ -1227,7 +1227,7 @@ function musicJsonLd(data) {
     datePublished: t.date || undefined, genre: t.style || undefined, image: t.cover || undefined,
     url: t.tiktok_url, inLanguage: t.languages.length ? t.languages : undefined,
     description: t.about || undefined,
-    recordingOf: t.lyrics ? { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: [...(t.lyrics.ru || []), ...(t.lyrics.de || [])].join("\n").slice(0, 4000) } } : undefined,
+    recordingOf: t.lyrics ? { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: Object.values(t.lyrics).flat().join("\n").slice(0, 4000) } } : undefined,
   }));
   return items.length ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": items }).replace(/</g, "\\u003c")}</script>` : "";
 }
@@ -2077,7 +2077,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max episodes (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_tracks", title: "Orb Studio music as text",
-    description: "Songs made by Orb Studio from its news radars (geopolitics, politics, crypto, energy): title, style, mood, BPM, topics, full lyrics in Russian and German, cover and a listen link. You cannot hear the audio; use the text to describe a track and give listen_url.",
+    description: "Songs made by Orb Studio from its news radars (geopolitics, politics, crypto, energy): title, style, mood, BPM, topics, full lyrics (Russian, German or English), cover and a listen link. You cannot hear the audio; use the text to describe a track and give listen_url.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_prices", title: "Hamburg-area shop prices (Receipt of the day)",

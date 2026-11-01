@@ -165,7 +165,7 @@ fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
       <h2>${esc(t.title)}</h2>
       <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase())].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
       ${t.about?`<p>${esc(t.about)}</p>`:''}
-      ${t.lyrics&&t.lyrics.ru?`<details><summary>Текст песни</summary><div class="lyr">${lyricsHtml(t.lyrics.ru)}</div></details>`:''}
+      ${t.lyrics&&Object.keys(t.lyrics).length?`<details><summary>Текст песни</summary><div class="lyr">${Object.values(t.lyrics).map(lyricsHtml).join('\n\n')}</div></details>`:''}
       <div class="chips"><a class="btn2" href="/go/tiktok?v=${esc(t.id)}&from=music-page" target="_blank" rel="noopener">Открыть в TikTok ↗</a></div>
     </div></article>`).join('');
 }).catch(()=>{$('tracks').innerHTML='<p class="lead">Не удалось загрузить треки.</p>'});
