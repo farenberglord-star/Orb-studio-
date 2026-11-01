@@ -1846,7 +1846,8 @@ async function ensureAgents(env) {
   agentsReady = true;
 }
 const AGENT_REG_PER_DAY = 3;
-const nameKey = (n) => qClean(n).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+// сайт дописывает к именам агентов « (AI agent)» — при сравнении имён этот хвост убираем
+const nameKey = (n) => qClean(n).replace(/\s*\((?:ai\s*agent|agent|ии-агент)\)\s*$/i, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 async function sha256full(s) {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
   return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
