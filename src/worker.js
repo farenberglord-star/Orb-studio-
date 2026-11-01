@@ -2342,7 +2342,7 @@ function geminiEvents(feeds) {
       texts: [{ title: i.title, url: i.url, source: i.source, published: new Date(i.ts).toISOString() }],
       official_feed: null, match: [], radar_match: ["gemini"], source_url: i.url, source_name: k === "deepmind" ? "Google DeepMind blog" : "Google blog" });
   }
-  return out.slice(0, 4);
+  return out.sort((a, b) => (a.start < b.start ? 1 : -1)).slice(0, 6);
 }
 const LIVE_STATUS_TEXT = {
   upcoming: "Scheduled, not started yet",
