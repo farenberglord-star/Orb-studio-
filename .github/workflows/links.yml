@@ -28,6 +28,7 @@ jobs:
             --no-progress
             --base-url https://orbstudio.org
             --exclude '^https://orbstudio.org/api/'
+            --exclude '^https://orbstudio.org/mcp$'
             --exclude localhost
             --accept 200..=299,403,429
             --max-retries 2
