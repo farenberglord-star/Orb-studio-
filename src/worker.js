@@ -3345,7 +3345,7 @@ async function sensorsMachine(env, ctx, radars) {
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
   const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v3", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
-  const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
+  const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   const avg = radars.length ? Math.round(radars.reduce((a, r) => a + r.lvl, 0) / radars.length) : null;
   const chips = {}, li = [];
