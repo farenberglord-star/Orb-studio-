@@ -168,6 +168,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sgrp">Рынок и сеть</div>
       <div class="sn" data-s="deriv"><div class="nm"><i></i>⚙ Деривативы · Kraken Futures</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="chain"><div class="nm"><i></i>⛓ Сеть биткоина</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="internet"><div class="nm"><i></i>🌐 Интернет: сбои и блокировки</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="sanctions"><div class="nm"><i></i>🚢 Санкции против судов</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="power"><div class="nm"><i></i>⚡ Электричество Германии</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="macro"><div class="nm"><i></i>🏦 Макро · ЕЦБ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -195,6 +196,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="kraken"><div class="k">Kraken · за 24 ч</div><div class="v" id="oKr">—</div></div>
       <div class="row" data-o="deriv"><div class="k">Деривативы · бессрочный BTC на Kraken</div><div class="v" id="oDeriv">—</div></div>
       <div class="row" data-o="chain"><div class="k">Сеть биткоина</div><div class="v" id="oChain">—</div></div>
+      <div class="row" data-o="internet"><div class="k">Интернет · сбои (IODA) и блокировки (OONI) за сутки</div><div class="v" id="oNet">—</div></div>
       <div class="row" data-o="sanctions"><div class="k">Санкции против судов · Великобритания и США</div><div class="v" id="oSanc">—</div></div>
       <div class="row" data-o="power"><div class="k">Электричество · биржа DE-LU, без сетей и налогов</div><div class="v" id="oPower">—</div></div>
       <div class="row" data-o="macro"><div class="k">ЕЦБ и инфляция еврозоны</div><div class="v" id="oMacro">—</div></div>
@@ -323,6 +325,14 @@ async function loadMarket(){
     $('oChain').innerHTML=`Быстрая комиссия <b>${b.fee_fast_sat_vb} сат/vB</b>, в течение часа ${b.fee_hour_sat_vb} · в очереди ${fmt(b.mempool_tx)} транзакций (${fmt(b.mempool_vmb,1)} vMB)${b.hashrate_ehs?` · хешрейт ≈ <b>${fmt(b.hashrate_ehs)} EH/s</b>`:''}${stl(b)}`;}
   if(e){setSensor('macro',`ставка ${fmt(e.deposit_rate_pct.value,2)} % · EUR/USD ${fmt(e.eurusd.value,4)}`,Date.parse(e.eurusd.date+'T16:00:00Z'),e.deposit_rate_pct.value+'|'+e.eurusd.value+'|'+(inf&&inf.hicp_annual_pct),'курс ЕЦБ на '+dd(e.eurusd.date));
     $('oMacro').innerHTML=`Депозитная ставка ЕЦБ <b>${fmt(e.deposit_rate_pct.value,2)} %</b> · официальный курс EUR/USD <b>${fmt(e.eurusd.value,4)}</b> на ${dd(e.eurusd.date)}${inf?` · инфляция еврозоны <b>${fmt(inf.hicp_annual_pct,1)} %</b> за ${esc(inf.period)} (Eurostat)`:''}${stl(e)}`;}
+  const nt=d.internet;
+  if(nt){let RN=null;try{RN=new Intl.DisplayNames(['ru'],{type:'region'})}catch(x){}const cn=c=>{try{return RN?RN.of(c):c}catch(x){return c}};
+    setSensor('internet',`сбоев: ${nt.outages_24h} стран · блокировки: ${nt.confirmed_block_countries} стран`,Date.parse(d.updated),(nt.outages||[]).map(o=>o.cc).join()+'|'+(nt.blocks||[]).map(b=>b.cc+b.confirmed).join());
+    const ou=(nt.outages||[]).slice(0,4).map(o=>`<div style="margin-top:3px">📉 <b>${esc(cn(o.cc)||o.country)}</b> · ${o.ongoing?'<b class="up">идёт сейчас</b>':'был'} · ${fmt(o.hours,1)} ч</div>`).join('');
+    const bl=(nt.blocks||[]).slice(0,5).map(b=>`${esc(cn(b.cc))} ${fmt(b.confirmed)} из ${fmt(b.measurements)}`).join(' · ');
+    const ap=(nt.apps_suspected||[]).slice(0,4).map(a=>`${esc(a.app)} — ${esc(cn(a.cc))} (${a.anomaly_share_pct}% аномалий)`).join(' · ');
+    $('oNet').innerHTML=`<div>Сбои интернета: <b>${nt.outages_24h} стран</b> за сутки</div>${ou}`+(bl?`<div style="margin-top:6px">Подтверждённые блокировки сайтов: ${bl}</div>`:'')+(ap?`<div style="margin-top:4px;color:var(--dim);font-size:12px">Подозрения на блокировку мессенджеров: ${ap}</div>`:'')+
+      `<div style="margin-top:4px;color:var(--dim);font-size:12px">OONI измеряют добровольцы: мало измерений — не значит «нет блокировок».</div>${stl(nt)}`;}
   const sc=d.sanctions;
   if(sc){const u=sc.uk_ships,o=sc.us_ofac,dm=x=>x?x.slice(8,10)+'.'+x.slice(5,7)+'.'+x.slice(0,4):'';
     setSensor('sanctions',`${u?`UK: ${fmt(u.ships_total)} судов · +${u.added_30d} за 30 дн.`:''}${o?` · OFAC: ${o.designation_actions_7d} реш. за неделю`:''}`,Date.parse((u&&u.checked_at)||d.updated),(u?u.ships_total+'|'+u.added_7d:'')+'|'+(o&&o.latest[0]?o.latest[0].date+o.latest[0].title:''),u&&u.report_date?'список UK от '+u.report_date:null);
@@ -348,7 +358,7 @@ async function loadRoads(){
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">стройки: ${m.roadworks} · запланировано: ${m.planned}${d.stale?' · источник не ответил, прошлые данные':''}</div>`;
 }
 const LOADERS={roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
-for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
+for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
 function tweenCore(v){const el=$('coreVal');const from=coreNow==null?v:coreNow;coreNow=v;const t0=performance.now();
