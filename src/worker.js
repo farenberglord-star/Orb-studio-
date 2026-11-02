@@ -3527,7 +3527,9 @@ async function sensorsMachine(env, ctx, radars) {
     if (c) { r.push(`<li>ЕЦБ: депозитная ставка ${nf(c.deposit_rate_pct.value, 2)} %, курс EUR/USD ${nf(c.eurusd.value, 4)} на ${e(c.eurusd.date)}</li>`); chips.macro = `ставка ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
     if (i) r.push(`<li>Инфляция еврозоны (Eurostat): ${nf(i.hicp_annual_pct, 1)} % за ${e(i.period)}</li>`);
     const ni = sn.internet;
-    if (ni) { r.push(`<li>Интернет за сутки: сбои в ${ni.outages_24h} странах${ni.outages && ni.outages[0] ? ` (сильнее всего: ${ni.outages.slice(0, 3).map((o) => e(o.country)).join(", ")})` : ""}; подтверждённые блокировки сайтов в ${ni.confirmed_block_countries} странах${ni.blocks && ni.blocks[0] ? `, больше всего: ${ni.blocks.slice(0, 3).map((b) => e(b.cc)).join(", ")}` : ""} (IODA, OONI)</li>`);
+    let rn = null; try { rn = new Intl.DisplayNames(["ru"], { type: "region" }); } catch (x) {}
+    const cn = (cc, fb) => { try { return (rn && rn.of(cc)) || fb || cc; } catch (x) { return fb || cc; } };
+    if (ni) { r.push(`<li>Интернет за сутки: сбои в ${ni.outages_24h} странах${ni.outages && ni.outages[0] ? ` (сильнее всего: ${ni.outages.slice(0, 3).map((o) => e(cn(o.cc, o.country))).join(", ")})` : ""}; подтверждённые блокировки сайтов в ${ni.confirmed_block_countries} странах${ni.blocks && ni.blocks[0] ? `, больше всего: ${ni.blocks.slice(0, 3).map((b) => e(cn(b.cc))).join(", ")}` : ""} (IODA, OONI)</li>`);
       chips.internet = `сбоев: ${ni.outages_24h} стран · блокировки: ${ni.confirmed_block_countries} стран`; }
     const sc = sn.sanctions;
     if (sc) { const u = sc.uk_ships, o = sc.us_ofac;
