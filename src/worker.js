@@ -1686,7 +1686,57 @@ function ecbLast(j) {
   const i = Object.keys(s).sort((a, b) => +a - +b).pop();
   return { value: s[i][0], date: tp[+i].id };
 }
-async function sensorsCompute(prev) {
+// ================= Санкции против судов (датчик на /sensors) =================
+// Британский санкционный список (FCDO, открытые данные Великобритании): суда с номером IMO, флагом, типом, режимом и датой внесения.
+// Файл большой (≈50 МБ), поэтому читаем его не чаще раза в 12 часов. OFAC (США): последние решения со страницы Recent Actions.
+function csvLine(line) {
+  const out = []; let cur = "", q = false;
+  for (let i = 0; i < line.length; i++) { const c = line[i];
+    if (q) { if (c === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true; else if (c === ",") { out.push(cur); cur = ""; } else cur += c; }
+  out.push(cur); return q ? null : out;
+}
+const ukDate = (s) => { const m = String(s || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : null; };
+async function sanctionsUk(env) {
+  const c = await sharedGet(env, "sanc-uk-v1", 12 * 3600e3);
+  if (c) return c;
+  const r = await fetch("https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv", { signal: AbortSignal.timeout(30000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)" } });
+  if (!r.ok) throw new Error("uk " + r.status);
+  const t = await r.text(), lines = t.split("\n");
+  const report = (lines[0].match(/Report Date:\s*([^,\r]+)/) || [])[1] || null;
+  const head = csvLine(lines[1]) || [], col = (n) => head.indexOf(n);
+  const I = { id: col("Unique ID"), name: col("Name 6"), ntype: col("Name type"), regime: col("Regime Name"), dt: col("Designation Type"), date: col("Date Designated"), imo: col("IMO number"), flag: col("Current believed flag of ship"), type: col("Type of ship") };
+  const ships = new Map();
+  for (const l of lines) {
+    if (!l.includes(",Ship,")) continue;
+    const f = csvLine(l); if (!f || f[I.dt] !== "Ship") continue;
+    const id = f[I.id], prim = f[I.ntype] === "Primary name";
+    if (ships.has(id) && !prim) continue;
+    ships.set(id, { name: (f[I.name] || "").trim(), imo: (f[I.imo] || "").replace(/^IMO\s*/i, "").trim() || null, flag: (f[I.flag] || "").trim() || null, type: (f[I.type] || "").trim() || null,
+      regime: (f[I.regime] || "").replace(/\s*\(Sanctions\).*$/, "").replace(/^The /, "").trim(), designated: ukDate(f[I.date]) });
+  }
+  const all = [...ships.values()].filter((x) => x.name), now = Date.now();
+  const since = (d) => all.filter((x) => x.designated && now - Date.parse(x.designated) <= d * 864e5).length;
+  const byReg = {}; for (const x of all) byReg[x.regime] = (byReg[x.regime] || 0) + 1;
+  const out = { source: "UK Sanctions List (FCDO)", source_url: "https://www.gov.uk/government/publications/the-uk-sanctions-list", report_date: report,
+    ships_total: all.length, added_7d: since(7), added_30d: since(30), by_regime: Object.entries(byReg).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([regime, n]) => ({ regime, ships: n })),
+    latest: all.filter((x) => x.designated).sort((a, b) => (a.designated < b.designated ? 1 : -1)).slice(0, 6), checked_at: new Date().toISOString() };
+  await sharedPut(env, "sanc-uk-v1", out);
+  return out;
+}
+async function sanctionsOfac() {
+  const r = await fetch("https://ofac.treasury.gov/recent-actions", { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)" } });
+  if (!r.ok) throw new Error("ofac " + r.status);
+  const t = await r.text(), items = [], re = /<a href="\/recent-actions\/(\d{8})(?:_\d+)?"[^>]*>([^<]+)<\/a>[\s\S]*?<a href="\/recent-actions\/([a-z-]+)"/g;
+  let m; while ((m = re.exec(t)) && items.length < 10) {
+    const d = `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}-${m[1].slice(6, 8)}`, title = m[2].replace(/&#0?39;/g, "'").replace(/&amp;/g, "&").trim();
+    items.push({ date: d, title, category: m[3], designations: /designation/i.test(title), url: `https://ofac.treasury.gov/recent-actions/${m[1]}` });
+  }
+  const now = Date.now();
+  return { source: "OFAC Recent Actions (U.S. Treasury)", source_url: "https://ofac.treasury.gov/recent-actions", latest: items,
+    designation_actions_7d: items.filter((x) => x.designations && now - Date.parse(x.date) <= 7 * 864e5).length };
+}
+async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
@@ -1752,6 +1802,11 @@ async function sensorsCompute(prev) {
         now_eur_mwh: cur.p, now_ct_kwh: +(cur.p / 10).toFixed(2), now_at: new Date(cur.t).toISOString(), today: stats(today), tomorrow: stats(tomorrow), tomorrow_published: !!stats(tomorrow),
         cheapest_3h: win(cheap), most_expensive_3h: win(dear), renewables: ren };
     },
+    sanctions: async () => {
+      const [uk, us] = await Promise.all([sanctionsUk(env).catch(() => null), sanctionsOfac().catch(() => null)]);
+      if (!uk && !us) throw new Error("no sanctions sources");
+      return { uk_ships: uk, us_ofac: us, note: "Official sanctions lists only. UK list: designated ships with IMO number, flag and regime. OFAC: latest actions (titles and dates); vessel details are in each action." };
+    },
     stablecoins: async () => {
       const a = await sensorsFetchJson("https://stablecoins.llama.fi/stablecoincharts/all", 10000);
       const last = a[a.length - 1], wk = a[a.length - 8];
@@ -1766,11 +1821,11 @@ async function sensorsCompute(prev) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v4", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v5", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v4", 2 * 86400e3);
-  const d = await sensorsCompute(prev);
-  ctx.waitUntil(sharedPut(env, "sensors-v4", d));
+  const prev = await sharedGet(env, "sensors-v5", 2 * 86400e3);
+  const d = await sensorsCompute(prev, env);
+  ctx.waitUntil(sharedPut(env, "sensors-v5", d));
   return d;
 }
 
@@ -3089,7 +3144,7 @@ const MCP_TOOLS = [
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
-    description: "Current values from open sources, refreshed every 5 minutes: German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    description: "Current values from open sources, refreshed every 5 minutes: sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
@@ -3400,7 +3455,7 @@ async function sensorsMachine(env, ctx, radars) {
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
-  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v4", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
+  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v5", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
@@ -3425,6 +3480,10 @@ async function sensorsMachine(env, ctx, radars) {
     if (b) { r.push(`<li>Сеть биткоина: быстрая комиссия ${b.fee_fast_sat_vb} сат/vB, в очереди ${nf(b.mempool_tx)} транзакций${b.hashrate_ehs ? `, хешрейт около ${nf(b.hashrate_ehs)} EH/s` : ""}</li>`); chips.chain = `комиссия ${b.fee_fast_sat_vb} сат/vB · в очереди ${nf(b.mempool_tx)} тр.`; }
     if (c) { r.push(`<li>ЕЦБ: депозитная ставка ${nf(c.deposit_rate_pct.value, 2)} %, курс EUR/USD ${nf(c.eurusd.value, 4)} на ${e(c.eurusd.date)}</li>`); chips.macro = `ставка ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
     if (i) r.push(`<li>Инфляция еврозоны (Eurostat): ${nf(i.hicp_annual_pct, 1)} % за ${e(i.period)}</li>`);
+    const sc = sn.sanctions;
+    if (sc) { const u = sc.uk_ships, o = sc.us_ofac;
+      r.push(`<li>Санкции против судов: ${u ? `в британском списке ${nf(u.ships_total)} судов, за 30 дней добавлено ${u.added_30d}` : ""}${u && o ? "; " : ""}${o && o.latest[0] ? `последнее решение OFAC ${e(o.latest[0].date)}: ${e(o.latest[0].title)}` : ""}</li>`);
+      chips.sanctions = `${u ? `UK: ${nf(u.ships_total)} судов · +${u.added_30d} за 30 дн.` : ""}${o ? ` · OFAC: решений с санкциями за неделю ${o.designation_actions_7d}` : ""}`; }
     const pw = sn.power;
     if (pw) { const hm = (t) => new Date(t).toLocaleTimeString("ru-RU", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
       r.push(`<li>Электричество Германии (биржа, DE-LU, без сетей и налогов): сейчас ${nf(pw.now_eur_mwh, 0)} €/MWh = ${nf(pw.now_ct_kwh, 1)} ct/kWh${pw.today ? `, сегодня ${nf(pw.today.min_eur_mwh, 0)}–${nf(pw.today.max_eur_mwh, 0)} €/MWh` : ""}${pw.cheapest_3h ? `, самое дешёвое окно ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${nf(pw.cheapest_3h.avg_eur_mwh, 0)} €/MWh)` : ""}${pw.renewables ? `, ветер и солнце ${pw.renewables.renewable_share_pct} %` : ""}</li>`);
