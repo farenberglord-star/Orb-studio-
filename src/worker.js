@@ -1744,6 +1744,55 @@ async function sensorsData(env, ctx) {
   return d;
 }
 
+// ================= Автобаны вокруг Гамбурга (датчик на /sensors, /api/v1/roads, MCP get_roads) =================
+// Официальный открытый API Autobahn GmbH (verkehr.autobahn.de): пробки (warning), перекрытия (closure), стройки (roadworks).
+// Берём трассы вокруг Гамбурга и оставляем только сообщения в районе Гамбурга (рамка по координатам). Кэш в D1 на 10 минут.
+const HH_ROADS = ["A1", "A7", "A23", "A24", "A25", "A26", "A39", "A253", "A255", "A261"];
+const HH_BOX = { latMin: 53.30, latMax: 53.78, lonMin: 9.55, lonMax: 10.40 };
+function abItem(x, kind, road) {
+  const c = x.coordinate || {}, lat = +c.lat, lon = +c.long;
+  const desc = (x.description || []).filter((l) => l && !/^Die Baustelle ist zu folgenden/.test(l)).slice(0, 6).join(" ").replace(/\s+/g, " ").slice(0, 300);
+  return { id: x.identifier, kind, road, title: x.title || road, direction: (x.subtitle || "").trim() || null,
+    blocked: x.isBlocked === "true" || x.isBlocked === true, future: x.future === true || x.future === "true",
+    delay_min: x.delayTimeValue ? +x.delayTimeValue : null, traffic: x.abnormalTrafficType || null, since: x.startTimestamp || null,
+    lat, lon, text: desc, elbtunnel: /elbtunnel/i.test((x.title || "") + " " + desc) };
+}
+async function roadsCompute() {
+  const inBox = (i) => i.lat >= HH_BOX.latMin && i.lat <= HH_BOX.latMax && i.lon >= HH_BOX.lonMin && i.lon <= HH_BOX.lonMax;
+  const get = async (road, svc, key) => {
+    try {
+      const r = await fetch(`https://verkehr.autobahn.de/o/autobahn/${road}/services/${svc}`, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)", Accept: "application/json" } });
+      if (!r.ok) return { ok: false, items: [] };
+      const j = await r.json();
+      return { ok: true, items: (j[key] || []).map((x) => abItem(x, svc === "warning" ? "jam" : svc === "closure" ? "closure" : "roadworks", road)).filter(inBox) };
+    } catch (e) { return { ok: false, items: [] }; }
+  };
+  const jobs = [];
+  for (const road of HH_ROADS) { jobs.push(get(road, "warning", "warning"), get(road, "closure", "closure"), get(road, "roadworks", "roadworks")); }
+  const res = await Promise.all(jobs);
+  const all = res.flatMap((r) => r.items), okCount = res.filter((r) => r.ok).length;
+  const seen = new Set(), items = all.filter((i) => (seen.has(i.id) ? false : seen.add(i.id)));
+  const now = items.filter((i) => !i.future);
+  const jams = now.filter((i) => i.kind === "jam").sort((a, b) => (b.delay_min || 0) - (a.delay_min || 0));
+  const closures = now.filter((i) => i.kind === "closure"), works = now.filter((i) => i.kind === "roadworks");
+  return {
+    updated: new Date().toISOString(), area: "Hamburg and surroundings", roads: HH_ROADS, sources_ok: okCount, sources_total: res.length,
+    source: "Autobahn GmbH des Bundes, verkehr.autobahn.de (open data)", source_url: "https://verkehr.autobahn.de",
+    summary: { jams: jams.length, closures: closures.length, roadworks: works.length, blocked: now.filter((i) => i.blocked).length,
+      max_delay_min: jams.reduce((m, i) => Math.max(m, i.delay_min || 0), 0), planned: items.filter((i) => i.future).length,
+      elbtunnel: now.filter((i) => i.elbtunnel).map((i) => ({ kind: i.kind, title: i.title, direction: i.direction, delay_min: i.delay_min, blocked: i.blocked })) },
+    jams, closures, roadworks: works,
+  };
+}
+async function roadsData(env) {
+  const c = await sharedGet(env, "roads-hh-v1", 10 * 60e3);
+  if (c) return c;
+  const d = await roadsCompute();
+  if (d.sources_ok === 0) { const old = await sharedGet(env, "roads-hh-v1", 2 * 86400e3); if (old) return { ...old, stale: true }; }
+  await sharedPut(env, "roads-hh-v1", d);
+  return d;
+}
+
 // ================= Капитанская рубка: пути выхода из кризиса (люди + ИИ-агенты) =================
 // Сайт не решает кризисы и не делает прогнозов. Он собирает предложения «как выйти» и показывает,
 // насколько люди и ИИ-агенты с ними согласны. Голоса людей и агентов считаются раздельно.
@@ -2979,6 +3028,9 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_roads", title: "Motorways around Hamburg: jams, closures, roadworks",
+    description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
+    inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
     description: "Current values from open sources, refreshed every 5 minutes: BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -3060,7 +3112,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_sensors gives open market and network data (Kraken Futures funding and open interest, Bitcoin fees and hashrate, ECB rate, EUR/USD, euro area inflation, stablecoin supply); get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_roads gives jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH, incl. Elbtunnel); get_sensors gives open market and network data (Kraken Futures funding and open interest, Bitcoin fees and hashrate, ECB rate, EUR/USD, euro area inflation, stablecoin supply); get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -3150,6 +3202,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     let note = null;
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
+  }
+  if (name === "get_roads") {
+    const d = await roadsData(env), road = String(args.road || "").toUpperCase(), f = (a) => (road ? a.filter((i) => i.road === road) : a);
+    return { ...d, jams: f(d.jams), closures: f(d.closures), roadworks: f(d.roadworks).slice(0, 40), filter: road || null, page: "https://orbstudio.org/sensors", referral: ref };
   }
   if (name === "get_sensors") return { ...(await sensorsData(env, ctx)), page: "https://orbstudio.org/sensors", referral: ref };
   if (name === "predict") {
@@ -3404,6 +3460,15 @@ async function handleRequest(request, env, ctx) {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname === "/api/v1/roads") {
+      try {
+        const d = await roadsData(env), road = (url.searchParams.get("road") || "").toUpperCase();
+        const f = (a) => (road ? a.filter((i) => i.road === road) : a);
+        return json({ ...d, jams: f(d.jams), closures: f(d.closures), roadworks: f(d.roadworks), filter: road || null, page: "https://orbstudio.org/sensors",
+          note: "Traffic jams, closures and roadworks on the motorways around Hamburg from the official Autobahn GmbH open data, refreshed every 10 minutes. Filter one motorway with ?road=A7. Elbtunnel messages are listed in summary.elbtunnel. City roads (e.g. Köhlbrandbrücke) are not included.", referral: referral(env, "api-roads") },
+          { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+      } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname === "/api/v1/sensors") {
       try { const d = await sensorsData(env, ctx); return json({ ...d, page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
