@@ -32,11 +32,11 @@
       "fx_fee_pct": 2.2,
       "overdraft_rate": 9.39,
       "notes": ["Cash deposit at retailers (ING Bargeld): 1.5% of amount", "Cash deposit at ING ATMs with girocard: 1%, min 2.50 EUR, max 7.50 EUR"],
-      "doc_date": "2026-10-15",
-      "source_type": "pdf",
-      "source_url": "https://www.ing.de/dokumente/entgeltinformation-girokonto/",
+      "doc_date": "2026-06-01",
+      "source_type": "html",
+      "source_url": "https://www.ing.de/girokonto/konditionen/",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "ok"
     },
     {
       "id": "de-comdirect-giro",
@@ -74,7 +74,7 @@
       "source_type": "html",
       "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "ok"
     },
     {
       "id": "de-dkb-giro",
@@ -126,7 +126,7 @@
       "source_type": "html",
       "source_url": "https://traderepublic.com/de-de/zinsen",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "check"
     },
     {
       "id": "us-chase-total",
