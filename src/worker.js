@@ -1722,6 +1722,33 @@ async function sensorsCompute(prev) {
       if (!best) throw new Error("no value");
       return { source: `Eurostat, HICP annual rate, euro area (${best.geo})`, source_url: "https://ec.europa.eu/eurostat/web/hicp", hicp_annual_pct: best.v, period: best.period, geo: best.geo };
     },
+    power: async () => {
+      // биржевая цена DE-LU на сутки вперёд (шаг 15 минут; цены на завтра публикуются около 13:00) и доля ВИЭ — Energy-Charts (Fraunhofer ISE), данные Bundesnetzagentur/SMARD, CC BY 4.0
+      const d0 = new Date(Date.now() - 864e5).toISOString().slice(0, 10), d2 = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+      const [pr, sg] = await Promise.all([sensorsFetchJson(`https://api.energy-charts.info/price?bzn=DE-LU&start=${d0}&end=${d2}`, 9000),
+        sensorsFetchJson("https://api.energy-charts.info/signal?country=de", 9000).catch(() => null)]);
+      const pts = (pr.unix_seconds || []).map((t, i) => ({ t: t * 1000, p: pr.price[i] })).filter((x) => typeof x.p === "number").sort((a, b) => a.t - b.t);
+      if (!pts.length) throw new Error("no prices");
+      const now = Date.now(), cur = pts.filter((x) => x.t <= now).pop() || pts[0];
+      const bday = (t) => berlinParts(t).day, today = bday(now), tomorrow = dayAdd(today, 1);
+      const stats = (day) => { const a = pts.filter((x) => bday(x.t) === day); if (!a.length) return null;
+        const mn = a.reduce((m, x) => (x.p < m.p ? x : m)), mx = a.reduce((m, x) => (x.p > m.p ? x : m));
+        return { min_eur_mwh: mn.p, min_at: new Date(mn.t).toISOString(), max_eur_mwh: mx.p, max_at: new Date(mx.t).toISOString(), avg_eur_mwh: +(a.reduce((s2, x) => s2 + x.p, 0) / a.length).toFixed(2), negative_quarter_hours: a.filter((x) => x.p < 0).length }; };
+      // самое дешёвое и самое дорогое окно в 3 часа (12 интервалов по 15 минут) от текущего момента
+      const fut = pts.filter((x) => x.t >= cur.t), W = 12;
+      let cheap = null, dear = null;
+      for (let i = 0; i + W <= fut.length; i++) { const sl = fut.slice(i, i + W); if (sl[W - 1].t - sl[0].t > (W - 1) * 900e3 + 1) continue;
+        const avg = sl.reduce((a, x) => a + x.p, 0) / W;
+        if (!cheap || avg < cheap.avg) cheap = { avg, from: sl[0].t, to: sl[W - 1].t + 900e3 };
+        if (!dear || avg > dear.avg) dear = { avg, from: sl[0].t, to: sl[W - 1].t + 900e3 }; }
+      const win = (w) => (w ? { from: new Date(w.from).toISOString(), to: new Date(w.to).toISOString(), avg_eur_mwh: +w.avg.toFixed(2) } : null);
+      let ren = null;
+      if (sg && Array.isArray(sg.share) && Array.isArray(sg.unix_seconds)) { let k = -1; sg.unix_seconds.forEach((t, i) => { if (t * 1000 <= now && typeof sg.share[i] === "number") k = i; }); if (k >= 0) ren = { renewable_share_pct: Math.round(sg.share[k]), at: new Date(sg.unix_seconds[k] * 1000).toISOString() }; }
+      return { source: "Energy-Charts (Fraunhofer ISE), data Bundesnetzagentur | SMARD.de, CC BY 4.0", source_url: "https://www.energy-charts.info", zone: "DE-LU", unit: "EUR/MWh",
+        note: "Wholesale day-ahead exchange price without grid fees, taxes and levies — not the household tariff. 10 EUR/MWh = 1 ct/kWh.",
+        now_eur_mwh: cur.p, now_ct_kwh: +(cur.p / 10).toFixed(2), now_at: new Date(cur.t).toISOString(), today: stats(today), tomorrow: stats(tomorrow), tomorrow_published: !!stats(tomorrow),
+        cheapest_3h: win(cheap), most_expensive_3h: win(dear), renewables: ren };
+    },
     stablecoins: async () => {
       const a = await sensorsFetchJson("https://stablecoins.llama.fi/stablecoincharts/all", 10000);
       const last = a[a.length - 1], wk = a[a.length - 8];
@@ -1736,11 +1763,11 @@ async function sensorsCompute(prev) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v3", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v4", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v3", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v4", 2 * 86400e3);
   const d = await sensorsCompute(prev);
-  ctx.waitUntil(sharedPut(env, "sensors-v3", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v4", d));
   return d;
 }
 
@@ -3040,7 +3067,7 @@ const MCP_TOOLS = [
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
-    description: "Current values from open sources, refreshed every 5 minutes: BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    description: "Current values from open sources, refreshed every 5 minutes: German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
@@ -3351,7 +3378,7 @@ async function sensorsMachine(env, ctx, radars) {
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
-  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v3", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
+  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v4", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
@@ -3376,6 +3403,10 @@ async function sensorsMachine(env, ctx, radars) {
     if (b) { r.push(`<li>Сеть биткоина: быстрая комиссия ${b.fee_fast_sat_vb} сат/vB, в очереди ${nf(b.mempool_tx)} транзакций${b.hashrate_ehs ? `, хешрейт около ${nf(b.hashrate_ehs)} EH/s` : ""}</li>`); chips.chain = `комиссия ${b.fee_fast_sat_vb} сат/vB · в очереди ${nf(b.mempool_tx)} тр.`; }
     if (c) { r.push(`<li>ЕЦБ: депозитная ставка ${nf(c.deposit_rate_pct.value, 2)} %, курс EUR/USD ${nf(c.eurusd.value, 4)} на ${e(c.eurusd.date)}</li>`); chips.macro = `ставка ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
     if (i) r.push(`<li>Инфляция еврозоны (Eurostat): ${nf(i.hicp_annual_pct, 1)} % за ${e(i.period)}</li>`);
+    const pw = sn.power;
+    if (pw) { const hm = (t) => new Date(t).toLocaleTimeString("ru-RU", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+      r.push(`<li>Электричество Германии (биржа, DE-LU, без сетей и налогов): сейчас ${nf(pw.now_eur_mwh, 0)} €/MWh = ${nf(pw.now_ct_kwh, 1)} ct/kWh${pw.today ? `, сегодня ${nf(pw.today.min_eur_mwh, 0)}–${nf(pw.today.max_eur_mwh, 0)} €/MWh` : ""}${pw.cheapest_3h ? `, самое дешёвое окно ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${nf(pw.cheapest_3h.avg_eur_mwh, 0)} €/MWh)` : ""}${pw.renewables ? `, ветер и солнце ${pw.renewables.renewable_share_pct} %` : ""}</li>`);
+      chips.power = `${nf(pw.now_ct_kwh, 1)} ct/kWh биржа${pw.renewables ? ` · ВИЭ ${pw.renewables.renewable_share_pct} %` : ""}`; }
     if (st && st.total_usd) { r.push(`<li>Стейблкоины в обращении (DefiLlama): ${nf(st.total_usd / 1e9, 1)} млрд $, за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %</li>`); chips.stables = `${nf(st.total_usd / 1e9, 1)} млрд $ · за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %`; }
     if (r.length) li.push(`<h3>Рынок и сеть</h3><ul>${r.join("")}</ul>`);
   }
