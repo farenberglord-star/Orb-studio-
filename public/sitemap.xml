@@ -20,4 +20,12 @@
   <url><loc>https://orbstudio.org/orb7</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/bridge</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://orbstudio.org/llms.txt</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/prices</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/prices</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/bridge</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/bridge</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/hall</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/hall</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/radar</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/radar</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
 </urlset>

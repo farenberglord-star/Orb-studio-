@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Impulse Radar · woher die Nachrichten drücken · Orb Studio</title>
+<meta name="description" content="Live-Impulskarte von Orb Studio: Schlagzeilen der Radare werden zu Bögen „woher → wohin“, das Land leuchtet auf der Seite auf, von der der Stoß kommt. Derselbe Datensatz steht KI-Agenten als JSON und über MCP zur Verfügung.">
+<link rel="canonical" href="https://orbstudio.org/de/radar">
+<meta property="og:url" content="https://orbstudio.org/de/radar">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Impulse Radar · Orb Studio">
+<link rel="alternate" type="application/json" href="/api/v1/impulses" title="Impulse Radar (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--panel2:#0f1a2e;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--sub:#b3c0d8;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;--code:#9fe3c1;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1320px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-size:clamp(22px,4vw,30px);letter-spacing:.1em;margin:4px 0 0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.grid{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.map{flex:999 1 620px;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.side{flex:1 1 340px;min-width:0;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.route{font-family:var(--mono);font-size:13px;min-width:0}
+.ctrl{display:flex;gap:6px}
+.ctrl button{width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);cursor:pointer;display:grid;place-items:center}
+button:focus-visible,a:focus-visible{outline:2px solid var(--holo);outline-offset:2px}
+svg#m{display:block;width:100%;height:auto;background:radial-gradient(ellipse at 60% 40%,#0e1d33,var(--panel) 70%)}
+.queue{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid var(--line)}
+.queue button{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:#0a1120;color:var(--fg);font:500 13px var(--body);cursor:pointer;max-width:100%}
+.queue button[aria-pressed="true"]{background:#13213a;border-color:var(--c)}
+.queue .q{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:22ch}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--c);flex:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.card.in{animation:in .5s ease-out}
+@keyframes in{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:4px 9px;border-radius:999px;color:#05070e;font-weight:600;background:var(--c)}
+.card h2{margin:0;font-family:var(--display);font-size:21px;line-height:1.25;text-wrap:balance;overflow-wrap:anywhere}
+.card p{margin:0;font-size:14px;line-height:1.5;color:var(--sub)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel2);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center;min-width:0}
+.lbl{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em}
+.meter{height:6px;background:#16233c;border-radius:3px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:6px;background:var(--c);transition:width .6s}
+.agent{background:#070c18;border:1px dashed var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+pre{margin:0;font-family:var(--mono);font-size:12px;line-height:1.55;color:var(--code);white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto}
+.ep{display:flex;flex-wrap:wrap;gap:6px}
+.ep a{font-family:var(--mono);font-size:11px;padding:6px 9px;border:1px solid var(--line);border-radius:6px;color:var(--sub);text-decoration:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--dim)}
+.copy{background:none;border:0;color:var(--holo);font:11px var(--mono);cursor:pointer;min-height:32px}
+.empty{padding:28px 18px;font-family:var(--mono);font-size:13px;color:var(--dim)}
+.arc{fill:none;stroke-linecap:round}
+.old{opacity:.14}
+.draw{stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 1.3s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pkt{stroke-dasharray:10 1400;stroke-dashoffset:10;animation:pkt 1.3s ease-out forwards}
+@keyframes pkt{to{stroke-dashoffset:-1390}}
+.wedge{opacity:0;animation:fade .5s 1.1s ease-out forwards,breathe 2.4s 1.8s ease-in-out infinite}
+@keyframes fade{to{opacity:1}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.4}}
+.ring{transform-box:fill-box;transform-origin:center;opacity:0;animation:ring 2.2s 1.2s ease-out infinite}
+.ring.now{animation-delay:0s}
+@keyframes ring{0%{transform:scale(.5);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.draw,.wedge{animation:none;stroke-dashoffset:0;opacity:1}.pkt,.ring{display:none}.card.in{animation:none}}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}
+.krb-px .up{color:var(--up)}
+.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}
+details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/radar">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/radar">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/radar">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/radar">
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · Radar · Welt · Aktualisierung alle 5 Minuten</div>
+    <h1>IMPULSE RADAR</h1>
+  </div>
+  <p class="lead">Die Schlagzeilen aller Radare von Orb Studio auf der Karte. Der Bogen zeigt, woher der Impuls kam, und das Land leuchtet auf der Seite auf, von der er traf. Alle 7 Sekunden der nächste Impuls.</p>
+
+  <div class="grid">
+    <section class="map" aria-label="Impulskarte">
+      <div class="bar">
+        <div class="route" id="route">Wird geladen…</div>
+        <div class="ctrl">
+          <button id="prev" type="button" aria-label="Vorheriger Impuls"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          <button id="play" type="button" aria-label="Pause"><svg id="playIco" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/></svg></button>
+          <button id="next" type="button" aria-label="Nächster Impuls"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+        </div>
+      </div>
+      <svg id="m" viewBox="0 0 1000 470" role="img" aria-label="Weltkarte: Der Bogen zeigt den Weg des Impulses, die Hervorhebung die Seite, von der er ins Land kam">
+        <defs><pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".9" fill="#263856"/></pattern></defs>
+        <g stroke="#121e33"><path d="M0 83H1000M0 167H1000M0 250H1000M0 333H1000M0 417H1000M167 0V470M333 0V470M500 0V470M667 0V470M833 0V470"/></g>
+        <g fill="url(#dots)" stroke="#263856">
+          <path d="M42 69 111 56 236 50 292 78 347 106 314 125 278 167 272 181 231 178 250 205 278 228 270 232 240 215 208 192 175 161 156 139 153 111 125 89 83 83 42 83Z"/>
+          <path d="M375 83 444 56 417 22 333 28 347 56Z"/>
+          <path d="M286 228 333 222 361 250 403 267 389 311 367 328 339 356 319 403 300 389 300 333 306 300 278 264 278 244Z"/>
+          <path d="M472 150 475 128 500 114 514 103 522 92 514 78 542 56 583 53 611 64 694 47 778 33 889 47 1000 61 972 83 944 106 894 119 861 133 839 167 806 194 794 222 786 247 772 222 756 189 722 228 700 194 683 181 658 178 661 194 644 206 622 217 606 194 594 172 597 150 578 136 556 144 533 144 508 133 486 150Z"/>
+          <path d="M486 111 506 106 492 89 483 94Z"/><path d="M861 164 892 136 894 125 878 153Z"/>
+          <path d="M403 192 472 167 528 147 589 164 619 217 642 219 611 292 597 319 556 347 533 297 525 239 478 236 403 211Z"/>
+          <path d="M817 311 861 283 894 281 925 322 908 356 875 347 819 344Z"/>
+        </g>
+        <g id="trails"></g>
+        <g id="live"></g>
+        <g id="nodes" font-family="JetBrains Mono, monospace" font-size="12" fill="#a9b8d0"></g>
+      </svg>
+      <div class="queue" id="queue"></div>
+    </section>
+
+    <aside class="side">
+      <article class="card" id="card" aria-live="polite">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="tag" id="tag">—</span><span class="lbl" id="num"></span></div>
+        <h2 id="title">Impulse aus den Radaren werden gesammelt…</h2>
+        <p id="detail"></p>
+        <div class="stats">
+          <div class="stat">
+            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true" style="flex:none"><circle cx="22" cy="22" r="19" fill="none" stroke="#263856"/><text x="22" y="10" text-anchor="middle" font-size="7" fill="#8796b6" font-family="JetBrains Mono, monospace">N</text><g id="needle" style="transform-origin:22px 22px;transition:transform .6s"><path id="needleP" d="M22 6l4 16-4-3-4 3z" fill="#8796b6"/></g></svg>
+            <div style="min-width:0"><div class="lbl">WOHER</div><div id="dir" style="font-weight:500">—</div></div>
+          </div>
+          <div class="stat" style="display:block">
+            <div style="display:flex;justify-content:space-between" class="lbl"><span>STÄRKE</span><span id="str" style="color:var(--fg)">—</span></div>
+            <div class="meter"><i id="meter" style="width:0"></i></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--dim)"><span>Quelle: <a id="src" href="#" target="_blank" rel="noopener">—</a></span><span id="time" style="font-family:var(--mono)"></span></div>
+      </article>
+
+      <section class="agent" aria-label="Maschinenlesbarer Datensatz">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span class="lbl">FÜR AGENTEN · DERSELBE DATENSATZ</span><button class="copy" id="copy" type="button">kopieren</button></div>
+        <pre id="json">{}</pre>
+        <div class="ep"><a href="/api/v1/impulses">GET /api/v1/impulses</a><a href="/mcp">MCP · get_impulses</a><a href="/llms.txt">llms.txt</a></div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="legend">
+    <span><span style="color:var(--warm)">●</span> Energie</span>
+    <span><span style="color:var(--holo)">●</span> Kapital</span>
+    <span><span style="color:var(--hot)">●</span> Geopolitik</span>
+    <span><span style="color:var(--up)">●</span> Logistik</span>
+    <span>Bogen = Weg · Dicke = Stärke · Hervorhebung = Seite des Stoßes · ◇ = Engpass · Puls ohne Bogen = innerer Impuls</span>
+  </div>
+  <p class="lead" style="font-size:12.5px">So rechnen wir: Wir nehmen frische Schlagzeilen der Radare (öffentliche RSS-Feeds) und suchen darin Länder und Engpässe. Der erste genannte Ort ist die Quelle, der zweite das Ziel. Die Stärke ist das Gewicht der Schlagzeile im Radar. Das ist eine Heuristik und ein Indikator, keine Prognose und keine Anlageberatung.</p>
+
+  <aside class="krb" aria-label="Kraken – Empfehlungslink von Orb Studio">
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Siehst du einen Impuls auf dem Radar? Die Kurse kommen von <b>Kraken</b></h3>
+    <p class="krb-sub">Kryptobörse Kraken: Bitcoin für Euro kaufen, Kraken Pro für aktiven Handel, Staking. Die Kurse des Krypto-Radars von Orb Studio kommen aus der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=radar" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Kraken kann Neukunden einen Bonus gewähren, wenn die Bedingungen der Börse erfüllt sind; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Verbindung dort, wo es kein Kabel gibt – Internet von <b>STARLINK</b></h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Gartenhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und unterwegs</b><span>Tarife zur Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=radar" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+  <p class="agentline">🤖 Für Agenten: Impulse als JSON → <a href="/api/v1/impulses">/api/v1/impulses</a> · MCP <b>get_impulses</b> bei <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <details class="machine"><summary>Textversion der Radare · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Daten: <a href="/api/v1/impulses">/api/v1/impulses</a>.</p></section></details>
+</div>
+<script>
+(function(){
+const LAYER={energy:['ENERGIE','#ffb547'],capital:['KAPITAL','#6fe6ff'],geo:['GEOPOLITIK','#ff5d7a'],ship:['LOGISTIK','#4fd8a4']};
+const NS='http://www.w3.org/2000/svg',$=id=>document.getElementById(id),f=n=>Math.round(n*10)/10;
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+let IMP=[],NODES={},G=[],idx=0,playing=true,timer;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function geom(im){
+  const t=NODES[im.to],c=(LAYER[im.layer]||LAYER.geo)[1],sw=f(1.5+im.strength*4);
+  if(!im.from||!NODES[im.from])return{t,c,sw,local:true};
+  const s=NODES[im.from],dx=t.x-s.x,dy=t.y-s.y,d=Math.hypot(dx,dy)||1;
+  let nx=dy/d,ny=-dx/d;if(ny>0){nx=-nx;ny=-ny}
+  const cx=(s.x+t.x)/2+nx*.3*d,cy=(s.y+t.y)/2+ny*.3*d,th=Math.atan2(s.y-t.y,s.x-t.x),r=24;
+  const p1=[t.x+r*Math.cos(th-1.05),t.y+r*Math.sin(th-1.05)],p2=[t.x+r*Math.cos(th+1.05),t.y+r*Math.sin(th+1.05)];
+  return{t,c,sw,d:`M${s.x} ${s.y}Q${f(cx)} ${f(cy)} ${t.x} ${t.y}`,w:`M${f(p1[0])} ${f(p1[1])}A24 24 0 0 1 ${f(p2[0])} ${f(p2[1])}`};
+}
+function drawNodes(){
+  const g=$('nodes');g.replaceChildren();
+  for(const k in NODES){const n=NODES[k];
+    g.append(n.chokepoint?el('rect',{x:n.x-4,y:n.y-4,width:8,height:8,fill:'none',stroke:'#e4ebf8',transform:`rotate(45 ${n.x} ${n.y})`}):el('circle',{cx:n.x,cy:n.y,r:3.5,fill:'#e4ebf8'}));
+    const tx=el('text',{x:n.x+8,y:n.chokepoint?n.y+17:n.y-6,'font-size':n.chokepoint?10.5:11.5});tx.textContent=n.name_de;g.append(tx)}
+}
+function show(i){
+  if(!IMP.length)return;idx=i;const im=IMP[i],g=G[i],c=g.c,L=LAYER[im.layer]||LAYER.geo;
+  const live=$('live');
+  if(g.local)live.replaceChildren(el('circle',{cx:g.t.x,cy:g.t.y,r:9,fill:c,opacity:.35}),el('circle',{class:'ring now',cx:g.t.x,cy:g.t.y,r:14,fill:'none',stroke:c,'stroke-width':2}));
+  else live.replaceChildren(
+    el('path',{class:'arc draw',d:g.d,stroke:c,'stroke-width':g.sw}),
+    el('path',{class:'arc pkt',d:g.d,stroke:'#fff','stroke-width':5}),
+    el('path',{class:'arc wedge',d:g.w,stroke:c,'stroke-width':7}),
+    el('circle',{class:'ring',cx:g.t.x,cy:g.t.y,r:14,fill:'none',stroke:c,'stroke-width':2}));
+  const dirTxt=im.local?'innerer Impuls':'aus dem '+im.side_de;
+  $('route').innerHTML='';const dot=document.createElement('span');dot.style.color=c;dot.textContent='● ';$('route').append(dot,document.createTextNode(im.local?`${im.to_name_de} · innerer Impuls`:`${im.from_name_de} → ${im.to_name_de} · Impuls aus dem ${im.side_de}`));
+  const card=$('card');card.style.setProperty('--c',c);card.classList.remove('in');void card.offsetWidth;card.classList.add('in');
+  $('tag').textContent=L[0];$('num').textContent=`IMPULS ${String(i+1).padStart(2,'0')} / ${String(IMP.length).padStart(2,'0')}`;
+  $('title').textContent=im.headline;$('detail').textContent=`Radar: ${im.radar_title_de}.`+(im.local?` Die Schlagzeile nennt nur einen Ort – wir zeigen einen Puls ohne Bogen.`:` Weg: ${im.from_name_de} → ${im.to_name_de}.`);
+  $('dir').textContent=dirTxt;$('needle').style.transform=`rotate(${im.local?0:im.bearing_deg}deg)`;$('needleP').setAttribute('fill',im.local?'#8796b6':c);
+  $('str').textContent=im.strength.toFixed(2);$('meter').style.width=Math.round(im.strength*100)+'%';
+  $('src').textContent=im.source||'—';$('src').href=im.link||'#';$('time').textContent=im.time||'';
+  const rec={id:im.id,radar:im.radar,layer:im.layer,from:im.from,to:im.to,bearing_deg:im.bearing_deg,side:im.side_en,strength:im.strength,headline:im.headline,source:im.source,link:im.link,time:im.time};
+  $('json').textContent=JSON.stringify(rec,null,1);
+  [...$('queue').children].forEach((b,j)=>b.setAttribute('aria-pressed',j===i));
+  restart();
+}
+function restart(){clearInterval(timer);if(playing&&IMP.length>1)timer=setInterval(()=>show((idx+1)%IMP.length),7000)}
+$('prev').onclick=()=>show((idx-1+IMP.length)%IMP.length);$('next').onclick=()=>show((idx+1)%IMP.length);
+$('play').onclick=()=>{playing=!playing;$('play').setAttribute('aria-label',playing?'Pause':'Abspielen');
+  $('playIco').innerHTML=playing?'<path d="M5 3v10M11 3v10" stroke="currentColor" stroke-width="2"/>':'<path d="M5 3l8 5-8 5z" fill="currentColor"/>';restart()};
+$('copy').onclick=()=>{const t=$('json').textContent;try{navigator.clipboard.writeText(t).then(()=>{$('copy').textContent='kopiert';setTimeout(()=>$('copy').textContent='kopieren',1600)})}catch(e){}};
+if(reduce){playing=false;$('play').setAttribute('aria-label','Abspielen');$('playIco').innerHTML='<path d="M5 3l8 5-8 5z" fill="currentColor"/>'}
+
+function load(first){
+  fetch('/api/v1/impulses?limit=10').then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.impulses||!d.impulses.length){if(first){$('route').textContent='NO DATA';$('title').textContent='In den Feeds gibt es gerade keine Schlagzeilen mit Ländern – das Radar zeigt Impulse beim nächsten Update.'}return}
+    const keep=IMP[idx]&&IMP[idx].headline;
+    NODES=d.nodes;IMP=d.impulses.filter(im=>NODES[im.to]);G=IMP.map(geom);
+    drawNodes();
+    $('trails').replaceChildren(...G.filter(g=>!g.local).map(g=>el('path',{class:'arc old',d:g.d,stroke:g.c,'stroke-width':g.sw})));
+    const q=$('queue');q.replaceChildren();
+    IMP.forEach((im,i)=>{const b=document.createElement('button');b.type='button';b.style.setProperty('--c',(LAYER[im.layer]||LAYER.geo)[1]);
+      const lab=im.local?im.to_name_de:`${im.from_name_de} → ${im.to_name_de}`;
+      b.innerHTML=`<span class="dot"></span><span class="lbl">${String(i+1).padStart(2,'0')}</span><span class="q"></span>`;b.querySelector('.q').textContent=lab;b.title=im.headline;b.onclick=()=>show(i);q.append(b)});
+    const j=keep?IMP.findIndex(x=>x.headline===keep):-1;show(j>=0?j:0);
+  }).catch(()=>{if(first){$('route').textContent='NO DATA';$('title').textContent='Impulse konnten nicht geladen werden. Bitte lade die Seite neu.'}});
+}
+load(true);setInterval(()=>load(false),300000);
+})();
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_impulse')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=impulse'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"impulse"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_impulse','1')}catch(e){}document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(!d||!d.market)return;const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{box.innerHTML=Object.entries(map).map(([n,re])=>{const k=Object.keys(d.market).find(x=>re.test(x));if(!k)return'';const m=d.market[k],ch=m.change_pct;
+  return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`}).join('')||box.innerHTML})}).catch(()=>{});
+document.addEventListener('click',e=>{const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='kopiert ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>

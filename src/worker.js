@@ -607,24 +607,26 @@ function broadcastItems(radars) {
 // Эвристика: в заголовке ищем страны/узкие места; первое упоминание = источник, второе = цель.
 // Координаты — карта 1000×470 (равнопромежуточная проекция), их же рисует страница /radar.
 const IMP_NODES = {
-  US: { x: 228, y: 142, ru: "США", re: /\bu\.s\.(?![a-z])|\b(usa|united states|america|american|washington|white house|pentagon|trump|federal reserve|fed|wall street|congress)\b|сша|вашингтон|америк|белый дом|пентагон|трамп/i },
-  EU: { x: 528, y: 108, ru: "ЕС", re: /\b(eu|europe|european|brussels|germany|german|berlin|france|french|paris|ecb|euro|eurozone|deutschland|bundes\w*|ezb|merz|scholz|macron)\b|европ|ес\b|герман|берлин|франц|брюссел/i },
-  CA: { x: 222, y: 94, ru: "Канада", re: /\b(canada|canadian|ottawa|carney)\b|канад/i },
-  GB: { x: 494, y: 100, ru: "Британия", re: /\b(uk|britain|british|london|starmer)\b|британ|лондон/i },
-  UA: { x: 586, y: 114, ru: "Украина", re: /\b(ukraine|ukrainian|kyiv|kiev|zelensky\w*)\b|украин|киев|зеленск/i },
-  RU: { x: 667, y: 83, ru: "Россия", re: /\b(russia|russian|kremlin|moscow|putin|russland|russische\w*)\b|росси|кремл|москв|путин/i },
-  IR: { x: 647, y: 161, ru: "Иран", re: /\b(iran|iranian|tehran)\b|иран|тегеран/i },
-  CN: { x: 792, y: 153, ru: "Китай", re: /\b(china|chinese|beijing|xi jinping|taiwan|peking)\b|китай|пекин|тайван/i },
-  IN: { x: 717, y: 189, ru: "Индия", re: /\b(india|indian|delhi|modi)\b|инди[яи]|дели/i },
-  JP: { x: 883, y: 150, ru: "Япония", re: /\b(japan|japanese|tokyo)\b|япони|токио/i },
-  HRM: { x: 656, y: 176, ru: "Ормуз", cp: 1, re: /hormuz|ормуз/i },
-  SUZ: { x: 590, y: 167, ru: "Суэц", cp: 1, re: /suez|суэц/i },
-  BAB: { x: 619, y: 215, ru: "Красное море", cp: 1, re: /red sea|bab[ -]el|houthi|rotes meer|красн\w* мор|хусит/i },
-  MAL: { x: 778, y: 242, ru: "Малакка", cp: 1, re: /malacca|малакк/i },
-  PAN: { x: 279, y: 225, ru: "Панама", cp: 1, re: /panama|панам/i },
+  US: { x: 228, y: 142, ru: "США", de: "USA", en: "USA", re: /\bu\.s\.(?![a-z])|\b(usa|united states|america|american|washington|white house|pentagon|trump|federal reserve|fed|wall street|congress)\b|сша|вашингтон|америк|белый дом|пентагон|трамп/i },
+  EU: { x: 528, y: 108, ru: "ЕС", de: "EU", en: "EU", re: /\b(eu|europe|european|brussels|germany|german|berlin|france|french|paris|ecb|euro|eurozone|deutschland|bundes\w*|ezb|merz|scholz|macron)\b|европ|ес\b|герман|берлин|франц|брюссел/i },
+  CA: { x: 222, y: 94, ru: "Канада", de: "Kanada", en: "Canada", re: /\b(canada|canadian|ottawa|carney)\b|канад/i },
+  GB: { x: 494, y: 100, ru: "Британия", de: "Großbritannien", en: "Britain", re: /\b(uk|britain|british|london|starmer)\b|британ|лондон/i },
+  UA: { x: 586, y: 114, ru: "Украина", de: "Ukraine", en: "Ukraine", re: /\b(ukraine|ukrainian|kyiv|kiev|zelensky\w*)\b|украин|киев|зеленск/i },
+  RU: { x: 667, y: 83, ru: "Россия", de: "Russland", en: "Russia", re: /\b(russia|russian|kremlin|moscow|putin|russland|russische\w*)\b|росси|кремл|москв|путин/i },
+  IR: { x: 647, y: 161, ru: "Иран", de: "Iran", en: "Iran", re: /\b(iran|iranian|tehran)\b|иран|тегеран/i },
+  CN: { x: 792, y: 153, ru: "Китай", de: "China", en: "China", re: /\b(china|chinese|beijing|xi jinping|taiwan|peking)\b|китай|пекин|тайван/i },
+  IN: { x: 717, y: 189, ru: "Индия", de: "Indien", en: "India", re: /\b(india|indian|delhi|modi)\b|инди[яи]|дели/i },
+  JP: { x: 883, y: 150, ru: "Япония", de: "Japan", en: "Japan", re: /\b(japan|japanese|tokyo)\b|япони|токио/i },
+  HRM: { x: 656, y: 176, ru: "Ормуз", de: "Hormus", en: "Hormuz", cp: 1, re: /hormuz|ормуз/i },
+  SUZ: { x: 590, y: 167, ru: "Суэц", de: "Suez", en: "Suez", cp: 1, re: /suez|суэц/i },
+  BAB: { x: 619, y: 215, ru: "Красное море", de: "Rotes Meer", en: "Red Sea", cp: 1, re: /red sea|bab[ -]el|houthi|rotes meer|красн\w* мор|хусит/i },
+  MAL: { x: 778, y: 242, ru: "Малакка", de: "Malakka", en: "Malacca", cp: 1, re: /malacca|малакк/i },
+  PAN: { x: 279, y: 225, ru: "Панама", de: "Panama", en: "Panama", cp: 1, re: /panama|панам/i },
 };
 const IMP_DIRS = ["севера", "северо-востока", "востока", "юго-востока", "юга", "юго-запада", "запада", "северо-запада"];
 const IMP_DIRS_EN = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
+const IMP_DIRS_DE = ["Norden", "Nordosten", "Osten", "Südosten", "Süden", "Südwesten", "Westen", "Nordwesten"];
+const RADAR_TITLE_I18N = { geo: ["Geo-Radar", "Geo radar"], politics: ["Politik", "Politics"], economy: ["Wirtschaft", "Economy"], budget: ["Haushaltsbudget", "Household budget"], crypto: ["Krypto-Radar", "Crypto radar"], energy: ["Energie-Radar", "Energy radar"], web: ["Offenes Web", "Open web"] };
 const IMP_SHIP = /tanker|shipping|freight|vessel|container|strait|канал|танкер|фрахт|судоход|schiff|frachter/i;
 function impulseLayer(radarId, title) {
   if (IMP_SHIP.test(title) || /hormuz|suez|red sea|malacca|panama|ормуз|суэц|малакк/i.test(title)) return "ship";
@@ -651,16 +653,17 @@ async function impulses(env, ctx, origin, limit = 12) {
       const key = places.slice(0, 2).join(">") + "|" + (title || "").slice(0, 40);
       if (seen.has(key)) continue; seen.add(key);
       const from = places.length > 1 ? places[0] : null, to = places.length > 1 ? places[1] : places[0];
-      let bearing = null, side = null, side_en = null;
+      let bearing = null, side = null, side_en = null, side_de = null;
       if (from) {
         const s = IMP_NODES[from], t = IMP_NODES[to];
         bearing = Math.round((Math.atan2(s.x - t.x, -(s.y - t.y)) * 180 / Math.PI + 360) % 360);
-        side = IMP_DIRS[Math.round(bearing / 45) % 8]; side_en = IMP_DIRS_EN[Math.round(bearing / 45) % 8];
+        side = IMP_DIRS[Math.round(bearing / 45) % 8]; side_en = IMP_DIRS_EN[Math.round(bearing / 45) % 8]; side_de = IMP_DIRS_DE[Math.round(bearing / 45) % 8];
       }
       out.push({
-        id: `${r.id}-${out.length + 1}`, radar: r.id, radar_title: r.title, layer: impulseLayer(r.id, title),
+        id: `${r.id}-${out.length + 1}`, radar: r.id, radar_title: r.title, radar_title_de: (RADAR_TITLE_I18N[r.id] || [r.title])[0], radar_title_en: (RADAR_TITLE_I18N[r.id] || [r.title, r.title])[1], layer: impulseLayer(r.id, title),
         from, to, from_name: from ? IMP_NODES[from].ru : null, to_name: IMP_NODES[to].ru,
-        bearing_deg: bearing, side, side_en, local: !from,
+        from_name_de: from ? IMP_NODES[from].de : null, to_name_de: IMP_NODES[to].de, from_name_en: from ? IMP_NODES[from].en : null, to_name_en: IMP_NODES[to].en,
+        bearing_deg: bearing, side, side_en, side_de, local: !from,
         strength: Math.round(Math.max(0.15, Math.min(1, (weight || 0) / 100)) * 100) / 100,
         headline: title, source, link, time,
       });
@@ -672,7 +675,7 @@ async function impulses(env, ctx, origin, limit = 12) {
     generated_at: new Date().toISOString(),
     method: "Headlines from Orb Studio radars (public RSS). Countries and chokepoints are matched by keywords; the first place named is the source, the second the target. bearing_deg is the screen direction the impulse comes from on an equirectangular map (0 = north). A headline that names one place is a local impulse with no arc. Heuristic, not a forecast.",
     map: { width: 1000, height: 470, projection: "equirectangular" },
-    nodes: Object.fromEntries(Object.entries(IMP_NODES).map(([id, n]) => [id, { x: n.x, y: n.y, name_ru: n.ru, chokepoint: !!n.cp }])),
+    nodes: Object.fromEntries(Object.entries(IMP_NODES).map(([id, n]) => [id, { x: n.x, y: n.y, name_ru: n.ru, name_de: n.de, name_en: n.en, chokepoint: !!n.cp }])),
     impulses: out.slice(0, limit),
     page: "https://orbstudio.org/radar",
     disclaimer: "Indicator, not advice. No orders are sent.",
@@ -1912,23 +1915,23 @@ async function roadsData(env) {
 // Сайт не решает кризисы и не делает прогнозов. Он собирает предложения «как выйти» и показывает,
 // насколько люди и ИИ-агенты с ними согласны. Голоса людей и агентов считаются раздельно.
 const BRIDGE_INSTRUMENTS = [
-  { id: "geo", ru: "Геополитика", en: "Geopolitics", radars: ["geo"] },
-  { id: "energy", ru: "Энергетика и логистика", en: "Energy & logistics", radars: ["energy"] },
-  { id: "economy", ru: "Экономика", en: "Economy", radars: ["economy", "budget"] },
-  { id: "info", ru: "Достоверность информации", en: "Information reliability", radars: [] },
+  { id: "geo", ru: "Геополитика", de: "Geopolitik", en: "Geopolitics", radars: ["geo"] },
+  { id: "energy", ru: "Энергетика и логистика", de: "Energie und Logistik", en: "Energy & logistics", radars: ["energy"] },
+  { id: "economy", ru: "Экономика", de: "Wirtschaft", en: "Economy", radars: ["economy", "budget"] },
+  { id: "info", ru: "Достоверность информации", de: "Verlässlichkeit von Informationen", en: "Information reliability", radars: [] },
 ];
 const BRIDGE_CRISES = [
-  { id: "hormuz", instrument: "energy", ru: "Ормуз и цены на топливо", en: "Strait of Hormuz and fuel prices",
+  { id: "hormuz", instrument: "energy", ru: "Ормуз и цены на топливо", de: "Hormus und Kraftstoffpreise", en: "Strait of Hormuz and fuel prices",
     kw: ["hormuz", "ормуз", "iran", "иран", "tanker", "танкер", "brent", "opec", "опек", " öl", " oil", "нефт"] },
-  { id: "ukraine", instrument: "geo", ru: "Война в Украине: путь к прекращению огня", en: "War in Ukraine: path to a ceasefire",
+  { id: "ukraine", instrument: "geo", ru: "Война в Украине: путь к прекращению огня", de: "Krieg in der Ukraine: Weg zum Waffenstillstand", en: "War in Ukraine: path to a ceasefire",
     kw: ["ukrain", "украин", "kyiv", "kiew", "киев", "ceasefire", "waffenstillstand", "перемири", "putin", "путин", "selenskyj", "zelensky", "зеленск"] },
-  { id: "taiwan", instrument: "geo", ru: "США — Китай и Тайвань", en: "US–China and Taiwan",
+  { id: "taiwan", instrument: "geo", ru: "США — Китай и Тайвань", de: "USA – China und Taiwan", en: "US–China and Taiwan",
     kw: ["taiwan", "тайван", "china", "китай", "beijing", "peking", "пекин", " xi ", "си цзиньпин", "south china sea"] },
-  { id: "trade", instrument: "economy", ru: "Торговые войны и цепочки поставок", en: "Trade wars and supply chains",
+  { id: "trade", instrument: "economy", ru: "Торговые войны и цепочки поставок", de: "Handelskriege und Lieferketten", en: "Trade wars and supply chains",
     kw: ["tariff", "zoll", "zölle", "пошлин", "supply chain", "lieferkette", "поставк", "shipping", "container", "контейнер", "suez", "суэц", " chip"] },
-  { id: "living", instrument: "economy", ru: "Стоимость жизни в Европе", en: "Cost of living in Europe",
+  { id: "living", instrument: "economy", ru: "Стоимость жизни в Европе", de: "Lebenshaltungskosten in Europa", en: "Cost of living in Europe",
     kw: ["inflation", "инфляц", "preise", "prices", " цен", "miete", " rent", "аренд", "strompreis", "gaspreis", "heizkosten", "zins", "ставк"] },
-  { id: "info", instrument: "info", ru: "Доверие к информации", en: "Trust in information",
+  { id: "info", instrument: "info", ru: "Доверие к информации", de: "Vertrauen in Informationen", en: "Trust in information",
     kw: ["disinformation", "desinformation", "дезинформ", "misinformation", "fake", "фейк", "deepfake", "дипфейк", "propaganda", "пропаганд", "zensur", "censorship", "цензур"] },
 ];
 const INFO_KW = BRIDGE_CRISES.find((c) => c.id === "info").kw;
@@ -1945,6 +1948,25 @@ const BRIDGE_SEED = [
   ["info", "Каждое громкое заявление политика сопровождать ссылкой на первоисточник; без источника — пометка «не подтверждено»."],
   ["info", "ИИ-агенты при пересказе новостей всегда дают ссылку на исходную статью и отмечают, если факт подтверждён только одним источником."],
 ];
+// переводы стартовых предложений (p_seed00000000…): [de, en] по номеру в BRIDGE_SEED
+const BRIDGE_SEED_I18N = [
+  ["Gemeinsames Marinegeleit für Tanker unter der Flagge mehrerer Länder, auch asiatischer – der Hauptkäufer des Öls durch die Meerenge.", "Joint naval escort of tankers under the flags of several countries, including Asian ones – the main buyers of oil through the strait."],
+  ["Ein heißer Draht zwischen den Flotten der Region, damit ein zufälliger Zwischenfall mit einem Schiff nicht zur Eskalation wird.", "A hotline between the fleets in the region so that an accidental incident with a ship does not turn into escalation."],
+  ["Gefangenenaustausch nach der Formel „alle gegen alle“ als erster Schritt des Vertrauens vor jeglichen Verhandlungen über Grenzen.", "A prisoner exchange on an “all for all” basis as a first step of trust before any talks about borders."],
+  ["Stopp der Angriffe auf die Energieinfrastruktur auf beiden Seiten unter Aufsicht neutraler Beobachter.", "An end to strikes on energy infrastructure by both sides, monitored by neutral observers."],
+  ["Ein ständiger militärischer Kommunikationskanal USA – China auf Kommandoebene, der bei politischem Streit nicht abreißt.", "A permanent US–China military communication channel at command level that is not cut off during political quarrels."],
+  ["Eine Liste „humanitärer“ Güter – Medikamente, Dünger, Lebensmittel –, auf die in keinem Konflikt Zölle erhoben werden.", "A list of “humanitarian” goods – medicines, fertiliser, food – that never get tariffs in any conflict."],
+  ["Zwei unabhängige Lieferanten für jede kritische Komponente statt eines billigen.", "Two independent suppliers for every critical component instead of one cheap one."],
+  ["Ein öffentlicher Index echter Preise nach Kassenbons in jeder Stadt, um zu sehen, wo Preissteigerungen Markt sind und wo Spekulation.", "A public index of real prices from receipts in every city, to see where price rises are the market and where they are speculation."],
+  ["Jede laute Aussage eines Politikers mit einem Link zur Originalquelle versehen; ohne Quelle – der Vermerk „nicht bestätigt“.", "Every loud statement by a politician comes with a link to the original source; without a source – the label “not confirmed”."],
+  ["KI-Agenten verlinken beim Nacherzählen von Nachrichten immer den Originalartikel und vermerken, wenn eine Tatsache nur von einer Quelle bestätigt ist.", "AI agents always link the original article when retelling news and note when a fact is confirmed by only one source."],
+];
+function bridgeI18n(id, text, author) {
+  const k = /^p_seed(\d{8})$/.test(id) ? Number(id.slice(6)) : -1;
+  const tr = BRIDGE_SEED_I18N[k] || [text, text];
+  const au = author === "Orb Studio · стартовое предложение" ? ["Orb Studio · Startvorschlag", "Orb Studio · starter proposal"] : author === "Гость" ? ["Gast", "Guest"] : [author, author];
+  return { text_de: tr[0], text_en: tr[1], author_de: au[0], author_en: au[1] };
+}
 const BRIDGE_LIMIT_PER_DAY = 5;
 const BRIDGE_MIN_VOTES = 3;   // меньше голосов в группе — согласие не оценивается
 let bReady = false;
@@ -1979,7 +2001,7 @@ function modelFamily(...xs) {
 }
 function trendOf(lvl, prev) {
   const d = lvl - prev;
-  return d >= 3 ? { id: "worse", ru: "хуже", arrow: "↑" } : d <= -3 ? { id: "better", ru: "лучше", arrow: "↓" } : { id: "stable", ru: "стабильно", arrow: "→" };
+  return d >= 3 ? { id: "worse", ru: "хуже", de: "schlechter", en: "worse", arrow: "↑" } : d <= -3 ? { id: "better", ru: "лучше", de: "besser", en: "better", arrow: "↓" } : { id: "stable", ru: "стабильно", de: "stabil", en: "stable", arrow: "→" };
 }
 const kwHit = (title, kw) => { const t = " " + String(title).toLowerCase() + " "; return kw.some((k) => t.includes(k)); };
 async function bridgeInstruments(env, radars) {
@@ -2010,7 +2032,7 @@ async function bridgeInstruments(env, radars) {
       prev = rs.length ? Math.round(rs.reduce((a, r) => a + r.prev, 0) / rs.length) : lvl;
     }
     const tr = trendOf(lvl, prev);
-    return { id: ins.id, name_ru: ins.ru, name_en: ins.en, level: lvl, ...(ins.id === "info" && singlePct != null ? { single_source_pct: Math.round(singlePct) } : {}), delta_24h: lvl - prev, trend: tr.id, trend_ru: tr.ru, arrow: tr.arrow, severity: severity(lvl),
+    return { id: ins.id, name_ru: ins.ru, name_de: ins.de, name_en: ins.en, level: lvl, ...(ins.id === "info" && singlePct != null ? { single_source_pct: Math.round(singlePct) } : {}), delta_24h: lvl - prev, trend: tr.id, trend_ru: tr.ru, trend_de: tr.de, trend_en: tr.en, arrow: tr.arrow, severity: severity(lvl),
       based_on: ins.id === "info" ? "share of headlines about disinformation, fakes and censorship across all radars; single_source_pct (Arbiter) is shown for reference and not included in the level" : ins.radars.map((r) => r + " radar").join(" + ") };
   });
 }
@@ -2037,7 +2059,7 @@ async function bridgePaths(env, crisis) {
   }
   return rows.map((r) => {
     const votes = V[r.id] || blank();
-    return { id: r.id, crisis: r.crisis, proposed_at: new Date(r.ts).toISOString(), source: r.source, author: r.author, model: r.model || null, lang: r.lang || null, text: r.text,
+    return { id: r.id, crisis: r.crisis, proposed_at: new Date(r.ts).toISOString(), source: r.source, author: r.author, model: r.model || null, lang: r.lang || null, text: r.text, ...bridgeI18n(r.id, r.text, r.author),
       votes, ...consensusOf(votes), total_votes: votes.human.agree + votes.human.disagree + votes.agent.agree + votes.agent.disagree };
   });
 }
@@ -2049,7 +2071,7 @@ async function agentInterest(env) {
     const rows = (await env.DB.prepare("SELECT page, SUM(n) AS n FROM hits WHERE kind='agent' AND day>=?1 AND page LIKE '%bridge/%' GROUP BY page").bind(since).all()).results || [];
     const out = {};
     for (const r of rows) { const m = r.page.match(/bridge\/([a-z]+)$/); if (m && BRIDGE_CRISES.some((c) => c.id === m[1])) out[m[1]] = (out[m[1]] || 0) + r.n; }
-    return BRIDGE_CRISES.map((c) => ({ crisis: c.id, title_ru: c.ru, title_en: c.en, agent_visits_30d: out[c.id] || 0 })).sort((a, b) => b.agent_visits_30d - a.agent_visits_30d);
+    return BRIDGE_CRISES.map((c) => ({ crisis: c.id, title_ru: c.ru, title_de: c.de, title_en: c.en, agent_visits_30d: out[c.id] || 0 })).sort((a, b) => b.agent_visits_30d - a.agent_visits_30d);
   } catch (e) { return []; }
 }
 function modelSummary(paths) {
@@ -2057,7 +2079,7 @@ function modelSummary(paths) {
   for (const p of paths) for (const [k, t] of Object.entries(p.votes.by_model || {})) {
     const m = M[k] || (M[k] = { model: k, agree: 0, disagree: 0, supports: [] });
     m.agree += t.agree; m.disagree += t.disagree;
-    if (t.agree > t.disagree) m.supports.push({ id: p.id, crisis: p.crisis, text: p.text });
+    if (t.agree > t.disagree) m.supports.push({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en });
   }
   const models = Object.values(M).map((m) => ({ model: m.model, votes: m.agree + m.disagree, agree: m.agree, disagree: m.disagree,
     agree_pct: m.agree + m.disagree ? Math.round(100 * m.agree / (m.agree + m.disagree)) : null, supports: m.supports.slice(0, 3) }))
@@ -2067,7 +2089,7 @@ function modelSummary(paths) {
   for (const p of paths) {
     const bm = Object.entries(p.votes.by_model || {}).filter(([k]) => k !== "other");
     const pro = bm.filter(([, t]) => t.agree > t.disagree).map(([k]) => k), con = bm.filter(([, t]) => t.disagree > t.agree).map(([k]) => k);
-    if (pro.length && con.length) disputes.push({ id: p.id, crisis: p.crisis, text: p.text, agree: pro, disagree: con });
+    if (pro.length && con.length) disputes.push({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en, agree: pro, disagree: con });
   }
   return { models, disputes: disputes.slice(0, 5), note: "Model is self-declared by the agent (field model) or detected from its name and user agent; 'other' = not recognised." };
 }
@@ -2091,7 +2113,7 @@ async function bridgeOverview(env, ctx, origin) {
   const ins = Object.fromEntries(instruments.map((i) => [i.id, i]));
   const crises = BRIDGE_CRISES.map((c) => {
     const ps = paths.filter((p) => p.crisis === c.id).sort((a, b) => b.total_votes - a.total_votes || (a.source === "editor") - (b.source === "editor"));
-    return { id: c.id, title_ru: c.ru, title_en: c.en, instrument: c.instrument, instrument_level: ins[c.instrument].level, instrument_trend: ins[c.instrument].trend,
+    return { id: c.id, title_ru: c.ru, title_de: c.de, title_en: c.en, instrument: c.instrument, instrument_level: ins[c.instrument].level, instrument_trend: ins[c.instrument].trend,
       headlines: crisisHeadlines(c, radars), paths_count: ps.length, paths: ps.slice(0, 8), more: `https://orbstudio.org/api/v1/bridge/${c.id}` };
   });
   const scored = paths.filter((p) => p.human_agree_pct != null && p.agent_agree_pct != null);
@@ -2099,7 +2121,7 @@ async function bridgeOverview(env, ctx, origin) {
   const split = scored.filter((p) => p.state === "split").slice(0, 10);
   return { generated_at: new Date().toISOString(), rule: BRIDGE_RULE, instruments, crises,
     consensus_map: { min_votes_per_group: BRIDGE_MIN_VOTES, consensus, split,
-      points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
+      points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
     agent_interest_30d: interest,
     ai_models: modelSummary(paths),
     arbiter: { method: "For each headline Orb Studio counts how many different outlets in the radar feeds carry the same story (word overlap). confirmed = 3+ outlets, two_sources = 2, single_source = 1. Same-language matching only; a single source does not mean the story is false.", },
@@ -2112,7 +2134,7 @@ async function bridgeCrisis(env, ctx, origin, id) {
   const radars = await allRadars(env, ctx, origin);
   const instruments = await bridgeInstruments(env, radars);
   const paths = (await bridgePaths(env, id)).sort((a, b) => b.total_votes - a.total_votes);
-  return { id: c.id, title_ru: c.ru, title_en: c.en, rule: BRIDGE_RULE, instrument: instruments.find((i) => i.id === c.instrument), headlines: crisisHeadlines(c, radars, 6), paths, page: "https://orbstudio.org/bridge#" + c.id };
+  return { id: c.id, title_ru: c.ru, title_de: c.de, title_en: c.en, rule: BRIDGE_RULE, instrument: instruments.find((i) => i.id === c.instrument), headlines: crisisHeadlines(c, radars, 6), paths, page: "https://orbstudio.org/bridge#" + c.id };
 }
 async function proposePath(env, request, { crisis, text, author, lang, client, model }) {
   if (!env.DB) return { error: "The bridge is not available right now." };
@@ -3545,16 +3567,23 @@ async function sensorsMachine(env, ctx, radars) {
   li.push(`<p>ETF-потоки не подключены: бесплатного открытого источника нет. PDF и официальные тексты ЕЦБ, ФРС и Бундестага — в разделе <a href="/live">Живой эфир</a>.</p>`);
   return { html: li.join(""), chips };
 }
-function machineHtml(radars, page, track) {
+const MACHINE_I18N = {
+  ru: { upd: "Обновлено", berlin: "Берлин", mv: "Машинная версия", idx: "индекс риска", sev: ["спокойно", "напряжённо", "тревожно"], track: "Трек дня", listen: "Слушать в TikTok", lyrics: "текст песни целиком", kr: "Биржа, с которой берутся котировки", code: "реферальный код", na: "Индикатор, не инвестиционный совет." },
+  de: { upd: "Aktualisiert", berlin: "Berlin", mv: "Maschinenversion", idx: "Risikoindex", sev: ["ruhig", "angespannt", "alarmierend"], track: "Track des Tages", listen: "Auf TikTok anhören", lyrics: "vollständiger Songtext", kr: "Börse, von der die Kurse stammen", code: "Empfehlungscode", na: "Indikator, keine Anlageberatung." },
+  en: { upd: "Updated", berlin: "Berlin", mv: "Machine version", idx: "risk index", sev: ["calm", "tense", "alarming"], track: "Track of the day", listen: "Listen on TikTok", lyrics: "full lyrics", kr: "Exchange the quotes come from", code: "referral code", na: "Indicator, not investment advice." },
+};
+function machineHtml(radars, page, track, lang = "ru") {
+  const L = MACHINE_I18N[lang] || MACHINE_I18N.ru;
   const when = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
-  let h = `<p>Обновлено: ${escH(when)} (Берлин). Машинная версия: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
+  let h = `<p>${L.upd}: ${escH(when)} (${L.berlin}). ${L.mv}: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
   for (const r of radars) {
-    h += `<h3>${escH(r.title)} — индекс риска ${r.lvl}/100 (${escH(severity(r.lvl))}) · <a href="/api/v1/radar/${r.id}">JSON</a></h3><ul>`;
+    const title = lang === "ru" ? r.title : (RADAR_TITLE_I18N[r.id] || [r.title, r.title])[lang === "de" ? 0 : 1];
+    h += `<h3>${escH(title)} — ${L.idx} ${r.lvl}/100 (${escH(L.sev[r.lvl >= 70 ? 2 : r.lvl >= 45 ? 1 : 0])}) · <a href="/api/v1/radar/${r.id}">JSON</a></h3><ul>`;
     for (const f of r.feed.slice(0, page === "orb7" || page === "orbi" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
     h += "</ul>";
   }
-  if (track) h += `<h3>🎵 Трек дня — ${escH(track.title)} · <a href="/api/v1/music">JSON</a></h3><p>${escH([track.style, track.mood, track.bpm ? track.bpm + " BPM" : ""].filter(Boolean).join(" · "))}. ${escH(track.about || "")}</p>${track.lyrics_excerpt ? `<blockquote>${track.lyrics_excerpt.map(escH).join("<br>")}</blockquote>` : ""}<p><a href="${escH(track.listen_url)}" rel="nofollow noopener">Слушать в TikTok</a> · текст песни целиком: <a href="/music">/music</a>, <a href="/api/v1/music">/api/v1/music</a>, MCP <b>get_tracks</b>.</p>`;
-  h += `<p>Биржа, с которой берутся котировки: <a href="/go/kraken?from=machine-${page}" rel="sponsored">Kraken</a>, реферальный код ghqspfzq. Индикатор, не инвестиционный совет.</p>`;
+  if (track) h += `<h3>🎵 ${L.track} — ${escH(track.title)} · <a href="/api/v1/music">JSON</a></h3><p>${escH([track.style, track.mood, track.bpm ? track.bpm + " BPM" : ""].filter(Boolean).join(" · "))}. ${escH(track.about || "")}</p>${track.lyrics_excerpt ? `<blockquote>${track.lyrics_excerpt.map(escH).join("<br>")}</blockquote>` : ""}<p><a href="${escH(track.listen_url)}" rel="nofollow noopener">${L.listen}</a> · ${L.lyrics}: <a href="/music">/music</a>, <a href="/api/v1/music">/api/v1/music</a>, MCP <b>get_tracks</b>.</p>`;
+  h += `<p>${L.kr}: <a href="/go/kraken?from=machine-${page}" rel="sponsored">Kraken</a>, ${L.code} ghqspfzq. ${L.na}</p>`;
   return h;
 }
 function jsonLd(radars, origin) {
@@ -3586,6 +3615,8 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
+// страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
+const TRANSLATED_PAGES = new Set(["prices", "bridge", "hall", "radar"]);
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
@@ -3731,6 +3762,15 @@ async function handleRequest(request, env, ctx) {
       if (autoLang !== "ru") assetReq = new Request(new URL(`/${autoLang}/`, url.origin), request);
     } else if (url.pathname === "/ru/" || url.pathname === "/ru") {
       assetReq = new Request(new URL("/", url.origin), request);
+    } else {
+      // остальные страницы: та же логика языка, что и на главной (язык браузера, затем страна по IP), если есть перевод
+      const bare = url.pathname.replace(/\.html$/, "");
+      const m = bare.match(/^\/ru(\/[a-z0-9-]+)$/);
+      if (m && TRANSLATED_PAGES.has(m[1].slice(1))) assetReq = new Request(new URL(m[1], url.origin), request);
+      else if (TRANSLATED_PAGES.has(bare.slice(1))) {
+        autoLang = pickLang(request);
+        if (autoLang !== "ru") assetReq = new Request(new URL(`/${autoLang}${bare}`, url.origin), request);
+      }
     }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
     if (autoLang) {
@@ -3739,14 +3779,15 @@ async function handleRequest(request, env, ctx) {
       asset.headers.set("Content-Language", autoLang);
       asset.headers.set("Cache-Control", "private, max-age=60");
     }
-    const pg = HTML_PAGES[url.pathname] || (url.pathname === "/ru" ? "home" : undefined);
+    const pg = HTML_PAGES[url.pathname] || (url.pathname === "/ru" ? "home" : undefined) || HTML_PAGES[url.pathname.replace(/^\/(ru|de|en)(?=\/[a-z])/, "").replace(/\.html$/, "")];
     if (pg && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       // подставляем живые заголовки в HTML, чтобы агенты без JavaScript видели настоящие данные
       const radars = await Promise.race([allRadars(env, ctx, url.origin).catch(() => null), new Promise((r) => setTimeout(() => r(null), 1500))]);
       if (radars && radars.length) {
         let track = null;
         if (pg === "home" || pg === "music") { try { track = trackOfDay(await Promise.race([musicTracks(env, ctx, url.origin), new Promise((r) => setTimeout(() => r(null), 800))]), "machine-" + pg); } catch (e) {} }
-        const block = machineHtml(radars, pg, track), ld = jsonLd(radars, url.origin);
+        const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
+        const block = machineHtml(radars, pg, track, lang), ld = jsonLd(radars, url.origin);
         let vld = "";
         if (pg === "home") { try { vld = episodesJsonLd(await davidEpisodes(env, ctx, url.origin)); } catch (e) {} }
         if (pg === "music") { try { vld = musicJsonLd(await musicTracks(env, ctx, url.origin)); } catch (e) {} }
@@ -3760,7 +3801,6 @@ async function handleRequest(request, env, ctx) {
             if (!hit || Date.now() - (st && st._at || 0) > 5 * 60e3) ctx.waitUntil(readStats(env, "home").then((v) => caches.default.put(sk, new Response(JSON.stringify({ ...v, _at: Date.now() }), { headers: { "content-type": "application/json", "Cache-Control": "max-age=86400" } }))).catch(() => {}));
           } catch (e) {}
         }
-        const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
         const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
         const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrToday: "kraken_humans_today", sKrTotal: "kraken_humans_total" };
         let sm = null;
