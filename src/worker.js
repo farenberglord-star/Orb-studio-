@@ -3338,6 +3338,40 @@ async function handleMcp(request, env, ctx, origin) {
 
 // ================= Машинный слой страниц: живые данные прямо в HTML =================
 const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Текстовая версия страницы «Датчики» прямо в HTML: поисковики и агенты без JavaScript видят настоящие цифры, а не «загрузка…»
+async function sensorsMachine(env, ctx, radars) {
+  const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
+  const [sn, rd, pr] = await Promise.all([to(sensorsData(env, ctx), 1500), to(roadsData(env), 1500), to(pricesRadar(env, "hamburg"), 1200)]);
+  const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+  const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
+  const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const avg = radars.length ? Math.round(radars.reduce((a, r) => a + r.lvl, 0) / radars.length) : null;
+  const chips = {}, li = [];
+  li.push(`<p>Обновлено: ${e(at)} (Берлин). Машинные данные: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>, MCP <a href="/mcp">/mcp</a> (get_sensors, get_roads).</p>`);
+  li.push(`<h3>Радары новостей · общий индекс риска ${avg ?? "—"} из 100</h3><ul>${radars.map((r) => `<li>${e(r.title)}: ${r.lvl}/100, за сутки ${r.lvl - r.prev >= 0 ? "+" : ""}${r.lvl - r.prev}</li>`).join("")}</ul>`);
+  chips.radars = `7 тем · среднее ${avg ?? "—"}`;
+  if (rd && rd.summary) {
+    const m = rd.summary, line = (i) => `<li>${i.kind === "jam" ? "Пробка" : "Перекрытие"} ${e(i.road)}: ${e(i.title.replace(/^A\d+\s*\|\s*/, ""))}${i.direction ? " (" + e(i.direction) + ")" : ""}${i.delay_min ? `, задержка ${i.delay_min} мин` : ""}</li>`;
+    li.push(`<h3>Автобаны вокруг Гамбурга (Autobahn GmbH)</h3><p>Пробок: ${m.jams}${m.max_delay_min ? `, самая долгая ${m.max_delay_min} мин` : ""} · перекрытий: ${m.closures} · строек: ${m.roadworks}. Эльбтоннель (A7): ${m.elbtunnel && m.elbtunnel.some((x) => x.kind === "jam") ? "пробка" : m.elbtunnel && m.elbtunnel.length ? "стройка, без пробки" : "без сообщений"}.</p><ul>${rd.jams.slice(0, 5).map(line).join("")}${rd.closures.slice(0, 5).map(line).join("")}</ul>`);
+    chips.roads = `пробок ${m.jams}${m.max_delay_min ? ` (до ${m.max_delay_min} мин)` : ""} · перекрытий ${m.closures} · строек ${m.roadworks}`;
+  }
+  if (pr && pr.entries && pr.entries.length) {
+    const x = pr.entries.slice().sort((a, b) => (a.day < b.day ? 1 : -1))[0];
+    li.push(`<h3>Наземная правда · цены Гамбурга, снятые своими глазами</h3><p>Последний ценник: ${e(x.item)} ${nf(x.price, 3)} € · ${e(x.store)}, ${e(x.district || "")}, ${e(x.day)}. Все цены: <a href="/prices">/prices</a>.</p>`);
+    chips.ground = `${e(x.item)} ${nf(x.price, 3)} € · ${e(x.store)}`;
+  }
+  if (sn) {
+    const v = sn.derivatives, b = sn.bitcoin, c = sn.ecb, i = sn.inflation, st = sn.stablecoins, r = [];
+    if (v) { r.push(`<li>Бессрочный BTC на Kraken Futures: ставка финансирования ${v.funding_relative_pct >= 0 ? "+" : ""}${nf(v.funding_relative_pct, 5)} % за период (${v.funding_relative_pct >= 0 ? "лонги платят шортам" : "шорты платят лонгам"}), открытый интерес ${nf(v.open_interest_btc)} BTC</li>`); chips.deriv = `финансирование ${v.funding_relative_pct >= 0 ? "+" : ""}${nf(v.funding_relative_pct, 5)} % · OI ${nf(v.open_interest_btc)} BTC`; }
+    if (b) { r.push(`<li>Сеть биткоина: быстрая комиссия ${b.fee_fast_sat_vb} сат/vB, в очереди ${nf(b.mempool_tx)} транзакций${b.hashrate_ehs ? `, хешрейт около ${nf(b.hashrate_ehs)} EH/s` : ""}</li>`); chips.chain = `комиссия ${b.fee_fast_sat_vb} сат/vB · в очереди ${nf(b.mempool_tx)} тр.`; }
+    if (c) { r.push(`<li>ЕЦБ: депозитная ставка ${nf(c.deposit_rate_pct.value, 2)} %, курс EUR/USD ${nf(c.eurusd.value, 4)} на ${e(c.eurusd.date)}</li>`); chips.macro = `ставка ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
+    if (i) r.push(`<li>Инфляция еврозоны (Eurostat): ${nf(i.hicp_annual_pct, 1)} % за ${e(i.period)}</li>`);
+    if (st && st.total_usd) { r.push(`<li>Стейблкоины в обращении (DefiLlama): ${nf(st.total_usd / 1e9, 1)} млрд $, за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %</li>`); chips.stables = `${nf(st.total_usd / 1e9, 1)} млрд $ · за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %`; }
+    if (r.length) li.push(`<h3>Рынок и сеть</h3><ul>${r.join("")}</ul>`);
+  }
+  li.push(`<p>ETF-потоки не подключены: бесплатного открытого источника нет. PDF и официальные тексты ЕЦБ, ФРС и Бундестага — в разделе <a href="/live">Живой эфир</a>.</p>`);
+  return { html: li.join(""), chips };
+}
 function machineHtml(radars, page, track) {
   const when = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
   let h = `<p>Обновлено: ${escH(when)} (Берлин). Машинная версия: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
@@ -3556,9 +3590,12 @@ async function handleRequest(request, env, ctx) {
         const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
         const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
         const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrToday: "kraken_humans_today", sKrTotal: "kraken_humans_total" };
+        let sm = null;
+        if (pg === "sensors") { try { sm = await sensorsMachine(env, ctx, radars); } catch (e) {} }
         let rw = new HTMLRewriter()
           .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
-          .on("#machine-feed", { element(e) { e.setInnerContent(block, { html: true }); } });
+          .on("#machine-feed", { element(e) { e.setInnerContent(sm ? sm.html : block, { html: true }); } });
+        if (sm) for (const [id, txt] of Object.entries(sm.chips)) rw = rw.on(`.sn[data-s="${id}"] .vl`, { element(e) { e.setInnerContent(txt, { html: true }); } });
         if (st && st.enabled) for (const [id, k] of Object.entries(STAT_IDS)) {
           const v = st[k] ?? (k.startsWith("kraken_humans") ? st[k.replace("humans", "clicks")] : null);
           if (typeof v === "number") rw = rw.on("#" + id, { element(e) { e.setInnerContent(nf.format(v)); } });
