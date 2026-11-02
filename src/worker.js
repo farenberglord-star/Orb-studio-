@@ -2921,6 +2921,14 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe") === "sanctions2") {
+        const out = {};
+        try { const r = await fetch("https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv", { signal: AbortSignal.timeout(25000) }); const t = await r.text();
+          const lines = t.split("\n"); out.uk = { header: lines[1], ship_rows: lines.filter((l) => /,Ship,/.test(l)).slice(0, 3) }; } catch (e) { out.uk = { error: String(e) }; }
+        try { const r = await fetch("https://ofac.treasury.gov/recent-actions", { signal: AbortSignal.timeout(15000), headers: { "User-Agent": "OrbStudio/1.0" } }); const t = await r.text();
+          const i = t.indexOf("/recent-actions/2026"); out.ofac = t.slice(Math.max(0, i - 600), i + 1800); } catch (e) { out.ofac = { error: String(e) }; }
+        return json(out, H);
+      }
       if (url.searchParams.get("probe") === "sanctions") {
         const res = {};
         for (const [k, u] of Object.entries({ ofac_sdn_csv: "https://sanctionslistservice.ofac.treasury.gov/api/PublicationPreview/exports/SDN.CSV", ofac_rss_old: "https://www.treasury.gov/resource-center/sanctions/OFAC-Enforcement/Documents/ofac.xml", ofac_recent: "https://ofac.treasury.gov/recent-actions", uk_csv: "https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv" })) {
