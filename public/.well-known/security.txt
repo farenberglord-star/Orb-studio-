@@ -1,0 +1,6 @@
+# Orb Studio — security contact (RFC 9116)
+# Please report vulnerabilities privately via GitHub, not in public issues.
+Contact: https://github.com/farenberglord-star/Orb-studio-/security/advisories/new
+Expires: 2027-11-01T00:00:00.000Z
+Preferred-Languages: ru, de, en
+Canonical: https://orbstudio.org/.well-known/security.txt
