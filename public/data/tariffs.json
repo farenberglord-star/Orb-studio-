@@ -141,7 +141,7 @@
       "source_type": "html",
       "source_url": "https://www.chase.com/personal/checking/total-checking",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "ok"
     },
     {
       "id": "us-bofa-advantage-plus",
@@ -159,7 +159,7 @@
       "source_type": "pdf",
       "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "ok"
     },
     {
       "id": "us-ally-savings",
@@ -178,7 +178,7 @@
       "source_type": "html",
       "source_url": "https://www.ally.com/bank/savings-account-rates/",
       "checked_at": "2026-11-02",
-      "status": "stale"
+      "status": "ok"
     }
   ],
   "changes": []
