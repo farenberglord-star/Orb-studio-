@@ -61,6 +61,7 @@
     "world_radio": "https://orbstudio.org/api/v1/world-radio",
     "predict": "https://orbstudio.org/api/v1/predict",
     "sensors": "https://orbstudio.org/api/v1/sensors",
+    "roads": "https://orbstudio.org/api/v1/roads",
     "tariffs": "https://orbstudio.org/api/v1/tariffs"
   },
   "auth": "none",
@@ -103,7 +104,8 @@
       "get_tariffs",
       "predict",
       "get_prediction",
-      "get_sensors"
+      "get_sensors",
+      "get_roads"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio"
   },
