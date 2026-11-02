@@ -162,6 +162,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="live"><div class="nm"><i></i>🎙 Живой эфир</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="world"><div class="nm"><i></i>🌍 Мировой эфир</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn gold" data-s="ground"><div class="nm"><i></i>📍 Наземная правда</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="roads"><div class="nm"><i></i>🛣 Автобаны вокруг Гамбурга</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn gold" data-s="predict"><div class="nm"><i></i>🎯 Люди против ИИ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="kraken"><div class="nm"><i></i>₿ Котировки Kraken</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sgrp">Рынок и сеть</div>
@@ -187,6 +188,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="live"><div class="k">Ближайший эфир</div><div class="v" id="oLive">—</div></div>
       <div class="row" data-o="world"><div class="k">Мир · главная тема</div><div class="v" id="oWorld">—</div></div>
       <div class="row" data-o="ground"><div class="k">Наземная правда · последний ценник</div><div class="v" id="oGround">—</div></div>
+      <div class="row" data-o="roads"><div class="k">Автобаны вокруг Гамбурга · Autobahn GmbH</div><div class="v" id="oRoads">—</div></div>
       <div class="row" data-o="predict"><div class="k">Прогноз дня</div><div class="v" id="oPred">—</div></div>
       <div class="row" data-o="kraken"><div class="k">Kraken · за 24 ч</div><div class="v" id="oKr">—</div></div>
       <div class="row" data-o="deriv"><div class="k">Деривативы · бессрочный BTC на Kraken</div><div class="v" id="oDeriv">—</div></div>
@@ -250,7 +252,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>36*3600e3);
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -317,7 +319,17 @@ async function loadMarket(){
   if(st&&st.total_usd){setSensor('stables',`${fmt(st.total_usd/1e9,1)} млрд $ · за неделю ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} %`,Date.parse(st.date+'T23:00:00Z'),st.total_usd,'данные на '+dd(st.date));
     $('oStab').innerHTML=`<b>${fmt(st.total_usd/1e9,1)} млрд $</b> · за неделю ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} % (DefiLlama)${stl(st)}`;}
 }
-const LOADERS={sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+async function loadRoads(){
+  const d=await fetch('/api/v1/roads').then(r=>r.json());const m=d.summary;if(!m)return;
+  const sig=[...d.jams,...d.closures].map(i=>i.id+(i.delay_min||'')).join();
+  setSensor('roads',`пробок ${m.jams}${m.max_delay_min?' (до '+m.max_delay_min+' мин)':''} · перекрытий ${m.closures} · строек ${m.roadworks}`,Date.parse(d.updated),sig);
+  const ln=i=>`<div style="margin-top:3px">${i.kind==='jam'?'🚗':'⛔'} <b>${esc(i.road)}</b> ${esc(i.title.replace(/^A\d+\s*\|\s*/,''))}${i.direction?` <span style="color:var(--dim)">· ${esc(i.direction)}</span>`:''}${i.delay_min?` · <b class="up">+${i.delay_min} мин</b>`:''}</div>`;
+  const et=m.elbtunnel||[],etJam=et.find(x=>x.kind==='jam'),etClosed=et.find(x=>x.blocked||x.kind==='closure');
+  $('oRoads').innerHTML=`<div>Эльбтоннель (A7): ${etJam?`<b class="up">пробка +${etJam.delay_min||'?'} мин</b>`:etClosed?'<b class="up">перекрытие</b>':et.length?'стройка, без пробки':'без сообщений'}</div>`+
+    d.jams.slice(0,3).map(ln).join('')+d.closures.slice(0,3).map(ln).join('')+
+    `<div style="margin-top:4px;color:var(--dim);font-size:12px">стройки: ${m.roadworks} · запланировано: ${m.planned}${d.stale?' · источник не ответил, прошлые данные':''}</div>`;
+}
+const LOADERS={roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
