@@ -328,7 +328,7 @@ async function loadMarket(){
   const nt=d.internet;
   if(nt){let RN=null;try{RN=new Intl.DisplayNames(['ru'],{type:'region'})}catch(x){}const cn=c=>{try{return RN?RN.of(c):c}catch(x){return c}};
     setSensor('internet',`сбоев: ${nt.outages_24h} стран · блокировки: ${nt.confirmed_block_countries} стран`,Date.parse(d.updated),(nt.outages||[]).map(o=>o.cc).join()+'|'+(nt.blocks||[]).map(b=>b.cc+b.confirmed).join());
-    const ou=(nt.outages||[]).slice(0,4).map(o=>`<div style="margin-top:3px">📉 <b>${esc(cn(o.cc)||o.country)}</b> · ${o.ongoing?'<b class="up">идёт сейчас</b>':'был'} · ${fmt(o.hours,1)} ч</div>`).join('');
+    const ou=(nt.outages||[]).slice(0,4).map(o=>`<div style="margin-top:3px">📉 <b>${esc(cn(o.cc)||o.country)}</b> · ${o.ongoing?'<b class="up">идёт сейчас</b>':'был'} · ${o.hours>=48?fmt(o.hours/24,0)+' дн.':fmt(o.hours,1)+' ч'}</div>`).join('');
     const bl=(nt.blocks||[]).slice(0,5).map(b=>`${esc(cn(b.cc))} ${fmt(b.confirmed)} из ${fmt(b.measurements)}`).join(' · ');
     const ap=(nt.apps_suspected||[]).slice(0,4).map(a=>`${esc(a.app)} — ${esc(cn(a.cc))} (${a.anomaly_share_pct}% аномалий)`).join(' · ');
     $('oNet').innerHTML=`<div>Сбои интернета: <b>${nt.outages_24h} стран</b> за сутки</div>${ou}`+(bl?`<div style="margin-top:6px">Подтверждённые блокировки сайтов: ${bl}</div>`:'')+(ap?`<div style="margin-top:4px;color:var(--dim);font-size:12px">Подозрения на блокировку мессенджеров: ${ap}</div>`:'')+
