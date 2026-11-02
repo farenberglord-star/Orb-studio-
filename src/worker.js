@@ -3212,7 +3212,14 @@ async function handleRequest(request, env, ctx) {
         if (pg === "music") { try { vld = musicJsonLd(await musicTracks(env, ctx, url.origin)); } catch (e) {} }
         // главная: цифры статистики сразу в HTML, без «—» до загрузки скрипта
         let st = null;
-        if (pg === "home") { try { st = await Promise.race([readStats(env, "home"), new Promise((r) => setTimeout(() => r(null), 700))]); } catch (e) {} }
+        // последние цифры из кэша (обновляются в фоне не чаще раза в 5 минут), чтобы не задерживать страницу
+        if (pg === "home") {
+          try {
+            const sk = new Request(url.origin + "/__cache/stats-home-v1"), hit = await caches.default.match(sk);
+            if (hit) st = await hit.json();
+            if (!hit || Date.now() - (st && st._at || 0) > 5 * 60e3) ctx.waitUntil(readStats(env, "home").then((v) => caches.default.put(sk, new Response(JSON.stringify({ ...v, _at: Date.now() }), { headers: { "content-type": "application/json", "Cache-Control": "max-age=86400" } }))).catch(() => {}));
+          } catch (e) {}
+        }
         const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
         const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
         const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrToday: "kraken_humans_today", sKrTotal: "kraken_humans_total" };
