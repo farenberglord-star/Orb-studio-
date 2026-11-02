@@ -28,10 +28,11 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
 .card>*{position:relative}
 /* pdf → json */
 .morph{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
-.morph .pdf{font-family:var(--mono);font-size:9.5px;line-height:1.35;color:#5d6b89;background:rgba(7,11,22,.6);border:1px solid var(--line);border-radius:10px;padding:10px;height:132px;overflow:hidden;position:relative}
-.morph .pdf::after{content:"PDF · мелкий шрифт";position:absolute;left:8px;bottom:6px;font-size:10px;letter-spacing:.12em;color:var(--hot)}
+.morph .pdf{display:flex;flex-direction:column;gap:8px;background:rgba(7,11,22,.6);border:1px solid rgba(255,93,122,.35);border-radius:10px;padding:10px;height:132px;overflow:hidden;min-width:0}
+.morph .pdf-tag{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--hot);border:1px solid rgba(255,93,122,.5);border-radius:99px;padding:2px 8px;text-transform:uppercase}
+.morph .pdf-txt{font-family:var(--mono);font-size:9.5px;line-height:1.4;color:#5d6b89;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
 .morph .arr{font-family:var(--display);color:var(--holo);font-size:22px;text-shadow:0 0 14px rgba(111,230,255,.5)}
-.morph pre{margin:0;font-family:var(--mono);font-size:10.5px;line-height:1.45;color:var(--fg);background:rgba(111,230,255,.06);border:1px solid rgba(111,230,255,.4);border-radius:10px;padding:10px;height:132px;overflow:hidden;white-space:pre}
+.morph pre{min-width:0;margin:0;font-family:var(--mono);font-size:10.5px;line-height:1.45;color:var(--fg);background:rgba(111,230,255,.06);border:1px solid rgba(111,230,255,.4);border-radius:10px;padding:10px;height:132px;overflow:hidden;white-space:pre}
 .morph pre b{color:var(--holo);font-weight:600}.morph pre i{color:var(--warm);font-style:normal}
 /* разрыв США */
 .gap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
@@ -82,7 +83,7 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
 .author .lg{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(111,230,255,.10);border:1px solid rgba(111,230,255,.45);color:var(--holo);font:700 15px var(--mono)}
 .author small{color:var(--dim)}
 .agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
-@media(max-width:520px){.morph{grid-template-columns:1fr}.morph .arr{transform:rotate(90deg);justify-self:center}.morph .pdf{height:86px}}
+@media(max-width:520px){.morph{grid-template-columns:1fr;gap:6px}.morph .arr{transform:rotate(90deg);justify-self:center;line-height:1}.morph .pdf{height:auto}.morph .pdf-txt{max-height:4.2em;font-size:10px}.morph pre{height:auto;font-size:11.5px}}
 .krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
   background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
 .krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
@@ -130,7 +131,7 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
 
   <div class="card" aria-label="Из PDF в JSON">
     <div class="morph">
-      <div class="pdf" aria-hidden="true">Entgeltinformation · Name des Kontoanbieters: ING-DiBa AG · Kontobezeichnung: Girokonto · Datum: 15.10.2026 · Hiermit informieren wir Sie über die Entgelte, die bei Nutzung der wichtigsten mit dem Zahlungskonto verbundenen Dienste anfallen … Kontoführung bei einem mtl. Geldeingang¹ von mind. 1.000 Euro oder für Kontoinhaber unter 28 Jahren monatlich 0 Euro · Sonst monatlich 4,90 Euro · Jährliche Gesamtentgelte 58,80 Euro · Ausgabe einer Debitkarte [girocard] 1,49 Euro monatlich · Fremdwährungsentgelt 2,20 % · Sollzinssatz für eingeräumte Kontoüberziehung 9,39 % p.a. …</div>
+      <div class="pdf" aria-hidden="true"><span class="pdf-tag">PDF · мелкий шрифт</span><div class="pdf-txt">Entgeltinformation · Name des Kontoanbieters: ING-DiBa AG · Kontobezeichnung: Girokonto · Datum: 15.10.2026 · Hiermit informieren wir Sie über die Entgelte, die bei Nutzung der wichtigsten mit dem Zahlungskonto verbundenen Dienste anfallen … Kontoführung bei einem mtl. Geldeingang¹ von mind. 1.000 Euro oder für Kontoinhaber unter 28 Jahren monatlich 0 Euro · Sonst monatlich 4,90 Euro · Jährliche Gesamtentgelte 58,80 Euro · Ausgabe einer Debitkarte [girocard] 1,49 Euro monatlich · Fremdwährungsentgelt 2,20 % · Sollzinssatz für eingeräumte Kontoüberziehung 9,39 % p.a. …</div></div>
       <div class="arr" aria-hidden="true">→</div>
 <pre>{
  <b>"bank"</b>: "ING",
