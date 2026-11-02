@@ -855,32 +855,35 @@ async function handleApi(url, request, env, ctx) {
     return new Response("<meta charset=utf-8><p>Готово: твои визиты и клики из этого браузера больше не считаются в статистике (на 1 год). Сделай так же на каждом своём устройстве.</p><p><a href=/>orbstudio.org</a></p>", { headers: { ...H, "Set-Cookie": "orb_owner=1; Path=/; Max-Age=31536000; Secure; SameSite=Lax" } });
   }
 
+// Честный подсчёт реферальных кликов: «человек» = обычный браузер, переход как документ И по действию пользователя
+// (Sec-Fetch-User: ?1 — браузер ставит его только при настоящем клике). Ссылки из скрытых текстовых версий страниц,
+// ответов MCP и API — это чтение роботами, а не клик по баннеру.
+function clickLabel(request, from) {
+  const who = classifyAgent(request.headers.get("user-agent"));
+  if (who) return "agent:" + who;
+  if (/^(machine-|mcp|api-|agent-card)|-api$/.test(from)) return "agent:Link in text";
+  const dest = request.headers.get("sec-fetch-dest"), user = request.headers.get("sec-fetch-user");
+  if (dest === "document" && user === "?1") return "human";
+  return dest === "document" ? "agent:Browser-like" : "agent:Unverified";
+}
   if (p === "/go/tiktok") {
     const v = (url.searchParams.get("v") || "").replace(/\D/g, "").slice(0, 22);
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
-    const who = classifyAgent(request.headers.get("user-agent"));
-    const dest = request.headers.get("sec-fetch-dest");
-    if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "tiktok", who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified")));
+    if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "tiktok", clickLabel(request, from)));
     return Response.redirect(v ? `https://www.tiktok.com/@aidavidatudio/video/${v}` : "https://www.tiktok.com/@aidavidatudio", 302);
   }
 
   if (p === "/go/starlink") {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.STARLINK_URL || "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source=share";
-    const who = classifyAgent(request.headers.get("user-agent"));
-    const dest = request.headers.get("sec-fetch-dest");
-    if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "starlink", who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified")));
+    if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "starlink", clickLabel(request, from)));
     return Response.redirect(target, 302);
   }
 
   if (p === "/go/kraken") {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.KRAKEN_URL || `https://geoquant-orb.pages.dev/go/kraken?from=${from.startsWith("studio") ? "" : "studio-"}${encodeURIComponent(from)}`;
-    // человек = обычный браузер И переход по ссылке как документ (Sec-Fetch-Dest: document);
-    // боты, которые притворяются браузером, этот заголовок обычно не присылают
-    const who = classifyAgent(request.headers.get("user-agent"));
-    const dest = request.headers.get("sec-fetch-dest");
-    const label = who ? "agent:" + who : (dest === "document" ? "human" : "agent:Unverified");
+    const label = clickLabel(request, from);
     if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "kraken", label));
     return Response.redirect(target, 302);
   }
