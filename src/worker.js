@@ -2764,6 +2764,28 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe") === "sensors") {
+        const U = {
+          kraken_futures: "https://futures.kraken.com/derivatives/api/v3/tickers/PF_XBTUSD",
+          binance_funding: "https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT",
+          mempool_fees: "https://mempool.space/api/v1/fees/recommended",
+          mempool_size: "https://mempool.space/api/mempool",
+          mempool_hashrate: "https://mempool.space/api/v1/mining/hashrate/3d",
+          ecb_deposit_rate: "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?lastNObservations=1&format=jsondata",
+          ecb_hicp: "https://data-api.ecb.europa.eu/service/data/ICP/M.U2.N.000000.4.ANR?lastNObservations=2&format=jsondata",
+          ecb_eurusd: "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?lastNObservations=2&format=jsondata",
+          farside_etf: "https://farside.co.uk/bitcoin-etf-flow-all-data/",
+          coinshares: "https://coinshares.com/us/insights/research-data/fund-flows/",
+          defillama_stables: "https://stablecoins.llama.fi/stablecoincharts/all?stablecoin=1",
+        };
+        const res = {};
+        await Promise.all(Object.entries(U).map(async ([k, u]) => {
+          try { const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org)", "Accept": "application/json, text/html;q=0.8" } });
+            const t = await r.text(); res[k] = { status: r.status, len: t.length, head: t.slice(0, k.startsWith("ecb") ? 1500 : 420) }; }
+          catch (e) { res[k] = { error: String(e).slice(0, 120) }; }
+        }));
+        return json(res, H);
+      }
       if (url.searchParams.get("probe") === "world") {
         const W = { bbc: "https://feeds.bbci.co.uk/news/world/rss.xml", dw: "https://rss.dw.com/rdf/rss-en-all", france24: "https://www.france24.com/en/rss", rfi: "https://www.rfi.fr/en/rss",
           euronews: "https://www.euronews.com/rss?level=theme&name=news", npr: "https://feeds.npr.org/1004/rss.xml", cbc: "https://www.cbc.ca/webfeed/rss/rss-world",
