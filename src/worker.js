@@ -2977,6 +2977,22 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe") === "net") {
+        const now = Math.floor(Date.now() / 1000), d1 = new Date(Date.now() - 864e5).toISOString().slice(0, 10), d0 = new Date().toISOString().slice(0, 10);
+        const U = {
+          ioda_alerts: `https://api.ioda.inetintel.cc.gatech.edu/v2/outages/alerts?from=${now - 86400}&until=${now}&entityType=country&limit=50`,
+          ioda_events: `https://api.ioda.inetintel.cc.gatech.edu/v2/outages/events?from=${now - 3 * 86400}&until=${now}&entityType=country&includeAlerts=false&format=codf&limit=50`,
+          ooni_agg: `https://api.ooni.io/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=web_connectivity`,
+          ooni_agg_org: `https://api.ooni.org/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=web_connectivity`,
+          ooni_im: `https://api.ooni.io/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=signal`,
+        };
+        const res = {};
+        await Promise.all(Object.entries(U).map(async ([k, u]) => {
+          try { const r = await fetch(u, { signal: AbortSignal.timeout(15000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org)", Accept: "application/json" } }); const t = await r.text(); res[k] = { status: r.status, len: t.length, head: t.slice(0, 1600) }; }
+          catch (e) { res[k] = { error: String(e).slice(0, 120) }; }
+        }));
+        return json(res, H);
+      }
       if (url.searchParams.get("probe") === "sanctions2") {
         const out = {};
         try { const r = await fetch("https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv", { signal: AbortSignal.timeout(25000) }); const t = await r.text();
