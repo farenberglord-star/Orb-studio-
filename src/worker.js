@@ -1707,10 +1707,15 @@ async function sensorsCompute(prev) {
       return { source: "ECB Data Portal", source_url: "https://data.ecb.europa.eu", deposit_rate_pct: ecbLast(dr), eurusd: ecbLast(fx) };
     },
     inflation: async () => {
-      const j = await sensorsFetchJson("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=EA&coicop=CP00&lastTimePeriod=1");
-      const period = Object.keys(j.dimension.time.category.index)[0], v = Object.values(j.value)[0];
-      if (typeof v !== "number") throw new Error("no value");
-      return { source: "Eurostat, HICP annual rate, euro area", source_url: "https://ec.europa.eu/eurostat/web/hicp", hicp_annual_pct: v, period };
+      // состав еврозоны меняется (с 2026 года — 21 страна), поэтому пробуем несколько кодов и берём самый свежий месяц
+      const tries = await Promise.all(["EA21", "EA20", "EA"].map(async (geo) => {
+        try { const j = await sensorsFetchJson(`https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=${geo}&coicop=CP00&lastTimePeriod=1`);
+          const period = Object.keys(j.dimension.time.category.index)[0], v = Object.values(j.value)[0];
+          return typeof v === "number" ? { geo, period, v } : null; } catch (e) { return null; }
+      }));
+      const best = tries.filter(Boolean).sort((x, y) => (x.period < y.period ? 1 : -1))[0];
+      if (!best) throw new Error("no value");
+      return { source: `Eurostat, HICP annual rate, euro area (${best.geo})`, source_url: "https://ec.europa.eu/eurostat/web/hicp", hicp_annual_pct: best.v, period: best.period, geo: best.geo };
     },
     stablecoins: async () => {
       const a = await sensorsFetchJson("https://stablecoins.llama.fi/stablecoincharts/all", 10000);
@@ -1726,11 +1731,11 @@ async function sensorsCompute(prev) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v1", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v2", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v1", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v2", 2 * 86400e3);
   const d = await sensorsCompute(prev);
-  ctx.waitUntil(sharedPut(env, "sensors-v1", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v2", d));
   return d;
 }
 
