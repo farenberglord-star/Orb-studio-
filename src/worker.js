@@ -2781,7 +2781,7 @@ async function handleLive(url, request, env, ctx) {
         const res = {};
         await Promise.all(Object.entries(U).map(async ([k, u]) => {
           try { const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org)", "Accept": "application/json, text/html;q=0.8" } });
-            const t = await r.text(); res[k] = { status: r.status, len: t.length, head: t.slice(0, k.startsWith("ecb") ? 1500 : 420) }; }
+            const t = await r.text(); res[k] = { status: r.status, len: t.length, head: t.slice(0, k.startsWith("ecb") || k === "kraken_futures" ? 6000 : 420) }; }
           catch (e) { res[k] = { error: String(e).slice(0, 120) }; }
         }));
         return json(res, H);
