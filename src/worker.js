@@ -2859,12 +2859,14 @@ async function worldCompute(env) {
       key: top.join("-"), label: top.join(" · "), stations_count: covered.length,
       voices: covered.map((id) => { const s = WORLD_STATIONS.find((x) => x.id === id), i = bySt.get(id); return { station: s.name, station_id: id, flag: s.flag, ownership: s.own, title: i.title, url: i.url, published: new Date(i.ts).toISOString() }; }),
       silent: stations.filter((s) => s.online && !covered.includes(s.id)).map((s) => s.name),
+      // какие типы СМИ пишут о теме: сколько станций каждого типа (из тех, что сейчас в эфире) её освещают
+      by_ownership: Object.fromEntries(Object.keys(WORLD_OWN).map((o) => { const on = stations.filter((s) => s.online && s.ownership === o); return [o, { covering: on.filter((s) => covered.includes(s.id)).length, online: on.length }]; }).filter(([, v]) => v.online)),
     };
   });
   return { stations, topics, all_recent: recent.map((i) => ({ station_id: i.st, title: i.title, url: i.url, ts: i.ts })) };
 }
 async function worldRadio(env, ctx, origin, q = {}) {
-  const cache = caches.default, key = new Request(origin + "/__cache/world-v1");
+  const cache = caches.default, key = new Request(origin + "/__cache/world-v2");
   let d = null;
   const hit = await cache.match(key);
   if (hit) d = await hit.json();

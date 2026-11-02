@@ -286,7 +286,9 @@ async function loadWorld(){
   const d=await fetch('/api/v1/world-radio').then(r=>r.json());
   const on=(d.stations||[]).filter(s=>s.online).length,t=(d.topics||[])[0],ed=d.editor_frames;
   setSensor('world',`${on} станций в эфире · тем: ${(d.topics||[]).length}`,Date.parse(d.updated),(d.topics||[]).map(t=>t.key+t.stations_count).join());
-  $('oWorld').innerHTML=ed&&ed.label?`${esc(ed.label.ru)} <small style="color:var(--dim)">· разбор редакции</small>`:t?`${esc(t.label)} · ${t.stations_count} станций, молчат ${t.silent.length}`:'—';
+  const OW={public:'общ.',state_funded:'гос. фин.',state_owned:'гос. комп.',state:'гос.',private:'частн.',independent:'незав.'};
+  const bo=t&&t.by_ownership?' · пишут: '+Object.entries(t.by_ownership).map(([o,v])=>(OW[o]||o)+' '+v.covering+'/'+v.online).join(', '):'';
+  $('oWorld').innerHTML=((ed&&ed.label?`${esc(ed.label.ru)} <small style="color:var(--dim)">· разбор редакции</small><br>`:'')+(t?`Тема №1: ${esc(t.label)} · ${t.stations_count} станций, молчат ${t.silent.length}<small style="color:var(--dim)">${bo}</small>`:''))||'—';
 }
 async function loadGround(){
   const d=await fetch('/api/v1/prices').then(r=>r.json());
