@@ -1803,6 +1803,34 @@ async function sensorsCompute(prev, env) {
         now_eur_mwh: cur.p, now_ct_kwh: +(cur.p / 10).toFixed(2), now_at: new Date(cur.t).toISOString(), today: stats(today), tomorrow: stats(tomorrow), tomorrow_published: !!stats(tomorrow),
         cheapest_3h: win(cheap), most_expensive_3h: win(dear), renewables: ren };
     },
+    internet: async () => {
+      // сбои интернета по странам — IODA (Georgia Tech), события за последние сутки; блокировки — OONI (измерения добровольцев), за сутки
+      const now = Math.floor(Date.now() / 1000), d1 = new Date(Date.now() - 864e5).toISOString().slice(0, 10), d0 = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+      const [ev, wc, sg, wa] = await Promise.all([
+        sensorsFetchJson(`https://api.ioda.inetintel.cc.gatech.edu/v2/outages/events?from=${now - 2 * 86400}&until=${now}&entityType=country&includeAlerts=false&format=codf&limit=200`, 15000).catch(() => null),
+        sensorsFetchJson(`https://api.ooni.io/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=web_connectivity`, 15000).catch(() => null),
+        sensorsFetchJson(`https://api.ooni.io/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=signal`, 12000).catch(() => null),
+        sensorsFetchJson(`https://api.ooni.io/api/v1/aggregation?since=${d1}&until=${d0}&axis_x=probe_cc&test_name=whatsapp`, 12000).catch(() => null)]);
+      if (!ev && !wc) throw new Error("no internet sources");
+      // IODA: сбой, который шёл в последние 24 часа; по стране — самое сильное событие
+      const byC = new Map();
+      for (const x of (ev && ev.data) || []) {
+        const end = x.start + x.duration; if (end < now - 86400) continue;
+        const cc = String(x.location || "").split("/")[1]; if (!cc) continue;
+        const o = { cc, country: x.location_name, start: new Date(x.start * 1000).toISOString(), hours: Math.round(x.duration / 360) / 10, ongoing: end >= now - 3600, score: Math.round(x.score), method: x.datasource };
+        if (!byC.has(cc) || byC.get(cc).score < o.score) byC.set(cc, o);
+      }
+      const outages = [...byC.values()].sort((a, b) => b.score - a.score);
+      const rows = (j) => ((j && j.result) || []);
+      const blocks = rows(wc).filter((r) => r.confirmed_count > 0).sort((a, b) => b.confirmed_count - a.confirmed_count)
+        .map((r) => ({ cc: r.probe_cc, confirmed: r.confirmed_count, anomalies: r.anomaly_count, measurements: r.measurement_count }));
+      const apps = (j, app) => rows(j).filter((r) => r.measurement_count >= 20 && r.anomaly_count / r.measurement_count >= 0.3)
+        .map((r) => ({ app, cc: r.probe_cc, anomaly_share_pct: Math.round((r.anomaly_count / r.measurement_count) * 100), measurements: r.measurement_count })).sort((a, b) => b.anomaly_share_pct - a.anomaly_share_pct);
+      return { source: "IODA (Georgia Tech) — internet outages; OONI — network interference measurements by volunteers", source_url: "https://ioda.inetintel.cc.gatech.edu",
+        note: "Outages: strongest IODA outage events per country active in the last 24 hours (ongoing = still active within the last hour). Blocks: OONI web tests with confirmed blocking (blockpage fingerprint) in the last 24 hours. App 'suspected' = 30%+ anomalies in Signal/WhatsApp tests (anomalies can also be network errors). Few measurements = no visibility, not 'no blocking'.",
+        outages_24h: outages.length, outages: outages.slice(0, 8), confirmed_block_countries: blocks.length, blocks: blocks.slice(0, 10),
+        apps_suspected: [...apps(sg, "Signal"), ...apps(wa, "WhatsApp")].slice(0, 8), countries_measured: rows(wc).length };
+    },
     sanctions: async () => {
       const [uk, us] = await Promise.all([sanctionsUk(env).catch(() => null), sanctionsOfac().catch(() => null)]);
       if (!uk && !us) throw new Error("no sanctions sources");
@@ -1822,11 +1850,11 @@ async function sensorsCompute(prev, env) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v6", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v7", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v6", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v7", 2 * 86400e3);
   const d = await sensorsCompute(prev, env);
-  ctx.waitUntil(sharedPut(env, "sensors-v6", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v7", d));
   return d;
 }
 
@@ -3161,7 +3189,7 @@ const MCP_TOOLS = [
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
-    description: "Current values from open sources, refreshed every 5 minutes: sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    description: "Current values from open sources, refreshed every 5 minutes: internet outages by country (IODA) and confirmed web blocking and suspected Signal/WhatsApp blocking (OONI) in the last 24 hours, sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
@@ -3472,7 +3500,7 @@ async function sensorsMachine(env, ctx, radars) {
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
-  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v6", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
+  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v7", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
