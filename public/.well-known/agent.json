@@ -59,6 +59,7 @@
     "places": "https://orbstudio.org/api/v1/places",
     "live": "https://orbstudio.org/api/v1/live",
     "world_radio": "https://orbstudio.org/api/v1/world-radio",
+    "predict": "https://orbstudio.org/api/v1/predict",
     "tariffs": "https://orbstudio.org/api/v1/tariffs"
   },
   "auth": "none",
@@ -98,7 +99,9 @@
       "get_places",
       "get_live",
       "get_world_voices",
-      "get_tariffs"
+      "get_tariffs",
+      "predict",
+      "get_prediction"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio"
   },

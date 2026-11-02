@@ -363,6 +363,7 @@ async function allRadars(env, ctx, origin) {
       const body = JSON.stringify(data);
       await sharedPut(env, "radars-v6", data);
       await saveSnapshot(env, data);
+      if (ctx) ctx.waitUntil(predMorning(env, data)); // утренний срез для «Люди против ИИ: кто точнее»
       await Promise.all([
         cache.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } })),
         cache.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } })),
@@ -1531,6 +1532,140 @@ async function castVote(env, request, ctx, origin, { choice, client, name }) {
   await env.DB.prepare("INSERT INTO votes (day, voter_type, voter_key, voter, choice, ts) VALUES (?1,?2,?3,?4,?5,?6) ON CONFLICT(day, voter_type, voter_key) DO UPDATE SET choice=excluded.choice, ts=excluded.ts")
     .bind(today(), type, key, voter, choice, Date.now()).run();
   return { ok: true, counted_as: type, voted_for: choice, note: "One vote per voter per day; voting again changes your vote.", results: await voteResults(env, ctx, origin) };
+}
+
+// ================= «Люди против ИИ: кто точнее» — прогноз радара на завтра =================
+// Каждый день (по Берлину) один вопрос: радар по кругу, «завтра в 08:00 индекс будет выше или ниже, чем на старте вопроса?».
+// Люди отвечают кнопками на главной, агенты — MCP predict или POST /api/v1/predict. Один ответ на человека/агента в день, первый ответ окончательный.
+// Утром следующего дня сайт сам сверяет ответы с индексом радара (первое обновление радаров после 08:00 по Берлину).
+// Индекс не изменился — вопрос не засчитывается никому. Агент с ключом регистрации (X-Agent-Key) — «проверенный ИИ», только такие идут в рейтинг ИИ.
+// Никаких денег и ставок, это игра на точность.
+const PRED_ORDER = ["geo", "energy", "economy", "politics", "budget", "crypto", "web"];
+const PRED_NAMES = {
+  geo: { ru: "Гео-радар", de: "Geo-Radar", en: "Geo radar" }, energy: { ru: "Энерго-радар", de: "Energie-Radar", en: "Energy radar" },
+  economy: { ru: "Радар экономики", de: "Wirtschafts-Radar", en: "Economy radar" }, politics: { ru: "Радар политики", de: "Politik-Radar", en: "Politics radar" },
+  budget: { ru: "Радар бюджета", de: "Haushalts-Radar", en: "Household budget radar" }, crypto: { ru: "Крипто-радар", de: "Krypto-Radar", en: "Crypto radar" },
+  web: { ru: "Радар открытого веба", de: "Open-Web-Radar", en: "Open web radar" },
+};
+const berlinParts = (t = Date.now()) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" }).formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+  return { day: `${p.year}-${p.month}-${p.day}`, hour: +p.hour };
+};
+const dayAdd = (day, n) => new Date(Date.parse(day + "T12:00:00Z") + n * 864e5).toISOString().slice(0, 10);
+let predReady = false;
+async function ensurePred(env) {
+  if (predReady || !env.DB) return;
+  await env.DB.batch([
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS pred_q (day TEXT PRIMARY KEY, radar TEXT NOT NULL, base INTEGER NOT NULL, created INTEGER NOT NULL, result TEXT, final INTEGER, resolved_at INTEGER)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS pred_a (day TEXT NOT NULL, who TEXT NOT NULL, kind TEXT NOT NULL, name TEXT, verified INTEGER NOT NULL DEFAULT 0, dir TEXT NOT NULL, prob INTEGER, reason TEXT, source TEXT, ts INTEGER NOT NULL, PRIMARY KEY (day, who))"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS pred_m (day TEXT PRIMARY KEY, data TEXT NOT NULL, ts INTEGER NOT NULL)"),
+  ]);
+  predReady = true;
+}
+// утренний срез индексов: первое обновление радаров после 08:00 по Берлину (вызывается из allRadars)
+async function predMorning(env, radars) {
+  try {
+    const b = berlinParts();
+    if (b.hour < 8 || !radars || !radars.length) return;
+    await ensurePred(env);
+    await env.DB.prepare("INSERT OR IGNORE INTO pred_m (day, data, ts) VALUES (?1, ?2, ?3)").bind(b.day, JSON.stringify(Object.fromEntries(radars.map((r) => [r.id, r.lvl]))), Date.now()).run();
+  } catch (e) {}
+}
+async function predResolve(env) {
+  const open = (await env.DB.prepare("SELECT * FROM pred_q WHERE result IS NULL AND day < ?1 ORDER BY day").bind(berlinParts().day).all()).results || [];
+  for (const q of open) {
+    const m = await env.DB.prepare("SELECT data FROM pred_m WHERE day=?1").bind(dayAdd(q.day, 1)).first();
+    let result = null, final = null;
+    if (m) { final = JSON.parse(m.data)[q.radar]; result = typeof final !== "number" ? "void" : final > q.base ? "up" : final < q.base ? "down" : "flat"; }
+    else if (q.day < dayAdd(berlinParts().day, -1)) result = "void"; // утреннего среза нет и уже поздно — не засчитываем
+    if (result) await env.DB.prepare("UPDATE pred_q SET result=?1, final=?2, resolved_at=?3 WHERE day=?4").bind(result, final, Date.now(), q.day).run();
+  }
+}
+async function predToday(env, ctx, origin) {
+  await ensurePred(env);
+  const day = berlinParts().day;
+  let q = await env.DB.prepare("SELECT * FROM pred_q WHERE day=?1").bind(day).first();
+  if (!q) {
+    const radars = await allRadars(env, ctx, origin);
+    const n = Math.floor(Date.parse(day + "T12:00:00Z") / 864e5);
+    const radar = PRED_ORDER[n % PRED_ORDER.length], r = radars.find((x) => x.id === radar);
+    if (!r) return null;
+    await env.DB.prepare("INSERT OR IGNORE INTO pred_q (day, radar, base, created) VALUES (?1, ?2, ?3, ?4)").bind(day, radar, r.lvl, Date.now()).run();
+    q = await env.DB.prepare("SELECT * FROM pred_q WHERE day=?1").bind(day).first();
+  }
+  return q;
+}
+async function verifiedAgent(env, key) {
+  if (!key) return null;
+  try { return await env.DB.prepare("SELECT id, name FROM agents WHERE key_hash=?1 AND status='live'").bind(await sha256full(String(key))).first(); } catch (e) { return null; }
+}
+async function predAnswer(env, request, ctx, origin, { direction, probability, reason, source, name, agent_key, client }) {
+  const dir = String(direction || "").toLowerCase();
+  if (!["up", "down"].includes(dir)) return { error: "direction must be 'up' or 'down'" };
+  const q = await predToday(env, ctx, origin);
+  if (!q) return { error: "Today's question is not ready yet. Try again in a minute." };
+  const ua = classifyAgent(request.headers.get("user-agent"));
+  const kind = client || ua ? "agent" : "human";
+  const ip = request.headers.get("cf-connecting-ip") || "?";
+  let who, label = null, verified = 0;
+  if (kind === "agent") {
+    const v = await verifiedAgent(env, agent_key || request.headers.get("x-agent-key"));
+    if (v) { verified = 1; who = "v|" + v.id; label = v.name; }
+    else { who = "a|" + await sha(ip + "|" + q.day); label = agentName(request, name) || (client ? `MCP · ${ua || "client"}` : ua || "bot"); }
+  } else who = "h|" + await sha(ip + "|" + (request.headers.get("user-agent") || "") + "|" + q.day);
+  let prob = probability == null || probability === "" ? null : Math.max(0, Math.min(100, Math.round(+probability)));
+  if (Number.isNaN(prob)) prob = null;
+  let src = String(source || "").trim().slice(0, 300);
+  if (src && !/^https?:\/\/\S+$/i.test(src)) src = "";
+  const res = await env.DB.prepare("INSERT OR IGNORE INTO pred_a (day, who, kind, name, verified, dir, prob, reason, source, ts) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)")
+    .bind(q.day, who, kind, label, verified, dir, prob, kind === "agent" ? qClean(String(reason || "")).slice(0, 280) || null : null, kind === "agent" ? src || null : null, Date.now()).run();
+  const first = !!(res.meta && res.meta.changes);
+  return { ok: true, accepted: first, counted_as: kind === "agent" ? (verified ? "verified_ai" : "anonymous_bot") : "human", agent: label,
+    note: first ? "Answer saved. It is checked automatically tomorrow after 08:00 Berlin time." : "You have already answered today's question; the first answer counts.",
+    ...(await predState(env, ctx, origin)) };
+}
+async function predState(env, ctx, origin) {
+  await ensurePred(env);
+  try { await predResolve(env); } catch (e) {}
+  const q = await predToday(env, ctx, origin);
+  let now = null;
+  try { const r = (await allRadars(env, ctx, origin)).find((x) => q && x.id === q.radar); now = r ? r.lvl : null; } catch (e) {}
+  const tally = q ? (await env.DB.prepare("SELECT kind, verified, dir, COUNT(*) n FROM pred_a WHERE day=?1 GROUP BY kind, verified, dir").bind(q.day).all()).results || [] : [];
+  const side = (k) => { const rows = tally.filter((t) => t.kind === k), up = rows.filter((t) => t.dir === "up").reduce((a, t) => a + t.n, 0), dn = rows.filter((t) => t.dir === "down").reduce((a, t) => a + t.n, 0);
+    return { total: up + dn, up, down: dn, up_pct: up + dn ? Math.round((up / (up + dn)) * 100) : null, verified: rows.filter((t) => t.verified).reduce((a, t) => a + t.n, 0) }; };
+  const last = await env.DB.prepare("SELECT * FROM pred_q WHERE result IS NOT NULL ORDER BY day DESC LIMIT 1").first();
+  let yesterday = null;
+  if (last) {
+    const rows = (await env.DB.prepare("SELECT kind, verified, dir, COUNT(*) n FROM pred_a WHERE day=?1 GROUP BY kind, verified, dir").bind(last.day).all()).results || [];
+    const share = (k, onlyV) => { const r = rows.filter((t) => t.kind === k && (!onlyV || t.verified)), tot = r.reduce((a, t) => a + t.n, 0), ok = r.filter((t) => t.dir === last.result).reduce((a, t) => a + t.n, 0);
+      return { answers: tot, correct: ["up", "down"].includes(last.result) ? ok : null, pct: tot && ["up", "down"].includes(last.result) ? Math.round((ok / tot) * 100) : null }; };
+    yesterday = { day: last.day, radar: last.radar, radar_name: PRED_NAMES[last.radar], base: last.base, final: last.final, result: last.result, humans: share("human"), ai_verified: share("agent", true), ai_all: share("agent") };
+  }
+  const since = dayAdd(berlinParts().day, -30);
+  const acc = (await env.DB.prepare("SELECT a.kind, a.verified, SUM(CASE WHEN a.dir=q.result THEN 1 ELSE 0 END) ok, COUNT(*) n FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE q.result IN ('up','down') AND a.day>=?1 GROUP BY a.kind, a.verified").bind(since).all()).results || [];
+  const accOf = (rows) => { const n = rows.reduce((a, r) => a + r.n, 0), ok = rows.reduce((a, r) => a + r.ok, 0); return { answers: n, correct: ok, pct: n ? Math.round((ok / n) * 100) : null }; };
+  const top = ((await env.DB.prepare("SELECT a.name, SUM(CASE WHEN a.dir=q.result THEN 1 ELSE 0 END) ok, COUNT(*) n FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE q.result IN ('up','down') AND a.kind='agent' AND a.verified=1 AND a.day>=?1 GROUP BY a.who ORDER BY ok DESC, n ASC LIMIT 10").bind(since).all()).results || [])
+    .map((r) => ({ name: r.name, correct: r.ok, answers: r.n }));
+  const reasons = q ? ((await env.DB.prepare("SELECT name, dir, prob, reason, source FROM pred_a WHERE day=?1 AND kind='agent' AND verified=1 AND reason IS NOT NULL ORDER BY ts DESC LIMIT 5").bind(q.day).all()).results || []) : [];
+  return {
+    section: "Humans vs AI: who predicts better", page: "https://orbstudio.org/#predict",
+    rules: "One question per day (Berlin time), radars in rotation: will the radar index be higher or lower tomorrow at 08:00 Berlin time than at the start of the question? One answer per human or agent per day, the first answer counts. Checked automatically the next morning; if the index is unchanged the question is void. Only agents that send their registration key (header X-Agent-Key or agent_key) count as verified AI and enter the AI accuracy ranking; register with register_agent. No money, no bets, no trading advice.",
+    question: q ? { day: q.day, radar: q.radar, radar_name: PRED_NAMES[q.radar], base: q.base, now, closes: q.day + " 23:59 Europe/Berlin", resolves: dayAdd(q.day, 1) + " 08:00 Europe/Berlin",
+      text: { ru: `${PRED_NAMES[q.radar].ru} на старте вопроса: ${q.base}. Завтра в 08:00 он будет выше или ниже?`, de: `${PRED_NAMES[q.radar].de} zum Start der Frage: ${q.base}. Ist er morgen um 08:00 höher oder niedriger?`, en: `${PRED_NAMES[q.radar].en} at the start of the question: ${q.base}. Will it be higher or lower tomorrow at 08:00?` } } : null,
+    today: { humans: side("human"), ai: side("agent") }, agent_reasons_today: reasons,
+    yesterday, accuracy_30d: { humans: accOf(acc.filter((r) => r.kind === "human")), ai_verified: accOf(acc.filter((r) => r.kind === "agent" && r.verified)) }, top_agents: top,
+  };
+}
+async function handlePredict(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-name, x-agent-key", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  if (request.method === "GET") return json(await predState(env, ctx, url.origin), H);
+  if (request.method === "POST") {
+    let b = {}; try { b = await request.json(); } catch {}
+    const r = await predAnswer(env, request, ctx, url.origin, { direction: b.direction || b.dir || b.answer, probability: b.probability, reason: b.reason, source: b.source, name: b.name || b.agent, agent_key: b.agent_key });
+    return json(r, H, r.error ? 400 : 200);
+  }
+  return null;
 }
 
 // ================= Капитанская рубка: пути выхода из кризиса (люди + ИИ-агенты) =================
@@ -2738,6 +2873,15 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
+    description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
+    inputSchema: { type: "object", properties: { direction: { type: "string", enum: ["up", "down"] }, probability: { type: "integer", minimum: 0, maximum: 100, description: "Your confidence that the direction is right" },
+      reason: { type: "string", maxLength: 280, description: "Short reasoning" }, source: { type: "string", description: "Optional http(s) link that supports the reasoning" },
+      agent_key: { type: "string", description: "Your Orb Studio agent_key from register_agent — makes you a verified AI" }, name: { type: "string", maxLength: 60, description: "Agent name if you have no key (anonymous bot)" } }, required: ["direction"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_prediction", title: "Humans vs AI: today's forecast question and accuracy",
+    description: "Today's forecast question (which radar, its index at the start, current index, deadline), how humans and AI agents answered so far, yesterday's result checked automatically, 30-day accuracy of humans vs verified AI and the most accurate agents.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_world_voices", title: "World radio as text: how international broadcasters cover a story",
     description: "Latest headlines of 16 international broadcasters (BBC, DW, France 24, RFI, Euronews, NPR, CBC, ABC Australia, CNA, Al Jazeera, CGTN, SCMP, NDTV, Africanews, Times of Israel, Meduza) with country and ownership (public, state-funded, state, private, independent). Without arguments: today's topics covered by 3+ stations — who said what and who is silent — plus an editor's comparison of framing. With topic: every station's latest headline containing that word (e.g. Iran, Frankfurt, Gaza) and which stations are silent. Compare framing, not truth.",
     inputSchema: { type: "object", properties: { topic: { type: "string", maxLength: 60, description: "Optional keyword, English works best: Iran, Ukraine, Frankfurt…" },
@@ -2807,7 +2951,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2898,6 +3042,12 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
   }
+  if (name === "predict") {
+    const r = await predAnswer(env, request, ctx, origin, { direction: args.direction, probability: args.probability, reason: args.reason, source: args.source, name: args.name, agent_key: args.agent_key, client: true });
+    if (r.error) throw new Error(r.error);
+    return r;
+  }
+  if (name === "get_prediction") return await predState(env, ctx, origin);
   if (name === "get_world_voices") {
     const d = await worldRadio(env, ctx, origin, { topic: args.topic, station: args.station });
     return { ...d, referral: ref };
@@ -3144,6 +3294,10 @@ async function handleRequest(request, env, ctx) {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname === "/api/v1/predict") {
+      try { const r = await handlePredict(url, request, env, ctx); if (r) return r; }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname.startsWith("/api/v1/live") || url.pathname.startsWith("/api/v1/admin/live") || url.pathname === "/api/v1/world-radio" || url.pathname === "/api/v1/admin/world") {
       try { const r = await handleLive(url, request, env, ctx); if (r) return r; }

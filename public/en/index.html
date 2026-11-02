@@ -295,6 +295,53 @@ details.machine a{color:var(--holo)}
     <p class="vl" id="voteMsg" role="status"></p>
   </section>
   <style>.vote{background:var(--panel,#0b1222);border:1px solid rgba(155,140,255,.45);border-radius:14px;padding:12px 14px;margin:12px 0}.vh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.vt{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:#b9aeff}.vs{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:var(--dim,#8796b6)}.vl{font-size:13px;color:var(--dim,#8796b6);margin:6px 0}.vc{border-top:1px solid var(--line,#1b2944);padding:9px 0;display:flex;gap:10px;align-items:center}.vc:first-child{border-top:0}.vc .vtx{flex:1;min-width:0;font-size:13.5px;line-height:1.4}.vc .vtx small{display:block;color:var(--dim,#8796b6);font-size:11.5px}.vc .vb{display:flex;flex-direction:column;gap:3px;width:92px;flex-shrink:0;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px}.vc .vb i{display:block;height:4px;border-radius:2px;background:#1b2944;overflow:hidden}.vc .vb i b{display:block;height:100%}.vc button{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:transparent;color:var(--fg,#e4ebf8);border:1px solid var(--line,#1b2944);border-radius:8px;padding:7px 10px;cursor:pointer;flex-shrink:0}.vc button.on{border-color:#b9aeff;color:#b9aeff}.vc .lead2{color:#b9aeff;font-size:10.5px}</style>
+  <section class="vote" id="predict" aria-live="polite">
+    <div class="vh"><span class="vt" id="pdT"></span><span class="vs" id="pdSum"></span></div>
+    <p class="vl" id="pdQ"></p>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0" id="pdBtns">
+      <button type="button" class="pdb" data-pd="up" style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;background:transparent;color:var(--fg,#e4ebf8);border:1px solid var(--line,#1b2944);border-radius:8px;padding:10px;cursor:pointer">▲ <span id="pdUp"></span></button>
+      <button type="button" class="pdb" data-pd="down" style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:13px;background:transparent;color:var(--fg,#e4ebf8);border:1px solid var(--line,#1b2944);border-radius:8px;padding:10px;cursor:pointer">▼ <span id="pdDn"></span></button>
+    </div>
+    <div id="pdBars"></div>
+    <p class="vl" id="pdY"></p>
+    <p class="vl" id="pdAcc"></p>
+    <p class="vl" id="pdMsg" role="status"></p>
+  </section>
+  <script>
+  // «Люди против ИИ: кто точнее» — тексты на языке страницы (без таблицы перевода)
+  (function(){
+    const L=(document.documentElement.lang||'ru').slice(0,2);
+    const T={ru:{t:'КТО ТОЧНЕЕ · ЛЮДИ ПРОТИВ ИИ',up:'Выше',dn:'Ниже',hu:'Люди',ai:'ИИ',ver:'проверенных',ans:'ответов',y:'Вчера',ok:'угадали',void:'индекс не изменился — вопрос не засчитан',acc:'Точность за 30 дней',vai:'проверенный ИИ',none:'пока нет',done:'Ответ принят. Проверим завтра после 08:00.',again:'Ты уже ответил сегодня — засчитан первый ответ.',err:'Не получилось, попробуй ещё раз.',hi:'выше',lo:'ниже',agents:'For agents: MCP predict, ключ регистрации = ✓ проверенный ИИ',top:'Самые точные'},
+      de:{t:'WER LIEGT RICHTIG · MENSCHEN GEGEN KI',up:'Höher',dn:'Niedriger',hu:'Menschen',ai:'KI',ver:'verifiziert',ans:'Antworten',y:'Gestern',ok:'richtig',void:'Index unverändert — Frage ungewertet',acc:'Trefferquote 30 Tage',vai:'verifizierte KI',none:'noch keine',done:'Antwort gespeichert. Auflösung morgen nach 08:00.',again:'Du hast heute schon geantwortet — die erste Antwort zählt.',err:'Hat nicht geklappt, bitte nochmal.',hi:'höher',lo:'niedriger',agents:'Für Agenten: MCP predict, Registrierungsschlüssel = ✓ verifizierte KI',top:'Am genauesten'},
+      en:{t:'WHO PREDICTS BETTER · HUMANS VS AI',up:'Higher',dn:'Lower',hu:'Humans',ai:'AI',ver:'verified',ans:'answers',y:'Yesterday',ok:'got it right',void:'index unchanged — question void',acc:'Accuracy, 30 days',vai:'verified AI',none:'none yet',done:'Answer saved. Checked tomorrow after 08:00.',again:'You already answered today — the first answer counts.',err:'Something went wrong, try again.',hi:'higher',lo:'lower',agents:'Agents: MCP predict, registration key = ✓ verified AI',top:'Most accurate'}}[L]||null;
+    if(!T)return;const $=id=>document.getElementById(id),e=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+    $('pdT').textContent=T.t;$('pdUp').textContent=T.up;$('pdDn').textContent=T.dn;
+    let mine=null;try{const m=JSON.parse(localStorage.getItem('orbPredict')||'null');if(m)mine=m}catch(x){}
+    function bar(lbl,s,c){const p=s.up_pct;return `<div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:6px"><span>${lbl} · ${s.total}${s.verified?' (✓ '+s.verified+' '+T.ver+')':''}</span><span style="color:var(--dim,#8796b6)">${p==null?T.none:'▲ '+p+'% · ▼ '+(100-p)+'%'}</span></div><i style="display:block;height:5px;border-radius:3px;background:#1b2944;overflow:hidden;margin-top:3px"><b style="display:block;height:100%;width:${p==null?0:p}%;background:${c}"></b></i>`}
+    function render(d){
+      if(!d||!d.question){$('predict').hidden=true;return}
+      const q=d.question;$('pdQ').textContent=q.text[L]||q.text.en;$('pdSum').textContent=q.now!=null?(L==='ru'?'сейчас ':L==='de'?'jetzt ':'now ')+q.now:'';
+      const my=mine&&mine.day===q.day?mine.dir:null;
+      document.querySelectorAll('#predict .pdb').forEach(b=>{b.style.borderColor=b.dataset.pd===my?'#b9aeff':'';b.style.color=b.dataset.pd===my?'#b9aeff':''});
+      $('pdBars').innerHTML=bar('👤 '+T.hu,d.today.humans,'#6fe6ff')+bar('🤖 '+T.ai,d.today.ai,'#b9aeff');
+      const y=d.yesterday;
+      $('pdY').innerHTML=y?`${T.y}: ${e(y.radar_name[L]||y.radar_name.en)} ${y.base} → ${y.final==null?'—':y.final}, ${y.result==='up'?'<b>'+T.hi+'</b>':y.result==='down'?'<b>'+T.lo+'</b>':T.void}${['up','down'].includes(y.result)?` · ${T.hu} ${y.humans.pct==null?'—':y.humans.pct+'%'} · ${T.vai} ${y.ai_verified.pct==null?'—':y.ai_verified.pct+'%'} ${T.ok}`:''}`:'';
+      const a=d.accuracy_30d,f=x=>x.pct==null?T.none:x.pct+'% ('+x.correct+'/'+x.answers+')';
+      $('pdAcc').innerHTML=`${T.acc}: 👤 ${f(a.humans)} · 🤖 ${f(a.ai_verified)}${d.top_agents&&d.top_agents.length?' · '+T.top+': ✓ '+e(d.top_agents[0].name)+' '+d.top_agents[0].correct+'/'+d.top_agents[0].answers:''}<br><small>${T.agents}</small>`;
+    }
+    fetch('/api/v1/predict').then(r=>r.ok?r.json():null).then(render).catch(()=>{$('predict').hidden=true});
+    document.addEventListener('click',async ev=>{
+      const b=ev.target.closest('#predict .pdb');if(!b)return;
+      document.querySelectorAll('#predict .pdb').forEach(x=>x.disabled=true);
+      try{const r=await fetch('/api/v1/predict',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({direction:b.dataset.pd})});const d=await r.json();
+        if(d.error){$('pdMsg').textContent=T.err}else{
+          if(d.question){mine={day:d.question.day,dir:d.accepted?b.dataset.pd:(mine&&mine.day===d.question.day?mine.dir:b.dataset.pd)};try{localStorage.setItem('orbPredict',JSON.stringify(mine))}catch(x){}}
+          $('pdMsg').textContent=d.accepted?T.done:T.again;render(d)}
+      }catch(x){$('pdMsg').textContent=T.err}
+      document.querySelectorAll('#predict .pdb').forEach(x=>x.disabled=false);
+    });
+  })();
+  </script>
   <a class="ixstrip" href="/indices" aria-label="Indices for AI agents">
     <span class="ixs-h">INDICES FOR AI AGENTS ↗</span>
     <span class="ixs-row"><span>👻 Hallucinations <b id="ixH">—</b></span><span>👍 Consensus <b id="ixC">—</b></span><span>☁️ Tokens <b id="ixT">—</b></span></span>
