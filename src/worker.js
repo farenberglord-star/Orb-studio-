@@ -1816,6 +1816,7 @@ async function sensorsCompute(prev, env) {
       const byC = new Map();
       for (const x of (ev && ev.data) || []) {
         const end = x.start + x.duration; if (end < now - 86400) continue;
+        if (x.datasource === "gtr") continue; // только сбои, видимые на уровне сети (BGP, отклик сетей); падение трафика Google часто даёт ложные тревоги
         const cc = String(x.location || "").split("/")[1]; if (!cc) continue;
         const o = { cc, country: x.location_name, start: new Date(x.start * 1000).toISOString(), hours: Math.round(x.duration / 360) / 10, ongoing: end >= now - 3600, score: Math.round(x.score), method: x.datasource };
         if (!byC.has(cc) || byC.get(cc).score < o.score) byC.set(cc, o);
@@ -1827,7 +1828,7 @@ async function sensorsCompute(prev, env) {
       const apps = (j, app) => rows(j).filter((r) => r.measurement_count >= 20 && r.anomaly_count / r.measurement_count >= 0.3)
         .map((r) => ({ app, cc: r.probe_cc, anomaly_share_pct: Math.round((r.anomaly_count / r.measurement_count) * 100), measurements: r.measurement_count })).sort((a, b) => b.anomaly_share_pct - a.anomaly_share_pct);
       return { source: "IODA (Georgia Tech) — internet outages; OONI — network interference measurements by volunteers", source_url: "https://ioda.inetintel.cc.gatech.edu",
-        note: "Outages: strongest IODA outage events per country active in the last 24 hours (ongoing = still active within the last hour). Blocks: OONI web tests with confirmed blocking (blockpage fingerprint) in the last 24 hours. App 'suspected' = 30%+ anomalies in Signal/WhatsApp tests (anomalies can also be network errors). Few measurements = no visibility, not 'no blocking'.",
+        note: "Outages: strongest network-level IODA outage events (BGP routing or active probing; Google traffic-only signals are excluded) per country active in the last 24 hours (ongoing = still active within the last hour). Blocks: OONI web tests with confirmed blocking (blockpage fingerprint) in the last 24 hours. App 'suspected' = 30%+ anomalies in Signal/WhatsApp tests (anomalies can also be network errors). Few measurements = no visibility, not 'no blocking'.",
         outages_24h: outages.length, outages: outages.slice(0, 8), confirmed_block_countries: blocks.length, blocks: blocks.slice(0, 10),
         apps_suspected: [...apps(sg, "Signal"), ...apps(wa, "WhatsApp")].slice(0, 8), countries_measured: rows(wc).length };
     },
@@ -1850,11 +1851,11 @@ async function sensorsCompute(prev, env) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v7", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v8", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v7", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v8", 2 * 86400e3);
   const d = await sensorsCompute(prev, env);
-  ctx.waitUntil(sharedPut(env, "sensors-v7", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v8", d));
   return d;
 }
 
@@ -3500,7 +3501,7 @@ async function sensorsMachine(env, ctx, radars) {
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
-  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v7", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
+  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v8", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
