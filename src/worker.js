@@ -2919,6 +2919,15 @@ async function handleLive(url, request, env, ctx) {
       const fc = await loadFeedCache(env, Object.values(LIVE_FEEDS));
       const out = {};
       for (const [k, u] of Object.entries(LIVE_FEEDS)) { const items = await fetchFeedNow(u); out[k] = { url: u, items: items.length, latest: items.slice(0, 5).map((i) => ({ title: i.title, ts: new Date(i.ts).toISOString() })) }; }
+      if (url.searchParams.get("probe") === "sanctions") {
+        const res = {};
+        for (const [k, u] of Object.entries({ ofac_sdn_csv: "https://sanctionslistservice.ofac.treasury.gov/api/PublicationPreview/exports/SDN.CSV", ofac_rss_old: "https://www.treasury.gov/resource-center/sanctions/OFAC-Enforcement/Documents/ofac.xml", ofac_recent: "https://ofac.treasury.gov/recent-actions", uk_csv: "https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv" })) {
+          try { const r = await fetch(u, { signal: AbortSignal.timeout(15000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org)" } }); const t = await r.text();
+            const vessels = (t.match(/"vessel"|,vessel,|\bShip\b/gi) || []).length; res[k] = { status: r.status, final: r.url, len: t.length, vessel_hits: vessels, head: t.slice(0, 900), tail: t.slice(-300) }; }
+          catch (e) { res[k] = { error: String(e).slice(0, 120) }; }
+        }
+        return json(res, H);
+      }
       if (url.searchParams.get("probe") === "power") {
         const res = {}, d0 = new Date().toISOString().slice(0, 10), d2 = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
         for (const [k, u] of Object.entries({ price: `https://api.energy-charts.info/price?bzn=DE-LU&start=${d0}&end=${d2}`, signal: "https://api.energy-charts.info/signal?country=de", smard: "https://www.smard.de/app/chart_data/4169/DE/index_quarterhour.json" })) {
