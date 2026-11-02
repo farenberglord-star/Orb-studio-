@@ -1708,8 +1708,13 @@ async function sensorsCompute(prev) {
     },
     inflation: async () => {
       // состав еврозоны меняется (с 2026 года — 21 страна), поэтому пробуем несколько кодов и берём самый свежий месяц
-      const tries = await Promise.all(["EA21", "EA20", "EA"].map(async (geo) => {
-        try { const j = await sensorsFetchJson(`https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=${geo}&coicop=CP00&lastTimePeriod=1`);
+      // с 2026 года Eurostat публикует HICP в новом наборе prc_hicp_minr (ECOICOP 2: coicop=TOTAL, unit=RCH_A); старый prc_hicp_manr остановился на 2025-12
+      const urls = ["https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=EA&coicop18=TOTAL&unit=RCH_A&lastTimePeriod=1",
+        "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=EA&coicop=TOTAL&unit=RCH_A&lastTimePeriod=1",
+        "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=EA&coicop=CP00&lastTimePeriod=1"];
+      const tries = await Promise.all(urls.map(async (u) => {
+        const geo = u.includes("minr") ? "EA, ECOICOP 2" : "EA";
+        try { const j = await sensorsFetchJson(u);
           const period = Object.keys(j.dimension.time.category.index)[0], v = Object.values(j.value)[0];
           return typeof v === "number" ? { geo, period, v } : null; } catch (e) { return null; }
       }));
@@ -1731,11 +1736,11 @@ async function sensorsCompute(prev) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v2", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v3", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v2", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v3", 2 * 86400e3);
   const d = await sensorsCompute(prev);
-  ctx.waitUntil(sharedPut(env, "sensors-v2", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v3", d));
   return d;
 }
 
