@@ -36,7 +36,7 @@
       "source_type": "pdf",
       "source_url": "https://www.ing.de/dokumente/entgeltinformation-girokonto/",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "de-comdirect-giro",
@@ -56,7 +56,7 @@
       "source_type": "html",
       "source_url": "https://www.comdirect.de/formulare/preis-leistungsverzeichnis",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "de-haspa-joker",
@@ -74,7 +74,7 @@
       "source_type": "html",
       "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "de-dkb-giro",
@@ -109,7 +109,7 @@
       "source_type": "html",
       "source_url": "https://www.ing.de/sparen-anlegen/sparen/tagesgeld/konditionen/",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "de-traderepublic-cash",
@@ -126,7 +126,7 @@
       "source_type": "html",
       "source_url": "https://traderepublic.com/de-de/zinsen",
       "checked_at": "2026-11-02",
-      "status": "check"
+      "status": "stale"
     },
     {
       "id": "us-chase-total",
@@ -141,7 +141,7 @@
       "source_type": "html",
       "source_url": "https://www.chase.com/personal/checking/total-checking",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "us-bofa-advantage-plus",
@@ -159,7 +159,7 @@
       "source_type": "pdf",
       "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     },
     {
       "id": "us-ally-savings",
@@ -178,7 +178,7 @@
       "source_type": "html",
       "source_url": "https://www.ally.com/bank/savings-account-rates/",
       "checked_at": "2026-11-02",
-      "status": "ok"
+      "status": "stale"
     }
   ],
   "changes": []
