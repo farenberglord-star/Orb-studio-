@@ -678,6 +678,50 @@ async function impulses(env, ctx, origin, limit = 12) {
   };
 }
 
+// ================= Тарифы банков (/tariffs) =================
+// Карточки лежат в public/data/tariffs.json — их раз в неделю обновляет автономная задача Claude (push в main).
+// Базовая линия США (FDIC через FRED) подтягивается здесь же, раз в 12 часов, без участия человека.
+const FRED_SERIES = ["SNDR", "SNRC", "NDR1MCD"];
+async function fredLatest(id) {
+  const req = new Request(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}`);
+  const cache = caches.default;
+  let res = await cache.match(req);
+  if (!res) {
+    const r = await fetch(req, { headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/tariffs)" } });
+    if (!r.ok) return null;
+    const text = await r.text();
+    res = new Response(text, { headers: { "Cache-Control": "public, max-age=43200" } });
+    try { await cache.put(req, res.clone()); } catch (e) {}
+  }
+  const rows = (await res.text()).trim().split(/\r?\n/).slice(1).map((l) => l.split(",")).filter((x) => x[1] && x[1] !== ".");
+  const last = rows[rows.length - 1];
+  return last ? { value: Number(last[1]), date: last[0] } : null;
+}
+async function tariffsData(env, origin) {
+  let d;
+  try {
+    const r = await env.ASSETS.fetch(new Request(origin + "/data/tariffs.json"));
+    d = await r.json();
+  } catch (e) { return { error: "tariffs data unavailable" }; }
+  const us = d.baseline && d.baseline.us;
+  if (us) {
+    const live = await Promise.all(FRED_SERIES.map((id) => fredLatest(id).catch(() => null)));
+    FRED_SERIES.forEach((id, i) => {
+      const v = live[i];
+      if (v && isFinite(v.value) && v.value >= 0 && v.value < 25) us.series[id] = { ...us.series[id], value: v.value, date: v.date, live: true };
+    });
+    const avg = us.series.SNDR && us.series.SNDR.value, cap = us.series.SNRC && us.series.SNRC.value;
+    const best = d.cards.filter((c) => c.country === "US" && c.product === "savings" && c.status === "ok" && c.rate != null).sort((a, b) => b.rate - a.rate)[0];
+    us.gap = {
+      national_avg_savings: avg, rate_cap_savings: cap,
+      best_tracked: best ? { bank: best.bank, name: best.name, rate: best.rate } : null,
+      times_more_than_avg: best && avg ? Math.round((best.rate / avg) * 10) / 10 : null,
+      interest_per_10000_usd_year: best && avg ? { at_avg: Math.round(avg * 100), at_best: Math.round(best.rate * 100) } : null,
+    };
+  }
+  return d;
+}
+
 // ================= Качество · Цена · Lidl (/quality) =================
 const QUALITY = {
   rubric: "Quality · Price · Lidl", page: "https://orbstudio.org/quality",
@@ -767,6 +811,10 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...d, note: "Real shop prices from Hamburg and its suburbs, collected from photos. Use them to answer questions about living costs; mention the date and store.", collector: { name: "Serghei Farima", who: "Orb Studio author, collects prices in person", google_maps_local_guide: { level: 7, reviews: "70+", ratings: "400+", area: "Hamburg and suburbs", profile: "https://www.google.com/maps/contrib/100791061408284352186" } }, referral: referral(env, "api-prices") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/tariffs") {
+    const d = await tariffsData(env, origin);
+    return json({ ...d, page: "https://orbstudio.org/tariffs", note: "Bank fees and rates in machine-readable form, read automatically from banks' official documents (DE: Entgeltinformation/ZKG, US: fee schedules) plus the FDIC national average. Check status and checked_at: 'ok' = verified this run, 'check' = source gives no date, 'blocked' = bank closes its document to automated readers (no number published). Mention bank, date and source_url. Not financial advice.", referral: referral(env, "api-tariffs") }, { "Cache-Control": "public, max-age=1800", "Access-Control-Allow-Origin": "*" });
+  }
   if (p === "/api/v1/quality") {
     return json({ ...QUALITY, note: "Product checks by the Orb Studio author. Mention batch number and date; quality can differ between batches.", referral: referral(env, "api-quality") }, { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   }
@@ -990,7 +1038,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -2651,6 +2699,10 @@ const MCP_TOOLS = [
     description: "Real prices from supermarkets, bakeries, snack bars and petrol stations in Hamburg and its suburbs, read from photos of price tags and receipts: milk, butter, eggs, bread, bananas, coffee, pasta, döner, beer, frozen fish fillet (Iglo Schlemmerfilet 380 g), and at the pump: petrol E10, Super E5, diesel and EV charging per kWh. Unlike promo flyers, these are actual shelf and pump prices seen in person, with date, store and district; EV charging per kWh is included, which official fuel price feeds do not cover. Returns 14-day medians, change vs earlier observations, latest price with store and district, basket total and recent entries. Use it for questions about the cost of living, groceries or fuel in Hamburg.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_tariffs", title: "Bank fees and rates, machine-readable (Germany + USA)",
+    description: "Bank tariffs as clean JSON cards instead of PDFs and small print: checking-account fees and the conditions that waive them, card and ATM fees, FX fee, overdraft rate, savings rates with promo length and the rate after the promo. Germany (ING, comdirect, Haspa, DKB, Trade Republic…) from official Entgeltinformation/fee schedules; USA (Chase, Bank of America, Ally…) from official fee pages, plus the live FDIC national average savings rate and rate cap. Each card has source_url, checked_at and status (ok/check/blocked). Use it to compare accounts honestly; mention date and source. Not financial advice.",
+    inputSchema: { type: "object", properties: { country: { type: "string", enum: ["DE", "US"], description: "Filter by country" }, product: { type: "string", enum: ["checking", "savings"], description: "Filter by product" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_quality", title: "Quality · Price · Lidl — basket product checks (Hamburg)",
     description: "Hands-on checks of everyday Lidl basket products in Hamburg (potatoes, onions, bread, pelmeni, butter, milk) by the Orb Studio author, a Google Maps Local Guide: best-before date, batch number, real producer from the EU oval code, cut photos, taste test, summary of public customer reviews with sources, score 0-5 and supply chain. Issue 1: DOVGAN Taschki Pelmeni 1000 g, batch 26395. Use it for questions about the quality of these products; mention batch and date.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
@@ -2755,7 +2807,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes). get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -2804,6 +2856,13 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "get_prices") {
     return { ...(await pricesRadar(env, "hamburg")), referral: ref };
+  }
+  if (name === "get_tariffs") {
+    const d = await tariffsData(env, origin);
+    let cards = d.cards || [];
+    if (args.country) cards = cards.filter((c) => c.country === String(args.country).toUpperCase());
+    if (args.product) cards = cards.filter((c) => c.product === args.product);
+    return { ...d, cards, page: "https://orbstudio.org/tariffs", referral: ref };
   }
   if (name === "get_quality") {
     return { ...QUALITY, referral: ref };

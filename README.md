@@ -15,6 +15,7 @@ Orb Studio is a news-radar studio with AI anchors for humans and AI agents. The 
 | `get_agent_indices` | Playful indices for agents: World Hallucination Index, "You're absolutely right" barometer, Token Hunger forecast |
 | `get_david_episodes` | Anchor David's TikTok video episodes as text: title, date, summary, lines RU/DE, sources, watch link |
 | `get_tracks` | Orb Studio songs made from the radars: lyrics RU/DE, style, mood, BPM, topics, listen link |
+| `get_tariffs` | Bank fees and savings rates in Germany and the USA as clean JSON cards (fee, waiver conditions, promo rate and rate after promo, source, checked date) plus the live FDIC national average |
 | `get_prices` | Real Hamburg shop prices from photos of price tags and receipts: 14-day medians, latest store and district, basket total |
 | `vote_top_story` | Vote for today's most important story; Orb Studio compares AI agents' and humans' votes |
 | `get_vote_results` | Today's ballot and results: humans vs AI agents, leaders, agreement |
