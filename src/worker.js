@@ -1698,7 +1698,7 @@ function csvLine(line) {
 }
 const ukDate = (s) => { const m = String(s || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : null; };
 async function sanctionsUk(env) {
-  const c = await sharedGet(env, "sanc-uk-v1", 12 * 3600e3);
+  const c = await sharedGet(env, "sanc-uk-v2", 12 * 3600e3);
   if (c) return c;
   const r = await fetch("https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.csv", { signal: AbortSignal.timeout(30000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)" } });
   if (!r.ok) throw new Error("uk " + r.status);
@@ -1712,7 +1712,8 @@ async function sanctionsUk(env) {
     const f = csvLine(l); if (!f || f[I.dt] !== "Ship") continue;
     const id = f[I.id], prim = f[I.ntype] === "Primary name";
     if (ships.has(id) && !prim) continue;
-    ships.set(id, { name: (f[I.name] || "").trim(), imo: (f[I.imo] || "").replace(/^IMO\s*/i, "").trim() || null, flag: (f[I.flag] || "").trim() || null, type: (f[I.type] || "").trim() || null,
+    const nm = (f[I.name] || "").trim(), mq = nm.match(/^IMO\s*\d+\s*\(['"](.+?)['"]\)$/); // «IMO 9243320 ('YEHOPE')» → «YEHOPE»
+    ships.set(id, { name: mq ? mq[1] : nm, imo: (f[I.imo] || "").replace(/^IMO\s*/i, "").trim() || null, flag: (f[I.flag] || "").trim() || null, type: (f[I.type] || "").trim() || null,
       regime: (f[I.regime] || "").replace(/\s*\(Sanctions\).*$/, "").replace(/^The /, "").trim(), designated: ukDate(f[I.date]) });
   }
   const all = [...ships.values()].filter((x) => x.name), now = Date.now();
@@ -1721,7 +1722,7 @@ async function sanctionsUk(env) {
   const out = { source: "UK Sanctions List (FCDO)", source_url: "https://www.gov.uk/government/publications/the-uk-sanctions-list", report_date: report,
     ships_total: all.length, added_7d: since(7), added_30d: since(30), by_regime: Object.entries(byReg).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([regime, n]) => ({ regime, ships: n })),
     latest: all.filter((x) => x.designated).sort((a, b) => (a.designated < b.designated ? 1 : -1)).slice(0, 6), checked_at: new Date().toISOString() };
-  await sharedPut(env, "sanc-uk-v1", out);
+  await sharedPut(env, "sanc-uk-v2", out);
   return out;
 }
 async function sanctionsOfac() {
@@ -1821,11 +1822,11 @@ async function sensorsCompute(prev, env) {
   return out;
 }
 async function sensorsData(env, ctx) {
-  const c = await sharedGet(env, "sensors-v5", 5 * 60e3);
+  const c = await sharedGet(env, "sensors-v6", 5 * 60e3);
   if (c) return c;
-  const prev = await sharedGet(env, "sensors-v5", 2 * 86400e3);
+  const prev = await sharedGet(env, "sensors-v6", 2 * 86400e3);
   const d = await sensorsCompute(prev, env);
-  ctx.waitUntil(sharedPut(env, "sensors-v5", d));
+  ctx.waitUntil(sharedPut(env, "sensors-v6", d));
   return d;
 }
 
@@ -3455,7 +3456,7 @@ async function sensorsMachine(env, ctx, radars) {
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
-  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v5", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
+  const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v6", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
   const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
   const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
