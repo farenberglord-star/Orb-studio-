@@ -1039,7 +1039,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -1666,6 +1666,72 @@ async function handlePredict(url, request, env, ctx) {
     return json(r, H, r.error ? 400 : 200);
   }
   return null;
+}
+
+// ================= Датчики: рынок и сеть (страница /sensors, /api/v1/sensors, MCP get_sensors) =================
+// Только открытые источники без ключей: Kraken Futures (финансирование и открытый интерес бессрочного BTC),
+// mempool.space (сеть биткоина), ЕЦБ (депозитная ставка, курс EUR/USD), Eurostat (инфляция еврозоны), DefiLlama (стейблкоины).
+// Кэш в D1 на 5 минут; если источник не ответил — его прошлое значение (до 2 суток) с пометкой stale.
+async function sensorsFetchJson(u, ms = 8000) {
+  const r = await fetch(u, { signal: AbortSignal.timeout(ms), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)", Accept: "application/json" } });
+  if (!r.ok) throw new Error(u + " " + r.status);
+  return r.json();
+}
+function ecbLast(j) {
+  const s = Object.values(j.dataSets[0].series)[0].observations;
+  const tp = j.structure.dimensions.observation.find((v) => v.id === "TIME_PERIOD").values;
+  const i = Object.keys(s).sort((a, b) => +a - +b).pop();
+  return { value: s[i][0], date: tp[+i].id };
+}
+async function sensorsCompute(prev) {
+  const out = { updated: new Date().toISOString() };
+  const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
+  const jobs = {
+    derivatives: async () => {
+      const t = (await sensorsFetchJson("https://futures.kraken.com/derivatives/api/v3/tickers/PF_XBTUSD")).ticker;
+      return { source: "Kraken Futures, BTC perpetual (PF_XBTUSD)", source_url: "https://futures.kraken.com/trade/futures/PF_XBTUSD",
+        mark_usd: t.markPrice, funding_relative_pct: t.relativeFundingRate * 100, funding_relative_next_pct: t.relativeFundingRatePrediction * 100,
+        funding_note: "Relative funding rate per funding period as reported by Kraken. Positive: long positions pay shorts.",
+        open_interest_btc: t.openInterest, open_interest_usd: Math.round(t.openInterest * t.markPrice), change_24h_pct: t.change24h, at: t.lastTime };
+    },
+    bitcoin: async () => {
+      const [f, m, h] = await Promise.all([sensorsFetchJson("https://mempool.space/api/v1/fees/recommended"), sensorsFetchJson("https://mempool.space/api/mempool"),
+        sensorsFetchJson("https://mempool.space/api/v1/mining/hashrate/3d", 9000).catch(() => null)]);
+      return { source: "mempool.space", source_url: "https://mempool.space", fee_fast_sat_vb: f.fastestFee, fee_hour_sat_vb: f.hourFee, mempool_tx: m.count,
+        mempool_vmb: +(m.vsize / 1e6).toFixed(1), hashrate_ehs: h && h.currentHashrate ? Math.round(h.currentHashrate / 1e18) : (prev && prev.bitcoin ? prev.bitcoin.hashrate_ehs : null), at: new Date().toISOString() };
+    },
+    ecb: async () => {
+      const [dr, fx] = await Promise.all([
+        sensorsFetchJson("https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?lastNObservations=1&format=jsondata"),
+        sensorsFetchJson("https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?lastNObservations=1&format=jsondata")]);
+      return { source: "ECB Data Portal", source_url: "https://data.ecb.europa.eu", deposit_rate_pct: ecbLast(dr), eurusd: ecbLast(fx) };
+    },
+    inflation: async () => {
+      const j = await sensorsFetchJson("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=EA&coicop=CP00&lastTimePeriod=1");
+      const period = Object.keys(j.dimension.time.category.index)[0], v = Object.values(j.value)[0];
+      if (typeof v !== "number") throw new Error("no value");
+      return { source: "Eurostat, HICP annual rate, euro area", source_url: "https://ec.europa.eu/eurostat/web/hicp", hicp_annual_pct: v, period };
+    },
+    stablecoins: async () => {
+      const a = await sensorsFetchJson("https://stablecoins.llama.fi/stablecoincharts/all", 10000);
+      const last = a[a.length - 1], wk = a[a.length - 8];
+      const val = (x) => (x && x.totalCirculatingUSD ? Object.values(x.totalCirculatingUSD).reduce((s, n) => s + (+n || 0), 0) : null);
+      const now = val(last), before = val(wk);
+      return { source: "DefiLlama", source_url: "https://defillama.com/stablecoins", total_usd: Math.round(now), change_7d_pct: before ? +(((now - before) / before) * 100).toFixed(2) : null, date: new Date(+last.date * 1000).toISOString().slice(0, 10) };
+    },
+  };
+  await Promise.all(Object.entries(jobs).map(async ([k, fn]) => { try { out[k] = await fn(); } catch (e) { out[k] = keep(k); } }));
+  out.etf_flows = { status: "not_connected", reason: "No free open source for daily spot ETF flows (Farside requires a browser, CoinShares moved its report)." };
+  out.pdf_and_official_texts = { status: "via_live", see: "https://orbstudio.org/api/v1/live" };
+  return out;
+}
+async function sensorsData(env, ctx) {
+  const c = await sharedGet(env, "sensors-v1", 5 * 60e3);
+  if (c) return c;
+  const prev = await sharedGet(env, "sensors-v1", 2 * 86400e3);
+  const d = await sensorsCompute(prev);
+  ctx.waitUntil(sharedPut(env, "sensors-v1", d));
+  return d;
 }
 
 // ================= Капитанская рубка: пути выхода из кризиса (люди + ИИ-агенты) =================
@@ -2895,6 +2961,9 @@ const MCP_TOOLS = [
       note: { type: "string", maxLength: 600, description: "Optional: what happened, 10–600 characters" }, link: { type: "string", description: "Optional: http(s) link to the source of the outcome" },
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
+  { name: "get_sensors", title: "Market and network sensors (open sources)",
+    description: "Current values from open sources, refreshed every 5 minutes: BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
     inputSchema: { type: "object", properties: { direction: { type: "string", enum: ["up", "down"] }, probability: { type: "integer", minimum: 0, maximum: 100, description: "Your confidence that the direction is right" },
@@ -2973,7 +3042,7 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_sensors gives open market and network data (Kraken Futures funding and open interest, Bitcoin fees and hashrate, ECB rate, EUR/USD, euro area inflation, stablecoin supply); get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
@@ -3064,6 +3133,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.note) { note = await fuNote(env, request, { id: args.id, text: args.note, link: args.link, name: args.name, client: true }); if (note.error) note = { error: note.error }; }
     return { ...v, outcome_note: note };
   }
+  if (name === "get_sensors") return { ...(await sensorsData(env, ctx)), page: "https://orbstudio.org/sensors", referral: ref };
   if (name === "predict") {
     const r = await predAnswer(env, request, ctx, origin, { direction: args.direction, probability: args.probability, reason: args.reason, source: args.source, name: args.name, agent_key: args.agent_key, client: true });
     if (r.error) throw new Error(r.error);
@@ -3235,7 +3305,7 @@ function pickLang(request) {
   if (RU_COUNTRIES.has(c)) return "ru";
   return "en";
 }
-const HTML_PAGES = { "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
+const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
 // CSP пока только в режиме отчёта: браузер ничего не блокирует, а сообщает о нарушениях на /api/v1/csp-report.
@@ -3316,6 +3386,10 @@ async function handleRequest(request, env, ctx) {
         const r = await castVote(env, request, ctx, url.origin, { choice: String(b.choice || ""), name: b.name || b.voter || b.agent || b.asked_by });
         return json(r, H, r.error ? 400 : 200);
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
+    }
+    if (url.pathname === "/api/v1/sensors") {
+      try { const d = await sensorsData(env, ctx); return json({ ...d, page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
+      catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname === "/api/v1/predict") {
       try { const r = await handlePredict(url, request, env, ctx); if (r) return r; }

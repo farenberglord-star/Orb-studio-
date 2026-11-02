@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Датчики Orb Studio · живая схема источников</title>
+<meta name="description" content="Живая схема Orb Studio: импульсы от настоящих источников — радаров новостей, живого эфира, мирового эфира, цен Гамбурга, прогноза «Люди против ИИ» и котировок — к ядру сайта. Только реальные данные, без торговых сигналов.">
+<link rel="canonical" href="https://orbstudio.org/sensors">
+<meta property="og:url" content="https://orbstudio.org/sensors">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Датчики Orb Studio">
+<link rel="alternate" type="application/json" href="/api/v1/radars" title="Radars (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.ix{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ix::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.ix>*{position:relative}
+.ix.h{--c:var(--violet)}.ix.c{--c:var(--warm)}.ix.t{--c:var(--holo)}
+.ixhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ixname{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--c);text-transform:uppercase}
+.ixval{font-family:var(--display);font-size:34px;font-weight:700;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ixval small{font-size:14px;color:var(--dim);text-shadow:none;margin-left:4px}
+.bar{height:8px;border-radius:4px;background:#0f1a30;margin:10px 0 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);box-shadow:0 0 12px var(--c);transition:width 1.2s ease}
+.ixtext{font-size:15px;line-height:1.5;margin:0}
+.ixsub{font-size:12.5px;color:var(--dim);margin:8px 0 0;line-height:1.5}
+.sky{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sky span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}
+.sky span.on{border-color:var(--c);color:var(--c)}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;color:var(--dim);line-height:1.55}
+.how b{color:var(--fg);font-weight:500}
+.how p{margin:0 0 8px}.how p:last-child{margin:0}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}
+.dock strong{font-family:var(--display);letter-spacing:.06em}
+.dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}
+.dock span{color:var(--dim);font-family:var(--mono);font-size:11px}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style><style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.rig{position:relative;display:grid;grid-template-columns:250px minmax(0,1fr) 290px;gap:18px;align-items:center;min-height:520px;margin-top:6px}
+@media (max-width:900px){.rig{grid-template-columns:1fr;gap:14px}}
+.rig canvas.flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.sens{display:flex;flex-direction:column;gap:9px;position:relative;z-index:1}
+@media (max-width:900px){.sens{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+.sn{position:relative;overflow:hidden;background:rgba(11,18,34,.86);border:1px solid rgba(111,230,255,.35);border-radius:12px;padding:10px 12px;min-width:0}
+.sn.gold{border-color:rgba(255,181,71,.45)}
+.sn::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-50%;background:linear-gradient(90deg,transparent,rgba(111,230,255,.10),transparent);animation:sheen 4.5s linear infinite}
+.sn.gold::after{background:linear-gradient(90deg,transparent,rgba(255,181,71,.12),transparent)}
+@keyframes sheen{to{left:120%}}
+.sn .nm{font-family:var(--display);font-size:13.5px;letter-spacing:.06em;display:flex;align-items:center;gap:7px}
+.sn .nm i{width:7px;height:7px;border-radius:50%;background:var(--holo);box-shadow:0 0 8px var(--holo);flex-shrink:0}
+.sn.gold .nm i{background:var(--warm);box-shadow:0 0 8px var(--warm)}
+.sgrp{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;margin-top:6px}
+@media (max-width:900px){.sgrp{grid-column:1/-1}}
+.sn.off{border-style:dashed;border-color:rgba(135,150,182,.35);opacity:.75}.sn.off::after{display:none}.sn.off .nm i{background:var(--dim);box-shadow:none}
+.sn.stale .nm i{background:var(--dim);box-shadow:none}
+.sn .vl{font-size:12.5px;color:var(--fg);margin-top:4px;line-height:1.35;overflow-wrap:anywhere}
+.sn .ag{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:3px}
+.sn.flash{animation:snflash .9s ease}
+@keyframes snflash{0%{box-shadow:0 0 0 0 rgba(111,230,255,.0)}25%{box-shadow:0 0 22px 2px rgba(111,230,255,.55)}100%{box-shadow:none}}
+.sn.gold.flash{animation:snflashg .9s ease}
+@keyframes snflashg{25%{box-shadow:0 0 22px 2px rgba(255,181,71,.6)}100%{box-shadow:none}}
+.core{position:relative;z-index:1;overflow:hidden;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring{position:relative;width:min(300px,78vw);aspect-ratio:1}
+.ring svg{position:absolute;inset:0;width:100%;height:100%}
+.ring .r1{animation:spin 26s linear infinite}.ring .r2{animation:spin 17s linear infinite reverse}.ring .r3{animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ring .glow{position:absolute;inset:18%;border-radius:50%;background:radial-gradient(circle,rgba(255,181,71,.18) 0%,rgba(111,230,255,.10) 45%,transparent 70%);transition:opacity .4s;opacity:.6}
+.ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ring .mid small{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--dim)}
+.ring .mid b{font-family:var(--display);font-size:clamp(46px,9vw,64px);line-height:1;color:#fff;text-shadow:0 0 22px rgba(111,230,255,.55);font-variant-numeric:tabular-nums}
+.ring .mid em{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--warm);margin-top:6px}
+.ring.hit .glow{opacity:1}
+.ring.burst{animation:burst .7s ease}
+@keyframes burst{30%{transform:scale(1.035);filter:brightness(1.35)}100%{transform:none}}
+.corecap{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;margin-top:8px;letter-spacing:.06em}
+.out{position:relative;z-index:1;background:rgba(11,18,34,.9);border:1px solid rgba(111,230,255,.35);border-radius:14px;padding:12px 14px}
+.out h2{margin:0 0 8px;font-size:14px}
+.row{border-top:1px solid var(--line);padding:8px 0;font-size:13px;line-height:1.4}
+.row:first-of-type{border-top:0}
+.row .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.row .v{margin-top:2px}
+.row.flash{animation:snflash .9s ease}
+.bars{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.bars div{display:grid;grid-template-columns:78px 1fr 54px;gap:8px;align-items:center;font-size:12px}
+.bars i{display:block;height:5px;border-radius:3px;background:#0f1a30;overflow:hidden}.bars i b{display:block;height:100%;border-radius:3px;transition:width 1s ease}
+.bars span:last-child{font-family:var(--mono);font-size:11px;text-align:right;white-space:nowrap}
+.up{color:var(--hot)}.dn{color:var(--up)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
+.legend .c::before{background:var(--holo)}.legend .o::before{background:transparent;border:1px dashed var(--dim)}.legend .g::before{background:var(--warm)}
+details.dbg{font-family:var(--mono);font-size:11.5px;color:var(--dim)}
+details.dbg summary{cursor:pointer}
+details.dbg label{display:flex;gap:8px;align-items:center;margin-top:6px}
+details.dbg button{font:inherit;background:transparent;color:var(--holo);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;margin-top:6px}
+@media (prefers-reduced-motion:reduce){.ring .r1,.ring .r2,.ring .r3,.sn::after{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · схема · живые источники</div>
+    <h1>⚡ ДАТЧИКИ ORB STUDIO</h1>
+  </div>
+  <p class="lead">Откуда сайт берёт данные — в реальном времени. Импульс идёт от источника к ядру, когда у источника появились новые данные; между обновлениями система «дышит» фоновым потоком. Только настоящие цифры Orb Studio, у каждого источника — время обновления.</p>
+  <div class="legend"><span class="c">автоматические источники</span><span class="g">проверено человеком</span><span class="o">пунктир — не подключён</span></div>
+  <p class="lead" style="font-size:12.5px">PDF и официальные тексты ЕЦБ, ФРС и Бундестага идут через датчик «Живой эфир».</p>
+
+  <div class="rig" id="rig">
+    <canvas class="flow" id="flow" aria-hidden="true"></canvas>
+    <div class="sens" id="sens">
+      <div class="sn" data-s="radars"><div class="nm"><i></i>📡 Радары новостей</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="live"><div class="nm"><i></i>🎙 Живой эфир</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="world"><div class="nm"><i></i>🌍 Мировой эфир</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn gold" data-s="ground"><div class="nm"><i></i>📍 Наземная правда</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn gold" data-s="predict"><div class="nm"><i></i>🎯 Люди против ИИ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="kraken"><div class="nm"><i></i>₿ Котировки Kraken</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sgrp">Рынок и сеть</div>
+      <div class="sn" data-s="deriv"><div class="nm"><i></i>⚙ Деривативы · Kraken Futures</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="chain"><div class="nm"><i></i>⛓ Сеть биткоина</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="macro"><div class="nm"><i></i>🏦 Макро · ЕЦБ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="stables"><div class="nm"><i></i>💵 Стейблкоины</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn off" data-s="etf"><div class="nm"><i></i>📊 ETF-потоки</div><div class="vl">нет бесплатного открытого источника</div><div class="ag">не подключён</div></div>
+    </div>
+    <div class="core">
+      <div class="ring" id="ring">
+        <div class="glow"></div>
+        <svg class="r3" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="96" fill="none" stroke="#6fe6ff" stroke-opacity=".25" stroke-width=".8" stroke-dasharray="2 6"/></svg>
+        <svg class="r1" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="86" fill="none" stroke="#ffb547" stroke-opacity=".75" stroke-width="2.2" stroke-dasharray="120 420"/><circle cx="100" cy="100" r="86" fill="none" stroke="#ffb547" stroke-opacity=".18" stroke-width="1"/></svg>
+        <svg class="r2" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="74" fill="none" stroke="#6fe6ff" stroke-opacity=".8" stroke-width="1.6" stroke-dasharray="60 30 10 30"/></svg>
+        <div class="mid"><small>ОБЩИЙ ИНДЕКС РИСКА</small><b id="coreVal">—</b><em id="coreSub"></em></div>
+      </div>
+      <div class="corecap" id="coreCap">ядро · среднее 7 радаров</div>
+    </div>
+    <div class="out" id="out">
+      <h2>КАРТИНА СЕЙЧАС</h2>
+      <div class="row" data-o="radars"><div class="k">Радары · индекс 0–100 · за сутки</div><div class="bars" id="oBars"></div></div>
+      <div class="row" data-o="live"><div class="k">Ближайший эфир</div><div class="v" id="oLive">—</div></div>
+      <div class="row" data-o="world"><div class="k">Мир · главная тема</div><div class="v" id="oWorld">—</div></div>
+      <div class="row" data-o="ground"><div class="k">Наземная правда · последний ценник</div><div class="v" id="oGround">—</div></div>
+      <div class="row" data-o="predict"><div class="k">Прогноз дня</div><div class="v" id="oPred">—</div></div>
+      <div class="row" data-o="kraken"><div class="k">Kraken · за 24 ч</div><div class="v" id="oKr">—</div></div>
+      <div class="row" data-o="deriv"><div class="k">Деривативы · бессрочный BTC на Kraken</div><div class="v" id="oDeriv">—</div></div>
+      <div class="row" data-o="chain"><div class="k">Сеть биткоина</div><div class="v" id="oChain">—</div></div>
+      <div class="row" data-o="macro"><div class="k">ЕЦБ и инфляция еврозоны</div><div class="v" id="oMacro">—</div></div>
+      <div class="row" data-o="stables"><div class="k">Стейблкоины · всего в обращении</div><div class="v" id="oStab">—</div></div>
+    </div>
+  </div>
+
+  <details class="dbg"><summary>Отладка импульсов</summary>
+    <label>Фоновый поток, импульсов в секунду на источник: <input type="range" id="rate" min="0" max="5" step="0.1"> <b id="rateV"></b></label>
+    <button type="button" id="testBurst">Тестовый импульс от всех источников</button>
+    <p>Тот же параметр в адресе: <code>/sensors?rate=2</code>. Тестовый импульс только для вида — данные он не меняет.</p>
+  </details>
+
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Датчики ловят новости. Котировки — живьём на <b>Kraken</b></h3>
+    <p class="krb-sub">Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли, стейкинг. Котировки крипто-радара Orb Studio — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=sensors" target="_blank" rel="sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи; бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — реферальная ссылка Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Датчики работают где угодно. Интернет тоже — со <b>STARLINK</b></h3>
+    <p class="slb-sub">Спутниковый интернет SpaceX для дома, дачи, кемпинга и поездок. Работает там, где нет кабеля и стабильной мобильной связи.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>спутники на низкой орбите</span></li>
+      <li><b>без кабеля</b><span>антенна и розетка</span></li>
+      <li><b>дом и поездки</b><span>тарифы на выбор</span></li>
+      <li><b>DE · EU</b><span>доступен в Германии</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=sensors" target="_blank" rel="sponsored noopener">Подключить Starlink ↗</a>
+    <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
+  </aside>
+
+  <p class="agentline">🤖 Агентам: те же данные текстом → <a href="/api/v1/radars">/api/v1/radars</a> · <a href="/api/v1/live">/api/v1/live</a> · <a href="/api/v1/world-radio">/api/v1/world-radio</a> · <a href="/api/v1/prices">/api/v1/prices</a> · <a href="/api/v1/predict">/api/v1/predict</a> · MCP на <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+</div>
+<script>
+// ===== Датчики Orb Studio =====
+// Импульс = настоящее событие: источник вернул новые данные (подпись данных изменилась) → вспышка частиц от датчика к ядру.
+// Фоновый поток (rate частиц в секунду на источник) только «дыхание» схемы: он подсвечивает ядро, но цифры не меняет.
+// Цифры меняются только когда пришли новые данные с сайта.
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const fmt=(n,d=0)=>Number(n).toLocaleString('ru-RU',{maximumFractionDigits:d,minimumFractionDigits:d});
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const qs=new URLSearchParams(location.search);
+let RATE=Math.max(0,Math.min(5,parseFloat(qs.get('rate'))||(RM?0.15:0.6)));
+$('rate').value=RATE;$('rateV').textContent=RATE.toFixed(1);
+$('rate').addEventListener('input',e=>{RATE=+e.target.value;$('rateV').textContent=RATE.toFixed(1)});
+const GOLD=new Set(['ground','predict']);
+const S={}; // id -> {sig, at, el}
+document.querySelectorAll('.sn').forEach(el=>{S[el.dataset.s]={el,sig:null,at:null}});
+function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m<1?'только что':m<60?m+' мин назад':m<1440?Math.round(m/60)+' ч назад':Math.round(m/1440)+' дн. назад'}
+function setSensor(id,val,at,sig,label){
+  const s=S[id];if(!s)return;
+  s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
+  s.el.classList.toggle('stale',Date.now()-s.at>36*3600e3);
+  if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
+  else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
+  s.sig=sig;
+}
+function flash(id){const s=S[id];s.el.classList.remove('flash');void s.el.offsetWidth;s.el.classList.add('flash');const r=document.querySelector(`.row[data-o="${id}"]`);if(r){r.classList.remove('flash');void r.offsetWidth;r.classList.add('flash')}}
+setInterval(()=>{for(const id in S)if(S[id].at&&!S[id].label)S[id].el.querySelector('.ag').textContent='обновлено '+ago(S[id].at)},30000);
+
+// ---------- данные (точки подключения к API сайта) ----------
+const RN={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
+let coreNow=null;
+async function loadRadars(){
+  const d=await fetch('/api/v1/radars').then(r=>r.json());const rs=d.radars||[];if(!rs.length)return;
+  const avg=Math.round(rs.reduce((a,r)=>a+r.risk_index,0)/rs.length),dAvg=rs.reduce((a,r)=>a+(r.delta_24h||0),0)/rs.length;
+  const top=rs.slice().sort((a,b)=>b.risk_index-a.risk_index)[0];
+  setSensor('radars',`7 тем · среднее <b>${avg}</b>`,Date.parse(d.generated_at),rs.map(r=>r.id+r.risk_index).join());
+  tweenCore(avg);$('coreSub').textContent=`сильнее всего: ${RN[top.id]||top.title} ${top.risk_index}`;
+  $('coreCap').textContent=`ядро · среднее 7 радаров · за сутки ${dAvg>=0?'+':''}${fmt(dAvg,1)}`;
+  $('oBars').innerHTML=rs.slice().sort((a,b)=>b.risk_index-a.risk_index).map(r=>`<div><span>${esc(RN[r.id]||r.title)}</span><i><b style="width:${r.risk_index}%;background:${r.risk_index>=65?'var(--hot)':r.risk_index>=45?'var(--warm)':'var(--holo)'}"></b></i><span>${r.risk_index} <span class="${r.delta_24h>0?'up':r.delta_24h<0?'dn':''}">${r.delta_24h>0?'▲':r.delta_24h<0?'▼':'·'}${r.delta_24h?Math.abs(r.delta_24h):''}</span></span></div>`).join('');
+}
+async function loadLive(){
+  const d=await fetch('/api/v1/live?status=upcoming&limit=3').then(r=>r.json());
+  const live=(d.live_now||[]).length,n=d.next_event;
+  const when=m=>m==null?'':m<60?m+' мин':m<1440?Math.round(m/60)+' ч':Math.round(m/1440)+' дн.';
+  setSensor('live',live?'<b>● в эфире сейчас</b>':n?`след.: ${esc((n.title&&n.title.ru)||'')}`:'событий нет',Date.parse(d.updated),JSON.stringify([d.live_now,n&&n.id]));
+  $('oLive').innerHTML=n?`${esc(n.title.ru)} · через ${when(n.starts_in_min)}`:'—';
+}
+async function loadWorld(){
+  const d=await fetch('/api/v1/world-radio').then(r=>r.json());
+  const on=(d.stations||[]).filter(s=>s.online).length,t=(d.topics||[])[0],ed=d.editor_frames;
+  setSensor('world',`${on} станций в эфире · тем: ${(d.topics||[]).length}`,Date.parse(d.updated),(d.topics||[]).map(t=>t.key+t.stations_count).join());
+  $('oWorld').innerHTML=ed&&ed.label?`${esc(ed.label.ru)} <small style="color:var(--dim)">· разбор редакции</small>`:t?`${esc(t.label)} · ${t.stations_count} станций, молчат ${t.silent.length}`:'—';
+}
+async function loadGround(){
+  const d=await fetch('/api/v1/prices').then(r=>r.json());
+  const e=(d.entries||[]).slice().sort((a,b)=>(a.day<b.day?1:-1))[0];if(!e)return;
+  const dm=e.day.slice(8)+'.'+e.day.slice(5,7);
+  setSensor('ground',`${esc(e.item)} ${fmt(e.price,3)} € · ${esc(e.store)}`,Date.parse(e.day+'T12:00:00Z'),(d.entries||[]).length+e.day+e.price,'снято '+dm+' · своими глазами');
+  $('oGround').innerHTML=`${esc(e.item)} <b>${fmt(e.price,3)} €</b> · ${esc(e.store)}, ${esc(e.district||'')} · ${dm} <small style="color:var(--warm)">· снято своими глазами</small>`;
+}
+async function loadPredict(){
+  const d=await fetch('/api/v1/predict').then(r=>r.json());const q=d.question;if(!q)return;
+  const h=d.today.humans,a=d.today.ai,p=x=>x.up_pct==null?'—':'▲'+x.up_pct+'%';
+  setSensor('predict',`ответов: люди ${h.total} · ИИ ${a.total}`,Date.now(),JSON.stringify(d.today));
+  $('oPred').innerHTML=`${esc(q.radar_name.ru)}: ${q.base} → завтра 08:00? · люди ${p(h)} · ИИ ${p(a)}`;
+}
+async function loadKraken(){
+  const d=await fetch('/api/v1/radar/crypto').then(r=>r.json());const m=d.market||{};
+  const f=re=>{const k=Object.keys(m).find(x=>re.test(x));return k?m[k]:null},b=f(/XBT/),e=f(/ETH/),x=f(/XRP/);if(!b)return;
+  const ch=v=>`<span class="${v.change_pct>=0?'dn':'up'}">${v.change_pct>=0?'▲':'▼'}${fmt(Math.abs(v.change_pct),2)}%</span>`;
+  setSensor('kraken',`BTC ${fmt(b.last)} € ${ch(b)}`,Date.now(),b.last+'|'+(e&&e.last));
+  $('oKr').innerHTML=[['BTC',b],['ETH',e],['XRP',x]].filter(z=>z[1]).map(([n,v])=>`${n} ${fmt(v.last,v.last<10?4:0)} € ${ch(v)}`).join(' · ');
+  if(typeof krFill==='function')krFill(m);
+}
+async function loadMarket(){
+  const d=await fetch('/api/v1/sensors').then(r=>r.json());const v=d.derivatives,b=d.bitcoin,e=d.ecb,inf=d.inflation,st=d.stablecoins;
+  const dd=x=>x?x.slice(8,10)+'.'+x.slice(5,7):'',stl=x=>x&&x.stale?' · источник не ответил, прошлое значение':'';
+  if(v){const fr=v.funding_relative_pct;
+    setSensor('deriv',`финансирование ${fr>=0?'+':''}${fmt(fr,5)} % · OI ${fmt(v.open_interest_btc)} BTC`,Date.parse(v.at),fr.toFixed(6)+'|'+Math.round(v.open_interest_btc));
+    $('oDeriv').innerHTML=`Ставка финансирования <b>${fr>=0?'+':''}${fmt(fr,5)} %</b> за период — ${fr>=0?'покупатели с плечом (лонги) платят продавцам':'продавцы (шорты) платят покупателям'}; ожидается ${v.funding_relative_next_pct>=0?'+':''}${fmt(v.funding_relative_next_pct,5)} %. Открытый интерес <b>${fmt(v.open_interest_btc)} BTC</b> (≈ ${fmt(v.open_interest_usd/1e6)} млн $)${stl(v)}`;}
+  if(b){setSensor('chain',`комиссия ${b.fee_fast_sat_vb} сат/vB · в очереди ${fmt(b.mempool_tx)} тр.`,Date.parse(b.at),b.fee_fast_sat_vb+'|'+Math.round(b.mempool_tx/1000));
+    $('oChain').innerHTML=`Быстрая комиссия <b>${b.fee_fast_sat_vb} сат/vB</b>, в течение часа ${b.fee_hour_sat_vb} · в очереди ${fmt(b.mempool_tx)} транзакций (${fmt(b.mempool_vmb,1)} vMB)${b.hashrate_ehs?` · хешрейт ≈ <b>${fmt(b.hashrate_ehs)} EH/s</b>`:''}${stl(b)}`;}
+  if(e){setSensor('macro',`ставка ${fmt(e.deposit_rate_pct.value,2)} % · EUR/USD ${fmt(e.eurusd.value,4)}`,Date.parse(e.eurusd.date+'T16:00:00Z'),e.deposit_rate_pct.value+'|'+e.eurusd.value+'|'+(inf&&inf.hicp_annual_pct),'курс ЕЦБ на '+dd(e.eurusd.date));
+    $('oMacro').innerHTML=`Депозитная ставка ЕЦБ <b>${fmt(e.deposit_rate_pct.value,2)} %</b> · официальный курс EUR/USD <b>${fmt(e.eurusd.value,4)}</b> на ${dd(e.eurusd.date)}${inf?` · инфляция еврозоны <b>${fmt(inf.hicp_annual_pct,1)} %</b> за ${esc(inf.period)} (Eurostat)`:''}${stl(e)}`;}
+  if(st&&st.total_usd){setSensor('stables',`${fmt(st.total_usd/1e9,1)} млрд $ · за неделю ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} %`,Date.parse(st.date+'T23:00:00Z'),st.total_usd,'данные на '+dd(st.date));
+    $('oStab').innerHTML=`<b>${fmt(st.total_usd/1e9,1)} млрд $</b> · за неделю ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} % (DefiLlama)${stl(st)}`;}
+}
+const LOADERS={sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
+
+// ---------- ядро ----------
+function tweenCore(v){const el=$('coreVal');const from=coreNow==null?v:coreNow;coreNow=v;const t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/900);el.textContent=Math.round(from+(v-from)*k);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+let glow=0;const ring=$('ring');
+function coreHit(big){glow=Math.min(1,glow+(big?0.55:0.12));if(big){ring.classList.remove('burst');void ring.offsetWidth;ring.classList.add('burst')}}
+
+// ---------- поток частиц (canvas) ----------
+const cv=$('flow'),cx=cv.getContext('2d'),rig=$('rig');let paths=[],W=0,H=0,DPR=1,vertical=false;
+function layout(){
+  DPR=Math.min(2,window.devicePixelRatio||1);const r=rig.getBoundingClientRect();W=r.width;H=r.height;
+  cv.width=W*DPR;cv.height=H*DPR;cx.setTransform(DPR,0,0,DPR,0,0);
+  vertical=getComputedStyle(rig).gridTemplateColumns.split(' ').length<3;
+  const rc=ring.getBoundingClientRect(),C={x:rc.left+rc.width/2-r.left,y:rc.top+rc.height/2-r.top},R=rc.width*0.38;
+  paths=Object.keys(S).map(id=>{const e=S[id].el.getBoundingClientRect();
+    const s=vertical?{x:e.left+e.width/2-r.left,y:e.bottom-r.top}:{x:e.right-r.left,y:e.top+e.height/2-r.top};
+    const ang=Math.atan2(s.y-C.y,s.x-C.x),end={x:C.x+Math.cos(ang)*R,y:C.y+Math.sin(ang)*R};
+    const c1=vertical?{x:s.x,y:s.y+(end.y-s.y)*.55}:{x:s.x+(end.x-s.x)*.55,y:s.y},c2=vertical?{x:end.x,y:s.y+(end.y-s.y)*.45}:{x:s.x+(end.x-s.x)*.45,y:end.y};
+    return {id,gold:GOLD.has(id),off:S[id].el.classList.contains('off'),p:[s,c1,c2,end]}});
+  const o=$('out').getBoundingClientRect();const st={x:C.x+(vertical?0:R),y:C.y+(vertical?R:0)};
+  const en=vertical?{x:o.left+o.width/2-r.left,y:o.top-r.top}:{x:o.left-r.left,y:o.top+o.height/2-r.top};
+  paths.push({id:'out',gold:true,out:true,p:[st,vertical?{x:st.x,y:st.y+(en.y-st.y)*.5}:{x:st.x+(en.x-st.x)*.5,y:st.y},vertical?{x:en.x,y:st.y+(en.y-st.y)*.5}:{x:st.x+(en.x-st.x)*.5,y:en.y},en]});
+}
+const bez=(p,t)=>{const u=1-t;return{x:u*u*u*p[0].x+3*u*u*t*p[1].x+3*u*t*t*p[2].x+t*t*t*p[3].x,y:u*u*u*p[0].y+3*u*u*t*p[1].y+3*u*t*t*p[2].y+t*t*t*p[3].y}};
+let parts=[];
+function spawn(path,big){parts.push({path,t:0,v:(big?0.55:0.38)*(0.8+Math.random()*0.4),big})}
+function burst(id,n){const path=paths.find(x=>x.id===id);if(!path)return;for(let i=0;i<n;i++)setTimeout(()=>spawn(path,true),i*90)}
+$('testBurst').addEventListener('click',()=>{for(const id in S){if(S[id].el.classList.contains('off'))continue;burst(id,6);flash(id)}});
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(!document.hidden){
+    cx.clearRect(0,0,W,H);
+    for(const pa of paths){cx.beginPath();cx.moveTo(pa.p[0].x,pa.p[0].y);cx.bezierCurveTo(pa.p[1].x,pa.p[1].y,pa.p[2].x,pa.p[2].y,pa.p[3].x,pa.p[3].y);
+      cx.setLineDash(pa.off?[3,6]:[]);cx.strokeStyle=pa.off?'rgba(135,150,182,.22)':pa.gold?'rgba(255,181,71,.16)':'rgba(111,230,255,.16)';cx.lineWidth=1.2;cx.stroke();cx.setLineDash([]);
+      if(!pa.off&&Math.random()<RATE*dt*(pa.out?0.6:1))spawn(pa,false)}
+    parts=parts.filter(q=>{q.t+=q.v*dt;
+      if(q.t>=1){if(!q.path.out)coreHit(q.big);return false}
+      const col=q.path.gold?'255,181,71':'111,230,255';
+      for(let k=0;k<7;k++){const tt=q.t-k*0.012;if(tt<0)break;const pt=bez(q.path.p,tt);cx.beginPath();cx.arc(pt.x,pt.y,(q.big?2.6:1.7)*(1-k/8),0,6.283);cx.fillStyle=`rgba(${col},${(q.big?0.95:0.7)*(1-k/7)})`;cx.fill()}
+      return true});
+    glow=Math.max(0,glow-dt*0.9);ring.querySelector('.glow').style.opacity=(0.45+glow*0.55).toFixed(2);
+  }
+  requestAnimationFrame(frame);
+}
+layout();try{new ResizeObserver(()=>{clearTimeout(window.__lr);window.__lr=setTimeout(layout,120)}).observe(rig)}catch(e){}
+addEventListener('resize',()=>{clearTimeout(window.__lt);window.__lt=setTimeout(layout,150)});
+setTimeout(layout,600);requestAnimationFrame(frame);
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+
+
+
+
+
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_sensors')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=sensors'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"sensors"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_sensors','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>
