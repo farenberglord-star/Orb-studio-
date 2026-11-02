@@ -768,7 +768,11 @@ function holoAnchor(cv,opts){
 // ---- HOME ----
 const queue=[];
 const HOME_RADARS=['budget','geo','politics','economy'];
-function buildQueue(){queue.length=0;const src=RADARS.filter(r=>HOME_RADARS.includes(r.id));(src.length?src:RADARS).forEach(r=>r.feed.slice(0,3).forEach(f=>queue.push({r,f})));queue.sort((a,b)=>b.f[3]-a.f[3]||b.f[0].localeCompare(a.f[0]));qi=0}
+// возраст заголовка: старше 12 часов — «вчера» или «N дн.» вместо одного времени; такие заголовки идут после свежих
+const AGE_W={ru:['вчера','дн.'],de:['gestern','Tg.'],en:['yesterday','d']}[(document.documentElement.lang||'ru').slice(0,2)]||['вчера','дн.'];
+function isOld(f){return f&&f[5]&&Date.now()-f[5]>12*3600e3}
+function ageLbl(f){if(!isOld(f))return f[0];const d=new Date(f[5]),n=new Date(),day=86400e3;const diff=Math.floor((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/day);return diff<=1?AGE_W[0]:diff+' '+AGE_W[1]}
+function buildQueue(){queue.length=0;const src=RADARS.filter(r=>HOME_RADARS.includes(r.id));(src.length?src:RADARS).forEach(r=>r.feed.slice(0,3).forEach(f=>queue.push({r,f})));queue.sort((a,b)=>(isOld(a.f)-isOld(b.f))||b.f[3]-a.f[3]||b.f[0].localeCompare(a.f[0]));qi=0}
 let qi=0,typing=null,talking=false;
 function templateLine(item){
   const v=item.f[3],d=item.r.lvl-item.r.prev;
@@ -787,14 +791,14 @@ const lines=(item,withFrame)=>{
 };
 function setVoice(b){
   VOICE={map:new Map((b.items||[]).map(x=>[x.headline,{ru:x.line_ru,de:x.line_de,en:x.line_en}])),greeting:b.greeting,signoff:b.signoff,kind:b.voice};
-  const t=document.getElementById('voiceTag');t.hidden=false;
+  const t=document.getElementById('voiceTag');t.hidden=b.voice!=='claude'; // метку «шаблон» посетителю не показываем
   t.textContent=b.voice==='claude'?'живой текст':'шаблон';t.style.color=b.voice==='claude'?'var(--holo2)':'var(--dim)';
 }
 function renderQueue(){
   const q=document.getElementById('queue');q.innerHTML='';
   queue.slice(0,6).forEach((it,i)=>{
     const b=document.createElement('button');b.type='button';b.className='qi'+(i===qi?' on':'');
-    b.innerHTML=`<time>${it.f[0]}</time><div><div>${esc(it.f[1])}</div><div class="src">${esc(it.f[2])} · ${ANCHORS[it.r.anchor].name}</div></div><span class="sev" style="background:${sevColor(it.f[3])}"></span>`;
+    b.innerHTML=`<time${isOld(it.f)?' style="color:var(--dim)"':''}>${ageLbl(it.f)}</time><div><div>${esc(it.f[1])}</div><div class="src">${esc(it.f[2])} · ${ANCHORS[it.r.anchor].name}</div></div><span class="sev" style="background:${sevColor(it.f[3])}"></span>`;
     b.onclick=()=>{qi=i;play()};q.appendChild(b);
   });
 }
@@ -883,7 +887,7 @@ function renderRadar(){
   const L=document.getElementById('rLvl');L.textContent=r.lvl;L.style.color=c;
   document.getElementById('rState').innerHTML=`<span style="color:${c}">${sevWord(r.lvl)}</span> · вчера ${r.prev} · ${d>=0?'+':''}${d}`;
   document.getElementById('rFac').innerHTML=r.fac.map(([n,v])=>`<div class="fac"><span>${n}</span><div class="bar"><b style="width:${v}%;background:${sevColor(v)}"></b></div><span>${v}</span></div>`).join('');
-  document.getElementById('rFeed').innerHTML=r.feed.map(f=>`<div class="it"><time>${f[0]}</time><div>${f[4]?`<a href="${esc(f[4])}" target="_blank" rel="noopener">${esc(f[1])}</a>`:esc(f[1])}<br><small>${esc(f[2])} · вес ${f[3]}</small></div></div>`).join('');
+  document.getElementById('rFeed').innerHTML=r.feed.slice().sort((a,b)=>isOld(a)-isOld(b)).map(f=>`<div class="it"><time${isOld(f)?' style="color:var(--dim)"':''}>${ageLbl(f)}</time><div>${f[4]?`<a href="${esc(f[4])}" target="_blank" rel="noopener">${esc(f[1])}</a>`:esc(f[1])}<br><small>${esc(f[2])} · вес ${f[3]}</small></div></div>`).join('');
   document.getElementById('rAnchor').innerHTML=`${a.name}<span class="mood" style="color:${c}">${sevWord(r.lvl)}</span>`;
   document.getElementById('rSay').textContent=lines({r,f:r.feed[0]});
   document.getElementById('rHud').textContent='HOLO-MAP · '+r.title.toUpperCase();

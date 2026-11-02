@@ -320,7 +320,7 @@ async function buildRadar(def, env, fc) {
   return {
     id: def.id, title: def.title, anchor: def.anchor, lead: def.lead,
     lvl, prev, fac, market,
-    feed: top8.map((i) => [hhmm(i.ts), i.title, i.source, i.weight, i.url]),
+    feed: top8.map((i) => [hhmm(i.ts), i.title, i.source, i.weight, i.url, i.ts]), // 6-е поле — время публикации (мс), для метки «вчера»
     verify,
     updated_at: new Date().toISOString(),
   };
@@ -954,7 +954,7 @@ async function handleApi(url, request, env, ctx) {
     if (!r) return json({ error: "Unknown radar", available: data.map((x) => x.id) }, {}, 404);
     return json({
       ...r, severity: severity(r.lvl),
-      feed: r.feed.map(([time, title, source, weight, link], i) => ({ time, title, source, weight, link, sources_confirming: r.verify ? r.verify[i] : null })),
+      feed: r.feed.map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, sources_confirming: r.verify ? r.verify[i] : null })),
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, `api-radar-${r.id}`),
     });
@@ -2826,7 +2826,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const limit = Math.min(30, Math.max(1, parseInt(args.limit, 10) || 10));
     return { id: r.id, title: r.title, risk_index: r.lvl, delta_24h: r.lvl - r.prev, severity: severity(r.lvl), updated_at: r.updated_at,
       market: r.market || undefined,
-      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link], i) => ({ time, title, source, weight, link, sources_confirming: r.verify ? r.verify[i] : null })),
+      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, sources_confirming: r.verify ? r.verify[i] : null })),
       page: "https://orbstudio.org/#radar", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_broadcast") {
@@ -3210,10 +3210,20 @@ async function handleRequest(request, env, ctx) {
         let vld = "";
         if (pg === "home") { try { vld = episodesJsonLd(await davidEpisodes(env, ctx, url.origin)); } catch (e) {} }
         if (pg === "music") { try { vld = musicJsonLd(await musicTracks(env, ctx, url.origin)); } catch (e) {} }
-        return new HTMLRewriter()
+        // главная: цифры статистики сразу в HTML, без «—» до загрузки скрипта
+        let st = null;
+        if (pg === "home") { try { st = await Promise.race([readStats(env, "home"), new Promise((r) => setTimeout(() => r(null), 700))]); } catch (e) {} }
+        const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
+        const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
+        const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrToday: "kraken_humans_today", sKrTotal: "kraken_humans_total" };
+        let rw = new HTMLRewriter()
           .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
-          .on("#machine-feed", { element(e) { e.setInnerContent(block, { html: true }); } })
-          .transform(asset);
+          .on("#machine-feed", { element(e) { e.setInnerContent(block, { html: true }); } });
+        if (st && st.enabled) for (const [id, k] of Object.entries(STAT_IDS)) {
+          const v = st[k] ?? (k.startsWith("kraken_humans") ? st[k.replace("humans", "clicks")] : null);
+          if (typeof v === "number") rw = rw.on("#" + id, { element(e) { e.setInnerContent(nf.format(v)); } });
+        }
+        return rw.transform(asset);
       }
     }
     if (asset.status === 404 && url.pathname === "/.well-known/agent.json") return new Response(AGENT_JSON, { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
