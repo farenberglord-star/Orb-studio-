@@ -1,185 +1,488 @@
 {
-  "schema": "orbstudio.tariffs.v1",
-  "updated_at": "2026-11-02",
-  "method": "Read automatically from banks' own official pages and fee documents (Germany: Entgeltinformation under the Payment Accounts Act ZKG, Preis- und Leistungsverzeichnis; USA: fee schedules and rate pages). US baseline from FDIC National Rates and Rate Caps via FRED. Every card carries source_url and checked_at. If a source cannot be read, the card keeps the last verified values and gets status 'stale' or 'blocked' instead of a guessed number.",
-  "disclaimer": "Information only, not financial advice. Conditions change; check with the bank before opening an account.",
-  "baseline": {
-    "us": {
-      "label": "FDIC national average (all US banks)",
-      "source": "FDIC National Rates and Rate Caps via FRED",
-      "source_url": "https://fred.stlouisfed.org/series/SNDR",
-      "series": {
-        "SNDR": { "name": "National rate: savings", "value": 0.38, "date": "2026-10-01" },
-        "SNRC": { "name": "National rate cap: savings", "value": 4.63, "date": "2026-10-01" },
-        "NDR1MCD": { "name": "National rate: 1-month CD", "value": 0.23, "date": "2026-10-01" }
-      },
-      "checked_at": "2026-11-02"
+ "schema": "orbstudio.tariffs.v1",
+ "updated_at": "2026-11-02",
+ "method": "Read automatically from banks' own official pages and fee documents (Germany: Entgeltinformation under the Payment Accounts Act ZKG, Preis- und Leistungsverzeichnis; USA: fee schedules and rate pages). US baseline from FDIC National Rates and Rate Caps via FRED. Every card carries source_url and checked_at. If a source cannot be read, the card keeps the last verified values and gets status 'stale' or 'blocked' instead of a guessed number.",
+ "disclaimer": "Information only, not financial advice. Conditions change; check with the bank before opening an account.",
+ "baseline": {
+  "us": {
+   "label": "FDIC national average (all US banks)",
+   "source": "FDIC National Rates and Rate Caps via FRED",
+   "source_url": "https://fred.stlouisfed.org/series/SNDR",
+   "series": {
+    "SNDR": {
+     "name": "National rate: savings",
+     "value": 0.38,
+     "date": "2026-10-01"
+    },
+    "SNRC": {
+     "name": "National rate cap: savings",
+     "value": 4.63,
+     "date": "2026-10-01"
+    },
+    "NDR1MCD": {
+     "name": "National rate: 1-month CD",
+     "value": 0.23,
+     "date": "2026-10-01"
     }
+   },
+   "checked_at": "2026-11-02"
+  }
+ },
+ "cards": [
+  {
+   "id": "de-ing-giro",
+   "country": "DE",
+   "bank": "ING",
+   "product": "checking",
+   "name": "Girokonto",
+   "currency": "EUR",
+   "fee_monthly": 4.9,
+   "fee_monthly_waived_if": [
+    "monthly incoming payments of at least 1,000 EUR",
+    "account holder under 28"
+   ],
+   "fee_yearly_if_not_waived": 58.8,
+   "cards": {
+    "visa_debit_monthly": 0,
+    "girocard_monthly": 1.49
+   },
+   "atm": {
+    "domestic": "0 EUR (from 50 EUR)",
+    "eurozone_visa": "0 EUR",
+    "girocard_abroad": "5 EUR per withdrawal"
+   },
+   "fx_fee_pct": 2.2,
+   "overdraft_rate": 9.39,
+   "notes": [
+    "Cash deposit at retailers (ING Bargeld): 1.5% of amount",
+    "Cash deposit at ING ATMs with girocard: 1%, min 2.50 EUR, max 7.50 EUR"
+   ],
+   "doc_date": "2026-06-01",
+   "source_type": "html",
+   "source_url": "https://www.ing.de/girokonto/konditionen/",
+   "checked_at": "2026-11-02",
+   "status": "ok"
   },
-  "cards": [
-    {
-      "id": "de-ing-giro",
-      "country": "DE",
-      "bank": "ING",
-      "product": "checking",
-      "name": "Girokonto",
-      "currency": "EUR",
-      "fee_monthly": 4.9,
-      "fee_monthly_waived_if": ["monthly incoming payments of at least 1,000 EUR", "account holder under 28"],
-      "fee_yearly_if_not_waived": 58.8,
-      "cards": { "visa_debit_monthly": 0, "girocard_monthly": 1.49 },
-      "atm": { "domestic": "0 EUR (from 50 EUR)", "eurozone_visa": "0 EUR", "girocard_abroad": "5 EUR per withdrawal" },
-      "fx_fee_pct": 2.2,
-      "overdraft_rate": 9.39,
-      "notes": ["Cash deposit at retailers (ING Bargeld): 1.5% of amount", "Cash deposit at ING ATMs with girocard: 1%, min 2.50 EUR, max 7.50 EUR"],
-      "doc_date": "2026-06-01",
-      "source_type": "html",
-      "source_url": "https://www.ing.de/girokonto/konditionen/",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    },
-    {
-      "id": "de-comdirect-giro",
-      "country": "DE",
-      "bank": "comdirect",
-      "product": "checking",
-      "name": "Girokonto",
-      "currency": "EUR",
-      "fee_monthly": 4.9,
-      "fee_monthly_waived_if": ["700 EUR monthly incoming payments", "3 payments per month via Apple Pay or Google Pay", "1 securities trade or savings-plan execution per month", "under 28 and in education"],
-      "cards": { "visa_debit_monthly": 0, "girocard_monthly": 1.0 },
-      "atm": { "visa_debit": "3 free per month, then 4.90 EUR", "girocard_cash_group_de": "0 EUR", "girocard_eurozone": "0 EUR", "girocard_non_euro": "4.90 EUR" },
-      "fx_fee_pct": 1.75,
-      "overdraft_rate": null,
-      "notes": ["Overdraft rate not stated in the fee schedule", "Fee schedule also mentions ECB reference rate + 0.35% for EEA currency conversion"],
-      "doc_date": "2026-04-13",
-      "source_type": "html",
-      "source_url": "https://www.comdirect.de/formulare/preis-leistungsverzeichnis",
-      "checked_at": "2026-11-02",
-      "status": "stale"
-    },
-    {
-      "id": "de-haspa-joker",
-      "country": "DE",
-      "bank": "Haspa (Hamburger Sparkasse)",
-      "product": "checking",
-      "name": "HaspaJoker",
-      "currency": "EUR",
-      "fee_monthly": 9.95,
-      "fee_monthly_waived_if": [],
-      "cards": { "girocard_monthly": 0 },
-      "notes": ["Branch bank in Hamburg, flat price incl. bookings and cash in/out", "No minimum incoming payment needed", "Includes phone insurance up to 500 EUR and Vorteilswelt discounts"],
-      "overdraft_rate": null,
-      "doc_date": null,
-      "source_type": "html",
-      "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    },
-    {
-      "id": "de-dkb-giro",
-      "country": "DE",
-      "bank": "DKB",
-      "product": "checking",
-      "name": "Girokonto",
-      "currency": "EUR",
-      "fee_monthly": null,
-      "notes": ["Official fee document dok.dkb.de/pdf/plv_pk_konten.pdf is closed to automated readers (robots.txt). No number is published until it can be verified."],
-      "source_type": "pdf",
-      "source_url": "https://dok.dkb.de/pdf/plv_pk_konten.pdf",
-      "checked_at": "2026-11-02",
-      "status": "blocked"
-    },
-    {
-      "id": "de-ing-tagesgeld",
-      "country": "DE",
-      "bank": "ING",
-      "product": "savings",
-      "name": "Extra-Konto (Tagesgeld)",
-      "currency": "EUR",
-      "rate": 3.5,
-      "rate_type": "promo",
-      "promo_months": 4,
-      "promo_rate_with_giro": 3.75,
-      "promo_max_amount": 250000,
-      "rate_after_promo": 0.75,
-      "fee_monthly": 0,
-      "conditions": ["New customers only: no Extra-Konto at ING in the last 12 months", "3.75% if opened together with a Girokonto", "0.75% variable after 4 months and above 250,000 EUR"],
-      "deposit_insurance": "DE statutory, 100,000 EUR",
-      "source_type": "html",
-      "source_url": "https://www.ing.de/sparen-anlegen/sparen/tagesgeld/konditionen/",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    },
-    {
-      "id": "de-traderepublic-cash",
-      "country": "DE",
-      "bank": "Trade Republic",
-      "product": "savings",
-      "name": "Interest on cash",
-      "currency": "EUR",
-      "rate": 2.5,
-      "rate_type": "variable",
-      "rate_after_promo": null,
-      "fee_monthly": 0,
-      "conditions": ["Advertised on unlimited cash", "Page gives no date for the rate"],
-      "source_type": "html",
-      "source_url": "https://traderepublic.com/de-de/zinsen",
-      "checked_at": "2026-11-02",
-      "status": "check"
-    },
-    {
-      "id": "us-chase-total",
-      "country": "US",
-      "bank": "Chase",
-      "product": "checking",
-      "name": "Total Checking",
-      "currency": "USD",
-      "fee_monthly": 15,
-      "fee_monthly_waived_if": ["$500+ in qualifying electronic deposits per statement period", "$1,500+ balance at the beginning of each day", "$5,000+ average beginning-day balance incl. linked deposits/investments", "linked to a qualifying Chase checking account"],
-      "notes": ["No overdraft fee if overdrawn by $50 or less at end of business day (Overdraft Assist)"],
-      "source_type": "html",
-      "source_url": "https://www.chase.com/personal/checking/total-checking",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    },
-    {
-      "id": "us-bofa-advantage-plus",
-      "country": "US",
-      "bank": "Bank of America",
-      "product": "checking",
-      "name": "Advantage Plus Banking",
-      "currency": "USD",
-      "fee_monthly": 12,
-      "fee_monthly_waived_if": ["one qualifying direct deposit of $250+", "$1,500+ minimum daily balance", "BofA Rewards Preferred Plus tier or higher"],
-      "atm": { "non_bofa_us": "$2.50 + operator fee", "non_bofa_abroad": "$5.00 + operator fee" },
-      "overdraft_fee": 10,
-      "notes": ["Overdraft item fee $10, max 2 per day"],
-      "doc_date": "2026-08",
-      "source_type": "pdf",
-      "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    },
-    {
-      "id": "us-ally-savings",
-      "country": "US",
-      "bank": "Ally Bank",
-      "product": "savings",
-      "name": "Online Savings",
-      "currency": "USD",
-      "rate": 3.2,
-      "rate_type": "variable",
-      "rate_after_promo": null,
-      "fee_monthly": 0,
-      "conditions": ["No minimum balance to open or earn APY"],
-      "deposit_insurance": "FDIC, $250,000",
-      "doc_date": "2026-10-30",
-      "source_type": "html",
-      "source_url": "https://www.ally.com/bank/savings-account-rates/",
-      "checked_at": "2026-11-02",
-      "status": "ok"
-    }
-  ],
-  "changes": []
+  {
+   "id": "de-comdirect-giro",
+   "country": "DE",
+   "bank": "comdirect",
+   "product": "checking",
+   "name": "Girokonto",
+   "currency": "EUR",
+   "fee_monthly": 4.9,
+   "fee_monthly_waived_if": [
+    "700 EUR monthly incoming payments",
+    "3 payments per month via Apple Pay or Google Pay",
+    "1 securities trade or savings-plan execution per month",
+    "under 28 and in education"
+   ],
+   "cards": {
+    "visa_debit_monthly": 0,
+    "girocard_monthly": 1.0
+   },
+   "atm": {
+    "visa_debit": "3 free per month, then 4.90 EUR",
+    "girocard_cash_group_de": "0 EUR",
+    "girocard_eurozone": "0 EUR",
+    "girocard_non_euro": "4.90 EUR"
+   },
+   "fx_fee_pct": 1.75,
+   "overdraft_rate": null,
+   "notes": [
+    "Overdraft rate not stated in the fee schedule",
+    "Fee schedule also mentions ECB reference rate + 0.35% for EEA currency conversion"
+   ],
+   "doc_date": "2026-04-13",
+   "source_type": "html",
+   "source_url": "https://www.comdirect.de/formulare/preis-leistungsverzeichnis",
+   "checked_at": "2026-11-02",
+   "status": "stale"
+  },
+  {
+   "id": "de-haspa-joker",
+   "country": "DE",
+   "bank": "Haspa (Hamburger Sparkasse)",
+   "product": "checking",
+   "name": "HaspaJoker",
+   "currency": "EUR",
+   "fee_monthly": 9.95,
+   "fee_monthly_waived_if": [],
+   "cards": {
+    "girocard_monthly": 0
+   },
+   "notes": [
+    "Branch bank in Hamburg, flat price incl. bookings and cash in/out",
+    "No minimum incoming payment needed",
+    "Includes phone insurance up to 500 EUR and Vorteilswelt discounts"
+   ],
+   "overdraft_rate": null,
+   "doc_date": null,
+   "source_type": "html",
+   "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-dkb-giro",
+   "country": "DE",
+   "bank": "DKB",
+   "product": "checking",
+   "name": "Girokonto",
+   "currency": "EUR",
+   "fee_monthly": null,
+   "notes": [
+    "Official fee document dok.dkb.de/pdf/plv_pk_konten.pdf is closed to automated readers (robots.txt). No number is published until it can be verified."
+   ],
+   "source_type": "pdf",
+   "source_url": "https://dok.dkb.de/pdf/plv_pk_konten.pdf",
+   "checked_at": "2026-11-02",
+   "status": "blocked"
+  },
+  {
+   "id": "de-ing-tagesgeld",
+   "country": "DE",
+   "bank": "ING",
+   "product": "savings",
+   "name": "Extra-Konto (Tagesgeld)",
+   "currency": "EUR",
+   "rate": 3.5,
+   "rate_type": "promo",
+   "promo_months": 4,
+   "promo_rate_with_giro": 3.75,
+   "promo_max_amount": 250000,
+   "rate_after_promo": 0.75,
+   "fee_monthly": 0,
+   "conditions": [
+    "New customers only: no Extra-Konto at ING in the last 12 months",
+    "3.75% if opened together with a Girokonto",
+    "0.75% variable after 4 months and above 250,000 EUR"
+   ],
+   "deposit_insurance": "DE statutory, 100,000 EUR",
+   "source_type": "html",
+   "source_url": "https://www.ing.de/sparen-anlegen/sparen/tagesgeld/konditionen/",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-traderepublic-cash",
+   "country": "DE",
+   "bank": "Trade Republic",
+   "product": "savings",
+   "name": "Interest on cash",
+   "currency": "EUR",
+   "rate": 2.5,
+   "rate_type": "variable",
+   "rate_after_promo": null,
+   "fee_monthly": 0,
+   "conditions": [
+    "Advertised on unlimited cash",
+    "Page gives no date for the rate"
+   ],
+   "source_type": "html",
+   "source_url": "https://traderepublic.com/de-de/zinsen",
+   "checked_at": "2026-11-02",
+   "status": "check"
+  },
+  {
+   "id": "us-chase-total",
+   "country": "US",
+   "bank": "Chase",
+   "product": "checking",
+   "name": "Total Checking",
+   "currency": "USD",
+   "fee_monthly": 15,
+   "fee_monthly_waived_if": [
+    "$500+ in qualifying electronic deposits per statement period",
+    "$1,500+ balance at the beginning of each day",
+    "$5,000+ average beginning-day balance incl. linked deposits/investments",
+    "linked to a qualifying Chase checking account"
+   ],
+   "notes": [
+    "No overdraft fee if overdrawn by $50 or less at end of business day (Overdraft Assist)"
+   ],
+   "source_type": "html",
+   "source_url": "https://www.chase.com/personal/checking/total-checking",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "us-bofa-advantage-plus",
+   "country": "US",
+   "bank": "Bank of America",
+   "product": "checking",
+   "name": "Advantage Plus Banking",
+   "currency": "USD",
+   "fee_monthly": 12,
+   "fee_monthly_waived_if": [
+    "one qualifying direct deposit of $250+",
+    "$1,500+ minimum daily balance",
+    "BofA Rewards Preferred Plus tier or higher"
+   ],
+   "atm": {
+    "non_bofa_us": "$2.50 + operator fee",
+    "non_bofa_abroad": "$5.00 + operator fee"
+   },
+   "overdraft_fee": 10,
+   "notes": [
+    "Overdraft item fee $10, max 2 per day"
+   ],
+   "doc_date": "2026-08",
+   "source_type": "pdf",
+   "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "us-ally-savings",
+   "country": "US",
+   "bank": "Ally Bank",
+   "product": "savings",
+   "name": "Online Savings",
+   "currency": "USD",
+   "rate": 3.2,
+   "rate_type": "variable",
+   "rate_after_promo": null,
+   "fee_monthly": 0,
+   "conditions": [
+    "No minimum balance to open or earn APY"
+   ],
+   "deposit_insurance": "FDIC, $250,000",
+   "doc_date": "2026-10-30",
+   "source_type": "html",
+   "source_url": "https://www.ally.com/bank/savings-account-rates/",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-spkhb-girobest",
+   "country": "DE",
+   "bank": "Sparkasse Harburg-Buxtehude",
+   "product": "checking",
+   "name": "giro best",
+   "currency": "EUR",
+   "fee_monthly": 9.9,
+   "fee_monthly_waived_if": [
+    "account holder aged 18-24"
+   ],
+   "fee_yearly_if_not_waived": 118.8,
+   "discounts": [
+    "50% (4.95 EUR/month) for account holders aged 25-29"
+   ],
+   "cards": {
+    "girocard_monthly": 0
+   },
+   "atm": {
+    "domestic": "0 EUR at Sparkasse ATMs (unlimited, included)",
+    "other_banks": "1% of amount, min 3.95 EUR where the operator charges a direct fee"
+   },
+   "fx_fee_pct": null,
+   "overdraft_rate": 11.66,
+   "notes": [
+    "Sparkassen-Card included in the package",
+    "Card payments in foreign currency outside the EEA: 1% plus currency conversion fee; inside the EEA 0%",
+    "Agreed and tolerated overdraft both 11.66% p.a."
+   ],
+   "doc_date": "2025-10-01",
+   "source_type": "pdf",
+   "source_url": "https://www.spkhb.de/content/dam/myif/sk-harburg-buxtehude/work/dokumente/pdf/preise-leistungen/entgeltinformation-girokonto-online.pdf",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-commerzbank-giro",
+   "country": "DE",
+   "bank": "Commerzbank",
+   "product": "checking",
+   "name": "GiroKonto",
+   "currency": "EUR",
+   "fee_monthly": 4.9,
+   "fee_monthly_waived_if": [
+    "assets of 50,000 EUR or more at Commerzbank in the calendar month"
+   ],
+   "fee_yearly_if_not_waived": 58.8,
+   "cards": {
+    "girocard_monthly": 0
+   },
+   "atm": {
+    "domestic": "0 EUR at Commerzbank and Cash Group ATMs",
+    "other_banks": "1%, min 5.98 EUR",
+    "abroad_foreign_currency": "1%, min 5.98 EUR"
+   },
+   "fx_fee_pct": 1.0,
+   "overdraft_rate": 11.9,
+   "notes": [
+    "Girocard with Visa function free; 2nd card 10 EUR/year",
+    "Credit card (Mastercard/Visa Classic) 39.90 EUR/year, FX 1.75%",
+    "Tolerated overdraft 14.40% p.a."
+   ],
+   "doc_date": "2025-12-01",
+   "source_type": "pdf",
+   "source_url": "https://www.commerzbank.de/portal/media/efw-dokumente/ent_girokonto.pdf",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-c24-smart",
+   "country": "DE",
+   "bank": "C24 Bank",
+   "product": "checking",
+   "name": "Smartkonto",
+   "currency": "EUR",
+   "fee_monthly": 0,
+   "cards": {
+    "girocard_monthly": 0
+   },
+   "atm": {
+    "free_per_month": 4,
+    "after_free": "2.00 EUR per withdrawal (Mastercard)"
+   },
+   "fx_fee_pct": 0,
+   "overdraft_rate": 11.49,
+   "notes": [
+    "4 free cash withdrawals per month (ATM or viacash), then 2.00 EUR",
+    "Card payments in foreign currency with the Mastercard: free",
+    "Agreed overdraft 7.49-11.49% depending on credit score; tolerated 11.49%"
+   ],
+   "doc_date": "2026-05-05",
+   "source_type": "pdf",
+   "source_url": "https://api.c24.de/api/documents/c24giro_fees/download/",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "de-n26-standard",
+   "country": "DE",
+   "bank": "N26",
+   "product": "checking",
+   "name": "Standard",
+   "currency": "EUR",
+   "fee_monthly": 0,
+   "fx_fee_pct": 0,
+   "notes": [
+    "Free account with a virtual card; a physical debit card costs 10 EUR once",
+    "ATM withdrawals in foreign currency: 1.7%",
+    "Paid plans: Smart 4.90, Go 9.90, Metal 16.90 EUR/month",
+    "Pages give no date for these terms"
+   ],
+   "source_type": "html",
+   "source_url": "https://n26.com/de-de/auslandsgebuhren",
+   "checked_at": "2026-11-02",
+   "status": "check"
+  },
+  {
+   "id": "de-hhvb-grossefreiheit",
+   "country": "DE",
+   "bank": "Hamburger Volksbank",
+   "product": "checking",
+   "name": "Große Freiheit PrivatKonto",
+   "currency": "EUR",
+   "fee_monthly": 10.95,
+   "fee_yearly_if_not_waived": 131.4,
+   "discounts": [
+    "7.95 EUR/month for members (shareholders)",
+    "Further discount in the house-bank model depending on other products used; the bank can change or end it without notice"
+   ],
+   "cards": {
+    "girocard_monthly": 1.0
+   },
+   "notes": [
+    "No full waiver: the lowest price for adults is 7.95 EUR/month for members",
+    "girocard 12 EUR/year",
+    "FutureKonto for pupils, trainees and students up to 27: max 2.00 EUR/month",
+    "Overdraft rates only in the separate Preisaushang"
+   ],
+   "doc_date": "2026-10-01",
+   "source_type": "pdf",
+   "source_url": "https://www.hamburger-volksbank.de/service/preisverzeichnis.html",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "us-wellsfargo-everyday",
+   "country": "US",
+   "bank": "Wells Fargo",
+   "product": "checking",
+   "name": "Everyday Checking",
+   "currency": "USD",
+   "fee_monthly": 15,
+   "fee_monthly_waived_if": [
+    "$500+ in qualifying electronic deposits per fee period",
+    "$1,500+ minimum daily balance",
+    "primary owner aged 17-24",
+    "$5,000+ in linked deposit or investment balances"
+   ],
+   "notes": [
+    "Also waived with a qualifying military direct deposit"
+   ],
+   "source_type": "html",
+   "source_url": "https://www.wellsfargo.com/checking/everyday/",
+   "checked_at": "2026-11-02",
+   "status": "ok"
+  },
+  {
+   "id": "us-capitalone-360",
+   "country": "US",
+   "bank": "Capital One",
+   "product": "savings",
+   "name": "360 Performance Savings",
+   "currency": "USD",
+   "rate": null,
+   "rate_type": "variable",
+   "fee_monthly": 0,
+   "conditions": [
+    "No minimum balance",
+    "Rates effective 2026-10-30 per the page, but the APY figure loads by script and could not be read"
+   ],
+   "deposit_insurance": "FDIC, $250,000",
+   "source_type": "html",
+   "source_url": "https://www.capitalone.com/bank/savings-accounts/online-performance-savings-account/",
+   "checked_at": "2026-11-02",
+   "status": "check"
+  }
+ ],
+ "changes": [
+  {
+   "date": "2026-11-02",
+   "bank": "Sparkasse Harburg-Buxtehude",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "Commerzbank",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "C24 Bank",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "N26",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "Hamburger Volksbank",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "Wells Fargo",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  },
+  {
+   "date": "2026-11-02",
+   "bank": "Capital One",
+   "text": "Added to the tracker",
+   "text_ru": "Добавлен в мостик"
+  }
+ ]
 }
