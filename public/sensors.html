@@ -377,14 +377,14 @@ async function loadRoads(){
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">стройки: ${m.roadworks} · запланировано: ${m.planned}${d.stale?' · источник не ответил, прошлые данные':''}</div>`;
 }
 // ---------- эксперимент «ИИ и радар»: кошелёк SOL торгует по правилам из датчиков (/api/v1/experiment) ----------
-const EXP_RU=['спокойно','настороженно','тревога'];
-const EXP_TG=['100 % SOL','40 % SOL · 20 % ETH · 20 % BTC · 20 % EUR','70 % EUR · 30 % BTC'];
+const EXP_RU={'-1':'попутный ветер','0':'спокойно','1':'настороженно','2':'тревога'};
+const expTg=t=>t?['BTC','ETH','SOL','EUR'].filter(c=>t[c]>0.004).map(c=>Math.round(t[c]*100)+'\u00a0% '+c).join(' · '):'';
 const EXP_SRC={paper:'бумажный кошелёк · Kraken ещё не подключён',kraken_check:'Kraken подключён · проверка без сделок',kraken_live:'реальный счёт Kraken'};
 async function loadExperiment(){
   const d=await fetch('/api/v1/experiment').then(x=>x.json());const t=d.today_signals,w=d.wallet,hs=d.hold_sol,mode=d.mode||0;
   const eur=v=>fmt(v,2)+' €';
   setSensor('exp',`режим <b>${EXP_RU[mode]}</b>${w?` · кошелёк <b>${eur(w.eur)}</b>`:''}${hs?` · без сделок: ${eur(hs.eur)}`:''}`,d.decisions&&d.decisions[0]?d.decisions[0].ts:Date.now(),mode+'|'+(w?Math.round(w.eur*10):'')+'|'+(d.trades||[]).length,EXP_SRC[d.status]||d.status);
-  let h=`<div>Режим: <b>${EXP_RU[mode]}</b> → ${EXP_TG[mode]}</div>`;
+  let h=`<div>Режим: <b>${EXP_RU[mode]}</b>${d.target?' → '+expTg(d.target):''}</div>`;
   if(w){const hd=w.holdings,px=w.prices,part=c=>hd[c]>1e-9?`${c} ${fmt(hd[c],c==='EUR'?2:4)}`:null;
     const diff=hs?w.eur-hs.eur:null;
     h+=`<div style="margin-top:3px">Кошелёк: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
