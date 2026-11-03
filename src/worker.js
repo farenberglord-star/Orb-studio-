@@ -960,6 +960,7 @@ const EXP_BRAIN_TOOL = { name: "choose_mode", description: "Choose today's walle
       level: { type: "integer", enum: [-1, 0, 1, 2], description: "-1 tailwind (5 % EUR, +10 points SOL from BTC), 0 calm (10 % EUR), 1 watchful (25 % EUR), 2 alarm (60 % EUR)" },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       reasoning_ru: { type: "string", maxLength: 700, description: "Why, in Russian, 2–4 sentences, plain words, with the concrete numbers you used" },
+      lesson_used_ru: { type: "string", maxLength: 240, description: "In Russian: what you took from your own track record or lessons today (or that the record is still too short)" },
       key_signals: { type: "array", maxItems: 5, items: { type: "object", additionalProperties: false, required: ["sensor", "value", "effect"],
         properties: { sensor: { type: "string" }, value: { type: "string" }, effect: { type: "string", enum: ["risk_up", "risk_down", "neutral"] } } } },
       watch_next_ru: { type: "string", maxLength: 200, description: "What would change your mind tomorrow" },
@@ -970,7 +971,38 @@ const EXP_BRAIN_SYSTEM = `You manage a small real crypto wallet on Kraken for a 
  1 watchful: 25 % EUR
  2 alarm: 60 % EUR
 New cash is invested gradually (max 15 % of the wallet per day), so choosing calm with a lot of cash means steady buying over several days.
-Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day. Always answer only by calling the choose_mode tool.`;
+Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day. Learn from my_track_record: past = your own earlier decisions and what BTC and SOL did 1 and 3 days later, edge_vs_do_nothing_eur = how much each decision helped or hurt compared with doing nothing; lessons = conclusions of the weekly human-reviewed analysis. If a kind of signal misled you before, give it less weight and say so; if you have too few scored decisions, say that the record is still too short. Always answer only by calling the choose_mode tool.`;
+// ---- Самообучение: Claude видит свои прошлые решения и что было потом, и уроки разборов ----
+// Итог решения = (изменение кошелька) − (изменение «ничего не делать») до следующего решения: пополнения входят в обе части и не искажают итог.
+async function expLearning(env) {
+  await ensureExp(env);
+  const rows = ((await env.DB.prepare("SELECT day, data FROM exp_log WHERE kind='decision' ORDER BY id DESC LIMIT 60").all()).results || []).reverse()
+    .map((r) => ({ day: r.day, ...JSON.parse(r.data) })).filter((d) => d.source !== "paper" && d.prices && d.wallet_eur != null);
+  // один день — одно решение (последнее за день)
+  const byDay = []; for (const d of rows) { if (byDay.length && byDay[byDay.length - 1].day === d.day) byDay[byDay.length - 1] = d; else byDay.push(d); }
+  const pct = (a, b) => (a && b ? +((b / a - 1) * 100).toFixed(2) : null);
+  const past = byDay.map((d, i) => {
+    const n1 = byDay[i + 1], n3 = byDay[i + 3];
+    const hold = d.hold_eur ?? d.hold_sol_eur;
+    const edge = n1 && hold != null && (n1.hold_eur ?? n1.hold_sol_eur) != null ? +((n1.wallet_eur - d.wallet_eur) - ((n1.hold_eur ?? n1.hold_sol_eur) - hold)).toFixed(2) : null;
+    return { day: d.day, chose: d.level, by: d.brain || "rules", claude_level: d.claude && d.claude.level != null ? d.claude.level : null, rules_level: d.rules_level ?? d.signal_level ?? null,
+      alarms: Object.entries(d.alarms || {}).filter(([, v]) => v).map(([k]) => k), trades: (d.orders || []).filter((o) => o.status === "placed").length,
+      btc_1d_pct: n1 ? pct(d.prices.BTC, n1.prices.BTC) : null, btc_3d_pct: n3 ? pct(d.prices.BTC, n3.prices.BTC) : null,
+      sol_1d_pct: n1 ? pct(d.prices.SOL, n1.prices.SOL) : null, sol_3d_pct: n3 ? pct(d.prices.SOL, n3.prices.SOL) : null,
+      edge_vs_do_nothing_eur: edge };
+  });
+  const done = past.filter((x) => x.edge_vs_do_nothing_eur != null);
+  const cautious = past.filter((x) => x.chose >= 1 && x.btc_3d_pct != null), boldy = past.filter((x) => x.chose === -1 && x.btc_3d_pct != null);
+  const lessons = (await sharedGet(env, "exp-lessons", 1e13)) || [];
+  return {
+    decisions_scored: done.length,
+    edge_total_eur: +done.reduce((a, x) => a + x.edge_vs_do_nothing_eur, 0).toFixed(2),
+    cautious_calls: { count: cautious.length, right: cautious.filter((x) => x.btc_3d_pct < 0).length, note: "watchful/alarm is right if BTC fell over the next 3 days" },
+    tailwind_calls: { count: boldy.length, right: boldy.filter((x) => x.sol_3d_pct > 0).length, note: "tailwind is right if SOL rose over the next 3 days" },
+    claude_vs_rules_disagreed: past.filter((x) => x.claude_level != null && x.rules_level != null && x.claude_level !== x.rules_level).length,
+    past: past.slice(-14), lessons: lessons.slice(-10),
+  };
+}
 async function expPicture(env, ctx) {
   const o = "https://orbstudio.org";
   const [radars, sens] = await Promise.all([allRadars(env, ctx, o), sensorsData(env, ctx)]);
@@ -991,6 +1023,7 @@ async function expPicture(env, ctx) {
     bridge_instruments: ins ? ins.map((i) => ({ name: i.name_en, level: i.level, trend: i.trend })) : null,
     upcoming_events: live && live.events ? live.events.slice(0, 4).map((e) => ({ title: e.title && e.title.en, start: e.start })) : null,
     wallet_history: hist,
+    my_track_record: await expLearning(env).catch(() => null),
   };
 }
 async function expBrain(env, ctx, rulesLevel, prevLevel, wallet = null) {
@@ -1102,7 +1135,7 @@ async function expPublic(env, ctx) {
     wallet: h && px ? { eur: +expValue(h, px).toFixed(2), holdings: h, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last } } : null,
     // сравнение: «ничего не делать» — стартовый кошелёк без сделок
     hold_sol: st && st.start && px && st.start.holdings ? { eur: +expValue(st.start.holdings, px).toFixed(2), start: st.start } : null,
-    impulse: imp, decisions: dec.slice(0, 30), trades: dec.flatMap((d) => (d.orders || []).map((o) => ({ day: d.day, ...o }))).slice(0, 30),
+    learning: await expLearning(env).catch(() => null), impulse: imp, decisions: dec.slice(0, 30), trades: dec.flatMap((d) => (d.orders || []).map((o) => ({ day: d.day, ...o }))).slice(0, 30),
     note: "A public experiment of the Orb Studio author with his own small crypto wallet. Rules are fixed in advance and versioned; every decision is logged with its inputs. Compare wallet with hold_sol to see whether the radar helped.",
   };
 }
@@ -1117,6 +1150,13 @@ async function handleExperiment(url, request, env, ctx) {
       const sig = await expSignals(env, ctx);
       try { return json({ preview: true, rules_v2_level: sig.level, claude: await expBrain(env, ctx, sig.level, st.level || 0) }, H); }
       catch (e) { return json({ preview: true, error: String(e.message || e) }, H); }
+    }
+    if (a === "lesson" && request.method === "POST") {
+      let b = {}; try { b = await request.json(); } catch (e) {}
+      const t = String(b.text || "").trim().slice(0, 400); if (t.length < 10) return json({ error: "text 10–400 chars" }, H, 400);
+      const L = (await sharedGet(env, "exp-lessons", 1e13)) || []; L.push({ day: today(), text: t });
+      await sharedPut(env, "exp-lessons", L.slice(-30)); await expLog(env, "lesson", { text: t });
+      return json({ ok: true, lessons: L.slice(-30) }, H);
     }
     if (a === "brain") {
       st.brain = url.searchParams.get("v") === "claude" ? "claude" : "rules";
