@@ -1282,7 +1282,7 @@ async function timeline(env, ctx, origin, q) {
   if (from > to) return { error: "since must be before until" };
   if (from < first) from = first;
   const now = to === today() ? await allRadars(env, ctx, origin).catch(() => null) : null;
-  const radars = Object.entries(hi.risk_index_history || {}).map(([id, series]) => {
+  const radars = Object.entries(hi.risk_index_history || {}).filter(([id]) => id in RADAR_TITLE_I18N).map(([id, series]) => {
     const inR = series.filter((x) => x.day >= from && x.day <= to);
     const a = series.find((x) => x.day >= from), cur = now && now.find((r) => r.id === id);
     const b = cur ? { day: to, risk_index: cur.lvl } : inR[inR.length - 1];
