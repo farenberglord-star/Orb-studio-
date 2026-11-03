@@ -960,7 +960,7 @@ const EXP_BRAIN_SYSTEM = `You manage a small real crypto wallet on Kraken for a 
  0 calm: keep the start wallet as it is (default; no trades)
  1 watchful: 25 % of the wallet in EUR
  2 alarm: 60 % of the wallet in EUR
-Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day.`;
+Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day. Always answer only by calling the choose_mode tool.`;
 async function expPicture(env, ctx) {
   const o = "https://orbstudio.org";
   const [radars, sens] = await Promise.all([allRadars(env, ctx, o), sensorsData(env, ctx)]);
@@ -989,7 +989,7 @@ async function expBrain(env, ctx, rulesLevel, prevLevel) {
     headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model: env.EXP_MODEL || "claude-opus-5-5", max_tokens: 1500, system: EXP_BRAIN_SYSTEM,
       messages: [{ role: "user", content: JSON.stringify({ today: today(), current_mode: prevLevel, simple_rules_v2_would_choose: rulesLevel, site: pic }) }],
-      tools: [EXP_BRAIN_TOOL], tool_choice: { type: "tool", name: EXP_BRAIN_TOOL.name } }) });
+      tools: [EXP_BRAIN_TOOL], tool_choice: { type: "auto" } }) });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 160)}`);
   const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
   if (!t || ![-1, 0, 1, 2].includes(t.input.level)) throw new Error("no valid decision from Claude");
