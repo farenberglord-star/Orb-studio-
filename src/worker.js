@@ -755,10 +755,20 @@ const r2 = (x) => Math.round(x * 100) / 100;
 
 async function receiptsData(env) {
   const src = env.RECEIPTS_URL || RECEIPTS_DEFAULT;
-  const r = await fetch(src, { cf: { cacheTtl: 600, cacheEverything: true } });
-  if (!r.ok) throw new Error("receipts source " + r.status);
-  const raw = await r.json();
-  const receipts = (raw.receipts || []).map((rc) => {
+  let raw = { receipts: [] };
+  try {
+    const r = await fetch(src, { cf: { cacheTtl: 600, cacheEverything: true } });
+    if (!r.ok) throw new Error("receipts source " + r.status);
+    raw = await r.json();
+  } catch (e) { raw = { receipts: [], _err: String(e) }; }
+  // Новые чеки, которые Claude вносит по фото прямо в D1 (shared, ключ receipts-extra), — в том же формате, что receipts.json.
+  const extra = (await sharedGet(env, "receipts-extra", 1e13)) || { receipts: [] };
+  const keyOf = (rc) => rc.date + "|" + ((rc.store && rc.store.branch) || "") + "|" + (rc.time || "");
+  const have = new Set((raw.receipts || []).map(keyOf));
+  const allRaw = (raw.receipts || []).concat((extra.receipts || []).filter((rc) => !have.has(keyOf(rc))));
+  if (!allRaw.length && raw._err) throw new Error(raw._err);
+  if (extra.updated && (!raw.updated || extra.updated > raw.updated)) raw.updated = extra.updated;
+  const receipts = allRaw.map((rc) => {
     const items = (rc.items || []).filter((it) => !RECEIPT_SKIP.test(it.name || "")).map((it) => ({
       name: it.name, qty: it.qty, unit_price: it.unit_price, price: r2((it.price || 0) - (it.discount || 0)),
       discount: it.discount || 0, weight_kg: it.weight_kg, price_per_kg: it.price_per_kg }));
