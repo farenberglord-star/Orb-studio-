@@ -4,6 +4,13 @@
 import os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from i18n_pages_t import COMMON, PAGES, CODE
+from i18n_index import T as HOME_T
+from nav import NAV
+# подписи меню берём из перевода главной, чтобы меню везде называлось одинаково
+_nav = {t for _, t, _ in NAV}
+COMMON = COMMON + [x for x in HOME_T if x[0] in _nav] + [
+    ("Orb Studio — главная", "Orb Studio – Startseite", "Orb Studio – home"),
+    ("Разделы Orb Studio", "Bereiche von Orb Studio", "Orb Studio sections")]
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "public")
 SITE = "https://orbstudio.org"
