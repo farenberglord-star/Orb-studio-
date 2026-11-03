@@ -1,18 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.farenberglord-star/orb-studio",
-  "title": "Orb Studio",
-  "description": "News radars with risk index, Hamburg prices, songs from the news as text, AI anchor David Q&A.",
-  "version": "1.1.0",
+  "title": "Orb Studio news radars",
+  "description": "News radars with AI anchors, open market and network sensors, Hamburg prices, a live AI trading test",
+  "version": "1.2.0",
   "websiteUrl": "https://orbstudio.org",
-  "repository": {
-    "url": "https://github.com/farenberglord-star/Orb-studio-",
-    "source": "github"
-  },
+  "repository": { "url": "https://github.com/farenberglord-star/Orb-studio-", "source": "github" },
   "remotes": [
-    {
-      "type": "streamable-http",
-      "url": "https://orbstudio.org/mcp"
-    }
+    { "type": "streamable-http", "url": "https://orbstudio.org/mcp" }
   ]
 }

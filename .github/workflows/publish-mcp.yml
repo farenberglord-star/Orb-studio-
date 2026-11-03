@@ -1,9 +1,13 @@
-name: Publish to MCP Registry
+name: Публикация в реестре MCP
+
+# Публикует Orb Studio в официальном реестре MCP (registry.modelcontextprotocol.io) при изменении server.json
+# или вручную (Actions → «Публикация в реестре MCP» → Run workflow). Вход — GitHub OIDC, секреты не нужны.
+# Перед публикацией поднимите "version" в server.json: реестр не принимает ту же версию дважды.
 
 on:
   push:
     branches: [main]
-    paths: [server.json]
+    paths: ["server.json"]
   workflow_dispatch:
 
 jobs:
@@ -14,10 +18,18 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v5
-      - name: Install mcp-publisher
+
+      - name: Проверить, что MCP-сервер отвечает
+        run: |
+          curl -fsS -X POST https://orbstudio.org/mcp -H 'content-type: application/json' \
+            -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | head -c 300; echo
+
+      - name: Установить mcp-publisher
         run: |
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
-      - name: Login (GitHub OIDC)
+
+      - name: Войти в реестр (GitHub OIDC)
         run: ./mcp-publisher login github-oidc
-      - name: Publish
+
+      - name: Опубликовать
         run: ./mcp-publisher publish
