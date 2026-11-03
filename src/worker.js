@@ -985,6 +985,7 @@ async function expPicture(env, ctx) {
       stablecoins_total_bn_usd: st.total_usd ? +(st.total_usd / 1e9).toFixed(1) : null, stablecoins_7d_pct: st.change_7d_pct ?? null,
       ecb_deposit_rate_pct: sens.ecb && sens.ecb.deposit_rate_pct ? sens.ecb.deposit_rate_pct.value : null, eurusd: sens.ecb && sens.ecb.eurusd ? sens.ecb.eurusd.value : null,
       euro_inflation_pct: sens.inflation ? sens.inflation.hicp_annual_pct : null, de_power_ct_kwh: pw.now_ct_kwh ?? null,
+      volatility: sens.volatility ? { coins: sens.volatility.coins, spikes_24h: (sens.volatility.spikes_24h || []).slice(0, 6) } : null,
       internet_outages_countries_24h: nt.outages_24h ?? null, uk_sanctioned_ships: sc.ships_total ?? null, uk_ships_added_30d: sc.added_30d ?? null },
     impulses: imp && imp.impulses ? imp.impulses.slice(0, 5).map((i) => ({ from: i.from_name_en, to: i.to_name_en, strength: i.strength, headline: i.headline })) : null,
     bridge_instruments: ins ? ins.map((i) => ({ name: i.name_en, level: i.level, trend: i.trend })) : null,
@@ -2098,6 +2099,32 @@ async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
+    // скачки волатильности: часовые свечи Kraken за 30 дней; всплеск = объём за час в 3+ раза выше медианы недели или движение за час ≥ 4 обычных
+    volatility: async () => {
+      const C = { BTC: "XBTEUR", ETH: "ETHEUR", SOL: "SOLEUR", XRP: "XRPEUR" }, coins = {}, spikes = [];
+      await Promise.all(Object.entries(C).map(async ([c, pair]) => {
+        const j = await sensorsFetchJson(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=60`);
+        const k = Object.keys(j.result || {}).find((x) => x !== "last"), rows = (j.result[k] || []).slice(0, -1); // последняя свеча ещё идёт
+        if (rows.length < 200) throw new Error("few candles " + c);
+        const cl = rows.map((r) => +r[4]), op = rows.map((r) => +r[1]), vo = rows.map((r) => +r[6]), ts = rows.map((r) => r[0] * 1000);
+        const ret = cl.map((v, i) => (i ? Math.log(v / cl[i - 1]) : 0)).slice(1);
+        const sd = (a) => { const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
+        const sd30 = sd(ret) || 1e-9, med = (a) => { const b = a.slice().sort((x, y) => x - y); return b[Math.floor(b.length / 2)] || 1e-9; };
+        const n = rows.length - 1, week = vo.slice(Math.max(0, n - 168), n);
+        const vr = vo[n] / med(week), r1 = cl[n] / op[n] - 1, z = Math.log(cl[n] / op[n]) / sd30;
+        const rv = sd(ret.slice(-24)) / sd30;
+        coins[c] = { price_eur: cl[n], hour_end: new Date(ts[n] + 3600e3).toISOString(), move_1h_pct: +(r1 * 100).toFixed(2), z_1h: +z.toFixed(1),
+          volume_vs_week_median: +vr.toFixed(2), move_24h_pct: +((cl[n] / cl[n - 24] - 1) * 100).toFixed(2), volatility_24h_vs_30d: +rv.toFixed(2) };
+        for (let i = n - 23; i <= n; i++) {
+          const w = vo.slice(Math.max(0, i - 168), i), v = vo[i] / med(w), zz = Math.log(cl[i] / op[i]) / sd30;
+          if (v >= 3 || Math.abs(zz) >= 4) spikes.push({ coin: c, hour_end: new Date(ts[i] + 3600e3).toISOString(), volume_vs_week_median: +v.toFixed(1), z: +zz.toFixed(1), move_pct: +((cl[i] / op[i] - 1) * 100).toFixed(2) });
+        }
+      }));
+      spikes.sort((a, b) => b.hour_end.localeCompare(a.hour_end));
+      return { source: "Kraken public market data, hourly candles (OHLC), 30 days", source_url: "https://docs.kraken.com/api/docs/rest-api/get-ohlc-data",
+        rule: "spike = hourly volume ≥ 3× the median hour of the past week, or an hourly move ≥ 4 typical hourly moves (z, 30-day standard deviation)",
+        coins, spikes_24h: spikes.slice(0, 12), spike_now: spikes.some((x) => Date.now() - Date.parse(x.hour_end) < 2 * 3600e3), at: new Date().toISOString() };
+    },
     derivatives: async () => {
       const t = (await sensorsFetchJson("https://futures.kraken.com/derivatives/api/v3/tickers/PF_XBTUSD")).ticker;
       return { source: "Kraken Futures, BTC perpetual (PF_XBTUSD)", source_url: "https://futures.kraken.com/trade/futures/PF_XBTUSD",
@@ -3566,7 +3593,7 @@ const MCP_TOOLS = [
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
-    description: "Current values from open sources, refreshed every 5 minutes: internet outages by country (IODA) and confirmed web blocking and suspected Signal/WhatsApp blocking (OONI) in the last 24 hours, sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    description: "Volatility spikes on Kraken for BTC, ETH, SOL and XRP (hourly volume vs the weekly median, hourly move in typical moves, spikes in the last 24 h). Current values from open sources, refreshed every 5 minutes: internet outages by country (IODA) and confirmed web blocking and suspected Signal/WhatsApp blocking (OONI) in the last 24 hours, sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
