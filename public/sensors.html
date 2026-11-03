@@ -190,6 +190,16 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="macro"><div class="nm"><i></i>🏦 Макро · ЕЦБ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="stables"><div class="nm"><i></i>💵 Стейблкоины</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn off" data-s="etf"><div class="nm"><i></i>📊 ETF-потоки</div><div class="vl">нет бесплатного открытого источника</div><div class="ag">не подключён</div></div>
+      <div class="sgrp">Сайт Orb Studio</div>
+      <div class="sn" data-s="s_bridge"><div class="nm"><i></i>🧭 Рубка</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Импульсы</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 Давид · выпуски</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Трек дня</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_follow"><div class="nm"><i></i>🕰 Что было потом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_agents"><div class="nm"><i></i>🤖 Агенты на сайте</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn gold" data-s="s_tariffs"><div class="nm"><i></i>🏦 Тарифы банков</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn gold" data-s="s_quality"><div class="nm"><i></i>🔬 Качество · Lidl</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn gold" data-s="s_places"><div class="nm"><i></i>📍 Места</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sgrp">Эксперимент</div>
       <div class="sn" data-s="exp"><div class="nm"><i></i>🧪 ИИ и радар · кошелёк Kraken</div><div class="vl">загрузка…</div><div class="ag"></div></div>
     </div>
@@ -219,6 +229,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="power"><div class="k">Электричество · биржа DE-LU, без сетей и налогов</div><div class="v" id="oPower">—</div></div>
       <div class="row" data-o="macro"><div class="k">ЕЦБ и инфляция еврозоны</div><div class="v" id="oMacro">—</div></div>
       <div class="row" data-o="stables"><div class="k">Стейблкоины · всего в обращении</div><div class="v" id="oStab">—</div></div>
+      <div class="row" data-o="site"><div class="k">Сайт Orb Studio · что нового</div><div class="v" id="oSite">—</div></div>
       <div class="row" data-o="exp"><div class="k">Эксперимент · ИИ торгует по радару</div><div class="v" id="oExp">—</div></div>
     </div>
   </div>
@@ -278,7 +289,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,s_david:30,s_music:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -376,6 +387,38 @@ async function loadRoads(){
     d.jams.slice(0,3).map(ln).join('')+d.closures.slice(0,3).map(ln).join('')+
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">стройки: ${m.roadworks} · запланировано: ${m.planned}${d.stale?' · источник не ответил, прошлые данные':''}</div>`;
 }
+// ---------- сайт Orb Studio: каждый раздел — свой датчик ----------
+async function loadSite(){
+  const g=u=>fetch(u).then(r=>r.ok?r.json():null).catch(()=>null);
+  const [br,im,dv,mu,fu,stt,hf,ta,qu,pl]=await Promise.all(['/api/v1/bridge','/api/v1/impulses?limit=1','/api/v1/david/episodes','/api/v1/music','/api/v1/followups','/api/v1/stats?page=sensors','/api/v1/hall-of-fame','/api/v1/tariffs','/api/v1/quality','/api/v1/places'].map(g));
+  const dm=x=>x?x.slice(8,10)+'.'+x.slice(5,7):'',L=[],at=x=>x?Date.parse(x):Date.now();
+  if(br){const paths=br.crises.reduce((a,c)=>a+c.paths_count,0),cm=br.consensus_map,ins=br.instruments.slice().sort((a,b)=>b.level-a.level)[0];
+    setSensor('s_bridge',`путей выхода ${paths} · согласие ${cm.consensus.length} · спор ${cm.split.length}`,at(br.generated_at),paths+'|'+cm.consensus.length+'|'+cm.split.length+'|'+br.instruments.map(i=>i.level).join());
+    L.push(`🧭 Рубка: ${paths} путей выхода, самый напряжённый прибор — <b>${esc(ins.name_ru)} ${ins.level}</b> (${esc(ins.trend_ru)})`);}
+  const i0=im&&im.impulses&&im.impulses[0];
+  if(i0){setSensor('s_impulse',i0.local?`${esc(i0.to_name)} · внутренний`:`${esc(i0.from_name)} → ${esc(i0.to_name)} · сила ${fmt(i0.strength,2)}`,at(i0.time||im.generated_at),i0.id+'|'+i0.headline);
+    L.push(`🌍 Импульс: <b>${esc(i0.local?i0.to_name:i0.from_name+' → '+i0.to_name)}</b> — <a href="${esc(i0.link)}" target="_blank" rel="noopener">${esc(i0.headline)}</a>`);}
+  const e0=dv&&dv.episodes&&dv.episodes[0];
+  if(e0){setSensor('s_david',`${dm(e0.date)} · ${esc(e0.title.length>64?e0.title.slice(0,62)+'…':e0.title)}`,at(e0.date+'T12:00:00Z'),e0.id,`выпусков: ${dv.episodes.length} · ${dm(e0.date)}`);
+    L.push(`🎙 Давид, ${dm(e0.date)}: ${esc(e0.title)}`);}
+  const t0=mu&&mu.tracks&&mu.tracks[0];
+  if(t0){setSensor('s_music',`<b>${esc(t0.title)}</b> · ${t0.bpm||'—'} BPM`,at(t0.date+'T12:00:00Z'),t0.id,`треков: ${mu.tracks.length} · ${dm(t0.date)}`);
+    L.push(`🎵 Трек дня: <b>${esc(t0.title)}</b> · ${esc(t0.style||'')}`);}
+  if(fu){const open=fu.counts.open||0,done=Object.entries(fu.counts).filter(([k])=>k!=='open').reduce((a,[,v])=>a+v,0);
+    setSensor('s_follow',`ждут развязки ${open} · решено ${done}`,at(fu.generated_at),open+'|'+done);
+    L.push(`🕰 Что было потом: ${open} новостей ждут развязки, решено ${done}`);}
+  if(stt&&stt.enabled){const mcp=(stt.mcp_calls_7d||[]).reduce((a,x)=>a+x.n,0),guests=hf?hf.orb_studio_guests_30d||[]:[];
+    setSensor('s_agents',`сегодня визитов ${fmt(stt.agents_today)} · вызовов MCP за неделю ${mcp}`,Date.now(),stt.agents_today+'|'+mcp,`агент месяца: ${hf?esc(hf.agent_of_the_month):'—'}`);
+    L.push(`🤖 Агенты: ${fmt(stt.agents_today)} визитов сегодня; чаще всех за 30 дней — ${guests.slice(0,3).map(x=>esc(x.name)+' '+x.n).join(', ')||'—'}; в MCP вызывают ${(stt.mcp_calls_7d||[]).slice(0,3).map(x=>esc(x.name)+' '+x.n).join(', ')||'пока ничего'}`);}
+  if(ta){setSensor('s_tariffs',`${ta.cards.length} карточек банков · обновлено ${dm(ta.updated_at)}`,at(ta.updated_at+'T12:00:00Z'),ta.updated_at+'|'+ta.cards.length+'|'+ta.changes.length);
+    const c=ta.changes[0];if(c)L.push(`🏦 Тарифы, ${dm(c.date)}: ${esc(c.bank)} — ${esc(c.text_ru||c.text)}`);}
+  if(qu){setSensor('s_quality',`проверено ${qu.basket.length} · в очереди ${qu.queue.length}${qu.issues&&qu.issues.length?' · замечаний '+qu.issues.length:''}`,Date.now(),qu.basket.length+'|'+qu.queue.length+'|'+(qu.issues||[]).length,'проверки автора своими руками');
+    L.push(`🔬 Качество Lidl: проверено ${qu.basket.length} продуктов, в очереди ${qu.queue.length}`);}
+  const p0=pl&&pl.places&&pl.places.slice().sort((a,b)=>(b.last_seen||'').localeCompare(a.last_seen||''))[0];
+  if(p0){setSensor('s_places',`${esc(p0.name)} · ${dm(p0.last_seen)}`,at(p0.last_seen+'T12:00:00Z'),p0.id+'|'+p0.last_seen+'|'+p0.observations_count,`мест в хронике: ${pl.places.length}`);
+    L.push(`📍 Места: последняя запись — ${esc(p0.name)}, ${dm(p0.last_seen)}`);}
+  $('oSite').innerHTML=L.map(x=>`<div style="margin-top:3px">${x}</div>`).join('')||'—';
+}
 // ---------- эксперимент «ИИ и радар»: кошелёк SOL торгует по правилам из датчиков (/api/v1/experiment) ----------
 const EXP_RU={'-1':'попутный ветер','0':'спокойно','1':'настороженно','2':'тревога'};
 const expTg=t=>t?['BTC','ETH','SOL','EUR'].filter(c=>t[c]>0.004).map(c=>Math.round(t[c]*100)+'\u00a0% '+c).join(' · '):'';
@@ -401,7 +444,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">Правила v${d.rules.version} записаны заранее, решение раз в день в 08:10. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
