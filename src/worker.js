@@ -928,7 +928,7 @@ async function expRun(env, ctx, force = false) {
   const st = (await sharedGet(env, "exp-state", 1e13)) || { enabled: true, live: false, mode: 0, down_days: 0, last_day: null, paper: null, start: null };
   if (!st.enabled) return { skipped: "stopped" };
   if (!force && st.last_day === today()) return { skipped: "already decided today" };
-  const hasKey = !!(env.KRAKEN_API_KEY && env.KRAKEN_API_SECRET);
+  const hasKey = !!(expClean(env.KRAKEN_API_KEY) && expClean(env.KRAKEN_API_SECRET));
   const [sig, px, info] = await Promise.all([expSignals(env, ctx), expPrices(), expPairs().catch(() => ({}))]);
   // гистерезис: вверх сразу, вниз только после двух спокойных дней подряд
   let mode = st.mode || 0;
@@ -941,7 +941,7 @@ async function expRun(env, ctx, force = false) {
   if (hasKey) h = await expBalances(env);
   else h = st.paper || { SOL: 136.27 / px.SOL.last, BTC: 0, ETH: 0, EUR: 0 };
   if (!st.start || st.start.source !== (source === "paper" ? "paper" : "kraken")) {
-    st.start = { source: source === "paper" ? "paper" : "kraken", day: today(), eur: +expValue(h, px).toFixed(2), sol_qty: h.SOL + (h.EUR + h.BTC * px.BTC.last + h.ETH * px.ETH.last) / px.SOL.last, sol_price: px.SOL.last };
+    st.start = { source: source === "paper" ? "paper" : "kraken", day: today(), eur: +expValue(h, px).toFixed(2), holdings: { ...h }, sol_qty: h.SOL + (h.EUR + h.BTC * px.BTC.last + h.ETH * px.ETH.last) / px.SOL.last, sol_price: px.SOL.last };
     await expLog(env, "start", { ...st.start, rules_version: EXP_RULES.version });
   }
   const orders = expPlan(h, px, target, info), done = [];
@@ -961,7 +961,7 @@ async function expRun(env, ctx, force = false) {
   if (source === "paper") st.paper = h;
   st.mode = mode; st.last_day = today();
   await sharedPut(env, "exp-state", st);
-  const wallet = +expValue(h, px).toFixed(2), hold = +(st.start.sol_qty * px.SOL.last).toFixed(2);
+  const wallet = +expValue(h, px).toFixed(2), hold = +(st.start.holdings ? expValue(st.start.holdings, px) : st.start.sol_qty * px.SOL.last).toFixed(2);
   const rec = { source, rules_version: EXP_RULES.version, signal_mode: sig.mode, mode, mode_name: EXP_RULES.modes[mode].en, alarms: sig.alarms, good: sig.good, inputs: sig.inputs,
     prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last }, holdings: h, wallet_eur: wallet, hold_sol_eur: hold, orders: done };
   await expLog(env, "decision", rec);
@@ -993,7 +993,8 @@ async function expPublic(env, ctx) {
     live: !!(st && st.live), rules: EXP_RULES, mode: st ? st.mode : 0, mode_name: EXP_RULES.modes[st ? st.mode : 0],
     today_signals: now,
     wallet: h && px ? { eur: +expValue(h, px).toFixed(2), holdings: h, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last } } : null,
-    hold_sol: st && st.start && px ? { eur: +(st.start.sol_qty * px.SOL.last).toFixed(2), start: st.start } : null,
+    // сравнение: «ничего не делать» — стартовый кошелёк без сделок
+    hold_sol: st && st.start && px ? { eur: +(st.start.holdings ? expValue(st.start.holdings, px) : st.start.sol_qty * px.SOL.last).toFixed(2), start: st.start } : null,
     impulse: imp, decisions: dec.slice(0, 30), trades: dec.flatMap((d) => (d.orders || []).map((o) => ({ day: d.day, ...o }))).slice(0, 30),
     note: "A public experiment of the Orb Studio author with his own small crypto wallet. Rules are fixed in advance and versioned; every decision is logged with its inputs. Compare wallet with hold_sol to see whether the radar helped.",
   };
@@ -1005,9 +1006,15 @@ async function handleExperiment(url, request, env, ctx) {
     const a = url.searchParams.get("action") || "status";
     const st = (await sharedGet(env, "exp-state", 1e13)) || { enabled: true, live: false, mode: 0, down_days: 0, last_day: null, paper: null, start: null };
     if (a === "run") return json(await expRun(env, ctx, url.searchParams.get("force") === "1"), H);
+    if (a === "perm") {
+      // безопасная проверка права вывода: справка о выводе ничего не выводит; без права Kraken отвечает Permission denied
+      try { await krakenPrivate(env, "/0/private/WithdrawInfo", { asset: "XBT", key: "orb-permission-check", amount: "0.0001" }); return json({ withdraw_permission: "ENABLED (unexpected)" }, H); }
+      catch (e) { const m = String(e.message || e); return json({ withdraw_permission: /Permission denied/i.test(m) ? "disabled" : "enabled_or_unknown", kraken_said: m.slice(0, 160) }, H); }
+    }
     if (a === "balance") {
       const chk = expKeyCheck(env);
       if (!chk.secret_is_base64) return json({ has_key: chk.key_present && chk.secret_present, key_check: chk, balance: null }, H);
+      if (!chk.key_present) return json({ has_key: false, key_check: chk, balance: null }, H);
       try { return json({ has_key: true, key_check: chk, balance: await expBalances(env) }, H); }
       catch (e) { return json({ has_key: true, key_check: chk, error: String(e.message || e).slice(0, 200) }, H); }
     }
