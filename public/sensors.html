@@ -376,28 +376,30 @@ async function loadRoads(){
     d.jams.slice(0,3).map(ln).join('')+d.closures.slice(0,3).map(ln).join('')+
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">стройки: ${m.roadworks} · запланировано: ${m.planned}${d.stale?' · источник не ответил, прошлые данные':''}</div>`;
 }
-// ---------- эксперимент «ИИ и радар»: решение по правилам v1 (пробный расчёт, сделок нет) ----------
-const EXP_START={eur:136.27,coin:'SOL',date:'2026-11-03'};
-const EXP_MODES=[['спокойно','100 % SOL'],['настороженно','40 % SOL · 20 % ETH · 20 % BTC · 20 % EUR'],['тревога','70 % EUR · 30 % BTC']];
+// ---------- эксперимент «ИИ и радар»: кошелёк SOL торгует по правилам из датчиков (/api/v1/experiment) ----------
+const EXP_RU=['спокойно','настороженно','тревога'];
+const EXP_TG=['100 % SOL','40 % SOL · 20 % ETH · 20 % BTC · 20 % EUR','70 % EUR · 30 % BTC'];
+const EXP_SRC={paper:'бумажный кошелёк · Kraken ещё не подключён',kraken_check:'Kraken подключён · проверка без сделок',kraken_live:'реальный счёт Kraken'};
 async function loadExperiment(){
-  const [r,d]=await Promise.all([fetch('/api/v1/radars').then(x=>x.json()),fetch('/api/v1/sensors').then(x=>x.json())]);
-  const R=Object.fromEntries((r.radars||[]).map(x=>[x.id,x])),cr=R.crypto,geo=R.geo,v=d.derivatives||{},st=d.stablecoins||{};
-  if(!cr||!geo)return;
-  const fr=v.funding_relative_pct,b24=v.change_24h_pct,s7=st.change_7d_pct;
-  const sig=fr!=null?fr:0;
-  const alarms=[
-    ['Крипто-радар',`${cr.risk_index} (${cr.delta_24h>=0?'+':''}${cr.delta_24h} за сутки)`,'70 или +10',cr.risk_index>=70||cr.delta_24h>10],
-    ['Гео-радар',`${geo.risk_index}`,'75',geo.risk_index>=75],
-    ['Стейблкоины за неделю',s7==null?'нет данных':`${s7>=0?'+':''}${fmt(s7,2)} %`,'−2 %',s7!=null&&s7<=-2],
-    ['Перегрев: фандинг и BTC за сутки',fr==null?'нет данных':`${fr>=0?'+':''}${fmt(fr,4)} % · ${b24>=0?'+':''}${fmt(b24,1)} %`,'0,01 % и +5 %',fr!=null&&fr>0.01&&b24>5],
-  ];
-  const good=[cr.risk_index<=45&&cr.delta_24h<0,fr!=null&&fr<0,s7!=null&&s7>1].filter(Boolean).length;
-  const n=alarms.filter(a=>a[3]).length;let mode=n>=2?2:n===1?1:0;if(good&&mode>0)mode--;
-  setSensor('exp',`режим <b>${EXP_MODES[mode][0]}</b> · ${EXP_MODES[mode][1]}`,Date.parse(r.generated_at),mode+'|'+n+'|'+good,'пробный расчёт · сделок пока нет');
-  $('oExp').innerHTML=`<div>Сегодня по правилам v1: <b>${EXP_MODES[mode][0]}</b> → ${EXP_MODES[mode][1]}</div>`+
-    alarms.map(a=>`<div style="margin-top:3px">${a[3]?'<b class="up">⚠</b>':'·'} ${a[0]}: <b>${a[1]}</b> <span style="color:var(--dim)">· порог ${a[2]}</span></div>`).join('')+
-    `<div style="margin-top:3px">${good?'✓':'·'} хороших знаков: ${good} из 3</div>`+
-    `<div style="margin-top:6px;color:var(--dim);font-size:12px">Старт: ${fmt(EXP_START.eur,2)} € в Solana. Решение раз в день в 08:10; сейчас пробный режим — ордера не ставятся. Сравнение — «просто держать SOL».</div>`;
+  const d=await fetch('/api/v1/experiment').then(x=>x.json());const t=d.today_signals,w=d.wallet,hs=d.hold_sol,mode=d.mode||0;
+  const eur=v=>fmt(v,2)+' €';
+  setSensor('exp',`режим <b>${EXP_RU[mode]}</b>${w?` · кошелёк <b>${eur(w.eur)}</b>`:''}${hs?` · просто держать SOL: ${eur(hs.eur)}`:''}`,d.decisions&&d.decisions[0]?d.decisions[0].ts:Date.now(),mode+'|'+(w?Math.round(w.eur*10):'')+'|'+(d.trades||[]).length,EXP_SRC[d.status]||d.status);
+  let h=`<div>Режим: <b>${EXP_RU[mode]}</b> → ${EXP_TG[mode]}</div>`;
+  if(w){const hd=w.holdings,px=w.prices,part=c=>hd[c]>1e-9?`${c} ${fmt(hd[c],c==='EUR'?2:4)}`:null;
+    const diff=hs?w.eur-hs.eur:null;
+    h+=`<div style="margin-top:3px">Кошелёк: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
+      (hs?`<div style="margin-top:3px">Просто держать SOL: <b>${eur(hs.eur)}</b> · радар ${diff>=0?'<b class="dn">впереди на ':'<b class="up">позади на '}${eur(Math.abs(diff))}</b> · старт ${eur(hs.start.eur)} ${hs.start.day.slice(8,10)}.${hs.start.day.slice(5,7)}</div>`:'');}
+  if(t){const I=t.inputs,al=t.alarms,row=(on,name,val,thr)=>`<div style="margin-top:3px">${on?'<b class="up">⚠</b>':'·'} ${name}: <b>${val}</b> <span style="color:var(--dim)">· порог ${thr}</span></div>`,sg=v=>(v>=0?'+':'')+fmt(v,2);
+    h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">СИГНАЛЫ СЕЙЧАС</div>`+
+      (I.crypto?row(al.crypto,'Крипто-радар',`${I.crypto.lvl} (${I.crypto.d>=0?'+':''}${I.crypto.d} за сутки)`,'70 или +10'):'')+
+      (I.geo?row(al.geo,'Гео-радар',I.geo.lvl,'75'):'')+
+      row(al.stables,'Стейблкоины за неделю',I.stables_7d_pct==null?'нет данных':sg(I.stables_7d_pct)+' %','−2 %')+
+      row(al.overheat,'Перегрев: фандинг · BTC за сутки',I.funding_pct==null?'нет данных':`${(I.funding_pct>=0?'+':'')+fmt(I.funding_pct,4)} % · ${sg(I.btc_24h_pct)} %`,'0,01 % и +5 %')+
+      `<div style="margin-top:3px">${t.good?'✓':'·'} хороших знаков: ${t.good} из 3</div>`;}
+  const tr=(d.trades||[]).filter(o=>o.status!=='error').slice(0,3);
+  if(tr.length)h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">ПОСЛЕДНИЕ СДЕЛКИ</div>`+tr.map(o=>`<div style="margin-top:2px">${o.side==='sell'?'🔻 продажа':'🔺 покупка'} ${fmt(o.volume,4)} ${o.coin} ≈ ${eur(o.approx_eur)} · ${o.day.slice(8,10)}.${o.day.slice(5,7)}${o.status==='paper'?' · на бумаге':o.status==='validated'?' · проверка':''}</div>`).join('');
+  h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">Правила v${d.rules.version} записаны заранее, решение раз в день в 08:10. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
+  $('oExp').innerHTML=h;
 }
 const LOADERS={exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}

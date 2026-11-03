@@ -28,3 +28,6 @@ STARLINK_URL = "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source
 binding = "DB"
 database_name = "orb-stats"
 database_id = "cc198d25-bd17-4f41-8785-6eea22bb6667"
+
+[triggers]
+crons = ["10 7 * * *"]
