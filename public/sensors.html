@@ -184,6 +184,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sgrp">Рынок и сеть</div>
       <div class="sn" data-s="deriv"><div class="nm"><i></i>⚙ Деривативы · Kraken Futures</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="vol"><div class="nm"><i></i>📈 Скачки волатильности · Kraken</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="attn"><div class="nm"><i></i>👁 Коллективное внимание · Википедия</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="chain"><div class="nm"><i></i>⛓ Сеть биткоина</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="internet"><div class="nm"><i></i>🌐 Интернет: сбои и блокировки</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="sanctions"><div class="nm"><i></i>🚢 Санкции против судов</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -230,6 +231,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="power"><div class="k">Электричество · биржа DE-LU, без сетей и налогов</div><div class="v" id="oPower">—</div></div>
       <div class="row" data-o="macro"><div class="k">ЕЦБ и инфляция еврозоны</div><div class="v" id="oMacro">—</div></div>
       <div class="row" data-o="vol"><div class="k">Скачки волатильности · часовые свечи Kraken</div><div class="v" id="oVol">—</div></div>
+      <div class="row" data-o="attn"><div class="k">Коллективное внимание · просмотры Википедии вчера против обычного дня</div><div class="v" id="oAttn">—</div></div>
       <div class="row" data-o="stables"><div class="k">Стейблкоины · всего в обращении</div><div class="v" id="oStab">—</div></div>
       <div class="row" data-o="site"><div class="k">Сайт Orb Studio · что нового</div><div class="v" id="oSite">—</div></div>
       <div class="row" data-o="exp"><div class="k">Эксперимент · ИИ торгует по радару</div><div class="v" id="oExp">—</div></div>
@@ -291,7 +293,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,s_david:30,s_music:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -376,6 +378,13 @@ async function loadMarket(){
     setSensor('power',`${fmt(pw.now_ct_kwh,1)} ct/kWh биржа${pw.renewables?' · ветер и солнце '+pw.renewables.renewable_share_pct+' %':''}`,Date.parse(pw.now_at),pw.now_eur_mwh+'|'+pw.tomorrow_published);
     const rng=(x,l)=>x?`${l}: ${fmt(x.min_eur_mwh)}–${fmt(x.max_eur_mwh)} €/MWh, в среднем ${fmt(x.avg_eur_mwh)}${x.negative_quarter_hours?` · отрицательная цена ${x.negative_quarter_hours/4} ч`:''}`:'';
     $('oPower').innerHTML=`Сейчас <b>${fmt(pw.now_eur_mwh)} €/MWh</b> (${fmt(pw.now_ct_kwh,1)} ct/kWh)${pw.renewables?` · ветер и солнце <b>${pw.renewables.renewable_share_pct} %</b>`:''}<br>${rng(pw.today,'Сегодня')}${pw.tomorrow?'<br>'+rng(pw.tomorrow,'Завтра'):'<br><span style="color:var(--dim)">цены на завтра публикуются около 13:00</span>'}${pw.cheapest_3h?`<br>Дешевле всего: ${dayw(pw.cheapest_3h.from)} ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${fmt(pw.cheapest_3h.avg_eur_mwh)} €/MWh)`:''}${pw.most_expensive_3h?` · дороже всего: ${dayw(pw.most_expensive_3h.from)} ${hm(pw.most_expensive_3h.from)}–${hm(pw.most_expensive_3h.to)}`:''}<br><small style="color:var(--dim)">Это оптовая цена биржи; счёт дома выше на сети, налоги и сборы.</small>${stl(pw)}`;}
+  const at=d.attention;
+  if(at&&at.articles){const RN2={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'},top=at.articles[0],su=at.surges||[],dd2=x=>x.slice(8,10)+'.'+x.slice(5,7);
+    setSensor('attn',su.length?`<b class="up">⚡ всплеск</b> · ${esc(su[0].article)} ×${fmt(su[0].ratio,1)}`:`спокойно · больше всех: ${esc(top.article)} ×${fmt(top.ratio,1)}`,Date.parse(at.at),at.day+'|'+su.map(x=>x.article).join(),'данные за '+dd2(at.day)+' · обновляются раз в день');
+    const mx=Math.max(...at.articles.slice(0,6).map(a=>a.ratio),2.5);
+    $('oAttn').innerHTML=`<div class="bars">`+at.articles.slice(0,6).map(a=>`<div><span title="${esc(a.article)}">${esc(({'European Central Bank':'ECB','Federal Reserve':'Fed','Russo-Ukrainian war':'Ukraine war','Artificial intelligence':'AI','Strait of Hormuz':'Hormuz','Price of oil':'Oil price'})[a.article]||a.article)}</span><i><b style="width:${Math.min(100,Math.round(a.ratio/mx*100))}%;background:${a.ratio>=2.5?'var(--hot)':a.ratio>=1.5?'var(--warm)':'var(--holo)'}"></b></i><span>×${fmt(a.ratio,1)}</span></div>`).join('')+`</div>`+
+      (su.length?su.slice(0,3).map(x=>`<div style="margin-top:4px">⚡ <b>${esc(x.article)}</b> — ${fmt(x.views)} читателей за день, обычно ~${fmt(at.articles.find(a=>a.article===x.article).usual)} · радар ${RN2[x.radar]||x.radar}</div>`).join(''):'')+
+      `<div style="margin-top:4px;color:var(--dim);font-size:12px">Сколько людей читали статьи Википедии на темы радаров вчера, по сравнению с обычным днём за 4 недели. Всплеск ×2,5 и выше — люди массово ищут тему, часто ещё до больших новостей.${at.stale?' · источник не ответил, прошлое значение':''}</div>`;}
   const vl=d.volatility;
   if(vl&&vl.coins){const hm=t=>{const d=new Date(t),day=x=>x.toLocaleDateString('sv-SE',{timeZone:'Europe/Berlin'});return (day(d)===day(new Date())?'':'вчера ')+d.toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})},sp=vl.spikes_24h||[],last=sp[0];
     const why=x=>`${x.move_pct>=0?'+':''}${fmt(x.move_pct,2)}\u00a0% за час${x.volume_vs_week_median>=5?' · объём ×'+fmt(x.volume_vs_week_median,1):''}`;
