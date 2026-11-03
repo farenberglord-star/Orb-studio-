@@ -2154,32 +2154,6 @@ async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
-    // Эльба: уровень воды (PEGELONLINE, WSV, открытые данные DL-DE Zero 2.0) — Гамбург St. Pauli и Куксхафен (вход в Эльбу)
-    elbe: async () => {
-      const B = "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/", S = { hamburg: "HAMBURG ST. PAULI", cuxhaven: "CUXHAVEN STEUBENHÖFT" }, gauges = {};
-      await Promise.all(Object.entries(S).map(async ([id, name]) => {
-        const e = encodeURIComponent(name);
-        const [st, ms] = await Promise.all([sensorsFetchJson(`${B}${e}.json?includeTimeseries=true&includeCurrentMeasurement=true&includeCharacteristicValues=true`),
-          sensorsFetchJson(`${B}${e}/W/measurements.json?start=P1D`)]);
-        const ts = (st.timeseries || []).find((t) => t.shortname === "W");
-        if (!ts || !ts.currentMeasurement) throw new Error("no W at " + name);
-        const cv = Object.fromEntries((ts.characteristicValues || []).map((c) => [c.shortname, c.value]));
-        const now = Date.now(), last13 = (ms || []).filter((m) => now - Date.parse(m.timestamp) < 13 * 3600e3);
-        const hi = last13.reduce((a, m) => (!a || m.value > a.value ? m : a), null), lo = last13.reduce((a, m) => (!a || m.value < a.value ? m : a), null);
-        const prev = (ms || []).filter((m) => now - Date.parse(m.timestamp) < 75 * 60e3 && now - Date.parse(m.timestamp) > 45 * 60e3)[0];
-        const mthw = cv.MThw ?? cv.MHThw ?? null, mtnw = cv.MTnw ?? cv.MNTnw ?? null;
-        gauges[id] = { station: st.longname || name, water: (st.water && st.water.longname) || "ELBE", unit: ts.unit, gauge_zero: ts.gaugeZero || null,
-          level_cm: ts.currentMeasurement.value, at: ts.currentMeasurement.timestamp, trend: prev ? (ts.currentMeasurement.value > prev.value + 2 ? "rising" : ts.currentMeasurement.value < prev.value - 2 ? "falling" : "steady") : null,
-          state: ts.currentMeasurement.stateMnwMhw || null, mean_high_water_cm: mthw, mean_low_water_cm: mtnw,
-          vs_mean_high_water_cm: mthw != null ? Math.round(ts.currentMeasurement.value - mthw) : null,
-          last_high: hi ? { cm: hi.value, at: hi.timestamp } : null, last_low: lo ? { cm: lo.value, at: lo.timestamp } : null,
-          tidal_range_cm: hi && lo ? Math.round(hi.value - lo.value) : null, characteristic: cv };
-      }));
-      const h = gauges.hamburg, surge = h && h.mean_high_water_cm != null && h.last_high ? h.last_high.cm - h.mean_high_water_cm : null;
-      return { source: "PEGELONLINE, Federal Waterways and Shipping Administration (WSV)", source_url: "https://www.pegelonline.wsv.de", license: "Datenlizenz Deutschland – Zero – 2.0",
-        note: "Water level in cm above the gauge zero (PNP). Storm surge in Hamburg starts at 1.5 m above mean high water (BSH); very low tides limit the deepest container ships.",
-        gauges, storm_surge: surge != null && surge >= 150, high_water_vs_mean_cm: surge != null ? Math.round(surge) : null, at: new Date().toISOString() };
-    },
     // скачки волатильности: часовые свечи Kraken за 30 дней; всплеск = движение за час ≥ 4 обычных, или объём ≥ 5× медианы недели вместе с движением ≥ 1,5 обычных
     volatility: async () => {
       const C = { BTC: "XBTEUR", ETH: "ETHEUR", SOL: "SOLEUR", XRP: "XRPEUR" }, coins = {}, spikes = [];
