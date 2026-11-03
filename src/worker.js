@@ -2099,7 +2099,7 @@ async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
-    // скачки волатильности: часовые свечи Kraken за 30 дней; всплеск = объём за час в 3+ раза выше медианы недели или движение за час ≥ 4 обычных
+    // скачки волатильности: часовые свечи Kraken за 30 дней; всплеск = движение за час ≥ 4 обычных, или объём ≥ 5× медианы недели вместе с движением ≥ 1,5 обычных
     volatility: async () => {
       const C = { BTC: "XBTEUR", ETH: "ETHEUR", SOL: "SOLEUR", XRP: "XRPEUR" }, coins = {}, spikes = [];
       await Promise.all(Object.entries(C).map(async ([c, pair]) => {
@@ -2117,12 +2117,12 @@ async function sensorsCompute(prev, env) {
           volume_vs_week_median: +vr.toFixed(2), move_24h_pct: +((cl[n] / cl[n - 24] - 1) * 100).toFixed(2), volatility_24h_vs_30d: +rv.toFixed(2) };
         for (let i = n - 23; i <= n; i++) {
           const w = vo.slice(Math.max(0, i - 168), i), v = vo[i] / med(w), zz = Math.log(cl[i] / op[i]) / sd30;
-          if (v >= 3 || Math.abs(zz) >= 4) spikes.push({ coin: c, hour_end: new Date(ts[i] + 3600e3).toISOString(), volume_vs_week_median: +v.toFixed(1), z: +zz.toFixed(1), move_pct: +((cl[i] / op[i] - 1) * 100).toFixed(2) });
+          if (Math.abs(zz) >= 4 || (v >= 5 && Math.abs(zz) >= 1.5)) spikes.push({ coin: c, hour_end: new Date(ts[i] + 3600e3).toISOString(), volume_vs_week_median: +v.toFixed(1), z: +zz.toFixed(1), move_pct: +((cl[i] / op[i] - 1) * 100).toFixed(2) });
         }
       }));
       spikes.sort((a, b) => b.hour_end.localeCompare(a.hour_end));
       return { source: "Kraken public market data, hourly candles (OHLC), 30 days", source_url: "https://docs.kraken.com/api/docs/rest-api/get-ohlc-data",
-        rule: "spike = hourly volume ≥ 3× the median hour of the past week, or an hourly move ≥ 4 typical hourly moves (z, 30-day standard deviation)",
+        rule: "spike = an hourly move ≥ 4 typical hourly moves (z, 30-day standard deviation), or hourly volume ≥ 5× the median hour of the past week together with a move ≥ 1.5 typical moves (big single trades without a price move are not spikes)",
         coins, spikes_24h: spikes.slice(0, 12), spike_now: spikes.some((x) => Date.now() - Date.parse(x.hour_end) < 2 * 3600e3), at: new Date().toISOString() };
     },
     derivatives: async () => {
