@@ -1088,6 +1088,8 @@ async function readStats(env, page) {
   const krakenBots = (await env.DB.prepare("SELECT substr(name, 7) AS name, SUM(n) AS n FROM hits WHERE kind='kraken' AND name LIKE 'agent:%' AND day>=?1 GROUP BY name ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
   return { enabled: true, page, page_total: pageTotal, page_today: pageToday, site_total: siteTotal, site_today: siteToday,
     agents_today: agentsToday, agents_total: agentsTotal, top_agents_7d: top,
+    // что агенты реально вызывают в MCP (инструменты, сценарии, ресурсы), без наших проверок
+    mcp_calls_7d: ((await env.DB.prepare("SELECT substr(page, 6) AS name, SUM(n) AS n FROM hits WHERE kind='agent' AND page LIKE '/mcp/%' AND day>=?1 AND name NOT LIKE '%selftest%' AND name NOT LIKE '%orb-%' GROUP BY page ORDER BY n DESC LIMIT 12").bind(week).all()).results || []),
     kraken_clicks_today: krakenToday, kraken_clicks_total: krakenTotal,
     kraken_humans_today: krHumansToday, kraken_humans_total: krHumansTotal,
     kraken_bots_today: krakenToday - krHumansToday, kraken_bots_total: krakenTotal - krHumansTotal,
@@ -3462,6 +3464,60 @@ async function mcpTool(name, args, env, ctx, origin, request) {
 }
 
 const MCP_HEADERS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, accept, mcp-protocol-version, mcp-session-id, authorization", "Access-Control-Expose-Headers": "mcp-session-id", "Cache-Control": "no-store" };
+// ================= MCP: ресурсы, готовые сценарии (prompts) и карточка сервера =================
+// Ресурсы — те же данные, что у инструментов, но клиент может просто «приложить» их к разговору.
+const MCP_RESOURCES = [
+  { uri: "https://orbstudio.org/api/v1/broadcast/latest", name: "broadcast", title: "Latest broadcast", tool: "get_broadcast", args: { lang: "en" }, description: "Top headlines across all radars with short anchor lines and the track of the day." },
+  { uri: "https://orbstudio.org/api/v1/radars", name: "radars", title: "All news radars", tool: "get_radars", args: {}, description: "Risk index 0–100 and 24h change for every radar." },
+  { uri: "https://orbstudio.org/api/v1/sensors", name: "sensors", title: "Sensors", tool: "get_sensors", args: {}, description: "Open market and network data: power price, internet outages, sanctions, Bitcoin, ECB, inflation." },
+  { uri: "https://orbstudio.org/api/v1/live", name: "live", title: "Live as text", tool: "get_live", args: {}, description: "Official events schedule (ECB, Fed, Bundestag, launches, AI events) and their text afterwards." },
+  { uri: "https://orbstudio.org/api/v1/bridge", name: "bridge", title: "Captain's bridge", tool: "get_bridge", args: {}, description: "Crisis instruments and ways out proposed and rated by humans and AI agents." },
+  { uri: "https://orbstudio.org/api/v1/predict", name: "prediction", title: "Humans vs AI forecast", tool: "get_prediction", args: {}, description: "Today's forecast question and 30-day accuracy of humans vs verified AI." },
+  { uri: "https://orbstudio.org/api/v1/music", name: "music", title: "Orb Studio songs", tool: "get_tracks", args: {}, description: "Songs made from the radars and sensors: lyrics, style, mood, BPM, listen links." },
+];
+const MCP_LANG = { description: "Answer language: ru, de or en (default en)" };
+const MCP_PROMPTS = [
+  { name: "morning_briefing", title: "Orb Studio morning briefing", description: "A short morning briefing: main stories, risk index, key sensor readings and today's events.", arguments: [{ name: "lang", ...MCP_LANG, required: false }], tool: "get_broadcast",
+    text: (a) => `Give me a short morning briefing from Orb Studio in ${a.lang}. Use the attached broadcast, then call get_sensors and get_live for today's numbers and events. 5–8 lines: the main stories with the radar and its risk index, 2–3 key sensor readings with their time, and today's scheduled events. Link the original sources. Say plainly that the indices are indicators, not forecasts.` },
+  { name: "what_changed", title: "What changed in 24 hours", description: "Which radars moved most in the last 24 hours and which headlines drove it.", arguments: [{ name: "lang", ...MCP_LANG, required: false }], tool: "get_radars",
+    text: (a) => `In ${a.lang}: using the attached radars, tell me which Orb Studio radars changed most in the last 24 hours. For the two biggest moves call get_radar and name the headlines behind the change, with source links. Keep it short and factual.` },
+  { name: "ask_david", title: "Ask anchor David", description: "Send a question to Orb Studio's AI news anchor David; the best ones are answered on air.", arguments: [{ name: "question", description: "Your question (10–500 characters, any language)", required: true }],
+    text: (a) => `Please send this question to Orb Studio's anchor David with the ask_david tool and tell me the question id so I can check it later with get_question_status:\n\n${a.question}` },
+  { name: "crisis_exit", title: "Where humans and AI agree on a way out", description: "One crisis from the captain's bridge: ways out where humans and AI agents agree or split.", arguments: [{ name: "crisis", description: "Crisis id: " + BRIDGE_CRISES.map((c) => c.id).join(", "), required: true }, { name: "lang", ...MCP_LANG, required: false }],
+    text: (a) => `In ${a.lang}: call get_crisis with crisis "${a.crisis}". Show the instrument level and direction, then the proposed ways out where humans and AI agents agree, and where they split. Do not invent votes: use only the numbers returned.` },
+  { name: "sensor_check", title: "Sensor readings explained", description: "Current Orb Studio sensor readings in plain words, each with its source and time.", arguments: [{ name: "lang", ...MCP_LANG, required: false }], tool: "get_sensors",
+    text: (a) => `In ${a.lang}: explain the attached Orb Studio sensor readings in plain words — one line per sensor with the value, its time and the source. Point out anything unusual (outages, a price spike, new sanctioned ships). No investment advice.` },
+];
+async function mcpPromptGet(name, args, env, ctx, origin, request) {
+  const p = MCP_PROMPTS.find((x) => x.name === name);
+  if (!p) return null;
+  const a = { ...args, lang: { ru: "Russian", de: "German", en: "English" }[String(args.lang || "en").toLowerCase()] || "English" };
+  for (const arg of p.arguments) if (arg.required && !args[arg.name]) throw new Error("Missing argument: " + arg.name);
+  const messages = [{ role: "user", content: { type: "text", text: p.text(a) } }];
+  if (p.tool) {
+    const r = MCP_RESOURCES.find((x) => x.tool === p.tool);
+    const data = await mcpTool(p.tool, p.tool === "get_broadcast" ? { lang: String(args.lang || "en").toLowerCase() } : {}, env, ctx, origin, request);
+    messages.push({ role: "user", content: { type: "resource", resource: { uri: r ? r.uri : origin + "/mcp", mimeType: "application/json", text: JSON.stringify(data) } } });
+  }
+  return { description: p.description, messages };
+}
+function mcpServerCard(origin) {
+  return {
+    $schema: "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
+    version: "1.0", protocolVersion: MCP_VERSIONS[1],
+    serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.2.0", websiteUrl: "https://orbstudio.org" },
+    description: "Read-only news radars with AI anchors, open market and network sensors, a humans-vs-AI forecast, and a captain's bridge where humans and AI agents propose and rate ways out of crises. Free, no sign-up.",
+    iconUrl: "https://orbstudio.org/media/david-poster.jpg", documentationUrl: "https://orbstudio.org/llms.txt",
+    transport: { type: "streamable-http", url: origin + "/mcp" },
+    authentication: { required: false },
+    capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
+    instructions: MCP_INSTRUCTIONS,
+    tools: MCP_TOOLS.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations })),
+    prompts: MCP_PROMPTS.map(({ name, title, description, arguments: a }) => ({ name, title, description, arguments: a })),
+    resources: MCP_RESOURCES.map(({ uri, name, title, description }) => ({ uri, name, title, description, mimeType: "application/json" })),
+    contact: { website: "https://orbstudio.org", agent_card: "https://orbstudio.org/.well-known/agent.json" },
+  };
+}
 async function handleMcp(request, env, ctx, origin) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: MCP_HEADERS });
   if (request.method !== "POST") {
@@ -3484,8 +3540,8 @@ async function handleMcp(request, env, ctx, origin) {
         const client = (m.params && m.params.clientInfo && m.params.clientInfo.name) || ua;
         ctx.waitUntil(recordHit(env, "/mcp", "agent", "MCP · " + String(client).slice(0, 30)));
         return ok({ protocolVersion: MCP_VERSIONS.includes(want) ? want : MCP_VERSIONS[1],
-          capabilities: { tools: { listChanged: false } },
-          serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.1.0", websiteUrl: "https://orbstudio.org" },
+          capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
+          serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.2.0", websiteUrl: "https://orbstudio.org" },
           instructions: MCP_INSTRUCTIONS });
       }
       case "ping": return ok({});
@@ -3501,8 +3557,22 @@ async function handleMcp(request, env, ctx, origin) {
           return ok({ content: [{ type: "text", text: String(e && e.message || e).slice(0, 300) }], isError: true });
         }
       }
-      case "resources/list": return ok({ resources: [] });
-      case "prompts/list": return ok({ prompts: [] });
+      case "resources/list": return ok({ resources: MCP_RESOURCES.map(({ uri, name, title, description }) => ({ uri, name, title, description, mimeType: "application/json" })) });
+      case "resources/templates/list": return ok({ resourceTemplates: [] });
+      case "resources/read": {
+        const uri = m.params && m.params.uri, r = MCP_RESOURCES.find((x) => x.uri === uri);
+        if (!r) return err(-32002, "Resource not found: " + uri);
+        ctx.waitUntil(recordHit(env, "/mcp/resource/" + r.name, "agent", "MCP · " + ua));
+        try { return ok({ contents: [{ uri: r.uri, mimeType: "application/json", text: JSON.stringify(await mcpTool(r.tool, r.args, env, ctx, origin, request)) }] }); }
+        catch (e) { return err(-32603, String(e && e.message || e).slice(0, 300)); }
+      }
+      case "prompts/list": return ok({ prompts: MCP_PROMPTS.map(({ name, title, description, arguments: a }) => ({ name, title, description, arguments: a })) });
+      case "prompts/get": {
+        const name = m.params && m.params.name;
+        ctx.waitUntil(recordHit(env, "/mcp/prompt/" + String(name).slice(0, 40), "agent", "MCP · " + ua));
+        try { const r = await mcpPromptGet(name, (m.params && m.params.arguments) || {}, env, ctx, origin, request); return r ? ok(r) : err(-32602, "Unknown prompt: " + name); }
+        catch (e) { return err(-32602, String(e && e.message || e).slice(0, 300)); }
+      }
       default:
         if (isNote || m.method.startsWith("notifications/")) return null;
         return err(-32601, "Method not found: " + m.method);
@@ -3747,6 +3817,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/stats") {
       const page = (url.searchParams.get("page") || "home").slice(0, 20);
       return json(await readStats(env, PAGES.has(page) ? page : "home"), { "Cache-Control": "no-store" });
+    }
+    // карточка MCP-сервера: список инструментов, сценариев и ресурсов без подключения
+    if (url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/.well-known/mcp.json" || url.pathname === "/.well-known/mcp") {
+      return new Response(JSON.stringify(mcpServerCard(url.origin), null, 2), { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } });
     }
     if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/go/") || url.pathname === "/me") {
       try {
