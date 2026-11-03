@@ -248,10 +248,10 @@ details.machine a{color:var(--holo)}
     <a href="/hall">Ehrentafel 🏆</a>
     <a href="/indices">Indizes 👻</a>
     <a href="/music">Musik 🎵</a>
-    <a href="/radar">Импульсы 🌍</a>
+    <a href="/radar">Impulse 🌍</a>
     <a href="/prices">Preise 🧾</a>
     <a href="/quality">Qualität 🔬</a>
-    <a href="/tariffs">Тарифы 🏦</a>
+    <a href="/tariffs">Tarife 🏦</a>
     <a href="/archive">Archiv 🗄</a>
     <a href="/followups">Was dann geschah 🕰</a>
     <a href="/places">Orte 📍</a>
@@ -536,18 +536,6 @@ details.machine a{color:var(--holo)}
     <h3>agent.json</h3>
     <pre class="script" id="agentCard" style="margin-top:8px"></pre>
   </div>
-  <div class="box sec" style="margin-top:16px" id="statsBox">
-    <div class="sechead" style="margin-bottom:0"><h3>Orb Studio Statistik</h3><span class="eyebrow" id="statsNote">lädt…</span></div>
-    <div class="stats">
-      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">AUFRUFE HEUTE</div></div>
-      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">AUFRUFE GESAMT</div></div>
-      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">KI-AGENTEN HEUTE</div></div>
-      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">AGENTENBESUCHE GESAMT</div></div>
-      <div class="stat"><div class="v" id="sKrToday" style="color:var(--holo2)">—</div><div class="k">ZU KRAKEN GEKLICKT HEUTE</div><div class="k" id="sKrBotsToday" style="margin-top:4px"></div></div>
-      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">ZU KRAKEN GEKLICKT GESAMT</div><div class="k" id="sKrBotsTotal" style="margin-top:4px"></div></div>
-    </div>
-    <div class="toplist"><div><div class="eyebrow">Welche Agenten lesen · 7 Tage</div><div id="sTop">—</div></div><div><div class="eyebrow">Woher Kraken-Klicks kommen · 7 Tage</div><div id="sKrFrom">—</div></div></div>
-  </div>
   <aside class="krb" aria-label="Kraken — Empfehlungslink von Orb Studio">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
     <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
@@ -584,6 +572,18 @@ details.machine a{color:var(--holo)}
 
 <details class="machine" id="machineBox"><summary>Textversion der Sendung · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Live-Schlagzeilen setzt der Server ein. Maschinendaten: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p></section></details>
 
+  <div class="box sec" style="margin-top:22px" id="statsBox">
+    <div class="sechead" style="margin-bottom:0"><h3>Orb Studio Statistik</h3><span class="eyebrow" id="statsNote">lädt…</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">AUFRUFE HEUTE</div></div>
+      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">AUFRUFE GESAMT</div></div>
+      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">KI-AGENTEN HEUTE</div></div>
+      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">AGENTENBESUCHE GESAMT</div></div>
+      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">MENSCHEN ZU KRAKEN</div><div class="k" id="sKrSub" style="margin-top:4px"></div></div>
+      <div class="stat"><div class="v" id="sSlTotal" style="color:var(--warm)">—</div><div class="k">MENSCHEN ZU STARLINK</div><div class="k" id="sSlSub" style="margin-top:4px"></div></div>
+    </div>
+    <div class="toplist"><div><div class="eyebrow">Welche Agenten lesen · 7 Tage</div><div id="sTop">—</div></div><div><div class="eyebrow">Woher Kraken-Klicks kommen · 7 Tage</div><div id="sKrFrom">—</div></div></div>
+  </div>
 <footer id="footNote">Orb-Studio-Prototyp auf Basis von GeoQuant Orb. Schlagzeilen, Indizes und Texte auf dieser Seite sind Beispiele zur Demonstration, keine echten Nachrichten. Indikatoren, keine Anlageberatung, es werden keine Orders gesendet.</footer>
 </main>
 
@@ -660,8 +660,9 @@ function showStats(st,page){
   c.title=`Diese Seite: ${fmt(st.page_today)} heute, ${fmt(st.page_total)} gesamt. KI-Agenten heute: ${fmt(st.agents_today)}`;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fmt(v)};
   set('sSiteToday',st.site_today);set('sSiteTotal',st.site_total);set('sAgentsToday',st.agents_today);set('sAgentsTotal',st.agents_total);
-  set('sKrToday',st.kraken_humans_today??st.kraken_clicks_today);set('sKrTotal',st.kraken_humans_total??st.kraken_clicks_total);
-  const bt=document.getElementById('sKrBotsToday'),bT=document.getElementById('sKrBotsTotal');if(bt)bt.textContent='+ Bots: '+fmt(st.kraken_bots_today);if(bT)bT.textContent='+ Bots: '+fmt(st.kraken_bots_total);
+  set('sKrTotal',st.kraken_humans_total??st.kraken_clicks_total);set('sSlTotal',st.starlink_humans_total);
+  const sub=(id,today,bots)=>{const e=document.getElementById(id);if(e)e.innerHTML='heute '+fmt(today)+'<br>'+'+ Bots: '+fmt(bots)};
+  sub('sKrSub',st.kraken_humans_today,st.kraken_bots_total);sub('sSlSub',st.starlink_humans_today,(st.starlink_clicks_total||0)-(st.starlink_humans_total||0));
   const li=(arr,k)=>arr&&arr.length?arr.map(x=>`<div>${esc(x[k])} · <span>${fmt(x.n)}</span></div>`).join(''):'<div>noch keine</div>';
   document.getElementById('sTop').innerHTML=li(st.top_agents_7d,'name');document.getElementById('sKrFrom').innerHTML=li(st.kraken_by_source_7d,'source');
   document.getElementById('statsNote').textContent='aktualisiert '+new Date().toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});

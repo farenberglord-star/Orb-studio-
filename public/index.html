@@ -531,18 +531,6 @@ details.machine a{color:var(--holo)}
     <h3>agent.json</h3>
     <pre class="script" id="agentCard" style="margin-top:8px"></pre>
   </div>
-  <div class="box sec" style="margin-top:16px" id="statsBox">
-    <div class="sechead" style="margin-bottom:0"><h3>Статистика Orb Studio</h3><span class="eyebrow" id="statsNote">загрузка…</span></div>
-    <div class="stats">
-      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">ПРОСМОТРОВ СЕГОДНЯ</div></div>
-      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">ПРОСМОТРОВ ВСЕГО</div></div>
-      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">ВИЗИТОВ ИИ-АГЕНТОВ СЕГОДНЯ</div></div>
-      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">ВИЗИТОВ АГЕНТОВ ВСЕГО</div></div>
-      <div class="stat"><div class="v" id="sKrToday" style="color:var(--holo2)">—</div><div class="k">ЛЮДИ ПЕРЕШЛИ НА KRAKEN СЕГОДНЯ</div><div class="k" id="sKrBotsToday" style="margin-top:4px"></div></div>
-      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">ЛЮДИ ПЕРЕШЛИ НА KRAKEN ВСЕГО</div><div class="k" id="sKrBotsTotal" style="margin-top:4px"></div></div>
-    </div>
-    <div class="toplist"><div><div class="eyebrow">Какие агенты читают · 7 дней</div><div id="sTop">—</div></div><div><div class="eyebrow">Откуда люди кликают Kraken · 7 дней</div><div id="sKrFrom">—</div></div></div>
-  </div>
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
     <svg class="krb-sonar" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#b9aeff"><circle cx="100" cy="100" r="30" stroke-opacity=".5"/><circle cx="100" cy="100" r="55" stroke-opacity=".35"/><circle cx="100" cy="100" r="80" stroke-opacity=".22"/><circle cx="100" cy="100" r="98" stroke-opacity=".12"/></g><path d="M100 100 L100 2 A98 98 0 0 1 185 51 Z" fill="#b9aeff" fill-opacity=".14"/></svg>
     <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
@@ -579,6 +567,18 @@ details.machine a{color:var(--holo)}
 
 <details class="machine" id="machineBox"><summary>Текстовая версия эфира · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Живые заголовки подставляются сервером. Машинные данные: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p></section></details>
 
+  <div class="box sec" style="margin-top:22px" id="statsBox">
+    <div class="sechead" style="margin-bottom:0"><h3>Статистика Orb Studio</h3><span class="eyebrow" id="statsNote">загрузка…</span></div>
+    <div class="stats">
+      <div class="stat"><div class="v" id="sSiteToday">—</div><div class="k">ПРОСМОТРОВ СЕГОДНЯ</div></div>
+      <div class="stat"><div class="v" id="sSiteTotal">—</div><div class="k">ПРОСМОТРОВ ВСЕГО</div></div>
+      <div class="stat"><div class="v" id="sAgentsToday">—</div><div class="k">ВИЗИТОВ ИИ-АГЕНТОВ СЕГОДНЯ</div></div>
+      <div class="stat"><div class="v" id="sAgentsTotal">—</div><div class="k">ВИЗИТОВ АГЕНТОВ ВСЕГО</div></div>
+      <div class="stat"><div class="v" id="sKrTotal" style="color:var(--holo2)">—</div><div class="k">ЛЮДИ ПЕРЕШЛИ НА KRAKEN</div><div class="k" id="sKrSub" style="margin-top:4px"></div></div>
+      <div class="stat"><div class="v" id="sSlTotal" style="color:var(--warm)">—</div><div class="k">ЛЮДИ ПЕРЕШЛИ НА STARLINK</div><div class="k" id="sSlSub" style="margin-top:4px"></div></div>
+    </div>
+    <div class="toplist"><div><div class="eyebrow">Какие агенты читают · 7 дней</div><div id="sTop">—</div></div><div><div class="eyebrow">Откуда люди кликают Kraken · 7 дней</div><div id="sKrFrom">—</div></div></div>
+  </div>
 <footer id="footNote">Прототип Orb Studio на основе GeoQuant Orb. Заголовки, индексы и реплики на этой странице — примеры для показа механики, не реальные новости. Индикаторы, не инвестиционный совет, ордера не отправляются.</footer>
 </main>
 
@@ -655,8 +655,9 @@ function showStats(st,page){
   c.title=`Эта страница: ${fmt(st.page_today)} сегодня, ${fmt(st.page_total)} всего. ИИ-агенты сегодня: ${fmt(st.agents_today)}`;
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=fmt(v)};
   set('sSiteToday',st.site_today);set('sSiteTotal',st.site_total);set('sAgentsToday',st.agents_today);set('sAgentsTotal',st.agents_total);
-  set('sKrToday',st.kraken_humans_today??st.kraken_clicks_today);set('sKrTotal',st.kraken_humans_total??st.kraken_clicks_total);
-  const bt=document.getElementById('sKrBotsToday'),bT=document.getElementById('sKrBotsTotal');if(bt)bt.textContent='+ боты: '+fmt(st.kraken_bots_today);if(bT)bT.textContent='+ боты: '+fmt(st.kraken_bots_total);
+  set('sKrTotal',st.kraken_humans_total??st.kraken_clicks_total);set('sSlTotal',st.starlink_humans_total);
+  const sub=(id,today,bots)=>{const e=document.getElementById(id);if(e)e.innerHTML='сегодня '+fmt(today)+'<br>'+'+ боты: '+fmt(bots)};
+  sub('sKrSub',st.kraken_humans_today,st.kraken_bots_total);sub('sSlSub',st.starlink_humans_today,(st.starlink_clicks_total||0)-(st.starlink_humans_total||0));
   const li=(arr,k)=>arr&&arr.length?arr.map(x=>`<div>${esc(x[k])} · <span>${fmt(x.n)}</span></div>`).join(''):'<div>пока нет</div>';
   document.getElementById('sTop').innerHTML=li(st.top_agents_7d,'name');document.getElementById('sKrFrom').innerHTML=li(st.kraken_by_source_7d,'source');
   document.getElementById('statsNote').textContent='обновлено '+new Date().toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});

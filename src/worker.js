@@ -1093,6 +1093,7 @@ async function readStats(env, page) {
     kraken_bots_today: krakenToday - krHumansToday, kraken_bots_total: krakenTotal - krHumansTotal,
     kraken_by_source_7d: krakenFrom, kraken_bots_7d: krakenBots,
     starlink_humans_total: await one("SELECT SUM(n) AS n FROM hits WHERE kind='starlink' AND name='human'"),
+    starlink_humans_today: await one("SELECT SUM(n) AS n FROM hits WHERE kind='starlink' AND name='human' AND day=?1", d),
     starlink_clicks_total: await one("SELECT SUM(n) AS n FROM hits WHERE kind='starlink'"),
     note: "Kraken clicks before 2026-10-29 18:40 were classified by User-Agent only." };
 }
@@ -3802,7 +3803,7 @@ async function handleRequest(request, env, ctx) {
           } catch (e) {}
         }
         const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
-        const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrToday: "kraken_humans_today", sKrTotal: "kraken_humans_total" };
+        const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrTotal: "kraken_humans_total", sSlTotal: "starlink_humans_total" };
         let sm = null;
         if (pg === "sensors") { try { sm = await sensorsMachine(env, ctx, radars); } catch (e) {} }
         let rw = new HTMLRewriter()
