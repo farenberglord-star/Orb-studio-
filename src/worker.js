@@ -805,8 +805,8 @@ async function receiptsPublic(env, full = false) {
 // С ключом и без флага live — проверка ордеров на Kraken (validate), без сделок. С флагом live — настоящие рыночные ордера.
 // Ключ Kraken: только «смотреть баланс / ордера» и «ставить ордера», без права вывода. Секреты: KRAKEN_API_KEY, KRAKEN_API_SECRET.
 const EXP_RULES = {
-  version: 2, since: "2026-11-03",
-  idea: "Calm = the wallet as it was at the start (no trades). The radar only moves part of it, so the difference to 'do nothing' is the pure effect of the radar.",
+  version: 3, since: "2026-11-03",
+  idea: "Claude reads all radars and sensors of the site and chooses how much of the wallet stays in euros; the rest is split between BTC, ETH and SOL in the proportions of the start wallet. New cash is invested gradually, at most 15 % of the wallet per day. Deposits and withdrawals are added to the 'do nothing' comparison, so they never count as profit or loss.",
   alarms: [
     { id: "crypto", text: "crypto radar ≥ 70 or +10 in 24 h" },
     { id: "geo", text: "geo radar ≥ 75" },
@@ -815,13 +815,14 @@ const EXP_RULES = {
   ],
   good: ["crypto radar ≤ 45 and falling", "BTC funding negative", "stablecoin supply +1 % or more in 7 days"],
   modes: {
-    "-1": { id: "tailwind", ru: "попутный ветер", de: "Rückenwind", en: "tailwind", when: "0 alarms and 2+ good signs", does: "+10 points SOL, taken from BTC" },
-    "0": { id: "calm", ru: "спокойно", de: "ruhig", en: "calm", when: "no alarms", does: "start wallet, no trades" },
-    "1": { id: "watch", ru: "настороженно", de: "wachsam", en: "watchful", when: "1 alarm", does: "25 % of the wallet in EUR (sell SOL first, then ETH, BTC last)" },
-    "2": { id: "alarm", ru: "тревога", de: "Alarm", en: "alarm", when: "2+ alarms", does: "60 % of the wallet in EUR (sell SOL first, then ETH, BTC last)" },
+    "-1": { id: "tailwind", ru: "попутный ветер", de: "Rückenwind", en: "tailwind", eur: 0.05, when: "0 alarms and 2+ good signs", does: "5 % EUR, crypto in start proportions, +10 points SOL taken from BTC" },
+    "0": { id: "calm", ru: "спокойно", de: "ruhig", en: "calm", eur: 0.10, when: "no alarms", does: "10 % EUR, 90 % crypto in start proportions" },
+    "1": { id: "watch", ru: "настороженно", de: "wachsam", en: "watchful", eur: 0.25, when: "1 alarm", does: "25 % EUR (sell SOL first, then ETH, BTC last)" },
+    "2": { id: "alarm", ru: "тревога", de: "Alarm", en: "alarm", eur: 0.60, when: "2+ alarms", does: "60 % EUR (sell SOL first, then ETH, BTC last)" },
   },
   safety: ["no trades if sensor data is older than 6 hours", "going to a safer mode is allowed at once; any other mode change at most once in 2 days",
-    "trade only if a share is more than 5 points off target and the trade is over 15 EUR", "breaker: wallet below 70 % of the start → everything to EUR and the experiment stops"],
+    "trade only if a share is more than 5 points off target and the trade is over 15 EUR", "buying (more crypto) at most 15 % of the wallet per day; selling to a safer mode has no limit",
+    "deposits and withdrawals are detected and added to the 'do nothing' comparison", "breaker: wallet below 70 % of the start plus deposits → everything to EUR and the experiment stops"],
 };
 const EXP_PAIRS = { SOL: "SOLEUR", BTC: "XXBTZEUR", ETH: "XETHZEUR" };
 const EXP_BAL = { SOL: ["SOL"], BTC: ["XXBT", "XBT"], ETH: ["XETH", "ETH"], EUR: ["ZEUR", "EUR"] };
@@ -914,15 +915,20 @@ async function expSignals(env, ctx) {
 }
 const expValue = (h, px) => h.EUR + h.SOL * px.SOL.last + h.BTC * px.BTC.last + h.ETH * px.ETH.last;
 const expWeights = (h, px) => { const t = expValue(h, px) || 1; return { SOL: h.SOL * px.SOL.last / t, ETH: h.ETH * px.ETH.last / t, BTC: h.BTC * px.BTC.last / t, EUR: h.EUR / t }; };
-// целевые доли от стартового кошелька: евро набираем, продавая сначала SOL, потом ETH, BTC последним
+// целевые доли: евро по режиму, крипто — в пропорциях стартового кошелька; при тревоге продаём сначала SOL, потом ETH, BTC последним
 function expTargets(base, level) {
-  const t = { ...base };
-  if (level === -1) { const m = Math.min(0.10, t.BTC); t.BTC -= m; t.SOL += m; return t; }
-  const eur = level === 2 ? 0.60 : level === 1 ? 0.25 : null;
-  if (eur == null || t.EUR >= eur) return t;
-  let need = eur - t.EUR;
-  for (const c of ["SOL", "ETH", "BTC"]) { const m = Math.min(need, t[c]); t[c] -= m; need -= m; }
-  t.EUR = eur;
+  const m = EXP_RULES.modes[level] || EXP_RULES.modes["0"], eur = m.eur;
+  const cr = (base.SOL || 0) + (base.ETH || 0) + (base.BTC || 0) || 1;
+  const mix = { SOL: (base.SOL || 0) / cr, ETH: (base.ETH || 0) / cr, BTC: (base.BTC || 0) / cr };
+  const t = { EUR: eur, SOL: 0, ETH: 0, BTC: 0 };
+  if (level >= 1) { // от спокойного уровня (10 % евро) убираем лишнее: SOL → ETH → BTC
+    const calm = { SOL: mix.SOL * 0.9, ETH: mix.ETH * 0.9, BTC: mix.BTC * 0.9 };
+    let need = eur - 0.10;
+    for (const c of ["SOL", "ETH", "BTC"]) { const x = Math.min(need, calm[c]); calm[c] -= x; need -= x; }
+    return { ...t, ...calm };
+  }
+  for (const c of ["SOL", "ETH", "BTC"]) t[c] = mix[c] * (1 - eur);
+  if (level === -1) { const x = Math.min(0.10, t.BTC); t.BTC -= x; t.SOL += x; }
   return t;
 }
 function expPlan(h, px, target, info) {
@@ -939,8 +945,11 @@ function expPlan(h, px, target, info) {
     if (vol < pi.ordermin || vol * px[c].last < Math.max(pi.costmin, 15)) continue;
     orders.push({ coin: c, pair: EXP_PAIRS[c], side: diff < 0 ? "sell" : "buy", volume: vol, approx_eur: +(vol * px[c].last).toFixed(2) });
   }
+  // покупки (больше риска) — не больше 15 % кошелька в день: новые деньги вкладываются постепенно
+  const cap = total * 0.15, buys = orders.filter((o) => o.side === "buy"), sum = buys.reduce((a, o) => a + o.approx_eur, 0);
+  if (sum > cap) for (const o of buys) { const f = 10 ** ((info[o.coin] || {}).lot ?? 8); o.volume = Math.floor(o.volume * (cap / sum) * f) / f; o.approx_eur = +(o.volume * px[o.coin].last).toFixed(2); o.capped = true; }
   const pr = { SOL: 0, ETH: 1, BTC: 2 };
-  return orders.sort((a, b) => (a.side === b.side ? pr[a.coin] - pr[b.coin] : a.side === "sell" ? -1 : 1));
+  return orders.filter((o) => o.approx_eur >= 15).sort((a, b) => (a.side === b.side ? pr[a.coin] - pr[b.coin] : a.side === "sell" ? -1 : 1));
 }
 // ---- «Мозг» эксперимента: Claude смотрит на весь сайт и все датчики и выбирает режим ----
 // Правила v2 остаются страховкой: Claude выбирает только один из 4 режимов; устаревшие данные, ограничение смены режима,
@@ -948,7 +957,7 @@ function expPlan(h, px, target, info) {
 const EXP_BRAIN_TOOL = { name: "choose_mode", description: "Choose today's wallet mode for the Orb Studio experiment.",
   input_schema: { type: "object", additionalProperties: false, required: ["level", "confidence", "reasoning_ru", "key_signals"],
     properties: {
-      level: { type: "integer", enum: [-1, 0, 1, 2], description: "-1 tailwind (+10 points SOL from BTC), 0 calm (start wallet), 1 watchful (25 % EUR), 2 alarm (60 % EUR)" },
+      level: { type: "integer", enum: [-1, 0, 1, 2], description: "-1 tailwind (5 % EUR, +10 points SOL from BTC), 0 calm (10 % EUR), 1 watchful (25 % EUR), 2 alarm (60 % EUR)" },
       confidence: { type: "number", minimum: 0, maximum: 1 },
       reasoning_ru: { type: "string", maxLength: 700, description: "Why, in Russian, 2–4 sentences, plain words, with the concrete numbers you used" },
       key_signals: { type: "array", maxItems: 5, items: { type: "object", additionalProperties: false, required: ["sensor", "value", "effect"],
@@ -956,10 +965,11 @@ const EXP_BRAIN_TOOL = { name: "choose_mode", description: "Choose today's walle
       watch_next_ru: { type: "string", maxLength: 200, description: "What would change your mind tomorrow" },
     } } };
 const EXP_BRAIN_SYSTEM = `You manage a small real crypto wallet on Kraken for a public experiment on orbstudio.org: can the site's radars and sensors sense the market? Each morning you choose ONE mode:
--1 tailwind: +10 points SOL taken from BTC (only when the picture is clearly calm and supportive)
- 0 calm: keep the start wallet as it is (default; no trades)
- 1 watchful: 25 % of the wallet in EUR
- 2 alarm: 60 % of the wallet in EUR
+-1 tailwind: 5 % EUR, the rest crypto, with +10 points SOL taken from BTC (only when the picture is clearly calm and supportive)
+ 0 calm: 10 % EUR, 90 % crypto in the start proportions of BTC/ETH/SOL (default)
+ 1 watchful: 25 % EUR
+ 2 alarm: 60 % EUR
+New cash is invested gradually (max 15 % of the wallet per day), so choosing calm with a lot of cash means steady buying over several days.
 Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day. Always answer only by calling the choose_mode tool.`;
 async function expPicture(env, ctx) {
   const o = "https://orbstudio.org";
@@ -982,13 +992,13 @@ async function expPicture(env, ctx) {
     wallet_history: hist,
   };
 }
-async function expBrain(env, ctx, rulesLevel, prevLevel) {
+async function expBrain(env, ctx, rulesLevel, prevLevel, wallet = null) {
   if (!env.ANTHROPIC_API_KEY) throw new Error("no ANTHROPIC_API_KEY");
   const pic = await expPicture(env, ctx);
   const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(60000), method: "POST",
     headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model: env.EXP_MODEL || "claude-opus-5-5", max_tokens: 1500, system: EXP_BRAIN_SYSTEM,
-      messages: [{ role: "user", content: JSON.stringify({ today: today(), current_mode: prevLevel, simple_rules_v2_would_choose: rulesLevel, site: pic }) }],
+      messages: [{ role: "user", content: JSON.stringify({ today: today(), current_mode: prevLevel, simple_rules_would_choose: rulesLevel, wallet_now: wallet || null, site: pic }) }],
       tools: [EXP_BRAIN_TOOL], tool_choice: { type: "auto" } }) });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 160)}`);
   const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
@@ -1007,21 +1017,32 @@ async function expRun(env, ctx, force = false) {
   const kind = source === "paper" ? "paper" : "kraken";
   if (!st.start || st.start.source !== kind || st.rules_version !== EXP_RULES.version || (source === "kraken_live" && !st.start.live)) {
     st.start = { source: kind, live: source === "kraken_live", day: today(), eur: +expValue(h, px).toFixed(2), holdings: { ...h }, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last } };
-    st.base = expWeights(h, px); st.level = 0; st.last_change_day = null; st.rules_version = EXP_RULES.version;
+    st.base = expWeights(h, px); st.level = 0; st.last_change_day = null; st.rules_version = EXP_RULES.version; st.flows_eur = 0; st.last_h = { ...h };
     await expLog(env, "start", { ...st.start, base: st.base, rules_version: EXP_RULES.version });
+  }
+  // пополнения и выводы: всё, что изменилось на счёте помимо наших сделок, добавляем в сравнение «ничего не делать»
+  if (st.last_h && kind === "kraken") {
+    const flow = {};
+    for (const c of ["EUR", "SOL", "ETH", "BTC"]) { const d = (h[c] || 0) - (st.last_h[c] || 0); if (Math.abs(d * (c === "EUR" ? 1 : px[c].last)) > 2) flow[c] = d; }
+    if (Object.keys(flow).length) {
+      for (const [c, d] of Object.entries(flow)) st.start.holdings[c] = Math.max(0, (st.start.holdings[c] || 0) + d);
+      const fe = Object.entries(flow).reduce((a, [c, d]) => a + d * (c === "EUR" ? 1 : px[c].last), 0);
+      st.flows_eur = +((st.flows_eur || 0) + fe).toFixed(2);
+      await expLog(env, "flow", { flow, eur: +fe.toFixed(2), note: fe > 0 ? "deposit" : "withdrawal" });
+    }
   }
   const prev = st.level || 0;
   let level = prev, note = null, brain = null, wanted = sig.level;
   if (st.brain === "claude") {
-    try { brain = await expBrain(env, ctx, sig.level, prev); wanted = brain.level; }
-    catch (e) { brain = { error: String(e.message || e).slice(0, 200) }; note = "Claude unavailable — rules v2 used"; }
+    try { brain = await expBrain(env, ctx, sig.level, prev, { eur: +expValue(h, px).toFixed(2), shares: expWeights(h, px), holdings: h }); wanted = brain.level; }
+    catch (e) { brain = { error: String(e.message || e).slice(0, 200) }; note = "Claude unavailable — simple rules used"; }
   }
   const daysSince = st.last_change_day ? (Date.parse(today()) - Date.parse(st.last_change_day)) / 864e5 : 99;
   if (sig.data_age_min != null && sig.data_age_min > 360) note = "sensor data older than 6 h — no change";
   else if (wanted > prev) level = wanted;                            // в более осторожный режим — сразу
   else if (wanted < prev) { if (daysSince >= 2) level = wanted; else note = "mode change waits: last change less than 2 days ago"; }
   let wallet0 = expValue(h, px), breaker = false;
-  if (st.start && wallet0 < st.start.eur * 0.70) { breaker = true; note = "breaker: wallet below 70 % of the start — all to EUR, experiment stopped"; }
+  if (st.start && wallet0 < (st.start.eur + (st.flows_eur || 0)) * 0.70) { breaker = true; note = "breaker: wallet below 70 % of the start — all to EUR, experiment stopped"; }
   const target = breaker ? { SOL: 0, ETH: 0, BTC: 0, EUR: 1 } : expTargets(st.base, level);
   const orders = note && !breaker && !/^Claude unavailable/.test(note) ? [] : expPlan(h, px, target, info), done = [];
   for (const o of orders) {
@@ -1037,8 +1058,10 @@ async function expRun(env, ctx, force = false) {
       if (st.live && o.side === "sell") await new Promise((r) => setTimeout(r, 1500)); // евро от продажи — до покупки
     }
   }
-  if (source === "kraken_live" && done.some((o) => o.status === "placed")) { await new Promise((r) => setTimeout(r, 3000)); try { h = await expBalances(env); } catch (e) {} }
+  let fresh = true;
+  if (source === "kraken_live" && done.some((o) => o.status === "placed")) { await new Promise((r) => setTimeout(r, 3000)); try { h = await expBalances(env); } catch (e) { fresh = false; } }
   if (source === "paper") st.paper = h;
+  st.last_h = fresh ? { ...h } : null; // без свежего баланса завтра пополнения не ищем, чтобы не принять сделку за пополнение
   if (level !== prev) st.last_change_day = today();
   st.level = level; st.last_day = today();
   if (breaker) st.enabled = false;
