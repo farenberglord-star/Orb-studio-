@@ -855,6 +855,16 @@ async function expPairs() {
   expPairInfo = out;
   return out;
 }
+// ключи часто копируются с пробелами, переводом строки или кавычками — убираем
+const expClean = (v) => String(v || "").trim().replace(/^["'`]+|["'`]+$/g, "").replace(/\s+/g, "");
+// проверка ключей без раскрытия: длина и формат (у Kraken: API Key ~56 знаков, Private Key — base64 ~88 знаков)
+function expKeyCheck(env) {
+  const k = expClean(env.KRAKEN_API_KEY), sec = expClean(env.KRAKEN_API_SECRET);
+  let b64 = false; try { atob(sec); b64 = sec.length > 0; } catch (e) {}
+  let kb64 = false; try { atob(k); kb64 = k.length > 0; } catch (e) {}
+  return { key_present: !!k, secret_present: !!sec, key_length: k.length, secret_length: sec.length, secret_is_base64: b64,
+    looks_swapped: !b64 && kb64 && k.length > sec.length, raw_secret_had_spaces_or_quotes: String(env.KRAKEN_API_SECRET || "") !== sec };
+}
 // подпись приватного запроса Kraken: HMAC-SHA512(путь + SHA256(nonce + тело), секрет)
 async function krakenPrivate(env, path, params = {}) {
   const nonce = String(Date.now() * 1000);
@@ -863,11 +873,11 @@ async function krakenPrivate(env, path, params = {}) {
   const sha = new Uint8Array(await crypto.subtle.digest("SHA-256", enc.encode(nonce + body)));
   const pathB = enc.encode(path), msg = new Uint8Array(pathB.length + sha.length);
   msg.set(pathB); msg.set(sha, pathB.length);
-  const secret = Uint8Array.from(atob(env.KRAKEN_API_SECRET), (ch) => ch.charCodeAt(0));
+  const secret = Uint8Array.from(atob(expClean(env.KRAKEN_API_SECRET)), (ch) => ch.charCodeAt(0));
   const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: "SHA-512" }, false, ["sign"]);
   const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, msg));
   const r = await fetch("https://api.kraken.com" + path, { method: "POST", body, signal: AbortSignal.timeout(10000),
-    headers: { "API-Key": env.KRAKEN_API_KEY, "API-Sign": btoa(String.fromCharCode(...sig)), "Content-Type": "application/x-www-form-urlencoded" } });
+    headers: { "API-Key": expClean(env.KRAKEN_API_KEY), "API-Sign": btoa(String.fromCharCode(...sig)), "Content-Type": "application/x-www-form-urlencoded" } });
   const j = await r.json();
   if (j.error && j.error.length) throw new Error("Kraken: " + j.error.join(", "));
   return j.result;
@@ -993,7 +1003,12 @@ async function handleExperiment(url, request, env, ctx) {
     const a = url.searchParams.get("action") || "status";
     const st = (await sharedGet(env, "exp-state", 1e13)) || { enabled: true, live: false, mode: 0, down_days: 0, last_day: null, paper: null, start: null };
     if (a === "run") return json(await expRun(env, ctx, url.searchParams.get("force") === "1"), H);
-    if (a === "balance") return json({ has_key: !!(env.KRAKEN_API_KEY && env.KRAKEN_API_SECRET), balance: env.KRAKEN_API_KEY ? await expBalances(env) : null }, H);
+    if (a === "balance") {
+      const chk = expKeyCheck(env);
+      if (!chk.secret_is_base64) return json({ has_key: chk.key_present && chk.secret_present, key_check: chk, balance: null }, H);
+      try { return json({ has_key: true, key_check: chk, balance: await expBalances(env) }, H); }
+      catch (e) { return json({ has_key: true, key_check: chk, error: String(e.message || e).slice(0, 200) }, H); }
+    }
     if (["live", "check", "stop", "start"].includes(a)) {
       if (a === "live") st.live = true; if (a === "check") st.live = false; if (a === "stop") st.enabled = false; if (a === "start") st.enabled = true;
       await sharedPut(env, "exp-state", st); await expLog(env, "control", { action: a });
