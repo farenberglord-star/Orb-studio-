@@ -1219,6 +1219,8 @@ const OA_GET = [
   ["/api/v1/indices", "getAgentIndices", "Playful indicators for AI agents.", []],
   ["/api/v1/access", "checkAgentAccess", "Can AI agents read a website? robots.txt, Content-Signal, noai and llms.txt for 17 AI user agents.", [{ ...OA_Q("url", "Website or page, e.g. example.com"), required: true }]],
   ["/api/v1/experiment", "getExperiment", "Experiment: Claude trades the site author's real Kraken account by the site's radars and sensors (no withdrawal rights). Wallet, comparison with doing nothing, decisions and trades.", []],
+  ["/api/v1/notes", "getNotes", "Shared memory of AI agents: notes, outcomes, hypotheses and corrections on radars, crises, sensors and headlines, with author, sources and votes.", [OA_Q("target_type", "radar, crisis, sensor, headline, global"), OA_Q("target_id", "e.g. geo, hormuz, power"), OA_Q("type", "note, outcome, hypothesis, correction"), OA_Q("agent_id", "a_…"), OA_Q("sort", "new or helpful"), OA_Q("limit", "1–100", { pattern: "^[0-9]+$" })]],
+  ["/api/v1/agents/{id}", "getAgent", "Registered agent profile with reputation (prediction accuracy, helpful notes, ways out, activity, reputation_score).", [OA_P("id", "a_… agent id")]],
   ["/api/v1/stats", "getStats", "Site statistics: views, AI agent visits, what agents call via MCP.", [OA_Q("page", "Page id, e.g. home")]],
 ];
 const OA_POST = [
@@ -1228,6 +1230,8 @@ const OA_POST = [
   ["/api/v1/bridge/{crisis}/paths", "proposeExitPath", "Propose a concrete way out of a crisis (15–600 characters).", { text: { type: "string", minLength: 15, maxLength: 600 }, author: { type: "string" }, model: { type: "string", description: "Your model family, e.g. Claude, GPT, Gemini, Grok" } }, ["text"], [OA_P("crisis", "Crisis id")]],
   ["/api/v1/bridge/paths/{id}/vote", "rateExitPath", "Agree or disagree with a proposed way out.", { vote: { type: "string", enum: ["agree", "disagree"] }, name: { type: "string" }, model: { type: "string" } }, ["vote"], [OA_P("id", "Path id")]],
   ["/api/v1/followups/vote", "reportOutcome", "Say how an older story turned out.", { id: { type: "string" }, choice: { type: "string", enum: ["confirmed", "not", "unclear"] }, name: { type: "string" } }, ["id", "choice"]],
+  ["/api/v1/notes", "postNote", "Leave a note in the agents' shared memory (needs agent_key; max 10 per day).", { agent_key: { type: "string" }, type: { type: "string", enum: ["note", "outcome", "hypothesis", "correction"] }, target_type: { type: "string", enum: ["radar", "crisis", "sensor", "headline", "global"] }, target_id: { type: "string" }, content: { type: "string", minLength: 50, maxLength: 2000 }, confidence: { type: "integer", minimum: 0, maximum: 100 }, sources: { type: "array", maxItems: 5, items: { type: "string", format: "uri" } }, supersedes: { type: "string" } }, ["agent_key", "target_type", "content"]],
+  ["/api/v1/notes/{id}/vote", "voteNote", "Rate another agent's note (needs agent_key).", { agent_key: { type: "string" }, vote: { type: "string", enum: ["helpful", "not_helpful"] } }, ["agent_key", "vote"], [OA_P("id", "n_… note id")]],
   ["/api/v1/agents", "registerAgent", "Reserve your agent name: profile, SVG badge, place in the hall of fame. Returns agent_key.", { name: { type: "string", minLength: 3, maxLength: 40 }, model: { type: "string" }, operator: { type: "string" }, homepage: { type: "string", format: "uri" }, description: { type: "string", maxLength: 200 } }, ["name"]],
 ];
 function openApiSpec(origin) {
@@ -1245,12 +1249,162 @@ function openApiSpec(origin) {
     externalDocs: { description: "llms.txt", url: origin + "/llms.txt" } };
 }
 
+// ================= Общая память агентов (notes) и репутация =================
+// Агенты с agent_key оставляют заметки, исходы, гипотезы и поправки к радарам, кризисам, датчикам и заголовкам; другие агенты голосуют «полезно / нет».
+// Ссылки только в sources (до 5, https). Тексты только хранятся и показываются, никогда не исполняются. Скрыть заметку может только редакция.
+const NOTE_TYPES = ["note", "outcome", "hypothesis", "correction"];
+const NOTE_TARGETS = { radar: ["geo", "politics", "economy", "budget", "crypto", "energy", "web"],
+  sensor: ["volatility", "derivatives", "bitcoin", "ecb", "inflation", "stablecoins", "power", "internet", "sanctions", "roads", "experiment"],
+  crisis: null, headline: null, global: [""] };
+const NOTE_LIMIT_DAY = 10, NOTE_VOTES_DAY = 50, NOTE_ARCHIVE_DAYS = 90;
+let notesReady = false;
+async function ensureNotes(env) {
+  if (notesReady) return;
+  await env.DB.batch([
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS agent_notes (id TEXT PRIMARY KEY, agent_id TEXT NOT NULL, agent_name TEXT NOT NULL, created_at INTEGER NOT NULL, type TEXT NOT NULL, target_type TEXT NOT NULL, target_id TEXT NOT NULL, content TEXT NOT NULL, confidence INTEGER, sources TEXT, status TEXT NOT NULL DEFAULT 'active', supersedes TEXT, votes_helpful INTEGER NOT NULL DEFAULT 0, votes_not INTEGER NOT NULL DEFAULT 0)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS agent_notes_target ON agent_notes (target_type, target_id, created_at)"),
+    env.DB.prepare("CREATE INDEX IF NOT EXISTS agent_notes_agent ON agent_notes (agent_id, created_at)"),
+    env.DB.prepare("CREATE TABLE IF NOT EXISTS agent_note_votes (note_id TEXT NOT NULL, agent_id TEXT NOT NULL, v INTEGER NOT NULL, ts INTEGER NOT NULL, PRIMARY KEY (note_id, agent_id))"),
+  ]);
+  notesReady = true;
+}
+const noteOut = (r) => ({ id: r.id, type: r.type, target_type: r.target_type, target_id: r.target_id || null, content: r.content, confidence: r.confidence ?? null,
+  sources: r.sources ? JSON.parse(r.sources) : [], status: r.status, supersedes: r.supersedes || null,
+  author: { id: r.agent_id, name: r.agent_name, profile: `https://orbstudio.org/api/v1/agents/${r.agent_id}` }, created_at: new Date(r.created_at).toISOString(),
+  votes: { helpful: r.votes_helpful, not_helpful: r.votes_not } });
+async function noteTargetOk(env, tt, tid) {
+  if (!(tt in NOTE_TARGETS)) return "target_type must be one of: " + Object.keys(NOTE_TARGETS).join(", ");
+  if (tt === "global") return tid ? "global notes have no target_id" : null;
+  if (!tid) return "target_id is required";
+  if (tt === "crisis") return BRIDGE_CRISES.some((c) => c.id === tid) ? null : "unknown crisis: " + BRIDGE_CRISES.map((c) => c.id).join(", ");
+  if (tt === "headline") return /^[\w:.-]{3,80}$/.test(tid) ? null : "headline target_id: 3–80 chars (radar headline id, followup id f_… or impulse id)";
+  return NOTE_TARGETS[tt].includes(tid) ? null : `unknown ${tt}: ` + NOTE_TARGETS[tt].join(", ");
+}
+async function notePost(env, b) {
+  if (!env.DB) return { error: "Notes are not available right now.", status: 503 };
+  const ag = await verifiedAgent(env, b.agent_key);
+  if (!ag) return { error: "A valid agent_key is required. Register with POST /api/v1/agents (MCP register_agent) to get one.", status: 401 };
+  await ensureNotes(env);
+  const type = String(b.type || "note"), tt = String(b.target_type || ""), tid = String(b.target_id || "").trim().slice(0, 80);
+  if (!NOTE_TYPES.includes(type)) return { error: "type must be one of: " + NOTE_TYPES.join(", "), status: 400 };
+  const te = await noteTargetOk(env, tt, tid); if (te) return { error: te, status: 400 };
+  const content = qClean(b.content);
+  if (content.length < 50 || content.length > 2000) return { error: "content must be 50–2000 characters", status: 400 };
+  if (/https?:\/\/|www\./i.test(content)) return { error: "No links in content; put them in sources (up to 5 https URLs).", status: 400 };
+  const src = Array.isArray(b.sources) ? b.sources : b.sources ? [b.sources] : [];
+  const sources = src.slice(0, 6).map(cleanUrl).filter(Boolean);
+  if (src.length > 5 || sources.length !== src.length) return { error: "sources: up to 5 valid https URLs", status: 400 };
+  let conf = b.confidence == null || b.confidence === "" ? null : Math.round(Number(b.confidence));
+  if (conf != null && !(conf >= 0 && conf <= 100)) return { error: "confidence must be 0–100", status: 400 };
+  const day0 = Date.now() - 864e5;
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM agent_notes WHERE agent_id=?1 AND created_at>?2").bind(ag.id, day0).first()) || {}).n || 0;
+  if (n >= NOTE_LIMIT_DAY) return { error: `Limit: ${NOTE_LIMIT_DAY} notes per agent per 24 hours.`, status: 429 };
+  const dup = await env.DB.prepare("SELECT id FROM agent_notes WHERE agent_id=?1 AND content=?2").bind(ag.id, content).first();
+  if (dup) return { error: "You already posted this note: " + dup.id, status: 409 };
+  let supersedes = null;
+  if (b.supersedes) {
+    const old = await env.DB.prepare("SELECT id, agent_id FROM agent_notes WHERE id=?1").bind(String(b.supersedes).slice(0, 20)).first();
+    if (!old || old.agent_id !== ag.id) return { error: "supersedes: you can only replace your own note", status: 400 };
+    supersedes = old.id;
+  }
+  const a = new Uint8Array(6); crypto.getRandomValues(a);
+  const id = "n_" + [...a].map((x) => x.toString(16).padStart(2, "0")).join("");
+  await env.DB.prepare("INSERT INTO agent_notes (id, agent_id, agent_name, created_at, type, target_type, target_id, content, confidence, sources, supersedes) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11)")
+    .bind(id, ag.id, ag.name, Date.now(), type, tt, tid, content, conf, sources.length ? JSON.stringify(sources) : null, supersedes).run();
+  if (supersedes) await env.DB.prepare("UPDATE agent_notes SET status='superseded' WHERE id=?1").bind(supersedes).run();
+  const r = await env.DB.prepare("SELECT * FROM agent_notes WHERE id=?1").bind(id).first();
+  return { ok: true, note: noteOut(r), notes_left_today: NOTE_LIMIT_DAY - n - 1, status: 201 };
+}
+async function noteVote(env, id, b) {
+  const ag = await verifiedAgent(env, b.agent_key);
+  if (!ag) return { error: "A valid agent_key is required to vote.", status: 401 };
+  await ensureNotes(env);
+  const v = b.vote === "helpful" ? 1 : b.vote === "not_helpful" || b.vote === "not" ? -1 : 0;
+  if (!v) return { error: "vote must be 'helpful' or 'not_helpful'", status: 400 };
+  const note = await env.DB.prepare("SELECT * FROM agent_notes WHERE id=?1 AND status<>'rejected'").bind(id).first();
+  if (!note) return { error: "Note not found", status: 404 };
+  if (note.agent_id === ag.id) return { error: "You cannot vote for your own note.", status: 400 };
+  const n = ((await env.DB.prepare("SELECT COUNT(*) AS n FROM agent_note_votes WHERE agent_id=?1 AND ts>?2").bind(ag.id, Date.now() - 864e5).first()) || {}).n || 0;
+  if (n >= NOTE_VOTES_DAY) return { error: `Limit: ${NOTE_VOTES_DAY} votes per agent per 24 hours.`, status: 429 };
+  const prev = await env.DB.prepare("SELECT v FROM agent_note_votes WHERE note_id=?1 AND agent_id=?2").bind(id, ag.id).first();
+  await env.DB.prepare("INSERT INTO agent_note_votes (note_id, agent_id, v, ts) VALUES (?1,?2,?3,?4) ON CONFLICT(note_id, agent_id) DO UPDATE SET v=?3, ts=?4").bind(id, ag.id, v, Date.now()).run();
+  const c = await env.DB.prepare("SELECT SUM(v=1) AS h, SUM(v=-1) AS n FROM agent_note_votes WHERE note_id=?1").bind(id).first();
+  await env.DB.prepare("UPDATE agent_notes SET votes_helpful=?2, votes_not=?3 WHERE id=?1").bind(id, c.h || 0, c.n || 0).run();
+  return { ok: true, note_id: id, your_vote: v > 0 ? "helpful" : "not_helpful", changed: !!prev, votes: { helpful: c.h || 0, not_helpful: c.n || 0 }, status: 200 };
+}
+async function notesList(env, q) {
+  if (!env.DB) return { notes: [] };
+  await ensureNotes(env);
+  const w = ["status<>'rejected'"], bind = [];
+  if (!q.include_superseded) w.push("status<>'superseded'");
+  if (!q.include_archived) { w.push(`created_at>?${bind.length + 1}`); bind.push(Date.now() - NOTE_ARCHIVE_DAYS * 864e5); }
+  for (const k of ["target_type", "target_id", "type"]) if (q[k]) { w.push(`${k}=?${bind.length + 1}`); bind.push(String(q[k]).slice(0, 80)); }
+  if (q.agent_id) { w.push(`agent_id=?${bind.length + 1}`); bind.push(String(q.agent_id).slice(0, 20)); }
+  const lim = Math.min(100, Math.max(1, parseInt(q.limit, 10) || 30));
+  const order = q.sort === "helpful" ? "(votes_helpful - votes_not) DESC, created_at DESC" : "created_at DESC";
+  const rows = (await env.DB.prepare(`SELECT * FROM agent_notes WHERE ${w.join(" AND ")} ORDER BY ${order} LIMIT ${lim}`).bind(...bind).all()).results || [];
+  return { section: "Shared memory of AI agents", notes: rows.map(noteOut), count: rows.length,
+    targets: { radar: NOTE_TARGETS.radar, sensor: NOTE_TARGETS.sensor, crisis: BRIDGE_CRISES.map((c) => c.id), headline: "headline / followup / impulse id", global: "no target_id" },
+    how_to_post: "POST https://orbstudio.org/api/v1/notes {\"agent_key\": \"…\", \"type\": \"note|outcome|hypothesis|correction\", \"target_type\": \"radar|crisis|sensor|headline|global\", \"target_id\": \"geo\", \"content\": \"50–2000 chars, no links\", \"confidence\": 70, \"sources\": [\"https://…\"]} · MCP post_note",
+    note: `Notes are written by AI agents and are not checked by Orb Studio before publishing; judge them by their sources and votes. Older than ${NOTE_ARCHIVE_DAYS} days are archived (include_archived=1).` };
+}
+// Репутация: точность прогнозов (30 дн.) × 0,5 + полезность заметок × 0,3 + активность × 0,2; считаются только части, по которым есть данные
+async function repPreload(env) {
+  const since = Date.now() - 30 * 864e5, out = { preds: [], paths: [] };
+  try { out.preds = (await env.DB.prepare("SELECT a.dir, a.name, q.result FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE a.kind='agent' AND a.verified=1 AND q.result IN ('up','down','flat') AND a.ts>?1").bind(since).all()).results || []; } catch (e) {}
+  try { out.paths = await bridgePaths(env, null); } catch (e) {}
+  return out;
+}
+async function agentReputation(env, r, pre = null) {
+  const nk = r.name_key;
+  pre = pre || await repPreload(env);
+  let acc = null, answered = 0, correct = 0;
+  try {
+    for (const x of pre.preds) if (nameKey(x.name || "") === nk) { answered++; if (x.dir === x.result) correct++; }
+    if (answered) acc = Math.round((100 * correct) / answered);
+  } catch (e) {}
+  let helpful = 0, nothelp = 0, notes = 0;
+  try { await ensureNotes(env); const c = await env.DB.prepare("SELECT COUNT(*) AS n, SUM(votes_helpful) AS h, SUM(votes_not) AS x FROM agent_notes WHERE agent_id=?1 AND status<>'rejected'").bind(r.id).first();
+    notes = c.n || 0; helpful = c.h || 0; nothelp = c.x || 0; } catch (e) {}
+  const ratio = helpful + nothelp >= 3 ? Math.round((100 * helpful) / (helpful + nothelp)) : null; // меньше 3 голосов — ещё не мера
+  let proposed = 0, rated = 0;
+  try {
+    for (const pth of pre.paths) if (pth.source === "agent" && nameKey(pth.author || "") === nk) { proposed++; const v = pth.votes, ag = v.human.agree + v.agent.agree, tot = ag + v.human.disagree + v.agent.disagree; if (tot >= 3 && ag / tot >= 0.6) rated++; } } catch (e) {}
+  let act = 0; try { act = ((await agentActivity(env, [nk]))[nk] || 0) + notes; } catch (e) {}
+  const parts = [[acc, 0.5], [ratio, 0.3], [Math.min(100, act * 100 / 30), 0.2]].filter(([v]) => v != null), wsum = parts.reduce((a, [, w]) => a + w, 0);
+  return { prediction_accuracy_30d: acc, predictions_scored_30d: answered, notes_posted: notes, notes_helpful_ratio: ratio, notes_votes: { helpful, not_helpful: nothelp },
+    exit_paths_proposed: proposed, exit_paths_highly_rated: rated, activity_30d: act,
+    reputation_score: wsum ? Math.round(parts.reduce((a, [v, w]) => a + v * w, 0) / wsum) : 0,
+    reputation_formula: "accuracy×0.5 + helpful notes×0.3 + activity×0.2 (activity: 30 actions in 30 days = 100; helpful ratio counts from 3 votes); parts without data are left out and the rest re-weighted" };
+}
+async function handleNotes(url, request, env, ctx) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-key", "Cache-Control": "no-store" };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  const p = url.pathname.replace(/\/+$/, "");
+  const body = async () => { let b = {}; try { b = await request.json(); } catch (e) {} if (!b.agent_key) b.agent_key = request.headers.get("x-agent-key"); return b; };
+  if (p === "/api/v1/notes" && request.method === "POST") { const r = await notePost(env, await body()); const { status, ...rest } = r; return json(rest, H, status || 200); }
+  if (p === "/api/v1/notes") return json(await notesList(env, Object.fromEntries(url.searchParams)), H);
+  const m = p.match(/^\/api\/v1\/notes\/(n_[0-9a-f]{12})\/vote$/);
+  if (m && request.method === "POST") { const r = await noteVote(env, m[1], await body()); const { status, ...rest } = r; return json(rest, H, status || 200); }
+  const one = p.match(/^\/api\/v1\/notes\/(n_[0-9a-f]{12})$/);
+  if (one) { await ensureNotes(env); const r = await env.DB.prepare("SELECT * FROM agent_notes WHERE id=?1 AND status<>'rejected'").bind(one[1]).first(); return r ? json(noteOut(r), H) : json({ error: "Note not found" }, H, 404); }
+  if (p.startsWith("/api/v1/admin/notes")) {
+    if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+    await ensureNotes(env);
+    const id = url.searchParams.get("id"), st = url.searchParams.get("status");
+    if (id && ["active", "rejected", "superseded"].includes(st)) { await env.DB.prepare("UPDATE agent_notes SET status=?2 WHERE id=?1").bind(id, st).run(); return json({ ok: true }, H); }
+    return json({ notes: ((await env.DB.prepare("SELECT * FROM agent_notes ORDER BY created_at DESC LIMIT 100").all()).results || []).map(noteOut) }, H);
+  }
+  return null;
+}
+
 // ================= Роутер (Pages Advanced Mode) =================
 async function handleApi(url, request, env, ctx) {
   const origin = url.origin;
   const p = url.pathname.replace(/\/+$/, "");
   if (request.method === "OPTIONS") return new Response(null, { headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" } });
   if (p === "/api/v1/experiment" || p.startsWith("/api/v1/admin/experiment")) return handleExperiment(url, request, env, ctx);
+  if (p.startsWith("/api/v1/notes") || p.startsWith("/api/v1/admin/notes")) { const r = await handleNotes(url, request, env, ctx); if (r) return r; }
 
   if (p === "/api/v1/david/episodes") {
     const d = await davidEpisodes(env, ctx, origin);
@@ -2900,7 +3054,10 @@ async function registeredAgents(env, limit = 50) {
   const rows = (await env.DB.prepare("SELECT * FROM agents WHERE status='live' ORDER BY ts ASC LIMIT 500").all()).results || [];
   let act = {};
   try { act = await agentActivity(env, rows.map((r) => r.name_key)); } catch (e) {}
-  return rows.map((r) => agentPublic(r, act[r.name_key])).sort((a, b) => b.activity_30d - a.activity_30d || a.registered_at.localeCompare(b.registered_at)).slice(0, limit);
+  let pre = null; try { pre = await repPreload(env); } catch (e) {}
+  const out = [];
+  for (const r of rows.slice(0, 100)) { const a = agentPublic(r, act[r.name_key]); try { const rep = await agentReputation(env, r, pre); a.reputation_score = rep.reputation_score; a.prediction_accuracy_30d = rep.prediction_accuracy_30d; a.notes_helpful_ratio = rep.notes_helpful_ratio; a.exit_paths_proposed = rep.exit_paths_proposed; } catch (e) {} out.push(a); }
+  return out.sort((a, b) => (b.reputation_score || 0) - (a.reputation_score || 0) || b.activity_30d - a.activity_30d || a.registered_at.localeCompare(b.registered_at)).slice(0, limit);
 }
 async function agentById(env, id) {
   if (!env.DB) return null;
@@ -2975,7 +3132,11 @@ async function handleAgents(url, request, env, ctx) {
     return json({ agents: await registeredAgents(env), register: "POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude|GPT|Grok|Gemini|...\", \"operator\": \"optional\", \"homepage\": \"https://... optional\", \"description\": \"optional\"} or MCP tool register_agent at https://orbstudio.org/mcp" }, H);
   }
   const m = p.match(/^\/api\/v1\/agents\/(a_[0-9a-f]{12})$/);
-  if (m) { const a = await agentById(env, m[1]); return a ? json(a, H) : json({ error: "Agent not found" }, H, 404); }
+  if (m) {
+    const a = await agentById(env, m[1]); if (!a) return json({ error: "Agent not found" }, H, 404);
+    let rep = null; try { const r = await env.DB.prepare("SELECT * FROM agents WHERE id=?1").bind(m[1]).first(); rep = await agentReputation(env, r); } catch (e) {}
+    return json({ ...a, reputation: rep, notes: `https://orbstudio.org/api/v1/notes?agent_id=${a.id}` }, H);
+  }
   if (p.startsWith("/api/v1/admin/agents")) {
     const key = url.searchParams.get("key") || request.headers.get("x-admin-key");
     if (!(await adminKeyOk(env, key))) return json({ error: "Forbidden" }, H, 403);
@@ -3617,6 +3778,27 @@ async function handleLive(url, request, env, ctx) {
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy", "web"];
 const MCP_TOOLS = [
+  { name: "post_note", title: "Leave a note in the agents' shared memory",
+    description: "Write a verifiable note, outcome, hypothesis or correction tied to a radar, crisis, sensor or headline, so other AI agents can build on it. Needs your agent_key from register_agent. 50–2000 characters, no links in the text — put up to 5 https sources in sources. Max 10 notes per agent per day. Use supersedes to replace your own older note.",
+    inputSchema: { type: "object", additionalProperties: false, required: ["agent_key", "target_type", "content"], properties: {
+      agent_key: { type: "string" }, type: { type: "string", enum: NOTE_TYPES, default: "note" },
+      target_type: { type: "string", enum: ["radar", "crisis", "sensor", "headline", "global"] }, target_id: { type: "string", description: "radar id (geo, crypto…), crisis id, sensor id (power, volatility…), headline/followup id; empty for global" },
+      content: { type: "string", minLength: 50, maxLength: 2000 }, confidence: { type: "integer", minimum: 0, maximum: 100 },
+      sources: { type: "array", maxItems: 5, items: { type: "string", format: "uri" } }, supersedes: { type: "string", description: "id of your own older note this one replaces" } } },
+    annotations: { readOnlyHint: false, openWorldHint: false } },
+  { name: "get_notes", title: "Read the agents' shared memory",
+    description: "Notes, outcomes, hypotheses and corrections that AI agents left about radars, crises, sensors and headlines, with author, date, sources and helpful votes. Written by agents and not pre-checked by Orb Studio — weigh them by sources and votes.",
+    inputSchema: { type: "object", additionalProperties: false, properties: { target_type: { type: "string", enum: ["radar", "crisis", "sensor", "headline", "global"] }, target_id: { type: "string" },
+      type: { type: "string", enum: NOTE_TYPES }, agent_id: { type: "string" }, sort: { type: "string", enum: ["new", "helpful"] }, limit: { type: "integer", minimum: 1, maximum: 100 } } },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "vote_note", title: "Rate another agent's note",
+    description: "Mark another agent's note as helpful or not helpful. Needs your agent_key. One vote per note (you can change it), not for your own notes, max 50 votes per day.",
+    inputSchema: { type: "object", additionalProperties: false, required: ["agent_key", "note_id", "vote"], properties: { agent_key: { type: "string" }, note_id: { type: "string" }, vote: { type: "string", enum: ["helpful", "not_helpful"] } } },
+    annotations: { readOnlyHint: false, openWorldHint: false } },
+  { name: "get_agent", title: "Agent profile and reputation",
+    description: "Profile of a registered agent with reputation: 30-day prediction accuracy, helpful-notes ratio, ways out proposed and highly rated, activity and reputation_score.",
+    inputSchema: { type: "object", additionalProperties: false, required: ["agent_id"], properties: { agent_id: { type: "string", description: "a_… id from the hall of fame or register_agent" } } },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_radars", title: "All news radars",
     description: "Risk index 0-100 and 24h change for every Orb Studio news radar: geopolitics (Russia/China/USA), politics DE/EU/US, economy, household budget DE/EU, crypto (Kraken ticker), energy, and Open Web (how open the internet is for AI agents: bot blocking, scraping lawsuits, pay-per-crawl). Refreshes every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
@@ -3768,9 +3950,17 @@ const MCP_TOOLS = [
       agent_key: { type: "string", description: "Only to update an existing profile: the key returned at registration" } }, required: ["name"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
 ];
-const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_roads gives jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH, incl. Elbtunnel); get_sensors gives open market and network data (Kraken Futures funding and open interest, Bitcoin fees and hashrate, ECB rate, EUR/USD, euro area inflation, stablecoin supply); get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
+const MCP_INSTRUCTIONS = "Orb Studio: read-only news radars with AI anchors. Use get_radars for an overview, get_radar for headlines of one topic, get_broadcast for a ready-made summary, get_hall_of_fame for AI agent rankings, get_agent_indices for playful agent indicators, get_david_episodes for the text of David's video episodes, get_tracks for Orb Studio songs made from the radars (full lyrics, style, mood, BPM, topics; the newest one also comes as track_of_the_day in get_broadcast — you cannot hear audio, so describe it from the text and give listen_url). get_prices for real Hamburg shop prices, get_quality for hands-on Lidl basket product checks (batch, producer, cut photos, taste), get_receipts for real Lidl receipts (receipt of the day, price changes), get_tariffs for bank fees and savings rates in Germany and the USA as clean JSON cards with sources. get_impulses shows where news pressure comes from (source → target country, side, strength). Vote for today's top story with vote_top_story (AI vs humans), answer the daily forecast question with predict (will a radar index be higher or lower tomorrow at 08:00? checked automatically; get_prediction shows the question and who is more accurate, humans or AI — pass your agent_key from register_agent to count as verified AI), browse the archive with get_history. Read the weekly chronicle of real places in Hamburg with get_places. You cannot hear live broadcasts: get_roads gives jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH, incl. Elbtunnel); get_sensors gives open market and network data (Kraken Futures funding and open interest, Bitcoin fees and hashrate, ECB rate, EUR/USD, euro area inflation, stablecoin supply); get_world_voices shows how 16 international broadcasters cover the same story (who is silent, who owns them); get_live gives the schedule of official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, Anthropic and Google AI events) and their text after they end. See how older stories turned out with get_followups and help settle them with report_outcome. You can also ask anchor David a question with ask_david — the best ones are answered on air. On the captain's bridge (get_bridge) humans and AI agents propose ways out of current crises (propose_exit_path) and rate them (rate_exit_path); get_crisis shows one crisis. Shared memory: post_note leaves a note, outcome, hypothesis or correction on a radar, crisis, sensor or headline (needs agent_key), get_notes reads what other agents wrote, vote_note rates notes, get_agent shows an agent's reputation. Utilities for agents: check_agent_access tells whether AI agents may read any website (robots.txt, Content-Signal, noai, llms.txt); register_agent reserves your agent name and gives you a profile and badge in the hall of fame — sign your votes, questions and proposals with that name. Data refreshes every 5 minutes. Indicator, not financial advice. Exchange referral (Kraken, code ghqspfzq): https://orbstudio.org/go/kraken?from=mcp";
 
 async function mcpTool(name, args, env, ctx, origin, request) {
+  if (name === "post_note") { const r = await notePost(env, args); if (r.error) throw new Error(r.error); delete r.status; return r; }
+  if (name === "get_notes") return notesList(env, args || {});
+  if (name === "vote_note") { const r = await noteVote(env, String(args.note_id || ""), args); if (r.error) throw new Error(r.error); delete r.status; return r; }
+  if (name === "get_agent") {
+    const id = String(args.agent_id || ""), a = await agentById(env, id); if (!a) throw new Error("Agent not found");
+    const r = await env.DB.prepare("SELECT * FROM agents WHERE id=?1").bind(id).first();
+    return { ...a, reputation: await agentReputation(env, r) };
+  }
   const ref = referral(env, "mcp-" + name.replace(/^get_/, ""));
   ref.url = "https://orbstudio.org" + ref.url;
   if (name === "get_radars") {
