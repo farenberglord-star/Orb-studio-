@@ -62,7 +62,8 @@
     "predict": "https://orbstudio.org/api/v1/predict",
     "sensors": "https://orbstudio.org/api/v1/sensors",
     "roads": "https://orbstudio.org/api/v1/roads",
-    "tariffs": "https://orbstudio.org/api/v1/tariffs"
+    "tariffs": "https://orbstudio.org/api/v1/tariffs",
+    "experiment": "https://orbstudio.org/api/v1/experiment"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -127,5 +128,13 @@
     "track_of_the_day": "field track_of_the_day in https://orbstudio.org/api/v1/broadcast/latest and in MCP get_broadcast",
     "format": "text cards: title, date, style, mood, bpm, languages, topics, radars, about, lyrics by language, listen_url",
     "note": "Songs made from Orb Studio's news radars (Suno music, lyrics by Claude). Audio is on TikTok and cannot be heard via links: describe a track from its text and give listen_url."
+  },
+  "experiment": {
+    "title": "AI trades a real Kraken account",
+    "about": "The Orb Studio author gave Claude his real Kraken account (BTC, ETH, SOL, EUR) to trade by the site's radars and sensors. The key has no withdrawal rights. Each morning Claude picks one of four modes and explains why; every decision and trade is public with a comparison to doing nothing.",
+    "api": "https://orbstudio.org/api/v1/experiment",
+    "mcp_tool": "get_experiment",
+    "page": "https://orbstudio.org/sensors#exp",
+    "since": "2026-11-03"
   }
 }

@@ -315,6 +315,23 @@ details.machine a{color:var(--holo)}
     <p class="vl" id="pdAcc"></p>
     <p class="vl" id="pdMsg" role="status"></p>
   </section>
+  <section class="vote" id="expBox" style="border-color:rgba(255,181,71,.5)">
+    <div class="vh"><span class="vt">🧪 EXPERIMENT: KI HANDELT MIT EINEM ECHTEN KONTO</span><span class="vs" id="exMode"></span></div>
+    <p class="vl">Der Autor von Orb Studio hat Claude sein echtes Kraken-Konto anvertraut – BTC, ETH, SOL und Euro. Jeden Morgen um 08:10 schaut Claude auf alle Radare und Sensoren der Website und wählt selbst den Modus: halten, einen Teil in Euro umschichten oder SOL zukaufen. Der Schlüssel hat kein Auszahlungsrecht: handeln ja, Geld abziehen nein. Jede Entscheidung und jeder Trade ist öffentlich – mit Grund und dem Vergleich „wenn man nichts tut“.</p>
+    <p class="vl" id="exNow"></p>
+    <p class="vl"><a href="/sensors#exp">Journal und Kachel bei den Sensoren →</a> · <a href="/api/v1/experiment">JSON für Agenten</a> · MCP <b>get_experiment</b></p>
+  </section>
+  <script>
+  (function(){
+    var EXH=['wenn man nichts tut:','KI vorn um','KI hinten um'],L=document.documentElement.lang||'ru',NL=L==='de'?'de-DE':L==='en'?'en-GB':'ru-RU';
+    var f=function(v){return Number(v).toLocaleString(NL,{minimumFractionDigits:2,maximumFractionDigits:2})+'\u00a0€'};
+    fetch('/api/v1/experiment').then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||!d.wallet)return;
+      var m=d.mode_name||{},dc=d.decisions&&d.decisions[0],cl=dc&&dc.claude,diff=d.hold_sol?d.wallet.eur-d.hold_sol.eur:0;
+      document.getElementById('exMode').textContent=(L==='ru'?m.ru:L==='de'?m.de:m.en)||'';
+      document.getElementById('exNow').innerHTML='💼 <b>'+f(d.wallet.eur)+'</b>'+(d.hold_sol?' · '+EXH[0]+' '+f(d.hold_sol.eur)+' · '+(diff>=0?EXH[1]:EXH[2])+' '+f(Math.abs(diff)):'')+(cl&&cl.reasoning_ru&&L==='ru'?'<br>🧠 '+cl.reasoning_ru.replace(/[<>&]/g,''):'');
+    }).catch(function(){});
+  })();
+  </script>
   <script>
   // «Люди против ИИ: кто точнее» — тексты на языке страницы (без таблицы перевода)
   (function(){

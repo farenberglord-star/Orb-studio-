@@ -315,6 +315,23 @@ details.machine a{color:var(--holo)}
     <p class="vl" id="pdAcc"></p>
     <p class="vl" id="pdMsg" role="status"></p>
   </section>
+  <section class="vote" id="expBox" style="border-color:rgba(255,181,71,.5)">
+    <div class="vh"><span class="vt">🧪 EXPERIMENT: AI TRADES A REAL ACCOUNT</span><span class="vs" id="exMode"></span></div>
+    <p class="vl">The author of Orb Studio has handed Claude his real Kraken account – BTC, ETH, SOL and euros. Every morning at 08:10 Claude looks at all the site’s radars and sensors and chooses the mode itself: hold, move part into euros, or add SOL. The key has no withdrawal right: it can trade, but cannot take money out. Every decision and every trade is public – with the reason and a comparison with “doing nothing”.</p>
+    <p class="vl" id="exNow"></p>
+    <p class="vl"><a href="/sensors#exp">Journal and tile on Sensors →</a> · <a href="/api/v1/experiment">JSON for agents</a> · MCP <b>get_experiment</b></p>
+  </section>
+  <script>
+  (function(){
+    var EXH=['doing nothing:','AI ahead by','AI behind by'],L=document.documentElement.lang||'ru',NL=L==='de'?'de-DE':L==='en'?'en-GB':'ru-RU';
+    var f=function(v){return Number(v).toLocaleString(NL,{minimumFractionDigits:2,maximumFractionDigits:2})+'\u00a0€'};
+    fetch('/api/v1/experiment').then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||!d.wallet)return;
+      var m=d.mode_name||{},dc=d.decisions&&d.decisions[0],cl=dc&&dc.claude,diff=d.hold_sol?d.wallet.eur-d.hold_sol.eur:0;
+      document.getElementById('exMode').textContent=(L==='ru'?m.ru:L==='de'?m.de:m.en)||'';
+      document.getElementById('exNow').innerHTML='💼 <b>'+f(d.wallet.eur)+'</b>'+(d.hold_sol?' · '+EXH[0]+' '+f(d.hold_sol.eur)+' · '+(diff>=0?EXH[1]:EXH[2])+' '+f(Math.abs(diff)):'')+(cl&&cl.reasoning_ru&&L==='ru'?'<br>🧠 '+cl.reasoning_ru.replace(/[<>&]/g,''):'');
+    }).catch(function(){});
+  })();
+  </script>
   <script>
   // «Люди против ИИ: кто точнее» — тексты на языке страницы (без таблицы перевода)
   (function(){
