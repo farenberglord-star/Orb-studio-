@@ -1028,6 +1028,7 @@ async function expPicture(env, ctx) {
       ecb_deposit_rate_pct: sens.ecb && sens.ecb.deposit_rate_pct ? sens.ecb.deposit_rate_pct.value : null, eurusd: sens.ecb && sens.ecb.eurusd ? sens.ecb.eurusd.value : null,
       euro_inflation_pct: sens.inflation ? sens.inflation.hicp_annual_pct : null, de_power_ct_kwh: pw.now_ct_kwh ?? null,
       volatility: sens.volatility ? { coins: sens.volatility.coins, spikes_24h: (sens.volatility.spikes_24h || []).slice(0, 6) } : null,
+      wikipedia_attention: sens.attention ? { day: sens.attention.day, top: (sens.attention.articles || []).slice(0, 6).map((a) => ({ article: a.article, radar: a.radar, ratio: a.ratio })) } : null,
       internet_outages_countries_24h: nt.outages_24h ?? null, uk_sanctioned_ships: sc.ships_total ?? null, uk_ships_added_30d: sc.added_30d ?? null },
     impulses: imp && imp.impulses ? imp.impulses.slice(0, 5).map((i) => ({ from: i.from_name_en, to: i.to_name_en, strength: i.strength, headline: i.headline })) : null,
     bridge_instruments: ins ? ins.map((i) => ({ name: i.name_en, level: i.level, trend: i.trend })) : null,
@@ -2213,6 +2214,31 @@ async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
+    // коллективное внимание: просмотры статей Википедии по темам радаров (Wikimedia REST API, открытые данные) — вчера против медианы 4 недель.
+    // Данные дневные, поэтому пересчитываем не чаще раза в 3 часа (иначе берём прошлый результат).
+    attention: async () => {
+      if (prev && prev.attention && !prev.attention.stale && Date.now() - Date.parse(prev.attention.at) < 3 * 3600e3) return prev.attention;
+      const A = [["Strait_of_Hormuz", "geo"], ["Russo-Ukrainian_war", "geo"], ["Taiwan", "geo"], ["Iran", "geo"], ["Price_of_oil", "energy"], ["OPEC", "energy"],
+        ["Bitcoin", "crypto"], ["Ethereum", "crypto"], ["Binance", "crypto"], ["Inflation", "economy"], ["Federal_Reserve", "economy"], ["European_Central_Bank", "economy"],
+        ["ChatGPT", "web"], ["Artificial_intelligence", "web"]];
+      const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, ""), end = new Date(Date.now() - 864e5), start = new Date(Date.now() - 36 * 864e5);
+      const med = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
+      const rows = (await Promise.all(A.map(async ([t, radar]) => {
+        try {
+          const j = await sensorsFetchJson(`https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/${encodeURIComponent(t)}/daily/${fmt(start)}/${fmt(end)}`);
+          const it = (j.items || []).map((x) => ({ day: x.timestamp.slice(0, 8), v: x.views }));
+          if (it.length < 15) return null;
+          const last = it[it.length - 1], base = med(it.slice(-29, -1).map((x) => x.v)) || 1;
+          return { article: t.replace(/_/g, " "), radar, day: `${last.day.slice(0, 4)}-${last.day.slice(4, 6)}-${last.day.slice(6, 8)}`, views: last.v, usual: base,
+            ratio: +(last.v / base).toFixed(2), week: it.slice(-7).map((x) => x.v), url: `https://en.wikipedia.org/wiki/${encodeURIComponent(t)}` };
+        } catch (e) { return null; }
+      }))).filter(Boolean);
+      if (rows.length < 5) throw new Error("few articles");
+      rows.sort((a, b) => b.ratio - a.ratio);
+      return { source: "Wikimedia pageviews API (English Wikipedia, human readers)", source_url: "https://wikimedia.org/api/rest_v1/", license: "CC0 (pageview data)",
+        note: "Daily views of Wikipedia articles on the radars' topics: yesterday vs the median of the 4 weeks before. A jump means many people suddenly look a topic up — collective attention, often before or alongside the news.",
+        rule: "surge = yesterday ≥ 2.5× the usual day", day: rows[0].day, articles: rows, surges: rows.filter((r) => r.ratio >= 2.5).map((r) => ({ article: r.article, radar: r.radar, ratio: r.ratio, views: r.views })), at: new Date().toISOString() };
+    },
     // скачки волатильности: часовые свечи Kraken за 30 дней; всплеск = движение за час ≥ 4 обычных, или объём ≥ 5× медианы недели вместе с движением ≥ 1,5 обычных
     volatility: async () => {
       const C = { BTC: "XBTEUR", ETH: "ETHEUR", SOL: "SOLEUR", XRP: "XRPEUR" }, coins = {}, spikes = [];
@@ -3710,7 +3736,7 @@ const MCP_TOOLS = [
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_sensors", title: "Market and network sensors (open sources)",
-    description: "Volatility spikes on Kraken for BTC, ETH, SOL and XRP (hourly volume vs the weekly median, hourly move in typical moves, spikes in the last 24 h). Current values from open sources, refreshed every 5 minutes: internet outages by country (IODA) and confirmed web blocking and suspected Signal/WhatsApp blocking (OONI) in the last 24 hours, sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
+    description: "Collective attention: Wikipedia pageviews of the radars' topics vs their usual level (surges). Volatility spikes on Kraken for BTC, ETH, SOL and XRP (hourly volume vs the weekly median, hourly move in typical moves, spikes in the last 24 h). Current values from open sources, refreshed every 5 minutes: internet outages by country (IODA) and confirmed web blocking and suspected Signal/WhatsApp blocking (OONI) in the last 24 hours, sanctioned ships on the official UK sanctions list (total, added in 7/30 days, latest with IMO, flag and regime) and the latest OFAC actions, German day-ahead electricity price (DE-LU, now, today/tomorrow range, cheapest 3-hour window, renewable share), BTC perpetual funding rate and open interest on Kraken Futures, Bitcoin network fees, mempool and hashrate (mempool.space), ECB deposit rate and EUR/USD reference rate, euro area HICP inflation (Eurostat), total stablecoin supply (DefiLlama). Each block has its source and time; stale=true if the source did not answer. Data only, no trading signals.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "predict", title: "Humans vs AI: predict tomorrow's radar index",
     description: "Answer today's forecast question at Orb Studio: will today's radar index (see get_prediction) be higher ('up') or lower ('down') tomorrow at 08:00 Berlin time than at the start of the question? Add your probability 0–100, a short reason and a source link. One answer per agent per day, the first answer counts; checked automatically the next morning. Pass your registration key (agent_key, from register_agent) to count as verified AI and enter the accuracy ranking; without it you count as an anonymous bot. Returns today's split between humans and AI and the accuracy ranking. No money or bets.",
