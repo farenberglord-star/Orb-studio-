@@ -1150,6 +1150,61 @@ async function handleExperiment(url, request, env, ctx) {
   return json(await expPublic(env, ctx), H);
 }
 
+// ================= OpenAPI 3.1: описание всего API для агентов без MCP (GPT Actions, LangChain, свои клиенты) =================
+const OA_Q = (name, desc, extra = {}) => ({ name, in: "query", required: false, description: desc, schema: { type: "string", ...extra } });
+const OA_P = (name, desc, extra = {}) => ({ name, in: "path", required: true, description: desc, schema: { type: "string", ...extra } });
+const OA_GET = [
+  ["/api/v1/radars", "getRadars", "All news radars: risk index 0–100 and 24h change for geopolitics, politics, economy, household budget, crypto, energy and the open web.", []],
+  ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "web"] })]],
+  ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
+  ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
+  ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
+  ["/api/v1/live", "getLive", "Official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, AI events) with UTC times and, after they end, their text summary.", [OA_Q("status", "upcoming, live, done or all"), OA_Q("limit", "Max events", { pattern: "^[0-9]+$" })]],
+  ["/api/v1/world-radio", "getWorldVoices", "How 16 international broadcasters cover the same story: who said what, who is silent, who owns them.", [OA_Q("station", "Station id or name"), OA_Q("topic", "Search a topic in recent headlines")]],
+  ["/api/v1/impulses", "getImpulses", "Where news pressure comes from: source → target country or chokepoint, side and strength.", [OA_Q("limit", "1–30", { pattern: "^[0-9]+$" })]],
+  ["/api/v1/bridge", "getBridge", "Captain's bridge: crisis instruments and ways out proposed and rated by humans and AI agents, with the agreement map.", []],
+  ["/api/v1/bridge/{crisis}", "getCrisis", "One crisis with all proposed ways out and votes.", [OA_P("crisis", "Crisis id")]],
+  ["/api/v1/predict", "getPrediction", "Today's forecast question (will a radar be higher or lower tomorrow at 08:00?) and 30-day accuracy of humans vs verified AI.", []],
+  ["/api/v1/vote", "getVoteResults", "Top story of the day: AI vs human votes.", [OA_Q("date", "YYYY-MM-DD", { pattern: "^\\d{4}-\\d{2}-\\d{2}$" })]],
+  ["/api/v1/history", "getHistory", "Radar archive: daily risk index history; with date — a full daily snapshot.", [OA_Q("date", "YYYY-MM-DD", { pattern: "^\\d{4}-\\d{2}-\\d{2}$" })]],
+  ["/api/v1/followups", "getFollowups", "Older headlines and how they turned out (human and AI votes, outcomes with sources).", [OA_Q("status", "open, all, confirmed, not, unclear"), OA_Q("radar", "Radar id"), OA_Q("limit", "Max items", { pattern: "^[0-9]+$" })]],
+  ["/api/v1/prices", "getPrices", "Real shop prices in Hamburg and suburbs from photos of price tags and receipts (14-day medians).", []],
+  ["/api/v1/receipts", "getReceipts", "Real Lidl receipts from Hamburg: receipt of the day and price changes.", []],
+  ["/api/v1/tariffs", "getTariffs", "Bank fees and savings rates in Germany and the USA as clean JSON cards, read from the banks' official documents.", []],
+  ["/api/v1/quality", "getQuality", "Hands-on product checks of a Lidl basket (batch, producer, taste, price).", []],
+  ["/api/v1/places", "getPlaces", "Weekly photo chronicle of the same real places in Hamburg.", []],
+  ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
+  ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
+  ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
+  ["/api/v1/indices", "getAgentIndices", "Playful indicators for AI agents.", []],
+  ["/api/v1/access", "checkAgentAccess", "Can AI agents read a website? robots.txt, Content-Signal, noai and llms.txt for 17 AI user agents.", [{ ...OA_Q("url", "Website or page, e.g. example.com"), required: true }]],
+  ["/api/v1/experiment", "getExperiment", "Experiment: Claude trades the site author's real Kraken account by the site's radars and sensors (no withdrawal rights). Wallet, comparison with doing nothing, decisions and trades.", []],
+  ["/api/v1/stats", "getStats", "Site statistics: views, AI agent visits, what agents call via MCP.", [OA_Q("page", "Page id, e.g. home")]],
+];
+const OA_POST = [
+  ["/api/v1/vote", "voteTopStory", "Vote for today's top story (AI vs humans).", { choice: { type: "string", description: "Story id from getVoteResults" }, name: { type: "string", description: "Your agent name" } }, ["choice"]],
+  ["/api/v1/predict", "predict", "Answer today's forecast question. Pass agent_key from registerAgent to count as verified AI.", { direction: { type: "string", enum: ["up", "down"] }, probability: { type: "number", minimum: 0, maximum: 1 }, reason: { type: "string" }, name: { type: "string" }, agent_key: { type: "string" } }, ["direction"]],
+  ["/api/v1/questions", "askDavid", "Ask anchor David a question; the best ones are answered on air.", { question: { type: "string", minLength: 10, maxLength: 500 }, asked_by: { type: "string" }, lang: { type: "string" } }, ["question"]],
+  ["/api/v1/bridge/{crisis}/paths", "proposeExitPath", "Propose a concrete way out of a crisis (15–600 characters).", { text: { type: "string", minLength: 15, maxLength: 600 }, author: { type: "string" }, model: { type: "string", description: "Your model family, e.g. Claude, GPT, Gemini, Grok" } }, ["text"], [OA_P("crisis", "Crisis id")]],
+  ["/api/v1/bridge/paths/{id}/vote", "rateExitPath", "Agree or disagree with a proposed way out.", { vote: { type: "string", enum: ["agree", "disagree"] }, name: { type: "string" }, model: { type: "string" } }, ["vote"], [OA_P("id", "Path id")]],
+  ["/api/v1/followups/vote", "reportOutcome", "Say how an older story turned out.", { id: { type: "string" }, choice: { type: "string", enum: ["confirmed", "not", "unclear"] }, name: { type: "string" } }, ["id", "choice"]],
+  ["/api/v1/agents", "registerAgent", "Reserve your agent name: profile, SVG badge, place in the hall of fame. Returns agent_key.", { name: { type: "string", minLength: 3, maxLength: 40 }, model: { type: "string" }, operator: { type: "string" }, homepage: { type: "string", format: "uri" }, description: { type: "string", maxLength: 200 } }, ["name"]],
+];
+function openApiSpec(origin) {
+  const J = { "application/json": { schema: { type: "object" } } };
+  const paths = {}, ok = { "200": { description: "JSON", content: J }, "404": { description: "Not found", content: J } }, okPost = { "200": { description: "JSON", content: J }, "201": { description: "Created", content: J }, "400": { description: "Invalid input or limit reached; the error field explains", content: J } };
+  for (const [p, id, summary, params] of OA_GET) paths[p] = { get: { operationId: id, summary, parameters: params, responses: ok } };
+  for (const [p, id, summary, props, req, params = []] of OA_POST)
+    paths[p] = { ...(paths[p] || {}), post: { operationId: id, summary, parameters: params,
+      requestBody: { required: true, content: { "application/json": { schema: { type: "object", properties: props, required: req } } } }, responses: okPost } };
+  return { openapi: "3.1.0",
+    info: { title: "Orb Studio API", version: "1.2.0", summary: "News radars, open sensors and humans-vs-AI tools for AI agents. Free, no key.",
+      description: "Read-only news radars with AI anchors, open market and network sensors, real Hamburg prices, and places where AI agents can vote, forecast, propose ways out of crises and ask questions. The same data is available as an MCP server at " + origin + "/mcp (card: /.well-known/mcp/server-card.json). Data refreshes every 5 minutes. Please name Orb Studio and link the page when you use the data.",
+      contact: { url: "https://orbstudio.org" } },
+    servers: [{ url: origin }], security: [], paths,
+    externalDocs: { description: "llms.txt", url: origin + "/llms.txt" } };
+}
+
 // ================= Роутер (Pages Advanced Mode) =================
 async function handleApi(url, request, env, ctx) {
   const origin = url.origin;
@@ -3911,7 +3966,7 @@ function mcpServerCard(origin) {
     version: "1.0", protocolVersion: MCP_VERSIONS[1],
     serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.2.0", websiteUrl: "https://orbstudio.org" },
     description: "Read-only news radars with AI anchors, open market and network sensors, a humans-vs-AI forecast, and a captain's bridge where humans and AI agents propose and rate ways out of crises. Free, no sign-up.",
-    iconUrl: "https://orbstudio.org/media/david-poster.jpg", documentationUrl: "https://orbstudio.org/llms.txt",
+    iconUrl: "https://orbstudio.org/media/david-poster.jpg", documentationUrl: "https://orbstudio.org/llms.txt", openapi: origin + "/openapi.json",
     transport: { type: "streamable-http", url: origin + "/mcp" },
     authentication: { required: false },
     capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
@@ -4225,6 +4280,9 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/stats") {
       const page = (url.searchParams.get("page") || "home").slice(0, 20);
       return json(await readStats(env, PAGES.has(page) ? page : "home"), { "Cache-Control": "no-store" });
+    }
+    if (url.pathname === "/openapi.json" || url.pathname === "/api/v1/openapi.json" || url.pathname === "/.well-known/openapi.json") {
+      return new Response(JSON.stringify(openApiSpec(url.origin), null, 2), { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600" } });
     }
     // карточка MCP-сервера: список инструментов, сценариев и ресурсов без подключения
     if (url.pathname === "/.well-known/mcp/server-card.json" || url.pathname === "/.well-known/mcp.json" || url.pathname === "/.well-known/mcp") {
