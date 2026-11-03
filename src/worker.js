@@ -863,7 +863,9 @@ function expKeyCheck(env) {
   let b64 = false; try { atob(sec); b64 = sec.length > 0; } catch (e) {}
   let kb64 = false; try { atob(k); kb64 = k.length > 0; } catch (e) {}
   return { key_present: !!k, secret_present: !!sec, key_length: k.length, secret_length: sec.length, secret_is_base64: b64,
-    looks_swapped: !b64 && kb64 && k.length > sec.length, raw_secret_had_spaces_or_quotes: String(env.KRAKEN_API_SECRET || "") !== sec };
+    looks_swapped: !b64 && kb64 && k.length > sec.length, raw_secret_had_spaces_or_quotes: String(env.KRAKEN_API_SECRET || "") !== sec,
+    // только имена похожих переменных (без значений) — чтобы найти опечатку в названии
+    similar_names: Object.keys(env).filter((n) => /krak|priv|secret|api.?key/i.test(n)) };
 }
 // подпись приватного запроса Kraken: HMAC-SHA512(путь + SHA256(nonce + тело), секрет)
 async function krakenPrivate(env, path, params = {}) {
