@@ -942,6 +942,59 @@ function expPlan(h, px, target, info) {
   const pr = { SOL: 0, ETH: 1, BTC: 2 };
   return orders.sort((a, b) => (a.side === b.side ? pr[a.coin] - pr[b.coin] : a.side === "sell" ? -1 : 1));
 }
+// ---- «Мозг» эксперимента: Claude смотрит на весь сайт и все датчики и выбирает режим ----
+// Правила v2 остаются страховкой: Claude выбирает только один из 4 режимов; устаревшие данные, ограничение смены режима,
+// пороги сделок и предохранитель работают как прежде. Решение правил v2 пишется рядом («тень»), чтобы сравнить, кто точнее.
+const EXP_BRAIN_TOOL = { name: "choose_mode", description: "Choose today's wallet mode for the Orb Studio experiment.",
+  input_schema: { type: "object", additionalProperties: false, required: ["level", "confidence", "reasoning_ru", "key_signals"],
+    properties: {
+      level: { type: "integer", enum: [-1, 0, 1, 2], description: "-1 tailwind (+10 points SOL from BTC), 0 calm (start wallet), 1 watchful (25 % EUR), 2 alarm (60 % EUR)" },
+      confidence: { type: "number", minimum: 0, maximum: 1 },
+      reasoning_ru: { type: "string", maxLength: 700, description: "Why, in Russian, 2–4 sentences, plain words, with the concrete numbers you used" },
+      key_signals: { type: "array", maxItems: 5, items: { type: "object", additionalProperties: false, required: ["sensor", "value", "effect"],
+        properties: { sensor: { type: "string" }, value: { type: "string" }, effect: { type: "string", enum: ["risk_up", "risk_down", "neutral"] } } } },
+      watch_next_ru: { type: "string", maxLength: 200, description: "What would change your mind tomorrow" },
+    } } };
+const EXP_BRAIN_SYSTEM = `You manage a small real crypto wallet on Kraken for a public experiment on orbstudio.org: can the site's radars and sensors sense the market? Each morning you choose ONE mode:
+-1 tailwind: +10 points SOL taken from BTC (only when the picture is clearly calm and supportive)
+ 0 calm: keep the start wallet as it is (default; no trades)
+ 1 watchful: 25 % of the wallet in EUR
+ 2 alarm: 60 % of the wallet in EUR
+Rules: base your choice only on the data given (Orb Studio radars, headlines, sensors, impulses, captain's bridge, live events, the wallet history). Prefer calm when signals are mixed or weak — every mode change costs fees. Name concrete numbers. Do not invent facts or prices. You cannot see the future; this is a measured experiment, so be consistent day to day.`;
+async function expPicture(env, ctx) {
+  const o = "https://orbstudio.org";
+  const [radars, sens] = await Promise.all([allRadars(env, ctx, o), sensorsData(env, ctx)]);
+  const safe = (pr) => pr.then((x) => x).catch(() => null);
+  const [imp, ins, live] = await Promise.all([safe(impulses(env, ctx, o, 5)), safe(bridgeInstruments(env, radars)), safe(liveData(env, ctx, o, { status: "upcoming", limit: 4 }))]);
+  const v = sens.derivatives || {}, b = sens.bitcoin || {}, st = sens.stablecoins || {}, pw = sens.power || {}, nt = sens.internet || {}, sc = (sens.sanctions || {}).uk_ships || {};
+  const hist = ((await env.DB.prepare("SELECT day, data FROM exp_log WHERE kind='decision' ORDER BY id DESC LIMIT 7").all()).results || []).map((r) => { const d = JSON.parse(r.data); return { day: r.day, level: d.level, wallet_eur: d.wallet_eur, do_nothing_eur: d.hold_eur ?? d.hold_sol_eur, sol: d.prices && d.prices.SOL, btc: d.prices && d.prices.BTC }; });
+  return {
+    radars: radars.map((r) => ({ id: r.id, title: r.title, risk_index: r.lvl, delta_24h: r.lvl - r.prev, top_headlines: r.feed.slice(0, 3).map((f) => f[1] + " — " + f[2]) })),
+    sensors: { btc_perp_funding_pct: v.funding_relative_pct ?? null, btc_24h_pct: v.change_24h_pct ?? null, btc_open_interest_btc: v.open_interest_btc ?? null,
+      btc_fee_sat_vb: b.fee_fast_sat_vb ?? null, mempool_tx: b.mempool_tx ?? null, hashrate_ehs: b.hashrate_ehs ?? null,
+      stablecoins_total_bn_usd: st.total_usd ? +(st.total_usd / 1e9).toFixed(1) : null, stablecoins_7d_pct: st.change_7d_pct ?? null,
+      ecb_deposit_rate_pct: sens.ecb && sens.ecb.deposit_rate_pct ? sens.ecb.deposit_rate_pct.value : null, eurusd: sens.ecb && sens.ecb.eurusd ? sens.ecb.eurusd.value : null,
+      euro_inflation_pct: sens.inflation ? sens.inflation.hicp_annual_pct : null, de_power_ct_kwh: pw.now_ct_kwh ?? null,
+      internet_outages_countries_24h: nt.outages_24h ?? null, uk_sanctioned_ships: sc.ships_total ?? null, uk_ships_added_30d: sc.added_30d ?? null },
+    impulses: imp && imp.impulses ? imp.impulses.slice(0, 5).map((i) => ({ from: i.from_name_en, to: i.to_name_en, strength: i.strength, headline: i.headline })) : null,
+    bridge_instruments: ins ? ins.map((i) => ({ name: i.name_en, level: i.level, trend: i.trend })) : null,
+    upcoming_events: live && live.events ? live.events.slice(0, 4).map((e) => ({ title: e.title && e.title.en, start: e.start })) : null,
+    wallet_history: hist,
+  };
+}
+async function expBrain(env, ctx, rulesLevel, prevLevel) {
+  if (!env.ANTHROPIC_API_KEY) throw new Error("no ANTHROPIC_API_KEY");
+  const pic = await expPicture(env, ctx);
+  const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(60000), method: "POST",
+    headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: env.EXP_MODEL || "claude-opus-5-5", max_tokens: 1500, system: EXP_BRAIN_SYSTEM,
+      messages: [{ role: "user", content: JSON.stringify({ today: today(), current_mode: prevLevel, simple_rules_v2_would_choose: rulesLevel, site: pic }) }],
+      tools: [EXP_BRAIN_TOOL], tool_choice: { type: "tool", name: EXP_BRAIN_TOOL.name } }) });
+  if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 160)}`);
+  const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
+  if (!t || ![-1, 0, 1, 2].includes(t.input.level)) throw new Error("no valid decision from Claude");
+  return { ...t.input, model: j.model || env.EXP_MODEL || "claude-opus-5-5" };
+}
 async function expRun(env, ctx, force = false) {
   const st = (await sharedGet(env, "exp-state", 1e13)) || { enabled: true, live: false, level: 0, last_day: null, paper: null, start: null };
   if (!st.enabled) return { skipped: "stopped" };
@@ -958,15 +1011,19 @@ async function expRun(env, ctx, force = false) {
     await expLog(env, "start", { ...st.start, base: st.base, rules_version: EXP_RULES.version });
   }
   const prev = st.level || 0;
-  let level = prev, note = null;
+  let level = prev, note = null, brain = null, wanted = sig.level;
+  if (st.brain === "claude") {
+    try { brain = await expBrain(env, ctx, sig.level, prev); wanted = brain.level; }
+    catch (e) { brain = { error: String(e.message || e).slice(0, 200) }; note = "Claude unavailable — rules v2 used"; }
+  }
   const daysSince = st.last_change_day ? (Date.parse(today()) - Date.parse(st.last_change_day)) / 864e5 : 99;
   if (sig.data_age_min != null && sig.data_age_min > 360) note = "sensor data older than 6 h — no change";
-  else if (sig.level > prev) level = sig.level;                       // в более осторожный режим — сразу
-  else if (sig.level < prev) { if (daysSince >= 2) level = sig.level; else note = "mode change waits: last change less than 2 days ago"; }
+  else if (wanted > prev) level = wanted;                            // в более осторожный режим — сразу
+  else if (wanted < prev) { if (daysSince >= 2) level = wanted; else note = "mode change waits: last change less than 2 days ago"; }
   let wallet0 = expValue(h, px), breaker = false;
   if (st.start && wallet0 < st.start.eur * 0.70) { breaker = true; note = "breaker: wallet below 70 % of the start — all to EUR, experiment stopped"; }
   const target = breaker ? { SOL: 0, ETH: 0, BTC: 0, EUR: 1 } : expTargets(st.base, level);
-  const orders = note && !breaker ? [] : expPlan(h, px, target, info), done = [];
+  const orders = note && !breaker && !/^Claude unavailable/.test(note) ? [] : expPlan(h, px, target, info), done = [];
   for (const o of orders) {
     if (source === "paper") {
       if (o.side === "sell") { h[o.coin] -= o.volume; h.EUR += o.volume * px[o.coin].bid * (1 - EXP_FEE); }
@@ -987,7 +1044,7 @@ async function expRun(env, ctx, force = false) {
   if (breaker) st.enabled = false;
   await sharedPut(env, "exp-state", st);
   const hold = expValue(st.start.holdings, px);
-  const rec = { source, rules_version: EXP_RULES.version, signal_level: sig.level, level, mode: level, mode_name: EXP_RULES.modes[level].en, note, alarms: sig.alarms, good: sig.good, data_age_min: sig.data_age_min,
+  const rec = { source, rules_version: EXP_RULES.version, brain: st.brain === "claude" ? "claude" : "rules", claude: brain, rules_level: sig.level, signal_level: sig.level, level, mode: level, mode_name: EXP_RULES.modes[level].en, note, alarms: sig.alarms, good: sig.good, data_age_min: sig.data_age_min,
     inputs: sig.inputs, target, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last }, holdings: h, wallet_eur: +expValue(h, px).toFixed(2), hold_eur: +hold.toFixed(2), orders: done };
   await expLog(env, "decision", rec);
   return rec;
@@ -1015,7 +1072,7 @@ async function expPublic(env, ctx) {
   return {
     section: "Experiment: AI trades by the radar", page: "https://orbstudio.org/sensors#exp",
     status: !st ? "not started" : !st.enabled ? "stopped" : last ? last.source : "waiting for the first decision",
-    live: !!(st && st.live), rules: EXP_RULES, mode: st ? (st.level ?? st.mode ?? 0) : 0, mode_name: EXP_RULES.modes[st ? (st.level ?? st.mode ?? 0) : 0],
+    live: !!(st && st.live), brain: st && st.brain === "claude" ? "claude" : "rules", rules: EXP_RULES, mode: st ? (st.level ?? st.mode ?? 0) : 0, mode_name: EXP_RULES.modes[st ? (st.level ?? st.mode ?? 0) : 0],
     target: st && st.base ? expTargets(st.base, st.level ?? 0) : null, base: st && st.base ? st.base : null,
     today_signals: now,
     wallet: h && px ? { eur: +expValue(h, px).toFixed(2), holdings: h, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last } } : null,
@@ -1032,6 +1089,16 @@ async function handleExperiment(url, request, env, ctx) {
     const a = url.searchParams.get("action") || "status";
     const st = (await sharedGet(env, "exp-state", 1e13)) || { enabled: true, live: false, level: 0, last_day: null, paper: null, start: null };
     if (a === "run") return json(await expRun(env, ctx, url.searchParams.get("force") === "1"), H);
+    if (a === "ask") {
+      const sig = await expSignals(env, ctx);
+      try { return json({ preview: true, rules_v2_level: sig.level, claude: await expBrain(env, ctx, sig.level, st.level || 0) }, H); }
+      catch (e) { return json({ preview: true, error: String(e.message || e) }, H); }
+    }
+    if (a === "brain") {
+      st.brain = url.searchParams.get("v") === "claude" ? "claude" : "rules";
+      await sharedPut(env, "exp-state", st); await expLog(env, "control", { action: "brain", brain: st.brain });
+      return json({ ok: true, brain: st.brain }, H);
+    }
     if (a === "testorder") {
       // проверочный ордер: validate=true — Kraken только проверяет права и параметры, сделки нет
       try { const r = await krakenPrivate(env, "/0/private/AddOrder", { pair: "SOLEUR", type: "sell", ordertype: "market", volume: "0.25", validate: "true" }); return json({ order_permission: "ok", kraken_said: r.descr || r }, H); }

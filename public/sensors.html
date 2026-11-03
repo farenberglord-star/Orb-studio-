@@ -428,6 +428,8 @@ async function loadExperiment(){
   const eur=v=>fmt(v,2)+' €';
   setSensor('exp',`режим <b>${EXP_RU[mode]}</b>${w?` · кошелёк <b>${eur(w.eur)}</b>`:''}${hs?` · без сделок: ${eur(hs.eur)}`:''}`,d.decisions&&d.decisions[0]?d.decisions[0].ts:Date.now(),mode+'|'+(w?Math.round(w.eur*10):'')+'|'+(d.trades||[]).length,EXP_SRC[d.status]||d.status);
   let h=`<div>Режим: <b>${EXP_RU[mode]}</b>${d.target?' → '+expTg(d.target):''}</div>`;
+  const dc=d.decisions&&d.decisions[0],cl=dc&&dc.claude;
+  if(d.brain==='claude'&&cl&&cl.reasoning_ru)h+=`<div style="margin-top:4px">🧠 <b>Claude решил:</b> ${esc(cl.reasoning_ru)}${cl.confidence!=null?` <span style="color:var(--dim)">· уверенность ${Math.round(cl.confidence*100)}\u00a0%</span>`:''}${dc.rules_level!=null&&dc.rules_level!==cl.level?` <span style="color:var(--dim)">· простые правила выбрали бы «${EXP_RU[dc.rules_level]}»</span>`:''}</div>`+(cl.watch_next_ru?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Завтра смотрит: ${esc(cl.watch_next_ru)}</div>`:'');
   if(w){const hd=w.holdings,px=w.prices,part=c=>hd[c]>1e-9?`${c} ${fmt(hd[c],c==='EUR'?2:4)}`:null;
     const diff=hs?w.eur-hs.eur:null;
     h+=`<div style="margin-top:3px">Кошелёк: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
@@ -441,7 +443,7 @@ async function loadExperiment(){
       `<div style="margin-top:3px">${t.good?'✓':'·'} хороших знаков: ${t.good} из 3</div>`;}
   const tr=(d.trades||[]).filter(o=>o.status!=='error').slice(0,3);
   if(tr.length)h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">ПОСЛЕДНИЕ СДЕЛКИ</div>`+tr.map(o=>`<div style="margin-top:2px">${o.side==='sell'?'🔻 продажа':'🔺 покупка'} ${fmt(o.volume,4)} ${o.coin} ≈ ${eur(o.approx_eur)} · ${o.day.slice(8,10)}.${o.day.slice(5,7)}${o.status==='paper'?' · на бумаге':o.status==='validated'?' · проверка':''}</div>`).join('');
-  h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">Правила v${d.rules.version} записаны заранее, решение раз в день в 08:10. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
+  h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Режим выбирает Claude по всем датчикам сайта, страховки правил v'+d.rules.version+' остаются.':'Правила v'+d.rules.version+' записаны заранее.'} Решение раз в день в 08:10. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
 const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
