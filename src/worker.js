@@ -3855,14 +3855,20 @@ const PROM_BANKS = {
   ecb: { name: "ECB", name_ru: "ЕЦБ", rate: "deposit facility rate", rate_ru: "депозитная ставка", feed: "https://www.ecb.europa.eu/rss/press.html", title: /monetary policy decisions/i, lag: 8 },
   fed: { name: "Fed", name_ru: "ФРС", rate: "federal funds target range (upper bound)", rate_ru: "ставка ФРС (верхняя граница)", feed: "https://www.federalreserve.gov/feeds/press_monetary.xml", title: /issues FOMC statement/i, lag: 3 },
 };
+async function promFred(id) {
+  const r = await fetch(`https://fred.stlouisfed.org/graph/fredgraph.csv?id=${id}&cosd=2024-01-01`, { signal: AbortSignal.timeout(15000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
+  if (!r.ok) throw new Error("FRED " + r.status);
+  return (await r.text()).trim().split("\n").slice(1).map((l) => l.split(",")).filter((x) => x[1] && x[1] !== ".").map(([d, v]) => [d, +v]);
+}
 async function promRates(bank) {
   if (bank === "ecb") {
-    const r = await fetch("https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?startPeriod=2024-01-01&detail=dataonly&format=jsondata", { signal: AbortSignal.timeout(25000), headers: { Accept: "application/json" }, cf: { cacheTtl: 3600, cacheEverything: true } });
-    const j = await r.json(), s = Object.values(j.dataSets[0].series)[0].observations, tp = j.structure.dimensions.observation.find((v) => v.id === "TIME_PERIOD").values;
-    return Object.keys(s).map((i) => [tp[+i].id, +s[i][0]]).sort((a, b) => a[0] < b[0] ? -1 : 1);
+    try { // официальный портал ЕЦБ; при сбое — та же ставка ЕЦБ в FRED (ряд ECBDFR)
+      const r = await fetch("https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?lastNObservations=760&detail=dataonly&format=jsondata", { signal: AbortSignal.timeout(20000), headers: { Accept: "application/json" }, cf: { cacheTtl: 3600, cacheEverything: true } });
+      const j = await r.json(), s = Object.values(j.dataSets[0].series)[0].observations, tp = j.structure.dimensions.observation.find((v) => v.id === "TIME_PERIOD").values;
+      return Object.keys(s).map((i) => [tp[+i].id, +s[i][0]]).sort((a, b) => a[0] < b[0] ? -1 : 1);
+    } catch (e) { return promFred("ECBDFR"); }
   }
-  const r = await fetch("https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFEDTARU&cosd=2023-06-01", { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
-  return (await r.text()).trim().split("\n").slice(1).map((l) => l.split(",")).filter((x) => x[1] && x[1] !== ".").map(([d, v]) => [d, +v]);
+  return promFred("DFEDTARU");
 }
 const promAt = (rates, day) => { let v = null; for (const [d, x] of rates) { if (d > day) break; v = x; } return v; };
 function promChanges(rates) { const out = []; for (let i = 1; i < rates.length; i++) if (rates[i][1] !== rates[i - 1][1]) out.push({ effective: rates[i][0], from: rates[i - 1][1], to: rates[i][1] }); return out; }
@@ -3927,7 +3933,7 @@ function promCard(st) {
       followed: { signals: scored.length, followed: scored.filter((l) => l.verdict === "followed").length, not_yet: scored.filter((l) => l.verdict === "not_yet").length, opposite: scored.filter((l) => l.verdict === "opposite").length } };
   });
   return { section: "Orb Studio · Said → did (central banks)", updated_at: st.updated_at || null, banks,
-    rule: "Institutions only, no judgement of people. 'said' is an exact quote from the official statement (source link); the signal is read by Claude from that text only; 'did' is the next official rate decision from official data (ECB Data Portal, FRED/Federal Reserve). Central banks rarely promise — 'not_yet' is not a broken promise. OPEC+ is not included yet: there is no free official production dataset to check against.",
+    rule: "Institutions only, no judgement of people. 'said' is an exact quote from the official statement (source link); the signal is read by Claude from that text only; 'did' is the next official rate decision from official data (ECB Data Portal or its FRED mirror ECBDFR, FRED DFEDTARU). Central banks rarely promise — 'not_yet' is not a broken promise. OPEC+ is not included yet: there is no free official production dataset to check against.",
     page: "https://orbstudio.org/sensors", mcp_tool: "get_promises" };
 }
 async function promPublic(env) { const f = await sharedGet(env, "promises-public", 1e13); return !!(f && f.on); }
