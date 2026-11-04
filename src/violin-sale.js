@@ -96,6 +96,33 @@ export async function cdpJwt(keyId, secret, method, path, now = Math.floor(Date.
   return head + "." + b64url(sig);
 }
 
+// убираем то, что часто прилипает при копировании: пробелы, переводы строк, кавычки, «id: …», \n из JSON-файла
+function cdpClean(v, secret = false) {
+  let s = String(v || "").trim().replace(/^["'`]+|["'`,]+$/g, "").trim();
+  s = s.replace(/^(id|name|privateKey|apiKeyId|apiKeySecret)\s*[:=]\s*/i, "").replace(/^["'`]+|["'`,]+$/g, "").trim();
+  if (secret && !s.includes("BEGIN")) s = s.replace(/\\n|\s+/g, "");
+  if (secret && s.includes("BEGIN")) s = s.replace(/\\n/g, "\n");
+  return s;
+}
+// проверка ключа Coinbase без раскрытия значений: формат + ответ Coinbase на подписанный запрос /supported
+export async function cdpCheck(env) {
+  const rawId = String(env.CDP_API_KEY_ID || ""), rawSec = String(env.CDP_API_KEY_SECRET || "");
+  const id = cdpClean(rawId), sec = cdpClean(rawSec, true);
+  let secBytes = null; try { secBytes = sec.includes("BEGIN") ? "pem" : Uint8Array.from(atob(sec), (c) => c.charCodeAt(0)).length; } catch (e) { secBytes = "not_base64"; }
+  const out = { id_present: !!id, id_length: id.length, id_looks_uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id),
+    id_looks_legacy_name: /^organizations\/.+\/apiKeys\/.+/.test(id), id_was_cleaned: rawId !== id,
+    secret_present: !!sec, secret_length: sec.length, secret_bytes: secBytes, secret_was_cleaned: rawSec !== sec,
+    secret_looks_like_id: /^[0-9a-f-]{36}$/i.test(sec) };
+  if (!id || !sec) return out;
+  try {
+    const path = CDP_ROUTE + "/supported";
+    const jwt = await cdpJwt(id, sec, "GET", path);
+    const r = await fetch(`https://${CDP_HOST}${path}`, { headers: { Authorization: "Bearer " + jwt }, signal: AbortSignal.timeout(15000) });
+    out.coinbase_status = r.status; out.coinbase_said = (await r.text()).slice(0, 300);
+  } catch (e) { out.sign_error = String(e && e.message || e).slice(0, 200); }
+  return out;
+}
+
 // ---------- настройки ----------
 export function saleConfig(env) {
   const network = env.X402_NETWORK || "eip155:8453", net = NETS[network];
@@ -108,7 +135,7 @@ export function saleConfig(env) {
   if (!net) problems.push("unsupported network " + network);
   if (!facilitator) problems.push("no facilitator: set CDP_API_KEY_ID + CDP_API_KEY_SECRET (mainnet) or X402_FACILITATOR_URL (testnet)");
   return { open: problems.length === 0, problems, network, net, payTo, usd, atomic: String(Math.round(usd * 1e6)), cdp, facilitator,
-    keyId: env.CDP_API_KEY_ID, keySecret: env.CDP_API_KEY_SECRET };
+    keyId: cdpClean(env.CDP_API_KEY_ID), keySecret: cdpClean(env.CDP_API_KEY_SECRET, true) };
 }
 
 function requirements(cfg) {
