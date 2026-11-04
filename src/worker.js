@@ -599,7 +599,7 @@ async function voiceBroadcast(env, ctx, origin, items) {
 
 // Собирает входные данные выпуска из радаров: по 2 главных заголовка с каждого.
 // Арбитр для агентов: сколько независимых изданий в наших лентах пишут ту же новость
-const VERIFY_METHOD = "sources_confirming = how many different outlets carry the same story: Orb Studio's radar feeds (72 h) plus a Google News search for the headline (2 days), matched by shared key words, same language. confirmed = 3+, two_sources = 2, single_source = 1 (not yet confirmed by other outlets in our feeds — say so if you repeat it). It measures spread across outlets, not truth.";
+const VERIFY_METHOD = "sources_confirming = how many different outlets carry the same story: Orb Studio's radar feeds (72 h) plus a Bing News search for the headline (2 days), matched by shared key words, same language. confirmed = 3+, two_sources = 2, single_source = 1 (not yet confirmed by other outlets in our feeds — say so if you repeat it). It measures spread across outlets, not truth.";
 let VERIFY_ON = false, VERIFY_AT = 0; // включается админом (shared verify-public), до этого — старое поведение
 async function verifyOn(env) { if (Date.now() - VERIFY_AT > 300e3) { const f = await sharedGet(env, "verify-public", 1e13); VERIFY_ON = !!(f && f.on); VERIFY_AT = Date.now(); } return VERIFY_ON; }
 function verifyInfo(n) {
@@ -608,22 +608,28 @@ function verifyInfo(n) {
   const v = verdictOf(n);
   return { sources_confirming: n, verdict: v, ...(v === "single_source" ? { check_note: "Only one outlet in our feeds so far — not yet confirmed by others." } : {}) };
 }
-// Широкая проверка: ищем тот же сюжет в Google News за 2 дня и считаем разные издания (кэш 3 часа на заголовок).
+// Широкая проверка: ищем тот же сюжет в Bing News за 2 дня и считаем разные издания (кэш 3 часа на заголовок).
 // Наши ленты узкие, поэтому без этого почти всё выглядело бы «одним источником».
 async function confirmWide(origin, title, source) {
   const words = String(title).replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 6);
   if (words.length < 3) return null;
-  const key = new Request(`${origin}/__cache/conf-v1-${await sha(title)}`);
+  const key = new Request(`${origin}/__cache/conf-v2-${await sha(title)}`);
   const hit = await caches.default.match(key); if (hit) return (await hit.json()).n;
-  const lang = /[а-яё]/i.test(title) ? ["ru", "RU", "RU:ru"] : /[äöüß]/i.test(title) ? ["de", "DE", "DE:de"] : ["en-US", "US", "US:en"];
-  const items = await withSlot(() => fetchFeedNow(`https://news.google.com/rss/search?q=${encodeURIComponent(words.join(" ") + " when:2d")}&hl=${lang[0]}&gl=${lang[1]}&ceid=${lang[2]}`));
+  const mkt = /[а-яё]/i.test(title) ? "ru-RU" : /[äöüß]/i.test(title) ? "de-DE" : "en-US";
+  // Bing News RSS (Google News блокирует запросы с адресов Cloudflare): источник в теге News:Source, окно 2 дня
+  let items = [];
+  try {
+    const r = await withSlot(() => fetch(`https://www.bing.com/news/search?q=${encodeURIComponent(words.join(" "))}&format=rss&mkt=${mkt}`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } }));
+    if (r.ok) items = (await r.text()).split(/<item[\s>]/i).slice(1, 30).map((b) => ({ title: tag(b, "title"), source: tag(b, "News:Source"), ts: Date.parse(tag(b, "pubDate")) || 0 }))
+      .filter((x) => x.title && (!x.ts || Date.now() - x.ts < 2.5 * 864e5));
+  } catch (e) {}
   const sig = sigOf(title), names = new Set([srcKey(source)]);
   for (const it of items) { const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++; if (k >= 2 && it.source) names.add(srcKey(it.source)); }
   const n = items.length ? names.size : null;
   if (n != null) await caches.default.put(key, new Response(JSON.stringify({ n }), { headers: { "Cache-Control": "max-age=10800" } }));
   return n;
 }
-// узкий счёт из лент + широкий из Google News, берём больший; не дольше 3,5 с
+// узкий счёт из лент + широкий из Bing News, берём больший; не дольше 3,5 с
 async function confirmMany(origin, list, force = false) {
   if (!VERIFY_ON && !force) return list.map((x) => x.n ?? null);
   const wide = await Promise.race([Promise.all(list.map((x) => confirmWide(origin, x.title, x.source).catch(() => null))), new Promise((r) => setTimeout(() => r(list.map(() => null)), 3500))]);
@@ -5314,7 +5320,6 @@ async function handleRequest(request, env, ctx) {
       if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
       const a = url.searchParams.get("action") || "test";
       if (a === "publish" || a === "hide") { await sharedPut(env, "verify-public", { on: a === "publish" }); VERIFY_AT = 0; return json({ ok: true, public: a === "publish" }, H); }
-      if (a === "gn") { const q = url.searchParams.get("q") || "Binance hack"; const r = await fetch(`https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&qft=interval%3d%227%22`, { headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } }); const x = await r.text(); return json({ status: r.status, len: x.length, items: (x.match(/<item>/g) || []).length, head: x.slice(0, 300) }, H); }
       const items = broadcastItems(await allRadars(env, ctx, url.origin));
       const cf = await confirmMany(url.origin, items.map((it) => ({ title: it.headline, source: it.source, n: it.confirm })), true);
       return json(items.map((it, i) => ({ radar: it.radar, headline: it.headline, source: it.source, feeds_only: it.confirm, wide: cf[i], verdict: verdictOf(cf[i]) })), H);
