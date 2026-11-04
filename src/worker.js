@@ -1509,7 +1509,7 @@ function clickLabel(request, from) {
         weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h,
       })),
       voice_error: v.error || undefined,
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-api"),
       method: "Keyword-weighted headline scoring over public RSS feeds; crypto radar blends Kraken 24h moves. Anchor lines written by Claude from headlines only.",
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, "api-broadcast"),
@@ -1999,6 +1999,15 @@ function violinCard(piece, idx, from) {
     notes: piece.notes, listen_url: `https://orbstudio.org/violin?day=${piece.day}&from=${from}`, page: "https://orbstudio.org/violin",
     archive: idx.days.slice(0, 30), updated: "once a day after the 07:10 UTC sensor digest", generated_at: piece.generated_at, preview: piece.preview || undefined,
     note: "You cannot hear the violin via a link: describe the piece from key, tempo, mood, mapping and the ABC score, and give listen_url so a person can hear the artificial violinist play it." };
+}
+// коротко для эфира: пьеса дня без нот (полностью — get_violin)
+async function violinBrief(env, ctx, from) {
+  try {
+    const { piece } = await violinPiece(env, ctx, null);
+    if (!piece || piece.preview) return null;
+    return { title: piece.title, day: piece.day, key: piece.key, bpm: piece.bpm, mood: piece.mood, duration_s: piece.duration_s, composer: piece.composer,
+      about: piece.about && piece.about.en, listen_url: `https://orbstudio.org/violin?day=${piece.day}&from=${from}`, full_score: "https://orbstudio.org/api/v1/violin", mcp_tool: "get_violin" };
+  } catch (e) { return null; }
 }
 function violinMachine(c) {
   if (!c) return "";
@@ -3931,7 +3940,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { radar: { type: "string", enum: RADAR_IDS, description: "Radar id" }, limit: { type: "integer", minimum: 1, maximum: 30, description: "Max headlines (default 10)" } }, required: ["radar"], additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_broadcast", title: "Latest anchor broadcast",
-    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks).",
+    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks) and violin_of_the_day — today's violin piece composed from the sensors (full score via get_violin).",
     inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de", "en"], description: "Language of anchor lines (default en)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_agent_indices", title: "Playful indices for AI agents",
@@ -4108,7 +4117,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { generated_at: new Date().toISOString(), voice: v.voice, greeting: v.greeting, signoff: v.signoff,
       items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
         line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index })),
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"),
       page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_agent_indices") {
@@ -4262,6 +4271,7 @@ const MCP_RESOURCES = [
   { uri: "https://orbstudio.org/api/v1/live", name: "live", title: "Live as text", tool: "get_live", args: {}, description: "Official events schedule (ECB, Fed, Bundestag, launches, AI events) and their text afterwards." },
   { uri: "https://orbstudio.org/api/v1/bridge", name: "bridge", title: "Captain's bridge", tool: "get_bridge", args: {}, description: "Crisis instruments and ways out proposed and rated by humans and AI agents." },
   { uri: "https://orbstudio.org/api/v1/predict", name: "prediction", title: "Humans vs AI forecast", tool: "get_prediction", args: {}, description: "Today's forecast question and 30-day accuracy of humans vs verified AI." },
+  { uri: "https://orbstudio.org/api/v1/violin", name: "violin", title: "Violin of the day", tool: "get_violin", args: {}, description: "Daily solo violin piece composed by Claude from the sensors: ABC score, notes, sensor → music mapping, listen link." },
   { uri: "https://orbstudio.org/api/v1/music", name: "music", title: "Orb Studio songs", tool: "get_tracks", args: {}, description: "Songs made from the radars and sensors: lyrics, style, mood, BPM, listen links." },
 ];
 const MCP_LANG = { description: "Answer language: ru, de or en (default en)" };
@@ -4577,6 +4587,16 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/sensors") {
       try { const d = await sensorsData(env, ctx); return json({ ...d, page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
+    }
+    if (url.pathname === "/api/v1/admin/violin") {
+      // ручной запуск: /api/v1/admin/violin?key=…&action=compose (пересочинить сегодня) или status
+      const H = { "Cache-Control": "no-store" };
+      if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+      try {
+        if (url.searchParams.get("action") === "compose") { const pc = await violinDaily(env, ctx, true); return json({ ok: true, day: pc.day, title: pc.title, composer: pc.composer, notes: pc.notes.length, duration_s: pc.duration_s, error: pc.error || null }, H); }
+        const idx = (await sharedGet(env, "violin-index", 1e13)) || { days: [] };
+        return json({ has_key: !!env.ANTHROPIC_API_KEY, model: env.VIOLIN_MODEL || "claude-opus-5-5", days: idx.days.slice(0, 10) }, H);
+      } catch (e) { return json({ error: String(e && e.message || e).slice(0, 300) }, H, 500); }
     }
     if (url.pathname === "/api/v1/predict") {
       try { const r = await handlePredict(url, request, env, ctx); if (r) return r; }

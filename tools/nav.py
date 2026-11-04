@@ -7,7 +7,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "public")
 # (адрес, подпись, страница-файл) — порядок как на главной
 NAV = [
     ("/", "Эфир", None), ("/#radar", "Радар", None), ("/#anchors", "Ведущие", None), ("/#agents", "Агентам", None),
-    ("/orbi", "ORBI 🤖", "orbi"), ("/hall", "Почёт 🏆", "hall"), ("/indices", "Индексы 👻", "indices"), ("/music", "Музыка 🎵", "music"),
+    ("/orbi", "ORBI 🤖", "orbi"), ("/hall", "Почёт 🏆", "hall"), ("/indices", "Индексы 👻", "indices"), ("/music", "Музыка 🎵", "music"), ("/violin", "Скрипка 🎻", "violin"),
     ("/radar", "Импульсы 🌍", "radar"), ("/prices", "Цены 🧾", "prices"), ("/quality", "Качество 🔬", "quality"), ("/tariffs", "Тарифы 🏦", "tariffs"),
     ("/archive", "Архив 🗄", "archive"), ("/followups", "Потом 🕰", "followups"), ("/places", "Места 📍", "places"), ("/live", "Эфир 🎙", "live"),
     ("/sensors", "Датчики ⚡", "sensors"), ("/bridge", "Рубка 🧭", "bridge"),
