@@ -3856,7 +3856,7 @@ const PROM_BANKS = {
 };
 async function promRates(bank) {
   if (bank === "ecb") {
-    const r = await fetch("https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?startPeriod=2023-06-01&format=jsondata", { signal: AbortSignal.timeout(12000), headers: { Accept: "application/json" } });
+    const r = await fetch("https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?startPeriod=2024-01-01&detail=dataonly&format=jsondata", { signal: AbortSignal.timeout(25000), headers: { Accept: "application/json" }, cf: { cacheTtl: 3600, cacheEverything: true } });
     const j = await r.json(), s = Object.values(j.dataSets[0].series)[0].observations, tp = j.structure.dimensions.observation.find((v) => v.id === "TIME_PERIOD").values;
     return Object.keys(s).map((i) => [tp[+i].id, +s[i][0]]).sort((a, b) => a[0] < b[0] ? -1 : 1);
   }
@@ -3872,10 +3872,11 @@ async function promRead(env, url) {
   const r = await fetch(url, { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } });
   if (!r.ok) throw new Error("page " + r.status);
   const text = stripInvisible((await r.text()).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " "));
-  const i = Math.max(0, text.search(/decided|Committee|Governing Council/i));
+  let i = text.search(/Recent indicators|The Governing Council today decided|Governing Council (?:today )?decided|the Committee decided/i);
+  if (i < 0) i = Math.max(0, text.search(/decided/i));
   const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(60000), method: "POST",
     headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: env.PROM_MODEL || "claude-haiku-5-5", max_tokens: 700, system: PROM_SYSTEM, messages: [{ role: "user", content: text.slice(Math.max(0, i - 300), i + 6000) }], tools: [PROM_TOOL], tool_choice: { type: "auto" } }) });
+    body: JSON.stringify({ model: env.PROM_MODEL || "claude-haiku-5-5", max_tokens: 700, system: PROM_SYSTEM, messages: [{ role: "user", content: text.slice(Math.max(0, i - 200), i + 9000) }], tools: [PROM_TOOL], tool_choice: { type: "auto" } }) });
   if (!res.ok) throw new Error("Claude " + res.status);
   const t = ((await res.json()).content || []).find((x) => x.type === "tool_use");
   if (!t) throw new Error("no answer");
