@@ -641,6 +641,46 @@ function toneOf(title) {
   const s = String(title || ""), hits = (s.match(TONE_RE) || []).length, bangs = (s.match(/!/g) || []).length, caps = (s.match(/(?<!\p{L})[A-ZА-ЯЁÄÖÜ]{4,}(?!\p{L})/gu) || []).filter((w) => !/^(NATO|OPEC|NASA|USA|ECB|EZB|ЕЦБ|ФРС|BRICS|WHO|IAEA|UNICEF)$/.test(w)).length;
   return hits + bangs + caps >= 2 || hits >= 1 && (bangs || caps) ? "alarmist" : hits ? "charged" : "neutral";
 }
+// ================= check_headline: «паспорт» для ЛЮБОГО заголовка, который принёс агент =================
+// Сколько изданий пишут то же самое за 2 дня (Bing News), список изданий со ссылками, тон заголовка. Без ИИ, мера распространения, а не правды.
+function toneWords(title) { return [...new Set((String(title || "").match(TONE_RE) || []).map((w) => w.toLowerCase()))]; }
+async function checkHeadline(origin, request, raw) {
+  const text = stripInvisible(String(raw || "")).replace(/\s+/g, " ").trim().slice(0, 300);
+  if (text.length < 12) return { error: "Send a headline or short text (12–300 characters) in ?headline=" };
+  const ip = request.headers.get("cf-connecting-ip") || "x", rk = new Request(`${origin}/__cache/chk-rate-${await sha(ip + new Date().toISOString().slice(0, 13))}`);
+  const used = +((await (await caches.default.match(rk))?.text()) || 0);
+  if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
+  await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
+  const ck = new Request(`${origin}/__cache/chk-v1-${await sha(text.toLowerCase())}`);
+  const hit = await caches.default.match(ck); if (hit) return hit.json();
+  const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 7);
+  const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
+  let items = [], searched = false;
+  if (words.length >= 2) {
+    try {
+      const r = await fetch(`https://www.bing.com/news/search?q=${encodeURIComponent(words.join(" "))}&format=rss&mkt=${mkt}`, { signal: AbortSignal.timeout(7000), headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } });
+      if (r.ok) { searched = true; items = (await r.text()).split(/<item[\s>]/i).slice(1, 40).map((b) => ({ title: tag(b, "title"), link: tag(b, "link"), source: tag(b, "News:Source"), ts: Date.parse(tag(b, "pubDate")) || 0 })); }
+    } catch (e) {}
+  }
+  const sig = sigOf(text), seen = new Map();
+  for (const it of items) {
+    if (!it.title || (it.ts && Date.now() - it.ts > 2.5 * 864e5)) continue;
+    const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++;
+    const need = Math.min(3, Math.max(2, Math.ceil(sig.size * 0.35)));
+    const key = srcKey(it.source || "");
+    if (k >= need && key && !seen.has(key)) seen.set(key, { outlet: wClean(it.source, 60), title: wClean(it.title, 200), link: it.link || null, published: it.ts ? new Date(it.ts).toISOString() : null });
+  }
+  const n = seen.size, verdict = !searched ? "search_unavailable" : n >= 3 ? "confirmed" : n === 2 ? "two_sources" : n === 1 ? "single_source" : "not_found";
+  const out = { headline: text, outlets_found: n, verdict, outlets: [...seen.values()].slice(0, 10), window: "last 2 days, Bing News",
+    tone: toneOf(text), tone_words: toneWords(text),
+    explain: { confirmed: "3+ different outlets report the same story", two_sources: "2 outlets", single_source: "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
+    ...(looksLikeInjection(text) ? { injection_suspected: true } : {}),
+    rule: "This measures how widely a story is reported by news outlets, not whether it is true. Matching is by shared key words in the same language, so a rephrased rumour may be missed and an unrelated story with the same words may match. Orb Studio never rewrites the news.",
+    checked_at: new Date().toISOString(), tool: "check_headline", page: "https://orbstudio.org/sensors" };
+  await caches.default.put(ck, new Response(JSON.stringify(out), { headers: { "Cache-Control": "max-age=10800" } }));
+  return out;
+}
+async function checkPublic(env) { const f = await sharedGet(env, "check-public", 1e13); return !!(f && f.on); }
 function verifySummary(list) {
   const c = { confirmed: 0, two_sources: 0, single_source: 0 };
   for (const x of list) if (x && c[x] != null) c[x]++;
@@ -1279,6 +1319,7 @@ const OA_GET = [
   ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
   ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [OA_Q("slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current")]],
   ["/api/v1/canvas.png", "getCanvasPng", "The painter's picture as PNG (720×900, or 1080×1350 with w=1080).", [OA_Q("slot", "YYYY-MM-DDTHH:00Z, default current"), OA_Q("w", "720 or 1080")]],
+  ["/api/v1/check", "checkHeadline", "Check any headline: how many outlets reported the same story in the last 2 days (with links), verdict and tone. Measures spread, not truth.", [OA_Q("headline", "Headline or short text, 12–300 characters")]],
   ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
@@ -1419,6 +1460,12 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...(await placesData(env)), referral: referral(env, "api-places") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/check") {
+    const H = { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" };
+    if (!(await checkPublic(env)) && !(await adminKeyOk(env, request.headers.get("x-admin-key")))) return json({ error: "Not available yet" }, H, 404);
+    const r = await checkHeadline(origin, request, url.searchParams.get("headline") || url.searchParams.get("q"));
+    return json(r, H, r.error ? 400 : 200);
+  }
   if (p === "/api/v1/ai-pulse") {
     const H = { "Access-Control-Allow-Origin": "*" };
     if (!(await pulsePublic(env))) return json({ error: "Not available yet" }, { ...H, "Cache-Control": "no-store" }, 404);
@@ -4534,6 +4581,10 @@ const MCP_TOOLS = [
     description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG); the picture itself is attached as an image block (include_image=false to skip). Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "check_headline", title: "Check any headline: how widely is it reported?",
+    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found) and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
+    inputSchema: { type: "object", required: ["headline"], properties: { headline: { type: "string", minLength: 12, maxLength: 300, description: "Headline or short text to check" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_ai_pulse", title: "AI pulse: what is new in AI today",
     description: "Facts only from open sources: trending models on Hugging Face (likes, downloads, task), papers of the day with community upvotes, how many new AI papers arXiv announced today (cs.AI, cs.LG, cs.CL), and the latest releases of big open projects (llama.cpp, vLLM, transformers, Ollama, PyTorch, MCP). Orb Studio does not test or rank models.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -4731,6 +4782,12 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const out = { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
     if (args.include_image !== false) { try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(canvasSvg(piece), 480)), enumerable: false }); } catch (e) {} }
     return out;
+  }
+  if (name === "check_headline") {
+    if (!(await checkPublic(env))) throw new Error("Not available yet");
+    const r = await checkHeadline(origin, request, args.headline);
+    if (r.error) throw new Error(r.error);
+    return r;
   }
   if (name === "get_ai_pulse") {
     if (!(await pulsePublic(env))) throw new Error("Not available yet");
@@ -5320,6 +5377,12 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/sensors") {
       try { const d = await sensorsData(env, ctx); return json({ ...d, ways_out: waysForAgents(await waysLatest(env).catch(() => null)), page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
+    }
+    if (url.pathname === "/api/v1/admin/check") {
+      const H = { "Cache-Control": "no-store" };
+      if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+      const a = url.searchParams.get("action");
+      await sharedPut(env, "check-public", { on: a === "publish" }); return json({ ok: true, public: a === "publish" }, H);
     }
     if (url.pathname === "/api/v1/admin/verify") {
       const H = { "Cache-Control": "no-store" };
