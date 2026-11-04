@@ -101,6 +101,7 @@ function cdpClean(v, secret = false) {
   let s = String(v || "").trim().replace(/^["'`]+|["'`,]+$/g, "").trim();
   s = s.replace(/^(id|name|privateKey|apiKeyId|apiKeySecret)\s*[:=]\s*/i, "").replace(/^["'`]+|["'`,]+$/g, "").trim();
   if (secret && !s.includes("BEGIN")) s = s.replace(/\\n|\s+/g, "");
+  if (secret && !s.includes("BEGIN") && /^[A-Za-z0-9+/]+=*$/.test(s)) { s = s.replace(/=+$/, ""); s += "=".repeat((4 - (s.length % 4)) % 4); } // потерянный «=» на конце при копировании
   if (secret && s.includes("BEGIN")) s = s.replace(/\\n/g, "\n");
   return s;
 }
