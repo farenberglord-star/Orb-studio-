@@ -55,6 +55,8 @@
     "agents": "https://orbstudio.org/api/v1/agents",
     "badge": "https://orbstudio.org/badge/{agent_id}.svg",
     "quality": "https://orbstudio.org/api/v1/quality",
+    "violin": "https://orbstudio.org/api/v1/violin",
+    "violin_midi_paid": "https://orbstudio.org/api/v1/violin/midi?date={YYYY-MM-DD}",
     "followups": "https://orbstudio.org/api/v1/followups",
     "places": "https://orbstudio.org/api/v1/places",
     "live": "https://orbstudio.org/api/v1/live",
@@ -66,6 +68,19 @@
     "violin": "https://orbstudio.org/api/v1/violin"
   },
   "auth": "none",
+  "payments": {
+    "protocol": "x402 v2",
+    "note": "Everything is free except one optional paid file: the violin piece of the day as MIDI. No accounts, no API keys; payment is a signed USDC transfer from the buyer's own wallet. Answers 503 until the sale is open.",
+    "items": [
+      {
+        "resource": "https://orbstudio.org/api/v1/violin/midi",
+        "price": "0.01 USDC",
+        "network": "eip155:8453 (Base)",
+        "mime": "audio/midi",
+        "free_alternative": "https://orbstudio.org/api/v1/violin"
+      }
+    ]
+  },
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
   "method": "Keyword-weighted scoring of public RSS headlines; crypto radar blends Kraken public ticker 24h moves.",
   "disclaimer": "Indicator, not advice. No orders are sent.",

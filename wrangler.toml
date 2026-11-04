@@ -16,6 +16,13 @@ REDIRECT_WORKERS_DEV = "1"   # старый адрес workers.dev ведёт н
 STARLINK_URL = "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source=share"
 # KRAKEN_URL = "https://твоя-реферальная-ссылка-kraken"
 
+# Продажа «Скрипки дня» как MIDI за USDC (x402, src/violin-sale.js). Пока X402_PAY_TO пуст — продажа выключена (503).
+# X402_PAY_TO — ПУБЛИЧНЫЙ адрес отдельного кошелька в сети Base (не Kraken!). Приватный ключ на сайт не кладётся никогда.
+# X402_PAY_TO = "0x..."
+# X402_PRICE_USD = "0.01"
+# X402_NETWORK = "eip155:8453"   # Base; для теста eip155:84532 (Base Sepolia) + X402_FACILITATOR_URL = "https://x402.org/facilitator"
+# Секреты (панель Worker → Settings → Variables and Secrets): CDP_API_KEY_ID, CDP_API_KEY_SECRET — фасилитатор Coinbase CDP.
+
 # Секрет ANTHROPIC_API_KEY добавляется в панели: Worker → Settings → Variables and Secrets.
 
 # Необязательно: KV для дельты «за сутки» и счётчика кликов Kraken.

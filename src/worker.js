@@ -2,6 +2,8 @@
 // Деплой: npx wrangler deploy (Workers Builds делает это сам при каждом push в main).
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
+import { handleViolinMidi, saleConfig, saleInfo } from "./violin-sale.js";
+
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
 // Работает без базы данных. Если подключён KV с именем ORB_KV, хранит вчерашний индекс для дельты.
 
@@ -1367,7 +1369,7 @@ async function handleApi(url, request, env, ctx) {
     const day = (url.searchParams.get("date") || url.searchParams.get("day") || "").match(/^\d{4}-\d{2}-\d{2}$/);
     const { piece, idx } = await violinPiece(env, ctx, day ? day[0] : null);
     if (!piece) return json({ error: "No piece for this day", archive: idx.days.slice(0, 30) }, { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" }, 404);
-    return json({ ...violinCard(piece, idx, "violin-api"), referral: referral(env, "api-violin") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+    return json({ ...violinCard(piece, idx, "violin-api", saleInfo(saleConfig(env), piece.day)), referral: referral(env, "api-violin") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   }
 
   if (p === "/api/v1/music") {
@@ -1990,7 +1992,7 @@ async function violinPiece(env, ctx, day) {
   }
   return { piece, idx };
 }
-function violinCard(piece, idx, from) {
+function violinCard(piece, idx, from, sale) {
   if (!piece) return null;
   return { section: "Orb Studio · Violin of the day", day: piece.day, title: piece.title, composer: piece.composer, instrument: "solo violin (synthesised in the browser)",
     key: piece.key, meter: piece.meter, bpm: piece.bpm, mood: piece.mood, duration_s: piece.duration_s, notes_count: piece.notes.length,
@@ -1998,7 +2000,8 @@ function violinCard(piece, idx, from) {
     notes_format: "[pitch, beats, dynamic, articulation]; pitch in scientific notation (A4 = 440 Hz), r = rest; beats are quarter notes",
     notes: piece.notes, listen_url: `https://orbstudio.org/violin?day=${piece.day}&from=${from}`, page: "https://orbstudio.org/violin",
     archive: idx.days.slice(0, 30), updated: "once a day after the 07:10 UTC sensor digest", generated_at: piece.generated_at, preview: piece.preview || undefined,
-    note: "You cannot hear the violin via a link: describe the piece from key, tempo, mood, mapping and the ABC score, and give listen_url so a person can hear the artificial violinist play it." };
+    note: "You cannot hear the violin via a link: describe the piece from key, tempo, mood, mapping and the ABC score, and give listen_url so a person can hear the artificial violinist play it.",
+    midi_download: piece.preview ? undefined : sale };
 }
 // коротко для эфира: пьеса дня без нот (полностью — get_violin)
 async function violinBrief(env, ctx, from) {
@@ -2008,6 +2011,14 @@ async function violinBrief(env, ctx, from) {
     return { title: piece.title, day: piece.day, key: piece.key, bpm: piece.bpm, mood: piece.mood, duration_s: piece.duration_s, composer: piece.composer,
       about: piece.about && piece.about.en, listen_url: `https://orbstudio.org/violin?day=${piece.day}&from=${from}`, full_score: "https://orbstudio.org/api/v1/violin", mcp_tool: "get_violin" };
   } catch (e) { return null; }
+}
+// журнал продаж MIDI (таблица violin_sales): день пьесы, адрес плательщика, транзакция, сумма
+async function violinSaleLog(env, kind, d) {
+  if (!env.DB) return;
+  try {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS violin_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, day TEXT, payer TEXT, agent TEXT, tx TEXT, network TEXT, usdc REAL)").run();
+    await env.DB.prepare("INSERT INTO violin_sales (ts, day, payer, agent, tx, network, usdc) VALUES (?1,?2,?3,?4,?5,?6,?7)").bind(d.ts, d.day, d.payer, d.agent, String(d.tx || ""), d.network, d.usdc).run();
+  } catch (e) { /* журнал никогда не ломает продажу */ }
 }
 function violinMachine(c) {
   if (!c) return "";
@@ -4138,7 +4149,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const day = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date || "")) ? args.date : null;
     const { piece, idx } = await violinPiece(env, ctx, day);
     if (!piece) throw new Error("No violin piece for " + day + ". Days available: " + idx.days.slice(0, 10).map((d) => d.day).join(", "));
-    return { ...violinCard(piece, idx, "violin-mcp"), referral: ref };
+    return { ...violinCard(piece, idx, "violin-mcp", saleInfo(saleConfig(env), piece.day)), referral: ref };
   }
   if (name === "get_prices") {
     return { ...(await pricesRadar(env, "hamburg")), referral: ref };
@@ -4565,6 +4576,17 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
+    }
+    // Скрипка дня как MIDI за USDC (x402). Модулю передаются только его настройки — секреты Kraken ему не видны.
+    if (url.pathname === "/api/v1/violin/midi") {
+      try {
+        return await handleViolinMidi(request, saleConfig(env), {
+          ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
+          piece: (day) => violinPiece(env, ctx, day),
+          hit: (page, kind, name) => recordHit(env, page, kind, name),
+          log: (kind, data) => violinSaleLog(env, kind, data),
+        });
+      } catch (e) { return json({ error: "violin sale error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     if (url.pathname === "/api/v1/vote" && (request.method === "POST" || request.method === "OPTIONS")) {
       const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };
