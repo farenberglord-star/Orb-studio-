@@ -1835,7 +1835,7 @@ async function musicTracks(env, ctx, origin) {
     style: t.style || null, mood: t.mood || null, bpm: t.bpm || null, languages: t.languages || [],
     topics: t.topics || [], radars: t.radars || [], about: t.about || null,
     lyrics: t.lyrics || null, cover: t.cover ? `https://orbstudio.org${t.cover}` : null,
-    made_with: t.made_with || null,
+    made_with: t.made_with || null, instrumental: !!t.instrumental, structure: t.structure || null, mapping: t.mapping || null, sensors_at: t.sensors_at || null,
     tiktok_url: `https://www.tiktok.com/@aidavidatudio/video/${t.id}`,
     listen_url: `https://orbstudio.org/go/tiktok?v=${t.id}&from=music-api`,
   }));
@@ -1854,10 +1854,12 @@ function trackOfDay(data, from) {
   if (i >= 0) for (let k = i + 1; k < lines.length && lines[k].trim() && excerpt.length < 5; k++) if (!/^\[.*\]$/.test(lines[k])) excerpt.push(lines[k]);
   return {
     title: t.title, date: t.date, style: t.style, mood: t.mood, bpm: t.bpm, languages: t.languages,
-    radars: t.radars, about: t.about, lyrics_excerpt: excerpt.length ? excerpt : null,
+    radars: t.radars, about: t.about, lyrics_excerpt: excerpt.length ? excerpt : null, instrumental: !!t.instrumental,
+    mapping: t.mapping ? t.mapping.slice(0, 6).map((m) => `${m.reading} → ${m.music}`) : null,
     listen_url: t.listen_url.replace("from=music-api", "from=" + from),
     full_text: "https://orbstudio.org/api/v1/music", mcp_tool: "get_tracks", page: "https://orbstudio.org/music",
-    note: "Song made from Orb Studio's radars. You cannot hear audio via the link: describe it from the text and give listen_url to people.",
+    note: t.instrumental ? "Instrumental track made from Orb Studio's radars and sensors (no words). You cannot hear audio via the link: describe it from style, mood, structure and the data → music mapping, and give listen_url to people."
+      : "Song made from Orb Studio's radars. You cannot hear audio via the link: describe it from the text and give listen_url to people.",
   };
 }
 // ================= Художник: радары и датчики → картина «Город у моря» каждые 3 часа (страница /canvas, /api/v1/canvas, /api/v1/canvas.svg, MCP get_canvas) =================
@@ -2275,7 +2277,7 @@ function musicJsonLd(data) {
     "@type": "MusicRecording", name: t.title, byArtist: { "@type": "MusicGroup", name: "Orb Studio" },
     datePublished: t.date || undefined, genre: t.style || undefined, image: t.cover || undefined,
     url: t.tiktok_url, inLanguage: t.languages.length ? t.languages : undefined,
-    description: t.about || undefined,
+    description: t.about || undefined, ...(t.instrumental ? { inLanguage: "zxx" } : {}),
     recordingOf: t.lyrics ? { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: Object.values(t.lyrics).flat().join("\n").slice(0, 4000) } } : undefined,
   }));
   return items.length ? `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@graph": items }).replace(/</g, "\\u003c")}</script>` : "";

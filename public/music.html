@@ -180,8 +180,9 @@ fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
     <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Обложка трека ${esc(t.title)}" loading="lazy">`:''}<button type="button">▶ Слушать</button></div>
     <div class="in">
       <h2>${esc(t.title)}</h2>
-      <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase())].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+      <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase()),t.instrumental?'без слов':''].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
       ${t.about?`<p>${esc(t.about)}</p>`:''}
+      ${t.instrumental?`<details><summary>Без слов · какие данные стали музыкой</summary><div class="lyr">${(t.mapping||[]).map(m=>`<b>${esc(m.reading)}</b> → ${esc(m.music)}`).join('\n')}${t.structure?'\n\n'+t.structure.map(l=>esc(l)).join('\n'):''}</div></details>`:''}
       ${t.lyrics&&Object.keys(t.lyrics).length?`<details><summary>Текст песни</summary><div class="lyr">${Object.values(t.lyrics).map(lyricsHtml).join('\n\n')}</div></details>`:''}
       <div class="chips"><a class="btn2" href="/go/tiktok?v=${esc(t.id)}&from=music-page" target="_blank" rel="noopener">Открыть в TikTok ↗</a></div>
     </div></article>`).join('');
