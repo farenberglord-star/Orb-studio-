@@ -198,7 +198,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Импульсы</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 Давид · выпуски</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Трек дня</div><div class="vl">загрузка…</div><div class="ag"></div></div>
-      <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Художник · картина</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Художник · город у моря</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_follow"><div class="nm"><i></i>🕰 Что было потом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_agents"><div class="nm"><i></i>🤖 Агенты на сайте</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn gold" data-s="s_tariffs"><div class="nm"><i></i>🏦 Тарифы банков</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -425,8 +425,7 @@ async function loadSite(){
   if(t0){setSensor('s_music',`<b>${esc(t0.title)}</b> · ${t0.bpm||'—'} BPM`,at(t0.date+'T12:00:00Z'),t0.id,`треков: ${mu.tracks.length} · ${dm(t0.date)}`);
     L.push(`🎵 Трек дня: <b>${esc(t0.title)}</b> · ${esc(t0.style||'')}`);}
   const cvv=await g('/api/v1/canvas');
-  if(cvv&&cvv.state){const tones=(cvv.dominant_tones||[]).map(h=>`<i class="tn" style="background:${esc(h)}"></i>`).join('');
-    setSensor('s_canvas',`<a href="/canvas">${esc(cvv.art_style_ru)}</a> · напряжение ${cvv.state.tension} ${tones}`,Date.parse(cvv.slot.replace('Z',':00Z')),cvv.slot+'|'+cvv.state.tension,`картина ${cvv.slot_berlin} · каждые 3 ч`);
+  if(cvv&&cvv.state){    setSensor('s_canvas',`<a href="/canvas">${esc(cvv.art_style_ru)}</a> · напряжение ${cvv.state.tension} · молний ${cvv.scene_elements?cvv.scene_elements.lightning:0}`,Date.parse(cvv.slot.replace('Z',':00Z')),cvv.slot+'|'+cvv.state.tension,`картина ${cvv.slot_berlin} · каждые 3 ч`);
     L.push(`🎨 Художник: <b>${esc(cvv.title_ru)}</b> — <a href="/canvas">посмотреть картину</a>`);}
   if(fu){const open=fu.counts.open||0,done=Object.entries(fu.counts).filter(([k])=>k!=='open').reduce((a,[,v])=>a+v,0);
     setSensor('s_follow',`ждут развязки ${open} · решено ${done}`,at(fu.generated_at),open+'|'+done);

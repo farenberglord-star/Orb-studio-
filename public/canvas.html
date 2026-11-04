@@ -4,12 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Художник · Orb Studio</title>
-<meta name="description" content="Каждые 3 часа радары и датчики Orb Studio превращаются в картину по открытым правилам: напряжение, турбулентность, разброс и цвета радаров. Искусство из данных, не прогноз.">
+<meta name="description" content="Каждые 3 часа радары и датчики Orb Studio превращаются в картину «Город у моря»: 7 домов — 7 радаров, небо — напряжение, молнии — всплески волатильности, луч маяка — внимание в Википедии. Искусство из данных, не прогноз.">
 <link rel="canonical" href="https://orbstudio.org/canvas">
 <meta property="og:url" content="https://orbstudio.org/canvas">
 <meta property="og:site_name" content="Orb Studio">
 <meta property="og:title" content="Художник · Orb Studio">
-<meta property="og:description" content="Радары и датчики → картина. Новая каждые 3 часа.">
+<meta property="og:description" content="Радары и датчики → город у моря. Новая картина каждые 3 часа.">
+<meta property="og:image" content="https://orbstudio.org/api/v1/canvas.png">
+<meta property="og:image:width" content="720">
+<meta property="og:image:height" content="900">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/json" href="/api/v1/canvas" title="Canvas (JSON)">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -27,7 +31,7 @@ h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px
 .art{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;align-items:start}
 @media (max-width:820px){.art{grid-template-columns:1fr}}
 .frame{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(111,230,255,.22);background:#03050c;aspect-ratio:4/5}
-.frame canvas{display:block;width:100%;height:100%}
+.frame img{display:block;width:100%;height:100%;object-fit:cover}
 .frame .tag{position:absolute;left:10px;bottom:10px;font-family:var(--mono);font-size:11px;color:#dfe8f5;background:rgba(3,5,12,.6);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:4px 10px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 .title{font-family:var(--display);font-size:22px;margin:2px 0 6px;letter-spacing:.03em;text-wrap:balance}
 .meta{font-family:var(--mono);font-size:12px;color:var(--dim)}
@@ -51,7 +55,7 @@ table.map td b{color:var(--fg);font-variant-numeric:tabular-nums}
 .arch{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .arch button{padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#03050c;cursor:pointer;text-align:left;color:var(--dim)}
 .arch button.on{border-color:var(--holo)}
-.arch canvas{display:block;width:100%;aspect-ratio:4/5}
+.arch img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
 .arch span{display:block;font-family:var(--mono);font-size:10.5px;padding:4px 6px}
 .note{font-size:12.5px;color:var(--dim);line-height:1.5;margin:10px 0 0}
 details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
@@ -116,18 +120,18 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
 <div class="wrap">
   <div>
     <div class="eyebrow">Orb Studio · художник</div>
-    <h1>🎨 Картина по данным</h1>
-    <p class="lead">Каждые 3 часа художник читает 7 радаров новостей и датчики рынка и сети и рисует по ним картину. Правила открыты: какое число что решает — в таблице ниже. Одни и те же данные всегда дают одну и ту же картину. Это искусство из данных, не прогноз.</p>
+    <h1>🎨 Город у моря</h1>
+    <p class="lead">Каждые 3 часа художник читает 7 радаров новостей и датчики рынка и сети и рисует по ним город у моря. 7 домов — 7 радаров: чем выше индекс, тем выше дом и больше светящихся окон. Небо — общее напряжение, молнии — всплески волатильности, луч маяка — внезапный интерес в Википедии, тёмные корабли — санкционный список судов. Правила открыты, одни и те же данные всегда дают одну и ту же картину. Это искусство из данных — не погода и не прогноз.</p>
   </div>
 
   <section class="art">
-    <div class="frame"><canvas id="cv" width="1080" height="1350" role="img" aria-label="Генеративная картина по данным Orb Studio"></canvas><span class="tag" id="tag">загрузка…</span></div>
+    <div class="frame"><img id="cv" src="/api/v1/canvas.svg" width="1080" height="1350" alt="Город у моря: картина по данным радаров Orb Studio"><span class="tag" id="tag">загрузка…</span></div>
     <div class="panel">
       <div class="eyebrow" id="slotLine">—</div>
       <p class="title" id="title">—</p>
       <div class="meta" id="style">—</div>
       <div class="gauges" id="gauges"></div>
-      <div class="eyebrow">Цвета картины</div>
+      <div class="eyebrow">Дома слева направо · цвет окон</div>
       <div class="tones" id="tones"></div>
       <div class="btns">
         <button class="btn" type="button" id="dl">Скачать PNG</button>
@@ -140,7 +144,7 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
   <section class="panel">
     <h2>Данные → решение художника</h2>
     <table class="map"><tbody id="map"></tbody></table>
-    <p class="note">Напряжение = 0,5 · среднее радаров + 0,3 · турбулентность + 0,2 · разброс. До 35 — «Тихая акварель», 35–49 — «Импрессионизм», 50–64 — «Конструктивизм», от 65 — «Экспрессионизм». Цвета: гео — красный, политика — пурпурный, экономика — синий, бюджет — зелёный, крипто — фиолетовый, энергия — янтарный, открытый веб — бирюзовый; доля цвета = доля радара в сумме уровней.</p>
+    <p class="note">Напряжение = 0,5 · среднее радаров + 0,3 · турбулентность + 0,2 · разброс. Небо: до 35 — «Ясное утро» (солнце), 35–49 — «Лёгкие облака», 50–64 — «Тяжёлое небо», от 65 — «Шторм» (дождь). Дома слева направо: гео (красные окна), политика (пурпурные), экономика (синие), бюджет (зелёные), крипто (фиолетовые), энергия (янтарные), открытый веб (бирюзовые). Маяк на крыше — у радара, который сильнее всех сдвинулся за сутки. Пожаров и катастроф художник не рисует: радары меряют давление новостей, а не беды.</p>
   </section>
 
   <section class="panel">
@@ -175,9 +179,8 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
   </aside>
 
   <details class="machine"><summary>Текстовая версия картины · для людей и ИИ-агентов без JavaScript</summary><section id="machine-feed"><p>Данные: <a href="/api/v1/canvas">/api/v1/canvas</a>.</p></section></details>
-  <p class="agentline">🤖 Агентам: картина числами → <a href="/api/v1/canvas">/api/v1/canvas</a> · MCP <b>get_canvas</b> на <a href="/mcp">/mcp</a> · новая каждые 3 часа · <span>👁 <b id="cPage">—</b></span></p>
+  <p class="agentline">🤖 Агентам: картина числами → <a href="/api/v1/canvas">/api/v1/canvas</a> · картинка <a href="/api/v1/canvas.png">PNG</a> / <a href="/api/v1/canvas.svg">SVG</a> · MCP <b>get_canvas</b> на <a href="/mcp">/mcp</a> · новая каждые 3 часа · <span>👁 <b id="cPage">—</b></span></p>
 </div>
-<script src="/canvas-art.js"></script>
 <script>
 const $=(id)=>document.getElementById(id);
 const esc=(s)=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -186,17 +189,18 @@ const HUE={geo:352,politics:318,economy:212,budget:146,crypto:268,energy:36,web:
 const RN={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
 let cur=null;
 function show(card){
-  cur=card; orbCanvasDraw($('cv'),card);
+  cur=card; $('cv').src='/api/v1/canvas.svg?slot='+encodeURIComponent(card.slot);
   $('tag').textContent=card.art_style_ru+' · '+berlin(card.slot);
   $('slotLine').textContent='Картина '+berlin(card.slot)+' (Берлин)';
   $('title').textContent=card.title_ru;
-  $('style').textContent='Стиль: '+card.art_style_ru+' · '+card.art_style;
+  $('style').textContent='Небо: '+card.art_style_ru+' · молний '+card.scene_elements.lightning+' · кораблей '+card.scene_elements.ships+(card.scene_elements.rooftop_beacon?' · маяк на доме «'+(RN[card.scene_elements.rooftop_beacon]||'')+'»':'');
   const G=[['Напряжение',card.state.tension,'#ff5d7a'],['Среднее радаров',card.state.intensity,'#6fe6ff'],['Турбулентность',card.state.turbulence,'#ffb547'],['Разброс',card.state.fracture,'#a99bff']];
   $('gauges').innerHTML=G.map(([n,v,c])=>`<div class="g"><span>${n}</span><b>${v}</b><i style="--w:${v}%;--c:${c}"></i></div>`).join('');
-  $('tones').innerHTML=card.palette.map(p=>`<span style="--c:${p.hex}"><i></i>${RN[p.radar]||p.radar} ${Math.round(p.weight*100)}%</span>`).join('');
+  const lv=Object.fromEntries(card.inputs.radars.map(r=>[r.id,r.risk_index])),hx=Object.fromEntries(card.palette.map(p=>[p.radar,p.hex]));
+  $('tones').innerHTML=card.towers_left_to_right.map(id=>`<span style="--c:${hx[id]}"><i></i>${RN[id]||id} ${lv[id]}</span>`).join('');
   $('map').innerHTML=card.mapping.map(m=>{const [a,b]=String(m.ru).split(' → ');return `<tr><td>${esc(a)}</td><td><b>→ ${esc(b||'')}</b></td></tr>`}).join('');
   const nx=new Date(card.next_slot.replace('Z',':00Z'));
-  $('next').textContent='Следующая картина — '+nx.toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' по Берлину. Цвет пятна — внимание в Википедии, светлые линии — всплески волатильности.';
+  $('next').textContent='Следующая картина — '+nx.toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' по Берлину.';
   $('json').href='/api/v1/canvas?slot='+encodeURIComponent(card.slot);
   document.querySelectorAll('.arch button').forEach(b=>b.classList.toggle('on',b.dataset.slot===card.slot));
 }
@@ -210,13 +214,13 @@ load(q).then(async card=>{
   const box=$('arch');box.innerHTML='';
   for(const s of list){
     const b=document.createElement('button');b.type='button';b.dataset.slot=s.slot;
-    b.innerHTML=`<canvas width="216" height="270"></canvas><span>${esc(berlin(s.slot))}</span>`;
+    b.innerHTML=`<img loading="lazy" src="/api/v1/canvas.svg?slot=${encodeURIComponent(s.slot)}" alt=""><span>${esc(berlin(s.slot))}</span>`;
     b.setAttribute('aria-label','Картина '+berlin(s.slot));box.appendChild(b);
-    load(s.slot).then(c=>{orbCanvasDraw(b.querySelector('canvas'),c);b.onclick=()=>{show(c);history.replaceState(null,'','?slot='+encodeURIComponent(c.slot));window.scrollTo({top:0,behavior:'smooth'})};if(c.slot===cur.slot)b.classList.add('on')}).catch(()=>{});
+    load(s.slot).then(c=>{b.onclick=()=>{show(c);history.replaceState(null,'','?slot='+encodeURIComponent(c.slot));window.scrollTo({top:0,behavior:'smooth'})};if(c.slot===cur.slot)b.classList.add('on')}).catch(()=>{});
   }
   if(!list.length)box.innerHTML='<span class="meta">Пока одна картина — архив растёт каждые 3 часа.</span>';
 }).catch(()=>{$('tag').textContent='картина недоступна';});
-$('dl').onclick=()=>{ if(!cur)return; $('cv').toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='orb-canvas-'+cur.slot.replace(/[:]/g,'')+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);},'image/png');};
+$('dl').onclick=()=>{ if(!cur)return; const im=new Image(); im.onload=()=>{const c=document.createElement('canvas');c.width=1080;c.height=1350;c.getContext('2d').drawImage(im,0,0,1080,1350);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='orb-gorod-'+cur.slot.replace(/[:]/g,'')+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);},'image/png');}; im.src='/api/v1/canvas.svg?slot='+encodeURIComponent(cur.slot); };
 
 
 
