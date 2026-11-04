@@ -112,7 +112,11 @@ export async function cdpCheck(env) {
   const out = { id_present: !!id, id_length: id.length, id_looks_uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id),
     id_looks_legacy_name: /^organizations\/.+\/apiKeys\/.+/.test(id), id_was_cleaned: rawId !== id,
     secret_present: !!sec, secret_length: sec.length, secret_bytes: secBytes, secret_was_cleaned: rawSec !== sec,
-    secret_looks_like_id: /^[0-9a-f-]{36}$/i.test(sec) };
+    secret_looks_like_id: /^[0-9a-f-]{36}$/i.test(sec),
+    // форма ID без самого значения: какие символы в нём есть и есть ли внутри UUID
+    id_shape: { has_uuid_inside: /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(id), dashes: (id.match(/-/g) || []).length,
+      slashes: (id.match(/\//g) || []).length, spaces: (id.match(/\s/g) || []).length, only_hex_and_dashes: /^[0-9a-f-]+$/i.test(id),
+      has_plus_or_equals: /[+=]/.test(id), letters_outside_hex: /[g-z]/i.test(id), ends_with_equals: /=$/.test(id) } };
   if (!id || !sec) return out;
   try {
     const path = CDP_ROUTE + "/supported";
