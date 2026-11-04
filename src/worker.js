@@ -651,9 +651,9 @@ async function checkHeadline(origin, request, raw) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v1-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v2-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
-  const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 7);
+  const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
   let items = [], searched = false;
   if (words.length >= 2) {
@@ -666,7 +666,7 @@ async function checkHeadline(origin, request, raw) {
   for (const it of items) {
     if (!it.title || (it.ts && Date.now() - it.ts > 2.5 * 864e5)) continue;
     const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++;
-    const need = Math.min(3, Math.max(2, Math.ceil(sig.size * 0.35)));
+    const need = sig.size <= 7 ? 2 : 3;
     const key = srcKey(it.source || "");
     if (k >= need && key && !seen.has(key)) seen.set(key, { outlet: wClean(it.source, 60), title: wClean(it.title, 200), link: it.link || null, published: it.ts ? new Date(it.ts).toISOString() : null });
   }
