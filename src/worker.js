@@ -3217,7 +3217,7 @@ async function waysOutCompute(env, ctx, force = false) {
         text_ru: wClean(p.ru), text_de: wClean(p.de || p.en), text_en: wClean(p.en),
         gives_ru: wClean(p.gives_ru, 160), gives_de: wClean(p.gives_de || p.gives_en, 160), gives_en: wClean(p.gives_en, 160),
         costs_ru: wClean(p.costs_ru, 160), costs_de: wClean(p.costs_de || p.costs_en, 160), costs_en: wClean(p.costs_en, 160),
-        precedent: p.precedent ? wClean(p.precedent, 160) : null, sources: src.length ? src : h.heads.slice(0, 2).map((x) => ({ title: x.title, source: x.source, link: x.link })) });
+        precedent: p.precedent && !/^(none|null|n\/a|-)$/i.test(String(p.precedent).trim()) ? wClean(p.precedent, 160) : null, sources: src.length ? src : h.heads.slice(0, 2).map((x) => ({ title: x.title, source: x.source, link: x.link })) });
     }
     if (paths.length) out.crises[cr.id] = { title_ru: h.c.ru, title_de: h.c.de, title_en: h.c.en, instrument: h.c.instrument, instrument_level: h.level, paths };
   }
