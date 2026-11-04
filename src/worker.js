@@ -599,7 +599,7 @@ async function voiceBroadcast(env, ctx, origin, items) {
 
 // Собирает входные данные выпуска из радаров: по 2 главных заголовка с каждого.
 // Арбитр для агентов: сколько независимых изданий в наших лентах пишут ту же новость
-const VERIFY_METHOD = "sources_confirming = how many different outlets carry the same story: Orb Studio's radar feeds (72 h) plus a Bing News search for the headline (2 days), matched by shared key words, same language. confirmed = 3+, two_sources = 2, single_source = 1 (not yet confirmed by other outlets in our feeds — say so if you repeat it). It measures spread across outlets, not truth.";
+const VERIFY_METHOD = "sources_confirming = how many different outlets carry the same story: Orb Studio's radar feeds (72 h) plus a Bing News search for the headline (2 days), matched by shared key words, same language. confirmed = 3+, two_sources = 2, single_source = 1 (not yet confirmed by other outlets in our feeds — say so if you repeat it). It measures spread across outlets, not truth. tone = alarmist / charged / neutral from shouting words, exclamation marks and capitals in the headline; the news itself is never rewritten.";
 let VERIFY_ON = false, VERIFY_AT = 0; // включается админом (shared verify-public), до этого — старое поведение
 async function verifyOn(env) { if (Date.now() - VERIFY_AT > 300e3) { const f = await sharedGet(env, "verify-public", 1e13); VERIFY_ON = !!(f && f.on); VERIFY_AT = Date.now(); } return VERIFY_ON; }
 function verifyInfo(n) {
@@ -634,6 +634,12 @@ async function confirmMany(origin, list, force = false) {
   if (!VERIFY_ON && !force) return list.map((x) => x.n ?? null);
   const wide = await Promise.race([Promise.all(list.map((x) => confirmWide(origin, x.title, x.source).catch(() => null))), new Promise((r) => setTimeout(() => r(list.map(() => null)), 3500))]);
   return list.map((x, i) => Math.max(x.n || 0, wide[i] || 0) || null);
+}
+// Тон заголовка: кричащие слова, восклицания, КАПС. Новость не меняем — только помечаем.
+const TONE_RE = /(?<!\p{L})(breaking|urgent|shock(ing)?|panic|catastroph\p{L}*|collapse[sd]?|meltdown|apocalyp\p{L}*|plunge[sd]?|crash(es|ed)?|chaos|horror|terrifying|doom\p{L}*|eilmeldung|schock\p{L}*|panik|katastroph\p{L}*|zusammenbruch|absturz|chaos|срочно|шок\p{L}*|паник\p{L}*|катастроф\p{L}*|обвал\p{L}*|крах\p{L}*|хаос|ужас\p{L}*|апокалипс\p{L}*)(?!\p{L})/giu;
+function toneOf(title) {
+  const s = String(title || ""), hits = (s.match(TONE_RE) || []).length, bangs = (s.match(/!/g) || []).length, caps = (s.match(/(?<!\p{L})[A-ZА-ЯЁÄÖÜ]{4,}(?!\p{L})/gu) || []).filter((w) => !/^(NATO|OPEC|NASA|USA|ECB|EZB|ЕЦБ|ФРС|BRICS|WHO|IAEA|UNICEF)$/.test(w)).length;
+  return hits + bangs + caps >= 2 || hits >= 1 && (bangs || caps) ? "alarmist" : hits ? "charged" : "neutral";
 }
 function verifySummary(list) {
   const c = { confirmed: 0, two_sources: 0, single_source: 0 };
@@ -1576,7 +1582,7 @@ function clickLabel(request, from) {
     await verifyOn(env); const wcf = await confirmMany(origin, r.feed.slice(0, 4).map((f, i) => ({ title: f[1], source: f[2], n: r.verify ? r.verify[i] : null })));
     return json({
       ...r, severity: severity(r.lvl),
-      feed: r.feed.map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)) })),
+      feed: r.feed.map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, `api-radar-${r.id}`),
     });
@@ -1595,7 +1601,7 @@ function clickLabel(request, from) {
         radar: it.radar, human_anchor: ANCHORS[it.anchor].name,
         line_ru: v.lines[i].ru, line_de: v.lines[i].de, line_en: v.lines[i].en || it.headline,
         headline: it.headline, source: it.source, time: it.time, link: it.link,
-        weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h, ...verifyInfo(it.confirm),
+        weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h, ...verifyInfo(it.confirm), ...(VERIFY_ON ? { tone: toneOf(it.headline) } : {}),
       })),
       verification: VERIFY_ON ? verifySummary(items.map((it) => it.confirm == null ? null : verdictOf(it.confirm))) : undefined,
       voice_error: v.error || undefined,
@@ -4687,7 +4693,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     await verifyOn(env); const wcf = await confirmMany(origin, r.feed.slice(0, 4).map((f, i) => ({ title: f[1], source: f[2], n: r.verify ? r.verify[i] : null })));
     return { id: r.id, title: r.title, risk_index: r.lvl, delta_24h: r.lvl - r.prev, severity: severity(r.lvl), updated_at: r.updated_at,
       market: r.market || undefined,
-      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)) })),
+      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
       page: "https://orbstudio.org/#radar", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_broadcast") {
@@ -4699,7 +4705,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     items.forEach((it, i) => { it.confirm = cf[i]; });
     return { generated_at: new Date().toISOString(), voice: v.voice, greeting: v.greeting, signoff: v.signoff,
       items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
-        line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index, ...verifyInfo(it.confirm) })),
+        line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index, ...verifyInfo(it.confirm), ...(VERIFY_ON ? { tone: toneOf(it.headline) } : {}) })),
       verification: VERIFY_ON ? verifySummary(items.map((it) => it.confirm == null ? null : verdictOf(it.confirm))) : undefined,
       track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"), picture_now: await canvasBrief(env, ctx, "broadcast-mcp"), on_air_now: await onAirBrief(env, ctx, origin),
       page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
