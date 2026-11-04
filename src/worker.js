@@ -1540,7 +1540,7 @@ function clickLabel(request, from) {
         weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h,
       })),
       voice_error: v.error || undefined,
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-api"), picture_now: await canvasBrief(env, ctx, "broadcast-api"),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-api"), picture_now: await canvasBrief(env, ctx, "broadcast-api"), on_air_now: await onAirBrief(env, ctx, origin),
       method: "Keyword-weighted headline scoring over public RSS feeds; crypto radar blends Kraken 24h moves. Anchor lines written by Claude from headlines only.",
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, "api-broadcast"),
@@ -3881,6 +3881,23 @@ async function liveCompute(env, ctx, origin) {
     events,
   };
 }
+// «В эфире сейчас» коротко: для приветствия MCP, выпуска и главной (живые события + следующее)
+async function onAirBrief(env, ctx, origin) {
+  try {
+    const d = await Promise.race([liveData(env, ctx, origin, {}), new Promise((r) => setTimeout(() => r(null), 1500))]);
+    if (!d) return null;
+    const live = (d.events || []).filter((e) => e.status === "live").slice(0, 3).map((e) => ({ title: e.title, org: e.org, until: e.end, watch_url: e.watch_url || null }));
+    const nx = d.next_event;
+    return { live, next: nx ? { title: nx.title, start: nx.start, starts_in_min: nx.starts_in_min } : null, text_after_event: "https://orbstudio.org/api/v1/live", mcp_tool: "get_live", page: "https://orbstudio.org/live" };
+  } catch (e) { return null; }
+}
+function onAirLine(b, lang = "en") {
+  if (!b || (!b.live.length && !b.next)) return "";
+  const T = (x) => (x && (x[lang] || x.en)) || "";
+  const W = { en: ["Now on air", "Next", "official text after the event: get_live"], ru: ["Сейчас в эфире", "Следующее", "официальный текст после события: get_live"], de: ["Jetzt live", "Als Nächstes", "offizieller Text nach dem Ereignis: get_live"] }[lang] || [];
+  const nxt = b.next ? `${W[1]}: ${T(b.next.title)} (${b.next.start.slice(0, 16).replace("T", " ")} UTC)` : "";
+  return [b.live.length ? `${W[0]}: ${b.live.map((e) => T(e.title)).join("; ")}` : "", nxt].filter(Boolean).join(". ") + ` — ${W[2]}.`;
+}
 async function liveData(env, ctx, origin, q = {}) {
   const cache = caches.default, key = new Request(origin + "/__cache/live-v1");
   let all = null;
@@ -4189,7 +4206,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { radar: { type: "string", enum: RADAR_IDS, description: "Radar id" }, limit: { type: "integer", minimum: 1, maximum: 30, description: "Max headlines (default 10)" } }, required: ["radar"], additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_broadcast", title: "Latest anchor broadcast",
-    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks) violin_of_the_day — today's violin piece composed from the sensors (full score via get_violin) and picture_now — the painter's current picture of a city by the sea drawn from the radars (PNG link; full mapping and the image via get_canvas).",
+    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks) violin_of_the_day — today's violin piece composed from the sensors (full score via get_violin) on_air_now — official live events happening now and the next one (text after the event via get_live), and picture_now — the painter's current picture of a city by the sea drawn from the radars (PNG link; full mapping and the image via get_canvas).",
     inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de", "en"], description: "Language of anchor lines (default en)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_agent_indices", title: "Playful indices for AI agents",
@@ -4370,7 +4387,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { generated_at: new Date().toISOString(), voice: v.voice, greeting: v.greeting, signoff: v.signoff,
       items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
         line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index })),
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"), picture_now: await canvasBrief(env, ctx, "broadcast-mcp"),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"), picture_now: await canvasBrief(env, ctx, "broadcast-mcp"), on_air_now: await onAirBrief(env, ctx, origin),
       page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_agent_indices") {
@@ -4703,7 +4720,7 @@ async function handleMcp(request, env, ctx, origin) {
         return ok({ protocolVersion: MCP_VERSIONS.includes(want) ? want : MCP_VERSIONS[1],
           capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
           serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: MCP_SERVER_VERSION, websiteUrl: "https://orbstudio.org" },
-          instructions: MCP_INSTRUCTIONS });
+          instructions: MCP_INSTRUCTIONS + ((l) => (l ? "\n\n" + l : ""))(onAirLine(await onAirBrief(env, ctx, origin))) });
       }
       case "ping": return ok({});
       case "tools/list": return ok({ tools: MCP_TOOLS });
@@ -4806,7 +4823,7 @@ const MACHINE_I18N = {
   de: { upd: "Aktualisiert", berlin: "Berlin", mv: "Maschinenversion", idx: "Risikoindex", sev: ["ruhig", "angespannt", "alarmierend"], track: "Track des Tages", listen: "Auf TikTok anhören", lyrics: "vollständiger Songtext", kr: "Börse, von der die Kurse stammen", code: "Empfehlungscode", na: "Indikator, keine Anlageberatung." },
   en: { upd: "Updated", berlin: "Berlin", mv: "Machine version", idx: "risk index", sev: ["calm", "tense", "alarming"], track: "Track of the day", listen: "Listen on TikTok", lyrics: "full lyrics", kr: "Exchange the quotes come from", code: "referral code", na: "Indicator, not investment advice." },
 };
-function machineHtml(radars, page, track, lang = "ru") {
+function machineHtml(radars, page, track, lang = "ru", onair = null) {
   const L = MACHINE_I18N[lang] || MACHINE_I18N.ru;
   const when = new Date().toLocaleString("de-DE", { timeZone: "Europe/Berlin" });
   let h = `<p>${L.upd}: ${escH(when)} (${L.berlin}). ${L.mv}: <a href="/api/v1/broadcast/latest">/api/v1/broadcast/latest</a>, <a href="/.well-known/agent.json">agent.json</a>, <a href="/llms.txt">llms.txt</a>.</p>`;
@@ -4816,6 +4833,7 @@ function machineHtml(radars, page, track, lang = "ru") {
     for (const f of r.feed.slice(0, page === "orb7" || page === "orbi" ? 2 : 4)) h += `<li><time>${escH(f[0])}</time> ${f[4] ? `<a href="${escH(f[4])}" rel="nofollow noopener">${escH(f[1])}</a>` : escH(f[1])} — ${escH(f[2])}</li>`;
     h += "</ul>";
   }
+  if (onair) { const ln = onAirLine(onair, lang); if (ln) h += `<p>🎙 ${escH(ln)} <a href="/live">/live</a> · <a href="/api/v1/live">JSON</a></p>`; }
   if (track) h += `<h3>🎵 ${L.track} — ${escH(track.title)} · <a href="/api/v1/music">JSON</a></h3><p>${escH([track.style, track.mood, track.bpm ? track.bpm + " BPM" : ""].filter(Boolean).join(" · "))}. ${escH(track.about || "")}</p>${track.lyrics_excerpt ? `<blockquote>${track.lyrics_excerpt.map(escH).join("<br>")}</blockquote>` : ""}<p><a href="${escH(track.listen_url)}" rel="nofollow noopener">${L.listen}</a> · ${L.lyrics}: <a href="/music">/music</a>, <a href="/api/v1/music">/api/v1/music</a>, MCP <b>get_tracks</b>.</p>`;
   h += `<p>${L.kr}: <a href="/go/kraken?from=machine-${page}" rel="sponsored">Kraken</a>, ${L.code} ghqspfzq. ${L.na}</p>`;
   return h;
@@ -5066,7 +5084,7 @@ async function handleRequest(request, env, ctx) {
         let track = null;
         if (pg === "home" || pg === "music") { try { track = trackOfDay(await Promise.race([musicTracks(env, ctx, url.origin), new Promise((r) => setTimeout(() => r(null), 800))]), "machine-" + pg); } catch (e) {} }
         const lang = autoLang || (url.pathname.startsWith("/de") ? "de" : url.pathname.startsWith("/en") ? "en" : "ru");
-        const block = machineHtml(radars, pg, track, lang), ld = jsonLd(radars, url.origin);
+        const block = machineHtml(radars, pg, track, lang, pg === "home" ? await onAirBrief(env, ctx, url.origin) : null), ld = jsonLd(radars, url.origin);
         let vld = "";
         if (pg === "home") { try { vld = episodesJsonLd(await davidEpisodes(env, ctx, url.origin)); } catch (e) {} }
         if (pg === "music") { try { vld = musicJsonLd(await musicTracks(env, ctx, url.origin)); } catch (e) {} }
