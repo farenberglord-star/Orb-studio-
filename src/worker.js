@@ -1231,6 +1231,7 @@ const OA_GET = [
   ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
   ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [OA_Q("slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current")]],
   ["/api/v1/canvas.png", "getCanvasPng", "The painter's picture as PNG (720×900, or 1080×1350 with w=1080).", [OA_Q("slot", "YYYY-MM-DDTHH:00Z, default current"), OA_Q("w", "720 or 1080")]],
+  ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
   ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
@@ -1370,6 +1371,11 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...(await placesData(env)), referral: referral(env, "api-places") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/ai-pulse") {
+    const H = { "Access-Control-Allow-Origin": "*" };
+    if (!(await pulsePublic(env))) return json({ error: "Not available yet" }, { ...H, "Cache-Control": "no-store" }, 404);
+    return json({ ...pulseCard(await aiPulse(env)), referral: referral(env, "api-ai-pulse") }, { ...H, "Cache-Control": "public, max-age=900" });
+  }
   if (p === "/api/v1/promises") {
     const H = { "Access-Control-Allow-Origin": "*" };
     if (!(await promPublic(env))) return json({ error: "Not available yet" }, { ...H, "Cache-Control": "no-store" }, 404);
@@ -3938,6 +3944,60 @@ function promCard(st) {
 }
 async function promPublic(env) { const f = await sharedGet(env, "promises-public", 1e13); return !!(f && f.on); }
 
+// ================= «Пульс ИИ»: что нового в мире ИИ за сутки — только факты из открытых источников, без наших оценок =================
+// Hugging Face (модели в тренде, статьи дня с голосами), arXiv (сколько новых работ), GitHub (релизы крупных открытых проектов).
+const PULSE_REPOS = ["ggml-org/llama.cpp", "vllm-project/vllm", "huggingface/transformers", "ollama/ollama", "pytorch/pytorch", "modelcontextprotocol/modelcontextprotocol"];
+const PULSE_ARXIV = ["cs.AI", "cs.LG", "cs.CL"];
+async function pulseGet(url, type = "json") {
+  const r = await fetch(url, { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)", Accept: type === "json" ? "application/json" : "application/atom+xml, application/rss+xml, text/xml" }, cf: { cacheTtl: 1800, cacheEverything: true } });
+  if (!r.ok) throw new Error(url.split("/")[2] + " " + r.status);
+  return type === "json" ? r.json() : r.text();
+}
+async function aiPulseCompute() {
+  const out = { generated_at: new Date().toISOString(), errors: [] };
+  const [models, papers, arxiv, rel] = await Promise.all([
+    pulseGet("https://huggingface.co/api/models?sort=trendingScore&direction=-1&limit=10").catch((e) => { out.errors.push(String(e.message)); return []; }),
+    pulseGet("https://huggingface.co/api/daily_papers?limit=50").catch((e) => { out.errors.push(String(e.message)); return []; }),
+    Promise.all(PULSE_ARXIV.map((c) => pulseGet("https://rss.arxiv.org/rss/" + c, "xml").then((x) => ({ cat: c, xml: x })).catch((e) => { out.errors.push(String(e.message)); return { cat: c, xml: "" }; }))),
+    Promise.all(PULSE_REPOS.map((r) => pulseGet(`https://github.com/${r}/releases.atom`, "xml").then((x) => ({ repo: r, xml: x })).catch((e) => { out.errors.push(String(e.message)); return { repo: r, xml: "" }; }))),
+  ]);
+  out.trending_models = (Array.isArray(models) ? models : []).slice(0, 8).map((m) => ({ id: wClean(m.id || m.modelId, 120), task: m.pipeline_tag || null, likes: m.likes ?? null, downloads: m.downloads ?? null,
+    created: m.createdAt ? String(m.createdAt).slice(0, 10) : null, url: "https://huggingface.co/" + (m.id || m.modelId) }));
+  out.papers_of_the_day = (Array.isArray(papers) ? papers : []).map((p) => ({ title: wClean((p.paper && p.paper.title) || p.title, 200), upvotes: (p.paper && p.paper.upvotes) ?? p.upvotes ?? 0,
+    id: (p.paper && p.paper.id) || null, day: p.publishedAt ? String(p.publishedAt).slice(0, 10) : null })).filter((p) => p.title).sort((a, b) => b.upvotes - a.upvotes).slice(0, 5)
+    .map((p) => ({ ...p, url: p.id ? "https://huggingface.co/papers/" + p.id : null }));
+  // arXiv RSS: одна лента = одно объявление дня; новые работы — announce_type new (без перекрёстных)
+  const seen = new Set(); let total = 0; const by = {};
+  for (const { cat, xml } of arxiv) {
+    const items = xml.split(/<item[\s>]/i).slice(1);
+    let n = 0;
+    for (const b of items) { if (!/announce_type>\s*new/i.test(b)) continue; const id = (tag(b, "link") || "").replace(/v\d+$/, ""); n++; if (!seen.has(id)) { seen.add(id); total++; } }
+    by[cat] = n;
+  }
+  out.arxiv_new_papers = { total_unique: total, by_category: by, note: "New submissions in today's arXiv announcement (cs.AI, cs.LG, cs.CL), duplicates across categories counted once." };
+  out.releases = rel.map(({ repo, xml }) => {
+    const e = xml.split(/<entry[\s>]/i)[1]; if (!e) return null;
+    const link = (e.match(/<link[^>]+href="([^"]+)"/i) || [])[1] || `https://github.com/${repo}/releases`;
+    return { repo, release: wClean(tag(e, "title"), 80), date: (tag(e, "updated") || "").slice(0, 10), url: link };
+  }).filter(Boolean).sort((a, b) => (a.date < b.date ? 1 : -1));
+  out.releases_24h = out.releases.filter((r) => r.date && Date.now() - Date.parse(r.date) < 1.5 * 864e5).length;
+  return out;
+}
+async function aiPulse(env) {
+  const c = await sharedGet(env, "ai-pulse", 3 * 3600e3);
+  if (c) return c;
+  const d = await aiPulseCompute();
+  if (d.trending_models.length || d.releases.length) await sharedPut(env, "ai-pulse", d);
+  return d;
+}
+async function pulsePublic(env) { const f = await sharedGet(env, "pulse-public", 1e13); return !!(f && f.on); }
+function pulseCard(d) {
+  const { errors, ...rest } = d;
+  return { section: "Orb Studio · AI pulse", ...rest, sources_down: errors && errors.length ? errors.length : 0,
+    rule: "Facts only from open sources (Hugging Face trending models and daily papers with community upvotes, arXiv announcements, GitHub releases). Orb Studio does not test, rank or recommend models.",
+    page: "https://orbstudio.org/sensors", mcp_tool: "get_ai_pulse" };
+}
+
 // ================= «Живой эфир текстом» =================
 // Агенты не слышат трансляции. Здесь — расписание официальных событий (ЕЦБ, ФРС, Бундестаг, ОПЕК+) и текст после эфира:
 // официальные пресс-релизы из лент (находятся сами по ключевым словам), отклик радаров и выжимка редакции.
@@ -4422,6 +4482,9 @@ const MCP_TOOLS = [
     description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG); the picture itself is attached as an image block (include_image=false to skip). Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_ai_pulse", title: "AI pulse: what is new in AI today",
+    description: "Facts only from open sources: trending models on Hugging Face (likes, downloads, task), papers of the day with community upvotes, how many new AI papers arXiv announced today (cs.AI, cs.LG, cs.CL), and the latest releases of big open projects (llama.cpp, vLLM, transformers, Ollama, PyTorch, MCP). Orb Studio does not test or rank models.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_promises", title: "Said → did: ECB and Fed",
     description: "What the ECB and the Fed officially signalled about their next steps (exact quote from the official statement, with link) and what they did at the next rate decision (official data: ECB Data Portal, FRED). Verdicts: followed, not_yet, opposite, no_promise. Institutions only, no judgement of people; central banks rarely promise, so not_yet is not a broken promise. Rate changes since 2024 included.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -4612,6 +4675,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const out = { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
     if (args.include_image !== false) { try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(canvasSvg(piece), 480)), enumerable: false }); } catch (e) {} }
     return out;
+  }
+  if (name === "get_ai_pulse") {
+    if (!(await pulsePublic(env))) throw new Error("Not available yet");
+    return { ...pulseCard(await aiPulse(env)), referral: ref };
   }
   if (name === "get_promises") {
     if (!(await promPublic(env))) throw new Error("Not available yet");
@@ -5197,6 +5264,14 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/sensors") {
       try { const d = await sensorsData(env, ctx); return json({ ...d, ways_out: waysForAgents(await waysLatest(env).catch(() => null)), page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
+    }
+    if (url.pathname === "/api/v1/admin/aipulse") {
+      const H = { "Cache-Control": "no-store" };
+      if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
+      const a = url.searchParams.get("action") || "run";
+      if (a === "publish" || a === "hide") { await sharedPut(env, "pulse-public", { on: a === "publish" }); return json({ ok: true, public: a === "publish" }, H); }
+      const d = await aiPulseCompute(); if (d.trending_models.length || d.releases.length) await sharedPut(env, "ai-pulse", d);
+      return json(d, H);
     }
     if (url.pathname === "/api/v1/admin/promises") {
       const H = { "Cache-Control": "no-store" };
