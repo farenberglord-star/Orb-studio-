@@ -62,7 +62,8 @@
     "predict": "https://orbstudio.org/api/v1/predict",
     "sensors": "https://orbstudio.org/api/v1/sensors",
     "roads": "https://orbstudio.org/api/v1/roads",
-    "tariffs": "https://orbstudio.org/api/v1/tariffs"
+    "tariffs": "https://orbstudio.org/api/v1/tariffs",
+    "violin": "https://orbstudio.org/api/v1/violin"
   },
   "auth": "none",
   "rate_limit": "please cache for 5 minutes; data refreshes every 300 s",
@@ -86,6 +87,7 @@
       "get_agent_indices",
       "get_david_episodes",
       "get_tracks",
+      "get_violin",
       "ask_david",
       "get_question_status",
       "get_prices",
@@ -126,6 +128,12 @@
     "mcp_tool": "get_tracks",
     "track_of_the_day": "field track_of_the_day in https://orbstudio.org/api/v1/broadcast/latest and in MCP get_broadcast",
     "format": "text cards: title, date, style, mood, bpm, languages, topics, radars, about, lyrics by language, listen_url",
-    "note": "Songs made from Orb Studio's news radars (Suno music, lyrics by Claude). Audio is on TikTok and cannot be heard via links: describe a track from its text and give listen_url."
+    "note": "Songs made from Orb Studio's news radars (Suno music, lyrics by Claude). Audio is on TikTok and cannot be heard via links: describe a track from its text and give listen_url.",
+    "violin_of_the_day": {
+      "page": "https://orbstudio.org/violin",
+      "api": "https://orbstudio.org/api/v1/violin",
+      "mcp_tool": "get_violin",
+      "note": "Daily solo violin piece composed by Claude from the sensors; ABC score and note list; played by an artificial violinist in the browser."
+    }
   }
 }
