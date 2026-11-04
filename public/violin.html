@@ -24,12 +24,12 @@ h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:4px 0 8p
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
 .lead{color:var(--dim);font-size:14px;margin:0;max-width:64ch;line-height:1.5}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
-.stage{position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(169,155,255,.4);
-  background:radial-gradient(80% 70% at 50% 35%,rgba(169,155,255,.18) 0%,transparent 60%),radial-gradient(60% 60% at 50% 100%,rgba(111,230,255,.12) 0%,transparent 70%),linear-gradient(180deg,#0d0b24 0%,#070a16 100%)}
-.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
-.stage svg.fig{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+.stage{position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(111,230,255,.28);
+  background:radial-gradient(70% 60% at 50% 45%,rgba(60,140,255,.10) 0%,transparent 70%),radial-gradient(50% 30% at 50% 100%,rgba(111,230,255,.10) 0%,transparent 70%),#03050c}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.03) 0 1px,transparent 1px 3px)}
+.stage svg.fig{display:block;width:100%;max-width:540px;height:auto;margin:0 auto}
 .stage .ctl{position:relative;z-index:1;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:0 16px 16px}
-.play{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:16px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#a99bff);border:0;border-radius:10px;padding:12px 20px;cursor:pointer;min-width:190px}
+.play{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:16px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:12px 20px;cursor:pointer;min-width:190px}
 .play:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .time{font-family:var(--mono);font-size:12.5px;color:var(--dim);font-variant-numeric:tabular-nums}
 .vol{accent-color:var(--violet);width:110px}
@@ -57,13 +57,25 @@ pre{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size
 .arch a.on{color:var(--violet);border-color:rgba(169,155,255,.5)}
 .agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0;line-height:1.6}
 /* скрипач */
-.fig .bow{transform-box:view-box;transition:none}
-.fig .halo{animation:halo 4s ease-in-out infinite;transform-origin:210px 120px}
-@keyframes halo{50%{opacity:.55}}
-.fig .finger{opacity:.15;transition:opacity .08s}
+/* скрипач: лазерная проекция — только линии, мягкое мерцание, бесшовные циклы */
+.fig{--cy:#6fe6ff;--bl:#4f8dff;--am:#ffb547}
+.fig .ln{fill:none;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.fig .c{stroke:var(--cy)}.fig .b{stroke:var(--bl)}.fig .a{stroke:var(--am)}
+.fig .w1{stroke-width:1.5}.fig .w2{stroke-width:.8}.fig .w3{stroke-width:2.2}
+.fig .ghost{opacity:.35}
+.fig .fk1{animation:fk 5.3s linear infinite}.fig .fk2{animation:fk 7.1s linear infinite -2s}.fig .fk3{animation:fk 4.3s linear infinite -1s}
+@keyframes fk{0%,100%{opacity:1}6%{opacity:.78}8%{opacity:1}47%{opacity:.92}49%{opacity:.62}51%{opacity:1}73%{opacity:.88}}
+.fig .trace{stroke-dasharray:3 9;animation:trace 2.4s linear infinite}
+@keyframes trace{to{stroke-dashoffset:-24}}
+#sway{transform-box:view-box;transform-origin:210px 326px;animation:sway 5.45s ease-in-out infinite alternate}
+@keyframes sway{from{transform:rotate(-1.1deg)}to{transform:rotate(1.1deg)}}
+#head{transform-box:view-box;transform-origin:206px 182px;animation:nod 10.9s ease-in-out infinite alternate}
+@keyframes nod{from{transform:rotate(-1.5deg)}to{transform:rotate(1.8deg)}}
+.fig .scan{animation:scan 7.27s linear infinite}
+@keyframes scan{from{transform:translateY(0)}to{transform:translateY(300px)}}
+.fig .finger{opacity:.18;transition:opacity .12s}
 .fig .finger.on{opacity:1}
-.fig .note-fly{opacity:0}
-@media (prefers-reduced-motion:reduce){.fig .halo{animation:none}}
+@media (prefers-reduced-motion:reduce){#sway,#head,.fig .scan,.fig .trace,.fig .fk1,.fig .fk2,.fig .fk3{animation:none}}
 </style>
 <!--orb-nav-css--><style>
 @view-transition{navigation:auto}
@@ -90,53 +102,69 @@ pre{white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size
   <p class="lead">Раз в сутки Claude читает <a href="/sensors">датчики Orb Studio</a> — волатильность крипты, биткоин, цену электричества, инфляцию, сбои интернета — и пишет по ним пьесу для скрипки. Искусственный скрипач играет её прямо у вас в браузере, нота за нотой.</p>
 
   <section class="stage" aria-label="Искусственный скрипач">
-    <svg class="fig" id="fig" viewBox="0 0 420 330" role="img" aria-label="Искусственный скрипач с голографическим корпусом играет на скрипке">
+    <svg class="fig" id="fig" viewBox="0 0 420 330" role="img" aria-label="Искусственный скрипач — лазерная проекция из светящихся линий">
       <defs>
-        <linearGradient id="gBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2f63"/><stop offset="1" stop-color="#151a3a"/></linearGradient>
-        <linearGradient id="gWood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9862f"/><stop offset=".55" stop-color="#9c4a18"/><stop offset="1" stop-color="#5e260b"/></linearGradient>
-        <radialGradient id="gHalo"><stop offset="0" stop-color="#a99bff" stop-opacity=".55"/><stop offset="1" stop-color="#a99bff" stop-opacity="0"/></radialGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b1"/><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="b2"/>
+          <feMerge><feMergeNode in="b1"/><feMergeNode in="b2"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fe6ff"/><stop offset=".55" stop-color="#4f8dff" stop-opacity=".7"/><stop offset="1" stop-color="#4f8dff" stop-opacity="0"/></linearGradient>
+        <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6fe6ff" stop-opacity=".22"/><stop offset="1" stop-color="#6fe6ff" stop-opacity="0"/></linearGradient>
       </defs>
-      <circle class="halo" cx="210" cy="120" r="140" fill="url(#gHalo)"/>
-      <!-- сцена -->
-      <ellipse cx="210" cy="318" rx="150" ry="10" fill="#6fe6ff" opacity=".12"/>
+      <!-- проектор и лучи -->
+      <g class="ln" stroke="url(#beam)" stroke-width=".8"><path d="M210 326 L128 60 M210 326 L170 40 M210 326 L250 40 M210 326 L300 60 M210 326 L346 150"/></g>
+      <g class="ln b w2 ghost"><ellipse cx="210" cy="322" rx="120" ry="7"/><ellipse cx="210" cy="322" rx="70" ry="4"/></g>
+      <circle cx="210" cy="326" r="2.5" fill="#6fe6ff" filter="url(#glow)"/>
+      <line class="ln c w2 scan" x1="60" y1="24" x2="360" y2="24" opacity=".14"/>
+      <g filter="url(#glow)">
       <g id="sway">
-        <!-- туловище -->
-        <path d="M150 330 C150 250 160 205 210 195 C260 205 270 250 270 330 Z" fill="url(#gBody)" stroke="#a99bff" stroke-opacity=".5"/>
-        <path d="M188 210 L210 246 L232 210" fill="none" stroke="#6fe6ff" stroke-opacity=".5" stroke-width="2"/>
-        <circle cx="210" cy="268" r="6" fill="#6fe6ff" id="core" opacity=".6"/>
-        <!-- шея и голова (чуть наклонена к скрипке) -->
-        <rect x="201" y="160" width="18" height="40" rx="6" fill="#1d2250"/>
-        <g id="head" transform="rotate(8 210 165)">
-          <path d="M172 112 C172 80 190 64 210 64 C232 64 250 80 250 112 C250 140 233 162 210 162 C188 162 172 140 172 112 Z" fill="#1e2456" stroke="#a99bff" stroke-opacity=".7"/>
-          <path d="M184 110 Q210 94 238 110" fill="none" stroke="#6fe6ff" stroke-width="5" stroke-linecap="round" opacity=".9"/>
-          <circle cx="198" cy="108" r="3" fill="#e9fbff"/><circle cx="224" cy="108" r="3" fill="#e9fbff"/>
-          <path d="M200 138 Q210 143 220 138" fill="none" stroke="#a99bff" stroke-width="2" stroke-linecap="round"/>
-          <path d="M210 64 L210 50" stroke="#a99bff" stroke-width="2"/><circle cx="210" cy="47" r="4" fill="#ffb547"/>
+        <!-- корпус: плечи и силуэт, линии гаснут книзу -->
+        <g class="ln fk1">
+          <path class="w1" stroke="url(#fade)" d="M150 218 C152 260 154 296 160 326 M268 216 C266 258 262 296 258 326"/>
+          <path class="c w1" d="M150 218 C160 206 178 200 192 194 M222 196 C238 200 256 206 268 216"/>
+          <path class="b w2 ghost" d="M156 224 C168 214 184 208 196 204 M218 204 C236 208 252 214 262 222"/>
+          <path class="b w2 trace" d="M186 214 L206 250 L228 214"/>
+          <path class="c w2" d="M196 182 L194 198 M216 182 L220 198"/>
         </g>
-        <!-- скрипка: корпус под подбородком, гриф вправо-вверх -->
-        <g transform="translate(232 200) rotate(-18)">
-          <path d="M-42 0 C-42 -16 -34 -24 -22 -24 C-12 -24 -8 -18 -2 -14 C4 -18 8 -22 18 -22 C32 -22 42 -14 42 0 C42 14 32 22 18 22 C8 22 4 18 -2 14 C-8 18 -12 24 -22 24 C-34 24 -42 16 -42 0 Z" fill="url(#gWood)" stroke="#3a1606" stroke-width="1.2"/>
-          <path d="M-14 -11 q3 5 0 9 M-14 11 q3 -5 0 -9" fill="none" stroke="#2a0e03" stroke-width="1.4"/>
-          <path d="M-40 -5 L-26 -3 L-26 3 L-40 5 Z" fill="#1a0f0a"/>
-          <rect x="-8" y="-6" width="108" height="12" rx="3" fill="#1a0f0a"/>
-          <path d="M100 -5 L112 -4 Q122 -10 124 0 Q122 10 112 4 L100 5 Z" fill="#7a3510" stroke="#3a1606"/>
-          <rect x="-13" y="-8" width="3" height="16" fill="#e9d3a2"/>
-          <g stroke="#f4e2b8" stroke-width=".8" opacity=".9"><line x1="-28" y1="-3.6" x2="106" y2="-3"/><line x1="-28" y1="-1.2" x2="106" y2="-1"/><line x1="-28" y1="1.2" x2="106" y2="1"/><line x1="-28" y1="3.6" x2="106" y2="3"/></g>
-          <!-- пальцы левой руки: светятся по высоте ноты -->
-          <g id="fingers"><circle class="finger" cx="56" cy="-1" r="4.2" fill="#6fe6ff"/><circle class="finger" cx="68" cy="-1" r="4.2" fill="#6fe6ff"/><circle class="finger" cx="80" cy="-1" r="4.2" fill="#6fe6ff"/><circle class="finger" cx="92" cy="-1" r="4.2" fill="#6fe6ff"/></g>
+        <!-- голова: склонена к скрипке, глаза закрыты -->
+        <g id="head" class="ln fk2">
+          <ellipse class="c w1" cx="206" cy="152" rx="23" ry="29" transform="rotate(14 206 152)"/>
+          <path class="b w2 ghost" d="M186 136 C184 116 200 104 216 108 C232 112 236 128 232 140"/>
+          <path class="c w2" d="M186 128 C192 112 214 104 228 118 M190 122 C200 112 218 112 226 124"/>
+          <path class="c w2" d="M194 152 q6 4 12 1 M212 156 q6 4 11 2"/>
+          <path class="b w2" d="M206 162 q2 6 -2 9 M200 176 q8 3 14 -1"/>
+          <path class="b w2 ghost" d="M226 146 q8 4 3 14"/>
         </g>
-        <!-- левая рука держит гриф -->
-        <path d="M258 214 C292 214 300 196 312 172" fill="none" stroke="#2a2f63" stroke-width="15" stroke-linecap="round"/>
-        <circle cx="314" cy="168" r="8" fill="#323a78"/>
-        <!-- смычок: двигается вдоль своей оси через точку на струнах -->
-        <g transform="translate(226 202) rotate(-65)"><g id="bow">
-          <line x1="-100" y1="3" x2="84" y2="3" stroke="#f7e9c6" stroke-width="2"/>
-          <line x1="-104" y1="-1" x2="88" y2="-1" stroke="#4b2a12" stroke-width="3.4" stroke-linecap="round"/>
-          <rect x="-108" y="-4" width="16" height="10" rx="2" fill="#1a0f0a"/>
+        <!-- скрипка (amber): корпус под подбородком, гриф вправо-вверх -->
+        <g transform="translate(232 200) rotate(-18)" class="ln a fk3">
+          <path class="w1" d="M-42 0 C-42 -16 -34 -24 -22 -24 C-12 -24 -8 -18 -2 -14 C4 -18 8 -22 18 -22 C32 -22 42 -14 42 0 C42 14 32 22 18 22 C8 22 4 18 -2 14 C-8 18 -12 24 -22 24 C-34 24 -42 16 -42 0 Z"/>
+          <path class="w2 ghost" d="M-39 0 C-39 -14 -32 -21 -22 -21 C-13 -21 -9 -15 -2 -11 C5 -15 9 -19 18 -19 C30 -19 39 -12 39 0 C39 12 30 19 18 19 C9 19 5 15 -2 11 C-9 15 -13 21 -22 21 C-32 21 -39 14 -39 0 Z"/>
+          <path class="w2" d="M-15 -13 q4 4 0 8 q-2 1 -1 3 M-15 13 q4 -4 0 -8 q-2 -1 -1 -3"/>
+          <path class="w1" d="M-12 -8 L-12 8"/>
+          <path class="w2" d="M-40 -5 L-26 -3 L-26 3 L-40 5 Z"/>
+          <path class="w1" d="M-6 -5 L100 -4 L100 4 L-6 5"/>
+          <path class="w1" d="M100 -4 L112 -4 C118 -9 126 -6 124 0 C122 5 116 5 117 1 C118 -1 121 -1 120 1 M100 4 L112 4"/>
+          <g class="w2" opacity=".75"><line x1="-28" y1="-3" x2="106" y2="-2.5"/><line x1="-28" y1="-1" x2="106" y2="-.8"/><line x1="-28" y1="1" x2="106" y2=".8"/><line x1="-28" y1="3" x2="106" y2="2.5"/></g>
+          <g id="fingers"><circle class="finger" cx="56" cy="-1" r="3" fill="#6fe6ff"/><circle class="finger" cx="68" cy="-1" r="3" fill="#6fe6ff"/><circle class="finger" cx="80" cy="-1" r="3" fill="#6fe6ff"/><circle class="finger" cx="92" cy="-1" r="3" fill="#6fe6ff"/></g>
+        </g>
+        <!-- левая рука на грифе -->
+        <g class="ln fk1">
+          <path class="c w1" d="M268 216 Q314 252 314 178"/>
+          <path class="b w2 ghost" d="M262 224 Q306 262 306 184"/>
+          <path class="c w1" d="M306 176 q6 -10 14 -6 q4 4 -2 10 M310 168 q8 -4 10 2"/>
+        </g>
+        <!-- смычок: медленный ход вдоль своей оси -->
+        <g transform="translate(226 202) rotate(-65)"><g id="bow" class="ln fk2">
+          <line class="c w1" x1="-104" y1="-1" x2="90" y2="-1"/>
+          <line class="b w2" x1="-98" y1="3" x2="86" y2="3" opacity=".8"/>
+          <path class="c w2" d="M90 -1 L92 3 L86 3"/>
+          <rect class="c w2" x="-108" y="-4" width="14" height="9" rx="2"/>
         </g></g>
-        <!-- правая рука со смычком -->
-        <path id="arm" d="M165 216 C150 250 170 280 186 288" fill="none" stroke="#2a2f63" stroke-width="15" stroke-linecap="round"/>
-        <circle id="hand" cx="186" cy="288" r="8" fill="#323a78"/>
+        <!-- правая рука держит смычок -->
+        <g class="ln fk3">
+          <path id="arm" class="c w1" d="M150 218 Q118 268 186 289"/>
+          <path id="arm2" class="b w2 ghost" d="M156 226 Q124 276 190 296"/>
+          <circle id="hand" class="c w1" cx="186" cy="289" r="6"/>
+        </g>
+      </g>
       </g>
       <g id="flyers"></g>
     </svg>
@@ -310,6 +338,21 @@ function voice(e,t0){
 // ---------- анимация скрипача ----------
 let lastIdx=-1,bowDir=1;
 const fingers=()=>document.querySelectorAll('#fingers .finger');
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function setBow(pos){
+  $('bow').setAttribute('transform',`translate(${pos.toFixed(1)} 0)`);
+  const hx=226+(pos-96)*0.4226,hy=202-(pos-96)*0.9063,ex=124+(hx-186)*.45,ey=268+(hy-289)*.45;
+  $('hand').setAttribute('cx',hx.toFixed(1));$('hand').setAttribute('cy',hy.toFixed(1));
+  $('arm').setAttribute('d',`M150 218 Q${ex.toFixed(1)} ${ey.toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`);
+  $('arm2').setAttribute('d',`M156 226 Q${(ex+6).toFixed(1)} ${(ey+8).toFixed(1)} ${(hx+4).toFixed(1)} ${(hy+7).toFixed(1)}`);
+}
+// без музыки: длинные смычки ~66 BPM (один ход = такт 4/4 ≈ 3,64 с), бесшовная синусоида
+const IDLE_CYCLE=2*4*60/66;
+function idle(ts){
+  if(playing)return;
+  setBow(26*Math.sin(2*Math.PI*(ts/1000)/IDLE_CYCLE));
+  if(!REDUCED)raf=requestAnimationFrame(idle);
+}
 function frame(){
   if(!playing)return;
   const now=ac.currentTime-startAt;
@@ -324,14 +367,8 @@ function frame(){
     lastIdx=i;
   }
   if(i>=0){
-    const e=events[i],ph=Math.min(1,(now-e.t)/e.dur),span=e.art==='staccato'?12:Math.min(60,20+e.dur*26);
-    const pos=bowDir>0?-span/2+ph*span:span/2-ph*span;
-    $('bow').setAttribute('transform',`translate(${pos.toFixed(1)} 0)`);
-    const hx=226+(pos-96)*0.4226,hy=202-(pos-96)*0.9063;
-    $('hand').setAttribute('cx',hx.toFixed(1));$('hand').setAttribute('cy',hy.toFixed(1));
-    $('arm').setAttribute('d',`M165 216 C150 250 ${(hx-16).toFixed(1)} ${(hy-8).toFixed(1)} ${hx.toFixed(1)} ${hy.toFixed(1)}`);
-    $('sway').setAttribute('transform',`rotate(${(Math.sin(now*1.3)*1.6).toFixed(2)} 210 320)`);
-    $('core').setAttribute('opacity',(.35+(DYN[e.dyn]||.6)*.6).toFixed(2));
+    const e=events[i],ph=Math.min(1,(now-e.t)/e.dur),ease=.5-.5*Math.cos(Math.PI*ph),span=e.art==='staccato'?12:Math.min(56,18+e.dur*24);
+    setBow(bowDir>0?-span/2+ease*span:span/2-ease*span);
   }
   if(now>total+1.2){stop(true);return;}
   raf=requestAnimationFrame(frame);
@@ -339,7 +376,7 @@ function frame(){
 function fly(e){
   if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const g=document.createElementNS('http://www.w3.org/2000/svg','text');
-  g.textContent=e.beats>=1?'♪':'♫';g.setAttribute('x',String(250+Math.random()*40));g.setAttribute('y','190');g.setAttribute('fill',e.m>79?'#ffb547':'#6fe6ff');g.setAttribute('font-size','18');
+  g.textContent=e.beats>=1?'♪':'♫';g.setAttribute('x',String(250+Math.random()*40));g.setAttribute('y','190');g.setAttribute('fill',e.m>79?'#ffb547':'#6fe6ff');g.setAttribute('font-size','16');g.setAttribute('filter','url(#glow)');
   $('flyers').appendChild(g);
   const a=g.animate([{transform:'translate(0,0)',opacity:.95},{transform:`translate(${60+Math.random()*60}px,${-80-(e.m-55)*1.6}px)`,opacity:0}],{duration:1800,easing:'ease-out'});
   a.onfinish=()=>g.remove();
@@ -349,7 +386,7 @@ function play(){
   if(!ac)setupAudio();
   if(ac.state==='suspended')ac.resume();
   startAt=ac.currentTime+.15;events.forEach(e=>voice(e,startAt));
-  playing=true;lastIdx=-1;$('play').textContent='■ Стоп';frame();
+  cancelAnimationFrame(raf);playing=true;lastIdx=-1;$('play').textContent='■ Стоп';frame();
 }
 function stop(ended){
   playing=false;cancelAnimationFrame(raf);
@@ -357,8 +394,10 @@ function stop(ended){
   const prev=document.getElementById('n'+lastIdx);if(prev)prev.classList.remove('on');
   fingers().forEach(f=>f.classList.remove('on'));
   $('play').textContent=ended?'↻ Ещё раз':'▶ Слушать скрипача';
+  raf=requestAnimationFrame(idle);
 }
 $('play').addEventListener('click',()=>playing?stop(false):play());
+raf=requestAnimationFrame(idle);
 $('vol').addEventListener('input',e=>{if(master)master.gain.value=+e.target.value;});
 document.addEventListener('click',e=>{
   const id=e.target.id;if(id!=='copyAbc'&&id!=='copyPrompt')return;
