@@ -198,6 +198,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Импульсы</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 Давид · выпуски</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Трек дня</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_promises"><div class="nm"><i></i>🧾 Обещали → сделали · ЕЦБ и ФРС</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Художник · город у моря</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_follow"><div class="nm"><i></i>🕰 Что было потом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_agents"><div class="nm"><i></i>🤖 Агенты на сайте</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -295,7 +296,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -424,6 +425,10 @@ async function loadSite(){
   const t0=mu&&mu.tracks&&mu.tracks[0];
   if(t0){setSensor('s_music',`<b>${esc(t0.title)}</b> · ${t0.bpm||'—'} BPM`,at(t0.date+'T12:00:00Z'),t0.id,`треков: ${mu.tracks.length} · ${dm(t0.date)}`);
     L.push(`🎵 Трек дня: <b>${esc(t0.title)}</b> · ${esc(t0.style||'')}`);}
+  const prm=await g('/api/v1/promises');
+  if(prm&&prm.banks){const sh=b=>{const l=b.ledger[0];return l?`<b>${esc(b.name_ru)} ${b.rate_now??'—'}%</b> ${esc(l.verdict==='waiting'?'сигнал: '+l.signal_ru:l.verdict_ru)}`:`<b>${esc(b.name_ru)} ${b.rate_now??'—'}%</b>`};
+    setSensor('s_promises',prm.banks.map(sh).join(' · '),Date.parse(prm.updated_at||'')||Date.now(),prm.banks.map(b=>b.rate_now+'|'+(b.ledger[0]||{}).day).join(),'официальные заявления → следующее решение');
+    L.push(`🧾 Обещали → сделали: ${prm.banks.map(b=>esc(b.name_ru)+' '+(b.rate_now??'—')+' %').join(', ')} — <a href="/api/v1/promises">цитаты и решения</a>`);}
   const cvv=await g('/api/v1/canvas');
   if(cvv&&cvv.state){    setSensor('s_canvas',`<a href="/canvas">${esc(cvv.art_style_ru)}</a> · напряжение ${cvv.state.tension} · молний ${cvv.scene_elements?cvv.scene_elements.lightning:0}`,Date.parse(cvv.slot.replace('Z',':00Z')),cvv.slot+'|'+cvv.state.tension,`картина ${cvv.slot_berlin} · каждые 3 ч`);
     L.push(`🎨 Художник: <b>${esc(cvv.title_ru)}</b> — <a href="/canvas">посмотреть картину</a>`);}

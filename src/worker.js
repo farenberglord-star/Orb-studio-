@@ -1231,6 +1231,7 @@ const OA_GET = [
   ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
   ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [OA_Q("slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current")]],
   ["/api/v1/canvas.png", "getCanvasPng", "The painter's picture as PNG (720×900, or 1080×1350 with w=1080).", [OA_Q("slot", "YYYY-MM-DDTHH:00Z, default current"), OA_Q("w", "720 or 1080")]],
+  ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
   ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
   ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
@@ -3888,7 +3889,7 @@ async function promUpdate(env, ctx, force = false) {
   if (!force && st.updated_at && Date.now() - Date.parse(st.updated_at) < 6 * 3600e3) return st;
   for (const [id, b] of Object.entries(PROM_BANKS)) {
     const bs = st.banks[id] || (st.banks[id] = { statements: [] });
-    try { bs.rates = await promRates(id); } catch (e) { bs.rates_error = String(e.message || e).slice(0, 120); }
+    for (let k = 0; k < 2; k++) { try { bs.rates = await promRates(id); delete bs.rates_error; break; } catch (e) { bs.rates_error = String(e.message || e).slice(0, 120); } } // при сбое остаются прежние ставки
     const items = (await fetchFeedNow(b.feed)).filter((x) => b.title.test(x.title));
     for (const it of items.slice(0, 6)) {
       const day = new Date(it.ts).toISOString().slice(0, 10);
@@ -4415,6 +4416,9 @@ const MCP_TOOLS = [
     description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG); the picture itself is attached as an image block (include_image=false to skip). Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_promises", title: "Said → did: ECB and Fed",
+    description: "What the ECB and the Fed officially signalled about their next steps (exact quote from the official statement, with link) and what they did at the next rate decision (official data: ECB Data Portal, FRED). Verdicts: followed, not_yet, opposite, no_promise. Institutions only, no judgement of people; central banks rarely promise, so not_yet is not a broken promise. Rate changes since 2024 included.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_violin", title: "Violin of the day (sensors as music)",
     description: "Today's piece for solo violin, composed by Claude from Orb Studio's market and network sensors and played by an artificial violinist on https://orbstudio.org/violin. Returns title, key, meter, BPM, mood, how each sensor shaped the music (mapping), the full score in ABC notation and as a note list, sensor values and a listen link. Pass date=YYYY-MM-DD for an older piece.",
     inputSchema: { type: "object", properties: { date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Day (default: today or the latest piece)" } }, additionalProperties: false },
@@ -4602,6 +4606,10 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const out = { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
     if (args.include_image !== false) { try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(canvasSvg(piece), 480)), enumerable: false }); } catch (e) {} }
     return out;
+  }
+  if (name === "get_promises") {
+    if (!(await promPublic(env))) throw new Error("Not available yet");
+    return { ...promCard(await promUpdate(env, ctx)), referral: ref };
   }
   if (name === "get_violin") {
     const day = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date || "")) ? args.date : null;
