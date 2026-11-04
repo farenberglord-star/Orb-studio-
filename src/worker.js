@@ -3238,7 +3238,7 @@ async function waysToBridge(env, w) {
   for (const [cid, c] of Object.entries(w.crises)) c.paths.forEach((p, i) => {
     const k = WAYS_KINDS[p.level - 1];
     stm.push(env.DB.prepare("INSERT OR IGNORE INTO bridge_paths (id, crisis, ts, source, author, lang, text, status, model) VALUES (?1,?2,?3,'ai-draft','Claude · черновик ИИ','ru',?4,'live',?5)")
-      .bind(p.id, cid, t0 + i, `${k.n} ${k.ru}: ${p.text_ru}`, w.model || "claude"));
+      .bind(p.id, cid, t0 + (3 - p.level) * 10, `${k.n} ${k.ru}: ${p.text_ru}`, w.model || "claude")); // ① выше ③ в списке
   });
   await env.DB.batch(stm);
 }
