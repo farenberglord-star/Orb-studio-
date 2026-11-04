@@ -16,6 +16,7 @@
   <url><loc>https://orbstudio.org/quality</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/prices</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/violin</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://orbstudio.org/canvas</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/music</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/indices</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/orb7</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>

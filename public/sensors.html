@@ -63,6 +63,7 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.sn .vl i.tn{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:3px;vertical-align:middle}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -161,7 +162,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
-<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors" class="on" aria-current="page">Датчики ⚡</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors" class="on" aria-current="page">Датчики ⚡</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <div class="wrap">
   <div>
     <div class="eyebrow"><a href="/">← Orb Studio</a> · схема · живые источники</div>
@@ -197,6 +198,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Импульсы</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 Давид · выпуски</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Трек дня</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Художник · картина</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_follow"><div class="nm"><i></i>🕰 Что было потом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_agents"><div class="nm"><i></i>🤖 Агенты на сайте</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn gold" data-s="s_tariffs"><div class="nm"><i></i>🏦 Тарифы банков</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -293,7 +295,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -422,6 +424,10 @@ async function loadSite(){
   const t0=mu&&mu.tracks&&mu.tracks[0];
   if(t0){setSensor('s_music',`<b>${esc(t0.title)}</b> · ${t0.bpm||'—'} BPM`,at(t0.date+'T12:00:00Z'),t0.id,`треков: ${mu.tracks.length} · ${dm(t0.date)}`);
     L.push(`🎵 Трек дня: <b>${esc(t0.title)}</b> · ${esc(t0.style||'')}`);}
+  const cvv=await g('/api/v1/canvas');
+  if(cvv&&cvv.state){const tones=(cvv.dominant_tones||[]).map(h=>`<i class="tn" style="background:${esc(h)}"></i>`).join('');
+    setSensor('s_canvas',`<a href="/canvas">${esc(cvv.art_style_ru)}</a> · напряжение ${cvv.state.tension} ${tones}`,Date.parse(cvv.slot.replace('Z',':00Z')),cvv.slot+'|'+cvv.state.tension,`картина ${cvv.slot_berlin} · каждые 3 ч`);
+    L.push(`🎨 Художник: <b>${esc(cvv.title_ru)}</b> — <a href="/canvas">посмотреть картину</a>`);}
   if(fu){const open=fu.counts.open||0,done=Object.entries(fu.counts).filter(([k])=>k!=='open').reduce((a,[,v])=>a+v,0);
     setSensor('s_follow',`ждут развязки ${open} · решено ${done}`,at(fu.generated_at),open+'|'+done);
     L.push(`🕰 Что было потом: ${open} новостей ждут развязки, решено ${done}`);}
