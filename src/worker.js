@@ -5190,6 +5190,7 @@ async function handleRequest(request, env, ctx) {
       const a = url.searchParams.get("action") || "show";
       try {
         if (a === "run") { const st = await promUpdate(env, ctx, true); return json({ raw_errors: Object.fromEntries(Object.entries(st.banks).map(([k, v]) => [k, { rates: (v.rates || []).length, rates_error: v.rates_error || null, read_error: v.read_error || null, statements: v.statements.length }])), card: promCard(st) }, H); }
+        if (a === "peek") { const st = await sharedGet(env, "promises-v1", 1e13); const u = st.banks.fed.statements.slice(-1)[0].url; const r = await fetch(u, { headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/live)" } }); const x = (await r.text()).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " "); return json({ u, status: r.status, len: x.length, i: x.search(/Recent indicators/i), head: x.slice(0, 600) }, H); }
         if (a === "publish" || a === "hide") { await sharedPut(env, "promises-public", { on: a === "publish" }); return json({ ok: true, public: a === "publish" }, H); }
         return json({ public: await promPublic(env), card: promCard((await sharedGet(env, "promises-v1", 1e13)) || { banks: {} }) }, H);
       } catch (e) { return json({ error: String(e && e.message || e).slice(0, 300) }, H, 500); }
