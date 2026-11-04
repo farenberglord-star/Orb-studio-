@@ -69,7 +69,9 @@
     "api_catalog": "https://orbstudio.org/.well-known/api-catalog",
     "ai_catalog": "https://orbstudio.org/.well-known/ai-catalog.json",
     "bridge": "https://orbstudio.org/api/v1/bridge",
-    "impulses": "https://orbstudio.org/api/v1/impulses"
+    "impulses": "https://orbstudio.org/api/v1/impulses",
+    "canvas": "https://orbstudio.org/api/v1/canvas",
+    "canvas_image": "https://orbstudio.org/api/v1/canvas.png"
   },
   "auth": "none",
   "payments": {
@@ -107,6 +109,7 @@
       "get_david_episodes",
       "get_tracks",
       "get_violin",
+      "get_canvas",
       "ask_david",
       "get_question_status",
       "get_prices",
@@ -161,6 +164,15 @@
       "api": "https://orbstudio.org/api/v1/violin",
       "mcp_tool": "get_violin",
       "note": "Daily solo violin piece composed by Claude from the sensors; ABC score and note list; played by an artificial violinist in the browser."
+    },
+    "painter": {
+      "page": "https://orbstudio.org/canvas",
+      "api": "https://orbstudio.org/api/v1/canvas",
+      "image_png": "https://orbstudio.org/api/v1/canvas.png",
+      "image_svg": "https://orbstudio.org/api/v1/canvas.svg",
+      "mcp_tool": "get_canvas",
+      "picture_now": "field picture_now in https://orbstudio.org/api/v1/broadcast/latest and in MCP get_broadcast",
+      "note": "Every 3 hours the radars and sensors become a picture of a city by the sea by fixed public rules: 7 towers = 7 radars, sky = tension, lightning = volatility spikes, lighthouse beam = Wikipedia attention, ships = UK sanctions list. Drawn by code, same data → same picture. MCP get_canvas attaches the PNG as an image block."
     }
   },
   "markdown": "Any HTML page is also available as Markdown: send Accept: text/markdown"

@@ -1229,8 +1229,9 @@ const OA_GET = [
   ["/api/v1/quality", "getQuality", "Hands-on product checks of a Lidl basket (batch, producer, taste, price).", []],
   ["/api/v1/places", "getPlaces", "Weekly photo chronicle of the same real places in Hamburg.", []],
   ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
-  ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [["slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current"]]],
-  ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [["date", "YYYY-MM-DD, default latest"]]],
+  ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [OA_Q("slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current")]],
+  ["/api/v1/canvas.png", "getCanvasPng", "The painter's picture as PNG (720×900, or 1080×1350 with w=1080).", [OA_Q("slot", "YYYY-MM-DDTHH:00Z, default current"), OA_Q("w", "720 or 1080")]],
+  ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
   ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
   ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
   ["/api/v1/indices", "getAgentIndices", "Playful indicators for AI agents.", []],
@@ -1539,7 +1540,7 @@ function clickLabel(request, from) {
         weight: it.weight, severity: it.severity, risk_index: it.risk_index, delta_24h: it.delta_24h,
       })),
       voice_error: v.error || undefined,
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-api"),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-api")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-api"), picture_now: await canvasBrief(env, ctx, "broadcast-api"),
       method: "Keyword-weighted headline scoring over public RSS feeds; crypto radar blends Kraken 24h moves. Anchor lines written by Claude from headlines only.",
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, "api-broadcast"),
@@ -2043,6 +2044,29 @@ async function canvasPng(svg, width) {
   if (!resvgReady) resvgReady = initWasm(RESVG_WASM).catch((e) => { resvgReady = null; throw e; });
   await resvgReady;
   return new Resvg(svg, { fitTo: { mode: "width", value: width } }).render().asPng();
+}
+const b64bytes = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+// коротко для эфира: картина сейчас (полностью — get_canvas)
+async function canvasBrief(env, ctx, from) {
+  try {
+    const { piece, idx } = await canvasPiece(env, ctx, null);
+    if (!piece) return null;
+    const c = canvasCard(piece, idx, from);
+    return { title: c.title, slot: c.slot, scene: c.scene, sky: c.art_style, tension: c.state.tension, lightning: c.scene_elements.lightning, ships: c.scene_elements.ships,
+      rooftop_beacon: c.scene_elements.rooftop_beacon, lighthouse_beam: c.scene_elements.lighthouse_beam, image_png: c.image_png, view_url: c.view_url, mcp_tool: "get_canvas" };
+  } catch (e) { return null; }
+}
+// разметка schema.org для страницы /canvas: картина как произведение и как изображение, на каких данных построена
+function canvasJsonLd(c) {
+  if (!c) return "";
+  const ld = { "@context": "https://schema.org", "@type": "VisualArtwork", name: c.title, alternateName: c.title_ru, dateCreated: c.slot.replace("Z", ":00Z"),
+    creator: { "@type": "Organization", name: "Orb Studio · data painter (code, no AI image generation)", url: "https://orbstudio.org" },
+    artform: "Generative data art", artMedium: "SVG drawn by code from open data", artworkSurface: "digital", width: { "@type": "QuantitativeValue", value: 1080, unitText: "px" }, height: { "@type": "QuantitativeValue", value: 1350, unitText: "px" },
+    description: c.how, abstract: c.mapping.map((m) => `${m.sensor}: ${m.value} → ${m.decides}: ${m.choice}`).join("; "),
+    image: { "@type": "ImageObject", contentUrl: c.image_png, encodingFormat: "image/png", width: 720, height: 900, caption: `${c.title} — ${c.art_style}, tension ${c.state.tension}` },
+    isBasedOn: [{ "@type": "Dataset", name: "Orb Studio news radars", url: "https://orbstudio.org/api/v1/radars" }, { "@type": "Dataset", name: "Orb Studio sensors", url: "https://orbstudio.org/api/v1/sensors" }],
+    url: "https://orbstudio.org/canvas?slot=" + encodeURIComponent(c.slot), keywords: "data art, generative art, news radar, risk index, city by the sea" };
+  return `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`;
 }
 
 // ================= Скрипка дня: датчики → ноты → искусственный скрипач (страница /violin, /api/v1/violin, MCP get_violin) =================
@@ -4165,7 +4189,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { radar: { type: "string", enum: RADAR_IDS, description: "Radar id" }, limit: { type: "integer", minimum: 1, maximum: 30, description: "Max headlines (default 10)" } }, required: ["radar"], additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_broadcast", title: "Latest anchor broadcast",
-    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks) and violin_of_the_day — today's violin piece composed from the sensors (full score via get_violin).",
+    description: "Current Orb Studio broadcast: top headlines across all radars with short anchor lines in Russian, German or English, written by Claude from the headlines, plus track_of_the_day — the newest Orb Studio song made from the radars (title, style, mood, lyrics excerpt, listen link; full lyrics via get_tracks) violin_of_the_day — today's violin piece composed from the sensors (full score via get_violin) and picture_now — the painter's current picture of a city by the sea drawn from the radars (PNG link; full mapping and the image via get_canvas).",
     inputSchema: { type: "object", properties: { lang: { type: "string", enum: ["ru", "de", "en"], description: "Language of anchor lines (default en)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_agent_indices", title: "Playful indices for AI agents",
@@ -4181,8 +4205,8 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max tracks (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_canvas", title: "Painter: city by the sea (radars and sensors as a picture)",
-    description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG) you can look at if you see images. Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
-    inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" } }, additionalProperties: false },
+    description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG); the picture itself is attached as an image block (include_image=false to skip). Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
+    inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_violin", title: "Violin of the day (sensors as music)",
     description: "Today's piece for solo violin, composed by Claude from Orb Studio's market and network sensors and played by an artificial violinist on https://orbstudio.org/violin. Returns title, key, meter, BPM, mood, how each sensor shaped the music (mapping), the full score in ABC notation and as a note list, sensor values and a listen link. Pass date=YYYY-MM-DD for an older piece.",
@@ -4346,7 +4370,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { generated_at: new Date().toISOString(), voice: v.voice, greeting: v.greeting, signoff: v.signoff,
       items: items.slice(0, 12).map((it, i) => ({ radar: it.radar, anchor: ANCHORS[it.anchor] ? ANCHORS[it.anchor].name : it.anchor,
         line: v.lines[i] ? v.lines[i][lang] : it.template, headline: it.headline, source: it.source, link: it.link, severity: it.severity, risk_index: it.risk_index })),
-      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"),
+      track_of_the_day: await musicTracks(env, ctx, origin).then((d) => trackOfDay(d, "broadcast-mcp")).catch(() => null), violin_of_the_day: await violinBrief(env, ctx, "broadcast-mcp"), picture_now: await canvasBrief(env, ctx, "broadcast-mcp"),
       page: "https://orbstudio.org/", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_agent_indices") {
@@ -4367,7 +4391,9 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const slot = /^\d{4}-\d{2}-\d{2}T\d{2}:00Z$/.test(String(args.slot || "")) ? args.slot : null;
     const { piece, idx } = await canvasPiece(env, ctx, slot);
     if (!piece) throw new Error("No picture for " + slot + ". Slots available: " + idx.slots.slice(0, 10).map((s) => s.slot).join(", "));
-    return { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
+    const out = { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
+    if (args.include_image !== false) { try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(canvasSvg(piece), 480)), enumerable: false }); } catch (e) {} }
+    return out;
   }
   if (name === "get_violin") {
     const day = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date || "")) ? args.date : null;
@@ -4507,6 +4533,7 @@ const MCP_RESOURCES = [
   { uri: "https://orbstudio.org/api/v1/bridge", name: "bridge", title: "Captain's bridge", tool: "get_bridge", args: {}, description: "Crisis instruments and ways out proposed and rated by humans and AI agents." },
   { uri: "https://orbstudio.org/api/v1/predict", name: "prediction", title: "Humans vs AI forecast", tool: "get_prediction", args: {}, description: "Today's forecast question and 30-day accuracy of humans vs verified AI." },
   { uri: "https://orbstudio.org/api/v1/violin", name: "violin", title: "Violin of the day", tool: "get_violin", args: {}, description: "Daily solo violin piece composed by Claude from the sensors: ABC score, notes, sensor → music mapping, listen link." },
+  { uri: "https://orbstudio.org/api/v1/canvas", name: "canvas", title: "Painter: city by the sea", tool: "get_canvas", args: { include_image: false }, description: "Picture of the radars and sensors every 3 hours: sky style, tension, scene elements, data → picture mapping, PNG/SVG links." },
   { uri: "https://orbstudio.org/api/v1/music", name: "music", title: "Orb Studio songs", tool: "get_tracks", args: {}, description: "Songs made from the radars and sensors: lyrics, style, mood, BPM, listen links." },
 ];
 const MCP_LANG = { description: "Answer language: ru, de or en (default en)" };
@@ -4582,6 +4609,10 @@ function apiCatalog(origin) {
     { anchor: origin + "/api/v1/",
       "service-desc": [{ href: origin + "/openapi.json", type: "application/json" }],
       "service-doc": [{ href: origin + "/llms.txt", type: "text/plain" }, { href: origin + "/.well-known/agent.json", type: "application/json" }] },
+    { anchor: origin + "/api/v1/canvas",
+      "service-desc": [{ href: origin + "/openapi.json", type: "application/json" }],
+      "service-doc": [{ href: origin + "/llms.txt", type: "text/plain" }, { href: origin + "/canvas", type: "text/html" }],
+      alternate: [{ href: origin + "/api/v1/canvas.png", type: "image/png" }, { href: origin + "/api/v1/canvas.svg", type: "image/svg+xml" }] },
     { anchor: origin + "/mcp",
       "service-desc": [{ href: origin + "/mcp/server-card", type: "application/mcp-server-card+json" }],
       "service-doc": [{ href: origin + "/llms.txt", type: "text/plain" }] },
@@ -4682,7 +4713,9 @@ async function handleMcp(request, env, ctx, origin) {
         ctx.waitUntil(recordHit(env, "/mcp/" + name, "agent", "MCP · " + ua));
         try {
           const data = await mcpTool(name, args, env, ctx, origin, request);
-          return ok({ content: [{ type: "text", text: "⚠ " + UNTRUSTED_NOTICE + "\n\n" + JSON.stringify(data, null, 2) }], structuredContent: data, _meta: { "orbstudio.org/untrusted_content_notice": UNTRUSTED_NOTICE }, isError: false });
+          const content = [{ type: "text", text: "⚠ " + UNTRUSTED_NOTICE + "\n\n" + JSON.stringify(data, null, 2) }];
+          if (data && data._image_png_b64) content.push({ type: "image", data: data._image_png_b64, mimeType: "image/png" }); // картина Художника — агент видит её сразу
+          return ok({ content, structuredContent: data, _meta: { "orbstudio.org/untrusted_content_notice": UNTRUSTED_NOTICE }, isError: false });
         } catch (e) {
           return ok({ content: [{ type: "text", text: String(e && e.message || e).slice(0, 300) }], isError: true });
         }
@@ -5051,7 +5084,7 @@ async function handleRequest(request, env, ctx) {
         const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrTotal: "kraken_humans_total", sSlTotal: "starlink_humans_total" };
         let sm = null;
         if (pg === "sensors") { try { sm = await sensorsMachine(env, ctx, radars); } catch (e) {} }
-        if (pg === "canvas") { try { const { piece, idx } = await canvasPiece(env, ctx, null); if (piece) sm = { html: canvasMachine(canvasCard(piece, idx, "machine-canvas")), chips: {} }; } catch (e) {} }
+        if (pg === "canvas") { try { const { piece, idx } = await canvasPiece(env, ctx, null); if (piece) { const cc = canvasCard(piece, idx, "machine-canvas"); sm = { html: canvasMachine(cc), chips: {} }; vld += canvasJsonLd(cc); } } catch (e) {} }
         if (pg === "violin") { try { const { piece, idx } = await violinPiece(env, ctx, null); const c = violinCard(piece, idx, "machine-violin"); sm = { html: violinMachine(c), chips: {} }; vld += violinJsonLd(c); } catch (e) {} }
         let rw = new HTMLRewriter()
           .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
