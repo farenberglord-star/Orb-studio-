@@ -5314,6 +5314,7 @@ async function handleRequest(request, env, ctx) {
       if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
       const a = url.searchParams.get("action") || "test";
       if (a === "publish" || a === "hide") { await sharedPut(env, "verify-public", { on: a === "publish" }); VERIFY_AT = 0; return json({ ok: true, public: a === "publish" }, H); }
+      if (a === "gn") { const q = url.searchParams.get("q") || "Binance hack"; const r = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(q + " when:2d")}&hl=en-US&gl=US&ceid=US:en`, { headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } }); const x = await r.text(); return json({ status: r.status, len: x.length, items: (x.match(/<item>/g) || []).length, head: x.slice(0, 300) }, H); }
       const items = broadcastItems(await allRadars(env, ctx, url.origin));
       const cf = await confirmMany(url.origin, items.map((it) => ({ title: it.headline, source: it.source, n: it.confirm })), true);
       return json(items.map((it, i) => ({ radar: it.radar, headline: it.headline, source: it.source, feeds_only: it.confirm, wide: cf[i], verdict: verdictOf(cf[i]) })), H);
