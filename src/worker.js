@@ -3976,7 +3976,7 @@ async function aiPulseCompute() {
   }
   out.arxiv_new_papers = { total_unique: total, by_category: by, note: "New submissions in today's arXiv announcement (cs.AI, cs.LG, cs.CL), duplicates across categories counted once." };
   out.releases = rel.map(({ repo, xml }) => {
-    const e = xml.split(/<entry[\s>]/i)[1]; if (!e) return null;
+    const e = xml.split(/<entry[\s>]/i).slice(1).find((x) => !/viable\/|nightly|ciflow\/|trunk\//i.test(tag(x, "title"))); if (!e) return null; // только настоящие релизы
     const link = (e.match(/<link[^>]+href="([^"]+)"/i) || [])[1] || `https://github.com/${repo}/releases`;
     return { repo, release: wClean(tag(e, "title"), 80), date: (tag(e, "updated") || "").slice(0, 10), url: link };
   }).filter(Boolean).sort((a, b) => (a.date < b.date ? 1 : -1));
