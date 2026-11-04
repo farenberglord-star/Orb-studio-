@@ -198,6 +198,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Импульсы</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 Давид · выпуски</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Трек дня</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_pulse"><div class="nm"><i></i>🧠 Пульс ИИ · за сутки</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_promises"><div class="nm"><i></i>🧾 Обещали → сделали · ЕЦБ и ФРС</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Художник · город у моря</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_follow"><div class="nm"><i></i>🕰 Что было потом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -296,7 +297,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'обновлено '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -425,6 +426,10 @@ async function loadSite(){
   const t0=mu&&mu.tracks&&mu.tracks[0];
   if(t0){setSensor('s_music',`<b>${esc(t0.title)}</b> · ${t0.bpm||'—'} BPM`,at(t0.date+'T12:00:00Z'),t0.id,`треков: ${mu.tracks.length} · ${dm(t0.date)}`);
     L.push(`🎵 Трек дня: <b>${esc(t0.title)}</b> · ${esc(t0.style||'')}`);}
+  const pls=await g('/api/v1/ai-pulse');
+  if(pls&&pls.trending_models){const m0=pls.trending_models[0],ax=pls.arxiv_new_papers||{};
+    setSensor('s_pulse',`${m0?`в тренде <a href="${esc(m0.url)}" target="_blank" rel="noopener">${esc(m0.id.split('/').pop())}</a> · `:''}arXiv +${ax.total_unique??'—'} · релизов ${pls.releases_24h??0}`,Date.parse(pls.generated_at)||Date.now(),(m0&&m0.id)+'|'+ax.total_unique,'Hugging Face · arXiv · GitHub');
+    L.push(`🧠 Пульс ИИ: в тренде <b>${esc(m0?m0.id:'—')}</b>, новых работ на arXiv ${ax.total_unique??'—'}${pls.papers_of_the_day&&pls.papers_of_the_day[0]?`, статья дня — ${esc(pls.papers_of_the_day[0].title)}`:''}`);}
   const prm=await g('/api/v1/promises');
   if(prm&&prm.banks){const sh=b=>{const l=b.ledger[0];return l?`<b>${esc(b.name_ru)} ${b.rate_now??'—'}%</b> ${esc(l.verdict==='waiting'?'сигнал: '+l.signal_ru:l.verdict_ru)}`:`<b>${esc(b.name_ru)} ${b.rate_now??'—'}%</b>`};
     setSensor('s_promises',prm.banks.map(sh).join(' · '),Date.parse(prm.updated_at||'')||Date.now(),prm.banks.map(b=>b.rate_now+'|'+(b.ledger[0]||{}).day).join(),'официальные заявления → следующее решение');
