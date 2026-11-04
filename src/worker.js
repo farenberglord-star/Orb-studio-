@@ -1574,7 +1574,7 @@ function classifyAgent(ua) {
   if (!/mozilla/i.test(ua)) return ua ? "Script · " + ua.split(/[\/ ]/)[0].slice(0, 20) : "Script";
   return null; // обычный браузер
 }
-const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$)/;
+const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
 const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors", "violin"]);
 let tableReady = false;
 async function ensureTable(env) {
@@ -4315,7 +4315,7 @@ function mcpServerCard(origin) {
   return {
     $schema: "https://static.modelcontextprotocol.io/schemas/mcp-server-card/v1.json",
     version: "1.0", protocolVersion: MCP_VERSIONS[1],
-    serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.2.0", websiteUrl: "https://orbstudio.org" },
+    serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: MCP_SERVER_VERSION, websiteUrl: "https://orbstudio.org" },
     description: "Read-only news radars with AI anchors, open market and network sensors, a humans-vs-AI forecast, and a captain's bridge where humans and AI agents propose and rate ways out of crises. Free, no sign-up.",
     iconUrl: "https://orbstudio.org/media/david-poster.jpg", documentationUrl: "https://orbstudio.org/llms.txt", openapi: origin + "/openapi.json",
     transport: { type: "streamable-http", url: origin + "/mcp" },
@@ -4325,8 +4325,104 @@ function mcpServerCard(origin) {
     tools: MCP_TOOLS.map((t) => ({ name: t.name, title: t.title, description: t.description, inputSchema: t.inputSchema, annotations: t.annotations })),
     prompts: MCP_PROMPTS.map(({ name, title, description, arguments: a }) => ({ name, title, description, arguments: a })),
     resources: MCP_RESOURCES.map(({ uri, name, title, description }) => ({ uri, name, title, description, mimeType: "application/json" })),
-    contact: { website: "https://orbstudio.org", agent_card: "https://orbstudio.org/.well-known/agent.json" },
+    contact: { website: "https://orbstudio.org", agent_card: "https://orbstudio.org/.well-known/agent.json", server_card_v1: origin + "/mcp/server-card", ai_catalog: origin + "/.well-known/ai-catalog.json" },
   };
+}
+// ================= Карточки для поиска сайта агентами (финальные форматы, ноябрь 2026) =================
+// Визитка MCP-сервера по SEP-2127 / modelcontextprotocol/ext-server-card: GET <mcp-url>/server-card.
+// Списков инструментов в ней нет по стандарту — они приходят при подключении (tools/list); полный список
+// с инструментами остаётся в старой карточке /.well-known/mcp/server-card.json.
+const MCP_SERVER_VERSION = "1.3.0"; // как в server.json (официальный реестр MCP)
+function mcpServerCardV1(origin) {
+  return {
+    $schema: "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+    name: "io.github.farenberglord-star/orb-studio",
+    title: "Orb Studio news radars",
+    version: MCP_SERVER_VERSION,
+    description: "News radars with AI anchors, market and network sensors, a daily violin piece. Free, no sign-up.",
+    websiteUrl: "https://orbstudio.org",
+    icons: [{ src: "https://orbstudio.org/media/david-poster.jpg", mimeType: "image/jpeg" }],
+    repository: { url: "https://github.com/farenberglord-star/Orb-studio-", source: "github" },
+    remotes: [{ type: "streamable-http", url: origin + "/mcp", supportedProtocolVersions: MCP_VERSIONS.slice() }],
+    _meta: { "org.orbstudio/links": { llms_txt: origin + "/llms.txt", openapi: origin + "/openapi.json", agent_card: origin + "/.well-known/agent.json", full_card_with_tools: origin + "/.well-known/mcp/server-card.json" } },
+  };
+}
+// Оглавление для агентов (AI Catalog): где лежит визитка MCP-сервера
+function aiCatalog(origin) {
+  return { specVersion: "1.0", entries: [{ identifier: "urn:air:orbstudio.org:mcp:orb-studio", type: "application/mcp-server-card+json", url: origin + "/mcp/server-card" }] };
+}
+// RFC 9727: каталог API сайта в формате Linkset
+const API_CATALOG_TYPE = 'application/linkset+json; profile="https://www.rfc-editor.org/info/rfc9727"';
+function apiCatalog(origin) {
+  return { linkset: [
+    { anchor: origin + "/api/v1/",
+      "service-desc": [{ href: origin + "/openapi.json", type: "application/json" }],
+      "service-doc": [{ href: origin + "/llms.txt", type: "text/plain" }, { href: origin + "/.well-known/agent.json", type: "application/json" }] },
+    { anchor: origin + "/mcp",
+      "service-desc": [{ href: origin + "/mcp/server-card", type: "application/mcp-server-card+json" }],
+      "service-doc": [{ href: origin + "/llms.txt", type: "text/plain" }] },
+  ] };
+}
+// JSON-ответ с ETag и 304 (для карточек: их часто перечитывают)
+async function cardResponse(request, body, type, extra = {}) {
+  const text = JSON.stringify(body, null, 2);
+  const dig = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(text));
+  const etag = '"' + [...new Uint8Array(dig)].slice(0, 10).map((b) => b.toString(16).padStart(2, "0")).join("") + '"';
+  const h = { "Content-Type": type, "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, If-None-Match", "Access-Control-Expose-Headers": "ETag, Link", "Cache-Control": "public, max-age=3600", ETag: etag, ...extra };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
+  if ((request.headers.get("if-none-match") || "").split(",").map((s) => s.trim()).includes(etag)) return new Response(null, { status: 304, headers: h });
+  return new Response(request.method === "HEAD" ? null : text, { headers: h });
+}
+// Ссылки на машинные файлы в заголовке Link (RFC 8288) у HTML-страниц
+const DISCOVERY_LINK = '</.well-known/api-catalog>; rel="api-catalog", </llms.txt>; rel="describedby"; type="text/plain", </mcp/server-card>; rel="describedby"; type="application/mcp-server-card+json"';
+// Агент просит Markdown (Accept: text/markdown) и ставит его не ниже HTML. Браузеры text/markdown не присылают.
+function wantsMarkdown(request) {
+  const acc = (request.headers.get("accept") || "").toLowerCase();
+  if (!acc.includes("text/markdown")) return false;
+  let md = 0, html = 0;
+  for (const part of acc.split(",")) {
+    const [t, ...ps] = part.trim().split(";").map((s) => s.trim());
+    const qp = ps.find((p) => p.startsWith("q=")), q = qp ? parseFloat(qp.slice(2)) : 1;
+    if (t === "text/markdown") md = Math.max(md, isNaN(q) ? 0 : q);
+    if (t === "text/html") html = Math.max(html, isNaN(q) ? 0 : q);
+  }
+  return md > 0 && md >= html;
+}
+function htmlToMarkdown(html, pageUrl) {
+  const dec = (s) => s.replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0*39;|&apos;/g, "'")
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch (e) { return ""; } })
+    .replace(/&#(\d+);/g, (_, d) => { try { return String.fromCodePoint(+d); } catch (e) { return ""; } }).replace(/&amp;/g, "&");
+  const abs = (h) => { try { return new URL(dec(h), pageUrl).toString(); } catch (e) { return h; } };
+  const title = dec(((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || "").trim());
+  const desc = dec(((html.match(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i) || [])[1] || "").trim());
+  let b = (html.match(/<body[^>]*>([\s\S]*)<\/body>/i) || [, html])[1];
+  b = b.replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style|noscript|svg|template|canvas|iframe|button|select|form)\b[\s\S]*?<\/\1>/gi, "");
+  b = b.replace(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi, (_, n, t) => "\n\n" + "#".repeat(+n) + " " + t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim() + "\n\n");
+  b = b.replace(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, h, t) => { const tx = t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(); return !tx || /^(javascript:|#)/i.test(h) ? tx : `[${tx}](${abs(h)})`; });
+  b = b.replace(/<img\b[^>]*alt=["']([^"']+)["'][^>]*>/gi, (_, a) => " " + a + " ");
+  b = b.replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, (_, x, t) => (t.trim() ? "**" + t.trim() + "**" : ""));
+  b = b.replace(/<li\b[^>]*>/gi, "\n- ").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|section|article|header|footer|ul|ol|table|tr|main|nav|li|blockquote|figure)>/gi, "\n").replace(/<(td|th)\b[^>]*>/gi, " | ");
+  b = dec(b.replace(/<[^>]+>/g, ""));
+  b = b.split("\n").map((l) => l.replace(/[ \t]+/g, " ").trim()).join("\n").replace(/\n(- )?\n(?=- )/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  const head = (title ? "# " + title + "\n\n" : "") + (desc ? "> " + desc + "\n\n" : "")
+    + `Source: ${pageUrl} · Machine data: [llms.txt](https://orbstudio.org/llms.txt), [OpenAPI](https://orbstudio.org/openapi.json), [MCP](https://orbstudio.org/mcp)\n\n`;
+  return head + b + "\n";
+}
+async function markdownResponse(resp, pageUrl) {
+  const md = htmlToMarkdown(await resp.text(), pageUrl);
+  const h = new Headers({ "Content-Type": "text/markdown; charset=utf-8", "Access-Control-Allow-Origin": "*", "Vary": "Accept, Accept-Language", "Cache-Control": "private, max-age=60", "Link": DISCOVERY_LINK });
+  const cl = resp.headers.get("content-language"); if (cl) h.set("Content-Language", cl);
+  h.set("x-markdown-tokens", String(Math.ceil(md.length / 4)));
+  return new Response(md, { status: resp.status, headers: h });
+}
+// HTML-страница: добавляем Link; если агент просит Markdown — отдаём Markdown
+async function finishPage(request, resp, pageUrl) {
+  if (!(resp.headers.get("content-type") || "").includes("text/html")) return resp;
+  if (resp.ok && wantsMarkdown(request)) return markdownResponse(resp, pageUrl);
+  const r = new Response(resp.body, resp);
+  r.headers.append("Link", DISCOVERY_LINK);
+  r.headers.append("Vary", "Accept");
+  return r;
 }
 async function handleMcp(request, env, ctx, origin) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: MCP_HEADERS });
@@ -4351,7 +4447,7 @@ async function handleMcp(request, env, ctx, origin) {
         ctx.waitUntil(recordHit(env, "/mcp", "agent", "MCP · " + String(client).slice(0, 30)));
         return ok({ protocolVersion: MCP_VERSIONS.includes(want) ? want : MCP_VERSIONS[1],
           capabilities: { tools: { listChanged: false }, prompts: { listChanged: false }, resources: { listChanged: false } },
-          serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: "1.2.0", websiteUrl: "https://orbstudio.org" },
+          serverInfo: { name: "orb-studio", title: "Orb Studio news radars", version: MCP_SERVER_VERSION, websiteUrl: "https://orbstudio.org" },
           instructions: MCP_INSTRUCTIONS });
       }
       case "ping": return ok({});
@@ -4573,6 +4669,16 @@ async function handleRequest(request, env, ctx) {
       const agent = classifyAgent(request.headers.get("user-agent"));
       if (agent) ctx.waitUntil(recordHit(env, url.pathname.slice(0, 60), "agent", agent));
     }
+    // визитка MCP-сервера (SEP-2127), оглавление AI Catalog и каталог API (RFC 9727)
+    if (url.pathname === "/mcp/server-card" || url.pathname === "/mcp/server-card.json") {
+      return cardResponse(request, mcpServerCardV1(url.origin), "application/mcp-server-card+json");
+    }
+    if (url.pathname === "/.well-known/ai-catalog.json") {
+      return cardResponse(request, aiCatalog(url.origin), "application/ai-catalog+json");
+    }
+    if (url.pathname === "/.well-known/api-catalog") {
+      return cardResponse(request, apiCatalog(url.origin), API_CATALOG_TYPE, { Link: '</.well-known/api-catalog>; rel="api-catalog"' });
+    }
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
@@ -4729,9 +4835,10 @@ async function handleRequest(request, env, ctx) {
           const v = st[k] ?? (k.startsWith("kraken_humans") ? st[k.replace("humans", "clicks")] : null);
           if (typeof v === "number") rw = rw.on("#" + id, { element(e) { e.setInnerContent(nf.format(v)); } });
         }
-        return rw.transform(asset);
+        return finishPage(request, rw.transform(asset), url.toString());
       }
     }
+    if (pg) return finishPage(request, asset, url.toString());
     if (asset.status === 404 && url.pathname === "/.well-known/agent.json") return new Response(AGENT_JSON, { headers: { "Content-Type": "application/json; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
     if (asset.status === 404 && url.pathname === "/llms.txt") return new Response(LLMS_TXT, { headers: { "Content-Type": "text/plain; charset=utf-8", "Access-Control-Allow-Origin": "*" } });
     return asset;

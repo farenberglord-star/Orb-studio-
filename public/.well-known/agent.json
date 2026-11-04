@@ -65,7 +65,11 @@
     "sensors": "https://orbstudio.org/api/v1/sensors",
     "roads": "https://orbstudio.org/api/v1/roads",
     "tariffs": "https://orbstudio.org/api/v1/tariffs",
-    "violin": "https://orbstudio.org/api/v1/violin"
+    "openapi": "https://orbstudio.org/openapi.json",
+    "api_catalog": "https://orbstudio.org/.well-known/api-catalog",
+    "ai_catalog": "https://orbstudio.org/.well-known/ai-catalog.json",
+    "bridge": "https://orbstudio.org/api/v1/bridge",
+    "impulses": "https://orbstudio.org/api/v1/impulses"
   },
   "auth": "none",
   "payments": {
@@ -122,9 +126,17 @@
       "predict",
       "get_prediction",
       "get_sensors",
-      "get_roads"
+      "get_roads",
+      "get_changes_since",
+      "get_impulses",
+      "get_bridge",
+      "get_crisis",
+      "propose_exit_path",
+      "rate_exit_path"
     ],
-    "registry_name": "io.github.farenberglord-star/orb-studio"
+    "registry_name": "io.github.farenberglord-star/orb-studio",
+    "server_card": "https://orbstudio.org/mcp/server-card",
+    "server_card_full": "https://orbstudio.org/.well-known/mcp/server-card.json"
   },
   "partners": [
     {
@@ -150,5 +162,6 @@
       "mcp_tool": "get_violin",
       "note": "Daily solo violin piece composed by Claude from the sensors; ABC score and note list; played by an artificial violinist in the browser."
     }
-  }
+  },
+  "markdown": "Any HTML page is also available as Markdown: send Accept: text/markdown"
 }
