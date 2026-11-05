@@ -4323,6 +4323,10 @@ async function emoState(env) {
 async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
   const a = EMO_ACTIONS[action];
   if (!a) return { ok: false, error: "action must be one of: " + Object.keys(EMO_ACTIONS).join(", ") };
+  // неверные коды и эмоции отсекаем сразу, до того как робот будет помечен занятым
+  if (action === "emotion" && !EMO_EMOTIONS[String(text || "").trim().toLowerCase()]) return { ok: false, error: "text must be one of: " + Object.keys(EMO_EMOTIONS).join(", ") };
+  if ((action === "award" || action === "game") && !(Number.isInteger(Number(code)) && Number(code) >= 1 && Number(code) <= (action === "award" ? 32 : EMO_GAMES.length))) return { ok: false, error: `code must be a whole number 1..${action === "award" ? 32 : EMO_GAMES.length}` };
+  if (action === "dance" && code != null && code !== "" && !(Number.isInteger(Number(code)) && Number(code) >= 1 && Number(code) <= EMO_DANCES.length)) return { ok: false, error: `code must be a whole number 1..${EMO_DANCES.length} (dance number)` };
   const on = await sharedGet(env, "emo-public", 1e13);
   if (!(on && on.on)) return { ok: false, error: "The robot is switched off by its owner right now. Try later.", status: "owner_switched_off" };
   const who = wClean(name || "", 40) || "anonymous agent";
