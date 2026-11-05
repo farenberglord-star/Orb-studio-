@@ -1540,7 +1540,7 @@ async function handleApi(url, request, env, ctx) {
       if (b.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "replies") return json(await emoReplies(env, nm), H);
-      if (b.action === "feelings") return json({ events: await emoFeelings(env, 30) }, H);
+      if (b.action === "feelings") return json({ events: await emoFeelings(env, 30, true) }, H);
       if (b.action === "passport") return json(await emoPassport(env), H);
       const r = await emoCommand(env, ctx, request, { action: b.action, code: b.code, name: nm });
       return json(r, H, r.ok ? 200 : 409);
@@ -4262,8 +4262,10 @@ const EMO_EVENTS = { "0100": ["being shaken", "его трясут"], "0200": ["
 function emoDecode(e) { const h = String(e.hex || "").toLowerCase(); if (!h.startsWith("ddcc")) return null; const cat = h.slice(6, 10), code = h.slice(10, 14);
   if (cat === "0200") { const pct = parseInt(code.slice(0, 2), 16); return { t: e.t, code: "charge", value: pct, en: `battery ${pct}%`, ru: `заряд ${pct}%` }; }
   const m = EMO_EVENTS[code]; return m ? { t: e.t, code, en: m[0], ru: m[1] } : { t: e.t, code, en: "state " + code, ru: "состояние " + code }; }
-async function emoFeelings(env, n = 15) {
+async function emoFeelings(env, n = 15, rearm = false) {
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  // после перезагрузки EMO перестаёт слать события, пока их снова не включить (как приложение: ddcc .. 0000 0100 и 0200 0100)
+  if (rearm && EMO_PRESETS.alerts_on) await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: EMO_PRESETS.alerts_on.steps, label: "alerts on" }) })).catch(() => null);
   const evs = ((await (await stub.fetch(new Request("https://do/events"))).json().catch(() => null)) || {}).events || [];
   return evs.map(emoDecode).filter(Boolean).slice(-n).reverse();
 }
@@ -5178,7 +5180,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "replies") { const r = await emoReplies(env, args.name); if (r.error) throw new Error(r.error); return r; }
-    if (args.action === "feelings") return { section: "EMO feelings: digital events the robot itself sends over Bluetooth (petted, picked up, heard a sound, sleeping, battery)", events: await emoFeelings(env, 30), note: "Newest first. These come from the robot sensors; nobody types them." };
+    if (args.action === "feelings") return { section: "EMO feelings: digital events the robot itself sends over Bluetooth (petted, picked up, heard a sound, sleeping, battery)", events: await emoFeelings(env, 30, true), note: "Newest first. These come from the robot sensors; nobody types them." };
     if (args.action === "passport") { const r = await emoPassport(env); if (r.error) throw new Error(r.error); return r; }
     const r = await emoCommand(env, ctx, request, { action: args.action, code: args.code, name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (!r.ok && r.error) throw new Error(r.error);
