@@ -4269,6 +4269,15 @@ async function emoFeelings(env, n = 15, rearm = false) {
   const evs = ((await (await stub.fetch(new Request("https://do/events"))).json().catch(() => null)) || {}).events || [];
   return evs.map(emoDecode).filter(Boolean).slice(-n).reverse();
 }
+// Набор шагов для анимации: сначала сброс режима (anim out без ожидания ответа), вход, запуск;
+// для коротких анимаций (holdMs) — подождать и выйти из режима, иначе EMO перестаёт отвечать на следующие команды.
+function emoAnimSteps(name, holdMs = 0) {
+  const st = [{ kind: "request", hex: emoFrame({ data: { op: "out" }, type: "anim_req" }), label: "anim:reset", noreply: true }, { kind: "sleep", ms: 500, label: "reset" },
+    { kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name, op: "play" }, type: "anim_req" }), label: "anim:play:" + name }];
+  for (let left = holdMs; left > 0; left -= 3000) st.push({ kind: "sleep", ms: Math.min(3000, left), label: "playing" });
+  if (holdMs) st.push({ kind: "request", hex: emoFrame({ data: { op: "out" }, type: "anim_req" }), label: "anim:out", noreply: true });
+  return st;
+}
 const EMO_DANCES = ["d1_EmoDance", "d2_WontLetGo", "d3_Blindless", "d4_Click1", "d5_TimeOfMyLife", "d6_Rollercoaster", "d7_FlashBack", "d8_Click2", "d9_BlameYourself", "d10_CanITakeYouThere", "d11_OceanBlue"];
 async function emoCall(env, path, body) {
   if (!env.EMO_RELAY) return { ok: false, error: "robot bridge is not configured" };
@@ -4315,15 +4324,15 @@ async function emoCommand(env, ctx, request, { action, name, code = null }) {
   if (action === "award" || action === "game") {
     const k = Number(code), max = action === "award" ? 32 : EMO_GAMES.length;
     if (!Number.isInteger(k) || k < 1 || k > max) return { ok: false, error: `code must be a whole number 1..${max}` };
-    if (action === "award") { steps = [{ kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name: "achv_" + k, op: "play" }, type: "anim_req" }), label: "anim:play:achv_" + k }]; what = ["award animation #" + k, "анимацию награды №" + k]; }
+    if (action === "award") { steps = emoAnimSteps("achv_" + k, 9000); what = ["award animation #" + k, "анимацию награды №" + k]; }
     else { const g = EMO_GAMES[k - 1]; steps = [{ kind: "command", hex: emoBin("03", "02", ("0" + g[2].toString(16)).slice(-2)), label: "game:" + g[0] }]; what = ["the game " + g[0], "игру «" + g[1] + "»"]; }
     dn = k;
   }
   if (action === "dance" && code != null && code !== "") { const k = Number(code); if (!Number.isInteger(k) || k < 1 || k > EMO_DANCES.length) return { ok: false, error: `code must be a whole number 1..${EMO_DANCES.length} (dance number)` }; dn = k; }
   const r = steps ? await (await env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")).fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: `${action} ${dn} · ${who}`.slice(0, 60) }) }))).json().catch(() => ({ ok: false, error: "relay error" }))
-    : dn && dn !== 1 ? await (async () => { const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
-      const steps = [{ kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name: EMO_DANCES[dn - 1], op: "play" }, type: "anim_req" }), label: "anim:play:" + EMO_DANCES[dn - 1] }];
-      return (await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: `dance ${dn} · ${who}`.slice(0, 60) }) }))).json().catch(() => ({ ok: false, error: "relay error" }))); })()
+    : action === "dance" ? await (async () => { const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+      const steps = emoAnimSteps(EMO_DANCES[(dn || 1) - 1]);
+      return (await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: `dance ${dn || 1} · ${who}`.slice(0, 60) }) }))).json().catch(() => ({ ok: false, error: "relay error" }))); })()
     : await emoCall(env, "/api/cmd", { preset: a.preset, label: `${action} · ${who}`.slice(0, 60) });
   const entry = { t: new Date().toISOString(), action, by: who, ok: !!r.ok, error: r.ok ? null : String(r.error || "failed").slice(0, 80) };
   const report = emoReport(action, who, r);
@@ -4465,7 +4474,7 @@ async function emoGreetBot(env, bot, path, anim = 1) {
   const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
   if (!st.robot_connected) return;
   await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
-  const steps = [{ kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name: "achv_" + anim, op: "play" }, type: "anim_req" }), label: "anim:play:achv_" + anim }];
+  const steps = emoAnimSteps("achv_" + anim, 9000);
   // звук — только из самого EMO: анимации наград играют свой звук из его динамика, планшет молчит
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
