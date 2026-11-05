@@ -116,7 +116,7 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
-<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas" class="on" aria-current="page">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas" class="on" aria-current="page">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/tools">Инструменты 🧰</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <div class="wrap">
   <div>
     <div class="eyebrow">Orb Studio · художник</div>
@@ -223,6 +223,23 @@ load(q).then(async card=>{
 $('dl').onclick=()=>{ if(!cur)return; const im=new Image(); im.onload=()=>{const c=document.createElement('canvas');c.width=1080;c.height=1350;c.getContext('2d').drawImage(im,0,0,1080,1350);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='orb-gorod-'+cur.slot.replace(/[:]/g,'')+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);},'image/png');}; im.src='/api/v1/canvas.svg?slot='+encodeURIComponent(cur.slot); };
 
 
+
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
 
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_canvas')==='1'}catch(e){}
 (seen?fetch('/api/v1/stats?page=canvas'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"canvas"}'}))

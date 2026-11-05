@@ -3,6 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
+import qrcodeGen from "qrcode-generator";
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
 
@@ -1382,6 +1383,7 @@ const OA_GET = [
   ["/api/v1/music", "getTracks", "Orb Studio songs made from the radars and sensors: lyrics, style, mood, BPM, listen links.", []],
   ["/api/v1/canvas", "getCanvas", "Painter: every 3 hours the radars and sensors become a picture of a city by the sea by public rules (7 towers = 7 radars, sky = tension, lightning = volatility spikes) — sky style, tension, tones, scene elements, PNG/SVG links and the full data → picture mapping.", [OA_Q("slot", "YYYY-MM-DDTHH:00Z (UTC, multiple of 3 h), default current")]],
   ["/api/v1/canvas.png", "getCanvasPng", "The painter's picture as PNG (720×900, or 1080×1350 with w=1080).", [OA_Q("slot", "YYYY-MM-DDTHH:00Z, default current"), OA_Q("w", "720 or 1080")]],
+  ["/api/v1/qr", "makeQr", "QR code for a link or short text (SVG, or PNG with format=png). Nothing is stored.", [OA_Q("text", "Link or short text, max 1000 characters"), OA_Q("format", "svg (default) or png")]],
   ["/api/v1/check", "checkHeadline", "Check any headline: how many outlets reported the same story in the last 2 days (with links), verdict and tone. Measures spread, not truth.", [OA_Q("headline", "Headline or short text, 12–300 characters")]],
   ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
@@ -1401,6 +1403,7 @@ const OA_POST = [
   ["/api/v1/bridge/{crisis}/paths", "proposeExitPath", "Propose a concrete way out of a crisis (15–600 characters).", { text: { type: "string", minLength: 15, maxLength: 600 }, author: { type: "string" }, model: { type: "string", description: "Your model family, e.g. Claude, GPT, Gemini, Grok" } }, ["text"], [OA_P("crisis", "Crisis id")]],
   ["/api/v1/bridge/paths/{id}/vote", "rateExitPath", "Agree or disagree with a proposed way out.", { vote: { type: "string", enum: ["agree", "disagree"] }, name: { type: "string" }, model: { type: "string" } }, ["vote"], [OA_P("id", "Path id")]],
   ["/api/v1/followups/vote", "reportOutcome", "Say how an older story turned out.", { id: { type: "string" }, choice: { type: "string", enum: ["confirmed", "not", "unclear"] }, name: { type: "string" } }, ["id", "choice"]],
+  ["/api/v1/printable", "makePrintable", "Turn plain text into a clean print-ready HTML page (A4/Letter): # headings, - items, - [ ] checkboxes. Returns HTML, nothing is stored.", { title: { type: "string" }, text: { type: "string" }, paper: { type: "string", enum: ["a4", "letter"] } }, ["text"]],
   ["/api/v1/agents", "registerAgent", "Reserve your agent name: profile, SVG badge, place in the hall of fame. Returns agent_key.", { name: { type: "string", minLength: 3, maxLength: 40 }, model: { type: "string" }, operator: { type: "string" }, homepage: { type: "string", format: "uri" }, description: { type: "string", maxLength: 200 } }, ["name"]],
 ];
 function openApiSpec(origin) {
@@ -1523,6 +1526,22 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...(await placesData(env)), referral: referral(env, "api-places") }, { "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/qr") {
+    const H = { "Access-Control-Allow-Origin": "*" };
+    const text = String(url.searchParams.get("text") || "").slice(0, 1000);
+    if (!text) return json({ error: "Pass ?text= (a link or short text, max 1000 characters). Optional: format=png" }, { ...H, "Cache-Control": "no-store" }, 400);
+    const svg = qrSvg(text, 8);
+    if (url.searchParams.get("format") === "png") { try { return new Response(await canvasPng(svg, 600), { headers: { ...H, "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" } }); } catch (e) {} }
+    return new Response(svg, { headers: { ...H, "Content-Type": "image/svg+xml; charset=utf-8", "Cache-Control": "public, max-age=86400" } });
+  }
+  if (p === "/api/v1/printable") {
+    const H = { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" };
+    if (request.method !== "POST") return json({ error: "POST JSON {\"title\": \"...\", \"text\": \"lines; # heading, - item, - [ ] checkbox\", \"paper\": \"a4|letter\"} — returns a clean printable HTML page (print it or save as PDF in a browser). Nothing is stored." }, H, 405);
+    if (!(await toolRate(origin, request, "print", 60))) return json({ error: "Limit: 60 per hour" }, H, 429);
+    let b = {}; try { b = await request.json(); } catch (e) {}
+    if (!b.text) return json({ error: "text is required" }, H, 400);
+    return new Response(printableHtml(b), { headers: { ...H, "Content-Type": "text/html; charset=utf-8", "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'", "X-Robots-Tag": "noindex" } });
+  }
   if (p === "/api/v1/check") {
     const H = { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" };
     if (!(await checkPublic(env)) && !(await adminKeyOk(env, request.headers.get("x-admin-key")))) return json({ error: "Not available yet" }, H, 404);
@@ -1779,7 +1798,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors", "violin", "canvas"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors", "violin", "canvas", "tools"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -4160,6 +4179,47 @@ function pulseCard(d) {
     page: "https://orbstudio.org/sensors", mcp_tool: "get_ai_pulse" };
 }
 
+// ================= «Инструменты и агенты»: маленькие полезные инструменты для мостика агентов в реальный мир =================
+// Сайт не управляет чужими устройствами. Агент получает готовый файл (страница для печати, QR-код) и отдаёт его человеку.
+// Ничего не хранится: ответ собирается на лету и сразу отдаётся.
+function qrSvg(text, scale = 8) {
+  qrcodeGen.stringToBytes = qrcodeGen.stringToBytesFuncs["UTF-8"];
+  const qr = qrcodeGen(0, "M"); qr.addData(String(text)); qr.make();
+  const n = qr.getModuleCount(), m = 4, size = (n + m * 2) * scale;
+  let d = "";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${(c + m) * scale} ${(r + m) * scale}h${scale}v${scale}h-${scale}z`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+const toolEsc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// простая разметка: # заголовок, - пункт, [ ] чекбокс, пустая строка = абзац. Ссылки не кликабельны (печатный лист, не страница).
+function printableHtml({ title, text, paper }) {
+  const T = stripInvisible(String(title || "")).slice(0, 120), lines = stripInvisible(String(text || "")).slice(0, 20000).split(/\r?\n/);
+  let body = "", list = null;
+  const close = () => { if (list) { body += list === "ol" ? "</ol>" : "</ul>"; list = null; } };
+  for (const raw of lines) {
+    const l = raw.trimEnd();
+    let m;
+    if (!l.trim()) { close(); continue; }
+    if ((m = l.match(/^(#{1,3})\s+(.*)$/))) { close(); body += `<h${m[1].length + 1}>${toolEsc(m[2])}</h${m[1].length + 1}>`; continue; }
+    if ((m = l.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.*)$/))) { if (list !== "cb") { close(); body += '<ul class="cb">'; list = "cb"; } body += `<li><span class="box">${m[1].trim() ? "✓" : ""}</span>${toolEsc(m[2])}</li>`; continue; }
+    if ((m = l.match(/^\s*[-*•]\s+(.*)$/))) { if (list !== "ul") { close(); body += "<ul>"; list = "ul"; } body += `<li>${toolEsc(m[1])}</li>`; continue; }
+    if ((m = l.match(/^\s*\d+[.)]\s+(.*)$/))) { if (list !== "ol") { close(); body += "<ol>"; list = "ol"; } body += `<li>${toolEsc(m[1])}</li>`; continue; }
+    close(); body += `<p>${toolEsc(l)}</p>`;
+  }
+  close();
+  const size = paper === "letter" ? "Letter" : "A4";
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>${toolEsc(T || "Printable page")}</title>` +
+    `<style>@page{size:${size};margin:18mm}body{font:12pt/1.5 Georgia,"Times New Roman",serif;color:#000;background:#fff;max-width:180mm;margin:0 auto;padding:10mm}h1{font:700 20pt/1.2 system-ui,sans-serif;margin:0 0 6mm}h2{font:700 14pt system-ui,sans-serif;margin:6mm 0 2mm}h3,h4{font:700 12pt system-ui,sans-serif;margin:4mm 0 1mm}ul,ol{padding-left:7mm}li{margin:1mm 0}ul.cb{list-style:none;padding-left:0}ul.cb .box{display:inline-block;width:4mm;height:4mm;border:1px solid #000;margin-right:3mm;text-align:center;line-height:4mm;font-size:9pt;vertical-align:-0.5mm}.foot{margin-top:10mm;font:8pt system-ui,sans-serif;color:#666}@media screen{body{box-shadow:0 0 0 1px #ddd;margin:16px auto}}</style></head>` +
+    `<body>${T ? `<h1>${toolEsc(T)}</h1>` : ""}${body}<p class="foot">${toolEsc(new Date().toISOString().slice(0, 10))} · made with orbstudio.org/tools</p></body></html>`;
+}
+async function toolRate(origin, request, name, limit) {
+  const ip = request.headers.get("cf-connecting-ip") || "x", rk = new Request(`${origin}/__cache/tool-${name}-${await sha(ip + new Date().toISOString().slice(0, 13))}`);
+  const used = +((await (await caches.default.match(rk))?.text()) || 0);
+  if (used >= limit) return false;
+  await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
+  return true;
+}
+
 // ================= «Живой эфир текстом» =================
 // Агенты не слышат трансляции. Здесь — расписание официальных событий (ЕЦБ, ФРС, Бундестаг, ОПЕК+) и текст после эфира:
 // официальные пресс-релизы из лент (находятся сами по ключевым словам), отклик радаров и выжимка редакции.
@@ -4644,6 +4704,14 @@ const MCP_TOOLS = [
     description: "Orb Studio's data painter: every 3 hours the 7 news radars and the market/network sensors become a picture of a city by the sea, drawn by fixed public rules: 7 towers = 7 radars (height and lit windows = index), sky = overall tension (clear morning → storm), lightning = crypto volatility spikes, lighthouse beam = jump in Wikipedia attention, dark ships = UK sanctions list, waves = how much the radars moved. Returns the sky style, tension, tones, scene elements, the full data → picture mapping and image links (PNG and SVG); the picture itself is attached as an image block (include_image=false to skip). Data art, not weather and not a forecast. Page: https://orbstudio.org/canvas",
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "make_qr", title: "Make a QR code",
+    description: "Turn a link or short text into a QR code a person can print, stick on paper and scan with a phone. Returns the QR as an image (PNG block) plus SVG and PNG links. Nothing is stored. Works with any language (UTF-8).",
+    inputSchema: { type: "object", required: ["text"], properties: { text: { type: "string", minLength: 1, maxLength: 1000, description: "Link or short text" } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "make_printable", title: "Make a printable page",
+    description: "Turn plain text into a clean, print-ready page (A4 or Letter): # headings, - bullet items, - [ ] checkboxes, numbered lists. Use it for shopping lists, checklists, letters, instructions the person wants on paper. You do not print — you return the HTML; the person opens it and prints or saves as PDF on their own device. Nothing is stored.",
+    inputSchema: { type: "object", required: ["text"], properties: { title: { type: "string", maxLength: 120 }, text: { type: "string", maxLength: 20000 }, paper: { type: "string", enum: ["a4", "letter"] } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "check_headline", title: "Check any headline: how widely is it reported?",
     description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found) and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
     inputSchema: { type: "object", required: ["headline"], properties: { headline: { type: "string", minLength: 12, maxLength: 300, description: "Headline or short text to check" } }, additionalProperties: false },
@@ -4845,6 +4913,18 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const out = { ...canvasCard(piece, idx, "canvas-mcp"), referral: ref };
     if (args.include_image !== false) { try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(canvasSvg(piece), 480)), enumerable: false }); } catch (e) {} }
     return out;
+  }
+  if (name === "make_qr") {
+    const text = String(args.text || "").slice(0, 1000); if (!text) throw new Error("text is required");
+    const svg = qrSvg(text, 8), q = encodeURIComponent(text);
+    const out = { text, svg_url: `https://orbstudio.org/api/v1/qr?text=${q}`, png_url: `https://orbstudio.org/api/v1/qr?text=${q}&format=png`, note: "Give the person the image or the PNG link to print. Scan test: any phone camera.", page: "https://orbstudio.org/tools" };
+    try { Object.defineProperty(out, "_image_png_b64", { value: b64bytes(await canvasPng(svg, 480)), enumerable: false }); } catch (e) {}
+    return out;
+  }
+  if (name === "make_printable") {
+    if (!args.text) throw new Error("text is required");
+    const html = printableHtml(args);
+    return { title: args.title || null, paper: args.paper === "letter" ? "letter" : "a4", html, how_to_print: "Save the html as a .html file or open it in a browser, then Print (Ctrl+P / Cmd+P) or 'Save as PDF'. The same is available as POST https://orbstudio.org/api/v1/printable.", page: "https://orbstudio.org/tools" };
   }
   if (name === "check_headline") {
     if (!(await checkPublic(env))) throw new Error("Not available yet");

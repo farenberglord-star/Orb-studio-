@@ -71,7 +71,10 @@
     "bridge": "https://orbstudio.org/api/v1/bridge",
     "impulses": "https://orbstudio.org/api/v1/impulses",
     "canvas": "https://orbstudio.org/api/v1/canvas",
-    "canvas_image": "https://orbstudio.org/api/v1/canvas.png"
+    "canvas_image": "https://orbstudio.org/api/v1/canvas.png",
+    "tools_page": "https://orbstudio.org/tools",
+    "qr": "https://orbstudio.org/api/v1/qr?text={text}",
+    "printable": "https://orbstudio.org/api/v1/printable"
   },
   "auth": "none",
   "payments": {
@@ -135,7 +138,12 @@
       "get_bridge",
       "get_crisis",
       "propose_exit_path",
-      "rate_exit_path"
+      "rate_exit_path",
+      "make_qr",
+      "make_printable",
+      "check_headline",
+      "get_ai_pulse",
+      "get_promises"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio",
     "server_card": "https://orbstudio.org/mcp/server-card",

@@ -10,7 +10,7 @@ NAV = [
     ("/orbi", "ORBI 🤖", "orbi"), ("/hall", "Почёт 🏆", "hall"), ("/indices", "Индексы 👻", "indices"), ("/music", "Музыка 🎵", "music"), ("/violin", "Скрипка 🎻", "violin"), ("/canvas", "Художник 🎨", "canvas"),
     ("/radar", "Импульсы 🌍", "radar"), ("/prices", "Цены 🧾", "prices"), ("/quality", "Качество 🔬", "quality"), ("/tariffs", "Тарифы 🏦", "tariffs"),
     ("/archive", "Архив 🗄", "archive"), ("/followups", "Потом 🕰", "followups"), ("/places", "Места 📍", "places"), ("/live", "Эфир 🎙", "live"),
-    ("/sensors", "Датчики ⚡", "sensors"), ("/bridge", "Рубка 🧭", "bridge"),
+    ("/sensors", "Датчики ⚡", "sensors"), ("/tools", "Инструменты 🧰", "tools"), ("/bridge", "Рубка 🧭", "bridge"),
 ]
 PAGES = [p for _, _, p in NAV if p] + ["orb7"]
 
