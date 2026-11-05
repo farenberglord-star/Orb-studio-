@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>EMO ↔ Orb Studio · мост робота</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#0f1115;color:#eee;margin:0;padding:16px;max-width:760px;margin:auto}
+h1{font-size:24px;margin:4px 0 12px}
+.st{font-size:20px;padding:12px 14px;border-radius:12px;margin:8px 0;background:#2a1517;color:#ff6b6b}
+.st.ok{background:#12291a;color:#5ee38a}
+button{font-size:22px;padding:18px;margin:8px 0;border-radius:14px;border:0;background:#2e7dff;color:#fff;width:100%;cursor:pointer}
+button:disabled{opacity:.45}
+button.sec{background:#3a3f4b;font-size:18px;padding:14px}
+button.stop{background:#c62828}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+#warn{background:#4a3b00;color:#ffd54f;padding:12px;border-radius:12px;display:none;font-size:17px}
+p.hint{color:#aab;font-size:16px}
+#log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;background:#000;padding:8px;border-radius:8px;height:34vh;overflow:auto}
+</style></head><body>
+<h1>EMO ↔ Orb Studio</h1>
+<div id="err" style="display:none;background:#5a1010;color:#fff;padding:10px;border-radius:10px;font-size:15px;margin:6px 0"></div>
+<div id="warn"></div>
+<div id="pair" style="display:none;background:#1b2440;border-radius:14px;padding:16px;margin:8px 0;text-align:center">
+  <div style="font-size:19px">Отправьте этот код Claude в чат Orb Studio:</div>
+  <div id="code" style="font-size:64px;font-weight:700;letter-spacing:6px;font-family:ui-monospace,monospace;margin:8px 0">— — —</div>
+  <div id="codeTtl" style="color:#aab;font-size:16px"></div>
+  <div style="color:#aab;font-size:15px;margin-top:6px">Как только Orb Studio подтвердит код, планшет привяжется сам. Потом нажмите «Подключить EMO».</div>
+</div>
+<div id="stRelay" class="st">Связь с Orb Studio: нет</div>
+<div id="stBle" class="st">Робот EMO: не подключён</div>
+<button id="connect">Подключить EMO</button>
+<button id="disc" class="sec">Отключить EMO</button>
+<p class="hint">Держите эту страницу открытой, а экран включённым. Связь с Orb Studio восстанавливается сама. <span style="opacity:.5">версия o1</span></p>
+<h2 style="font-size:18px">Проверка вручную</h2>
+<div class="grid" id="tests"></div>
+<h2 style="font-size:18px">Журнал</h2>
+<div id="log"></div>
+<script>
+(function () {
+  var B = "o1", sent = 0;
+  function rep(ev, msg) {
+    try {
+      if (ev !== "boot") { var e = document.getElementById("err"); e.style.display = "block"; e.textContent = "Ошибка страницы: " + msg; }
+      if (sent++ < 8 && window.fetch) fetch("/robot/diag-report", { method: "POST", keepalive: true, headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ev: ev, msg: String(msg).slice(0, 300), b: B, ua: navigator.userAgent.slice(0, 160) }) }).catch(function () {});
+    } catch (x) {}
+  }
+  window.__emoReport = rep;
+  window.addEventListener("error", function (e) {
+    if (e.target && e.target !== window && e.target.src) rep("load_error", "не загрузился " + e.target.src.split("/").pop());
+    else rep("js_error", (e.message || "error") + " @" + String(e.filename || "").split("/").pop() + ":" + (e.lineno || 0));
+  }, true);
+  window.addEventListener("unhandledrejection", function (e) { rep("promise_error", (e.reason && e.reason.message) || e.reason); });
+  setTimeout(function () { if (!window.__emoStarted) rep("app_not_started", "основной скрипт не запустился (старый Chrome?)"); }, 8000);
+  var t = false; try { t = !!localStorage.getItem("orbEmoToken"); } catch (x) {}
+  rep("boot", "token=" + t + " bt=" + !!navigator.bluetooth + " gd=" + !!(navigator.bluetooth && navigator.bluetooth.getDevices) + " wl=" + ("wakeLock" in navigator));
+})();
+</script>
+<script type="module" src="/robot/app.js?v=o1"></script>
+</body></html>

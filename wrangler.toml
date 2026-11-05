@@ -39,8 +39,12 @@ database_id = "cc198d25-bd17-4f41-8785-6eea22bb6667"
 [triggers]
 crons = ["10 7 * * *"]
 
-# Робот EMO: сайт передаёт агентам только безопасные команды из списка в воркер emo-relay (связь с роботом через планшет по Bluetooth).
-# Секрет EMO_SECRET (тот же, что у emo-relay) — в Cloudflare → orb-studio → Settings → Variables and Secrets, тип Secret.
-[[services]]
-binding = "EMO"
-service = "emo-relay"
+# Робот EMO: мост живёт внутри orb-studio (Durable Object EmoRelay). Планшет рядом с роботом открывает /robot/ и подключает EMO по Bluetooth.
+# Агентам уходят только готовые команды из public/robot/presets.json.
+[[durable_objects.bindings]]
+name = "EMO_RELAY"
+class_name = "EmoRelay"
+
+[[migrations]]
+tag = "emo-v1"
+new_sqlite_classes = ["EmoRelay"]

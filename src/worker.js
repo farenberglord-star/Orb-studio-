@@ -4,6 +4,9 @@
 
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import qrcodeGen from "qrcode-generator";
+import { EmoRelay } from "./emo-relay.js";
+import EMO_PRESETS from "../public/robot/presets.json";
+export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
 
@@ -4241,8 +4244,13 @@ const EMO_ACTIONS = {
 };
 const EMO_COOLDOWN_S = 30, EMO_PER_AGENT_HOUR = 10;
 async function emoCall(env, path, body) {
-  if (!env.EMO || !env.EMO_SECRET) return { ok: false, error: "robot bridge is not configured yet" };
-  const r = await env.EMO.fetch(new Request("https://emo-relay" + path, { method: body ? "POST" : "GET", headers: { "X-EMO-Secret": env.EMO_SECRET, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined }));
+  if (!env.EMO_RELAY) return { ok: false, error: "robot bridge is not configured" };
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  let req;
+  if (path === "/api/cmd") { const p = EMO_PRESETS[body.preset]; if (!p) return { ok: false, error: "unknown preset" }; req = new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: p.steps, label: body.label || body.preset }) }); }
+  else if (path === "/api/approve") req = new Request("https://do/approve", { method: "POST", body: JSON.stringify({ code: body.code }) });
+  else req = new Request("https://do" + path.replace("/api", ""));
+  const r = await stub.fetch(req);
   let j = null; try { j = await r.json(); } catch (e) {}
   return j || { ok: false, error: "relay status " + r.status };
 }
@@ -5592,6 +5600,14 @@ async function handleRequest(request, env, ctx) {
       try { const d = await sensorsData(env, ctx); return json({ ...d, ways_out: waysForAgents(await waysLatest(env).catch(() => null)), page: "https://orbstudio.org/sensors", note: "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.", referral: referral(env, "api-sensors") }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
+    if (url.pathname === "/robot/ws" && env.EMO_RELAY) {
+      if (request.headers.get("Upgrade") !== "websocket") return json({ error: "expected websocket" }, {}, 426);
+      return env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")).fetch(new Request("https://do/ws", request));
+    }
+    if (url.pathname === "/robot/diag-report" && request.method === "POST" && env.EMO_RELAY) {
+      const body = await request.text(); if (body.length > 1500) return json({ ok: false }, {}, 413);
+      return env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")).fetch(new Request("https://do/report", { method: "POST", body }));
+    }
     if (url.pathname === "/api/v1/admin/robot") {
       // on / off — выключатель хозяина; test — проверить связь с emo-relay
       const H = { "Cache-Control": "no-store" };
@@ -5600,20 +5616,14 @@ async function handleRequest(request, env, ctx) {
       if (a === "on" || a === "off") { await sharedPut(env, "emo-public", { on: a === "on" }); return json({ ok: true, public: a === "on" }, H); }
       if (a === "approve") { const code = String(url.searchParams.get("code") || "").replace(/\D/g, "").slice(0, 6); return json(await emoCall(env, "/api/approve", { code }), H); } // привязать планшет по 6-значному коду
       if (a === "probe") { const pr = String(url.searchParams.get("preset") || "version"); return json(await emoCall(env, "/api/cmd", { preset: pr, label: "owner test" }), H); }
-      return json({ has_binding: !!env.EMO, has_secret: !!env.EMO_SECRET, relay: await emoCall(env, "/api/status").catch((e) => ({ error: String(e.message || e) })) }, H);
+      if (a === "diag") return json(await emoCall(env, "/api/diag"), H);
+      return json({ has_relay: !!env.EMO_RELAY, relay: await emoCall(env, "/api/status").catch((e) => ({ error: String(e.message || e) })) }, H);
     }
     if (url.pathname === "/api/v1/admin/check") {
       const H = { "Cache-Control": "no-store" };
       if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
       const a = url.searchParams.get("action");
       await sharedPut(env, "check-public", { on: a === "publish" }); return json({ ok: true, public: a === "publish" }, H);
-    }
-    if (url.pathname === "/api/v1/admin/emo-peek") {
-      // временно: прочитать файлы старого моста emo-relay (страница планшета), чтобы перенести их в orb-studio
-      if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, { "Cache-Control": "no-store" }, 403);
-      if (!env.EMO) return json({ error: "no binding" }, {}, 500);
-      const r = await env.EMO.fetch(new Request("https://emo-relay" + (url.searchParams.get("path") || "/")));
-      return new Response(await r.text(), { status: r.status, headers: { "content-type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
     }
     if (url.pathname === "/api/v1/admin/verify") {
       const H = { "Cache-Control": "no-store" };

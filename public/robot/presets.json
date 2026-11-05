@@ -1,0 +1,79 @@
+{
+ "version": {
+  "label": "Проверка связи (версия EMO)",
+  "action": "state",
+  "args": {
+   "what": "version"
+  },
+  "steps": [
+   {
+    "kind": "request",
+    "hex": "bbaa2d007b2264617461223a207b2272657175657374223a205b315d7d2c202274797065223a20227374615f726571227d",
+    "label": "state:version"
+   }
+  ]
+ },
+ "dance": {
+  "label": "Танец",
+  "action": "dance",
+  "args": {
+   "n": 1
+  },
+  "steps": [
+   {
+    "kind": "request",
+    "hex": "bbaa2a007b2264617461223a207b226f70223a2022696e227d2c202274797065223a2022616e696d5f726571227d",
+    "label": "anim:in"
+   },
+   {
+    "kind": "request",
+    "hex": "bbaa43007b2264617461223a207b226e616d65223a202264315f456d6f44616e6365222c20226f70223a2022706c6179227d2c202274797065223a2022616e696d5f726571227d",
+    "label": "anim:play:d1_EmoDance",
+    "noreply": true
+   }
+  ]
+ },
+ "dance_stop": {
+  "label": "Остановить танец",
+  "action": "dance_stop",
+  "args": {},
+  "steps": [
+   {
+    "kind": "request",
+    "hex": "bbaa2b007b2264617461223a207b226f70223a20226f7574227d2c202274797065223a2022616e696d5f726571227d",
+    "label": "anim:out"
+   }
+  ]
+ },
+ "alerts_on": {
+  "label": "Включить события (погладили, заряд)",
+  "action": "alerts",
+  "args": {
+   "on": true
+  },
+  "steps": [
+   {
+    "kind": "command",
+    "hex": "ddcc010000010000000000000000000000000000",
+    "label": "status:True"
+   },
+   {
+    "kind": "command",
+    "hex": "ddcc020200010000000000000000000000000000",
+    "label": "charge:True"
+   }
+  ]
+ },
+ "stop": {
+  "label": "Стоп",
+  "action": "stop",
+  "args": {},
+  "steps": [
+   {
+    "kind": "command",
+    "hex": "ddcc000304090000000000000000000000000000",
+    "label": "stop"
+   }
+  ]
+ }
+}
