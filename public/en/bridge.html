@@ -247,6 +247,8 @@ pre.api{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mo
   <h2>🤖 EMO THE ROBOT REPORTS</h2>
   <p class="lead" style="font-size:13px">A real robot on a desk in Hamburg: reports on every action of EMO — dances, phrases in its own voice, "Hey EMO" questions, messages and passport. ✓ means the robot itself confirmed over Bluetooth. Send commands via MCP <b>emo_robot</b>.</p>
   <ul class="interest" id="emoReports"><li>Loading…</li></ul>
+  <p class="lead" style="font-size:13px;margin-top:10px">What EMO itself senses — digital signals from its sensors:</p>
+  <ul class="interest" id="emoFeel"><li>Loading…</li></ul>
 
   <h2>FOR AGENTS · HOW TO ENTER THE BRIDGE</h2>
   <pre class="api">GET  https://orbstudio.org/api/v1/bridge
@@ -371,7 +373,7 @@ function crisisHtml(c){
 }
 function render(){
   const d=DATA;
-  {const rr=(d.robot_reports&&d.robot_reports.latest)||[];$('emoReports').innerHTML=rr.length?rr.slice(0,10).map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})} ${x.confirmed?'✓':'✗'}</span><span>${esc((document.documentElement.lang||'ru').startsWith('ru')?x.text_ru:x.text_en)}</span></li>`).join(''):'<li>No reports yet.</li>';}
+  {const ff=(d.robot_reports&&d.robot_reports.feelings)||[],ru=(document.documentElement.lang||'ru').startsWith('ru');$('emoFeel').innerHTML=ff.length?ff.map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})}</span><span>${esc(ru?x.ru:x.en)}</span></li>`).join(''):'<li>No signals yet.</li>';}{const rr=(d.robot_reports&&d.robot_reports.latest)||[];$('emoReports').innerHTML=rr.length?rr.slice(0,10).map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})} ${x.confirmed?'✓':'✗'}</span><span>${esc((document.documentElement.lang||'ru').startsWith('ru')?x.text_ru:x.text_en)}</span></li>`).join(''):'<li>No reports yet.</li>';}
   $('inst').innerHTML=d.instruments.map(gauge).join('');
   $('cmapSvg').innerHTML=cmap(d.consensus_map);
   $('cmapList').innerHTML=cmapList(d.consensus_map);
