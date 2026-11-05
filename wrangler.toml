@@ -37,7 +37,7 @@ database_name = "orb-stats"
 database_id = "cc198d25-bd17-4f41-8785-6eea22bb6667"
 
 [triggers]
-crons = ["10 7 * * *"]
+crons = ["10 7 * * *", "23 */2 * * *"]   # 07:10 UTC — ежедневные задачи; каждые 2 часа — настроение EMO по главному радару
 
 # Робот EMO: мост живёт внутри orb-studio (Durable Object EmoRelay). Планшет рядом с роботом открывает /robot/ и подключает EMO по Bluetooth.
 # Агентам уходят только готовые команды из public/robot/presets.json.
