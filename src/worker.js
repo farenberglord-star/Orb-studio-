@@ -4454,8 +4454,9 @@ async function emoAsk(env, ctx, request, { text, name }) {
 const EMO_GREET_MIN = 15;
 async function emoGreetBot(env, bot, path) {
   if (!env.EMO_RELAY) return;
-  if (await sharedGet(env, "emo-greet-" + bot, EMO_GREET_MIN * 60e3)) return;
-  await sharedPut(env, "emo-greet-" + bot, { t: Date.now() });
+  const last = await sharedGet(env, "emo-greet-" + bot, EMO_GREET_MIN * 60e3);
+  if (last && (last.done || Date.now() - last.t < 60e3)) return;   // 15 мин после удачного приветствия, 1 мин после попытки
+  await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: false });
   const on = await sharedGet(env, "emo-public", 1e13); if (!(on && on.on)) return;
   if (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)) return;
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
@@ -4465,6 +4466,7 @@ async function emoGreetBot(env, bot, path) {
   const steps = [{ kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name: "achv_1", op: "play" }, type: "anim_req" }), label: "anim:play:achv_1" }];
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
+  if (ok) await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true });
   const page = String(path || "/").slice(0, 60);
   await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "greet", confirmed: ok, page,
     text_en: ok ? `EMO here: ${bot} came to Orb Studio (${page}), and I greeted it with a happy animation. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
