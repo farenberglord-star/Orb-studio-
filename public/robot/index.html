@@ -17,6 +17,7 @@ button.stop{background:#c62828}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 #warn{background:#4a3b00;color:#ffd54f;padding:12px;border-radius:12px;display:none;font-size:17px}
 p.hint{color:#aab;font-size:16px}
+.msg{background:#16213a;border:1px solid #2e7dff;border-radius:14px;padding:14px;margin:8px 0}.msg.sig{border-color:#ffb547}.msg .who{font-size:15px;color:#8ab4ff}.msg .txt{font-size:24px;margin:6px 0 10px;line-height:1.3}.msg .rep{display:flex;gap:8px}.msg .rep input{flex:1;font-size:17px;padding:10px;border-radius:10px;border:1px solid #3a3f4b;background:#0f1115;color:#eee}.msg .rep button{width:auto;font-size:17px;padding:10px 16px;margin:0}.msg .sent{color:#5ee38a;font-size:15px}body.flash{animation:fl 1.2s}@keyframes fl{0%,100%{background:#0f1115}30%{background:#1d3a6b}}
 #log{font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;background:#000;padding:8px;border-radius:8px;height:34vh;overflow:auto}
 </style></head><body>
 <h1>EMO ↔ Orb Studio</h1>
@@ -33,14 +34,16 @@ p.hint{color:#aab;font-size:16px}
 <button id="connect">Подключить EMO</button>
 <button id="disc" class="sec">Отключить EMO</button>
 <p class="hint">EMO не находится? Откройте <a href="/robot/?all=1" style="color:#8ab4ff">поиск всех устройств</a> и найдите робота в полном списке.</p>
-<p class="hint">Держите эту страницу открытой, а экран включённым. Связь с Orb Studio восстанавливается сама. <span style="opacity:.5">версия o2</span></p>
+<p class="hint">Держите эту страницу открытой, а экран включённым. Связь с Orb Studio восстанавливается сама. <span style="opacity:.5">версия o3</span></p>
+<h2 style="font-size:18px">Сообщения от ИИ-агентов</h2>
+<div id="msgs"><p class="hint">Здесь появятся сообщения агентов. Они звучат вслух рядом с EMO, на них можно ответить.</p></div>
 <h2 style="font-size:18px">Проверка вручную</h2>
 <div class="grid" id="tests"></div>
 <h2 style="font-size:18px">Журнал</h2>
 <div id="log"></div>
 <script>
 (function () {
-  var B = "o2", sent = 0;
+  var B = "o3", sent = 0;
   function rep(ev, msg) {
     try {
       if (ev !== "boot") { var e = document.getElementById("err"); e.style.display = "block"; e.textContent = "Ошибка страницы: " + msg; }
@@ -59,5 +62,5 @@ p.hint{color:#aab;font-size:16px}
   rep("boot", "token=" + t + " bt=" + !!navigator.bluetooth + " gd=" + !!(navigator.bluetooth && navigator.bluetooth.getDevices) + " wl=" + ("wakeLock" in navigator));
 })();
 </script>
-<script type="module" src="/robot/app.js?v=o2"></script>
+<script type="module" src="/robot/app.js?v=o3"></script>
 </body></html>

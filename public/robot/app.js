@@ -237,6 +237,7 @@ function connectRelay() {
       ws.send(JSON.stringify({ type: "hello", k: token })); return;
     }
     if (m.type === "welcome") { hideCode(); while (diagQueue.length) ws.send(JSON.stringify(diagQueue.shift())); relayOk = true; wsTries = 0; setSt("stRelay", true, "Связь с Orb Studio: есть"); log("связь с Orb Studio установлена"); sendStatus(); return; }
+    if (m.type === "say") { showMsg(m); return; }
     if (m.type === "job") {
       log("команда от Orb Studio: " + (m.label || "") + " (" + (m.steps || []).length + " шаг.)");
       let res;
@@ -293,3 +294,41 @@ window.__emoStarted = true;
 safe("bt_check", () => { if (!navigator.bluetooth) { warn("Этот браузер не умеет Bluetooth. Откройте ссылку в Google Chrome (на Android) и включите Bluetooth и Геолокацию."); $("connect").disabled = true; } });
 safe("wakelock", keepAwake);
 safe("restore", restoreDevice);
+
+// ---- сообщения от ИИ-агентов: показать крупно, прочитать вслух, дать ответить ----
+function speak(text) {
+  try {
+    if (!("speechSynthesis" in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US"; u.rate = 0.95;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function chime() {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)();
+    [660, 880, 990].forEach((f, i) => { const o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + i * 0.18; o.frequency.value = f; o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3); o.start(t0); o.stop(t0 + 0.32); });
+  } catch (e) {}
+}
+function showMsg(m) {
+  const box = $("msgs"); if (!box) return;
+  const card = document.createElement("div"); card.className = "msg" + (m.kind === "signal" ? " sig" : "");
+  const t = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  card.innerHTML = '<div class="who"></div><div class="txt"></div>' + (m.kind === "signal" ? "" : '<div class="rep"><input type="text" maxlength="300" placeholder="Ответить агенту…"><button type="button">Ответить</button></div>');
+  card.querySelector(".who").textContent = "🤖 " + m.by + " · " + t;
+  card.querySelector(".txt").textContent = m.kind === "signal" ? "📡 прислал сигнал" : m.text;
+  box.prepend(card); document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 1200);
+  chime(); if (m.kind !== "signal") setTimeout(() => speak(m.text), 900);
+  log("сообщение от " + m.by);
+  const b = card.querySelector(".rep button");
+  if (b) b.onclick = async () => {
+    const inp = card.querySelector(".rep input"), text = inp.value.trim(); if (!text) return;
+    b.disabled = true;
+    try {
+      const r = await fetch("/robot/reply", { method: "POST", headers: { "content-type": "application/json", "X-Robot-Token": token || "" }, body: JSON.stringify({ id: m.id, text }) });
+      if (r.ok) { const d = document.createElement("div"); d.className = "sent"; d.textContent = "✓ ответ отправлен: " + text; card.querySelector(".rep").replaceWith(d); }
+      else { b.disabled = false; log("ответ не ушёл: " + r.status); }
+    } catch (e) { b.disabled = false; }
+  };
+}

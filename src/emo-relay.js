@@ -87,6 +87,12 @@ export class EmoRelay extends DurableObject {
     if (p === "/diag") return J({ ok: true, diag: (await this.ctx.storage.get("diag")) || [] });
     if (p === "/report") { let m = {}; try { m = JSON.parse(await req.text()); } catch {} const cut = (v, n) => typeof v === "string" ? v.slice(0, n) : null;
       await this.addDiag("client_" + (cut(m.ev, 30) || "report"), [cut(m.msg, 300), "build " + cut(m.b, 20), cut(m.ua, 160)].filter(Boolean).join(" | "), true); return J({ ok: true }); }
+    if (p === "/say") { // сообщение агента: показать на планшете и прочитать вслух
+      const st = this.status(); if (!st.relay_connected) return J({ ...st, ok: false, error: "tablet page is not connected" }, 503);
+      const m = await req.json(); try { this.page().ws.send(JSON.stringify({ type: "say", id: m.id, by: m.by, text: m.text, kind: m.kind || "say" })); } catch (e) { return J({ ok: false, error: "send failed" }, 502); }
+      return J({ ok: true });
+    }
+    if (p === "/verify") { const m = await req.json(); return J({ ok: await this.pairing.isDevice(m.token) }); }
     if (p === "/cmd") return this.cmd(await req.json());
     if (p === "/approve") return this.approve(await req.json());
     return J({ ok: false, error: "not found" }, 404);

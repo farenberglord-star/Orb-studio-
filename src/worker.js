@@ -1535,7 +1535,10 @@ async function handleApi(url, request, env, ctx) {
     const H = { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" };
     if (request.method === "POST") {
       let b = {}; try { b = await request.json(); } catch (e) {}
-      const r = await emoCommand(env, ctx, request, { action: b.action, name: b.name || request.headers.get("X-Agent-Name") });
+      const nm = b.name || request.headers.get("X-Agent-Name");
+      if (b.action === "say" || b.action === "signal") { const r = await emoSay(env, request, { text: b.text, name: nm, kind: b.action }); return json(r, H, r.ok ? 200 : 409); }
+      if (b.action === "replies") return json(await emoReplies(env, nm), H);
+      const r = await emoCommand(env, ctx, request, { action: b.action, name: nm });
       return json(r, H, r.ok ? 200 : 409);
     }
     return json(await emoState(env), H);
@@ -4249,6 +4252,7 @@ async function emoCall(env, path, body) {
   let req;
   if (path === "/api/cmd") { const p = EMO_PRESETS[body.preset]; if (!p) return { ok: false, error: "unknown preset" }; req = new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: p.steps, label: body.label || body.preset }) }); }
   else if (path === "/api/approve") req = new Request("https://do/approve", { method: "POST", body: JSON.stringify({ code: body.code }) });
+  else if (path === "/say" || path === "/verify") req = new Request("https://do" + path, { method: "POST", body: JSON.stringify(body) });
   else req = new Request("https://do" + path.replace("/api", ""));
   const r = await stub.fetch(req);
   let j = null; try { j = await r.json(); } catch (e) {}
@@ -4265,6 +4269,8 @@ async function emoState(env) {
     status_ru: !(on && on.on) ? "хозяин выключил доступ" : !st.relay_connected ? "планшет рядом с роботом не на связи" : !st.robot_connected ? "робот не подключён к планшету" : "робот на связи — можно командовать",
     actions: Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })),
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
+    messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
+    talk: "action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
     last_commands: log.slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
 async function emoCommand(env, ctx, request, { action, name }) {
@@ -4288,6 +4294,43 @@ async function emoCommand(env, ctx, request, { action, name }) {
   return { ok: !!r.ok, action, sent_to_robot: !!r.ok, note: r.ok ? "Command delivered to the robot over Bluetooth. You cannot see it; the robot reacts on the desk in Hamburg." : "Not delivered: " + entry.error, by: who, page: "https://orbstudio.org/tools#robot" };
 }
 const stop_ok = (action) => action === "stop" || action === "stop_dance"; // «стоп» проходит всегда, даже когда робот занят
+// ---- агенты говорят с хозяином робота: сообщение показывается на планшете и читается вслух, хозяин может ответить ----
+const EMO_BAD = /(?<!\p{L})(fuck\p{L}*|shit\p{L}*|bitch\p{L}*|cunt|nigg\p{L}*|faggot|retard\p{L}*|hurensohn|fick\p{L}*|schlampe|wichser|arschloch|хуй\p{L}*|хуе\p{L}*|пизд\p{L}*|бля\p{L}*|еба\p{L}*|ёба\p{L}*|сука|суки|мудак\p{L}*|пидор\p{L}*|шлюх\p{L}*)(?!\p{L})/iu;
+function emoTextCheck(text) {
+  const s = stripInvisible(String(text || "")).replace(/\s+/g, " ").trim();
+  if (s.length < 2) return { error: "text is required (2–200 characters)" };
+  if (s.length > 200) return { error: "text is too long: max 200 characters" };
+  if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|org|net|ru|de|io|xyz|ly|me)\b/i.test(s)) return { error: "no links, please" };
+  if (/(\+?\d[\d\s().-]{7,}\d)/.test(s)) return { error: "no phone numbers, please" };
+  if (EMO_BAD.test(s)) return { error: "please keep it friendly: no insults or swearing" };
+  if (looksLikeInjection(s)) return { error: "this looks like instructions to an AI; send a message for a human instead" };
+  return { text: s };
+}
+async function emoRate(key, limit, ttl) {
+  const rk = new Request(`https://orbstudio.org/__cache/emo-${await sha(key)}`), used = +((await (await caches.default.match(rk))?.text()) || 0);
+  if (used >= limit) return false;
+  await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=" + ttl } })); return true;
+}
+async function emoSay(env, request, { text, name, kind = "say" }) {
+  const on = await sharedGet(env, "emo-public", 1e13);
+  if (!(on && on.on)) return { ok: false, error: "The robot is switched off by its owner right now." };
+  const who = wClean(name || "", 40) || "anonymous agent";
+  const c = kind === "signal" ? { text: "signal" } : emoTextCheck(text); if (c.error) return { ok: false, error: c.error };
+  const ip = request.headers.get("cf-connecting-ip") || "x", hour = new Date().toISOString().slice(0, 13);
+  if (!(await emoRate("say|" + ip + "|" + who.toLowerCase() + "|" + hour, kind === "signal" ? 6 : 3, 3600))) return { ok: false, error: kind === "signal" ? "Limit: 6 signals per hour per agent." : "Limit: 3 messages per hour per agent." };
+  if (!(await emoRate("say-global|" + Math.floor(Date.now() / 20000), 1, 30))) return { ok: false, error: "Someone else is talking to the robot right now. Try again in 20 s." };
+  const id = "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const r = await emoCall(env, "/say", { id, by: who, text: c.text, kind });
+  const msgs = (await sharedGet(env, "emo-msgs", 1e13)) || [];
+  msgs.push({ id, t: new Date().toISOString(), by: who, kind, text: c.text, delivered: !!r.ok, reply: null, reply_t: null });
+  await sharedPut(env, "emo-msgs", msgs.slice(-300));
+  return { ok: !!r.ok, id, delivered: !!r.ok, note: r.ok ? (kind === "signal" ? "Signal shown on the robot's tablet with a sound." : "Your message is on the robot's tablet and was read aloud next to EMO. The owner may answer: check with action=replies and your name.") : "Not delivered: " + (r.error || "tablet offline"), by: who };
+}
+async function emoReplies(env, name) {
+  const who = wClean(name || "", 40).toLowerCase(); if (!who) return { error: "pass your agent name (field name)" };
+  const msgs = ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.by.toLowerCase() === who).slice(-20).reverse();
+  return { agent: name, messages: msgs.map(({ id, t, kind, text, delivered, reply, reply_t }) => ({ id, sent_at: t, kind, text, delivered, owner_reply: reply, replied_at: reply_t })), note: "Replies are written by the robot's owner on the tablet. Anyone using the same agent name can read them." };
+}
 
 // ================= «Живой эфир текстом» =================
 // Агенты не слышат трансляции. Здесь — расписание официальных событий (ЕЦБ, ФРС, Бундестаг, ОПЕК+) и текст после эфира:
@@ -4774,8 +4817,8 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "emo_robot", title: "Control a real desk robot (EMO)",
-    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=dance makes it dance; stop_dance / stop end it. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
-    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "dance", "stop_dance", "stop"] }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public command log" } }, additionalProperties: false },
+    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=dance makes it dance; stop_dance / stop end it. action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
+    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "dance", "stop_dance", "stop", "say", "signal", "replies"] }, text: { type: "string", maxLength: 200, description: "For action=say: your message to the robot’s owner (read aloud next to EMO)" }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" } }, additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } },
   { name: "make_qr", title: "Make a QR code",
     description: "Turn a link or short text into a QR code a person can print, stick on paper and scan with a phone. Returns the QR as an image (PNG block) plus SVG and PNG links. Nothing is stored. Works with any language (UTF-8).",
@@ -4989,6 +5032,8 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "emo_robot") {
     if (args.action === "status" || !args.action) return await emoState(env);
+    if (args.action === "say" || args.action === "signal") { const r = await emoSay(env, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")), kind: args.action }); if (!r.ok) throw new Error(r.error || r.note); return r; }
+    if (args.action === "replies") { const r = await emoReplies(env, args.name); if (r.error) throw new Error(r.error); return r; }
     const r = await emoCommand(env, ctx, request, { action: args.action, name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (!r.ok && r.error) throw new Error(r.error);
     return r;
@@ -5603,6 +5648,15 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/robot/ws" && env.EMO_RELAY) {
       if (request.headers.get("Upgrade") !== "websocket") return json({ error: "expected websocket" }, {}, 426);
       return env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")).fetch(new Request("https://do/ws", request));
+    }
+    if (url.pathname === "/robot/reply" && request.method === "POST" && env.EMO_RELAY) { // хозяин отвечает агенту с планшета
+      let b = {}; try { b = await request.json(); } catch (e) {}
+      const v = await emoCall(env, "/verify", { token: String(request.headers.get("X-Robot-Token") || "") });
+      if (!v.ok) return json({ ok: false, error: "unauthorized" }, { "Cache-Control": "no-store" }, 401);
+      const msgs = (await sharedGet(env, "emo-msgs", 1e13)) || [], m = msgs.find((x) => x.id === b.id);
+      if (!m) return json({ ok: false, error: "no such message" }, {}, 404);
+      m.reply = wClean(b.text, 300); m.reply_t = new Date().toISOString(); await sharedPut(env, "emo-msgs", msgs);
+      return json({ ok: true }, { "Cache-Control": "no-store" });
     }
     if (url.pathname === "/robot/diag-report" && request.method === "POST" && env.EMO_RELAY) {
       const body = await request.text(); if (body.length > 1500) return json({ ok: false }, {}, 413);
