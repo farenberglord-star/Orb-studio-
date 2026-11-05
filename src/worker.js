@@ -4453,7 +4453,7 @@ async function emoAsk(env, ctx, request, { text, name }) {
 // (anim_req achv_1 — проверенная анимация награды) и пишет об этом карточку. Не чаще раза в 15 минут, только если доступ включён и робот свободен.
 const EMO_GREET_MIN = 15;
 // гость → своя анимация награды (achv_N)
-const EMO_GREET_BOTS = [["Googlebot", /googlebot/i, 1], ["ChatGPT", /gptbot|chatgpt-user|oai-searchbot/i, 2], ["Claude", /claudebot|claude-user|claude-searchbot/i, 3], ["Perplexity", /perplexity/i, 4]];
+const EMO_GREET_BOTS = [["Googlebot", /googlebot/i, 1], ["ChatGPT", /gptbot|chatgpt-user|oai-searchbot/i, 2], ["Claude", /claudebot|claude-user|claude-searchbot/i, 3], ["Perplexity", /perplexity/i, 4], ["Grok", /grok|xai-|xaibot/i, 5]];
 async function emoGreetBot(env, bot, path, anim = 1) {
   if (!env.EMO_RELAY) return;
   const last = await sharedGet(env, "emo-greet-" + bot, EMO_GREET_MIN * 60e3);
