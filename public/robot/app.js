@@ -173,13 +173,15 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState !== "visible") return;
   keepAwake();
   if (!ws || ws.readyState > 1) connectRelay();
+  if (wantBle && dev && !bleUp()) { clearTimeout(reconnectTimer); reconnectTimer = null; bleTries = 0; scheduleReconnect(true); }
+  else if (wantBle && !dev) restoreDevice();
+});
+// при загрузке страницы: не давать экрану гаснуть и найти сохранённого робота (один раз, а не при каждом возврате на страницу)
 keepAwake();
 restoreDevice();
-  if (wantBle && dev && !bleUp()) { clearTimeout(reconnectTimer); reconnectTimer = null; bleTries = 0; scheduleReconnect(true); }
-});
 // remembered robot: reconnect after a page reload without the chooser (Chrome getDevices)
 async function restoreDevice() {
-  if (!navigator.bluetooth || !navigator.bluetooth.getDevices || !wantBle) return;
+  if (!navigator.bluetooth || !navigator.bluetooth.getDevices || !wantBle || bleUp() || linking) return;   // уже подключены — не трогать живую связь
   try {
     const list = await navigator.bluetooth.getDevices();
     const id = localStorage.getItem("emoDeviceId");
