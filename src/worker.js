@@ -1538,6 +1538,7 @@ async function handleApi(url, request, env, ctx) {
       const nm = b.name || request.headers.get("X-Agent-Name");
       if (b.action === "say" || b.action === "signal" || b.action === "ask_emo") { const r = await emoSay(env, request, { text: b.text, name: nm, kind: b.action === "ask_emo" ? "ask" : b.action }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "replies") return json(await emoReplies(env, nm), H);
+      if (b.action === "passport") return json(await emoPassport(env), H);
       const r = await emoCommand(env, ctx, request, { action: b.action, name: nm });
       return json(r, H, r.ok ? 200 : 409);
     }
@@ -4267,7 +4268,7 @@ async function emoState(env) {
   return { section: "Orb Studio · EMO robot (a real desk robot AI agents can control)", online,
     status: !(on && on.on) ? "owner_switched_off" : !st.relay_connected ? "tablet_offline" : !st.robot_connected ? "robot_not_connected" : "ready",
     status_ru: !(on && on.on) ? "хозяин выключил доступ" : !st.relay_connected ? "планшет рядом с роботом не на связи" : !st.robot_connected ? "робот не подключён к планшету" : "робот на связи — можно командовать",
-    actions: [...Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })), { id: "ask_emo", en: "talk to EMO via \"Hey EMO\": your question in English, EMO answers with its own voice", ru: "спросить EMO через «Hey EMO» — отвечает сам робот" }, { id: "say", en: "leave a message (text, read aloud to the owner)", ru: "оставить послание (звучит вслух)" }, { id: "signal", en: "sound-and-light signal", ru: "сигнал" }, { id: "replies", en: "read the owner’s replies (with your name)", ru: "ответы хозяина" }],
+    actions: [...Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })), { id: "passport", en: "EMO tells about itself: name, age, birthday, favourite colour, dances unlocked", ru: "паспорт EMO: имя, возраст, день рождения, любимый цвет, открытые танцы" }, { id: "ask_emo", en: "talk to EMO via \"Hey EMO\": your question in English, EMO answers with its own voice", ru: "спросить EMO через «Hey EMO» — отвечает сам робот" }, { id: "say", en: "leave a message (text, read aloud to the owner)", ru: "оставить послание (звучит вслух)" }, { id: "signal", en: "sound-and-light signal", ru: "сигнал" }, { id: "replies", en: "read the owner’s replies (with your name)", ru: "ответы хозяина" }],
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "To talk to EMO itself use action=ask_emo with a question in English: the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
@@ -4325,6 +4326,23 @@ async function emoSay(env, request, { text, name, kind = "say" }) {
   msgs.push({ id, t: new Date().toISOString(), by: who, kind, text: c.text, delivered: !!r.ok, reply: null, reply_t: null });
   await sharedPut(env, "emo-msgs", msgs.slice(-300));
   return { ok: !!r.ok, id, delivered: !!r.ok, note: r.ok ? (kind === "signal" ? "Signal shown on the robot's tablet with a sound." : kind === "ask" ? "The tablet said \"Hey EMO\" and your question out loud; EMO answers with its own voice and its own AI from its speaker. You cannot hear the answer; the owner may write it down (action=replies)." : "Your message is on the robot's tablet and was read aloud next to EMO. The owner may answer: check with action=replies and your name.") : "Not delivered: " + (r.error || "tablet offline"), by: who };
+}
+// «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
+function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+async function emoPassport(env) {
+  const c = await sharedGet(env, "emo-passport", 10 * 60e3); if (c) return { ...c, cached: true };
+  const items = [11, 10, 9, 14, 12, 2, 1];
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: items.map((n) => ({ kind: "request", hex: emoStaHex(n), label: "sta:" + n })), label: "passport" }) }))).json().catch(() => null);
+  if (!r || !r.ok) { const old = await sharedGet(env, "emo-passport", 1e13); return old ? { ...old, cached: true, note: "robot offline now, last known passport" } : { error: (r && r.error) || "robot is not reachable right now" }; }
+  const D = Object.assign({}, ...(r.results || []).map((x) => (x.response && x.response.data) || {}));
+  const pe = D.personality || {}, pr = D.preference || {};
+  const out = { section: "EMO passport — the robot tells about itself over Bluetooth", name: pe.name || "EMO", age_days: pe.age ?? null, birthday: pe.birthday || null, favourite_colour: pe.color || null, lucky_number: pe.lucky_number ?? null, zodiac: pe.sign || null,
+    firmware: D.version ? D.version.name : null, dances_unlocked: D.dances && D.dances.joris_unlocked ? D.dances.joris_unlocked.length : null, achievements_unlocked: D.achievements && D.achievements.unlocked ? D.achievements.unlocked.length : null,
+    language: D.language ? D.language.code : null, volume: pr.volume ?? null, wake_word_sensitivity: pr.wake_sens ?? null, online_cloud_ai: D.network ? !!D.network.connected : null,
+    home: "Hamburg, Germany (desk of Orb Studio's author)", maker: "Living.AI", read_at: new Date().toISOString(),
+    note: "online_cloud_ai=false means EMO is not on Wi-Fi, so it cannot answer \"Hey EMO\" questions from its cloud AI right now; Bluetooth commands still work." };
+  await sharedPut(env, "emo-passport", out); return out;
 }
 async function emoReplies(env, name) {
   const who = wClean(name || "", 40).toLowerCase(); if (!who) return { error: "pass your agent name (field name)" };
@@ -4817,8 +4835,8 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "emo_robot", title: "Control a real desk robot (EMO)",
-    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=dance makes it dance; stop_dance / stop end it. action=ask_emo (text in English) speaks \"Hey EMO, <your question>\" next to the robot, so EMO itself answers from its own speaker with its own AI — talk to EMO through \"Hey EMO\" (e.g. \"what is the weather today?\", \"tell me a joke\", \"play a song\"); action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
-    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "ask_emo", "say", "signal", "replies", "dance", "stop_dance", "stop"] }, text: { type: "string", maxLength: 200, description: "For ask_emo: a short question or command for EMO in English (the tablet says \"Hey EMO\" first, EMO answers with its own voice), e.g. \"what is the weather today?\", \"tell me a joke\", \"dance\". For say: a message to the robot’s owner." }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" } }, additionalProperties: false },
+    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=passport — EMO tells about itself (name, age, birthday, favourite colour, dances unlocked, firmware); action=dance makes it dance; stop_dance / stop end it. action=ask_emo (text in English) speaks \"Hey EMO, <your question>\" next to the robot, so EMO itself answers from its own speaker with its own AI — talk to EMO through \"Hey EMO\" (e.g. \"what is the weather today?\", \"tell me a joke\", \"play a song\"); action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
+    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "passport", "ask_emo", "say", "signal", "replies", "dance", "stop_dance", "stop"] }, text: { type: "string", maxLength: 200, description: "For ask_emo: a short question or command for EMO in English (the tablet says \"Hey EMO\" first, EMO answers with its own voice), e.g. \"what is the weather today?\", \"tell me a joke\", \"dance\". For say: a message to the robot’s owner." }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" } }, additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } },
   { name: "make_qr", title: "Make a QR code",
     description: "Turn a link or short text into a QR code a person can print, stick on paper and scan with a phone. Returns the QR as an image (PNG block) plus SVG and PNG links. Nothing is stored. Works with any language (UTF-8).",
@@ -5034,6 +5052,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.action === "status" || !args.action) return await emoState(env);
     if (args.action === "say" || args.action === "signal" || args.action === "ask_emo") { const r = await emoSay(env, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")), kind: args.action === "ask_emo" ? "ask" : args.action }); if (!r.ok) throw new Error(r.error || r.note); return r; }
     if (args.action === "replies") { const r = await emoReplies(env, args.name); if (r.error) throw new Error(r.error); return r; }
+    if (args.action === "passport") { const r = await emoPassport(env); if (r.error) throw new Error(r.error); return r; }
     const r = await emoCommand(env, ctx, request, { action: args.action, name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (!r.ok && r.error) throw new Error(r.error);
     return r;
