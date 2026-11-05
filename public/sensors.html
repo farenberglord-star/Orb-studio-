@@ -457,9 +457,9 @@ const EXP_RU={'-1':'попутный ветер','0':'спокойно','1':'н�
 const expTg=t=>t?['BTC','ETH','SOL','EUR'].filter(c=>t[c]>0.004).map(c=>Math.round(t[c]*100)+'\u00a0% '+c).join(' · '):'';
 const EXP_SRC={paper:'бумажный кошелёк · Kraken ещё не подключён',kraken_check:'Kraken подключён · проверка без сделок',kraken_live:'реальный счёт Kraken'};
 async function loadExperiment(){
-  const d=await fetch('/api/v1/experiment').then(x=>x.json());const t=d.today_signals,w=d.wallet,hs=d.hold_sol,mode=d.mode||0;
-  const eur=v=>fmt(v,2)+' €';
-  setSensor('exp',`режим <b>${EXP_RU[mode]}</b>${w?` · кошелёк <b>${eur(w.eur)}</b>`:''}${hs?` · без сделок: ${eur(hs.eur)}`:''}`,d.decisions&&d.decisions[0]?d.decisions[0].ts:Date.now(),mode+'|'+(w?Math.round(w.eur*10):'')+'|'+(d.trades||[]).length,EXP_SRC[d.status]||d.status);
+  const d=await fetch('/api/v1/experiment').then(x=>x.json());const t=d.today_signals,w=d.wallet,hs=d.hold_sol,mode=d.mode||0,ac=d.account;
+  const eur=v=>fmt(v,2)+' €',extra=ac&&ac.not_traded_eur>=0.5;
+  setSensor('exp',`режим <b>${EXP_RU[mode]}</b>${ac?` · весь счёт <b>${eur(ac.total_eur)}</b>`:''}${w?` · ${extra||!ac?'ИИ торгует':'кошелёк'} <b>${eur(w.eur)}</b>`:''}${hs?` · без сделок: ${eur(hs.eur)}`:''}`,d.decisions&&d.decisions[0]?d.decisions[0].ts:Date.now(),mode+'|'+(w?Math.round(w.eur*10):'')+'|'+(d.trades||[]).length,EXP_SRC[d.status]||d.status);
   let h=`<div>Режим: <b>${EXP_RU[mode]}</b>${d.target?' → '+expTg(d.target):''}</div>`;
   const dc=d.decisions&&d.decisions[0],cl=dc&&dc.claude;
   if(d.brain==='claude'&&cl&&cl.reasoning_ru)h+=`<div style="margin-top:4px">🧠 <b>Claude решил:</b> ${esc(cl.reasoning_ru)}${cl.confidence!=null?` <span style="color:var(--dim)">· уверенность ${Math.round(cl.confidence*100)}\u00a0%</span>`:''}${dc.rules_level!=null&&dc.rules_level!==cl.level?` <span style="color:var(--dim)">· простые правила выбрали бы «${EXP_RU[dc.rules_level]}»</span>`:''}</div>`+(cl.watch_next_ru?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Завтра смотрит: ${esc(cl.watch_next_ru)}</div>`:'');
@@ -467,7 +467,11 @@ async function loadExperiment(){
   if(lr)h+=`<div style="margin-top:4px">🎓 <b>Учится на своих решениях:</b> ${lr.decisions_scored?`оценено ${lr.decisions_scored} · итог против «ничего не делать» <b class="${lr.edge_total_eur>=0?'dn':'up'}">${lr.edge_total_eur>=0?'+':''}${fmt(lr.edge_total_eur,2)}\u00a0€</b>${lr.cautious_calls.count?` · осторожных решений ${lr.cautious_calls.count}, верных ${lr.cautious_calls.right}`:''}`:'пока мало решений для оценки'}${lr.lessons&&lr.lessons.length?` · уроков разбора: ${lr.lessons.length}`:''}</div>`+(cl&&cl.lesson_used_ru?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Из опыта: ${esc(cl.lesson_used_ru)}</div>`:'');
   if(w){const hd=w.holdings,px=w.prices,part=c=>hd[c]>1e-9?`${c} ${fmt(hd[c],c==='EUR'?2:4)}`:null;
     const diff=hs?w.eur-hs.eur:null;
-    h+=`<div style="margin-top:3px">Кошелёк: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
+    const KIND={'staking':'в стейкинге','staking (bonded)':'в стейкинге','staking (opt-in)':'в стейкинге','Earn (flexible)':'в Earn','spot':'на споте'};
+    if(ac)h+=`<div style="margin-top:3px">Весь счёт Kraken: <b>${eur(ac.total_eur)}</b> <span style="color:var(--dim);font-size:12px">· обновлено ${new Date(ac.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span></div>`+
+      (extra?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Не участвует в торговле (${eur(ac.not_traded_eur)}): ${ac.assets.filter(a=>!a.tradable&&a.eur!=null&&a.eur>=0.01).map(a=>`${esc(a.asset)} ${KIND[a.kind]||esc(a.kind)} ${fmt(a.amount,a.amount>=100?2:4)} ≈ ${eur(a.eur)}`).join(' · ')}</div>`:'')+
+      (ac.unpriced&&ac.unpriced.length?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Без цены в евро: ${esc(ac.unpriced.join(', '))}</div>`:'');
+    h+=`<div style="margin-top:3px">${ac?'ИИ торгует':'Кошелёк'}: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
       (hs?`<div style="margin-top:3px">Если ничего не делать: <b>${eur(hs.eur)}</b> · радар ${diff>=0?'<b class="dn">впереди на ':'<b class="up">позади на '}${eur(Math.abs(diff))}</b> · старт ${eur(hs.start.eur)} ${hs.start.day.slice(8,10)}.${hs.start.day.slice(5,7)}</div>`:'');}
   if(t){const I=t.inputs,al=t.alarms,row=(on,name,val,thr)=>`<div style="margin-top:3px">${on?'<b class="up">⚠</b>':'·'} ${name}: <b>${val}</b> <span style="color:var(--dim)">· порог ${thr}</span></div>`,sg=v=>(v>=0?'+':'')+fmt(v,2);
     h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">СИГНАЛЫ СЕЙЧАС</div>`+
@@ -478,7 +482,7 @@ async function loadExperiment(){
       `<div style="margin-top:3px">${t.good?'✓':'·'} хороших знаков: ${t.good} из 3</div>`;}
   const tr=(d.trades||[]).filter(o=>o.status!=='error').slice(0,3);
   if(tr.length)h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">ПОСЛЕДНИЕ СДЕЛКИ</div>`+tr.map(o=>`<div style="margin-top:2px">${o.side==='sell'?'🔻 продажа':'🔺 покупка'} ${fmt(o.volume,4)} ${o.coin} ≈ ${eur(o.approx_eur)} · ${o.day.slice(8,10)}.${o.day.slice(5,7)}${o.status==='paper'?' · на бумаге':o.status==='validated'?' · проверка':''}</div>`).join('');
-  h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Режим выбирает Claude по всем датчикам сайта, страховки правил v'+d.rules.version+' остаются.':'Правила v'+d.rules.version+' записаны заранее.'} Решение раз в день в 08:10. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
+  h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Режим выбирает Claude по всем датчикам сайта, страховки правил v'+d.rules.version+' остаются.':'Правила v'+d.rules.version+' записаны заранее.'} Решение раз в день в 08:10, баланс счёта обновляется при открытии страницы; от приложения Kraken сумма может отличаться на пару евро из-за цены пересчёта. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
 const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};

@@ -996,6 +996,54 @@ async function expBalances(env) {
   for (const [c, names] of Object.entries(EXP_BAL)) out[c] = names.reduce((a, n) => a + parseFloat(b[n] || "0"), 0);
   return out;
 }
+// весь счёт Kraken в евро — как в приложении Kraken: все монеты, включая стейкинг и Earn (SOL.S, SOL.F, ETH.B …)
+// торгуемая часть — только EUR, SOL, BTC, ETH на споте (EXP_BAL); остальное показываем отдельно
+const EXP_ASSET_NAMES = { XXBT: "BTC", XBT: "BTC", XETH: "ETH", XXRP: "XRP", XLTC: "LTC", XXLM: "XLM", XXMR: "XMR", XZEC: "ZEC", XETC: "ETC", XXDG: "DOGE", XDG: "DOGE", XREP: "REP", XMLN: "MLN", ZEUR: "EUR", ZUSD: "USD", ZGBP: "GBP", ZCAD: "CAD", ZJPY: "JPY", ZCHF: "CHF", ZAUD: "AUD" };
+const EXP_KIND = { S: "staking", B: "staking (bonded)", F: "Earn (flexible)", M: "staking (opt-in)", P: "parachain", T: "tokenized" };
+async function expEurPrice(asset) {
+  if (asset === "EUR") return 1;
+  const tick = async (pair) => {
+    const r = await fetch("https://api.kraken.com/0/public/Ticker?pair=" + pair, { signal: AbortSignal.timeout(8000), cf: { cacheTtl: 30 } });
+    const j = await r.json(); if (j.error && j.error.length) return null;
+    const v = Object.values(j.result || {})[0]; return v ? parseFloat(v.c[0]) : null;
+  };
+  const alt = asset === "BTC" ? "XBT" : asset === "DOGE" ? "XDG" : asset;
+  const direct = await tick(alt + "EUR").catch(() => null);
+  if (direct) return direct;
+  const inv = await tick("EUR" + alt).catch(() => null); // фиат: EURUSD, EURGBP …
+  if (inv) return 1 / inv;
+  const usd = await tick(alt + "USD").catch(() => null), eurusd = usd ? await tick("EURUSD").catch(() => null) : null;
+  return usd && eurusd ? usd / eurusd : null;
+}
+async function expAccount(env, maxAgeMs = 60000) {
+  const cached = await sharedGet(env, "exp-account", maxAgeMs);
+  if (cached) return cached;
+  const b = await krakenPrivate(env, "/0/private/Balance");
+  const rows = {};
+  for (const [name, amt] of Object.entries(b)) {
+    const amount = parseFloat(amt || "0"); if (!(amount > 1e-10)) continue;
+    const [base, suf] = name.split(".");
+    const asset = EXP_ASSET_NAMES[base] || base;
+    const tradable = !suf && Object.values(EXP_BAL).some((n) => n.includes(base));
+    const key = asset + (suf ? "." + suf : "");
+    rows[key] = rows[key] || { asset, kraken_name: name, kind: suf ? (EXP_KIND[suf] || "locked ." + suf) : "spot", amount: 0, tradable };
+    rows[key].amount += amount;
+  }
+  const assets = Object.values(rows), uniq = [...new Set(assets.map((a) => a.asset))];
+  const prices = Object.fromEntries(await Promise.all(uniq.map(async (a) => [a, await expEurPrice(a).catch(() => null)])));
+  let total = 0, trade = 0, unpriced = [];
+  for (const a of assets) {
+    a.price_eur = prices[a.asset]; a.eur = a.price_eur != null ? +(a.amount * a.price_eur).toFixed(2) : null;
+    if (a.eur == null) { unpriced.push(a.kraken_name); continue; }
+    total += a.eur; if (a.tradable) trade += a.eur;
+  }
+  const holdings = {};
+  for (const [c, names] of Object.entries(EXP_BAL)) holdings[c] = names.reduce((s, n) => s + parseFloat(b[n] || "0"), 0);
+  const out = { at: Date.now(), total_eur: +total.toFixed(2), trade_eur: +trade.toFixed(2), not_traded_eur: +(total - trade).toFixed(2),
+    holdings, assets: assets.sort((x, y) => (y.eur || 0) - (x.eur || 0)), unpriced };
+  await sharedPut(env, "exp-account", out);
+  return out;
+}
 // сигналы по правилам из радаров и датчиков сайта; level: −1 попутный ветер, 0 спокойно, 1 настороженно, 2 тревога
 async function expSignals(env, ctx) {
   const [radars, sens] = await Promise.all([allRadars(env, ctx, "https://orbstudio.org"), sensorsData(env, ctx)]);
@@ -1215,7 +1263,12 @@ async function expPublic(env, ctx) {
   const rows = ((await env.DB.prepare("SELECT ts, day, kind, data FROM exp_log ORDER BY id DESC LIMIT 120").all()).results || []).map((r) => ({ ts: r.ts, day: r.day, kind: r.kind, ...JSON.parse(r.data) }));
   const dec = rows.filter((r) => r.kind === "decision");
   let px = null; try { px = await expPrices(); } catch (e) {}
-  const last = dec[0] || null, h = last ? last.holdings : null;
+  const last = dec[0] || null;
+  let h = last ? last.holdings : null, account = null, accountErr = null;
+  // живой баланс при открытии страницы (кэш 60 с), а не снимок со времени последнего решения
+  if (st && st.start && st.start.source === "kraken" && expClean(env.KRAKEN_API_KEY) && expClean(env.KRAKEN_API_SECRET)) {
+    try { account = await expAccount(env); h = account.holdings; } catch (e) { accountErr = String(e.message || e).slice(0, 160); }
+  }
   // импульс: что делала цена SOL после дней с сигналом тревоги и без него (1 и 3 решения спустя)
   const asc = dec.slice().reverse(), imp = {};
   for (const a of ["crypto", "geo", "stables", "overheat", "none"]) imp[a] = { days: 0, sol_1d_avg_pct: null, sol_3d_avg_pct: null, _1: [], _3: [] };
@@ -1237,7 +1290,15 @@ async function expPublic(env, ctx) {
     today_signals: now,
     wallet: h && px ? { eur: +expValue(h, px).toFixed(2), holdings: h, prices: { SOL: px.SOL.last, BTC: px.BTC.last, ETH: px.ETH.last } } : null,
     // сравнение: «ничего не делать» — стартовый кошелёк без сделок
-    hold_sol: st && st.start && px && st.start.holdings ? { eur: +expValue(st.start.holdings, px).toFixed(2), start: st.start } : null,
+    hold_sol: st && st.start && px && st.start.holdings ? (() => {
+      // пополнения/выводы после последнего решения ещё не записаны — добавляем их в «ничего не делать» и здесь, чтобы не считать их прибылью
+      const sh = { ...st.start.holdings };
+      if (account && st.last_h) for (const c of ["EUR", "SOL", "ETH", "BTC"]) { const d = (h[c] || 0) - (st.last_h[c] || 0); if (Math.abs(d * (c === "EUR" ? 1 : px[c].last)) > 2) sh[c] = Math.max(0, (sh[c] || 0) + d); }
+      return { eur: +expValue(sh, px).toFixed(2), start: st.start };
+    })() : null,
+    // весь счёт Kraken (как в приложении), включая монеты в стейкинге/Earn и другие активы, которыми ИИ не торгует
+    account: account ? { total_eur: account.total_eur, trade_eur: account.trade_eur, not_traded_eur: account.not_traded_eur, assets: account.assets, unpriced: account.unpriced, at: account.at, note: "total = every asset on the Kraken account in EUR at Kraken's last price; the AI trades only spot EUR, SOL, BTC and ETH" } : null,
+    account_error: accountErr,
     learning: await expLearning(env).catch(() => null), impulse: imp, decisions: dec.slice(0, 30), trades: dec.flatMap((d) => (d.orders || []).map((o) => ({ day: d.day, ...o }))).slice(0, 30),
     note: "A public experiment of the Orb Studio author with his own small crypto wallet. Rules are fixed in advance and versioned; every decision is logged with its inputs. Compare wallet with hold_sol to see whether the radar helped.",
   };
