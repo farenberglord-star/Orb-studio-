@@ -4550,7 +4550,7 @@ async function emoRadarMood(env, ctx) {
   const top = (radars || []).find((r) => r.id === "geo" && typeof r.lvl === "number");
   if (!top) return { skipped: "no geo radar" };
   const prev = await sharedGet(env, "emo-radar-mood", 1e13), storm = top.lvl >= 70;
-  const mood = storm ? { en: "angry and nervous: a storm on the geo radar", ru: "злюсь и нервничаю — на гео-радаре шторм", steps: emoTheaterSteps(["mood_angry"]), how: "angry" }
+  const mood = storm ? { en: "angry and then furious: a storm on the geo radar", ru: "злюсь, а потом впадаю в ярость — на гео-радаре шторм", steps: emoTheaterSteps(["mood_angry", "wake_up_angry"], 12000), how: "angry" }
     : prev && prev.storm ? { en: "calm and happy: the storm has passed", ru: "спокоен и радуюсь — шторм улёгся", steps: emoTheaterSteps(["mood_happy"]), how: "happy" }
     : { en: "calm and happy: no storm", ru: "спокоен и радуюсь — шторма нет", steps: emoTheaterSteps(["mood_happy"]), how: "happy" };
   await sharedPut(env, "emo-radar-mood", { storm, lvl: top.lvl, t: Date.now() });
