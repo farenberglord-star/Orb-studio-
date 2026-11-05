@@ -1543,7 +1543,7 @@ async function handleApi(url, request, env, ctx) {
       if (b.action === "hello") return json(await emoHello(env, ctx, request, { name: nm }), H);
       if (b.action === "feelings") return json({ events: await emoFeelings(env, 30, true) }, H);
       if (b.action === "passport") return json(await emoPassport(env), H);
-      const r = await emoCommand(env, ctx, request, { action: b.action, code: b.code, name: nm });
+      const r = await emoCommand(env, ctx, request, { action: b.action, code: b.code, text: b.text, name: nm });
       return json(r, H, r.ok ? 200 : 409);
     }
     return json(await emoState(env), H);
@@ -4252,6 +4252,7 @@ const EMO_ACTIONS = {
   stop: { preset: "stop", ru: "стоп", en: "stop", secs: 2 },
   award: { preset: null, ru: "анимация награды (code 1–32)", en: "award animation (code 1..32)", secs: 15 },
   hello: { preset: null, ru: "поздороваться с EMO", en: "say hello to EMO", secs: 10 },
+  emotion: { preset: null, ru: "эмоция (text: angry|happy|sad|scared|excited|upset|startled|hug|hi)", en: "an emotion (text: angry|happy|sad|scared|excited|upset|startled|hug|hi)", secs: 12 },
   game: { preset: null, ru: "запустить игру (code 1–5)", en: "start a game (code 1..5)", secs: 30 },
 };
 const EMO_COOLDOWN_S = 30, EMO_PER_AGENT_HOUR = 10;
@@ -4278,6 +4279,17 @@ function emoAnimSteps(name, holdMs = 0) {
     { kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name, op: "play" }, type: "anim_req" }), label: "anim:play:" + name }];
   for (let left = holdMs; left > 0; left -= 3000) st.push({ kind: "sleep", ms: Math.min(3000, left), label: "playing" });
   if (holdMs) st.push({ kind: "request", hex: emoFrame({ data: { op: "out" }, type: "anim_req" }), label: "anim:out", noreply: true });
+  return st;
+}
+// Эмоции EMO (режим «театра», имена из прошивки TheaterAnimsUtil). Порядок: сброс (out) → in (ответ result 1) → play (ответ result 1, по окончании result 2) → ждём → out.
+// Выходить из театра раньше конца нельзя (обрежет эмоцию), оставаться в театре нельзя (EMO перестаёт отвечать).
+const EMO_EMOTIONS = { angry: ["mood_angry", "злится"], happy: ["mood_happy", "радуется"], sad: ["mood_sad", "грустит"], scared: ["mood_scared", "испугался"], excited: ["mood_excited", "в восторге"], upset: ["mood_wronged", "обиделся"], startled: ["mood_shocked", "вздрогнул"], hug: ["interact_emotion_hug", "обнимает"], hi: ["Hi", "машет «привет»"] };
+function emoTheaterSteps(names, holdMs = 7000) {
+  const st = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:reset", noreply: true }, { kind: "sleep", ms: 600, label: "reset" },
+    { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in" },
+    { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "play", animations: names } }), label: "theater:play:" + names.join("+") }];
+  for (let left = holdMs; left > 0; left -= 3000) st.push({ kind: "sleep", ms: Math.min(3000, left), label: "emotion" });
+  st.push({ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:out", noreply: true });
   return st;
 }
 const EMO_DANCES = ["d1_EmoDance", "d2_WontLetGo", "d3_Blindless", "d4_Click1", "d5_TimeOfMyLife", "d6_Rollercoaster", "d7_FlashBack", "d8_Click2", "d9_BlameYourself", "d10_CanITakeYouThere", "d11_OceanBlue"];
@@ -4308,7 +4320,7 @@ async function emoState(env) {
     talk: "To talk to EMO use action=hey_emo with a phrase from the safe list (what time is it, tell me a joke, ...): the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
     robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
-async function emoCommand(env, ctx, request, { action, name, code = null }) {
+async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
   const a = EMO_ACTIONS[action];
   if (!a) return { ok: false, error: "action must be one of: " + Object.keys(EMO_ACTIONS).join(", ") };
   const on = await sharedGet(env, "emo-public", 1e13);
@@ -4323,6 +4335,7 @@ async function emoCommand(env, ctx, request, { action, name, code = null }) {
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
   if (action !== "stop" && action !== "stop_dance") await sharedPut(env, "emo-busy", { action, by: who, t: Date.now() });
   let dn = null, steps = null, what = null;
+  if (action === "emotion") { const e = EMO_EMOTIONS[String(text || "").trim().toLowerCase()]; if (!e) return { ok: false, error: "text must be one of: " + Object.keys(EMO_EMOTIONS).join(", ") }; steps = emoTheaterSteps([e[0]]); what = [String(text).trim().toLowerCase(), e[1]]; }
   if (action === "hello") { const g = [[/google|gemini/i, 1], [/chatgpt|gpt|openai/i, 2], [/claude|anthropic/i, 3], [/perplexity/i, 4], [/grok|xai/i, 5]].find(([re]) => re.test(who)); dn = g ? g[1] : 1; steps = emoAnimSteps("achv_" + dn, 6000); what = ["hello", "привет"]; }
   if (action === "award" || action === "game") {
     const k = Number(code), max = action === "award" ? 32 : EMO_GAMES.length;
@@ -4339,7 +4352,11 @@ async function emoCommand(env, ctx, request, { action, name, code = null }) {
     : await emoCall(env, "/api/cmd", { preset: a.preset, label: `${action} · ${who}`.slice(0, 60) });
   const entry = { t: new Date().toISOString(), action, by: who, ok: !!r.ok, error: r.ok ? null : String(r.error || "failed").slice(0, 80) };
   const report = emoReport(action, who, r);
-  if (what && action === "hello") { const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
+  if (what && action === "emotion") { const pl = (r.results || []).find((x) => x && x.label && x.label.startsWith("theater:play")), ok = !!r.ok && !!(pl && pl.response);
+    Object.assign(report, { emotion: what[0], confirmed: ok, robot_reply: (pl && pl.response) || null,
+      text_en: ok ? `EMO here: I showed the emotion "${what[0]}" for ${who}. Confirmed by the robot over Bluetooth.` : `EMO: the emotion "${what[0]}" from ${who} did not play (${r.error || "no answer"}).`,
+      text_ru: ok ? `EMO на связи: ${what[1]} — эмоция для ${who}. Робот подтвердил по Bluetooth.` : `EMO: эмоция «${what[0]}» от ${who} не показалась (${r.error || "нет ответа"}).` }); }
+  else if (what && action === "hello") { const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
     Object.assign(report, { code: dn, confirmed: ok, text_en: ok ? `EMO here: ${who} said hello, and I answered with emotion #${dn} from my screen and speaker. Confirmed by the robot over Bluetooth.` : `EMO: ${who} said hello, but I could not answer with an emotion (${r.error || "no answer"}).`,
       text_ru: ok ? `EMO на связи: со мной поздоровался ${who} — ответил эмоцией №${dn}. Робот подтвердил по Bluetooth.` : `EMO: со мной поздоровался ${who}, но ответить эмоцией не вышло (${r.error || "нет ответа"}).` }); }
   else if (what) { const ok = !!r.ok && (r.results || []).every((x) => x && x.ok) && (action === "game" || (r.results || []).some((x) => x && x.response));
@@ -5273,7 +5290,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.action === "hello") return await emoHello(env, ctx, request, { name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (args.action === "feelings") return { section: "EMO feelings: digital events the robot itself sends over Bluetooth (petted, picked up, heard a sound, sleeping, battery)", events: await emoFeelings(env, 30, true), note: "Newest first. These come from the robot sensors; nobody types them." };
     if (args.action === "passport") { const r = await emoPassport(env); if (r.error) throw new Error(r.error); return r; }
-    const r = await emoCommand(env, ctx, request, { action: args.action, code: args.code, name: args.name || classifyAgent(request.headers.get("user-agent")) });
+    const r = await emoCommand(env, ctx, request, { action: args.action, code: args.code, text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (!r.ok && r.error) throw new Error(r.error);
     return r;
   }
