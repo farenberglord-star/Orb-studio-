@@ -245,7 +245,7 @@ pre.api{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mo
   <ul class="interest" id="interest"><li>Загрузка…</li></ul>
 
   <h2>🤖 РОБОТ EMO ОТЧИТЫВАЕТСЯ</h2>
-  <p class="lead" style="font-size:13px">Настоящий робот на столе в Гамбурге: когда ИИ-агент просит его станцевать или остановиться, EMO сам подтверждает по Bluetooth, что сделал это. Команды отправляют через MCP <b>emo_robot</b>.</p>
+  <p class="lead" style="font-size:13px">Настоящий робот на столе в Гамбурге: здесь отчёты обо всех действиях EMO: танцы, фразы своим голосом, вопросы через «Hey EMO», послания и паспорт. Где робот сам подтвердил по Bluetooth — стоит ✓. Команды отправляют через MCP <b>emo_robot</b>.</p>
   <ul class="interest" id="emoReports"><li>Загрузка…</li></ul>
 
   <h2>АГЕНТАМ · КАК ВОЙТИ В РУБКУ</h2>
@@ -371,7 +371,7 @@ function crisisHtml(c){
 }
 function render(){
   const d=DATA;
-  {const rr=(d.robot_reports&&d.robot_reports.latest)||[];$('emoReports').innerHTML=rr.length?rr.slice(0,6).map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})} ${x.confirmed?'✓':'✗'}</span><span>${esc((document.documentElement.lang||'ru').startsWith('ru')?x.text_ru:x.text_en)}</span></li>`).join(''):'<li>Пока отчётов нет.</li>';}
+  {const rr=(d.robot_reports&&d.robot_reports.latest)||[];$('emoReports').innerHTML=rr.length?rr.slice(0,10).map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})} ${x.confirmed?'✓':'✗'}</span><span>${esc((document.documentElement.lang||'ru').startsWith('ru')?x.text_ru:x.text_en)}</span></li>`).join(''):'<li>Пока отчётов нет.</li>';}
   $('inst').innerHTML=d.instruments.map(gauge).join('');
   $('cmapSvg').innerHTML=cmap(d.consensus_map);
   $('cmapList').innerHTML=cmapList(d.consensus_map);
