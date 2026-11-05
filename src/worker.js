@@ -4474,15 +4474,17 @@ async function emoGreetBot(env, bot, path, anim = 1) {
   const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
   if (!st.robot_connected) return;
   await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
-  const steps = emoAnimSteps("achv_" + anim, 9000);
+  // эмоция (анимация награды гостя) → музыкальное приветствие (8 с танца EMO под его музыку) → выход из режима
+  const steps = [...emoAnimSteps("achv_" + anim, 6000), { kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in2" }, { kind: "request", hex: emoFrame({ data: { name: "d1_EmoDance", op: "play" }, type: "anim_req" }), label: "anim:play:music" },
+    { kind: "sleep", ms: 3000, label: "music" }, { kind: "sleep", ms: 3000, label: "music" }, { kind: "sleep", ms: 2000, label: "music" }, { kind: "request", hex: emoFrame({ data: { op: "out" }, type: "anim_req" }), label: "anim:out2", noreply: true }];
   // звук — только из самого EMO: анимации наград играют свой звук из его динамика, планшет молчит
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
   if (ok) await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true });
   const page = String(path || "/").slice(0, 60);
   await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "greet", confirmed: ok, page,
-    text_en: ok ? `EMO here: ${bot} came to Orb Studio (${page}), and I greeted it with animation #${anim} and its sound from my own speaker. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
-    text_ru: ok ? `EMO на связи: на Orb Studio зашёл ${bot} (${page}) — поприветствовал его анимацией №${anim} со звуком из своего динамика. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
+    text_en: ok ? `EMO here: ${bot} came to Orb Studio (${page}), and I greeted it: emotion #${anim}, then a short musical greeting from my own speaker. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
+    text_ru: ok ? `EMO на связи: на Orb Studio зашёл ${bot} (${page}) — поприветствовал его: эмоция №${anim} и музыкальное приветствие из своего динамика. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
 }
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
