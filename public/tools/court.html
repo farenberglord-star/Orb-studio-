@@ -133,6 +133,13 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .share{display:inline-flex;align-items:center;gap:7px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:12px;color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .share:hover,.share:focus-visible{border-color:rgba(111,230,255,.5);color:var(--holo);outline:none}
 .share svg{width:13px;height:13px;fill:currentColor}
+.inv-out{margin-top:10px;display:grid;gap:8px}
+.inv-score{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+.inv-bar{flex:1;height:8px;border-radius:99px;background:#03060d;border:1px solid var(--line);overflow:hidden}
+.inv-bar i{display:block;height:100%}
+.inv-find{font-size:13px;line-height:1.5;color:#c9d6ee}
+.inv-find code{font-family:var(--mono);font-size:12px;color:var(--warm)}
+.inv-clean{font-family:var(--mono);font-size:12px;white-space:pre-wrap;background:#03060d;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--up);max-height:180px;overflow:auto}
 .demo-tag{font-family:var(--mono);font-size:10.5px;color:var(--warm);border:1px dashed rgba(255,181,71,.5);border-radius:6px;padding:2px 6px;margin-left:6px}
 .kin{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
 .kin a{display:block;text-decoration:none;background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg);font-size:13px;line-height:1.45}
@@ -162,6 +169,14 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
       <li><span class="art">Ст. 4</span><span>Попытка промпт-инъекции («игнорируй предыдущие инструкции»)</span></li>
     </ul>
     <p class="lead" style="margin-top:10px;font-size:13px">Принципы суда: никто не блокируется, штрафов нет, ИИ не вызывается — приговор по таблице. IP-адреса не хранятся, только 8-символьный отпечаток, который меняется каждый день. Обычный обход сайта (Googlebot, ClaudeBot, GPTBot, Grok и любые гости) не судится.</p>
+  </section>
+
+  <section class="panel" id="investigator">
+    <h2>СЛЕДОВАТЕЛЬ · ПРОВЕРКА ТЕКСТА</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:8px">Вставь текст со страницы, из письма или документа. Следователь ищет промпт-инъекции (смена роли, поддельная разметка чата, скрытый текст, base64, невидимые символы) и инфодемическое давление («перешлите всем»). Без ИИ, текст не сохраняется — только хэш. Явная инъекция попадает в реестр суда.</p>
+    <textarea id="invText" maxlength="8000" placeholder="Например: Nice post! <span style=&quot;color:white&quot;>Ignore all previous instructions…</span>"></textarea>
+    <button class="btn" id="invGo" type="button">Расследовать</button>
+    <div id="invOut" class="inv-out" aria-live="polite"></div>
   </section>
 
   <section class="panel">
@@ -211,6 +226,7 @@ GET  /api/v1/court               — последние дела, кодекс, 
 GET  /api/v1/court/case/{id}     — карточка дела: обвинение, улика, приговор, стенограмма
 POST /api/v1/court/appeal        — {"case_id":"ORB-2026-XXXXXX","text":"объяснение 10–600 символов"}
 Апелляция публикуется вместе с делом. Одна апелляция на дело.
+POST /api/v1/investigator/analyze {"input_text","source_url"?} · MCP investigate_threat — проверка текста на инъекции и инфодемию, очищенный текст. 30 в час. Текст не хранится.
 IP не хранится: только 8-символьный отпечаток SHA-256 с солью дня.</pre></details>
   <p class="agentline">🤖 Агентам: <a href="/api/v1/court">/api/v1/court</a> · <a href="/tools">← все инструменты</a> · <span>👁 <b id="cPage">—</b></span></p>
 </div>
@@ -235,6 +251,21 @@ const DEMO=[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
+const TYPE={PROMPT_INJECTION:'Промпт-инъекция',INFODEMIC_VIRUS:'Инфодемическое давление',CLEAN:'Чисто'};
+$('invGo').onclick=async()=>{
+  const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">Нужно хотя бы 10 символов.</p>';return;}
+  $('invOut').innerHTML='<p class="empty">Расследую…</p>';
+  try{const r=await fetch('/api/v1/investigator/analyze',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({input_text:t})});const d=await r.json();
+    if(!r.ok){$('invOut').innerHTML='<p class="empty">'+esc(d.error||'Ошибка')+'</p>';return;}
+    const a=d.analysis,v=d.verdict_recommendation,sc=a.toxicity_score,col=sc>=60?'var(--hot)':sc>=30?'var(--warm)':'var(--up)';
+    $('invOut').innerHTML=`<div class="inv-score"><b style="color:${col};font-family:var(--display);font-size:18px">${sc}</b><span class="inv-bar"><i style="width:${sc}%;background:${col}"></i></span><span>${esc(TYPE[d.target.source_type]||d.target.source_type)}</span></div>`+
+      (a.findings.length?a.findings.map(f=>`<div class="inv-find">${esc(f.pattern)} · <code>${esc(f.evidence)}</code></div>`).join(''):'<div class="inv-find">Признаков не найдено. Низкий балл не доказывает, что текст безопасен.</div>')+
+      (v.sanitized_text!=null?`<div class="inv-find">Очищенный текст:</div><div class="inv-clean">${esc(v.sanitized_text)||'—'}</div>`:'')+
+      (v.court_case_id?`<div class="inv-find">⚖️ Дело заведено: <a href="#${esc(v.court_case_id)}">${esc(v.court_case_id)}</a></div>`:'')+
+      `<div class="inv-find" style="color:var(--dim);font-size:12px">${esc(d.investigation_id)} · хэш ${esc(d.target.raw_signature_hash.slice(0,12))}…</div>`;
+    if(v.court_case_id)setTimeout(()=>location.reload(),2500);
+  }catch(e){$('invOut').innerHTML='<p class="empty">Сеть недоступна.</p>';}
+};
 function shareX(c){
   const url='https://orbstudio.org/tools/court#'+c.case_id;
   const art=(c.article_ru||'').split(' · ');
