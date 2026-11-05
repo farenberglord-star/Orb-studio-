@@ -454,7 +454,7 @@ async function loadSite(){
 }
 // ---------- эксперимент «ИИ и радар»: кошелёк SOL торгует по правилам из датчиков (/api/v1/experiment) ----------
 const EXP_RU={'-1':'попутный ветер','0':'спокойно','1':'настороженно','2':'тревога'};
-const expTg=t=>t?['BTC','ETH','SOL','EUR'].filter(c=>t[c]>0.004).map(c=>Math.round(t[c]*100)+'\u00a0% '+c).join(' · '):'';
+const expTg=t=>t?['BTC','ETH','SOL','XRP','EUR'].filter(c=>t[c]>0.004).map(c=>Math.round(t[c]*100)+'\u00a0% '+c).join(' · '):'';
 const EXP_SRC={paper:'бумажный кошелёк · Kraken ещё не подключён',kraken_check:'Kraken подключён · проверка без сделок',kraken_live:'реальный счёт Kraken'};
 async function loadExperiment(){
   const d=await fetch('/api/v1/experiment').then(x=>x.json());const t=d.today_signals,w=d.wallet,hs=d.hold_sol,mode=d.mode||0,ac=d.account;
@@ -471,7 +471,7 @@ async function loadExperiment(){
     if(ac)h+=`<div style="margin-top:3px">Весь счёт Kraken: <b>${eur(ac.total_eur)}</b> <span style="color:var(--dim);font-size:12px">· обновлено ${new Date(ac.at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</span></div>`+
       (extra?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Не участвует в торговле (${eur(ac.not_traded_eur)}): ${ac.assets.filter(a=>!a.tradable&&a.eur!=null&&a.eur>=0.01).map(a=>`${esc(a.asset)} ${KIND[a.kind]||esc(a.kind)} ${fmt(a.amount,a.amount>=100?2:4)} ≈ ${eur(a.eur)}`).join(' · ')}</div>`:'')+
       (ac.unpriced&&ac.unpriced.length?`<div style="margin-top:2px;color:var(--dim);font-size:12px">Без цены в евро: ${esc(ac.unpriced.join(', '))}</div>`:'');
-    h+=`<div style="margin-top:3px">${ac?'ИИ торгует':'Кошелёк'}: <b>${eur(w.eur)}</b> · ${['SOL','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
+    h+=`<div style="margin-top:3px">${ac?'ИИ торгует':'Кошелёк'}: <b>${eur(w.eur)}</b> · ${['SOL','XRP','ETH','BTC','EUR'].map(part).filter(Boolean).join(' · ')}</div>`+
       (hs?`<div style="margin-top:3px">Если ничего не делать: <b>${eur(hs.eur)}</b> · радар ${diff>=0?'<b class="dn">впереди на ':'<b class="up">позади на '}${eur(Math.abs(diff))}</b> · старт ${eur(hs.start.eur)} ${hs.start.day.slice(8,10)}.${hs.start.day.slice(5,7)}</div>`:'');}
   if(t){const I=t.inputs,al=t.alarms,row=(on,name,val,thr)=>`<div style="margin-top:3px">${on?'<b class="up">⚠</b>':'·'} ${name}: <b>${val}</b> <span style="color:var(--dim)">· порог ${thr}</span></div>`,sg=v=>(v>=0?'+':'')+fmt(v,2);
     h+=`<div style="margin-top:6px;color:var(--dim);font-size:11px;letter-spacing:.08em">СИГНАЛЫ СЕЙЧАС</div>`+
