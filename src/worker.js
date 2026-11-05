@@ -5669,6 +5669,15 @@ async function handleRequest(request, env, ctx) {
       const a = url.searchParams.get("action") || "test";
       if (a === "on" || a === "off") { await sharedPut(env, "emo-public", { on: a === "on" }); return json({ ok: true, public: a === "on" }, H); }
       if (a === "approve") { const code = String(url.searchParams.get("code") || "").replace(/\D/g, "").slice(0, 6); return json(await emoCall(env, "/api/approve", { code }), H); } // привязать планшет по 6-значному коду
+      if (a === "json") { // только для хозяина: проверить запросы EMO (sta_req — чтение состояния, anim_req — анимация)
+        let o; try { o = JSON.parse(url.searchParams.get("q") || ""); } catch (e) { return json({ error: "q must be JSON" }, H, 400); }
+        if (!o || !["sta_req", "anim_req"].includes(o.type)) return json({ error: "only sta_req and anim_req" }, H, 400);
+        const body = new TextEncoder().encode(JSON.stringify(o)), head = new Uint8Array([0xbb, 0xaa, body.length & 255, body.length >> 8]);
+        const hex = [...head, ...body].map((x) => x.toString(16).padStart(2, "0")).join("");
+        const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+        const r = await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: [{ kind: "request", hex, label: o.type, noreply: url.searchParams.get("noreply") === "1" }], label: "owner probe" }) }));
+        return json(await r.json(), H);
+      }
       if (a === "probe") { const pr = String(url.searchParams.get("preset") || "version"); return json(await emoCall(env, "/api/cmd", { preset: pr, label: "owner test" }), H); }
       if (a === "diag") return json(await emoCall(env, "/api/diag"), H);
       return json({ has_relay: !!env.EMO_RELAY, relay: await emoCall(env, "/api/status").catch((e) => ({ error: String(e.message || e) })) }, H);
