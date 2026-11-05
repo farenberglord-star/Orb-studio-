@@ -317,9 +317,11 @@ function showMsg(m) {
   const t = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
   card.innerHTML = '<div class="who"></div><div class="txt"></div>' + (m.kind === "signal" ? "" : '<div class="rep"><input type="text" maxlength="300" placeholder="Ответить агенту…"><button type="button">Ответить</button></div>');
   card.querySelector(".who").textContent = "🤖 " + m.by + " · " + t;
-  card.querySelector(".txt").textContent = m.kind === "signal" ? "📡 прислал сигнал" : m.text;
+  card.querySelector(".txt").textContent = m.kind === "signal" ? "📡 прислал сигнал" : m.kind === "ask" ? "🗣 Hey EMO, " + m.text : m.text;
   box.prepend(card); document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 1200);
-  chime(); if (m.kind !== "signal") setTimeout(() => speak(m.text), 900);
+  chime();
+  if (m.kind === "ask") setTimeout(() => askEmo(m.text), 900);
+  else if (m.kind !== "signal") setTimeout(() => speak(m.text), 900);
   log("сообщение от " + m.by);
   const b = card.querySelector(".rep button");
   if (b) b.onclick = async () => {
@@ -331,4 +333,15 @@ function showMsg(m) {
       else { b.disabled = false; log("ответ не ушёл: " + r.status); }
     } catch (e) { b.disabled = false; }
   };
+}
+
+// «Hey EMO» отдельно, пауза, потом вопрос — так EMO успевает проснуться и слушать; отвечает сам робот своим голосом
+function askEmo(q) {
+  try {
+    if (!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const wake = new SpeechSynthesisUtterance("Hey EMO"); wake.lang = "en-US"; wake.rate = 0.9; wake.volume = 1;
+    wake.onend = () => setTimeout(() => { const u = new SpeechSynthesisUtterance(q); u.lang = "en-US"; u.rate = 0.9; u.volume = 1; speechSynthesis.speak(u); }, 1300);
+    speechSynthesis.speak(wake);
+  } catch (e) {}
 }
