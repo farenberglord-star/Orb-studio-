@@ -5447,6 +5447,13 @@ async function handleRequest(request, env, ctx) {
       const a = url.searchParams.get("action");
       await sharedPut(env, "check-public", { on: a === "publish" }); return json({ ok: true, public: a === "publish" }, H);
     }
+    if (url.pathname === "/api/v1/admin/emo-peek") {
+      // временно: прочитать файлы старого моста emo-relay (страница планшета), чтобы перенести их в orb-studio
+      if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, { "Cache-Control": "no-store" }, 403);
+      if (!env.EMO) return json({ error: "no binding" }, {}, 500);
+      const r = await env.EMO.fetch(new Request("https://emo-relay" + (url.searchParams.get("path") || "/")));
+      return new Response(await r.text(), { status: r.status, headers: { "content-type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
+    }
     if (url.pathname === "/api/v1/admin/verify") {
       const H = { "Cache-Control": "no-store" };
       if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);

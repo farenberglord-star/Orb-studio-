@@ -38,3 +38,8 @@ database_id = "cc198d25-bd17-4f41-8785-6eea22bb6667"
 
 [triggers]
 crons = ["10 7 * * *"]
+
+# временно: чтение старого моста emo-relay
+[[services]]
+binding = "EMO"
+service = "emo-relay"
