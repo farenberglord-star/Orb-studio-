@@ -129,7 +129,9 @@ async function keepAwake() {
 $("connect").onclick = async () => {
   keepAwake();
   try {
-    const d = await navigator.bluetooth.requestDevice({ filters: [{ services: [SERVICE_UUID] }, { namePrefix: "EMO" }], optionalServices: [SERVICE_UUID] });
+    const all = new URLSearchParams(location.search).has("all"); // ?all=1 — показать все устройства (если EMO называется иначе)
+    const d = await navigator.bluetooth.requestDevice(all ? { acceptAllDevices: true, optionalServices: [SERVICE_UUID] } : { filters: [{ services: [SERVICE_UUID] }, { namePrefix: "EMO" }, { namePrefix: "Emo" }, { namePrefix: "emo" }], optionalServices: [SERVICE_UUID] });
+    diag("ble_chosen", (d && d.name) || "без имени");
     useDevice(d); wantBle = true; bleTries = 0;
     clearTimeout(reconnectTimer); reconnectTimer = null;
     await linkUp();

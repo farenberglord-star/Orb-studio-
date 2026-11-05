@@ -32,14 +32,15 @@ p.hint{color:#aab;font-size:16px}
 <div id="stBle" class="st">Робот EMO: не подключён</div>
 <button id="connect">Подключить EMO</button>
 <button id="disc" class="sec">Отключить EMO</button>
-<p class="hint">Держите эту страницу открытой, а экран включённым. Связь с Orb Studio восстанавливается сама. <span style="opacity:.5">версия o1</span></p>
+<p class="hint">EMO не находится? Откройте <a href="/robot/?all=1" style="color:#8ab4ff">поиск всех устройств</a> и найдите робота в полном списке.</p>
+<p class="hint">Держите эту страницу открытой, а экран включённым. Связь с Orb Studio восстанавливается сама. <span style="opacity:.5">версия o2</span></p>
 <h2 style="font-size:18px">Проверка вручную</h2>
 <div class="grid" id="tests"></div>
 <h2 style="font-size:18px">Журнал</h2>
 <div id="log"></div>
 <script>
 (function () {
-  var B = "o1", sent = 0;
+  var B = "o2", sent = 0;
   function rep(ev, msg) {
     try {
       if (ev !== "boot") { var e = document.getElementById("err"); e.style.display = "block"; e.textContent = "Ошибка страницы: " + msg; }
@@ -58,5 +59,5 @@ p.hint{color:#aab;font-size:16px}
   rep("boot", "token=" + t + " bt=" + !!navigator.bluetooth + " gd=" + !!(navigator.bluetooth && navigator.bluetooth.getDevices) + " wl=" + ("wakeLock" in navigator));
 })();
 </script>
-<script type="module" src="/robot/app.js?v=o1"></script>
+<script type="module" src="/robot/app.js?v=o2"></script>
 </body></html>
