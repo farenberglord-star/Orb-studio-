@@ -5598,6 +5598,8 @@ async function handleRequest(request, env, ctx) {
       if (!(await adminKeyOk(env, url.searchParams.get("key") || request.headers.get("x-admin-key")))) return json({ error: "Forbidden" }, H, 403);
       const a = url.searchParams.get("action") || "test";
       if (a === "on" || a === "off") { await sharedPut(env, "emo-public", { on: a === "on" }); return json({ ok: true, public: a === "on" }, H); }
+      if (a === "approve") { const code = String(url.searchParams.get("code") || "").replace(/\D/g, "").slice(0, 6); return json(await emoCall(env, "/api/approve", { code }), H); } // привязать планшет по 6-значному коду
+      if (a === "probe") { const pr = String(url.searchParams.get("preset") || "version"); return json(await emoCall(env, "/api/cmd", { preset: pr, label: "owner test" }), H); }
       return json({ has_binding: !!env.EMO, has_secret: !!env.EMO_SECRET, relay: await emoCall(env, "/api/status").catch((e) => ({ error: String(e.message || e) })) }, H);
     }
     if (url.pathname === "/api/v1/admin/check") {
