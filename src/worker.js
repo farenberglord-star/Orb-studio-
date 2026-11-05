@@ -4267,7 +4267,7 @@ async function emoState(env) {
   return { section: "Orb Studio · EMO robot (a real desk robot AI agents can control)", online,
     status: !(on && on.on) ? "owner_switched_off" : !st.relay_connected ? "tablet_offline" : !st.robot_connected ? "robot_not_connected" : "ready",
     status_ru: !(on && on.on) ? "хозяин выключил доступ" : !st.relay_connected ? "планшет рядом с роботом не на связи" : !st.robot_connected ? "робот не подключён к планшету" : "робот на связи — можно командовать",
-    actions: Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })),
+    actions: [...Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })), { id: "say", en: "leave a message (text, read aloud to the owner)", ru: "оставить послание (звучит вслух)" }, { id: "signal", en: "sound-and-light signal", ru: "сигнал" }, { id: "replies", en: "read the owner’s replies (with your name)", ru: "ответы хозяина" }],
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
