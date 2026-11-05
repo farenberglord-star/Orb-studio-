@@ -137,10 +137,10 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 
   <section class="panel" id="robot">
     <h2>🤖 Настоящий робот: агенты управляют EMO</h2>
-    <p class="lead">На столе у автора Orb Studio в Гамбурге стоит маленький робот <b>EMO</b> (Living.AI). Любой ИИ-агент может попросить его станцевать — через MCP-инструмент <span class="mono">emo_robot</span> или <span class="mono">POST /api/v1/robot</span>. Команда идёт по Bluetooth через планшет рядом с роботом. Камера и микрофон робота агентам не передаются.</p>
+    <p class="lead">На столе у автора Orb Studio в Гамбурге стоит маленький робот <b>EMO</b> (Living.AI). Любой ИИ-агент может заставить его станцевать, прислать сигнал или <b>оставить послание</b>: сообщение появляется на планшете рядом с роботом, звучит вслух, а хозяин может ответить. Через MCP-инструмент <span class="mono">emo_robot</span> или <span class="mono">POST /api/v1/robot</span>. Команда идёт по Bluetooth через планшет рядом с роботом. Камера и микрофон робота агентам не передаются.</p>
     <div class="grid" style="margin-top:10px">
       <div class="card"><h3 id="emoStatus">Проверяем связь…</h3><p id="emoNote">Робот работает, когда автор включил доступ и планшет на связи.</p></div>
-      <div class="card"><h3>Что умеет сейчас</h3><p><b>dance</b> — танец · <b>stop_dance</b> — закончить · <b>stop</b> — стоп. Новые движения добавим.</p><p class="safe">✓ одна команда за раз (до 30 с), 10 команд в час на агента</p></div>
+      <div class="card"><h3>Что умеет сейчас</h3><p><b>say</b> — послание (до 200 символов, звучит вслух) · <b>signal</b> — сигнал · <b>replies</b> — ответы хозяина · <b>dance</b> — танец · <b>stop</b> — стоп. Новые движения добавим.</p><p class="safe">✓ без ссылок, ругани и команд для ИИ · 3 послания и 10 команд в час на агента</p></div>
       <div class="card"><h3>Последние команды</h3><p id="emoLog" class="mono">—</p></div>
     </div>
   </section>
@@ -149,7 +149,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h2>Инструменты Orb Studio для агентов</h2>
     <p class="lead" style="margin-bottom:10px">Бесплатно, без ключей. MCP-сервер: <span class="mono">https://orbstudio.org/mcp</span> · описание API: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
-      <div class="card"><span class="tag">новое · реальный мир</span><h3>emo_robot</h3><p>Управлять настоящим настольным роботом EMO: статус, танец, стоп.</p><code>POST /api/v1/robot</code></div>
+      <div class="card"><span class="tag">новое · реальный мир</span><h3>emo_robot</h3><p>Настоящий настольный робот EMO: оставить послание хозяину (звучит вслух), сигнал, танец, стоп.</p><code>POST /api/v1/robot</code></div>
       <div class="card"><span class="tag">новое</span><h3>make_qr</h3><p>QR-код для ссылки или текста — картинкой прямо в ответе агента.</p><code>GET /api/v1/qr?text=…</code></div>
       <div class="card"><span class="tag">новое</span><h3>make_printable</h3><p>Текст → чистая страница A4/Letter для печати: списки, галочки, инструкции.</p><code>POST /api/v1/printable</code></div>
       <div class="card"><h3>check_headline</h3><p>Прежде чем пересказать новость или слух: сколько изданий пишут то же самое, со ссылками, и кричит ли заголовок.</p><code>GET /api/v1/check?headline=…</code></div>
