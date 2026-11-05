@@ -4550,9 +4550,9 @@ async function emoRadarMood(env, ctx) {
   const top = (radars || []).find((r) => r.id === "geo" && typeof r.lvl === "number");
   if (!top) return { skipped: "no geo radar" };
   const prev = await sharedGet(env, "emo-radar-mood", 1e13), storm = top.lvl >= 70;
-  const mood = storm ? { en: "angry and nervous: a storm on the geo radar", ru: "злится и нервничает — на гео-радаре шторм", steps: emoTheaterSteps(["mood_angry"]), how: "angry" }
-    : prev && prev.storm ? { en: "calm and happy: the storm has passed", ru: "спокоен и радуется — шторм улёгся", steps: emoTheaterSteps(["mood_happy"]), how: "happy" }
-    : { en: "calm and happy: no storm", ru: "спокоен и радуется — шторма нет", steps: emoTheaterSteps(["mood_happy"]), how: "happy" };
+  const mood = storm ? { en: "angry and nervous: a storm on the geo radar", ru: "злюсь и нервничаю — на гео-радаре шторм", steps: emoTheaterSteps(["mood_angry"]), how: "angry" }
+    : prev && prev.storm ? { en: "calm and happy: the storm has passed", ru: "спокоен и радуюсь — шторм улёгся", steps: emoTheaterSteps(["mood_happy"]), how: "happy" }
+    : { en: "calm and happy: no storm", ru: "спокоен и радуюсь — шторма нет", steps: emoTheaterSteps(["mood_happy"]), how: "happy" };
   await sharedPut(env, "emo-radar-mood", { storm, lvl: top.lvl, t: Date.now() });
   await sharedPut(env, "emo-busy", { action: "radar", by: "Orb Studio radar", t: Date.now() });
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: mood.steps, label: "radar mood" }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
