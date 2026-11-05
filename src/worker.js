@@ -4283,7 +4283,7 @@ function emoAnimSteps(name, holdMs = 0) {
 }
 // Эмоции EMO (режим «театра», имена из прошивки TheaterAnimsUtil). Порядок: сброс (out) → in (ответ result 1) → play (ответ result 1, по окончании result 2) → ждём → out.
 // Выходить из театра раньше конца нельзя (обрежет эмоцию), оставаться в театре нельзя (EMO перестаёт отвечать).
-const EMO_EMOTIONS = { angry: ["mood_angry", "злится"], happy: ["mood_happy", "радуется"], sad: ["mood_sad", "грустит"], scared: ["mood_scared", "испугался"], excited: ["mood_excited", "в восторге"], upset: ["mood_wronged", "обиделся"], startled: ["mood_shocked", "вздрогнул"], hug: ["interact_emotion_hug", "обнимает"], hi: ["Hi", "машет «привет»"] };
+const EMO_EMOTIONS = { angry: ["mood_angry", "злится"], happy: ["mood_happy", "радуется"], sad: ["mood_sad", "грустит"], scared: ["mood_scared", "испугался"], excited: ["mood_excited", "в восторге"], upset: ["mood_wronged", "обиделся"], startled: ["mood_shocked", "вздрогнул"], hug: ["interact_emotion_hug", "обнимает"], hi: ["Hi", "машет «привет»"], furious: ["wake_up_angry", "в ярости"] };
 function emoTheaterSteps(names, holdMs = 7000) {
   const st = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:reset", noreply: true }, { kind: "sleep", ms: 600, label: "reset" },
     { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in" },
