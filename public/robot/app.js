@@ -146,6 +146,27 @@ $("disc").onclick = () => {
   if (dev && dev.gatt.connected) dev.gatt.disconnect();
   setSt("stBle", false, "Робот EMO: отключён"); sendStatus();
 };
+// «Отдать EMO приложению»: у EMO только одно Bluetooth-подключение. Планшет отпускает робота на 10 минут
+// (например, чтобы настроить Wi-Fi в приложении EMO), потом сам подключается снова.
+let lendUntil = 0, lendTimer = null;
+function lendTick() {
+  const left = lendUntil - Date.now();
+  if (left > 0) { $("lendInfo").style.display = "block"; $("lendInfo").textContent = `EMO отдан приложению ещё на ${Math.ceil(left / 60000)} мин. Настройте в приложении EMO что нужно, затем ЗАКРОЙТЕ приложение полностью — планшет подключится сам. Нажмите кнопку ещё раз, чтобы вернуть EMO сразу.`; return; }
+  clearInterval(lendTimer); lendTimer = null; lendUntil = 0;
+  $("lend").textContent = "⏸ Отдать EMO приложению на 10 минут";
+  $("lendInfo").textContent = "Возвращаю EMO на планшет… Если не выходит — закройте приложение EMO полностью."; diag("ble_lend_end");
+  wantBle = true; localStorage.setItem("emoWantBle", "1"); bleTries = 0; scheduleReconnect(true);
+}
+$("lend").onclick = () => {
+  if (lendUntil) { lendUntil = Date.now(); lendTick(); return; }
+  if (!dev) { log("сначала подключите EMO, чтобы планшет запомнил робота"); return; }
+  wantBle = false; clearTimeout(reconnectTimer); reconnectTimer = null;
+  if (dev.gatt.connected) dev.gatt.disconnect();
+  lendUntil = Date.now() + 10 * 60e3; diag("ble_lend_start", "10 min");
+  setSt("stBle", false, "Робот EMO: отдан приложению EMO (планшет вернёт его сам)"); sendStatus();
+  $("lend").textContent = "▶ Вернуть EMO на планшет сейчас";
+  lendTick(); lendTimer = setInterval(lendTick, 15000);
+};
 document.addEventListener("click", keepAwake);
 document.addEventListener("visibilitychange", () => {
   diag(document.visibilityState === "visible" ? "page_visible" : "page_hidden");
