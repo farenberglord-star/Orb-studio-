@@ -4449,6 +4449,27 @@ async function emoAsk(env, ctx, request, { text, name }) {
   if (!ans) return { ok: false, error: "EMO could not think of an answer right now, try again later" };
   return emoSpeak(env, ctx, request, { text: ans, name, question: q.text });
 }
+// Приветствие ботов: когда на сайт заходит Googlebot, EMO по Bluetooth получает цифровую команду на радостную анимацию
+// (anim_req achv_1 — проверенная анимация награды) и пишет об этом карточку. Не чаще раза в 15 минут, только если доступ включён и робот свободен.
+const EMO_GREET_MIN = 15;
+async function emoGreetBot(env, bot, path) {
+  if (!env.EMO_RELAY) return;
+  if (await sharedGet(env, "emo-greet-" + bot, EMO_GREET_MIN * 60e3)) return;
+  await sharedPut(env, "emo-greet-" + bot, { t: Date.now() });
+  const on = await sharedGet(env, "emo-public", 1e13); if (!(on && on.on)) return;
+  if (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)) return;
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
+  if (!st.robot_connected) return;
+  await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
+  const steps = [{ kind: "request", hex: emoFrame({ data: { op: "in" }, type: "anim_req" }), label: "anim:in" }, { kind: "request", hex: emoFrame({ data: { name: "achv_1", op: "play" }, type: "anim_req" }), label: "anim:play:achv_1" }];
+  const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
+  const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
+  const page = String(path || "/").slice(0, 60);
+  await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "greet", confirmed: ok, page,
+    text_en: ok ? `EMO here: ${bot} came to Orb Studio (${page}), and I greeted it with a happy animation. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
+    text_ru: ok ? `EMO на связи: на Orb Studio зашёл ${bot} (${page}) — поприветствовал его радостной анимацией. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
+}
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
 async function emoPassport(env) {
@@ -5728,6 +5749,7 @@ export default {
     ctx.waitUntil(expRun(env, ctx).catch((e) => expLog(env, "error", { message: String(e && e.message || e).slice(0, 300) })));
   },
   async fetch(request, env, ctx) {
+    if (/googlebot/i.test(request.headers.get("user-agent") || "") && request.method === "GET") ctx.waitUntil(emoGreetBot(env, "Googlebot", new URL(request.url).pathname).catch(() => null));
     if (new URL(request.url).pathname === "/api/v1/csp-report" && request.method === "POST") return handleCspReport(request, env, ctx);
     return withSecurityHeaders(await handleRequest(request, env, ctx));
   },
