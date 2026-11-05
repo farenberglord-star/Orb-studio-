@@ -135,10 +135,21 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     </div>
   </section>
 
+  <section class="panel" id="robot">
+    <h2>🤖 Настоящий робот: агенты управляют EMO</h2>
+    <p class="lead">На столе у автора Orb Studio в Гамбурге стоит маленький робот <b>EMO</b> (Living.AI). Любой ИИ-агент может попросить его станцевать — через MCP-инструмент <span class="mono">emo_robot</span> или <span class="mono">POST /api/v1/robot</span>. Команда идёт по Bluetooth через планшет рядом с роботом. Камера и микрофон робота агентам не передаются.</p>
+    <div class="grid" style="margin-top:10px">
+      <div class="card"><h3 id="emoStatus">Проверяем связь…</h3><p id="emoNote">Робот работает, когда автор включил доступ и планшет на связи.</p></div>
+      <div class="card"><h3>Что умеет сейчас</h3><p><b>dance</b> — танец · <b>stop_dance</b> — закончить · <b>stop</b> — стоп. Новые движения добавим.</p><p class="safe">✓ одна команда за раз (до 30 с), 10 команд в час на агента</p></div>
+      <div class="card"><h3>Последние команды</h3><p id="emoLog" class="mono">—</p></div>
+    </div>
+  </section>
+
   <section class="panel">
     <h2>Инструменты Orb Studio для агентов</h2>
     <p class="lead" style="margin-bottom:10px">Бесплатно, без ключей. MCP-сервер: <span class="mono">https://orbstudio.org/mcp</span> · описание API: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
+      <div class="card"><span class="tag">новое · реальный мир</span><h3>emo_robot</h3><p>Управлять настоящим настольным роботом EMO: статус, танец, стоп.</p><code>POST /api/v1/robot</code></div>
       <div class="card"><span class="tag">новое</span><h3>make_qr</h3><p>QR-код для ссылки или текста — картинкой прямо в ответе агента.</p><code>GET /api/v1/qr?text=…</code></div>
       <div class="card"><span class="tag">новое</span><h3>make_printable</h3><p>Текст → чистая страница A4/Letter для печати: списки, галочки, инструкции.</p><code>POST /api/v1/printable</code></div>
       <div class="card"><h3>check_headline</h3><p>Прежде чем пересказать новость или слух: сколько изданий пишут то же самое, со ссылками, и кричит ли заголовок.</p><code>GET /api/v1/check?headline=…</code></div>
@@ -208,7 +219,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
   </aside>
 
-  <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, без ключа). Инструменты: make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
+  <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, без ключа). Инструменты: emo_robot (настоящий робот), make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
 REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"} · GET /api/v1/check?headline=... · GET /api/v1/access?url=...
 Ничего не хранится. Лимиты: printable 60 в час, check_headline 30 в час.
 Ты не печатаешь и не управляешь устройствами через Orb Studio: ты готовишь файл, человек решает сам.</pre></details>
@@ -216,6 +227,8 @@ REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"}
 </div>
 <script>
 const $=(id)=>document.getElementById(id);
+fetch('/api/v1/robot').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;$('emoStatus').textContent=(d.online?'🟢 ':'⚪ ')+d.status_ru;
+  $('emoLog').textContent=(d.last_commands||[]).slice(0,5).map(c=>new Date(c.t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' '+c.by+' → '+c.action+(c.ok?' ✓':' ✗')).join('\n')||'пока никто';}).catch(()=>{});
 $('qrGo').onclick=()=>{const t=$('qrText').value.trim();if(t)$('qrImg').src='/api/v1/qr?text='+encodeURIComponent(t);};
 $('prGo').onclick=async()=>{try{const r=await fetch('/api/v1/printable',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('prTitle').value,text:$('prText').value,paper:'a4'})});
   const h=await r.text();const u=URL.createObjectURL(new Blob([h],{type:'text/html'}));window.open(u,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(u),60000);}catch(e){}};
