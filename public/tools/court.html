@@ -130,6 +130,9 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .v-WARNING{color:var(--up);border-color:rgba(79,216,164,.45)}
 .v-REPRIMAND{color:var(--warm);border-color:rgba(255,181,71,.45)}
 .v-PROBATION{color:var(--hot);border-color:rgba(255,93,122,.45)}
+.share{display:inline-flex;align-items:center;gap:7px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:12px;color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.share:hover,.share:focus-visible{border-color:rgba(111,230,255,.5);color:var(--holo);outline:none}
+.share svg{width:13px;height:13px;fill:currentColor}
 .demo-tag{font-family:var(--mono);font-size:10.5px;color:var(--warm);border:1px dashed rgba(255,181,71,.5);border-radius:6px;padding:2px 6px;margin-left:6px}
 .kin{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
 .kin a{display:block;text-decoration:none;background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg);font-size:13px;line-height:1.45}
@@ -232,6 +235,12 @@ const DEMO=[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
+function shareX(c){
+  const url='https://orbstudio.org/tools/court#'+c.case_id;
+  const art=(c.article_ru||'').split(' · ');
+  const text='⚖️ Суд агентов Orb Studio\nДело '+c.case_id+': '+c.defendant+'\n'+(art[1]||art[0]||'')+'\nПриговор: '+(VERD[c.verdict]||c.verdict)+'\n#AIagents #AISecurity';
+  return 'https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);
+}
 function render(cases,demo){
   if(!cases.length){$('cases').innerHTML='<p class="empty">Заседаний пока не было — нарушителей нет.</p>';return;}
   $('cases').innerHTML=cases.map(c=>{
@@ -240,7 +249,7 @@ function render(cases,demo){
     return `<article class="case" id="${esc(c.case_id)}"><div class="case-head"><span class="case-id">${esc(c.case_id)}${demo?'<span class="demo-tag">пример</span>':''}</span><span class="case-time">${t}</span></div>
 <h3>${esc(c.defendant)} <span class="verdict v-${esc(c.verdict)}">${esc(VERD[c.verdict]||c.verdict)}</span></h3>
 <p class="charge">${esc(c.article_ru)}</p>
-<div class="ts">${lines.map(l=>{const w=WHO[l.role]||['j',l.role];return `<div class="line"><span class="who ${w[0]}">${w[1]}</span><span>${esc((x=>x.charAt(0).toUpperCase()+x.slice(1))(l.ru.replace(/^(Обвинение|Защита|Суд): /,'')))}</span></div>`}).join('')}</div></article>`;
+<div class="ts">${lines.map(l=>{const w=WHO[l.role]||['j',l.role];return `<div class="line"><span class="who ${w[0]}">${w[1]}</span><span>${esc((x=>x.charAt(0).toUpperCase()+x.slice(1))(l.ru.replace(/^(Обвинение|Защита|Суд): /,'')))}</span></div>`}).join('')}</div>${demo?'':`<a class="share" href="${esc(shareX(c))}" target="_blank" rel="noopener" aria-label="Поделиться делом ${esc(c.case_id)} в X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.8l-5.3-6.9L4.8 22H1.7l8.1-9.3L1 2h7l4.8 6.3zm-1.2 18h1.9L6.4 4H4.4z"/></svg>Поделиться в X</a>`}</article>`;
   }).join('');
   if(location.hash){const el=document.getElementById(location.hash.slice(1));if(el)el.scrollIntoView();}
 }
