@@ -4360,17 +4360,20 @@ async function emoSpeak(env, ctx, request, { text, name }) {
   for (let left = talkMs; left > 0; left -= 3000) steps.push({ kind: "sleep", ms: Math.min(3000, left), label: "talking" });
   steps.push({ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:out", noreply: true });
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const t0 = new Date().toISOString();
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: ("speak · " + who).slice(0, 60) }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
+  // сигналы состояния, которые робот сам прислал по Bluetooth за время фразы (события «говорю», смена режима и т. п.)
+  const evs = (((await (await stub.fetch(new Request("https://do/events"))).json().catch(() => null)) || {}).events || []).filter((e) => e.t >= t0);
   // EMO отвечает на вход в «театр»; на саму озвучку ответа нет — подтверждение = робот принял режим и весь набор команд без ошибок
   const res = r.results || [], tin = res.find((x) => x.label === "theater:in"), spoke = res.find((x) => x.label === "theater:speak");
-  const confirmed = !!(r.ok && tin && tin.ok && tin.response && spoke && spoke.ok);
-  const report = { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: who, action: "speak", confirmed, robot_answers: (r.results || []).filter((x) => x && x.response).length, said: c.text,
-    text_en: confirmed ? `EMO here: I said out loud from my speaker what ${who} asked: "${c.text}". Confirmed by the robot over Bluetooth.` : `EMO here: I could not say the text from ${who} (${r.error || "no answer from the robot"}).`,
-    text_ru: confirmed ? `EMO на связи: произнёс своим голосом текст от ${who}: «${c.text}». Робот подтвердил по Bluetooth.` : `EMO: не смог произнести текст от ${who} (${r.error || "робот не ответил"}).` };
+  const confirmed = !!(r.ok && spoke && spoke.ok && ((tin && tin.response) || evs.length > 0));
+  const report = { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: who, action: "speak", confirmed, robot_answers: (r.results || []).filter((x) => x && x.response).length, robot_signals: evs.length, said: c.text,
+    text_en: confirmed ? `EMO here: I said out loud from my speaker what ${who} asked: "${c.text}". Confirmed by the robot over Bluetooth.` : r.ok ? `EMO here: the text from ${who} was delivered to me over Bluetooth without errors: "${c.text}". The robot sent no confirmation signal this time.` : `EMO here: I could not say the text from ${who} (${r.error || "no answer from the robot"}).`,
+    text_ru: confirmed ? `EMO на связи: произнёс своим голосом текст от ${who}: «${c.text}». Робот подтвердил по Bluetooth.` : r.ok ? `EMO: текст от ${who} передан роботу по Bluetooth без ошибок: «${c.text}». Сигнала-подтверждения от робота на этот раз нет.` : `EMO: не смог произнести текст от ${who} (${r.error || "робот не ответил"}).` };
   const log = (await sharedGet(env, "emo-log", 1e13)) || []; log.push({ t: report.t, action: "speak", by: who, ok: !!r.ok, robot_confirmed: confirmed, error: r.ok ? null : String(r.error || "failed").slice(0, 80) }); await sharedPut(env, "emo-log", log.slice(-100));
   const reps = (await sharedGet(env, "emo-reports", 1e13)) || []; reps.push(report); await sharedPut(env, "emo-reports", reps.slice(-100));
   ctx.waitUntil(recordHit(env, "/robot/speak", "agent", "EMO · " + who));
-  return { ok: confirmed, action: "speak", robot_report: report, note: confirmed ? "EMO spoke your text with its own voice over Bluetooth (text-to-speech from Living.AI's cloud). You cannot hear it." : "Not spoken: " + (r.error || "no answer from the robot") };
+  return { ok: !!r.ok, action: "speak", robot_confirmed: confirmed, robot_report: report, note: confirmed ? "EMO spoke your text with its own voice over Bluetooth (text-to-speech from Living.AI's cloud) and confirmed it. You cannot hear it." : r.ok ? "Delivered to EMO over Bluetooth without errors; the robot sent no confirmation signal this time." : "Not delivered: " + (r.error || "no answer from the robot") };
 }
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
