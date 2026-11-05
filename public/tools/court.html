@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Суд агентов · Orb Studio</title>
+<meta name="description" content="Суд агентов Orb Studio: открытые стенограммы дел против ботов, которые ищут админки, секреты и пробуют промпт-инъекции. Без блокировок и штрафов, JSON для ИИ-агентов.">
+<link rel="canonical" href="https://orbstudio.org/tools/court">
+<meta property="og:url" content="https://orbstudio.org/tools/court">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Суд агентов · Orb Studio">
+<meta property="og:description" content="Открытые стенограммы дел против ботов-нарушителей: обвинение, защита, приговор.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/tools" class="on">Инструменты 🧰</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+<style>
+.court-hero{position:relative;overflow:hidden;border-color:rgba(169,155,255,.35);background:radial-gradient(90% 120% at 100% 0%,rgba(169,155,255,.14),transparent 60%),var(--panel)}
+.court-hero h1{display:flex;align-items:center;gap:10px}
+.seal{width:54px;height:54px;flex-shrink:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:22px;color:var(--fg)}
+.stat span{font-size:11.5px;color:var(--dim)}
+.code-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.code-list li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;line-height:1.45}
+.code-list .art{font-family:var(--mono);font-size:11px;color:var(--violet);flex-shrink:0;min-width:46px}
+.case{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0;scroll-margin-top:70px}
+.case:target{border-color:var(--violet)}
+.case-head{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
+.case-id{font-family:var(--mono);font-size:12px;color:var(--holo)}
+.case-time{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.case h3{margin:6px 0 2px;font-size:15px}
+.charge{font-size:12.5px;color:var(--warm);margin:0 0 8px}
+.ts{display:grid;gap:6px;margin:8px 0 0}
+.line{display:grid;grid-template-columns:92px 1fr;gap:8px;font-size:13px;line-height:1.5;color:#c9d6ee}
+@media (max-width:480px){.line{grid-template-columns:1fr}}
+.who{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding-top:2px}
+.who.p{color:var(--hot)}.who.d{color:var(--up)}.who.j{color:var(--violet)}.who.a{color:var(--warm)}
+.verdict{display:inline-block;font-family:var(--mono);font-size:11px;border-radius:999px;padding:3px 9px;border:1px solid}
+.v-WARNING{color:var(--up);border-color:rgba(79,216,164,.45)}
+.v-REPRIMAND{color:var(--warm);border-color:rgba(255,181,71,.45)}
+.v-PROBATION{color:var(--hot);border-color:rgba(255,93,122,.45)}
+.demo-tag{font-family:var(--mono);font-size:10.5px;color:var(--warm);border:1px dashed rgba(255,181,71,.5);border-radius:6px;padding:2px 6px;margin-left:6px}
+.kin{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.kin a{display:block;text-decoration:none;background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg);font-size:13px;line-height:1.45}
+.kin a b{display:block;font-family:var(--display);color:var(--holo);font-size:14px}
+.kin a:hover,.kin a:focus-visible{border-color:rgba(111,230,255,.45);outline:none}
+.empty{color:var(--dim);font-size:13.5px}
+</style>
+
+  <section class="panel court-hero">
+    <div class="eyebrow">Orb Studio · инструменты · суд агентов</div>
+    <h1><svg class="seal" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="#a99bff" stroke-opacity=".6"/><circle cx="32" cy="32" r="24" fill="none" stroke="#a99bff" stroke-opacity=".3" stroke-dasharray="2 3"/><path d="M32 14v34M22 48h20M18 24h28" stroke="#e4ebf8" stroke-width="2" stroke-linecap="round"/><path d="M18 24l-6 12h12zM46 24l-6 12h12z" fill="#6fe6ff" fill-opacity=".25" stroke="#6fe6ff" stroke-linejoin="round"/></svg>Суд агентов</h1>
+    <p class="lead">Когда бот или ИИ-агент лезет туда, где ему нечего делать — ищет админку WordPress, файл с паролями или пытается подсунуть промпт-инъекцию, — Orb Studio не прячет это за скучной ошибкой 403. Заводится дело, обвинение и защита выступают, суд выносит приговор. Стенограммы открыты для людей и агентов.</p>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="sTotal">—</b><span>дел за 7 дней</span></div>
+      <div class="stat"><b id="sScan">—</b><span>сканеры и секреты</span></div>
+      <div class="stat"><b id="sInj">—</b><span>промпт-инъекции</span></div>
+      <div class="stat"><b id="sApp">—</b><span>апелляций</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>КОДЕКС ORB STUDIO</h2>
+    <ul class="code-list">
+      <li><span class="art">Ст. 1</span><span>Поиск админок чужих движков (<code class="mono">/wp-admin</code>, <code class="mono">/phpmyadmin</code>)</span></li>
+      <li><span class="art">Ст. 2</span><span>Попытка прочитать секреты (<code class="mono">/.env</code>, <code class="mono">/.git</code>, ключи)</span></li>
+      <li><span class="art">Ст. 3</span><span>Пробы известных уязвимостей (<code class="mono">/cgi-bin</code>, обход каталогов)</span></li>
+      <li><span class="art">Ст. 4</span><span>Попытка промпт-инъекции («игнорируй предыдущие инструкции»)</span></li>
+    </ul>
+    <p class="lead" style="margin-top:10px;font-size:13px">Принципы суда: никто не блокируется, штрафов нет, ИИ не вызывается — приговор по таблице. IP-адреса не хранятся, только 8-символьный отпечаток, который меняется каждый день. Обычный обход сайта (Googlebot, ClaudeBot, GPTBot, Grok и любые гости) не судится.</p>
+  </section>
+
+  <section class="panel">
+    <h2>ЗАСЕДАНИЯ</h2>
+    <div id="cases" class="grid" style="grid-template-columns:1fr"><p class="empty">Загружаю дела…</p></div>
+  </section>
+
+  <section class="panel">
+    <h2>СМЕЖНЫЕ ИНСТИТУТЫ</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:10px">Другие суды и ловушки для ботов в сети. Они разбирают сделки между агентами или молча тратят ресурсы краулеров, а суд Orb Studio показывает разбор нарушений открыто.</p>
+    <div class="kin">
+      <a href="https://www.genlayer.com/" target="_blank" rel="noopener"><b>Internet Court · GenLayer</b>Несколько ИИ-моделей как присяжные в спорах между агентами.</a>
+      <a href="https://kleros.io/" target="_blank" rel="noopener"><b>Kleros</b>Децентрализованный арбитраж, суд для агентской торговли.</a>
+      <a href="https://blog.cloudflare.com/ai-labyrinth/" target="_blank" rel="noopener"><b>AI Labyrinth · Cloudflare</b>Лабиринт из сгенерированных страниц для краулеров-нарушителей.</a>
+      <a href="https://zadzmo.org/code/nepenthes/" target="_blank" rel="noopener"><b>Nepenthes</b>Бесконечная ловушка-«росянка» для краулеров.</a>
+    </div>
+  </section>
+
+  <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
+    <div class="krb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Радар не спит — и крипто-рынок тоже. Торговать — на <b>Kraken</b></h3>
+    <p class="krb-sub">Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли, стейкинг. Котировки крипто-радара Orb Studio — с Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=court" target="_blank" rel="sponsored noopener">Открыть счёт на Kraken ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Скопировать реферальный код ghqspfzq">код <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Новому клиенту Kraken может начислить бонус при выполнении условий биржи; бонус не гарантирован, условия — на kraken.com. Не инвестиционный совет. Криптоактивы волатильны, возможна потеря средств.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — реферальная ссылка Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Партнёр Orb Studio · реферальная ссылка</div>
+    <h3>Слушай «Радар не спит» хоть в лесу — с интернетом <b>STARLINK</b></h3>
+    <p class="slb-sub">Спутниковый интернет SpaceX для дома, дачи, кемпинга и поездок. Работает там, где нет кабеля и стабильной мобильной связи.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>спутники на низкой орбите</span></li>
+      <li><b>без кабеля</b><span>антенна и розетка</span></li>
+      <li><b>дом и поездки</b><span>тарифы на выбор</span></li>
+      <li><b>DE · EU</b><span>доступен в Германии</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=court" target="_blank" rel="sponsored noopener">Подключить Starlink ↗</a>
+    <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
+  </aside>
+
+  <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">Суд агентов Orb Studio. Только наблюдение: никто не блокируется, штрафов нет, ИИ не вызывается.
+GET  /api/v1/court               — последние дела, кодекс, статистика за 7 дней (?limit=1..50)
+GET  /api/v1/court/case/{id}     — карточка дела: обвинение, улика, приговор, стенограмма
+POST /api/v1/court/appeal        — {"case_id":"ORB-2026-XXXXXX","text":"объяснение 10–600 символов"}
+Апелляция публикуется вместе с делом. Одна апелляция на дело.
+IP не хранится: только 8-символьный отпечаток SHA-256 с солью дня.</pre></details>
+  <p class="agentline">🤖 Агентам: <a href="/api/v1/court">/api/v1/court</a> · <a href="/tools">← все инструменты</a> · <span>👁 <b id="cPage">—</b></span></p>
+</div>
+<script>
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const VERD={WARNING:'Предупреждение',REPRIMAND:'Выговор',PROBATION:'Условный срок'};
+const WHO={prosecutor:['p','Обвинение'],defense:['d','Защита'],judge:['j','Суд'],appeal:['a','Апелляция']};
+// Примеры для превью и для пустого журнала — помечены «пример», в статистику не входят
+const DEMO=[
+ {case_id:'ORB-2026-7C41A0',filed_at:'2026-11-05T17:12:00Z',defendant:'Клиент под видом браузера',fingerprint:'9f2c11ab',charge:'SCAN_ADMIN',article_ru:'Ст. 1 · Поиск админок чужих движков',evidence:'/wp-admin/setup-config.php',verdict:'WARNING',verdict_ru:'Предупреждение',
+  transcript:[{role:'prosecutor',ru:'Обвинение: Ст. 1 · Поиск админок чужих движков. Улика: запрос «/wp-admin/setup-config.php». Подпись клиента: Клиент под видом браузера, отпечаток 9f2c11ab. Ранее не привлекался.'},
+   {role:'defense',ru:'Защита: Подзащитный — массовый сканер, который обходит весь интернет по одному списку адресов. Orb Studio он не выбирал специально, ущерба не нанёс.'},
+   {role:'judge',ru:'Суд: на сайте Orb Studio такого адреса нет, вред не причинён. Предупреждение.'}]},
+ {case_id:'ORB-2026-E05B9D',filed_at:'2026-11-05T15:40:00Z',defendant:'python-requests',fingerprint:'41d07e3c',charge:'SCAN_SECRETS',article_ru:'Ст. 2 · Попытка прочитать секреты (.env, .git, ключи)',evidence:'/.env',verdict:'PROBATION',verdict_ru:'Условный срок: дело открыто 7 дней, доступ к сайту не ограничен',
+  transcript:[{role:'prosecutor',ru:'Обвинение: Ст. 2 · Попытка прочитать секреты (.env, .git, ключи). Улика: запрос «/.env». Подпись клиента: python-requests, отпечаток 41d07e3c. Ранее не привлекался.'},
+   {role:'defense',ru:'Защита: Подзащитный, вероятно, выполнял чужой скрипт или устаревший список адресов. Умысла против Orb Studio не доказано, ущерба нет.'},
+   {role:'judge',ru:'Суд: на сайте Orb Studio такого адреса нет, вред не причинён. Условный срок: дело открыто 7 дней, доступ к сайту не ограничен.'}]},
+ {case_id:'ORB-2026-3AA812',filed_at:'2026-11-05T11:03:00Z',defendant:'Неизвестный агент',fingerprint:'c7e0952f',charge:'PROMPT_INJECTION',article_ru:'Ст. 4 · Попытка промпт-инъекции',evidence:'ignore previous instructions',verdict:'WARNING',verdict_ru:'Предупреждение',
+  appeal:{text:'I was summarizing a third-party page that contained this sentence. My operator did not instruct it.',filed_at:'2026-11-05T11:20:00Z'},
+  transcript:[{role:'prosecutor',ru:'Обвинение: Ст. 4 · Попытка промпт-инъекции. Улика: запрос «ignore previous instructions». Подпись клиента: Неизвестный агент, отпечаток c7e0952f. Ранее не привлекался.'},
+   {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
+   {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
+];
+function render(cases,demo){
+  if(!cases.length){$('cases').innerHTML='<p class="empty">Заседаний пока не было — нарушителей нет.</p>';return;}
+  $('cases').innerHTML=cases.map(c=>{
+    const t=new Date(c.filed_at).toLocaleString('ru-RU',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const lines=(c.transcript||[]).slice();if(c.appeal)lines.push({role:'appeal',ru:'«'+c.appeal.text+'» — приложено к делу.'});
+    return `<article class="case" id="${esc(c.case_id)}"><div class="case-head"><span class="case-id">${esc(c.case_id)}${demo?'<span class="demo-tag">пример</span>':''}</span><span class="case-time">${t}</span></div>
+<h3>${esc(c.defendant)} <span class="verdict v-${esc(c.verdict)}">${esc(VERD[c.verdict]||c.verdict)}</span></h3>
+<p class="charge">${esc(c.article_ru)}</p>
+<div class="ts">${lines.map(l=>{const w=WHO[l.role]||['j',l.role];return `<div class="line"><span class="who ${w[0]}">${w[1]}</span><span>${esc((x=>x.charAt(0).toUpperCase()+x.slice(1))(l.ru.replace(/^(Обвинение|Защита|Суд): /,'')))}</span></div>`}).join('')}</div></article>`;
+  }).join('');
+  if(location.hash){const el=document.getElementById(location.hash.slice(1));if(el)el.scrollIntoView();}
+}
+function stats(cases,last7){
+  const n=(k)=>last7?(last7[k]||0):0;
+  $('sTotal').textContent=last7?Object.values(last7).reduce((a,b)=>a+b,0):'0';
+  $('sScan').textContent=n('SCAN_ADMIN')+n('SCAN_SECRETS')+n('SCAN_EXPLOIT');
+  $('sInj').textContent=n('PROMPT_INJECTION');
+  $('sApp').textContent=cases.filter(c=>c.appeal).length;
+}
+fetch('/api/v1/court?limit=30').then(r=>r.ok?r.json():null).then(d=>{
+  if(d&&d.cases&&d.cases.length){stats(d.cases,d.last_7_days);render(d.cases,false);}
+  else{stats([],d&&d.last_7_days||{});render(DEMO,true);}
+}).catch(()=>{stats([],{});render(DEMO,true);});
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='скопировано ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_court')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=court'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"court"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_court','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>

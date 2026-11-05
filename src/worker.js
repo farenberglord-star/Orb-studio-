@@ -9,6 +9,7 @@ import EMO_PRESETS from "../public/robot/presets.json";
 export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
+import { courtGate } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
 // Работает без базы данных. Если подключён KV с именем ORB_KV, хранит вчерашний индекс для дельты.
@@ -1847,7 +1848,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors", "violin", "canvas", "tools"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "sensors", "violin", "canvas", "tools", "court"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -5873,6 +5874,7 @@ export default {
   },
   async fetch(request, env, ctx) {
     if (request.method === "GET") { const ua = request.headers.get("user-agent") || "", g = EMO_GREET_BOTS.find(([, re]) => re.test(ua)); if (g) ctx.waitUntil(emoGreetBot(env, g[0], new URL(request.url).pathname, g[2]).catch(() => null)); }
+    { const court = await courtGate(request, env, ctx).catch(() => null); if (court) return withSecurityHeaders(court); } // суд агентов: только /api/v1/court*, остальное идёт дальше
     if (new URL(request.url).pathname === "/api/v1/csp-report" && request.method === "POST") return handleCspReport(request, env, ctx);
     const res = withSecurityHeaders(await handleRequest(request, env, ctx));
     // ИИ-ассистенту (не поисковому краулеру) EMO представляется прямо в странице
