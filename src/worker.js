@@ -4356,7 +4356,7 @@ async function emoSpeak(env, ctx, request, { text, name }) {
   const busy = await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000);
   if (busy) return { ok: false, error: `The robot is busy with "${busy.action}" from ${busy.by}. Try again in ${EMO_COOLDOWN_S} s.` };
   await sharedPut(env, "emo-busy", { action: "speak", by: who, t: Date.now() });
-  const talkMs = Math.min(18000, 2500 + c.text.length * 80), steps = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in" }, { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "speak", txt: c.text } }), label: "theater:speak", noreply: true }];
+  const talkMs = Math.min(18000, 2500 + c.text.length * 80), steps = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:reset", noreply: true }, { kind: "sleep", ms: 800, label: "reset" }, { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in", noreply: true }, { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "speak", txt: c.text } }), label: "theater:speak", noreply: true }];
   for (let left = talkMs; left > 0; left -= 3000) steps.push({ kind: "sleep", ms: Math.min(3000, left), label: "talking" });
   steps.push({ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:out", noreply: true });
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
