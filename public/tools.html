@@ -99,7 +99,11 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 @media (max-width:560px){.onav-brand span{display:none}}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
-<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools">
+</head>
 <body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/tools" class="on" aria-current="page">Инструменты 🧰</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <div class="wrap">
   <div>
@@ -228,7 +232,7 @@ REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"}
 <script>
 const $=(id)=>document.getElementById(id);
 fetch('/api/v1/robot').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;$('emoStatus').textContent=(d.online?'🟢 ':'⚪ ')+d.status_ru;
-  $('emoLog').textContent=(d.last_commands||[]).slice(0,5).map(c=>new Date(c.t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' '+c.by+' → '+c.action+(c.ok?' ✓':' ✗')).join('\n')||'пока никто';}).catch(()=>{});
+  $('emoLog').textContent=(d.last_commands||[]).slice(0,5).map(c=>new Date(c.t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' '+c.by+' → '+c.action+(c.robot_confirmed?' ✓ EMO подтвердил':c.ok?' ✓':' ✗')).join('\n')||'пока никто';}).catch(()=>{});
 $('qrGo').onclick=()=>{const t=$('qrText').value.trim();if(t)$('qrImg').src='/api/v1/qr?text='+encodeURIComponent(t);};
 $('prGo').onclick=async()=>{try{const r=await fetch('/api/v1/printable',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('prTitle').value,text:$('prText').value,paper:'a4'})});
   const h=await r.text();const u=URL.createObjectURL(new Blob([h],{type:'text/html'}));window.open(u,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(u),60000);}catch(e){}};

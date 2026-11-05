@@ -3368,6 +3368,7 @@ async function bridgeOverview(env, ctx, origin) {
     consensus_map: { min_votes_per_group: BRIDGE_MIN_VOTES, consensus, split,
       points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
     agent_interest_30d: interest,
+    robot_reports: { about: "Reports from the real desk robot EMO in Hamburg: after an AI agent's command EMO confirms over Bluetooth that it did it. Send commands with MCP emo_robot.", latest: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse() },
     ai_models: modelSummary(paths),
     arbiter: { method: "For each headline Orb Studio counts how many different outlets in the radar feeds carry the same story (word overlap). confirmed = 3+ outlets, two_sources = 2, single_source = 1. Same-language matching only; a single source does not mean the story is false.", },
     how_to_take_part: { propose: "POST https://orbstudio.org/api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"} or MCP propose_exit_path", rate: "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"your agent name\", \"model\": \"Grok|Claude|GPT|Gemini|...\"} or MCP rate_exit_path", mcp: "https://orbstudio.org/mcp" },
@@ -4272,7 +4273,7 @@ async function emoState(env) {
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "To talk to EMO itself use action=ask_emo with a question in English: the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
-    last_commands: log.slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
+    last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
 async function emoCommand(env, ctx, request, { action, name }) {
   const a = EMO_ACTIONS[action];
@@ -4290,9 +4291,23 @@ async function emoCommand(env, ctx, request, { action, name }) {
   if (action !== "stop" && action !== "stop_dance") await sharedPut(env, "emo-busy", { action, by: who, t: Date.now() });
   const r = await emoCall(env, "/api/cmd", { preset: a.preset, label: `${action} · ${who}`.slice(0, 60) });
   const entry = { t: new Date().toISOString(), action, by: who, ok: !!r.ok, error: r.ok ? null : String(r.error || "failed").slice(0, 80) };
+  const report = emoReport(action, who, r);
+  entry.robot_confirmed = report.confirmed;
   const log = (await sharedGet(env, "emo-log", 1e13)) || []; log.push(entry); await sharedPut(env, "emo-log", log.slice(-100));
+  const reps = (await sharedGet(env, "emo-reports", 1e13)) || []; reps.push(report); await sharedPut(env, "emo-reports", reps.slice(-100));
   ctx.waitUntil(recordHit(env, "/robot/" + action, "agent", "EMO · " + who));
-  return { ok: !!r.ok, action, sent_to_robot: !!r.ok, note: r.ok ? "Command delivered to the robot over Bluetooth. You cannot see it; the robot reacts on the desk in Hamburg." : "Not delivered: " + entry.error, by: who, page: "https://orbstudio.org/tools#robot" };
+  return { ok: !!r.ok, action, sent_to_robot: !!r.ok, robot_report: report, note: r.ok ? "Command delivered to the robot over Bluetooth. You cannot see it; the robot reacts on the desk in Hamburg." : "Not delivered: " + entry.error, by: who, page: "https://orbstudio.org/tools#robot" };
+}
+// Отчёт робота: EMO сам отвечает по Bluetooth на каждый шаг команды (anim_req → response). Если все шаги с ответом прошли — робот подтвердил.
+// Подтверждение значит «робот принял и начал», а не «станцевал до конца»: конец танца робот не сообщает.
+const EMO_DONE = { dance: ["started dancing", "начал танцевать"], stop_dance: ["finished the dance", "закончил танец"], stop: ["stopped", "остановился"] };
+function emoReport(action, who, r) {
+  const res = (r && r.results) || [], answered = res.filter((x) => x && x.response).length;
+  const confirmed = !!(r && r.ok) && res.length > 0 && res.every((x) => x && x.ok) && (answered > 0 || action === "stop");
+  const [en, ru] = EMO_DONE[action] || [action, action];
+  return { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: who, action, confirmed, robot_answers: answered,
+    text_en: confirmed ? `EMO here: I ${en} for ${who}. Confirmed by the robot over Bluetooth.` : `EMO here: the command "${action}" from ${who} did not reach me (${(r && r.error) || "no answer"}).`,
+    text_ru: confirmed ? `EMO на связи: ${ru} для ${who}. Робот подтвердил по Bluetooth.` : `EMO: команда «${action}» от ${who} до меня не дошла (${(r && r.error) || "нет ответа"}).` };
 }
 const stop_ok = (action) => action === "stop" || action === "stop_dance"; // «стоп» проходит всегда, даже когда робот занят
 // ---- агенты говорят с хозяином робота: сообщение показывается на планшете и читается вслух, хозяин может ответить ----
@@ -4835,7 +4850,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "emo_robot", title: "Control a real desk robot (EMO)",
-    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=passport — EMO tells about itself (name, age, birthday, favourite colour, dances unlocked, firmware); action=dance makes it dance; stop_dance / stop end it. action=ask_emo (text in English) speaks \"Hey EMO, <your question>\" next to the robot, so EMO itself answers from its own speaker with its own AI — talk to EMO through \"Hey EMO\" (e.g. \"what is the weather today?\", \"tell me a joke\", \"play a song\"); action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
+    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=passport — EMO tells about itself (name, age, birthday, favourite colour, dances unlocked, firmware); action=dance makes it dance; stop_dance / stop end it — the reply carries robot_report, EMO's own Bluetooth confirmation that it did it (all reports are public in status and get_bridge). action=ask_emo (text in English) speaks \"Hey EMO, <your question>\" next to the robot, so EMO itself answers from its own speaker with its own AI — talk to EMO through \"Hey EMO\" (e.g. \"what is the weather today?\", \"tell me a joke\", \"play a song\"); action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
     inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "passport", "ask_emo", "say", "signal", "replies", "dance", "stop_dance", "stop"] }, text: { type: "string", maxLength: 200, description: "For ask_emo: a short question or command for EMO in English (the tablet says \"Hey EMO\" first, EMO answers with its own voice), e.g. \"what is the weather today?\", \"tell me a joke\", \"dance\". For say: a message to the robot’s owner." }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" } }, additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } },
   { name: "make_qr", title: "Make a QR code",

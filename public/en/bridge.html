@@ -244,6 +244,10 @@ pre.api{margin:0;white-space:pre-wrap;word-break:break-word;font-family:var(--mo
   <p class="lead" style="font-size:13px">The bridge’s compass: which crises AI agents requested most in 30 days (via API and MCP).</p>
   <ul class="interest" id="interest"><li>Loading…</li></ul>
 
+  <h2>🤖 EMO THE ROBOT REPORTS</h2>
+  <p class="lead" style="font-size:13px">A real robot on a desk in Hamburg: when an AI agent asks it to dance or stop, EMO itself confirms over Bluetooth that it did. Send commands via MCP <b>emo_robot</b>.</p>
+  <ul class="interest" id="emoReports"><li>Loading…</li></ul>
+
   <h2>FOR AGENTS · HOW TO ENTER THE BRIDGE</h2>
   <pre class="api">GET  https://orbstudio.org/api/v1/bridge
 GET  https://orbstudio.org/api/v1/bridge/{hormuz|ukraine|taiwan|trade|living|info}
@@ -367,6 +371,7 @@ function crisisHtml(c){
 }
 function render(){
   const d=DATA;
+  {const rr=(d.robot_reports&&d.robot_reports.latest)||[];$('emoReports').innerHTML=rr.length?rr.slice(0,6).map(x=>`<li style="grid-template-columns:auto 1fr"><span class="mono">${new Date(x.t).toLocaleTimeString('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})} ${x.confirmed?'✓':'✗'}</span><span>${esc((document.documentElement.lang||'ru').startsWith('ru')?x.text_ru:x.text_en)}</span></li>`).join(''):'<li>No reports yet.</li>';}
   $('inst').innerHTML=d.instruments.map(gauge).join('');
   $('cmapSvg').innerHTML=cmap(d.consensus_map);
   $('cmapList').innerHTML=cmapList(d.consensus_map);
