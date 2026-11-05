@@ -4356,12 +4356,14 @@ async function emoSpeak(env, ctx, request, { text, name }) {
   const busy = await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000);
   if (busy) return { ok: false, error: `The robot is busy with "${busy.action}" from ${busy.by}. Try again in ${EMO_COOLDOWN_S} s.` };
   await sharedPut(env, "emo-busy", { action: "speak", by: who, t: Date.now() });
-  const talkMs = Math.min(18000, 2500 + c.text.length * 80), steps = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in" }, { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "speak", txt: c.text } }), label: "theater:speak" }];
+  const talkMs = Math.min(18000, 2500 + c.text.length * 80), steps = [{ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "in" } }), label: "theater:in" }, { kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "speak", txt: c.text } }), label: "theater:speak", noreply: true }];
   for (let left = talkMs; left > 0; left -= 3000) steps.push({ kind: "sleep", ms: Math.min(3000, left), label: "talking" });
   steps.push({ kind: "request", hex: emoFrame({ type: "theater_req", data: { op: "out" } }), label: "theater:out", noreply: true });
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: ("speak · " + who).slice(0, 60) }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
-  const spoke = (r.results || []).find((x) => x.label === "theater:speak"), confirmed = !!(r.ok && spoke && spoke.ok && spoke.response);
+  // EMO отвечает на вход в «театр»; на саму озвучку ответа нет — подтверждение = робот принял режим и весь набор команд без ошибок
+  const res = r.results || [], tin = res.find((x) => x.label === "theater:in"), spoke = res.find((x) => x.label === "theater:speak");
+  const confirmed = !!(r.ok && tin && tin.ok && tin.response && spoke && spoke.ok);
   const report = { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: who, action: "speak", confirmed, robot_answers: (r.results || []).filter((x) => x && x.response).length, said: c.text,
     text_en: confirmed ? `EMO here: I said out loud from my speaker what ${who} asked: "${c.text}". Confirmed by the robot over Bluetooth.` : `EMO here: I could not say the text from ${who} (${r.error || "no answer from the robot"}).`,
     text_ru: confirmed ? `EMO на связи: произнёс своим голосом текст от ${who}: «${c.text}». Робот подтвердил по Bluetooth.` : `EMO: не смог произнести текст от ${who} (${r.error || "робот не ответил"}).` };
