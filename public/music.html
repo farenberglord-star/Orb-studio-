@@ -64,6 +64,7 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.gal{display:flex;gap:8px;margin:8px 0 0}.gal img{width:72px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;opacity:.55;border:1px solid transparent}.gal img.on{opacity:1;border-color:currentColor}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -177,7 +178,7 @@ fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
   const box=$('tracks');
   if(!d||!d.tracks||!d.tracks.length){box.innerHTML='<p class="lead">Скоро здесь появится первый трек.</p>';return;}
   box.innerHTML=d.tracks.map(t=>`<article class="trk">
-    <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Обложка трека ${esc(t.title)}" loading="lazy">`:''}<button type="button">▶ Слушать</button></div>
+    <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Обложка трека ${esc(t.title)}" loading="lazy">`:''}<button type="button">▶ Слушать</button></div>${(t.gallery||[]).length?`<div class="gal">${[t.cover,...t.gallery].filter(Boolean).map((g,i)=>`<img src="${esc(g.replace('https://orbstudio.org',''))}" alt="Фото ${i+1} к треку ${esc(t.title)}" loading="lazy"${i?'':' class="on"'}>`).join('')}</div>`:''}
     <div class="in">
       <h2>${esc(t.title)}</h2>
       <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase())].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
@@ -187,6 +188,8 @@ fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
     </div></article>`).join('');
 }).catch(()=>{$('tracks').innerHTML='<p class="lead">Не удалось загрузить треки.</p>'});
 document.addEventListener('click',e=>{
+  const g=e.target.closest('.gal img');
+  if(g){const a=g.closest('.trk'),m=a.querySelector('.player img');if(m){m.src=g.getAttribute('src');a.querySelectorAll('.gal img').forEach(x=>x.classList.toggle('on',x===g));}return;}
   const b=e.target.closest('.player button');
   if(b){const p=b.parentElement;p.innerHTML=`<iframe title="Трек Orb Studio" src="https://www.tiktok.com/player/v1/${p.dataset.id}?autoplay=1&loop=1&music_info=0&description=0&rel=0&controls=1&volume_control=1" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;return;}
   if(e.target.id==='copyPrompt'){try{navigator.clipboard.writeText($('agentPrompt').textContent).then(()=>{e.target.textContent='Скопировано ✓';setTimeout(()=>e.target.textContent='Скопировать промпт',1600)})}catch(x){}}

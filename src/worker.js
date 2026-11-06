@@ -2082,6 +2082,7 @@ async function musicTracks(env, ctx, origin) {
     style: t.style || null, mood: t.mood || null, bpm: t.bpm || null, languages: t.languages || [],
     topics: t.topics || [], radars: t.radars || [], about: t.about || null,
     lyrics: t.lyrics || null, cover: t.cover ? `https://orbstudio.org${t.cover}` : null,
+    gallery: (t.gallery || []).map((g) => `https://orbstudio.org${g}`),
     made_with: t.made_with || null,
     tiktok_url: `https://www.tiktok.com/@aidavidatudio/video/${t.id}`,
     listen_url: `https://orbstudio.org/go/tiktok?v=${t.id}&from=music-api`,
