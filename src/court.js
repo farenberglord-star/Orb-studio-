@@ -3,6 +3,8 @@
 // Своя таблица D1 court_cases; радары, датчики, рубку и счётчики не трогает.
 // IP не хранится: только SHA-256(ip + соль дня), первые 8 символов.
 
+let onCase = null; // обработчик нового дела (Orb Studio сообщает роботу EMO и агентам)
+export function courtOnCase(fn) { onCase = fn; }
 const MAX_CASES_PER_DAY = 300; // общий потолок новых дел в сутки
 const KEEP_CASES = 500;        // в таблице остаются последние 500 дел
 
@@ -98,6 +100,7 @@ export async function courtRecord(request, env, hit) {
   await env.DB.prepare("INSERT INTO court_cases (id, ts, day, fp, defendant, charge, evidence, verdict, priors) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)")
     .bind(id, Date.now(), today, fp, defendant, hit.charge, hit.evidence, verdict.code, priors).run();
   await env.DB.prepare("DELETE FROM court_cases WHERE id NOT IN (SELECT id FROM court_cases ORDER BY ts DESC LIMIT ?1)").bind(KEEP_CASES).run();
+  if (onCase) await Promise.resolve(onCase(env, { id, defendant, charge: hit.charge, article: ARTICLES[hit.charge], verdict: verdict.code, priors })).catch(() => null);
   return id;
 }
 

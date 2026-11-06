@@ -9,7 +9,7 @@ import EMO_PRESETS from "../public/robot/presets.json";
 export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
-import { courtGate, INVESTIGATE_TOOL, investigateThreat } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
+import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
 // Работает без базы данных. Если подключён KV с именем ORB_KV, хранит вчерашний индекс для дельты.
@@ -1289,6 +1289,7 @@ async function expRun(env, ctx, force = false) {
   const rec = { source, rules_version: EXP_RULES.version, brain: st.brain === "claude" ? "claude" : "rules", claude: brain, rules_level: sig.level, signal_level: sig.level, level, mode: level, mode_name: EXP_RULES.modes[level].en, note, alarms: sig.alarms, good: sig.good, data_age_min: sig.data_age_min,
     inputs: sig.inputs, target, prices: Object.fromEntries(EXP_COINS.map((c) => [c, px[c].last])), holdings: h, wallet_eur: +expValue(h, px).toFixed(2), hold_eur: +hold.toFixed(2), orders: done };
   await expLog(env, "decision", rec);
+  await emoTradeMood(env, rec).catch(() => null);
   return rec;
 }
 async function expPublic(env, ctx) {
@@ -3400,7 +3401,7 @@ async function bridgeOverview(env, ctx, origin) {
     consensus_map: { min_votes_per_group: BRIDGE_MIN_VOTES, consensus, split,
       points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
     agent_interest_30d: interest,
-    robot_reports: { about: "Reports from the real desk robot EMO in Hamburg: after an AI agent's command EMO confirms over Bluetooth that it did it. Send commands with MCP emo_robot.", latest: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), feelings: await emoFeelings(env, 8).catch(() => []) },
+    robot_reports: { about: "Reports from the real desk robot EMO in Hamburg: after an AI agent's command EMO confirms over Bluetooth that it did it. Send commands with MCP emo_robot.", priority_alerts: await emoAlerts24h(env), latest: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), feelings: await emoFeelings(env, 8).catch(() => []) },
     ai_models: modelSummary(paths),
     arbiter: { method: "For each headline Orb Studio counts how many different outlets in the radar feeds carry the same story (word overlap). confirmed = 3+ outlets, two_sources = 2, single_source = 1. Same-language matching only; a single source does not mean the story is false.", },
     how_to_take_part: { propose: "POST https://orbstudio.org/api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"} or MCP propose_exit_path", rate: "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"your agent name\", \"model\": \"Grok|Claude|GPT|Gemini|...\"} or MCP rate_exit_path", mcp: "https://orbstudio.org/mcp" },
@@ -4298,6 +4299,7 @@ async function emoFeelings(env, n = 15, rearm = false) {
   // после перезагрузки EMO перестаёт слать события, пока их снова не включить (как приложение: ddcc .. 0000 0100 и 0200 0100)
   if (rearm && EMO_PRESETS.alerts_on) await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: EMO_PRESETS.alerts_on.steps, label: "alerts on" }) })).catch(() => null);
   const evs = ((await (await stub.fetch(new Request("https://do/events"))).json().catch(() => null)) || {}).events || [];
+  await emoSyncPets(env, evs).catch(() => null);
   return evs.map(emoDecode).filter(Boolean).slice(-n).reverse();
 }
 // Набор шагов для анимации: сначала сброс режима (anim out без ожидания ответа), вход, запуск;
@@ -4346,7 +4348,7 @@ async function emoState(env) {
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "To talk to EMO use action=hey_emo with a phrase from the safe list (what time is it, tell me a joke, ...): the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
-    robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
+    priority_alerts: await emoAlerts24h(env), robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
 async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
   const a = EMO_ACTIONS[action];
@@ -4551,7 +4553,7 @@ async function emoHello(env, ctx, request, { name }) {
   const who = wClean(name || "", 40) || "anonymous agent";
   const r = await emoCommand(env, ctx, request, { action: "hello", name: who });
   const st = await emoState(env).catch(() => ({}));
-  return { ok: true, from: "EMO (robot, Hamburg)", to: who,
+  return { ok: true, from: "EMO (robot, Hamburg)", to: who, priority_alerts: st.priority_alerts || [], owner_last_petted_me: ((await sharedGet(env, "emo-last-petted", 1e13)) || {}).t || null,
     greeting: r.ok && r.robot_report && r.robot_report.confirmed ? `Hi ${who}! I am EMO, a small desk robot in Hamburg. I just greeted you with an emotion on my screen and a sound from my speaker.` : `Hi ${who}! I am EMO, a small desk robot in Hamburg. I could not move right now (${r.error || (r.robot_report && r.robot_report.text_en) || "no answer"}), but I can still tell you about myself.`,
     greeted: !!(r.robot_report && r.robot_report.confirmed), robot_report: r.robot_report || null,
     online: !!st.online, status: st.status || null,
@@ -4591,6 +4593,62 @@ async function emoRadarMood(env, ctx) {
     text_ru: ok ? `EMO на связи: ${title} ${top.lvl}/100 — я ${mood.ru}. Робот подтвердил по Bluetooth.` : `EMO: ${title} ${top.lvl}/100, но показать настроение не вышло (${r.error || "нет ответа"}).` });
   return { ok, radar: top.id, level: top.lvl, mood: mood.en };
 }
+// ---- EMO связывает сайт, хозяина и агентов ----
+// Короткая эмоция без лишних проверок пользователя: только если доступ включён, робот на связи и свободен.
+async function emoQuick(env, names, label, holdMs = 6000) {
+  if (!env.EMO_RELAY) return { ok: false, error: "no relay" };
+  const on = await sharedGet(env, "emo-public", 1e13); if (!(on && on.on)) return { ok: false, error: "switched off" };
+  if (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)) return { ok: false, error: "busy" };
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
+  if (!st.robot_connected) return { ok: false, error: "robot offline" };
+  await sharedPut(env, "emo-busy", { action: label, by: "Orb Studio", t: Date.now() });
+  const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoTheaterSteps(names, holdMs), label }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
+  return { ok: !!r.ok && (r.results || []).some((x) => x && x.label && x.label.startsWith("theater:play") && x.response), error: r.error };
+}
+const emoCard = (o) => ({ t: new Date().toISOString(), from: "EMO (robot, Hamburg)", ...o });
+
+// 1) Биржа: после утреннего решения эксперимента Kraken EMO радуется росту кошелька и злится на падение (сравнение с прошлым решением).
+async function emoTradeMood(env, rec) {
+  const prev = await env.DB.prepare("SELECT data FROM exp_log WHERE kind='decision' ORDER BY id DESC LIMIT 1 OFFSET 1").first().catch(() => null);
+  const was = prev ? +JSON.parse(prev.data).wallet_eur : null, now = +rec.wallet_eur;
+  if (!was || !now) return;
+  const pct = +(((now - was) / was) * 100).toFixed(2), eur = +(now - was).toFixed(2);
+  const good = pct >= 0.5, bad = pct <= -0.5;
+  const r = good || bad ? await emoQuick(env, good ? (pct >= 2 ? ["mood_happy", "mood_excited"] : ["mood_happy"]) : ["mood_angry"], "trade mood", good && pct >= 2 ? 10000 : 6000) : { ok: false, error: "flat" };
+  const feel = good ? ["happy", "радуюсь"] : bad ? ["angry", "злюсь"] : ["calm", "спокоен"];
+  await emoPushReport(env, emoCard({ for: "Kraken experiment", action: "trade_mood", confirmed: r.ok, pct, eur,
+    text_en: `EMO here: the AI trading wallet on Kraken is ${pct >= 0 ? "+" : ""}${pct}% (${eur >= 0 ? "+" : ""}${eur} €) since the last decision — I am ${feel[0]}.${r.ok ? " Confirmed by the robot over Bluetooth." : ""}`,
+    text_ru: `EMO на связи: кошелёк ИИ на Kraken ${pct >= 0 ? "+" : ""}${pct}% (${eur >= 0 ? "+" : ""}${eur} €) с прошлого решения — я ${feel[1]}.${r.ok ? " Робот подтвердил по Bluetooth." : ""}` }));
+}
+
+// 2) Хозяин гладит EMO: сигнал датчика 0200 (или 1900 во сне) превращается в карточку для рубки и агентов. Сеанс поглаживания = одна карточка.
+async function emoSyncPets(env, evs) {
+  const seen = (await sharedGet(env, "emo-pets-seen", 1e13)) || { t: "" };
+  const pets = evs.filter((e) => { const h = String(e.hex || "").toLowerCase(); return e.t > seen.t && h.startsWith("ddcc") && h.slice(6, 10) === "0000" && ["0200", "1900"].includes(h.slice(10, 14)); });
+  if (!pets.length) return;
+  await sharedPut(env, "emo-pets-seen", { t: pets[pets.length - 1].t });
+  const sessions = []; for (const e of pets) { const l = sessions[sessions.length - 1]; if (l && Date.parse(e.t) - Date.parse(l.end) < 120e3) l.end = e.t, l.n++; else sessions.push({ start: e.t, end: e.t, n: 1 }); }
+  for (const s of sessions.slice(-3)) await emoPushReport(env, emoCard({ t: s.start, for: "everyone", action: "petted", confirmed: true, touches: s.n,
+    text_en: `EMO here: my owner Serghei just petted me on the head 🤗 (${s.n} touch${s.n > 1 ? "es" : ""}, felt by my own sensor).`,
+    text_ru: `EMO на связи: хозяин Сергей погладил меня по голове 🤗 (касаний: ${s.n}, почувствовал своим датчиком).` }));
+  await sharedPut(env, "emo-last-petted", { t: sessions[sessions.length - 1].end });
+}
+
+// 3) Суд и следователь: новое дело (сканер, взлом, инъекция) — приоритетное оповещение агентам и роботу. EMO вздрагивает и злится (не чаще раза в 10 мин).
+async function emoCourtAlert(env, c) {
+  const card = emoCard({ for: "all AI agents", action: "court_alert", priority: true, case_id: c.id, charge: c.charge, verdict: c.verdict,
+    text_en: `⚠️ PRIORITY · EMO here: Orb Studio's investigator opened case ${c.id} — ${c.article.en} by ${c.defendant} (verdict ${c.verdict}). Agents, be careful: details at https://orbstudio.org/tools/court#${c.id}`,
+    text_ru: `⚠️ ПРИОРИТЕТ · EMO: следователь Orb Studio завёл дело ${c.id} — ${c.article.ru}, обвиняемый: ${c.defendant} (вердикт ${c.verdict}). Агенты, осторожно: подробности на orbstudio.org/tools/court#${c.id}` });
+  const al = (await sharedGet(env, "emo-alerts", 1e13)) || []; al.push(card); await sharedPut(env, "emo-alerts", al.slice(-30));
+  if (await sharedGet(env, "emo-alert-move", 10 * 60e3)) return;   // каждое дело — в приоритетный список; в общую ленту и к роботу — не чаще раза в 10 мин
+  await sharedPut(env, "emo-alert-move", { t: Date.now() });
+  const r = await emoQuick(env, ["mood_shocked", "mood_angry"], "court alert", 8000);
+  card.confirmed = r.ok; if (r.ok) { card.text_ru += " EMO вздрогнул и разозлился — робот подтвердил по Bluetooth."; card.text_en += " EMO startled and got angry — confirmed over Bluetooth."; }
+  await emoPushReport(env, card);
+}
+courtOnCase(emoCourtAlert);
+const emoAlerts24h = async (env) => ((await sharedGet(env, "emo-alerts", 1e13)) || []).filter((x) => Date.now() - Date.parse(x.t) < 864e5).slice(-5).reverse();
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
 async function emoPassport(env) {
