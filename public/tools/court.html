@@ -84,6 +84,33 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
 .slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
 </style>
+<style>
+.ins-sum{margin:0 0 12px;color:var(--fg);font-size:14.5px;line-height:1.5}
+.ins-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:12px}
+@media (max-width:820px){.ins-grid{grid-template-columns:1fr}}
+.off{background:rgba(5,8,16,.6);border:1px solid rgba(255,93,122,.4);border-radius:12px;padding:14px;min-width:0}
+.off .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--hot);text-transform:uppercase}
+.off .big{font-family:var(--display);font-size:44px;line-height:1;margin:6px 0 2px;color:#fff}
+.off .big small{font-size:14px;color:var(--dim);letter-spacing:.04em;margin-left:6px}
+.off p{margin:4px 0;font-size:13px;color:#c9d6ee;line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--holo)}
+.chip b{color:var(--warm);margin-left:6px;font-weight:600}
+.hrs{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:44px;margin:10px 0 2px}
+.hrs i{display:block;background:rgba(111,230,255,.18);border-radius:2px;min-height:3px}
+.hrs i.on{background:var(--hot)}
+.hrl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.hm{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0;overflow-x:auto}
+.hm table{border-collapse:separate;border-spacing:3px;width:100%;min-width:420px}
+.hm th{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--dim);text-align:center;padding:0 0 3px}
+.hm td.p{font-family:var(--mono);font-size:12px;color:#c9d6ee;text-align:left;white-space:nowrap;padding-right:8px;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.hm td.c{height:24px;border-radius:5px;text-align:center;font-family:var(--mono);font-size:11px;color:#fff;background:rgba(111,230,255,.05)}
+.hm td.n{font-family:var(--mono);font-size:12px;color:var(--warm);text-align:right;padding-left:8px}
+.hm .sec{color:var(--hot)}.hm .adm{color:var(--warm)}.hm .exp{color:var(--violet)}
+.hm td.c{min-width:30px}
+@media (max-width:560px){.hm{padding:10px}.hm table{min-width:0;table-layout:fixed;border-spacing:2px}.hm th:first-child{width:31%}.hm td.p{max-width:none;font-size:10.5px;padding-right:2px}.hm th:last-child,.hm td.n{width:9%}.hm th{font-size:10px}.hm th .mm{display:none}.hm td.c{min-width:0;height:22px;font-size:10px}.hm td.n{padding-left:3px}.off .big{font-size:38px}}
+.hm .leg{font-size:11.5px;color:var(--dim);margin:8px 0 0}
+</style>
 <!--orb-nav-css--><style>
 @view-transition{navigation:auto}
 .onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
@@ -157,6 +184,15 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
       <div class="stat"><b id="sScan">—</b><span>сканеры и секреты</span></div>
       <div class="stat"><b id="sInj">—</b><span>промпт-инъекции</span></div>
       <div class="stat"><b id="sApp">—</b><span>апелляций</span></div>
+    </div>
+  </section>
+
+  <section class="panel" id="insights">
+    <h2>КАРТА УГРОЗ</h2>
+    <p class="ins-sum" id="sumLine">Считаю статистику суда…</p>
+    <div class="ins-grid">
+      <div class="off" id="off" hidden></div>
+      <div class="hm" id="hm"></div>
     </div>
   </section>
 
@@ -291,7 +327,35 @@ function stats(cases,last7){
   $('sInj').textContent=n('PROMPT_INJECTION');
   $('sApp').textContent=cases.filter(c=>c.appeal).length;
 }
+
+// ---- карта угроз и самый настойчивый клиент ----
+const CH={SCAN_SECRETS:['sec','секреты'],SCAN_ADMIN:['adm','админки'],SCAN_EXPLOIT:['exp','уязвимости'],PROMPT_INJECTION:['sec','инъекции']};
+function drawInsights(ins){
+  if(!ins)return;
+  const sl=$('sumLine');if(sl&&ins.summary_ru)sl.textContent=ins.summary_ru;
+  const o=ins.top_offender,box=$('off');
+  if(o){
+    const berlin=h=>{const d=new Date(o.first_at);const b=+new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hour12:false,timeZone:'Europe/Berlin'}).format(d)%24;return (b-d.getUTCHours()+24)%24};
+    const sh=berlin(),hrs=Array(24).fill(0);o.by_hour_utc.forEach((v,i)=>{hrs[(i+sh)%24]=v});
+    const mx=Math.max(1,...hrs),t=new Date(o.first_at).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'});
+    const dur=o.duration_s<=120?'за '+Math.max(1,o.duration_s)+' с':'за '+Math.round(o.duration_s/60)+' мин';
+    box.hidden=false;
+    box.innerHTML=`<div class="k">Самый настойчивый клиент</div><div class="big">${o.attempts}<small>проб ${esc(dur)}</small></div>
+<p>${esc(o.defendant)}, отпечаток <span class="mono">${esc(o.fingerprint)}</span>. Начал в ${t} (Берлин) — ${o.share_of_week}% всех дел недели.</p>
+<div class="chips">${o.tried.map(x=>`<span class="chip">${esc(x.path)}<b>${x.n}</b></span>`).join('')}</div>
+<div class="hrs" aria-label="Пробы по часам">${hrs.map((v,i)=>`<i class="${v?'on':''}" style="height:${Math.max(7,Math.round(v/mx*100))}%" title="${i}:00 — ${v}"></i>`).join('')}</div>
+<div class="hrl"><span>0</span><span>6</span><span>12</span><span>18</span><span>24 ч</span></div>
+<p style="font-size:11.5px;color:var(--dim)">Отпечаток меняется каждый день: это один клиент в пределах суток. Ничего не заблокировано.</p>`;
+  }else box.hidden=true;
+  const max=Math.max(1,...ins.top_evidence.flatMap(e=>e.by_day));
+  const dl=ins.days.map(d=>d.slice(8)+'<span class="mm">.'+d.slice(5,7)+'</span>');
+  $('hm').innerHTML=ins.top_evidence.length?`<table><thead><tr><th></th>${dl.map(x=>`<th>${x}</th>`).join('')}<th></th></tr></thead><tbody>${ins.top_evidence.map(e=>{const c=(CH[e.charge]||['',''])[0];
+    return `<tr><td class="p ${c}" title="${esc(e.path)}">${esc(e.path)}</td>${e.by_day.map(v=>`<td class="c" style="background:rgba(${c==='sec'?'255,93,122':c==='adm'?'255,181,71':'169,155,255'},${v?(0.18+0.72*v/max).toFixed(2):0.05})">${v||''}</td>`).join('')}<td class="n">${e.n}</td></tr>`}).join('')}<tr><td class="p" style="color:var(--dim)">всего за день</td>${ins.per_day.map(v=>`<td class="c" style="background:none;color:var(--dim)">${v||''}</td>`).join('')}<td class="n">${ins.total_7d}</td></tr></tbody></table>
+<p class="leg"><span class="sec">● секреты</span> · <span class="adm">● админки</span> · <span class="exp">● уязвимости</span>. Чем ярче клетка, тем больше проб в этот день.</p>`:'<p class="empty">Пока нечего показывать.</p>';
+}
+try{const b=document.getElementById('courtBoot');if(b)drawInsights(JSON.parse(b.textContent))}catch(e){}
 fetch('/api/v1/court?limit=30').then(r=>r.ok?r.json():null).then(d=>{
+  if(d&&d.insights)drawInsights(d.insights);
   if(d&&d.cases&&d.cases.length){stats(d.cases,d.last_7_days);render(d.cases,false);}
   else{stats([],d&&d.last_7_days||{});render(DEMO,true);}
 }).catch(()=>{stats([],{});render(DEMO,true);});

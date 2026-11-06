@@ -117,6 +117,74 @@ function caseCard(r) {
   return c;
 }
 
+// ---------- аналитика суда: рецидивист, карта угроз ----------
+// Чистая функция: принимает строки court_cases, ничего не читает сама (удобно проверять на живых данных).
+export function buildInsights(rows, now = Date.now()) {
+  const DAY = 864e5, since = now - 7 * DAY;
+  const r7 = rows.filter((r) => r.ts > since);
+  const dayKey = (t) => new Date(t).toISOString().slice(0, 10);
+  const days = [];
+  for (let i = 6; i >= 0; i--) days.push(dayKey(now - i * DAY));
+  const perDay = Object.fromEntries(days.map((d) => [d, 0]));
+  for (const r of r7) { const d = dayKey(r.ts); if (d in perDay) perDay[d]++; }
+  // улики: нормализуем «/.env.production» → «/.env*», «/actuator/env» → «/actuator/*»
+  const norm = (e) => String(e || "").split("?")[0].replace(/^(\/\.env)[.\w-]*$/i, "$1*").replace(/^(\/actuator)\/.*$/i, "$1/*").replace(/^(\/wp-(content|includes|admin))\/.*$/i, "$1/*").slice(0, 60);
+  const ev = new Map();
+  for (const r of r7) { const k = norm(r.evidence); const o = ev.get(k) || { path: k, n: 0, charge: r.charge, perDay: {} }; o.n++; const d = dayKey(r.ts); o.perDay[d] = (o.perDay[d] || 0) + 1; ev.set(k, o); }
+  const topEvidence = [...ev.values()].sort((a, b) => b.n - a.n).slice(0, 8).map((o) => ({ path: o.path, n: o.n, charge: o.charge, by_day: days.map((d) => o.perDay[d] || 0) }));
+  // рецидивист: отпечаток меняется каждый день, поэтому ищем самый активный отпечаток за неделю (в рамках одних суток)
+  const fp = new Map();
+  for (const r of r7) { const k = dayKey(r.ts) + "|" + r.fp; const o = fp.get(k) || { fp: r.fp, day: dayKey(r.ts), defendant: r.defendant, rows: [] }; o.rows.push(r); fp.set(k, o); }
+  const top = [...fp.values()].sort((a, b) => b.rows.length - a.rows.length)[0];
+  let offender = null;
+  if (top && top.rows.length >= 2) {
+    const hours = Array(24).fill(0), ch = {};
+    for (const r of top.rows) { hours[new Date(r.ts).getUTCHours()]++; ch[r.charge] = (ch[r.charge] || 0) + 1; }
+    const ts = top.rows.map((r) => r.ts), tev = new Map();
+    for (const r of top.rows) { const k = norm(r.evidence); tev.set(k, (tev.get(k) || 0) + 1); }
+    offender = { fingerprint: top.fp, day: top.day, defendant: top.defendant, attempts: top.rows.length,
+      first_at: new Date(Math.min(...ts)).toISOString(), last_at: new Date(Math.max(...ts)).toISOString(), duration_s: Math.round((Math.max(...ts) - Math.min(...ts)) / 1000),
+      by_charge: ch, tried: [...tev.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([path, n]) => ({ path, n })),
+      by_hour_utc: hours,
+      share_of_week: Math.round((top.rows.length / Math.max(1, r7.length)) * 100),
+      note: "The fingerprint changes every day, so this is one client within one day." };
+  }
+  const by = {}; for (const r of r7) by[r.charge] = (by[r.charge] || 0) + 1;
+  const total = r7.length;
+  const lead = topEvidence[0];
+  const summary_ru = total
+    ? `За 7 дней: ${total} дел. Чаще всего ищут ${lead.path} (${lead.n}).` + (offender ? ` Самый настойчивый клиент: ${offender.attempts} проб${offender.duration_s <= 120 ? " за " + Math.max(1, offender.duration_s) + " с" : ""} (${offender.share_of_week}% всех дел).` : "")
+    : "За 7 дней дел нет.";
+  const summary_en = total
+    ? `Last 7 days: ${total} cases. Most probed: ${lead.path} (${lead.n}).` + (offender ? ` Most persistent client: ${offender.attempts} attempts on ${offender.day} (${offender.share_of_week}% of all cases).` : "")
+    : "No cases in the last 7 days.";
+  return { total_7d: total, by_charge: by, appeals_7d: r7.filter((r) => r.appeal).length, days, per_day: days.map((d) => perDay[d]), top_evidence: topEvidence, top_offender: offender, summary_ru, summary_en };
+}
+async function courtInsights(env) {
+  await ensure(env);
+  const rows = (await env.DB.prepare("SELECT ts, fp, defendant, charge, evidence, appeal FROM court_cases WHERE ts>?1 ORDER BY ts DESC LIMIT 500").bind(Date.now() - 7 * 864e5).all()).results || [];
+  return buildInsights(rows);
+}
+
+// Страница /tools/court: сервер сам подставляет счётчики и снимок данных, чтобы не было пустых «—»
+// (их видели и люди до загрузки скрипта, и агенты без JS).
+async function courtPage(request, env) {
+  const a = await env.ASSETS.fetch(new Request(new URL("/tools/court", request.url), { headers: request.headers }));
+  if (!a.ok || !(a.headers.get("content-type") || "").includes("text/html")) return a;
+  let ins = null; try { ins = env.DB ? await courtInsights(env) : null; } catch (e) {}
+  if (!ins) return a;
+  const sc = (ins.by_charge.SCAN_ADMIN || 0) + (ins.by_charge.SCAN_SECRETS || 0) + (ins.by_charge.SCAN_EXPLOIT || 0);
+  const set = (v) => ({ element(e) { e.setInnerContent(String(v)); } });
+  const boot = JSON.stringify(ins).replace(/</g, "\\u003c");
+  const r = new HTMLRewriter()
+    .on("#sTotal", set(ins.total_7d)).on("#sScan", set(sc)).on("#sInj", set(ins.by_charge.PROMPT_INJECTION || 0)).on("#sApp", set(ins.appeals_7d))
+    .on("#sumLine", set(ins.summary_ru))
+    .on("head", { element(e) { e.append(`<script id="courtBoot" type="application/json">${boot}</script>`, { html: true }); } })
+    .transform(a);
+  const h = new Headers(r.headers); h.set("Cache-Control", "public, max-age=60");
+  return new Response(r.body, { status: r.status, headers: h });
+}
+
 const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };
 const json = (o, s = 200, extra = {}) => new Response(JSON.stringify(o, null, 2), { status: s, headers: { "content-type": "application/json; charset=utf-8", ...H, ...extra } });
 
@@ -127,6 +195,9 @@ export async function courtGate(request, env, ctx) {
   if (url.pathname === "/api/v1/investigator/analyze") {
     try { return await investigatorApi(request, env, ctx); }
     catch (e) { return json({ error: "investigator error", detail: String(e && e.message || e).slice(0, 200) }, 500); }
+  }
+  if (url.pathname === "/tools/court" && request.method === "GET") {
+    try { return await courtPage(request, env); } catch (e) { return null; }
   }
   if (url.pathname.startsWith("/api/v1/court")) {
     try { return await courtApi(request, env, url); }
@@ -166,6 +237,7 @@ async function courtApi(request, env, url) {
       code: Object.fromEntries(Object.entries(ARTICLES).map(([k, v]) => [k, v.en])),
       last_7_days: Object.fromEntries(stats.map((s) => [s.charge, s.n])),
       appeal: "POST https://orbstudio.org/api/v1/court/appeal {case_id, text}",
+      insights: await courtInsights(env),
       cases: rows.map(caseCard),
     }, 200, { "Cache-Control": "public, max-age=60" });
   }
