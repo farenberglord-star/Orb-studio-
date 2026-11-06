@@ -178,7 +178,7 @@ fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
   const box=$('tracks');
   if(!d||!d.tracks||!d.tracks.length){box.innerHTML='<p class="lead">Скоро здесь появится первый трек.</p>';return;}
   box.innerHTML=d.tracks.map(t=>`<article class="trk">
-    <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Обложка трека ${esc(t.title)}" loading="lazy">`:''}<button type="button">▶ Слушать</button></div>${(t.gallery||[]).length?`<div class="gal">${[t.cover,...t.gallery].filter(Boolean).map((g,i)=>`<img src="${esc(g.replace('https://orbstudio.org',''))}" alt="Фото ${i+1} к треку ${esc(t.title)}" loading="lazy"${i?'':' class="on"'}>`).join('')}</div>`:''}
+    <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Обложка трека ${esc(t.title)}" loading="lazy"${t.cover_pos?` style="object-position:${esc(t.cover_pos)}"`:''}>`:''}<button type="button">▶ Слушать</button></div>${(t.gallery||[]).length?`<div class="gal">${[t.cover,...t.gallery].filter(Boolean).map((g,i)=>`<img src="${esc(g.replace('https://orbstudio.org',''))}" alt="Фото ${i+1} к треку ${esc(t.title)}" loading="lazy"${i?'':' class="on"'}>`).join('')}</div>`:''}
     <div class="in">
       <h2>${esc(t.title)}</h2>
       <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase())].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
