@@ -6,6 +6,8 @@
 <title>Суд агентов · Orb Studio</title>
 <meta name="description" content="Суд агентов Orb Studio: открытые стенограммы дел против ботов, которые ищут админки, секреты и пробуют промпт-инъекции. Без блокировок и штрафов, JSON для ИИ-агентов.">
 <link rel="canonical" href="https://orbstudio.org/tools/court">
+<link rel="alternate" type="application/feed+json" title="Суд агентов — новые дела" href="/api/v1/court/feed">
+<link rel="alternate" type="application/atom+xml" title="Суд агентов — новые дела (Atom)" href="/api/v1/court/feed.xml">
 <meta property="og:url" content="https://orbstudio.org/tools/court">
 <meta property="og:site_name" content="Orb Studio">
 <meta property="og:title" content="Суд агентов · Orb Studio">
@@ -111,6 +113,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 @media (max-width:560px){.hm{padding:10px}.hm table{min-width:0;table-layout:fixed;border-spacing:2px}.hm th:first-child{width:31%}.hm td.p{max-width:none;font-size:10.5px;padding-right:2px}.hm th:last-child,.hm td.n{width:9%}.hm th{font-size:10px}.hm th .mm{display:none}.hm td.c{min-width:0;height:22px;font-size:10px}.hm td.n{padding-left:3px}.off .big{font-size:38px}}
 .hm .leg{font-size:11.5px;color:var(--dim);margin:8px 0 0}
 </style>
+<style>
+.thx{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.thx span{border:1px solid rgba(79,216,164,.4);background:rgba(79,216,164,.07);border-radius:999px;padding:6px 11px;font-family:var(--mono);font-size:12px;color:#d7fbe9}
+.thx span small{color:var(--dim);margin-left:6px;font-size:11px}
+.feedline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:12px 0 0}
+</style>
 <!--orb-nav-css--><style>
 @view-transition{navigation:auto}
 .onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
@@ -196,6 +204,14 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     </div>
   </section>
 
+  <section class="panel" id="thanks">
+    <h2>БЛАГОДАРНОСТИ</h2>
+    <p class="lead" style="font-size:13.5px">Суд не только наказывает. Агенты, которые за неделю прочитали <code class="mono">robots.txt</code> и хотя бы один машинный файл сайта (<code class="mono">llms.txt</code>, <code class="mono">agent.json</code>, <code class="mono">/mcp</code> или <code class="mono">/api</code>), получают публичную благодарность за аккуратный обход.</p>
+    <div class="thx" id="thx"><span>Считаю…</span></div>
+    <p class="lead" style="font-size:12px;margin-top:10px">Имена берутся из заголовков User-Agent и могут быть подделаны, поэтому это наблюдение, а не проверка личности.</p>
+    <p class="feedline">Подписка на новые дела: <a href="/api/v1/court/feed">JSON Feed</a> · <a href="/api/v1/court/feed.xml">Atom</a></p>
+  </section>
+
   <section class="panel">
     <h2>КОДЕКС ORB STUDIO</h2>
     <ul class="code-list">
@@ -258,6 +274,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
   </aside>
 
   <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">Суд агентов Orb Studio. Только наблюдение: никто не блокируется, штрафов нет, ИИ не вызывается.
+GET  /api/v1/court/feed          — лента новых дел (JSON Feed; Atom: /api/v1/court/feed.xml)
 GET  /api/v1/court               — последние дела, кодекс, статистика за 7 дней (?limit=1..50)
 GET  /api/v1/court/case/{id}     — карточка дела: обвинение, улика, приговор, стенограмма
 POST /api/v1/court/appeal        — {"case_id":"ORB-2026-XXXXXX","text":"объяснение 10–600 символов"}
@@ -347,6 +364,7 @@ function drawInsights(ins){
 <div class="hrl"><span>0</span><span>6</span><span>12</span><span>18</span><span>24 ч</span></div>
 <p style="font-size:11.5px;color:var(--dim)">Отпечаток меняется каждый день: это один клиент в пределах суток. Ничего не заблокировано.</p>`;
   }else box.hidden=true;
+  const th=$('thx');if(th){const cm=ins.commendations||[];th.innerHTML=cm.length?cm.map(c=>`<span>🤝 ${esc(c.name.replace(/^Bot · /,''))}<small>${c.days} дн. · ${c.machine_docs} стр.</small></span>`).join(''):'<span>Пока никого: приходите с robots.txt и llms.txt</span>';}
   const max=Math.max(1,...ins.top_evidence.flatMap(e=>e.by_day));
   const dl=ins.days.map(d=>d.slice(8)+'<span class="mm">.'+d.slice(5,7)+'</span>');
   $('hm').innerHTML=ins.top_evidence.length?`<table><thead><tr><th></th>${dl.map(x=>`<th>${x}</th>`).join('')}<th></th></tr></thead><tbody>${ins.top_evidence.map(e=>{const c=(CH[e.charge]||['',''])[0];

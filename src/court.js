@@ -160,10 +160,46 @@ export function buildInsights(rows, now = Date.now()) {
     : "No cases in the last 7 days.";
   return { total_7d: total, by_charge: by, appeals_7d: r7.filter((r) => r.appeal).length, days, per_day: days.map((d) => perDay[d]), top_evidence: topEvidence, top_offender: offender, summary_ru, summary_en };
 }
+// «Благодарности»: имена из заголовков User-Agent, которые за неделю читали robots.txt и машинные файлы сайта.
+// Это наблюдение, а не проверка личности: имя в User-Agent можно подделать.
+export function buildCommendations(rows) {
+  return (rows || []).map((r) => ({ name: String(r.name), days: r.days, machine_docs: r.mach, requests: r.n, robots_txt: true })).slice(0, 12);
+}
+async function courtCommendations(env) {
+  try {
+    const rows = (await env.DB.prepare(
+      "SELECT name, COUNT(DISTINCT CASE WHEN page='/robots.txt' THEN day END) AS rb, COUNT(DISTINCT CASE WHEN page IN ('/llms.txt','/.well-known/agent.json','/mcp') OR page LIKE '/api/v1/%' THEN page END) AS mach, COUNT(DISTINCT day) AS days, SUM(n) AS n " +
+      "FROM hits WHERE kind='agent' AND day>=date('now','-7 day') AND name NOT LIKE 'Script ·%' AND name NOT LIKE 'EMO ·%' AND name NOT LIKE 'MCP ·%' AND name NOT LIKE '%OrbStudio%' AND name NOT IN ('Other bot','') " +
+      "GROUP BY name HAVING rb>=1 AND mach>=1 ORDER BY days DESC, mach DESC, n DESC LIMIT 12").all()).results || [];
+    return buildCommendations(rows);
+  } catch (e) { return []; }
+}
+
+// Лента дел: JSON Feed 1.1 и Atom — чтобы агенты могли подписаться на новые дела.
+const xe = (s) => String(s == null ? "" : s).replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" }[c]));
+function feedItem(c) {
+  const title = `${c.case_id} · ${c.defendant} · ${c.article_ru} · ${c.verdict_ru}`;
+  const text = (c.transcript || []).map((l) => l.ru).join("\n");
+  return { id: c.case_id, url: c.url, title, date: c.filed_at, text, tags: [c.charge, c.verdict] };
+}
+function feedJson(cases) {
+  return { version: "https://jsonfeed.org/version/1.1", title: "Суд агентов Orb Studio", home_page_url: "https://orbstudio.org/tools/court", feed_url: "https://orbstudio.org/api/v1/court/feed", language: "ru",
+    description: "Новые дела против ботов-сканеров. Только наблюдение: никто не блокируется.",
+    items: cases.map((c) => { const i = feedItem(c); return { id: i.id, url: i.url, title: i.title, date_published: i.date, content_text: i.text, tags: i.tags }; }) };
+}
+function feedAtom(cases) {
+  const items = cases.map(feedItem);
+  return `<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom"><title>Суд агентов Orb Studio</title><id>https://orbstudio.org/tools/court</id><link href="https://orbstudio.org/tools/court"/><link rel="self" href="https://orbstudio.org/api/v1/court/feed.xml"/><updated>${xe(items[0] ? items[0].date : new Date().toISOString())}</updated>` +
+    items.map((i) => `<entry><id>${xe(i.url)}</id><title>${xe(i.title)}</title><link href="${xe(i.url)}"/><updated>${xe(i.date)}</updated><summary>${xe(i.text)}</summary></entry>`).join("") + "</feed>";
+}
+
 async function courtInsights(env) {
   await ensure(env);
   const rows = (await env.DB.prepare("SELECT ts, fp, defendant, charge, evidence, appeal FROM court_cases WHERE ts>?1 ORDER BY ts DESC LIMIT 500").bind(Date.now() - 7 * 864e5).all()).results || [];
-  return buildInsights(rows);
+  const ins = buildInsights(rows);
+  ins.commendations = await courtCommendations(env);
+  ins.commendations_rule = "Thanks: agents that read robots.txt and at least one machine-readable file (llms.txt, agent.json, /mcp or /api) in the last 7 days. Names come from User-Agent headers and can be spoofed, so this is an observation, not a verification.";
+  return ins;
 }
 
 // Страница /tools/court: сервер сам подставляет счётчики и снимок данных, чтобы не было пустых «—»
@@ -227,6 +263,11 @@ async function courtApi(request, env, url) {
     await env.DB.prepare("UPDATE court_cases SET appeal=?1, appeal_ts=?2 WHERE id=?3").bind(text, Date.now(), id).run();
     return json({ ok: true, case_id: id, status: "APPEAL_FILED", note: "Your appeal is published with the case. Nothing is blocked either way." });
   }
+  if (url.pathname === "/api/v1/court/feed" || url.pathname === "/api/v1/court/feed.xml") {
+    const rows = (await env.DB.prepare("SELECT * FROM court_cases ORDER BY ts DESC LIMIT 50").all()).results || [];
+    const cases = rows.map(caseCard), xml = url.pathname.endsWith(".xml");
+    return new Response(xml ? feedAtom(cases) : JSON.stringify(feedJson(cases), null, 2), { headers: { "content-type": xml ? "application/atom+xml; charset=utf-8" : "application/feed+json; charset=utf-8", ...H, "Cache-Control": "public, max-age=300" } });
+  }
   if (url.pathname === "/api/v1/court" || url.pathname === "/api/v1/court/cases") {
     const lim = Math.min(50, Math.max(1, Number(url.searchParams.get("limit")) || 20));
     const rows = (await env.DB.prepare("SELECT * FROM court_cases ORDER BY ts DESC LIMIT ?1").bind(lim).all()).results || [];
@@ -237,6 +278,7 @@ async function courtApi(request, env, url) {
       code: Object.fromEntries(Object.entries(ARTICLES).map(([k, v]) => [k, v.en])),
       last_7_days: Object.fromEntries(stats.map((s) => [s.charge, s.n])),
       appeal: "POST https://orbstudio.org/api/v1/court/appeal {case_id, text}",
+      feed: { json: "https://orbstudio.org/api/v1/court/feed", atom: "https://orbstudio.org/api/v1/court/feed.xml" },
       insights: await courtInsights(env),
       cases: rows.map(caseCard),
     }, 200, { "Cache-Control": "public, max-age=60" });
@@ -368,3 +410,4 @@ export const INVESTIGATE_TOOL = {
   inputSchema: { type: "object", required: ["input_text"], properties: { input_text: { type: "string", minLength: 10, maxLength: 8000, description: "The suspicious text" }, source_url: { type: "string", description: "Where the text came from (optional; only the domain is echoed back, nothing is stored)" } }, additionalProperties: false },
   annotations: { readOnlyHint: false, openWorldHint: false },
 };
+export { feedJson, feedAtom };
