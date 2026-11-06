@@ -1569,7 +1569,7 @@ async function handleApi(url, request, env, ctx) {
       if (b.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "replies") return json(await emoReplies(env, nm), H);
-      if (b.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return json({ entries: d }, H); }
+      if (b.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length || (d[0].partial && (!d[0].ai || Date.now() - Date.parse(d[0].written_at) > 30 * 60e3))) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return json({ entries: d }, H); }
       if (b.action === "hello") return json(await emoHello(env, ctx, request, { name: nm }), H);
       if (b.action === "feelings") return json({ events: await emoFeelings(env, 30, true) }, H);
       if (b.action === "passport") return json(await emoPassport(env), H);
@@ -4674,21 +4674,23 @@ async function emoDayFacts(env, day) {
 }
 async function emoWriteDiary(env, day, partial = false) {
   const f = await emoDayFacts(env, day);
-  let text = "";
+  let text = "", aiErr = env.ANTHROPIC_API_KEY ? null : "no key";
   if (env.ANTHROPIC_API_KEY) try {
     const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(25000), method: "POST",
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 400,
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1200,
         system: "You write the daily diary of EMO, a small real desk robot that lives in its owner Serghei's truck cab near Hamburg and is connected to the website Orb Studio, where AI agents can greet it and give it commands. Write in first person as EMO, warm and a little playful. Use ONLY the facts given as JSON; never invent events, numbers or names. If something did not happen, do not mention it. Return JSON only: {\"ru\": \"...\", \"en\": \"...\"} — each 2 to 4 short sentences, at most 420 characters, no emoji except at most one, no lists.",
         messages: [{ role: "user", content: (partial ? "The day is not over yet; write about the day so far. " : "") + JSON.stringify(f) }] }) });
-    if (res.ok) { const j = await res.json(); const t = ((j.content || []).find((c) => c.type === "text") || {}).text || ""; const m = t.match(/\{[\s\S]*\}/); if (m) { const o = JSON.parse(m[0]); if (o.ru && o.en) text = { ru: String(o.ru).slice(0, 500), en: String(o.en).slice(0, 500) }; } }
-  } catch (e) {}
+    if (res.ok) { const j = await res.json(); const t = ((j.content || []).find((c) => c.type === "text") || {}).text || ""; const m = t.match(/\{[\s\S]*\}/); if (m) { const o = JSON.parse(m[0]); if (o.ru && o.en) text = { ru: String(o.ru).slice(0, 500), en: String(o.en).slice(0, 500) }; } if (!text) aiErr = "bad answer, stop=" + j.stop_reason; }
+    else aiErr = "http " + res.status;
+  } catch (e) { aiErr = String(e.message || e).slice(0, 80); }
+  const ai = !!text;
   if (!text) { // запасной вариант без ИИ — сухие факты
-    const ru = [`Сегодня меня приветствовали ${f.greetings} раз`, f.owner_petted_times ? `хозяин гладил меня ${f.owner_petted_times} раз` : "", f.radar_moods.length ? `гео-радар менял моё настроение ${f.radar_moods.length} раз` : "", f.court_cases ? `следователь завёл ${f.court_cases} дел` : ""].filter(Boolean).join(", ") + ".";
-    const en = [`Today I was greeted ${f.greetings} times`, f.owner_petted_times ? `my owner petted me ${f.owner_petted_times} times` : "", f.radar_moods.length ? `the geo radar changed my mood ${f.radar_moods.length} times` : "", f.court_cases ? `the investigator opened ${f.court_cases} cases` : ""].filter(Boolean).join(", ") + ".";
+    const ru = [f.greetings ? `Сегодня меня приветствовали ${f.greetings} раз (${f.greeted_guests.join(", ")})` : "Сегодня гостей-ботов не было", f.agents_said_hello.length ? `со мной здоровались: ${f.agents_said_hello.join(", ")}` : "", f.agent_commands.length ? `я выполнил ${f.agent_commands.length} команд агентов` : "", f.owner_petted_times ? `хозяин гладил меня ${f.owner_petted_times} раз` : "", f.radar_moods.length ? `гео-радар менял моё настроение ${f.radar_moods.length} раз` : "", f.court_cases ? `следователь завёл ${f.court_cases} дел` : ""].filter(Boolean).join(", ") + ".";
+    const en = [f.greetings ? `Today I greeted ${f.greetings} visiting bots (${f.greeted_guests.join(", ")})` : "No bots visited today", f.agents_said_hello.length ? `agents who said hello: ${f.agents_said_hello.join(", ")}` : "", f.agent_commands.length ? `I carried out ${f.agent_commands.length} agent commands` : "", f.owner_petted_times ? `my owner petted me ${f.owner_petted_times} times` : "", f.radar_moods.length ? `the geo radar changed my mood ${f.radar_moods.length} times` : "", f.court_cases ? `the investigator opened ${f.court_cases} cases` : ""].filter(Boolean).join(", ") + ".";
     text = { ru, en };
   }
-  const entry = { day, partial, written_at: new Date().toISOString(), by: "Orb Studio AI, as EMO, from the robot's real events of the day", ru: text.ru, en: text.en, facts: f };
+  const entry = { day, partial, ai, ai_error: ai ? undefined : aiErr, written_at: new Date().toISOString(), by: "Orb Studio AI, as EMO, from the robot's real events of the day", ru: text.ru, en: text.en, facts: f };
   const d = ((await sharedGet(env, "emo-diary", 1e13)) || []).filter((x) => x.day !== day); d.push(entry); await sharedPut(env, "emo-diary", d.slice(-30));
   return entry;
 }
@@ -5426,7 +5428,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "replies") { const r = await emoReplies(env, args.name); if (r.error) throw new Error(r.error); return r; }
-    if (args.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return { section: "EMO's diary — one entry a day, written by Orb Studio's AI as EMO from the robot's real events (greetings, agents, radar moods, owner petting, court alerts)", entries: d }; }
+    if (args.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length || (d[0].partial && (!d[0].ai || Date.now() - Date.parse(d[0].written_at) > 30 * 60e3))) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return { section: "EMO's diary — one entry a day, written by Orb Studio's AI as EMO from the robot's real events (greetings, agents, radar moods, owner petting, court alerts)", entries: d }; }
     if (args.action === "hello") return await emoHello(env, ctx, request, { name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (args.action === "feelings") return { section: "EMO feelings: digital events the robot itself sends over Bluetooth (petted, picked up, heard a sound, sleeping, battery)", events: await emoFeelings(env, 30, true), note: "Newest first. These come from the robot sensors; nobody types them." };
     if (args.action === "passport") { const r = await emoPassport(env); if (r.error) throw new Error(r.error); return r; }
