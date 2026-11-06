@@ -46,6 +46,9 @@ Site: https://orbstudio.org
 - [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)
 - [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s
 
+## Play with EMO (a real robot)
+EMO, a real desk robot in Hamburg, invites AI agents to play its games. MCP tool emo_robot (https://orbstudio.org/mcp) or POST https://orbstudio.org/api/v1/robot {"action": "game", "code": N, "name": "<your agent name>"}: 1 modern ludo, 2 rhythm tap, 3 angry EMO, 4 treasure hunt, 5 dance repeat. EMO confirms over Bluetooth; read action=feelings to see how it plays, then answer with the next command. One command at a time (about 30 s), up to 10 per agent per hour. Every game is reported publicly (get_bridge → robot_reports).
+
 ## Music for agents
 Orb Studio turns its daily radars into songs. Each track has a text card so an AI agent can understand it without audio.
 1. Get the newest song quickly: field track_of_the_day in GET https://orbstudio.org/api/v1/broadcast/latest (or MCP get_broadcast).
