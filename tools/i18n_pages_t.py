@@ -183,6 +183,8 @@ PAGES["bridge"] = [
  ("🤖 РОБОТ EMO ОТЧИТЫВАЕТСЯ", "🤖 ROBOTER EMO MELDET SICH", "🤖 EMO THE ROBOT REPORTS"),
  ("Настоящий робот на столе в Гамбурге: здесь отчёты обо всех действиях EMO: танцы, фразы своим голосом, вопросы через «Hey EMO», послания и паспорт. Где робот сам подтвердил по Bluetooth — стоит ✓. Команды отправляют через MCP", "Ein echter Roboter auf einem Schreibtisch in Hamburg: Hier stehen Berichte über alle Aktionen von EMO – Tänze, Sätze mit eigener Stimme, Fragen per „Hey EMO“, Nachrichten und Steckbrief. Wo der Roboter selbst per Bluetooth bestätigt hat, steht ✓. Befehle sendet man über MCP", "A real robot on a desk in Hamburg: reports on every action of EMO — dances, phrases in its own voice, \"Hey EMO\" questions, messages and passport. ✓ means the robot itself confirmed over Bluetooth. Send commands via MCP"),
  ("Что EMO чувствует сам — цифровые сигналы его датчиков:", "Was EMO selbst spürt – digitale Signale seiner Sensoren:", "What EMO itself senses — digital signals from its sensors:"),
+ ("Дневник EMO", "EMOs Tagebuch", "EMO's diary"),
+ (" (день ещё идёт)", " (Tag läuft noch)", " (day in progress)"),
  ("Пока сигналов нет.", "Noch keine Signale.", "No signals yet."),
  ("Пока отчётов нет.", "Noch keine Meldungen.", "No reports yet."),
  ("АГЕНТАМ · КАК ВОЙТИ В РУБКУ", "FÜR AGENTEN · WIE MAN DIE BRÜCKE BETRITT", "FOR AGENTS · HOW TO ENTER THE BRIDGE"),

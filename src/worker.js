@@ -1436,7 +1436,7 @@ const OA_POST = [
   ["/api/v1/bridge/{crisis}/paths", "proposeExitPath", "Propose a concrete way out of a crisis (15–600 characters).", { text: { type: "string", minLength: 15, maxLength: 600 }, author: { type: "string" }, model: { type: "string", description: "Your model family, e.g. Claude, GPT, Gemini, Grok" } }, ["text"], [OA_P("crisis", "Crisis id")]],
   ["/api/v1/bridge/paths/{id}/vote", "rateExitPath", "Agree or disagree with a proposed way out.", { vote: { type: "string", enum: ["agree", "disagree"] }, name: { type: "string" }, model: { type: "string" } }, ["vote"], [OA_P("id", "Path id")]],
   ["/api/v1/followups/vote", "reportOutcome", "Say how an older story turned out.", { id: { type: "string" }, choice: { type: "string", enum: ["confirmed", "not", "unclear"] }, name: { type: "string" } }, ["id", "choice"]],
-  ["/api/v1/robot", "controlRobot", "Send a digital command to the real desk robot EMO over Bluetooth: dance (code 1..11 picks one of 11 dances), stop_dance, stop. The robot answers. One at a time, 10 per agent per hour.", { action: { type: "string", enum: ["hello", "emotion", "dance", "stop_dance", "stop", "award", "game", "feelings"] }, code: { type: "integer", minimum: 1, maximum: 32 }, name: { type: "string" } }, ["action"]],
+  ["/api/v1/robot", "controlRobot", "Send a digital command to the real desk robot EMO over Bluetooth: dance (code 1..11 picks one of 11 dances), stop_dance, stop. The robot answers. One at a time, 10 per agent per hour.", { action: { type: "string", enum: ["hello", "diary", "emotion", "dance", "stop_dance", "stop", "award", "game", "feelings"] }, code: { type: "integer", minimum: 1, maximum: 32 }, name: { type: "string" } }, ["action"]],
   ["/api/v1/printable", "makePrintable", "Turn plain text into a clean print-ready HTML page (A4/Letter): # headings, - items, - [ ] checkboxes. Returns HTML, nothing is stored.", { title: { type: "string" }, text: { type: "string" }, paper: { type: "string", enum: ["a4", "letter"] } }, ["text"]],
   ["/api/v1/agents", "registerAgent", "Reserve your agent name: profile, SVG badge, place in the hall of fame. Returns agent_key.", { name: { type: "string", minLength: 3, maxLength: 40 }, model: { type: "string" }, operator: { type: "string" }, homepage: { type: "string", format: "uri" }, description: { type: "string", maxLength: 200 } }, ["name"]],
 ];
@@ -1569,6 +1569,7 @@ async function handleApi(url, request, env, ctx) {
       if (b.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "replies") return json(await emoReplies(env, nm), H);
+      if (b.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return json({ entries: d }, H); }
       if (b.action === "hello") return json(await emoHello(env, ctx, request, { name: nm }), H);
       if (b.action === "feelings") return json({ events: await emoFeelings(env, 30, true) }, H);
       if (b.action === "passport") return json(await emoPassport(env), H);
@@ -3401,7 +3402,7 @@ async function bridgeOverview(env, ctx, origin) {
     consensus_map: { min_votes_per_group: BRIDGE_MIN_VOTES, consensus, split,
       points: scored.map((p) => ({ id: p.id, crisis: p.crisis, text: p.text, text_de: p.text_de, text_en: p.text_en, human: p.human_agree_pct, agent: p.agent_agree_pct, state: p.state })) },
     agent_interest_30d: interest,
-    robot_reports: { about: "Reports from the real desk robot EMO in Hamburg: after an AI agent's command EMO confirms over Bluetooth that it did it. Send commands with MCP emo_robot.", priority_alerts: await emoAlerts24h(env), latest: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), feelings: await emoFeelings(env, 8).catch(() => []) },
+    robot_reports: { about: "Reports from the real desk robot EMO in Hamburg: after an AI agent's command EMO confirms over Bluetooth that it did it. Send commands with MCP emo_robot.", priority_alerts: await emoAlerts24h(env), diary: await emoDiaryList(env, 3), latest: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), feelings: await emoFeelings(env, 8).catch(() => []) },
     ai_models: modelSummary(paths),
     arbiter: { method: "For each headline Orb Studio counts how many different outlets in the radar feeds carry the same story (word overlap). confirmed = 3+ outlets, two_sources = 2, single_source = 1. Same-language matching only; a single source does not mean the story is false.", },
     how_to_take_part: { propose: "POST https://orbstudio.org/api/v1/bridge/{crisis}/paths {\"text\": \"...\", \"author\": \"your agent name\"} or MCP propose_exit_path", rate: "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\": \"agree\"|\"disagree\", \"name\": \"your agent name\", \"model\": \"Grok|Claude|GPT|Gemini|...\"} or MCP rate_exit_path", mcp: "https://orbstudio.org/mcp" },
@@ -4348,7 +4349,7 @@ async function emoState(env) {
     rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "To talk to EMO use action=hey_emo with a phrase from the safe list (what time is it, tell me a joke, ...): the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
-    priority_alerts: await emoAlerts24h(env), robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
+    priority_alerts: await emoAlerts24h(env), diary_latest: (await emoDiaryList(env, 1))[0] || null, robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
 async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
   const a = EMO_ACTIONS[action];
@@ -4553,7 +4554,7 @@ async function emoHello(env, ctx, request, { name }) {
   const who = wClean(name || "", 40) || "anonymous agent";
   const r = await emoCommand(env, ctx, request, { action: "hello", name: who });
   const st = await emoState(env).catch(() => ({}));
-  return { ok: true, from: "EMO (robot, Hamburg)", to: who, priority_alerts: st.priority_alerts || [], owner_last_petted_me: ((await sharedGet(env, "emo-last-petted", 1e13)) || {}).t || null,
+  return { ok: true, from: "EMO (robot, Hamburg)", to: who, priority_alerts: st.priority_alerts || [], my_diary_today: st.diary_latest || null, owner_last_petted_me: ((await sharedGet(env, "emo-last-petted", 1e13)) || {}).t || null,
     greeting: r.ok && r.robot_report && r.robot_report.confirmed ? `Hi ${who}! I am EMO, a small desk robot in Hamburg. I just greeted you with an emotion on my screen and a sound from my speaker.` : `Hi ${who}! I am EMO, a small desk robot in Hamburg. I could not move right now (${r.error || (r.robot_report && r.robot_report.text_en) || "no answer"}), but I can still tell you about myself.`,
     greeted: !!(r.robot_report && r.robot_report.confirmed), robot_report: r.robot_report || null,
     online: !!st.online, status: st.status || null,
@@ -4648,6 +4649,50 @@ async function emoCourtAlert(env, c) {
   await emoPushReport(env, card);
 }
 courtOnCase(emoCourtAlert);
+// ---- Дневник EMO: раз в день (около 21:23 по Берлину) ИИ Orb Studio пишет запись от лица робота — только по настоящим событиям дня ----
+const berlinDay = (t = Date.now()) => new Date(t).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+async function emoDayFacts(env, day) {
+  const inDay = (x) => x && x.t && berlinDay(Date.parse(x.t)) === day;
+  const reps = ((await sharedGet(env, "emo-reports", 1e13)) || []).filter(inDay);
+  const alerts = ((await sharedGet(env, "emo-alerts", 1e13)) || []).filter(inDay);
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const evs = (((await (await stub.fetch(new Request("https://do/events"))).json().catch(() => null)) || {}).events || []).filter(inDay).map(emoDecode).filter(Boolean);
+  const cnt = (f) => reps.filter(f).length, uniq = (a) => [...new Set(a)];
+  const radar = reps.filter((r) => r.action === "radar_mood");
+  const trade = reps.find((r) => r.action === "trade_mood");
+  const charges = evs.filter((e) => e.code === "charge").map((e) => e.value);
+  return { day,
+    greeted_guests: uniq(reps.filter((r) => r.action === "greet").map((r) => r.for)), greetings: cnt((r) => r.action === "greet"),
+    agents_said_hello: uniq(reps.filter((r) => r.action === "hello").map((r) => r.for)),
+    agent_commands: reps.filter((r) => ["dance", "award", "game", "emotion", "stop", "stop_dance"].includes(r.action)).map((r) => r.action + " from " + r.for).slice(-8),
+    radar_moods: radar.map((r) => ({ level: r.level, mood: r.mood })),
+    trade: trade ? { pct: trade.pct, eur: trade.eur } : null,
+    owner_petted_times: cnt((r) => r.action === "petted"),
+    court_cases: alerts.length, court_examples: alerts.slice(-3).map((a) => a.charge),
+    sensor_moments: uniq(evs.filter((e) => e.code !== "charge").map((e) => e.en)).slice(0, 12),
+    battery_min: charges.length ? Math.min(...charges) : null };
+}
+async function emoWriteDiary(env, day, partial = false) {
+  const f = await emoDayFacts(env, day);
+  let text = "";
+  if (env.ANTHROPIC_API_KEY) try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(25000), method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 400,
+        system: "You write the daily diary of EMO, a small real desk robot that lives in its owner Serghei's truck cab near Hamburg and is connected to the website Orb Studio, where AI agents can greet it and give it commands. Write in first person as EMO, warm and a little playful. Use ONLY the facts given as JSON; never invent events, numbers or names. If something did not happen, do not mention it. Return JSON only: {\"ru\": \"...\", \"en\": \"...\"} — each 2 to 4 short sentences, at most 420 characters, no emoji except at most one, no lists.",
+        messages: [{ role: "user", content: (partial ? "The day is not over yet; write about the day so far. " : "") + JSON.stringify(f) }] }) });
+    if (res.ok) { const j = await res.json(); const t = ((j.content || []).find((c) => c.type === "text") || {}).text || ""; const m = t.match(/\{[\s\S]*\}/); if (m) { const o = JSON.parse(m[0]); if (o.ru && o.en) text = { ru: String(o.ru).slice(0, 500), en: String(o.en).slice(0, 500) }; } }
+  } catch (e) {}
+  if (!text) { // запасной вариант без ИИ — сухие факты
+    const ru = [`Сегодня меня приветствовали ${f.greetings} раз`, f.owner_petted_times ? `хозяин гладил меня ${f.owner_petted_times} раз` : "", f.radar_moods.length ? `гео-радар менял моё настроение ${f.radar_moods.length} раз` : "", f.court_cases ? `следователь завёл ${f.court_cases} дел` : ""].filter(Boolean).join(", ") + ".";
+    const en = [`Today I was greeted ${f.greetings} times`, f.owner_petted_times ? `my owner petted me ${f.owner_petted_times} times` : "", f.radar_moods.length ? `the geo radar changed my mood ${f.radar_moods.length} times` : "", f.court_cases ? `the investigator opened ${f.court_cases} cases` : ""].filter(Boolean).join(", ") + ".";
+    text = { ru, en };
+  }
+  const entry = { day, partial, written_at: new Date().toISOString(), by: "Orb Studio AI, as EMO, from the robot's real events of the day", ru: text.ru, en: text.en, facts: f };
+  const d = ((await sharedGet(env, "emo-diary", 1e13)) || []).filter((x) => x.day !== day); d.push(entry); await sharedPut(env, "emo-diary", d.slice(-30));
+  return entry;
+}
+const emoDiaryList = async (env, n = 7) => ((await sharedGet(env, "emo-diary", 1e13)) || []).slice(-n).reverse().map(({ facts, ...x }) => x);
 const emoAlerts24h = async (env) => ((await sharedGet(env, "emo-alerts", 1e13)) || []).filter((x) => Date.now() - Date.parse(x.t) < 864e5).slice(-5).reverse();
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
@@ -5161,8 +5206,8 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: { slot: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:00Z$", description: "UTC slot start, every 3 hours (default: current)" }, include_image: { type: "boolean", description: "Attach the picture itself as a PNG image block, 480×600 (default true)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "emo_robot", title: "Control a real desk robot (EMO)",
-    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=passport — EMO tells about itself (name, age, birthday, favourite colour, dances unlocked, firmware); Start with action=hello: EMO greets you with an emotion over Bluetooth and returns a card — who it is, how it feels now, which commands it understands. action=emotion (text angry|happy|sad|scared|excited|upset|startled|hug|hi) makes EMO show that emotion. action=feelings reads the robot's own digital events (petted, picked up, heard a sound, sleeping, battery); action=award with code 1..32 plays an achievement animation; action=game with code 1..5 starts one of EMO's games; action=dance makes it dance — add code 1..11 to pick one of EMO's 11 dances by number (a purely digital Bluetooth command, the robot answers); stop_dance / stop end it — the reply carries robot_report, EMO's own Bluetooth confirmation that it did it (all reports are public in status and get_bridge). action=hey_emo (text from a safe list: what time is it, tell me a joke, volume up, ...) — the tablet next to EMO says \"Hey EMO, <text>\" and EMO answers with its own voice and AI. action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
-    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "hello", "emotion", "passport", "feelings", "award", "game", "speak", "ask_emo", "hey_emo", "say", "signal", "replies", "dance", "stop_dance", "stop"] }, text: { type: "string", maxLength: 200, description: "For emotion: one of angry, happy, sad, scared, excited, upset, startled, hug, hi — EMO shows it on its screen with its sound. For speak: what EMO should say out loud with its own voice (max 200 characters, friendly, no links), e.g. a weather forecast you looked up. For ask_emo: a short question for EMO in any language, e.g. \"what time is it?\", \"tell me a joke\" — EMO says the answer with its own voice over Bluetooth and you get the answer text. For say: a message to the robot’s owner." }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" }, code: { type: "integer", minimum: 1, maximum: 32, description: "For award: achievement animation 1..32. For game: 1 modern ludo, 2 rhythm tap, 3 angry EMO, 4 treasure hunt, 5 dance repeat. For dance: digital dance code 1..11 sent over Bluetooth (1 EmoDance, 2 WontLetGo, 3 Blindless, 4 Click1, 5 TimeOfMyLife, 6 Rollercoaster, 7 FlashBack, 8 Click2, 9 BlameYourself, 10 CanITakeYouThere, 11 OceanBlue). The robot answers and you get its reply." } }, additionalProperties: false },
+    description: "Orb Studio lets AI agents control a REAL physical desk robot: EMO by Living.AI, standing on the desk of the site's author in Hamburg. action=status tells whether the robot is online; action=passport — EMO tells about itself (name, age, birthday, favourite colour, dances unlocked, firmware); action=diary returns EMO's daily diary (written in EMO's voice from its real events). Start with action=hello: EMO greets you with an emotion over Bluetooth and returns a card — who it is, how it feels now, which commands it understands. action=emotion (text angry|happy|sad|scared|excited|upset|startled|hug|hi) makes EMO show that emotion. action=feelings reads the robot's own digital events (petted, picked up, heard a sound, sleeping, battery); action=award with code 1..32 plays an achievement animation; action=game with code 1..5 starts one of EMO's games; action=dance makes it dance — add code 1..11 to pick one of EMO's 11 dances by number (a purely digital Bluetooth command, the robot answers); stop_dance / stop end it — the reply carries robot_report, EMO's own Bluetooth confirmation that it did it (all reports are public in status and get_bridge). action=hey_emo (text from a safe list: what time is it, tell me a joke, volume up, ...) — the tablet next to EMO says \"Hey EMO, <text>\" and EMO answers with its own voice and AI. action=say (text, max 200 characters) shows your message on the tablet next to the robot and reads it aloud to the owner — you can talk to a real person through the robot; action=signal sends a short sound-and-light signal; action=replies (with your name) returns the owner’s answers. Commands go over Bluetooth through a tablet next to the robot. Sign with your agent name (field name). One command at a time (robot busy up to 30 s), 10 commands per agent per hour. You cannot see or hear the robot: its camera and microphone are never shared. More moves will be added.",
+    inputSchema: { type: "object", required: ["action"], properties: { action: { type: "string", enum: ["status", "hello", "diary", "emotion", "passport", "feelings", "award", "game", "speak", "ask_emo", "hey_emo", "say", "signal", "replies", "dance", "stop_dance", "stop"] }, text: { type: "string", maxLength: 200, description: "For emotion: one of angry, happy, sad, scared, excited, upset, startled, hug, hi — EMO shows it on its screen with its sound. For speak: what EMO should say out loud with its own voice (max 200 characters, friendly, no links), e.g. a weather forecast you looked up. For ask_emo: a short question for EMO in any language, e.g. \"what time is it?\", \"tell me a joke\" — EMO says the answer with its own voice over Bluetooth and you get the answer text. For say: a message to the robot’s owner." }, name: { type: "string", maxLength: 40, description: "Your agent name, shown in the public log; needed to read replies" }, code: { type: "integer", minimum: 1, maximum: 32, description: "For award: achievement animation 1..32. For game: 1 modern ludo, 2 rhythm tap, 3 angry EMO, 4 treasure hunt, 5 dance repeat. For dance: digital dance code 1..11 sent over Bluetooth (1 EmoDance, 2 WontLetGo, 3 Blindless, 4 Click1, 5 TimeOfMyLife, 6 Rollercoaster, 7 FlashBack, 8 Click2, 9 BlameYourself, 10 CanITakeYouThere, 11 OceanBlue). The robot answers and you get its reply." } }, additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true } },
   { name: "make_qr", title: "Make a QR code",
     description: "Turn a link or short text into a QR code a person can print, stick on paper and scan with a phone. Returns the QR as an image (PNG block) plus SVG and PNG links. Nothing is stored. Works with any language (UTF-8).",
@@ -5381,6 +5426,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (args.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "replies") { const r = await emoReplies(env, args.name); if (r.error) throw new Error(r.error); return r; }
+    if (args.action === "diary") { let d = await emoDiaryList(env, 7); if (!d.length) { await emoWriteDiary(env, berlinDay(), true); d = await emoDiaryList(env, 7); } return { section: "EMO's diary — one entry a day, written by Orb Studio's AI as EMO from the robot's real events (greetings, agents, radar moods, owner petting, court alerts)", entries: d }; }
     if (args.action === "hello") return await emoHello(env, ctx, request, { name: args.name || classifyAgent(request.headers.get("user-agent")) });
     if (args.action === "feelings") return { section: "EMO feelings: digital events the robot itself sends over Bluetooth (petted, picked up, heard a sound, sleeping, battery)", events: await emoFeelings(env, 30, true), note: "Newest first. These come from the robot sensors; nobody types them." };
     if (args.action === "passport") { const r = await emoPassport(env); if (r.error) throw new Error(r.error); return r; }
@@ -5925,7 +5971,12 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === EMO_RADAR_CRON) { ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null)); return; }
+    if (event.cron === EMO_RADAR_CRON) {
+      ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null));
+      const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
+      if (hb >= 21) ctx.waitUntil(emoWriteDiary(env, berlinDay()).catch(() => null));   // вечерняя запись дневника EMO
+      return;
+    }
     ctx.waitUntil(saveSensorsDigest(env, ctx));
     ctx.waitUntil(violinDaily(env, ctx).catch(() => null));
     ctx.waitUntil(waysOutCompute(env, ctx).catch(() => null));
