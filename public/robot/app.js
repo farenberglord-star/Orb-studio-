@@ -200,6 +200,8 @@ setInterval(async () => {
     if (keepaliveFails >= 2 && dev) { keepaliveFails = 0; log("EMO не отвечает, переподключаюсь"); try { dev.gatt.disconnect(); } catch {} }
   }
 }, 25000);
+// EMO со временем перестаёт слать сигналы касаний (заряд при этом идёт) — обновляем подписку каждые 10 минут
+setInterval(() => { if (bleUp() && !lendUntil) enableAlerts(); }, 10 * 60e3);
 function enableAlerts() {
   if (!presets || !presets.alerts_on) return;
   runSteps(validateSteps(presets.alerts_on.steps), true).then(() => log("события EMO включены")).catch((e) => log("события: " + e.message));
