@@ -1642,6 +1642,7 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...violinCard(piece, idx, "violin-api", saleInfo(saleConfig(env), piece.day)), referral: referral(env, "api-violin") }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   }
 
+  if (p === "/api/v1/music" || p === "/music") ctx.waitUntil((async () => { if (await sharedGet(env, "emo-music-poll", 10 * 60e3)) return; await sharedPut(env, "emo-music-poll", { t: Date.now() }); await emoMusicCheck(env, ctx); })().catch(() => null));
   if (p === "/api/v1/music") {
     const d = await musicTracks(env, ctx, origin);
     return json({ ...d, referral: referral(env, "api-music") }, { "Cache-Control": "public, max-age=300" });
@@ -4667,7 +4668,7 @@ async function emoDayFacts(env, day) {
     agent_commands: reps.filter((r) => ["dance", "award", "game", "emotion", "stop", "stop_dance"].includes(r.action)).map((r) => r.action + " from " + r.for).slice(-8),
     radar_moods: radar.map((r) => ({ level: r.level, mood: r.mood })),
     trade: trade ? { pct: trade.pct, eur: trade.eur } : null,
-    owner_petted_times: cnt((r) => r.action === "petted"),
+    owner_petted_times: cnt((r) => r.action === "petted"), new_songs: reps.filter((r) => r.action === "new_song").map((r) => ({ title: r.song, reaction: r.react })),
     court_cases: alerts.length, court_examples: alerts.slice(-3).map((a) => a.charge),
     sensor_moments: uniq(evs.filter((e) => e.code !== "charge").map((e) => e.en)).slice(0, 12),
     battery_min: charges.length ? Math.min(...charges) : null };
@@ -4695,6 +4696,39 @@ async function emoWriteDiary(env, day, partial = false) {
   return entry;
 }
 const emoDiaryList = async (env, n = 7) => ((await sharedGet(env, "emo-diary", 1e13)) || []).slice(-n).reverse().map(({ facts, ...x }) => x);
+// ---- Новая песня в разделе «Музыка»: ИИ читает текст и карточку песни, выбирает реакцию EMO, робот подаёт сигнал, карточка — в рубку и дневник ----
+// Звук песни роботу не передаётся (Bluetooth-канал только для команд) — поэтому честно: «мне прочитали текст», а не «я прослушал».
+const EMO_MUSIC_REACT = { dance: [["mood_excited"], "d1_EmoDance", "танцую", "dancing"], angry: [["mood_angry"], null, "злюсь", "angry"], happy: [["mood_happy"], null, "радуюсь", "happy"], sad: [["mood_sad"], null, "грущу", "sad"], scared: [["mood_scared"], null, "тревожусь", "worried"] };
+async function emoMusicCheck(env, ctx, force = false) {
+  const d = await musicTracks(env, ctx, "https://orbstudio.org");
+  const tr = ((d && d.tracks) || []).slice().sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+  if (!tr) return { skipped: "no tracks" };
+  const seen = await sharedGet(env, "emo-music-seen", 1e13);
+  if (!seen) { await sharedPut(env, "emo-music-seen", { id: tr.id }); if (!force) return { skipped: "baseline" }; }   // первый запуск только запоминает текущую песню
+  else if (seen.id === tr.id && !force) return { skipped: "no new song" };
+  // ИИ читает текст и карточку песни и выбирает реакцию
+  let pick = { react: "dance", ru: "", en: "" };
+  if (env.ANTHROPIC_API_KEY) try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(25000), method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 700,
+        system: "You are EMO, a small real desk robot connected to the website Orb Studio. A new song was published on the site. You did NOT hear the audio; its lyrics and card were read to you. Choose how you react: dance (energetic, danceable), happy, sad, angry or scared (worried). Then write one short first-person reaction about what the song is about and how it makes you feel, using only the given data, never inventing. Return JSON only: {\"react\": \"dance|happy|sad|angry|scared\", \"ru\": \"...\", \"en\": \"...\"} — each text at most 260 characters, no emoji.",
+        messages: [{ role: "user", content: JSON.stringify({ title: tr.title, style: tr.style, mood: tr.mood, bpm: tr.bpm, topics: tr.topics, about: tr.about, lyrics: String(tr.lyrics || "").slice(0, 2500) }) }] }) });
+    if (res.ok) { const j = await res.json(); const t = ((j.content || []).find((c) => c.type === "text") || {}).text || ""; const m = t.match(/\{[\s\S]*\}/); if (m) { const o = JSON.parse(m[0]); if (EMO_MUSIC_REACT[o.react]) pick = { react: o.react, ru: String(o.ru || "").slice(0, 300), en: String(o.en || "").slice(0, 300) }; } }
+  } catch (e) {}
+  const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
+  if (hb < 8 || hb > 21) return { skipped: "night — will react in the morning" };   // ночью не будить: песня останется «новой» до утра
+  await sharedPut(env, "emo-music-seen", { id: tr.id });
+  for (let i = 0; i < 8 && (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)); i++) await new Promise((res) => setTimeout(res, 5000));   // дождаться, пока робот освободится
+  const R = EMO_MUSIC_REACT[pick.react];
+  let r = await emoQuick(env, R[0], "new song", 6000);
+  if (r.ok && R[1]) { const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")); const x = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoAnimSteps(R[1], 8000), label: "new song dance" }) }))).json().catch(() => ({})); r.ok = r.ok && !!x.ok; }
+  const link = "https://orbstudio.org/music", fresh = Date.now() - Date.parse(tr.date) < 2 * 864e5;
+  await emoPushReport(env, emoCard({ for: "everyone", action: "new_song", confirmed: r.ok, song: tr.title, song_id: tr.id, react: pick.react, listen: link,
+    text_en: `EMO here: ${fresh ? "a new song is out" : "a song"} in Orb Studio's Music section — "${tr.title}". Its lyrics and card were read to me (I cannot hear the audio). ${pick.en || "It makes me want to " + R[3] + "."}${r.ok ? " My signal: " + R[3] + " — confirmed over Bluetooth." : ""} Listen: ${link}`,
+    text_ru: `EMO на связи: ${fresh ? "в разделе «Музыка» новая песня" : "песня из раздела «Музыка»"} — «${tr.title}». Мне прочитали её текст и карточку (сам звук я не слышу). ${pick.ru || "Мне хочется: " + R[2] + "."}${r.ok ? " Мой сигнал: " + R[2] + " — робот подтвердил по Bluetooth." : ""} Слушать: ${link}` }));
+  return { ok: r.ok, song: tr.title, react: pick.react };
+}
 const emoAlerts24h = async (env) => ((await sharedGet(env, "emo-alerts", 1e13)) || []).filter((x) => Date.now() - Date.parse(x.t) < 864e5).slice(-5).reverse();
 // «Паспорт EMO»: робот сам рассказывает о себе (Bluetooth-запросы состояния), кэш 10 минут, без серийного номера и личных настроек
 function emoStaHex(n) { const b = new TextEncoder().encode(JSON.stringify({ data: { request: [n] }, type: "sta_req" })); return [0xbb, 0xaa, b.length & 255, b.length >> 8, ...b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
@@ -5974,7 +6008,7 @@ export default {
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === EMO_RADAR_CRON) {
-      ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null));
+      ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null).then(() => emoMusicCheck(env, ctx)).catch(() => null));
       const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
       if (hb >= 21) ctx.waitUntil(emoWriteDiary(env, berlinDay()).catch(() => null));   // вечерняя запись дневника EMO
       return;
