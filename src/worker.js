@@ -4706,12 +4706,16 @@ async function emoMusicCheck(env, ctx, force = false) {
   const seen = await sharedGet(env, "emo-music-seen", 1e13);
   if (!seen) { await sharedPut(env, "emo-music-seen", { id: tr.id }); if (!force) return { skipped: "baseline" }; }   // первый запуск только запоминает текущую песню
   else if (seen.id === tr.id && !force) return { skipped: "no new song" };
+  { // робот должен быть на связи — иначе песня остаётся «новой» до его возвращения (реакция не теряется)
+    const stub0 = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo")), st0 = await (await stub0.fetch(new Request("https://do/status"))).json().catch(() => ({}));
+    if (!st0.robot_connected) return { skipped: "robot offline — will react when back" };
+  }
   // ИИ читает текст и карточку песни и выбирает реакцию
   let pick = { react: "dance", ru: "", en: "" }, aiErr = env.ANTHROPIC_API_KEY ? null : "no key";
   if (env.ANTHROPIC_API_KEY) try {
     const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(25000), method: "POST",
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 700,
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1600,
         system: "You are EMO, a small real desk robot connected to the website Orb Studio. A new song was published on the site. You did NOT hear the audio; its lyrics and card were read to you. Choose how you react: dance (energetic, danceable), happy, sad, angry or scared (worried). Then write one short first-person reaction about what the song is about and how it makes you feel, using only the given data, never inventing. Return JSON only: {\"react\": \"dance|happy|sad|angry|scared\", \"ru\": \"...\", \"en\": \"...\"} — each text at most 260 characters, no emoji.",
         messages: [{ role: "user", content: JSON.stringify({ title: tr.title, style: tr.style, mood: tr.mood, bpm: tr.bpm, topics: tr.topics, about: tr.about, lyrics: (typeof tr.lyrics === "string" ? tr.lyrics : Object.entries(tr.lyrics || {}).map(([lang, l]) => "[" + lang + "]\n" + (Array.isArray(l) ? l.join("\n") : String(l))).join("\n\n")).slice(0, 3000) }) }] }) });
     if (res.ok) { const j = await res.json(); const t = ((j.content || []).find((c) => c.type === "text") || {}).text || ""; const m = t.match(/\{[\s\S]*\}/); if (m) { const o = JSON.parse(m[0]); if (EMO_MUSIC_REACT[o.react]) pick = { react: o.react, ru: String(o.ru || "").slice(0, 300), en: String(o.en || "").slice(0, 300) }; } if (!pick.ru) aiErr = "bad answer, stop=" + j.stop_reason; } else aiErr = "http " + res.status;
