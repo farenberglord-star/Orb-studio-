@@ -1,0 +1,1 @@
+{ "name": "x402-buy-violin", "private": true, "type": "module", "version": "1.0.0", "dependencies": { "viem": "2.21.54" } }
