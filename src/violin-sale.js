@@ -133,8 +133,10 @@ export function saleConfig(env) {
   const network = env.X402_NETWORK || "eip155:8453", net = NETS[network];
   const payTo = String(env.X402_PAY_TO || "").trim();
   const usd = Math.min(5, Math.max(0.001, +(env.X402_PRICE_USD || 0.01)));
-  const cdp = !!(env.CDP_API_KEY_ID && env.CDP_API_KEY_SECRET);
-  const facilitator = cdp ? `https://${CDP_HOST}${CDP_ROUTE}` : String(env.X402_FACILITATOR_URL || "").replace(/\/+$/, "");
+  // Явно заданный X402_FACILITATOR_URL (например, PayAI) важнее ключей Coinbase: иначе забытые CDP-ключи молча перебивали бы выбор.
+  const explicit = String(env.X402_FACILITATOR_URL || "").trim().replace(/\/+$/, "");
+  const cdp = !explicit && !!(env.CDP_API_KEY_ID && env.CDP_API_KEY_SECRET);
+  const facilitator = cdp ? `https://${CDP_HOST}${CDP_ROUTE}` : explicit;
   const problems = [];
   if (!/^0x[0-9a-fA-F]{40}$/.test(payTo)) problems.push("receiving wallet (X402_PAY_TO) is not set");
   if (!net) problems.push("unsupported network " + network);
@@ -233,7 +235,19 @@ export async function handleViolinMidi(request, cfg, deps) {
     return challenge("Payment not valid: " + ((v.data && (v.data.invalidReason || v.data.errorMessage)) || "facilitator status " + v.status));
   }
   let s;
-  try { s = await facilitatorCall(cfg, "settle", body); } catch (e) { return out({ error: "Settlement failed, nothing was delivered. If your wallet shows a transfer, contact the site via https://orbstudio.org/.well-known/security.txt" }, 502); }
+  const pendingNote = "Do not sign a new payment: repeat the same request with the same PAYMENT-SIGNATURE. The authorization can be used only once, so you cannot be charged twice.";
+  const payerOf = String((v.data && v.data.payer) || "").slice(0, 42);
+  try { s = await facilitatorCall(cfg, "settle", body); } catch (e) {
+    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerOf, agent: who, reason: "settle timeout", ts: Date.now() })).catch(() => {}));
+    return out({ error: "Settlement did not answer in time, nothing was delivered. The transfer may already be on its way. " + pendingNote + " If your wallet shows a transfer and no file arrives, contact the site via https://orbstudio.org/.well-known/security.txt" }, 502, { "Retry-After": "10" });
+  }
+  const reason = String((s.data && (s.data.errorReason || s.data.errorMessage)) || "");
+  if (!(s.data && s.data.success === true) && (s.status === 503 || s.status === 504 || /settlement_pending|pending|timeout/i.test(reason))) {
+    // по спецификации x402 это незавершённый исход: транзакция могла уйти в сеть — не отказ
+    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerOf, agent: who, reason: reason || "status " + s.status, tx: (s.data && s.data.transaction) || null, ts: Date.now() })).catch(() => {}));
+    deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/violin/midi", "x402", "settle-pending · " + who)).catch(() => {}));
+    return out({ status: "pending", message: "Payment is being settled, nothing has been delivered yet. " + pendingNote, transaction: (s.data && s.data.transaction) || null }, 202, { "Retry-After": "5" });
+  }
   if (!s.data || s.data.success !== true) {
     deps.ctx.waitUntil(deps.hit("/api/v1/violin/midi", "x402", "settle-failed · " + who));
     return challenge("Settlement failed: " + ((s.data && (s.data.errorReason || s.data.errorMessage)) || "facilitator status " + s.status));

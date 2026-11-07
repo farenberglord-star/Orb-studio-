@@ -67,18 +67,18 @@ test("Sepolia config uses PayAI only when Coinbase credentials are absent", () =
   assert.equal(cfg.keySecret, "");
 });
 
-test("default network stays Base mainnet and any Coinbase binding suppresses PayAI", () => {
+test("default network stays Base mainnet; Coinbase keys apply only when no facilitator URL is set", () => {
   const mainnet = saleConfig({ X402_PAY_TO: PRODUCTION, X402_FACILITATOR_URL: FACILITATOR });
   assert.equal(mainnet.network, "eip155:8453");
   assert.equal(mainnet.net.asset, "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913");
   assert.equal(mainnet.facilitator, FACILITATOR);
 
   const secret = Buffer.alloc(64, 3).toString("base64");
-  const bound = saleConfig(sepoliaEnv({ CDP_API_KEY_ID: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", CDP_API_KEY_SECRET: secret }));
+  const bound = saleConfig(sepoliaEnv({ X402_FACILITATOR_URL: "", CDP_API_KEY_ID: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", CDP_API_KEY_SECRET: secret }));
   assert.equal(bound.cdp, true);
   assert.equal(bound.facilitator, "https://api.cdp.coinbase.com/platform/v2/x402");
 
-  const malformed = saleConfig(sepoliaEnv({ CDP_API_KEY_ID: { name: "whole-json-placeholder" }, CDP_API_KEY_SECRET: "not-a-key" }));
+  const malformed = saleConfig(sepoliaEnv({ X402_FACILITATOR_URL: "", CDP_API_KEY_ID: { name: "whole-json-placeholder" }, CDP_API_KEY_SECRET: "not-a-key" }));
   assert.equal(malformed.cdp, true);
   assert.equal(malformed.facilitator, "https://api.cdp.coinbase.com/platform/v2/x402");
   assert.equal(malformed.keyId, "[object Object]");
@@ -194,7 +194,7 @@ test("the worker does not remember a receipt, so a used nonce does not return MI
   assert.match(again.json.error, /invalid_exact_evm_payload_signature/);
 });
 
-test("settle HTTP 503 and settlement_pending do not currently prove the payment is absent", async () => {
+test("settle HTTP 503 and settlement_pending are reported as pending, not as a refusal", async () => {
   const responses = [
     { status: 503, body: { success: false, errorReason: "service_unavailable", transaction: "0x" + "cd".repeat(32), network: NETWORK, payer: "" } },
     { status: 200, body: { success: false, errorReason: "settlement_pending", transaction: "0x" + "ef".repeat(32), network: NETWORK, payer: "0x" + "11".repeat(20) } },
@@ -210,12 +210,14 @@ test("settle HTTP 503 and settlement_pending do not currently prove the payment 
   const encoded = headerPayload(first.json.accepts[0], { from: "0x" + "11".repeat(20), to: PROBE_PAY_TO, value: "10000", validAfter: "0", validBefore: "9999999999", nonce: "0x" + "55".repeat(32) });
   const unavailable = await read(await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day, { "PAYMENT-SIGNATURE": encoded }), cfg, deps()));
   const pending = await read(await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day, { "PAYMENT-SIGNATURE": encoded }), cfg, deps()));
+  // 503 и settlement_pending — незавершённый исход: 202 «в обработке», а не отказ 402; клиент повторяет ту же подпись
+  assert.equal(unavailable.status, 202);
+  assert.equal(pending.status, 202);
   for (const res of [unavailable, pending]) {
-    assert.equal(res.status, 402);
-    assert.match(res.json.error, /Settlement failed/);
-    assert.equal(JSON.stringify(res.json).includes("0xcdcd"), false);
-    assert.equal(JSON.stringify(res.json).includes("0xefef"), false);
+    assert.equal(res.json.status, "pending");
+    assert.match(res.json.message, /same PAYMENT-SIGNATURE/);
   }
+  assert.equal(pending.json.transaction, "0x" + "ef".repeat(32));
 });
 
 test("a settle timeout is not reported as an unpaid verify failure", async () => {
@@ -231,6 +233,7 @@ test("a settle timeout is not reported as an unpaid verify failure", async () =>
   assert.equal(res.status, 502);
   assert.doesNotMatch(res.json.error, /nothing was charged/);
   assert.match(res.json.error, /If your wallet shows a transfer/);
+  assert.match(res.json.error, /same PAYMENT-SIGNATURE/);
 });
 
 test("Coinbase mode never posts the JWT to PayAI", async () => {
@@ -244,6 +247,7 @@ test("Coinbase mode never posts the JWT to PayAI", async () => {
   const jwk = await crypto.subtle.exportKey("jwk", key.privateKey);
   const secret = Buffer.concat([Buffer.from(jwk.d, "base64url"), Buffer.from(jwk.x, "base64url")]).toString("base64");
   const cfg = saleConfig(sepoliaEnv({
+    X402_FACILITATOR_URL: "",
     CDP_API_KEY_ID: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
     CDP_API_KEY_SECRET: secret,
   }));
@@ -254,4 +258,10 @@ test("Coinbase mode never posts the JWT to PayAI", async () => {
   assert.match(calls[0].url, /^https:\/\/api\.cdp\.coinbase\.com\//);
   assert.equal(calls[0].url.includes("payai"), false);
   assert.equal(String(calls[0].authorization).slice(0, 7), "Bearer ");
+});
+
+test("an explicit X402_FACILITATOR_URL beats leftover Coinbase keys", async () => {
+  const cfg = saleConfig({ ...sepoliaEnv(), CDP_API_KEY_ID: "x", CDP_API_KEY_SECRET: "y" });
+  assert.equal(cfg.cdp, false);
+  assert.equal(cfg.facilitator, FACILITATOR);
 });
