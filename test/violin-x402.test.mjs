@@ -230,10 +230,28 @@ test("a settle timeout is not reported as an unpaid verify failure", async () =>
   const first = await read(await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day), cfg, deps()));
   const encoded = headerPayload(first.json.accepts[0], { from: "0x" + "11".repeat(20), to: PROBE_PAY_TO, value: "10000", validAfter: "0", validBefore: "9999999999", nonce: "0x" + "66".repeat(32) });
   const res = await read(await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day, { "PAYMENT-SIGNATURE": encoded }), cfg, deps()));
-  assert.equal(res.status, 502);
+  assert.equal(res.status, 202);
+  assert.equal(res.json.status, "pending");
   assert.doesNotMatch(res.json.error, /nothing was charged/);
-  assert.match(res.json.error, /If your wallet shows a transfer/);
+  assert.match(res.json.error, /may already be on its way/);
   assert.match(res.json.error, /same PAYMENT-SIGNATURE/);
+});
+
+test("a used nonce is settled with the same body and still returns the fixture MIDI", async () => {
+  const seen = [];
+  global.fetch = async (url) => {
+    seen.push(String(url).split("/").pop());
+    if (String(url).endsWith("/verify")) return Response.json({ isValid: false, invalidReason: "invalid_exact_evm_nonce_already_used", payer: "0x" + "11".repeat(20) });
+    return Response.json({ success: true, transaction: "0x" + "ab".repeat(32), network: NETWORK, payer: "0x" + "11".repeat(20) });
+  };
+  const cfg = saleConfig(sepoliaEnv());
+  const first = await read(await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day), cfg, deps()));
+  const encoded = headerPayload(first.json.accepts[0], { from: "0x" + "11".repeat(20), to: PROBE_PAY_TO, value: "10000", validAfter: "0", validBefore: "9999999999", nonce: "0x" + "88".repeat(32) });
+  const paid = await handleViolinMidi(request("/api/v1/violin/midi?date=" + PIECE.day, { "PAYMENT-SIGNATURE": encoded }), cfg, deps());
+  const bytes = new Uint8Array(await paid.arrayBuffer());
+  assert.equal(paid.status, 200);
+  assert.equal(String.fromCharCode(...bytes.slice(0, 4)), "MThd");
+  assert.deepEqual(seen, ["verify", "settle"]);
 });
 
 test("Coinbase mode never posts the JWT to PayAI", async () => {

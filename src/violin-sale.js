@@ -7,7 +7,8 @@
 // • Модуль получает только свои настройки (cfg), а не env: ключи Kraken, Anthropic и прочие секреты ему не видны.
 // • Сайт хранит лишь ПУБЛИЧНЫЙ адрес кошелька для приёма (X402_PAY_TO). Приватного ключа на сервере нет,
 //   поэтому даже взлом сайта не позволяет вывести деньги. Деньги идут от покупателя прямо на этот адрес.
-// • Файл отдаётся только ПОСЛЕ успешного settle (повтор той же подписи не пройдёт: nonce одноразовый).
+// • Файл отдаётся только после успешного settle. Повтор той же подписи не создаёт второй перевод:
+//   если verify говорит, что nonce уже использован, сервер вызывает settle тем же телом и при успехе отдаёт файл.
 // • Пока X402_PAY_TO не задан, продажа выключена (503), остальное API работает как раньше.
 
 const NETS = {
@@ -228,40 +229,45 @@ export async function handleViolinMidi(request, cfg, deps) {
   if (payload.x402Version !== 2 || !matches(req, payload.accepted)) return challenge("Payment does not match the requirements (x402Version 2, scheme, network, amount, asset, payTo)");
 
   const body = { x402Version: 2, paymentPayload: payload, paymentRequirements: req };
+  const pendingNote = "Do not sign a new payment: repeat the same request with the same PAYMENT-SIGNATURE. The authorization can be used only once, so you cannot be charged twice.";
+  const deliver = (settled, payerHint) => {
+    const payer = String((settled.data && settled.data.payer) || payerHint || "").slice(0, 42);
+    deps.ctx.waitUntil(Promise.all([
+      deps.hit("/api/v1/violin/midi", "x402-sale", who + " · " + payer),
+      deps.log("sale", { day: piece.day, payer, agent: who, tx: settled.data.transaction, network: settled.data.network || cfg.network, usdc: cfg.usd, ts: Date.now() }),
+    ]).catch(() => {}));
+    const midi = violinToMidi(piece);
+    const receipt = { success: true, transaction: settled.data.transaction, network: settled.data.network || cfg.network, payer };
+    return new Response(request.method === "HEAD" ? null : midi, { status: 200, headers: { ...CORS, "Content-Type": "audio/midi",
+      "Content-Disposition": `attachment; filename="orb-violin-${piece.day}.mid"`, "Cache-Control": "no-store", "PAYMENT-RESPONSE": b64(JSON.stringify(receipt)) } });
+  };
+  const settleSame = async (payerHint) => {
+    let s;
+    try { s = await facilitatorCall(cfg, "settle", body); } catch (e) {
+      deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerHint, agent: who, reason: "settle timeout", ts: Date.now() })).catch(() => {}));
+      return out({ status: "pending", error: "Settlement did not answer in time, nothing was delivered. The transfer may already be on its way. " + pendingNote, transaction: null }, 202, { "Retry-After": "10" });
+    }
+    const reason = String((s.data && (s.data.errorReason || s.data.errorMessage)) || "");
+    const tx = s.data && s.data.transaction;
+    const broadcast = /^0x[0-9a-fA-F]{64}$/.test(tx || "");
+    if (s.data && s.data.success === true) return deliver(s, payerHint);
+    if (broadcast || s.status === 503 || s.status === 504 || /settlement_pending|pending|timeout/i.test(reason)) {
+      deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerHint, agent: who, reason: reason || "status " + s.status, tx: tx || null, ts: Date.now() })).catch(() => {}));
+      deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/violin/midi", "x402", "settle-pending · " + who)).catch(() => {}));
+      return out({ status: "pending", message: "Payment is being settled, nothing has been delivered yet. " + pendingNote, transaction: tx || null }, 202, { "Retry-After": "5" });
+    }
+    deps.ctx.waitUntil(deps.hit("/api/v1/violin/midi", "x402", "settle-failed · " + who));
+    return challenge("Settlement failed: " + (reason || "facilitator status " + s.status));
+  };
   let v;
   try { v = await facilitatorCall(cfg, "verify", body); } catch (e) { return out({ error: "Payment facilitator unavailable, nothing was charged. Try again later." }, 503, { "Retry-After": "60" }); }
+  const verifyReason = String((v.data && (v.data.invalidReason || v.data.errorMessage)) || "");
   if (!v.data || v.data.isValid !== true) {
+    if (/nonce_already_used|authorization_already_used/i.test(verifyReason)) return settleSame(String((v.data && v.data.payer) || "").slice(0, 42));
     deps.ctx.waitUntil(deps.hit("/api/v1/violin/midi", "x402", "invalid · " + who));
-    return challenge("Payment not valid: " + ((v.data && (v.data.invalidReason || v.data.errorMessage)) || "facilitator status " + v.status));
+    return challenge("Payment not valid: " + (verifyReason || "facilitator status " + v.status));
   }
-  let s;
-  const pendingNote = "Do not sign a new payment: repeat the same request with the same PAYMENT-SIGNATURE. The authorization can be used only once, so you cannot be charged twice.";
-  const payerOf = String((v.data && v.data.payer) || "").slice(0, 42);
-  try { s = await facilitatorCall(cfg, "settle", body); } catch (e) {
-    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerOf, agent: who, reason: "settle timeout", ts: Date.now() })).catch(() => {}));
-    return out({ error: "Settlement did not answer in time, nothing was delivered. The transfer may already be on its way. " + pendingNote + " If your wallet shows a transfer and no file arrives, contact the site via https://orbstudio.org/.well-known/security.txt" }, 502, { "Retry-After": "10" });
-  }
-  const reason = String((s.data && (s.data.errorReason || s.data.errorMessage)) || "");
-  if (!(s.data && s.data.success === true) && (s.status === 503 || s.status === 504 || /settlement_pending|pending|timeout/i.test(reason))) {
-    // по спецификации x402 это незавершённый исход: транзакция могла уйти в сеть — не отказ
-    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { day: piece.day, payer: payerOf, agent: who, reason: reason || "status " + s.status, tx: (s.data && s.data.transaction) || null, ts: Date.now() })).catch(() => {}));
-    deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/violin/midi", "x402", "settle-pending · " + who)).catch(() => {}));
-    return out({ status: "pending", message: "Payment is being settled, nothing has been delivered yet. " + pendingNote, transaction: (s.data && s.data.transaction) || null }, 202, { "Retry-After": "5" });
-  }
-  if (!s.data || s.data.success !== true) {
-    deps.ctx.waitUntil(deps.hit("/api/v1/violin/midi", "x402", "settle-failed · " + who));
-    return challenge("Settlement failed: " + ((s.data && (s.data.errorReason || s.data.errorMessage)) || "facilitator status " + s.status));
-  }
-
-  const payer = String(s.data.payer || (v.data && v.data.payer) || "").slice(0, 42);
-  deps.ctx.waitUntil(Promise.all([
-    deps.hit("/api/v1/violin/midi", "x402-sale", who + " · " + payer),
-    deps.log("sale", { day: piece.day, payer, agent: who, tx: s.data.transaction, network: s.data.network || cfg.network, usdc: cfg.usd, ts: Date.now() }),
-  ]).catch(() => {}));
-  const midi = violinToMidi(piece);
-  const receipt = { success: true, transaction: s.data.transaction, network: s.data.network || cfg.network, payer };
-  return new Response(request.method === "HEAD" ? null : midi, { status: 200, headers: { ...CORS, "Content-Type": "audio/midi",
-    "Content-Disposition": `attachment; filename="orb-violin-${piece.day}.mid"`, "Cache-Control": "no-store", "PAYMENT-RESPONSE": b64(JSON.stringify(receipt)) } });
+  return settleSame(String((v.data && v.data.payer) || "").slice(0, 42));
 }
 
 // Краткая информация о продаже для карточки get_violin и /api/v1/violin
