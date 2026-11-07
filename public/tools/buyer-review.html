@@ -25,7 +25,7 @@ button:disabled{opacity:.45}
   <section class="panel">
     <div class="url">ORB STUDIO</div>
     <h1>ПРОВЕРКА ПОКУПКИ</h1>
-    <p class="note">Страница сама ничего не подписывает. Сначала условие, потом отдельная кнопка. Подпись остаётся в MetaMask и в эту страницу не сохраняется. Отправка платежа выключена.</p>
+    <p class="note">Сначала условие, потом отдельная кнопка. Подписывается только показанные сеть Base, контракт USDC, получатель и сумма. Оплачивается только скрипка Orb Studio. Подпись остаётся в этой вкладке. Другие сайты не оплачиваются.</p>
   </section>
   <section class="panel" id="banner" hidden></section>
   <section class="panel">
@@ -33,8 +33,9 @@ button:disabled{opacity:.45}
     <button id="load" type="button">Показать условие</button>
     <button id="connect" class="ghost" type="button">Подключить MetaMask</button>
     <button id="base" class="ghost" type="button" hidden>Переключить на Base</button>
-    <button id="sign" type="button" disabled>Подписать именно это условие</button>
+    <button id="sign" type="button" disabled>Подписать и запросить файл</button>
     <p id="status" class="note"></p>
+    <p id="file"></p>
   </section>
   <p class="note"><a href="/tools/agent-wallet">К журналу</a></p>
 </div>
@@ -89,13 +90,37 @@ $("base").onclick = async () => {
     draw();
   } catch (e) { say("Сеть не переключена."); }
 };
+function fileLink(result) {
+  $("file").replaceChildren();
+  if (!result || !result.file) return;
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([result.file], { type: "application/octet-stream" }));
+  link.download = "orb-violin.mid";
+  link.textContent = "Скачать полученный файл";
+  $("file").append(link);
+}
+window.addEventListener("beforeunload", (event) => {
+  if (!review.needsGuard()) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
 $("sign").onclick = async () => {
   if (query.preview || !provider()) return say("Подпись не запрашивается.");
   $("sign").disabled = true;
   try {
-    const result = await review.sign(provider());
-    say(result.signed && result.payment === "blocked" ? "Подпись запрошена у MetaMask. Платёж с этой страницы не отправлен и подпись здесь не сохранена." : "Подпись остановлена.");
-  } catch (e) { say("Подпись остановлена: " + (e.code || "error")); $("sign").disabled = false; }
+    const result = await review.sign(provider(), fetch);
+    if (result.state === "bought") {
+      say(result.tx ? "Файл получен. Хэш из ответа ресурса: " + result.tx : "Файл получен. Хэш в ответе ресурса не пришёл.");
+      fileLink(result);
+      return;
+    }
+    $("sign").textContent = "Повторить ту же попытку";
+    $("sign").disabled = false;
+    say("Ответ не подтвердил выдачу файла. Это не значит, что перевода не было. Повторите ту же попытку. Новая подпись не создаётся.");
+  } catch (e) {
+    $("sign").disabled = false;
+    say(e.code === "wallet_rejected" ? "Кошелёк отклонил подпись. Запрос к ресурсу не отправлялся." : "Остановлено: " + (e.code || "error"));
+  }
 };
 if (query.preview) {
   review.showPreview();

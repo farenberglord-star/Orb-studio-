@@ -33,6 +33,8 @@ export function classifyOffer(item) {
     observed_at: typeof item.lastUpdated === "string" ? item.lastUpdated.slice(0, 40) : null,
     source: "https://facilitator.payai.network/discovery/resources",
     seller_text: sanitizeText(raw), seller_text_is_data: true, ignored_injection: injected(raw),
+    payable: /^https:\/\/orbstudio\.org\/api\/v1\/violin\/midi(?:\?|$)/.test(href),
+    pay_block: /^https:\/\/orbstudio\.org\/api\/v1\/violin\/midi(?:\?|$)/.test(href) ? null : "external_payment_disabled",
     tx: null, usefulness: null,
   } };
 }

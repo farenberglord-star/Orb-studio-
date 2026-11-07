@@ -22,6 +22,8 @@ const catalog = [
 const picked = selectProposals(catalog);
 assert.equal(picked.proposals.length, 3);
 assert.equal(picked.proposals[0].resource, "https://orbstudio.org/api/v1/violin/midi");
+assert.equal(picked.proposals[0].payable, true);
+assert.equal(picked.proposals[1].pay_block, "external_payment_disabled");
 assert.equal(picked.proposals[0].state, "approval_needed");
 assert.equal(picked.proposals[0].tx, null);
 assert.equal(picked.proposals[1].resource, "https://shop.example/cheap");

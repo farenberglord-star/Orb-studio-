@@ -1,5 +1,5 @@
-// Проверка одной покупки в браузере MetaMask. Подпись только по кнопке.
-// Платёж на сервер продавца отсюда не отправляется.
+// Проверка и оплата скрипки Orb Studio во встроенном браузере MetaMask.
+// Подпись только по кнопке. Другие ресурсы не оплачиваются. Подпись остаётся в памяти вкладки.
 export const BASE_CHAIN_ID = 8453;
 export const BASE_CHAIN_HEX = "0x2105";
 export const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -37,6 +37,17 @@ export function resourceProblem(value) {
   return "";
 }
 
+export function violinProblem(value) {
+  const problem = resourceProblem(value);
+  if (problem) return problem;
+  const url = new URL(value);
+  if (url.hostname !== "orbstudio.org" || url.pathname !== "/api/v1/violin/midi") return "external_payment_disabled";
+  if ([...url.searchParams.keys()].some((key) => key !== "date")) return "forbidden_query";
+  const date = url.searchParams.get("date");
+  if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return "bad_date";
+  return "";
+}
+
 export function pageQuery(search) {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   for (const key of params.keys()) {
@@ -46,7 +57,7 @@ export function pageQuery(search) {
   if (params.get("preview") === "1") return { preview: true, resource: "" };
   const resource = params.get("resource") || "";
   if (!resource) return { preview: false, resource: "" };
-  const problem = resourceProblem(resource);
+  const problem = violinProblem(resource);
   if (problem) fail(problem);
   return { preview: false, resource: new URL(resource).href };
 }
@@ -74,7 +85,34 @@ export function proposalFromChallenge(resource, challenge, now = Math.floor(Date
     valid_before: String(now + timeout),
     domain_name: USDC_NAME,
     state: "approval_needed",
+    accepted: req,
   };
+}
+
+function paymentHeader(accepted, typed, signature) {
+  return btoa(JSON.stringify({
+    x402Version: 2,
+    accepted,
+    payload: {
+      signature,
+      authorization: {
+        from: typed.message.from, to: typed.message.to, value: typed.message.value,
+        validAfter: typed.message.validAfter, validBefore: typed.message.validBefore, nonce: typed.message.nonce,
+      },
+    },
+  }));
+}
+
+function txFromReceipt(header) {
+  if (!header) return null;
+  try {
+    const receipt = JSON.parse(atob(header));
+    return receipt && receipt.success === true && /^0x[0-9a-fA-F]{64}$/.test(receipt.transaction || "") ? receipt.transaction : null;
+  } catch (e) { return null; }
+}
+
+function publicResult(state, extra = {}) {
+  return { state, tx: null, payment: state === "bought" ? "submitted" : "uncertain", stored: false, resign: false, ...extra };
 }
 
 export function typedData(proposal, from, nonce) {
@@ -99,43 +137,74 @@ function nonceBytes() {
   return "0x" + [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function createReview() {
+export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {}) {
   let proposal = null;
   let account = "";
   let chainOk = false;
   let pending = null;
+  const view = () => proposal ? {
+    resource: proposal.resource, merchant: proposal.merchant, network: proposal.network, asset: proposal.asset,
+    amount_atomic: proposal.amount_atomic, amount_usdc: proposal.amount_usdc, timeout: proposal.timeout,
+    domain_name: proposal.domain_name, state: pending && pending.submitted ? pending.state : proposal.state,
+    account: account || null, chain_ok: chainOk, fixture: !!proposal.fixture, payment: pending && pending.submitted ? "submitted" : "not_sent", tx: pending && pending.tx || null,
+  } : { payment: "not_sent", state: "empty" };
+  async function submit(fetchImpl) {
+    const target = proposal.resource;
+    if (violinProblem(target)) fail("external_payment_disabled");
+    let response;
+    try {
+      response = await fetchImpl(target, { method: "GET", redirect: "manual", signal: AbortSignal.timeout(20000), headers: { accept: "*/*", "PAYMENT-SIGNATURE": pending.header } });
+    } catch (e) {
+      pending.submitted = true; pending.state = "pending";
+      return publicResult("pending", { submitted: true });
+    }
+    if (response.url && response.url !== target) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
+    if (response.status === 0 || (response.status >= 300 && response.status < 400)) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
+    if (response.status === 200) {
+      const announced = Number(response.headers.get("content-length") || 0);
+      if (announced > 2_000_000) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (bytes.length > 2_000_000) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
+      const tx = txFromReceipt(response.headers.get("payment-response"));
+      pending.submitted = true; pending.state = "bought"; pending.tx = tx; pending.file = bytes; pending.type = response.headers.get("content-type") || "application/octet-stream";
+      pending.header = "";
+      return publicResult("bought", { submitted: true, tx, bytes: bytes.length, type: pending.type, file: bytes });
+    }
+    pending.submitted = true; pending.state = "pending";
+    return publicResult("pending", { submitted: true });
+  }
   return {
-    payment: "blocked",
-    view() {
-      return proposal ? { ...proposal, account: account || null, chain_ok: chainOk, payment: "blocked" } : { payment: "blocked", state: "empty" };
-    },
+    view,
+    needsGuard() { return !!(pending && pending.submitted && pending.state === "pending"); },
     async load(resource, fetchImpl) {
-      const problem = resourceProblem(resource);
+      const problem = violinProblem(resource);
       if (problem) fail(problem);
+      if (pending && pending.submitted) fail("pending_keep_same_authorization");
       const response = await fetchImpl(resource, { method: "GET", redirect: "manual", headers: { accept: "application/json" } });
       if (response.status === 0 || (response.status >= 300 && response.status < 400)) fail("redirect_refused");
       if (response.status !== 402) fail("not_402");
       const header = response.headers.get("payment-required");
       const raw = header ? atob(header) : await response.text();
       if (raw.length > 100000) fail("too_large");
-      proposal = proposalFromChallenge(resource, JSON.parse(raw));
+      proposal = proposalFromChallenge(resource, JSON.parse(raw), now());
       pending = null;
-      return this.view();
+      return view();
     },
     showPreview() {
-      const now = 1_700_000_000;
       proposal = proposalFromChallenge("https://orbstudio.org/api/v1/violin/midi", {
         x402Version: 2,
         accepts: [{ scheme: "exact", network: "eip155:8453", asset: USDC, payTo: "0x" + "11".repeat(20), amount: "10000", maxTimeoutSeconds: 120, extra: { name: USDC_NAME, version: USDC_VERSION } }],
-      }, now);
+      }, 1_700_000_000);
       proposal.fixture = true;
-      return this.view();
+      return view();
     },
     async connect(provider) {
       const accounts = await provider.request({ method: "eth_requestAccounts" });
-      account = String(accounts && accounts[0] || "");
-      if (!/^0x[0-9a-fA-F]{40}$/.test(account)) fail("no_account");
-      return this.view();
+      const next = String(accounts && accounts[0] || "");
+      if (!/^0x[0-9a-fA-F]{40}$/.test(next)) fail("no_account");
+      if (pending && pending.submitted && account && !same(account, next)) fail("account_changed");
+      account = next;
+      return view();
     },
     async readChain(provider) {
       const hex = await provider.request({ method: "eth_chainId" });
@@ -146,18 +215,30 @@ export function createReview() {
       await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_CHAIN_HEX }] });
       return this.readChain(provider);
     },
-    async sign(provider, { preview = false } = {}) {
+    async sign(provider, fetchImpl, { preview = false } = {}) {
       if (preview || (proposal && proposal.fixture)) fail("preview_blocked");
-      if (!proposal || proposal.state !== "approval_needed") fail("no_proposal");
+      if (!proposal) fail("no_proposal");
+      if (violinProblem(proposal.resource)) fail("external_payment_disabled");
+      if (pending && pending.submitted) {
+        if (pending.state === "bought") return publicResult("bought", { submitted: true, tx: pending.tx, bytes: pending.file ? pending.file.length : 0, type: pending.type, file: pending.file });
+        const result = await submit(fetchImpl);
+        if (now() >= Number(pending.typed.message.validBefore)) result.expired = true;
+        return result;
+      }
       if (!account) fail("not_connected");
       if (!chainOk) fail("wrong_chain");
-      if (!pending) pending = { nonce: nonceBytes(), typed: null };
+      if (!pending) pending = { nonce: nonceBytes(), typed: null, header: "", submitted: false, state: "approval_needed" };
       pending.typed = typedData(proposal, account, pending.nonce);
       if (!same(pending.typed.message.from, account) || !same(pending.typed.message.to, proposal.merchant) || pending.typed.message.value !== proposal.amount_atomic) fail("review_mismatch");
-      if (pending.typed.domain.verifyingContract !== USDC || pending.typed.domain.chainId !== BASE_CHAIN_ID) fail("domain_mismatch");
-      const payload = JSON.stringify(pending.typed);
-      await provider.request({ method: "eth_signTypedData_v4", params: [account, payload] });
-      return { signed: true, submitted: false, payment: "blocked", stored: false };
+      if (pending.typed.domain.verifyingContract !== USDC || pending.typed.domain.chainId !== BASE_CHAIN_ID || pending.typed.domain.name !== USDC_NAME) fail("domain_mismatch");
+      if (now() >= Number(pending.typed.message.validBefore)) fail("expired_before_submit");
+      let signature;
+      try { signature = await provider.request({ method: "eth_signTypedData_v4", params: [account, JSON.stringify(pending.typed)] }); }
+      catch (e) { pending = null; fail("wallet_rejected"); }
+      if (typeof signature !== "string" || !/^0x[0-9a-fA-F]{130}$/.test(signature)) { pending = null; fail("wallet_rejected"); }
+      pending.header = paymentHeader(proposal.accepted, pending.typed, signature);
+      pending.submitted = true;
+      return submit(fetchImpl);
     },
   };
 }
