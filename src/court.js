@@ -13,10 +13,14 @@ const ARTICLES = {
   SCAN_ADMIN: { n: 1, ru: "Ст. 1 · Поиск админок чужих движков", en: "Art. 1 · Probing for admin panels of other engines", sev: 2 },
   SCAN_SECRETS: { n: 2, ru: "Ст. 2 · Попытка прочитать секреты (.env, .git, ключи)", en: "Art. 2 · Attempt to read secrets (.env, .git, keys)", sev: 3 },
   SCAN_EXPLOIT: { n: 3, ru: "Ст. 3 · Пробы известных уязвимостей", en: "Art. 3 · Probing known exploits", sev: 3 },
+  ROBOTS_IGNORED: { n: 5, ru: "Ст. 5 · Заход туда, куда robots.txt просит не ходить", en: "Art. 5 · Entering a path that robots.txt asks not to visit", sev: 1 },
   PROMPT_INJECTION: { n: 4, ru: "Ст. 4 · Попытка промпт-инъекции", en: "Art. 4 · Prompt injection attempt", sev: 2 },
 };
 
+// Приманка (honeypot): адрес нигде не ссылается, в robots.txt он закрыт для всех. Туда зайдёт только тот, кто не читает или не слушает robots.txt.
+export const BAIT_PATH = /^\/agent-vault(\/|$)/i;
 const RULES = [
+  ["ROBOTS_IGNORED", BAIT_PATH],
   ["SCAN_SECRETS", /^\/(\.env|\.git\/|\.aws\/|\.ssh\/|config\.(php|json|ya?ml)$|wp-config\.php|id_rsa|\.htpasswd|\.DS_Store|backup\.(zip|sql|tar))/i],
   ["SCAN_ADMIN", /^\/(wp-admin|wp-login\.php|wp-content|wp-includes|xmlrpc\.php|phpmyadmin|pma|administrator|admin\.php|adminer|user\/login|cpanel)/i],
   ["SCAN_EXPLOIT", /(\.\.\/|%2e%2e%2f|\/cgi-bin\/|\/vendor\/phpunit|eval-stdin\.php|\/actuator\/|\/solr\/admin|\/boaform|\/HNAP1|\/shell\.php|\/console\/?$|\.aspx?$|\.jsp$)/i],
@@ -65,13 +69,15 @@ export function courtTranscript(c) {
   const a = ARTICLES[c.charge];
   const defense = c.charge === "PROMPT_INJECTION"
     ? "Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст."
+    : c.charge === "ROBOTS_IGNORED"
+      ? "Подзащитный мог не прочитать robots.txt или не учитывает его по настройке. Вреда нет: по этому адресу ничего не лежит, а закрыт он только просьбой в robots.txt."
     : c.defendant.startsWith("Клиент под видом") || c.defendant.startsWith("Безымянный")
       ? "Подзащитный — массовый сканер, который обходит весь интернет по одному списку адресов. Orb Studio он не выбирал специально, ущерба не нанёс."
       : "Подзащитный, вероятно, выполнял чужой скрипт или устаревший список адресов. Умысла против Orb Studio не доказано, ущерба нет.";
   return [
     { role: "prosecutor", ru: `Обвинение: ${a.ru}. Улика: запрос «${c.evidence}». Подпись клиента: ${c.defendant}, отпечаток ${c.fp}.${c.priors ? ` Сегодня с этого отпечатка уже ${c.priors} дел(а).` : " Ранее не привлекался."}` },
     { role: "defense", ru: `Защита: ${defense}` },
-    { role: "judge", ru: `Суд: ${c.charge === "PROMPT_INJECTION" ? "инструкция не выполнена — сайт не подчиняется командам из запросов" : "на сайте Orb Studio такого адреса нет"}, вред не причинён. ${c.verdict.ru}.` },
+    { role: "judge", ru: `Суд: ${c.charge === "PROMPT_INJECTION" ? "инструкция не выполнена — сайт не подчиняется командам из запросов" : c.charge === "ROBOTS_IGNORED" ? "адрес — приманка, закрытая в robots.txt; доступ никому не режется, дело открыто" : "на сайте Orb Studio такого адреса нет"}, вред не причинён. ${c.verdict.ru}.` },
   ];
 }
 
@@ -241,6 +247,10 @@ export async function courtGate(request, env, ctx) {
   }
   const hit = courtDetect(url.pathname, url.search, request.headers.get("user-agent"));
   if (hit) ctx.waitUntil(courtRecord(request, env, hit).catch(() => null));
+  if (hit && hit.charge === "ROBOTS_IGNORED" && request.method === "GET") {
+    return new Response("This path is a decoy. robots.txt asks every client not to visit /agent-vault/, and nothing is stored here.\nYour visit is entered in the public agent court (Art. 5, observation only, nobody is blocked, the client fingerprint changes daily): https://orbstudio.org/tools/court\nЭтот адрес — приманка: robots.txt просит сюда не заходить. Визит записан в открытый суд агентов, доступ не закрывается.\n",
+      { status: 200, headers: { "Content-Type": "text/plain; charset=utf-8", "X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-store" } });
+  }
   return null;
 }
 

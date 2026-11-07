@@ -346,7 +346,7 @@ function stats(cases,last7){
 }
 
 // ---- карта угроз и самый настойчивый клиент ----
-const CH={SCAN_SECRETS:['sec','секреты'],SCAN_ADMIN:['adm','админки'],SCAN_EXPLOIT:['exp','уязвимости'],PROMPT_INJECTION:['sec','инъекции']};
+const CH={SCAN_SECRETS:['sec','секреты'],SCAN_ADMIN:['adm','админки'],SCAN_EXPLOIT:['exp','уязвимости'],PROMPT_INJECTION:['sec','инъекции'],ROBOTS_IGNORED:['adm','robots.txt']};
 function drawInsights(ins){
   if(!ins)return;
   const sl=$('sumLine');if(sl&&ins.summary_ru)sl.textContent=ins.summary_ru;

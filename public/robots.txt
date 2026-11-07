@@ -4,6 +4,7 @@
 
 User-agent: *
 Allow: /
+Disallow: /agent-vault/
 
 User-agent: GPTBot
 User-agent: OAI-SearchBot
@@ -28,5 +29,6 @@ User-agent: DuckAssistBot
 User-agent: MistralAI-User
 User-agent: cohere-ai
 Allow: /
+Disallow: /agent-vault/
 
 Sitemap: https://orbstudio.org/sitemap.xml
