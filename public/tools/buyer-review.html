@@ -40,7 +40,7 @@ button:disabled{opacity:.45}
   <p class="note"><a href="/tools/agent-wallet">К журналу</a></p>
 </div>
 <script type="module">
-import { createReview, pageQuery } from "./buyer-review.js";
+import { createReview, pageQuery, reasonText } from "./buyer-review.js";
 const $ = (id) => document.getElementById(id);
 const review = createReview();
 const query = pageQuery(location.search);
@@ -114,12 +114,17 @@ $("sign").onclick = async () => {
       fileLink(result);
       return;
     }
-    $("sign").textContent = "Повторить ту же попытку";
     $("sign").disabled = false;
-    say("Ответ не подтвердил выдачу файла. Это не значит, что перевода не было. Повторите ту же попытку. Новая подпись не создаётся.");
+    if (result.state === "rejected") {
+      $("sign").textContent = "Подписать и запросить файл";
+      say(reasonText(result.reason) + " (этап: проверка продавца, HTTP " + result.http + ")");
+      return;
+    }
+    $("sign").textContent = "Повторить ту же попытку";
+    say("Ответ не подтвердил выдачу файла. Это не значит, что перевода не было. Повторите ту же попытку: новая подпись не создаётся. Этап: " + (result.stage || "неизвестно") + (result.http ? ", HTTP " + result.http : "") + (result.reason ? ", причина: " + result.reason : "") + ".");
   } catch (e) {
     $("sign").disabled = false;
-    say(e.code === "wallet_rejected" ? "Кошелёк отклонил подпись. Запрос к ресурсу не отправлялся." : "Остановлено: " + (e.code || "error"));
+    say(e.code === "wallet_rejected" ? "Кошелёк отклонил подпись. Запрос к ресурсу не отправлялся." : e.code === "insufficient_usdc" ? reasonText("insufficient_usdc") + " Подпись не запрашивалась." : "Остановлено: " + (e.code || "error"));
   }
 };
 if (query.preview) {

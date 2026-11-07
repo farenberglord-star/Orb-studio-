@@ -153,4 +153,30 @@ const preview = createReview();
 preview.showPreview();
 await assert.rejects(preview.sign(provider, fetchImpl), (e) => e.code === "preview_blocked");
 assert.equal(preview.needsGuard(), false);
+
+// Диагностика: отказ продавца до перевода, низкий баланс, 202.
+{
+  const sigProvider = (balanceHex) => ({ calls: 0, async request(req) {
+    if (req.method === "eth_requestAccounts") return [account];
+    if (req.method === "eth_chainId") return "0x2105";
+    if (req.method === "eth_call") return balanceHex;
+    if (req.method === "eth_signTypedData_v4") { this.calls += 1; return "0x" + "11".repeat(65); }
+  } });
+  const rejectFetch = async (url, init = {}) => (init.headers && init.headers["PAYMENT-SIGNATURE"]) ? response({ status: 402, body: JSON.stringify({ x402Version: 2, error: "Payment not valid: invalid_exact_evm_insufficient_balance" }) }) : challengeResponse();
+  const r = createReview(); await r.load(resource, rejectFetch);
+  const p1 = sigProvider("0x" + (10000).toString(16).padStart(64, "0"));
+  await r.connect(p1); await r.readChain(p1);
+  const out = await r.sign(p1, rejectFetch);
+  assert.equal(out.state, "rejected"); assert.equal(out.stage, "verify"); assert.equal(out.http, 402);
+  assert.match(out.reason, /insufficient_balance/); assert.equal(out.payment, "not_sent"); assert.equal(r.needsGuard(), false);
+  // после отказа можно подписать заново (новая подпись, перевода не было)
+  await r.sign(p1, rejectFetch); assert.equal(p1.calls, 2);
+  // низкий баланс: подпись даже не запрашивается
+  const p0 = sigProvider("0x" + "0".repeat(64));
+  const r0 = createReview(); await r0.load(resource, fetchImpl); await r0.connect(p0); await r0.readChain(p0);
+  await assert.rejects(r0.sign(p0, fetchImpl), (e) => e.code === "insufficient_usdc"); assert.equal(p0.calls, 0);
+  // 202: остаётся неопределённым, с этапом
+  const rp = createReview(); mode = "pending"; await rp.load(resource, fetchImpl); await rp.connect(p1); await rp.readChain(p1);
+  const o2 = await rp.sign(p1, fetchImpl); assert.equal(o2.state, "pending"); assert.equal(o2.stage, "settling"); assert.equal(rp.needsGuard(), true); mode = "ok";
+}
 console.log("buyer-review: ok");

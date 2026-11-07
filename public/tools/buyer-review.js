@@ -115,7 +115,16 @@ function txFromReceipt(header) {
 }
 
 function publicResult(state, extra = {}) {
-  return { state, tx: null, payment: state === "bought" ? "submitted" : "uncertain", stored: false, resign: false, ...extra };
+  return { state, tx: null, payment: state === "bought" ? "submitted" : state === "rejected" ? "not_sent" : "uncertain", stored: false, resign: state === "rejected", ...extra };
+}
+// Безопасная диагностика: только короткая причина из ответа продавца (без подписей, ключей и адресов), этап и HTTP-статус.
+const safeReason = (v) => String(v || "").replace(/[^A-Za-z0-9_:. -]/g, "").slice(0, 120);
+export function reasonText(reason) {
+  const r = String(reason || "");
+  if (/insufficient_balance|insufficient_usdc/i.test(r)) return "На счёте недостаточно USDC в сети Base. Перевода не было, подпись не использована. Пополните счёт и нажмите ещё раз: будет новая подпись.";
+  if (/expired|valid_before|not_yet_valid|valid_after/i.test(r)) return "Срок подписи истёк или ещё не наступил. Перевода не было. Нажмите ещё раз: будет новая подпись.";
+  if (/signature/i.test(r)) return "Продавец не принял подпись. Перевода не было.";
+  return "Продавец отклонил платёж до перевода: " + (r || "причина не указана") + ".";
 }
 
 export function typedData(proposal, from, nonce) {
@@ -140,6 +149,13 @@ function nonceBytes() {
   return "0x" + [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Баланс USDC читается через кошелёк (eth_call balanceOf) до запроса подписи. Если кошелёк не ответил, проверка пропускается: продавец всё равно проверит.
+async function checkBalance(provider, account, need) {
+  let hex;
+  try { hex = await provider.request({ method: "eth_call", params: [{ to: USDC, data: "0x70a08231" + account.slice(2).toLowerCase().padStart(64, "0") }, "latest"] }); } catch (e) { return; }
+  if (typeof hex === "string" && /^0x[0-9a-fA-F]+$/.test(hex) && BigInt(hex) < BigInt(need)) fail("insufficient_usdc");
+}
+
 export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {}) {
   let proposal = null;
   let account = "";
@@ -159,7 +175,7 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       response = await fetchImpl(target, { method: "GET", redirect: "manual", signal: AbortSignal.timeout(20000), headers: { accept: "*/*", "PAYMENT-SIGNATURE": pending.header } });
     } catch (e) {
       pending.submitted = true; pending.state = "pending";
-      return publicResult("pending", { submitted: true });
+      return publicResult("pending", { submitted: true, stage: "network" });
     }
     if (response.url && response.url !== target) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
     if (response.status === 0 || (response.status >= 300 && response.status < 400)) { pending.submitted = true; pending.state = "pending"; return publicResult("pending", { submitted: true }); }
@@ -173,8 +189,19 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       pending.header = "";
       return publicResult("bought", { submitted: true, tx, bytes: bytes.length, type: pending.type, file: bytes });
     }
+    if (response.status === 402) {
+      let reason = "";
+      try { const j = JSON.parse(await response.text()); reason = safeReason(j && j.error); } catch (e) {}
+      // «Payment not valid» сервер отдаёт на этапе verify, до любого перевода: подпись не использована, можно подписать заново.
+      if (/^Payment not valid:/i.test(reason)) {
+        pending = null;
+        return publicResult("rejected", { submitted: false, stage: "verify", http: 402, reason: reason.replace(/^Payment not valid:\s*/i, "") });
+      }
+      pending.submitted = true; pending.state = "pending";
+      return publicResult("pending", { submitted: true, stage: /^Settlement failed/i.test(reason) ? "settle" : "payment_402", http: 402, reason });
+    }
     pending.submitted = true; pending.state = "pending";
-    return publicResult("pending", { submitted: true });
+    return publicResult("pending", { submitted: true, stage: response.status === 202 ? "settling" : "http_" + response.status, http: response.status });
   }
   return {
     view,
@@ -235,6 +262,7 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       if (!chainOk) fail("wrong_chain");
       if (!pending) pending = { nonce: nonceBytes(), typed: null, header: "", submitted: false, state: "approval_needed" };
       pending.typed = typedData(proposal, account, pending.nonce);
+      await checkBalance(provider, account, proposal.amount_atomic);
       if (!same(pending.typed.message.from, account) || !same(pending.typed.message.to, proposal.merchant) || pending.typed.message.value !== proposal.amount_atomic) fail("review_mismatch");
       if (pending.typed.domain.verifyingContract !== USDC || pending.typed.domain.chainId !== BASE_CHAIN_ID || pending.typed.domain.name !== USDC_NAME) fail("domain_mismatch");
       if (now() >= Number(pending.typed.message.validBefore)) fail("expired_before_submit");
