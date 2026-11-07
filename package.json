@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test:x402": "node --test test/violin-x402.test.mjs",
+    "check:x402-payai": "node scripts/x402-payai-sepolia.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
