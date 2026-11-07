@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { detectLandings, summarize, parseStates, regionOf, EDHI } from "../src/aviation.js";
+import { detectLandings, summarize, parseStates, regionOf, EDHI, parseAdsbLol, summarizeSector } from "../src/aviation.js";
 const T = 1e12, M = 6 * 60e3;
 const st = (id, o) => ({ icao24: id, callsign: "AIB" + id, lat: EDHI.lat, lon: EDHI.lon, alt: 100, ground: false, vr: -3, ...o });
 
@@ -39,4 +39,13 @@ assert.equal(s.airborne_seen, 2); assert.equal(s.on_ground_seen, 1);
 assert.equal(s.regional_airborne.Europe, 1); assert.equal(s.regional_airborne.NorthAmerica, 1);
 assert.equal(s.hamburg_sector.airborne, 1); assert.equal(s.hamburg_sector.on_ground, 1);
 assert.equal(regionOf(25, 50), "MiddleEast");
+// adsb.lol: формат v2 (футы, фут/мин, "ground"), приведение к метрам и м/с
+const al = parseAdsbLol({ ac: [{ hex: "3C6444", flight: "DLH1AB  ", lat: 53.6, lon: 9.99, alt_baro: 3000, baro_rate: -700 }, { hex: "3c0001", lat: 53.55, lon: 9.84, alt_baro: "ground" }, { hex: "bad" }] });
+assert.equal(al.length, 2); assert.equal(al[0].icao24, "3c6444"); assert.equal(al[0].callsign, "DLH1AB");
+assert.ok(Math.abs(al[0].alt - 914.4) < 0.1); assert.ok(Math.abs(al[0].vr + 3.556) < 0.01); assert.equal(al[1].ground, true);
+const sec = summarizeSector(al, 100); assert.equal(sec.airborne, 1); assert.equal(sec.on_ground, 1);
+// посадка через формат adsb.lol: заход в футах → на земле
+let q = detectLandings(null, parseAdsbLol({ ac: [{ hex: "AAA111", flight: "AIB1", lat: EDHI.lat + 0.06, lon: EDHI.lon, alt_baro: 1500, baro_rate: -700 }] }), T);
+q = detectLandings(q.state, parseAdsbLol({ ac: [{ hex: "AAA111", flight: "AIB1", lat: EDHI.lat, lon: EDHI.lon, alt_baro: "ground" }] }), T + M);
+assert.equal(q.landings.length, 1);
 console.log("aviation: ok");
