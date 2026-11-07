@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Проверка покупки · Orb Studio</title>
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 "IBM Plex Sans",system-ui,sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:12px}
+h1{font:700 22px/1.2 "Chakra Petch",system-ui,sans-serif;letter-spacing:.06em;margin:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.note{color:var(--dim);margin:0}
+button{width:100%;min-height:48px;margin-top:8px;border:0;border-radius:12px;font:700 16px/1 "Chakra Petch",system-ui,sans-serif;background:linear-gradient(90deg,#6fe6ff,#4f8dff);color:#061018}
+button.ghost{background:transparent;color:var(--holo);border:1px solid var(--line)}
+button:disabled{opacity:.45}
+.banner{border:1px solid rgba(255,181,71,.7);background:rgba(255,181,71,.08);border-radius:12px;padding:12px}
+.url,#proposal{font:12.5px/1.45 ui-monospace,monospace;color:var(--holo);word-break:break-all;white-space:pre-wrap}
+#status{min-height:1.4em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="panel">
+    <div class="url">ORB STUDIO</div>
+    <h1>ПРОВЕРКА ПОКУПКИ</h1>
+    <p class="note">Сначала условие, потом отдельная кнопка. Подписывается только показанные сеть Base, контракт USDC, получатель и сумма. Оплачивается только скрипка Orb Studio. Подпись остаётся в этой вкладке. Другие сайты не оплачиваются.</p>
+  </section>
+  <section class="panel" id="banner" hidden></section>
+  <section class="panel">
+    <div id="proposal" class="note">Ресурс ещё не проверен.</div>
+    <button id="load" type="button">Показать условие</button>
+    <button id="connect" class="ghost" type="button">Подключить MetaMask</button>
+    <button id="base" class="ghost" type="button" hidden>Переключить на Base</button>
+    <button id="sign" type="button" disabled>Подписать и запросить файл</button>
+    <p id="status" class="note"></p>
+    <p id="file"></p>
+  </section>
+  <p class="note"><a href="/tools/agent-wallet">К журналу</a></p>
+</div>
+<script type="module">
+import { createReview, pageQuery } from "./buyer-review.js";
+const $ = (id) => document.getElementById(id);
+const review = createReview();
+const query = pageQuery(location.search);
+const provider = () => window.ethereum;
+function say(text) { $("status").textContent = text; }
+function draw() {
+  const view = review.view();
+  if (!view.resource) { $("proposal").textContent = query.resource ? query.resource : "В адресе страницы нет публичного ресурса."; return; }
+  $("proposal").textContent = [
+    view.fixture ? "Учебный экран. Это не живое условие и не покупка." : "Условие прочитано у ресурса. Это ещё не оплата.",
+    view.resource,
+    view.amount_usdc + " USDC",
+    "Сеть " + view.network,
+    "Контракт " + view.asset,
+    "Получатель " + view.merchant,
+    "Срок подписи " + view.timeout + " с",
+    view.account ? "Счёт " + view.account : "Счёт не подключён",
+    view.chain_ok ? "Сеть Base подтверждена" : "Сеть Base ещё не подтверждена",
+  ].join("\n");
+}
+$("load").onclick = async () => {
+  say("");
+  try {
+    if (query.preview) { review.showPreview(); $("banner").hidden = false; $("banner").className = "banner"; $("banner").textContent = "Учебный экран. Кошелёк не вызывается."; $("sign").disabled = true; }
+    else if (!query.resource) say("Добавьте в адрес только параметр resource с https-ссылкой.");
+    else await review.load(query.resource, fetch);
+    draw();
+  } catch (e) { say("Условие отклонено: " + (e.code || "error")); }
+};
+$("connect").onclick = async () => {
+  if (query.preview) return say("В учебном экране MetaMask не вызывается.");
+  if (!provider()) return say("Откройте эту страницу во встроенном браузере MetaMask.");
+  try {
+    await review.connect(provider());
+    const chain = await review.readChain(provider());
+    $("base").hidden = chain.chain_ok;
+    $("sign").disabled = !chain.chain_ok;
+    draw();
+  } catch (e) { say("Подключение не выполнено."); }
+};
+$("base").onclick = async () => {
+  if (query.preview || !provider()) return;
+  try {
+    const chain = await review.switchChain(provider());
+    $("base").hidden = chain.chain_ok;
+    $("sign").disabled = !chain.chain_ok;
+    draw();
+  } catch (e) { say("Сеть не переключена."); }
+};
+function fileLink(result) {
+  $("file").replaceChildren();
+  if (!result || !result.file) return;
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([result.file], { type: "application/octet-stream" }));
+  link.download = "orb-violin.mid";
+  link.textContent = "Скачать полученный файл";
+  $("file").append(link);
+}
+window.addEventListener("beforeunload", (event) => {
+  if (!review.needsGuard()) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+$("sign").onclick = async () => {
+  if (query.preview || !provider()) return say("Подпись не запрашивается.");
+  $("sign").disabled = true;
+  try {
+    const result = await review.sign(provider(), fetch);
+    if (result.state === "bought") {
+      say(result.tx ? "Файл получен. Хэш из ответа ресурса: " + result.tx : "Файл получен. Хэш в ответе ресурса не пришёл.");
+      fileLink(result);
+      return;
+    }
+    $("sign").textContent = "Повторить ту же попытку";
+    $("sign").disabled = false;
+    say("Ответ не подтвердил выдачу файла. Это не значит, что перевода не было. Повторите ту же попытку. Новая подпись не создаётся.");
+  } catch (e) {
+    $("sign").disabled = false;
+    say(e.code === "wallet_rejected" ? "Кошелёк отклонил подпись. Запрос к ресурсу не отправлялся." : "Остановлено: " + (e.code || "error"));
+  }
+};
+if (query.preview) {
+  review.showPreview();
+  draw();
+  $("load").disabled = true;
+  $("connect").disabled = true;
+  $("sign").disabled = true;
+  $("banner").hidden = false;
+  $("banner").className = "banner";
+  $("banner").textContent = "Учебный экран. Условие выдумано для вёрстки. MetaMask не вызывается, платёж не отправляется.";
+}
+</script>
+</body>
+</html>
