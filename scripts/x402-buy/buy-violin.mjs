@@ -22,7 +22,7 @@ const EXPECT = { network: "eip155:8453", asset: "0x833589fCD6eDb6E08f4c7C32D4f71
 const args = new Set(process.argv.slice(2));
 const day = (process.argv.find((a) => a.startsWith("--date=")) || "").slice(7);
 
-function loadKey() {
+export function loadKey() {
   const k = process.env.X402_BUYER_KEY || (existsSync(KEY_FILE) ? readFileSync(KEY_FILE, "utf8").trim() : "");
   if (!/^0x[0-9a-fA-F]{64}$/.test(k)) return null;
   return k;

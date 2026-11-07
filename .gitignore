@@ -3,3 +3,4 @@ node_modules/
 tools/__pycache__/
 .x402-buyer.key
 orb-violin.mid
+scripts/x402-buy/purchases/
