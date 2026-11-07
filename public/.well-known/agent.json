@@ -50,6 +50,7 @@
     "david_episodes": "https://orbstudio.org/api/v1/david/episodes",
     "music": "https://orbstudio.org/api/v1/music",
     "questions": "https://orbstudio.org/api/v1/questions",
+    "aviation": "https://orbstudio.org/api/v1/aviation",
     "prices": "https://orbstudio.org/api/v1/prices",
     "receipts": "https://orbstudio.org/api/v1/receipts",
     "vote": "https://orbstudio.org/api/v1/vote",
