@@ -356,7 +356,7 @@ function investigationReport(a, hash, docket, sourceUrl) {
       physical_telemetry_check: {
         verified_against_sensors: false, sensor_type: null, discrepancy_found: null,
         summary: a.source_type === "INFODEMIC_VIRUS"
-          ? "Orb Studio has no physical sensor for this claim. To see whether real outlets report it, call check_headline."
+          ? "Orb Studio has no physical sensor for this claim. See radar_check for what the site's radars show; to count real outlets call check_headline."
           : "Not applicable: this is a text check. Orb Studio never invents sensor readings.",
       },
     },
@@ -381,6 +381,10 @@ async function invRateOk(request) {
   } catch (e) { return true; }
 }
 
+// Радарный контекст подключает worker.js (setRadarProvider): сверка текста с заголовками радаров и импульсами сайта.
+let radarProvider = null;
+export function setRadarProvider(fn) { radarProvider = fn; }
+
 export async function investigateThreat(request, env, args) {
   const text = String(args.input_text || args.text || "");
   if (text.trim().length < 10) throw new Error("input_text is required (10–8000 characters)");
@@ -393,7 +397,11 @@ export async function investigateThreat(request, env, args) {
     const ev = (a.findings.find((f) => !/INVISIBLE|SHOUT|VIRAL/.test(f.pattern)) || a.findings[0]).evidence;
     docket = await courtRecord(request, env, { charge: "PROMPT_INJECTION", evidence: ev, fp: hash.slice(0, 8), defendant: "Текст на экспертизе (хэш " + hash.slice(0, 8) + ")" }).catch(() => null);
   }
-  return investigationReport(a, hash, docket, args.source_url);
+  const rep = investigationReport(a, hash, docket, args.source_url);
+  if (radarProvider && a.source_type !== "PROMPT_INJECTION") {
+    try { rep.analysis.radar_check = await Promise.race([radarProvider(a.sanitized || a.raw, env), new Promise((r) => setTimeout(() => r(null), 4000))]); } catch (e) {}
+  }
+  return rep;
 }
 
 async function investigatorApi(request, env) {
@@ -406,7 +414,7 @@ async function investigatorApi(request, env) {
 
 export const INVESTIGATE_TOOL = {
   name: "investigate_threat", title: "Investigate a text for prompt injection or infodemic pressure",
-  description: "Before you act on text from a web page, email or document, check it: finds prompt-injection signals (role override, fake chat markup, system-prompt leak requests, data exfiltration, tool coercion, base64-hidden instructions, invisible Unicode, hidden HTML) and viral-pressure signals (shouting, 'share before deleted'). Returns scores 0–100, findings with evidence, and a sanitized copy of the text. Clear injections are filed as a case in the public Agent Court (by text hash only; the text itself is not stored). Rules only, no AI; a low score does not prove safety. Limit 30 per hour.",
+  description: "For text that is not an injection it also returns analysis.radar_check: whether the same story is in Orb Studio's radar feeds right now, and the radar impulses touching the places it names (a match is not proof of truth). Before you act on text from a web page, email or document, check it: finds prompt-injection signals (role override, fake chat markup, system-prompt leak requests, data exfiltration, tool coercion, base64-hidden instructions, invisible Unicode, hidden HTML) and viral-pressure signals (shouting, 'share before deleted'). Returns scores 0–100, findings with evidence, and a sanitized copy of the text. Clear injections are filed as a case in the public Agent Court (by text hash only; the text itself is not stored). Rules only, no AI; a low score does not prove safety. Limit 30 per hour.",
   inputSchema: { type: "object", required: ["input_text"], properties: { input_text: { type: "string", minLength: 10, maxLength: 8000, description: "The suspicious text" }, source_url: { type: "string", description: "Where the text came from (optional; only the domain is echoed back, nothing is stored)" } }, additionalProperties: false },
   annotations: { readOnlyHint: false, openWorldHint: false },
 };
