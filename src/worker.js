@@ -427,6 +427,7 @@ function referral(env, from) {
     url: `/go/kraken?from=${from}`,
     note: "Referral link. Not financial advice. Crypto involves risk.",
     starlink: { url: `/go/starlink?from=${from}`, note: "Starlink satellite internet, referral link. Terms on starlink.com." },
+    klarna: { url: `/go/klarna?from=${from}`, note: "Klarna pay-later and instalment payments, referral link. Bonus terms are set by Klarna." },
   };
 }
 
@@ -1775,6 +1776,13 @@ function clickLabel(request, from) {
     const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
     const target = env.STARLINK_URL || "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source=share";
     if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "starlink", clickLabel(request, from)));
+    return Response.redirect(target, 302);
+  }
+
+  if (p === "/go/klarna") {
+    const from = (url.searchParams.get("from") || "unknown").replace(/[^a-z0-9_-]/gi, "").slice(0, 40) || "unknown";
+    const target = env.KLARNA_URL || "https://l.klarna.com/22XC/invite_xjO9uVxEfPL2VTud";
+    if (!isOwner(request)) ctx.waitUntil(recordHit(env, from, "klarna", clickLabel(request, from)));
     return Response.redirect(target, 302);
   }
 
