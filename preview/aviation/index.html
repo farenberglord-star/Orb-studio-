@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#05070e">
+<title>Превью · авиационный датчик Orb Studio — не подключено</title>
+<meta name="description" content="Демонстрационное превью предлагаемого авиационного датчика Orb Studio. Источник не подключён, живых метрик нет.">
+<style>
+:root{
+  --bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;
+  --holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Segoe UI","Avenir Next","Trebuchet MS",sans-serif;
+  --body:"Segoe UI","Helvetica Neue",sans-serif;
+  --mono:ui-monospace,"SFMono-Regular","Cascadia Mono",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:
+  radial-gradient(900px 420px at 90% -10%,rgba(111,230,255,.14),transparent 55%),
+  radial-gradient(680px 380px at -10% 8%,rgba(169,155,255,.12),transparent 50%),
+  var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5}
+a{color:var(--holo)}
+a:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--holo);outline-offset:3px}
+.skip{position:absolute;left:12px;top:-40px;background:#fff;color:#000;padding:8px 12px;z-index:5}
+.skip:focus{top:8px}
+.demo{background:linear-gradient(100deg,#3a1220 0%,#2a210f 55%,#102033 100%);border-bottom:2px solid var(--hot);padding:14px max(16px,env(safe-area-inset-right)) 16px max(16px,env(safe-area-inset-left))}
+.demo .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--warm);margin:0}
+.demo h1{font-family:var(--display);font-weight:700;font-size:clamp(22px,6vw,34px);letter-spacing:.06em;line-height:1.15;margin:4px 0 6px}
+.demo p{margin:0;max-width:68ch;color:#f3e6ea}
+.brand{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:10px max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));max-width:920px;margin:0 auto}
+.brand i{width:11px;height:11px;border-radius:50%;background:var(--holo);box-shadow:0 0 12px var(--holo);display:block}
+.brand b{font-family:var(--display);letter-spacing:.16em;font-size:14px;white-space:nowrap}
+.brand span{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
+.wrap{max-width:920px;margin:0 auto;padding:18px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:16px}
+.hero{display:grid;grid-template-columns:1fr;gap:12px;align-items:center}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin:0}
+h2{font-family:var(--display);font-size:18px;letter-spacing:.08em;margin:0;color:var(--holo)}
+h3{font-family:var(--display);font-size:15px;letter-spacing:.06em;margin:0 0 6px}
+p{margin:0}
+.lead{color:var(--dim);max-width:68ch}
+.panel{position:relative;overflow:hidden;background:rgba(11,18,34,.92);border:1px solid var(--line);border-radius:16px;padding:16px}
+.panel::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.panel>*{position:relative}
+.orb{width:min(220px,70vw);height:auto;justify-self:center}
+.metrics{display:grid;grid-template-columns:1fr;gap:8px}
+.metric{background:#070d18;border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.metric .nm{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--dim);overflow-wrap:anywhere}
+.metric .vl{font-family:var(--display);font-size:26px;letter-spacing:.04em;color:var(--warm);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;line-height:1.15}
+.metric .vl.ok{color:var(--holo);font-size:18px}
+.metric small{display:block;color:var(--dim);font-size:12px;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr;gap:8px}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}
+.chip.warn{border-color:rgba(255,181,71,.7);color:var(--warm)}
+.chip.bad{border-color:rgba(255,93,122,.7);color:var(--hot)}
+.chip.dim{border-style:dashed}
+.pipe{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pipe li{background:#070d18;border:1px dashed rgba(135,150,182,.45);border-radius:12px;padding:10px 12px}
+.pipe li b{display:block;font-family:var(--display);letter-spacing:.05em}
+.pipe li span{color:var(--dim);font-size:14px}
+.pipe li.off{opacity:.9}
+.pipe li.bad{border-style:solid;border-color:rgba(255,93,122,.65)}
+.pipe li.go{border-style:solid;border-color:rgba(111,230,255,.45)}
+.bands{display:flex;flex-direction:column;gap:10px}
+.band{border-radius:14px;padding:12px;background:#070d18}
+.band.have{border:1px solid rgba(111,230,255,.45)}
+.band.prop{border:1px dashed rgba(255,181,71,.75)}
+.band.off{border:1px dashed rgba(135,150,182,.4)}
+.band .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.band.have .tag{color:var(--holo)}
+.band.prop .tag{color:var(--warm)}
+.band.off .tag{color:var(--dim)}
+.nodes{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px}
+.node{border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.node b{display:block;font-size:14px}
+.node span,.node code{color:var(--dim);font-size:12.5px}
+code,pre{font-family:var(--mono);font-size:12.5px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#070d18;border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0 0;color:#d5def0}
+.rules{margin:8px 0 0;padding-left:18px;color:var(--dim)}
+.rules li{margin:4px 0}
+.rules b{color:var(--fg);font-weight:600}
+.synthetic{border:2px dashed var(--hot);background:
+  repeating-linear-gradient(-45deg,rgba(255,93,122,.07) 0 10px,transparent 10px 20px),#120910}
+.synthetic h2{color:var(--hot)}
+.map{width:100%;height:auto;display:block;margin-top:10px;background:#070d18;border-radius:12px}
+.share textarea{width:100%;min-height:168px;margin-top:8px;border-radius:12px;border:1px solid var(--line);background:#070d18;color:var(--fg);font:16px/1.45 var(--body);padding:12px;resize:vertical}
+.xbtn{margin-top:10px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border:0;border-radius:10px;background:var(--fg);color:#070d18;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:16px;cursor:pointer}
+.xbtn:hover{filter:brightness(1.06)}
+.note{min-height:1.4em;color:var(--dim);font-size:14px;margin-top:8px}
+.future{border-style:dashed}
+.future h3{color:var(--dim)}
+.refs{color:var(--dim);font-size:14px}
+.refs li{margin:6px 0}
+@media (min-width:720px){
+  .hero{grid-template-columns:minmax(0,1fr) 220px}
+  .metrics,.grid2,.nodes{grid-template-columns:1fr 1fr}
+  .pipe{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">К содержанию</a>
+<header class="demo" role="region" aria-label="Статус демонстрации">
+  <p class="kicker">DEMONSTRATION</p>
+  <h1>ПРЕВЬЮ НЕ ПОДКЛЮЧЕНО</h1>
+  <p>Источник не вызывается. Живого счёта бортов нет. Число ниже — null, это не ноль и не наблюдение воздушного движения.</p>
+</header>
+<div class="brand"><i></i><b>ORB STUDIO</b><span>локальное превью · в меню сайта не входит</span></div>
+<main class="wrap" id="content">
+  <section class="hero panel" aria-labelledby="title">
+    <div>
+      <p class="eyebrow">Предложение датчика · Гамбург</p>
+      <h2 id="title">Наблюдаемые борты в круге 100 км</h2>
+      <p class="lead">Центр 53.6304, 9.9882. Сначала описывающая рамка, затем геодезический радиус. В счёт попали бы только борта в воздухе со свежей координатой. Покрытие приёмников смещено: это не все гражданские рейсы и не мировая картина.</p>
+      <div class="chiprow">
+        <span class="chip bad">источник не подключён</span>
+        <span class="chip warn">лицензия не получена</span>
+        <span class="chip dim">музыка и EMO для авиации выключены</span>
+      </div>
+    </div>
+    <svg class="orb" viewBox="0 0 200 200" role="img" aria-label="Схема кольца без данных">
+      <circle cx="100" cy="100" r="86" fill="none" stroke="#1b2944"/>
+      <circle cx="100" cy="100" r="68" fill="none" stroke="#6fe6ff" stroke-opacity=".75"/>
+      <circle cx="100" cy="100" r="46" fill="rgba(255,181,71,.08)" stroke="#ffb547"/>
+      <circle cx="100" cy="100" r="4" fill="#ffb547"/>
+      <text x="100" y="108" text-anchor="middle" fill="#ffb547" font-family="ui-monospace,monospace" font-size="11">НЕТ ДАННЫХ</text>
+    </svg>
+  </section>
+
+  <section class="panel" aria-labelledby="reading">
+    <h2 id="reading">Состояние чтения</h2>
+    <p class="lead">Так выглядел бы ответ <code>/api/v1/aviation</code> и MCP <code>get_aviation_sensors</code> сегодня. Маршрут не создан. Это контракт на бумаге.</p>
+    <div class="metrics">
+      <article class="metric"><div class="nm">observed_airborne_count</div><div class="vl" data-field="observed_airborne_count">null</div><small>Пустое значение. Ноль означал бы успешный ответ без бортов. Успешного ответа не было.</small></article>
+      <article class="metric"><div class="nm">freshness</div><div class="vl ok" data-field="freshness">not_connected</div><small>Не fresh и не stale: читать нечего.</small></article>
+      <article class="metric"><div class="nm">http_status</div><div class="vl" data-field="http_status">503</div><small>Нет пригодного снимка — клиент получает отказ, а не выдуманный счёт.</small></article>
+      <article class="metric"><div class="nm">data_age_seconds</div><div class="vl" data-field="data_age_seconds">null</div><small>Возраст появится только вместе с настоящим снимком.</small></article>
+      <article class="metric"><div class="nm">source_time</div><div class="vl" data-field="source_time">null</div><small>Время, с которым источник связывает векторы. Сейчас отсутствует.</small></article>
+      <article class="metric"><div class="nm">fetched_at</div><div class="vl" data-field="fetched_at">null</div><small>Момент приёма ответа планировщиком. Планировщик выключен.</small></article>
+      <article class="metric"><div class="nm">last_success_at</div><div class="vl" data-field="last_success_at">null</div><small>Последний годный снимок. Его не существует.</small></article>
+      <article class="metric"><div class="nm">source_license_status</div><div class="vl ok">blocked_written_agreement_required</div><small>Письменное согласие OpenSky не получено. Квота это согласие не заменяет.</small></article>
+      <article class="metric"><div class="nm">upstream_called</div><div class="vl ok">false</div><small>Ни эта страница, ни предлагаемое чтение не ходят к источнику.</small></article>
+      <article class="metric"><div class="nm">methodology</div><div class="vl ok">bbox_then_geodesic_airborne_fresh_v1</div><small>Правила фильтра записаны. Входных векторов нет.</small></article>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="sector">
+    <h2 id="sector">Геометрия сектора</h2>
+    <p class="lead">Это расчёт круга, не трафик. Рамка шире круга: углы рамки снаружи 100 км и в счёт не входят. Площадь 5.45 квадратных градуса — по таблице REST это был бы 1 кредит на <code>/states/all</code>, если бы вызов был разрешён. Вызов не разрешён.</p>
+    <div class="grid2">
+      <article class="metric"><div class="nm">центр</div><div class="vl ok">53.6304, 9.9882</div><small>Гамбург. Не рамка автобанов.</small></article>
+      <article class="metric"><div class="nm">радиус</div><div class="vl ok">100 км</div><small>Геодезия после рамки.</small></article>
+      <article class="metric"><div class="nm">lamin … lamax</div><div class="vl ok">52.7301 … 54.5307</div></article>
+      <article class="metric"><div class="nm">lomin … lomax</div><div class="vl ok">8.4735 … 11.5029</div></article>
+      <article class="metric"><div class="nm">площадь рамки</div><div class="vl ok">5.45 °²</div><small>Порог одного кредита — до 25 °² включительно.</small></article>
+      <article class="metric"><div class="nm">каденция</div><div class="vl ok">не задана</div><small>288 раз в сутки при шаге 5 минут — арифметика, не разрешение. Анонимный бакет 400 кредитов в сутки на IP. Глобальный <code>/states/all</code> стоит 4 кредита, то есть не больше 100 таких вызовов. Стандартный пользователь в документации — 4000 кредитов в сутки через OAuth2 client credentials. Это не лицензия на продукт.</small></article>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="pipe">
+    <h2 id="pipe">Предлагаемый контур</h2>
+    <p class="lead">Планировщик, и только он, ходил бы к источнику после письменного согласия и отдельной проверки квоты. Страница, API и MCP читают снимок. Запрос читателя источник не вызывает.</p>
+    <ol class="pipe">
+      <li class="off"><b>Лицензия</b><span>письменного согласия нет, шаг закрыт</span></li>
+      <li class="off"><b>Планировщик</b><span>выключен, расписания нет</span></li>
+      <li class="off"><b>OpenSky</b><span>не вызывается</span></li>
+      <li><b>Нормализатор</b><span>рамка, затем радиус, on_ground = false, свежая координата</span></li>
+      <li class="off"><b>Снимок</b><span>хранилища для авиации нет</span></li>
+      <li class="bad"><b>Чтение</b><span>503, observed_airborne_count = null</span></li>
+    </ol>
+    <ul class="rules">
+      <li><b>Свежая координата.</b> <code>time_position</code> не дальше 60 секунд от времени ответа. Иначе строка не считается.</li>
+      <li><b>Воздух.</b> В счёт входит только <code>on_ground === false</code>. <code>true</code> и <code>null</code> не превращаются в ноль и не считаются бортом.</li>
+      <li><b>Пустой ответ.</b> Массив <code>states</code> отсутствует — счёт null. Пустой массив после успешного приёма — настоящий ноль.</li>
+      <li><b>Свежесть снимка.</b> До 360 секунд — fresh. От 361 до 900 — stale, счёт прошлого снимка с явной пометкой. Старше 900 секунд или снимка нет — 503 и счёт null.</li>
+      <li><b>Идентификаторы.</b> В публичный снимок не кладутся icao24 и позывной, пока согласие отдельно это не разрешит.</li>
+      <li><b>Аномалии, NOTAM, закрытия.</b> Для отклонения от обычного уровня нужны история и оценка качества. Официальное закрытие — из источника NOTAM. Этот контур ни того, ни другого не обещает.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="studio">
+    <h2 id="studio">Студия целиком</h2>
+    <p class="lead">Существующие слои взяты из текущего репозитория. Авиация только предложена. Музыка и EMO в репозитории есть и для этого снимка остаются выключенными.</p>
+    <div class="bands">
+      <div class="band have">
+        <div class="tag">Уже есть</div>
+        <div class="nodes">
+          <article class="node"><b>Радары новостей</b><span>geo, politics, economy, budget, crypto, energy. Кэш D1 <code>radars-v6</code>. <code>/api/v1/radars</code>, MCP <code>get_radars</code> и <code>get_radar</code>.</span></article>
+          <article class="node"><b>Рынок и сеть</b><span><code>sensorsData</code>, ключ <code>sensors-v8</code>, около 5 минут. <code>/api/v1/sensors</code>, MCP <code>get_sensors</code>. При холодном кэше текущий код ходит к источникам внутри запроса. Авиация так не должна.</span></article>
+          <article class="node"><b>Автобаны Гамбурга</b><span><code>roadsData</code>, ключ <code>roads-hh-v1</code>, около 10 минут, Autobahn GmbH. Рамка 53.30–53.78 и 9.55–10.40, трассы A1, A7, A23, A24, A25, A26, A39, A253, A255, A261. Это не круг 100 км. <code>/api/v1/roads</code>, MCP <code>get_roads</code>.</span></article>
+          <article class="node"><b>Цены и места Гамбурга</b><span><code>pricesRadar</code> на <code>/prices</code> и <code>get_places</code> на <code>/places</code>. Наземная хроника, не борта.</span></article>
+          <article class="node"><b>Страница датчиков</b><span><code>/sensors</code> показывает рыночный и гамбургский слой. Авиационного блока на ней нет.</span></article>
+          <article class="node"><b>Хранилище</b><span>Живой кэш лежит в D1 <code>shared</code>. <code>ORB_KV</code> в wrangler.toml закомментирован. Авиационный ключ не создаётся.</span></article>
+        </div>
+      </div>
+      <div class="band prop">
+        <div class="tag">Предлагается · не подключено</div>
+        <div class="nodes">
+          <article class="node"><b>Снимок авиации</b><span>Отдельный ключ в том же D1 или в KV, если KV позже включат. Пишет только планировщик.</span></article>
+          <article class="node"><b>Только чтение</b><span><code>GET /api/v1/aviation</code> и MCP <code>get_aviation_sensors</code> отдают снимок. Нет снимка или он старше предела — 503 и null.</span></article>
+          <article class="node"><b>Дальше по желанию</b><span>Регион и мир — отдельное решение по лицензии, кредитам и смыслу счётчика. В этот круг они не входят.</span></article>
+        </div>
+      </div>
+      <div class="band off">
+        <div class="tag">Для авиации выключено</div>
+        <div class="nodes">
+          <article class="node"><b>Музыка</b><span><code>/music</code> и <code>get_tracks</code> существуют. Авиационный снимок они не читают.</span></article>
+          <article class="node"><b>EMO</b><span><code>/robot</code> и Durable Object EmoRelay существуют. Авиационный снимок они не читают.</span></article>
+          <article class="node"><b>Скрипка и x402</b><span>Отдельный существующий контур. Этот превью его файлы не меняет и к авиации не подключает.</span></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="not">
+    <h2 id="not">Чего счётчик не означает</h2>
+    <ul class="rules">
+      <li><b>Не задержка рейса, не вылет и не прилёт.</b> Позиция в круге не говорит, опаздывает ли борт и садится ли он в Гамбурге.</li>
+      <li><b>Не закрытие неба и не геополитика.</b> Из числа точек нельзя вывести NOTAM, запрет полётов или политическое событие.</li>
+      <li><b>Не «все самолёты».</b> Нет борта без годной координаты, на земле, вне приёмников или вне круга. Отсутствие в счётчике не доказывает отсутствие самолёта.</li>
+      <li><b>Не аномалия.</b> Скачок относительно «обычного» требует накопленной истории и проверки качества приёма. Здесь истории нет.</li>
+    </ul>
+  </section>
+
+  <section class="panel synthetic" aria-labelledby="synth" data-synthetic="scenario">
+    <h2 id="synth">СИНТЕТИЧЕСКИЙ СЦЕНАРИЙ</h2>
+    <p>Пять точек ниже выдуманы, чтобы было видно, как круг выглядит на экране. Это не OpenSky, не доска наблюдения и не <code>observed_airborne_count</code>. В настоящем поле статуса по-прежнему null.</p>
+    <svg class="map" viewBox="0 0 360 280" role="img" aria-label="Вымышленные точки внутри круга, не наблюдение">
+      <rect width="360" height="280" fill="#070d18"/>
+      <circle cx="180" cy="132" r="96" fill="none" stroke="#ffb547" stroke-dasharray="4 4"/>
+      <circle cx="180" cy="132" r="3" fill="#ffb547"/>
+      <text x="180" y="248" text-anchor="middle" fill="#ff5d7a" font-family="ui-monospace,monospace" font-size="11">ВЫМЫСЕЛ · НЕ НАБЛЮДЕНИЕ · 5 ТОЧЕК ДЛЯ ВЁРСТКИ</text>
+      <g fill="#6fe6ff" font-family="ui-monospace,monospace" font-size="11">
+        <circle cx="140" cy="96" r="4"/><text x="78" y="84">вымысел 1</text>
+        <circle cx="228" cy="88" r="4"/><text x="236" y="92">вымысел 2</text>
+        <circle cx="108" cy="156" r="4"/><text x="28" y="174">вымысел 3</text>
+        <circle cx="248" cy="168" r="4"/><text x="256" y="186">вымысел 4</text>
+        <circle cx="186" cy="196" r="4"/><text x="148" y="216">вымысел 5</text>
+      </g>
+    </svg>
+  </section>
+
+  <section class="panel share" aria-labelledby="share-heading">
+    <h2 id="share-heading">Черновик для X</h2>
+    <p class="lead">Кнопка открывает черновик, который можно поправить ещё раз уже в X. Orb Studio в аккаунт X не входит, пост не отправляет и вымышленные точки в текст не подставляет.</p>
+    <label for="share-text">Текст черновика, его можно изменить</label>
+    <textarea id="share-text">Превью Orb Studio: авиационный раздел не подключён. Это не наблюдение воздушного движения, не данные OpenSky и не сводка по Гамбургу.</textarea>
+    <p class="lead" style="margin-top:8px">Каноническая ссылка студии добавляется к черновику отдельно: <a href="https://orbstudio.org/">https://orbstudio.org/</a></p>
+    <button type="button" class="xbtn" id="share-x">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M14.7 3h2.7l-5.9 6.7L19 21h-5.2l-4.1-5.4L5.2 21H2.4l6.3-7.2L2 3h5.3l3.7 4.9L14.7 3Zm-.9 16.2h1.5L7.3 4.7H5.7l8.1 14.5Z"/></svg>
+      Открыть черновик в X
+    </button>
+    <p class="note" id="share-note" aria-live="polite"></p>
+    <a id="share-fallback" hidden rel="noopener noreferrer"></a>
+    <div class="future">
+      <h3>Шаблон настоящей сводки — выключен</h3>
+      <p class="lead">Кнопка выше этот текст не берёт. Скобки остаются скобками, пока нет настоящего снимка. В будущем текст обязан называть время, источник, возраст, покрытие и лицензию.</p>
+      <pre id="future-share">Orb Studio, сектор Гамбург 100 км от 53.6304, 9.9882.
+Наблюдаемые борты в воздухе с валидной свежей координатой: {observed_airborne_count}.
+Время источника: {source_time}. Снято: {fetched_at}. Возраст: {data_age_seconds} с. Статус: {freshness}.
+Покрытие приёмников неполное: это не все гражданские борты и не мировая картина.
+Лицензия источника: {source_license_status}.
+Не задержки рейсов, не вылеты и прилёты, не закрытие неба.
+https://orbstudio.org/</pre>
+    </div>
+  </section>
+
+  <section class="panel refs" aria-labelledby="refs">
+    <h2 id="refs">Источники и границы</h2>
+    <ul>
+      <li><a href="https://opensky-network.org/about/terms-of-use">Условия OpenSky</a>. Коммерческое использование и операционный REST, включая внутреннюю автоматизацию, требуют предварительного письменного согласия. Письмо: contact@opensky-network.org. Передача набора данных третьим лицам условиями ограничена.</li>
+      <li><a href="https://openskynetwork.github.io/opensky-api/rest.html">Документация REST OpenSky</a>. Кредиты и OAuth2 client credentials описаны там. Эта страница по тем адресам данные не запрашивает.</li>
+      <li>Flightradar24 и ADS-B Exchange не читаются и не скрейпятся.</li>
+      <li>OurAirports в превью не используется: лицензия для коммерческого применения Orb Studio не проверена.</li>
+      <li>Существующая студия: <a href="https://orbstudio.org/">orbstudio.org</a>, датчики на <a href="https://orbstudio.org/sensors">/sensors</a>. Этот файл туда не задеплоен.</li>
+    </ul>
+  </section>
+</main>
+<script>
+(function () {
+  var text = document.getElementById("share-text");
+  var button = document.getElementById("share-x");
+  var note = document.getElementById("share-note");
+  var fallback = document.getElementById("share-fallback");
+  var canonical = "https://orbstudio.org/";
+  button.addEventListener("click", function () {
+    var params = new URLSearchParams();
+    params.set("text", text.value);
+    params.set("url", canonical);
+    var href = "https://x.com/intent/post?" + params.toString();
+    var opened = window.open(href, "_blank", "noopener,noreferrer");
+    if (opened) {
+      note.textContent = "Открыт черновик X. Публикация только если вы сами подтвердите её на стороне X. Orb Studio пост не отправляет.";
+      fallback.hidden = true;
+    } else {
+      note.textContent = "Браузер не открыл вкладку. Откройте черновик сами по ссылке ниже. Публикация остаётся на вашей стороне.";
+      fallback.hidden = false;
+      fallback.href = href;
+      fallback.textContent = "Открыть черновик X";
+    }
+  });
+})();
+</script>
+</body>
+</html>
