@@ -7,6 +7,7 @@
     "deploy": "wrangler deploy",
     "test:x402": "node --test test/violin-x402.test.mjs",
     "test:aviation": "node test/aviation.test.mjs",
+    "test:wallet": "node test/agent-wallet.test.mjs",
     "check:x402-payai": "node scripts/x402-payai-sepolia.mjs"
   },
   "devDependencies": {
