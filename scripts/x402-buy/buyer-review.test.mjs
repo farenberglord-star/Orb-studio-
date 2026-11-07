@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createReview, pageQuery, proposalFromChallenge, USDC } from "../../public/tools/buyer-review.js";
 
 const resource = "https://orbstudio.org/api/v1/violin/midi";
-const merchant = "0x" + "ab".repeat(20);
+const merchant = "0xA91269022be3dc5208Ab3Da1eb288E261DE23DB5";
 const account = "0x" + "cd".repeat(20);
 const tx = "0x" + "ab".repeat(32);
 const challenge = { x402Version: 2, accepts: [{ scheme: "exact", network: "eip155:8453", asset: USDC, payTo: merchant, amount: "10000", maxTimeoutSeconds: 90, extra: { name: "USD Coin", version: "2" }, typedData: { domain: { name: "Evil", chainId: 1 } } }] };
@@ -43,6 +43,9 @@ const provider = { request: async (req) => { calls.push(JSON.parse(JSON.stringif
 let clock = 1_000_000;
 const review = createReview({ now: () => clock });
 await assert.rejects(review.load(resource, async () => response({ status: 302, headers: { location: "https://evil.example" } })), (e) => e.code === "redirect_refused");
+{ const bad = (patch) => async () => response({ status: 402, body: JSON.stringify({ ...challenge, accepts: [{ ...challenge.accepts[0], ...patch }] }) });
+  await assert.rejects(createReview().load(resource, bad({ payTo: "0x" + "ab".repeat(20) })), (e) => e.code === "merchant_not_pinned");
+  await assert.rejects(createReview().load(resource, bad({ amount: "20001" })), (e) => e.code === "amount_over_pinned_max"); }
 await review.load(resource, fetchImpl);
 assert.equal(review.view().merchant, merchant);
 assert.equal(review.view().amount_atomic, "10000");

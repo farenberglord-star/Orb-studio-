@@ -5,6 +5,9 @@ export const BASE_CHAIN_HEX = "0x2105";
 export const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 export const USDC_NAME = "USD Coin";
 export const USDC_VERSION = "2";
+// Скрипка продаётся только на этот адрес и не дороже 0,02 USDC: страница отказывается подписывать что-либо иное, даже если ответ сервера изменится.
+export const VIOLIN_PAY_TO = "0xA91269022be3dc5208Ab3Da1eb288E261DE23DB5";
+export const VIOLIN_MAX_ATOMIC = 20000n;
 
 const TYPES = {
   EIP712Domain: [
@@ -186,7 +189,10 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       const header = response.headers.get("payment-required");
       const raw = header ? atob(header) : await response.text();
       if (raw.length > 100000) fail("too_large");
-      proposal = proposalFromChallenge(resource, JSON.parse(raw), now());
+      const next = proposalFromChallenge(resource, JSON.parse(raw), now());
+      if (!same(next.merchant, VIOLIN_PAY_TO)) fail("merchant_not_pinned");
+      if (BigInt(next.amount_atomic) > VIOLIN_MAX_ATOMIC) fail("amount_over_pinned_max");
+      proposal = next;
       pending = null;
       return view();
     },
