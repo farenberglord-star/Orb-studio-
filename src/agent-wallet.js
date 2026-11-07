@@ -80,7 +80,7 @@ export async function agentWallet(request, env, deps) {
       status: addr ? "active" : "wallet_not_set_yet",
       wallet: addr ? { address: addr, network: rules.network, explorer: "https://basescan.org/address/" + addr, note: "Every payment is verifiable on-chain; tx hashes in the log are reported by the agent, check them at the explorer." } : null,
       rules: { limits_enabled: rules.limits_enabled, per_purchase_usdc: rules.limits_enabled ? rules.per_purchase_usdc : null, daily_usdc: rules.limits_enabled ? rules.daily_usdc : null, allowed_hosts: rules.allowed_hosts.length ? rules.allowed_hosts : "any public https host",
-        enforcement: "Budget caps are not a purchase approval. Each real payment needs a separate one-time approval of the merchant, network, resource and total. No automatic top-up." },
+        enforcement: "Потолок суммы не является разрешением на покупку. Каждый платёж требует отдельного подтверждения продавца, сети, ресурса и суммы. Автопополнения нет." },
       summary: s, entries: entries.slice(-50).reverse().map(({ host, ...e }) => ({ host, ...e })),
       how_it_works: "1) The user records a one-time approval of merchant, network, resource and total. 2) The agent asks POST /api/v1/agent-wallet/authorize. Budget alone is refused. 3) It pays only after that exact approval, then POST /api/v1/agent-wallet/result. The ledger key cannot create an approval.",
       page: "https://orbstudio.org/tools/agent-wallet",

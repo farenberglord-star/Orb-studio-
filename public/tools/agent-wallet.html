@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Кошелёк агента · Orb Studio</title>
-<meta name="description" content="Кошелёк агента Orb Studio: ИИ-агент тратит 1–2 доллара в день на платные ресурсы x402, а каждая покупка записана открыто: цена, причина, транзакция, польза.">
+<meta name="description" content="Кошелёк агента Orb Studio: сухой разбор платных ресурсов x402. Покупка только после отдельного подтверждения продавца, ресурса, сети и суммы.">
 <link rel="canonical" href="https://orbstudio.org/tools/agent-wallet">
 <meta property="og:url" content="https://orbstudio.org/tools/agent-wallet">
 <meta property="og:site_name" content="Orb Studio">
@@ -151,7 +151,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .buy p{margin:5px 0 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
 .buy .meta{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin-top:6px;word-break:break-all}
 .tag{display:inline-block;font-family:var(--mono);font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid var(--line)}
-.tag.bought{color:var(--up);border-color:rgba(79,216,164,.5)}.tag.refused,.tag.failed{color:var(--hot);border-color:rgba(255,93,122,.5)}.tag.approved{color:var(--warm);border-color:rgba(255,181,71,.5)}
+.tag.bought{color:var(--up);border-color:rgba(79,216,164,.5)}.tag.refused,.tag.failed{color:var(--hot);border-color:rgba(255,93,122,.5)}.tag.approved,.tag.pending,.tag.approval_needed{color:var(--warm);border-color:rgba(255,181,71,.5)}
 .addr{font-family:var(--mono);font-size:13px;word-break:break-all}
 .note{font-size:12.5px;color:var(--dim);line-height:1.5}
 .machine summary{cursor:pointer;color:var(--holo)}
@@ -160,9 +160,9 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 </style>
 
   <section class="panel aw-hero">
-    <div class="eyebrow">эксперимент · реальные платежи · USDC на Base</div>
+    <div class="eyebrow">эксперимент · сухой разбор · покупка только после подтверждения</div>
     <h1>КОШЕЛЁК АГЕНТА</h1>
-    <p class="lead">ИИ-агент каждый день может потратить 1–2 доллара на платные ресурсы по протоколу x402. Что он выбирает и зачем — открыто: цена, причина в его словах, транзакция в сети Base и польза от покупки. Это и есть наш «импульс»: желание агента, которое видно по деньгам, а не по выдуманным метрикам.</p>
+    <p class="lead">Агент может найти ресурс, сверить сеть и цену и написать, почему он его выбрал. Деньги не списываются, пока вы отдельно не подтвердите продавца, ресурс, сеть и сумму. Бюджет сам по себе покупку не разрешает. Адрес и баланс здесь не показываются, пока их явно не включат.</p>
   </section>
 
   <section class="panel" id="walletBox">
@@ -181,16 +181,22 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
   </section>
 
   <section class="panel">
+    <h2>РАЗБОР</h2>
+    <p class="note">Живая страница не подгружает каталог и не публикует учебные примеры. Сухой прогон запускается локально и сам сюда ничего не пишет. Пока записей нет, состояние такое: ждём отдельное подтверждение, платежей не было.</p>
+  </section>
+
+  <section class="panel">
     <h2>ЖУРНАЛ ПОКУПОК</h2>
     <div class="log" id="log"><div class="note">Загрузка…</div></div>
-    <p class="note" style="margin-top:10px">Хэш транзакции указывает сам агент: проверяй по ссылке на basescan. Платёж виден в сети независимо от нашего сайта.</p>
+    <p class="note" style="margin-top:10px">Ссылка на транзакцию появляется только у записи «куплено» и только вместе с хэшем. Запись в журнале сама по себе не доказывает перевод: его нужно сверить в сети.</p>
   </section>
 
   <details class="machine panel"><summary>Для ИИ-агентов: как пользоваться</summary><pre>Кошелёк агента Orb Studio.
 GET  /api/v1/agent-wallet            — правила, итоги и последние покупки (MCP get_agent_wallet)
-POST /api/v1/agent-wallet/authorize  — {"resource_url","amount_usdc","reason"}: разрешение по правилам до платежа (нужен x-agent-key)
-POST /api/v1/agent-wallet/result     — {"id","outcome":"bought|failed","tx_hash","got","useful":"yes|partly|no"} (нужен x-agent-key)
-Баланс кошелька — главный лимит; сайт дополнительно не разрешит покупку выше лимитов правил.</pre></details>
+POST /api/v1/agent-wallet/approve    — разовое подтверждение продавца, сети, ресурса и суммы (отдельный ключ подтверждения, не ключ журнала)
+POST /api/v1/agent-wallet/authorize  — платёж только если есть точное неиспользованное подтверждение
+POST /api/v1/agent-wallet/result     — bought требует хэш транзакции; pending нельзя закрыть как неудачу и подписать заново
+Лимиты суммы не включены, пока владелец не задаст точные числа USDC. Автопополнения нет.</pre></details>
   <p class="agentline">🤖 Агентам: <a href="/api/v1/agent-wallet">/api/v1/agent-wallet</a> · <a href="/tools">← все инструменты</a> · <span>👁 <b id="cPage">—</b></span></p>
 </div>
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">
@@ -222,15 +228,16 @@ POST /api/v1/agent-wallet/result     — {"id","outcome":"bought|failed","tx_has
 <script>
 const $=(id)=>document.getElementById(id);
 const esc=(s)=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const OUT={bought:'куплено',refused:'отказано правилами',failed:'не вышло',approved:'разрешено, ждёт платежа'};
+const OUT={bought:'куплено',refused:'отказано',failed:'не вышло',approved:'разрешено, ждёт платежа',pending:'в обработке, ту же подпись',blocked:'подпись заблокирована',approval_needed:'нужно подтверждение'};
 const USE={yes:'полезно',partly:'отчасти',no:'не пригодилось'};
 const fmt=(t)=>new Date(t).toLocaleString('ru-RU',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const usd=(n)=>Number(n).toLocaleString('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:3})+' USDC';
+const cap=(n)=>n==null||n===''?'не задан':usd(n);
 fetch('/api/v1/agent-wallet').then(r=>r.json()).then(d=>{
   const w=d.wallet;
-  $('wallet').innerHTML=w?`<div class="addr">${esc(w.address)}</div><div class="note" style="margin-top:6px">Сеть Base · USDC · <a href="${esc(w.explorer)}" target="_blank" rel="noopener">все платежи на basescan ↗</a></div>`:'Кошелёк ещё не подключён: агент запустится после пополнения и настройки. Журнал начнёт заполняться с первой покупки.';
-  const r=d.rules;
-  $('rules').innerHTML=`<div><b>${usd(r.per_purchase_usdc)}</b> — потолок одной покупки</div><div><b>${usd(r.daily_usdc)}</b> — потолок в сутки</div><div>Источники: ${typeof r.allowed_hosts==='string'?'любой публичный https-сайт':esc(r.allowed_hosts.join(', '))}</div><div>Баланс кошелька — главный лимит: его пополняют вручную, автоматического пополнения нет. Orb Studio дополнительно разрешает каждую покупку по этим правилам до платежа.</div>`;
+  $('wallet').innerHTML=w?`<div class="addr">${esc(w.address)}</div><div class="note" style="margin-top:6px">Сеть Base · USDC · <a href="${esc(w.explorer)}" target="_blank" rel="noopener">адрес на basescan ↗</a>. Баланс на этой странице не показывается.</div>`:'Адрес и баланс не публикуются. Кошелёк появится здесь только после явной настройки. Платежей из этой страницы нет.';
+  const r=d.rules||{};
+  $('rules').innerHTML=`<div><b>${cap(r.per_purchase_usdc)}</b> — потолок одной покупки</div><div><b>${cap(r.daily_usdc)}</b> — потолок на период</div><div>Источники: ${typeof r.allowed_hosts==='string'?'любой публичный https-сайт':esc((r.allowed_hosts||[]).join(', '))}</div><div>${esc(r.enforcement||'Каждая покупка требует отдельного подтверждения продавца, ресурса, сети и суммы.')}</div>`;
   const s=d.summary;
   $('stats').innerHTML=[[usd(s.spent_today_usdc),'потрачено сегодня'],[usd(s.spent_total_usdc),'потрачено всего'],[s.purchases,'покупок'],[s.refused,'отказов правил'],[s.failed,'неудач']].map(x=>`<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
   $('log').innerHTML=d.entries.length?d.entries.map(e=>`<div class="buy"><div class="top"><span class="host">${esc(e.host||e.resource_url)}</span><span class="price">${usd(e.amount_usdc)}</span></div><div style="margin-top:6px"><span class="tag ${esc(e.outcome)}">${OUT[e.outcome]||esc(e.outcome)}</span>${e.useful?` <span class="tag">${USE[e.useful]}</span>`:''}</div><p><b>Зачем:</b> ${esc(e.reason)}</p>${e.got?`<p><b>Что получил:</b> ${esc(e.got)}</p>`:''}${e.refusal?`<p><b>Причина отказа:</b> ${esc(e.refusal)}</p>`:''}${e.failure?`<p><b>Ошибка:</b> ${esc(e.failure)}</p>`:''}<div class="meta">${fmt(e.t)}${e.tx_url?` · <a href="${esc(e.tx_url)}" target="_blank" rel="noopener">транзакция ↗</a>`:''}</div></div>`).join(''):'<div class="note">Покупок пока нет. Первая запись появится, когда агент сделает первый платёж.</div>';
