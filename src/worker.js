@@ -9,7 +9,7 @@ import EMO_PRESETS from "../public/robot/presets.json";
 export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
-import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
+import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
 // Работает без базы данных. Если подключён KV с именем ORB_KV, хранит вчерашний индекс для дельты.
@@ -778,6 +778,33 @@ async function impulses(env, ctx, origin, limit = 12) {
     disclaimer: "Indicator, not advice. No orders are sent.",
   };
 }
+
+// ================= Следователь × радары: сверка текста с заголовками и импульсами сайта =================
+// Не оценка правды: показывает, что об этом сейчас пишут источники радаров Orb Studio и какие импульсы затрагивают названные места.
+async function radarCheck(env, ctx, origin, text) {
+  const t = String(text || "").slice(0, 1200), sig = sigOf(t);
+  const radars = await allRadars(env, ctx, origin), need = sig.size <= 7 ? 2 : 3, matches = [];
+  for (const r of radars) for (const [time, title, source, weight, link] of r.feed || []) {
+    let k = 0; const s = sigOf(title || ""); for (const x of sig) if (s.has(x)) k++;
+    if (k >= need) matches.push({ radar: r.id, radar_risk_index: r.lvl, delta_24h: r.lvl - r.prev, headline: title, source, link, time, shared_words: k });
+  }
+  matches.sort((a, b) => b.shared_words - a.shared_words);
+  const places = impulsePlaces(t);
+  let related = [];
+  if (places.length) {
+    const imp = await impulses(env, ctx, origin, 30);
+    related = imp.impulses.filter((i) => places.includes(i.from) || places.includes(i.to)).slice(0, 5).map((i) => ({ radar: i.radar, from: i.from_name_en || i.from_name, to: i.to_name_en || i.to_name, strength: i.strength, headline: i.headline, source: i.source, link: i.link }));
+  }
+  const rs = new Set(matches.map((m) => m.radar));
+  return {
+    verdict: matches.length >= 2 ? "reported_on_radars" : matches.length === 1 ? "single_radar_headline" : "not_on_radars",
+    radars_with_matches: [...rs], matches: matches.slice(0, 5),
+    places_named: places, related_impulses: related,
+    rule: "Radars read public RSS feeds of news outlets. A match means the story is in those feeds now, not that it is true; no match means only that the radars do not carry it (they cover 7 topics). Key-word matching can miss a rephrased story or match an unrelated one. For a count of outlets use check_headline.",
+    page: "https://orbstudio.org/radar",
+  };
+}
+setRadarProvider((text, env) => radarCheck(env, { waitUntil() {} }, "https://orbstudio.org", text));
 
 // ================= Тарифы банков (/tariffs) =================
 // Карточки лежат в public/data/tariffs.json — их раз в неделю обновляет автономная задача Claude (push в main).
