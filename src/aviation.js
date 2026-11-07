@@ -46,6 +46,32 @@ export function summarize(states, radiusKm = 100) {
     hamburg_sector: { radius_km: radiusKm, center: "HAM 53.6304N 9.9882E", airborne: hamAir, on_ground: hamGround } };
 }
 
+// ---- adsb.lol (открытая сеть ADS-B, без ключа): точечные запросы «вокруг точки», максимум 250 морских миль ----
+export const ADSBLOL = "https://api.adsb.lol/v2/point";
+export const NM_PER_KM = 0.539957;
+export function parseAdsbLol(j) {
+  const out = [];
+  for (const a of (j && (j.ac || j.aircraft)) || []) {
+    if (a == null || a.lat == null || a.lon == null) continue;
+    const gnd = a.alt_baro === "ground";
+    const ft = gnd ? 0 : (typeof a.alt_baro === "number" ? a.alt_baro : (typeof a.alt_geom === "number" ? a.alt_geom : null));
+    const rate = typeof a.baro_rate === "number" ? a.baro_rate : (typeof a.geom_rate === "number" ? a.geom_rate : null);
+    out.push({ icao24: String(a.hex || "").toLowerCase(), callsign: String(a.flight || "").trim(), lon: +a.lon, lat: +a.lat,
+      alt: ft == null ? null : ft * 0.3048, ground: gnd, vr: rate == null ? null : rate * 0.00508 });
+  }
+  return out;
+}
+export async function fetchAdsbLol(lat, lon, radiusNm, timeoutMs = 9000) {
+  const r = await fetch(`${ADSBLOL}/${lat}/${lon}/${Math.min(250, Math.max(1, Math.round(radiusNm)))}`, { signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/llms.txt)", Accept: "application/json" } });
+  if (!r.ok) { const e = new Error("adsb.lol http " + r.status); e.status = r.status; throw e; }
+  return parseAdsbLol(await r.json());
+}
+export function summarizeSector(states, radiusKm = 100) {
+  let air = 0, gnd = 0;
+  for (const s of states) { if (km(s.lat, s.lon, HAMBURG.lat, HAMBURG.lon) > radiusKm) continue; if (s.ground) gnd++; else air++; }
+  return { radius_km: radiusKm, center: "HAM 53.6304N 9.9882E", airborne: air, on_ground: gnd };
+}
+
 export async function fetchOpenSky(bbox, timeoutMs = 9000) {
   const q = bbox ? `?lamin=${bbox.lamin}&lomin=${bbox.lomin}&lamax=${bbox.lamax}&lomax=${bbox.lomax}` : "";
   const r = await fetch(OPENSKY + q, { signal: AbortSignal.timeout(timeoutMs), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/llms.txt)", Accept: "application/json" } });

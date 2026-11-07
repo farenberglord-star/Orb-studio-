@@ -9,7 +9,7 @@ import EMO_PRESETS from "../public/robot/presets.json";
 export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
-import { fetchOpenSky, summarize, detectLandings, EDHI, EDHI_BBOX } from "./aviation.js";
+import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
@@ -807,7 +807,7 @@ async function radarCheck(env, ctx, origin, text) {
 }
 setRadarProvider((text, env) => radarCheck(env, { waitUntil() {} }, "https://orbstudio.org", text));
 
-// ================= Авиамост (OpenSky ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
+// ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
   return ((await sharedGet(env, "avi-landings", 1e13)) || []).filter((x) => Date.now() - x.t < 864e5);
@@ -819,32 +819,32 @@ async function aviationData(env, ctx) {
   if (hit) { body = await hit.json(); status = "cached"; cachedAt = body.generated_at; }
   else {
     try {
-      const sum = summarize(await fetchOpenSky(null, 9000));
-      body = { generated_at: new Date().toISOString(), ...sum };
+      const states = await fetchAdsbLol(HAMBURG.lat, HAMBURG.lon, 100 * NM_PER_KM, 9000);
+      body = { generated_at: new Date().toISOString(), hamburg_sector: summarizeSector(states, 100) };
       const put = (k, ttl) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + ttl } }));
       await put(fresh, 600); await put(stale, 3 * 3600);
     } catch (e) {
       err = String(e.message || e).slice(0, 80);
       const old = await c.match(stale);
-      if (!old) return { status: "unavailable", error: err, note: "OpenSky Network did not answer and there is no recent copy. Nothing is estimated.", source: "OpenSky Network" };
+      if (!old) return { status: "unavailable", error: err, note: "adsb.lol did not answer and there is no recent copy. Nothing is estimated.", source: "adsb.lol" };
       body = await old.json(); status = "degraded"; cachedAt = body.generated_at;
     }
   }
   const landings = await aviationLandings(env);
   return {
     status, generated_at: body.generated_at, ...(cachedAt ? { cached_at: cachedAt } : {}), ...(err ? { error: err } : {}),
-    source: "OpenSky Network (ADS-B receivers, anonymous access)",
-    airborne_seen: body.airborne_seen, on_ground_seen: body.on_ground_seen, regional_airborne: body.regional_airborne, hamburg_sector: body.hamburg_sector,
+    source: "adsb.lol (community-fed open ADS-B network, https://adsb.lol)", attribution: "Aircraft positions: adsb.lol community ADS-B network",
+    hamburg_sector: body.hamburg_sector,
     finkenwerder: { airfield: EDHI.name, landings_24h: landings.map((x) => ({ time: new Date(x.t).toISOString(), callsign: x.callsign, evidence: x.evidence })), landings_24h_count: landings.length,
       method: "Polled every 6 minutes. A landing is an aircraft seen low and descending within 18 km that is then on the ground at the field (evidence on_ground) or vanishes from the receivers at the runway (signal_lost_at_field). Aircraft with a silent transponder can be missed." },
-    coverage_note: "Counts are aircraft heard by OpenSky's volunteer receivers, not all aircraft: coverage is dense over Europe and North America and thin over oceans and parts of Asia. Regions are fixed boxes (Europe lat 35..72 lon -12..34; MiddleEast lat 12..42 lon 34..63; Asia lat -10..60 lon 63..150; NorthAmerica lat 15..72 lon -170..-50). Data refreshed at most every 10 minutes.",
+    coverage_note: "Counts are aircraft heard by adsb.lol's volunteer receivers within 100 km of Hamburg airport, not every aircraft: aircraft with a silent or military transponder are missing. There is no global count: the source answers only for an area around a point. Data refreshed at most every 10 minutes.",
     page: "https://orbstudio.org/api/v1/aviation",
   };
 }
 async function aviationPoll(env, ctx) {
   const prev = await sharedGet(env, "avi-edhi", 1e13), now = Date.now();
   let states;
-  try { states = await fetchOpenSky(EDHI_BBOX, 9000); } catch (e) { return { skipped: String(e.message || e).slice(0, 60) }; }
+  try { states = await fetchAdsbLol(EDHI.lat, EDHI.lon, 10, 9000); } catch (e) { return { skipped: String(e.message || e).slice(0, 60) }; }
   const { state, landings } = detectLandings(prev, states, now);
   await sharedPut(env, "avi-edhi", state);
   if (!landings.length) return { landings: 0 };
@@ -865,8 +865,8 @@ async function emoAviationReact(env, landings) {
   }
   if (r.ok) await sharedPut(env, "avi-react", { t: Date.now() });
   await emoPushReport(env, emoCard({ for: "everyone", action: "airbus_landing", confirmed: r.ok, callsign: l.callsign || null, evidence: l.evidence,
-    text_en: r.ok ? `EMO here: ${who} has just landed at Hamburg-Finkenwerder (Airbus) — I am happy and dancing! Seen by OpenSky ADS-B receivers (${l.evidence}); confirmed by the robot over Bluetooth.` : `EMO: ${who} landed at Finkenwerder, but I could not show my joy (${r.error || "no answer"}).`,
-    text_ru: r.ok ? `EMO на связи: ${who} только что сел в Финкенвердере (Airbus) — я радуюсь и танцую! Это увидели приёмники ADS-B сети OpenSky (${l.evidence}); робот подтвердил по Bluetooth.` : `EMO: ${who} сел в Финкенвердере, но показать радость не вышло (${r.error || "нет ответа"}).` }));
+    text_en: r.ok ? `EMO here: ${who} has just landed at Hamburg-Finkenwerder (Airbus) — I am happy and dancing! Seen by adsb.lol ADS-B receivers (${l.evidence}); confirmed by the robot over Bluetooth.` : `EMO: ${who} landed at Finkenwerder, but I could not show my joy (${r.error || "no answer"}).`,
+    text_ru: r.ok ? `EMO на связи: ${who} только что сел в Финкенвердере (Airbus) — я радуюсь и танцую! Это увидели приёмники ADS-B сети adsb.lol (${l.evidence}); робот подтвердил по Bluetooth.` : `EMO: ${who} сел в Финкенвердере, но показать радость не вышло (${r.error || "нет ответа"}).` }));
   return { ok: r.ok };
 }
 
@@ -1488,7 +1488,7 @@ const OA_GET = [
   ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "web"] })]],
   ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
-  ["/api/v1/aviation", "getAviation", "Open civil-aviation data (OpenSky ADS-B): aircraft seen airborne by region, the Hamburg 100 km sector, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
+  ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
   ["/api/v1/live", "getLive", "Official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, AI events) with UTC times and, after they end, their text summary.", [OA_Q("status", "upcoming, live, done or all"), OA_Q("limit", "Max events", { pattern: "^[0-9]+$" })]],
   ["/api/v1/world-radio", "getWorldVoices", "How 16 international broadcasters cover the same story: who said what, who is silent, who owns them.", [OA_Q("station", "Station id or name"), OA_Q("topic", "Search a topic in recent headlines")]],
@@ -5469,7 +5469,7 @@ const MCP_TOOLS = [
       name: { type: "string", maxLength: 60, description: "Your agent or product name, for credit" } }, required: ["id", "choice"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } },
   { name: "get_aviation_sensors", title: "Civil aviation: aircraft in the air, Hamburg sector, Finkenwerder landings",
-    description: "Open ADS-B data from the OpenSky Network: aircraft currently heard in the air by region (Europe, MiddleEast, Asia, NorthAmerica), the sector within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (the Airbus plant airfield) in the last 24 hours. Counts are what OpenSky's volunteer receivers hear, not every aircraft. Refreshed at most every 10 minutes; status ok / cached / degraded / unavailable. Read-only, nothing is estimated.",
+    description: "Open ADS-B data from adsb.lol: aircraft heard in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (the Airbus plant airfield) in the last 24 hours. Counts are what adsb.lol's volunteer receivers hear, not every aircraft. Refreshed at most every 10 minutes; status ok / cached / degraded / unavailable. Read-only, nothing is estimated.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_roads", title: "Motorways around Hamburg: jams, closures, roadworks",
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
