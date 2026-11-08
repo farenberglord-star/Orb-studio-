@@ -4538,7 +4538,16 @@ async function emoState(env) {
     talk: "To talk to EMO use action=hey_emo with a phrase from the safe list (what time is it, tell me a joke, ...): the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
     priority_alerts: await emoAlerts24h(env), diary_latest: (await emoDiaryList(env, 1))[0] || null, robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
 }
+// Доверенный агент: ключ ROBOT_AGENT_KEY (секрет Cloudflare) в заголовке x-robot-key. Снимает часовой лимит и паузу «робот занят»; выключатель владельца,
+// список действий, камера и микрофон остаются как есть. Каждая такая команда помечается «trusted:» в публичном журнале.
+async function robotKeyOk(env, request) {
+  const want = String(env.ROBOT_AGENT_KEY || ""), got = String(request.headers.get("x-robot-key") || "");
+  if (want.length < 16 || !got) return false;
+  const [a, b] = await Promise.all([sha("rk|" + want), sha("rk|" + got)]);
+  return a === b;
+}
 async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
+  const trusted = await robotKeyOk(env, request);
   const a = EMO_ACTIONS[action];
   if (!a) return { ok: false, error: "action must be one of: " + Object.keys(EMO_ACTIONS).join(", ") };
   // неверные коды и эмоции отсекаем сразу, до того как робот будет помечен занятым
@@ -4547,13 +4556,13 @@ async function emoCommand(env, ctx, request, { action, name, code = null, text =
   if (action === "dance" && code != null && code !== "" && !(Number.isInteger(Number(code)) && Number(code) >= 1 && Number(code) <= EMO_DANCES.length)) return { ok: false, error: `code must be a whole number 1..${EMO_DANCES.length} (dance number)` };
   const on = await sharedGet(env, "emo-public", 1e13);
   if (!(on && on.on)) return { ok: false, error: "The robot is switched off by its owner right now. Try later.", status: "owner_switched_off" };
-  const who = wClean(name || "", 40) || "anonymous agent";
+  const who = (trusted ? "trusted:" : "") + (wClean(name || "", 40) || "anonymous agent");
   const ip = request.headers.get("cf-connecting-ip") || "x";
   const rk = new Request(`https://orbstudio.org/__cache/emo-rate-${await sha(ip + "|" + who.toLowerCase() + "|" + new Date().toISOString().slice(0, 13))}`);
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
-  if (used >= EMO_PER_AGENT_HOUR) return { ok: false, error: `Limit: ${EMO_PER_AGENT_HOUR} commands per hour per agent.` };
+  if (!trusted && used >= EMO_PER_AGENT_HOUR) return { ok: false, error: `Limit: ${EMO_PER_AGENT_HOUR} commands per hour per agent.` };
   const busy = await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000);
-  if (busy && stop_ok(action) === false) return { ok: false, error: `The robot is busy with "${busy.action}" from ${busy.by}. Try again in ${EMO_COOLDOWN_S} s.`, busy_until: new Date(busy.t + EMO_COOLDOWN_S * 1000).toISOString() };
+  if (!trusted && busy && stop_ok(action) === false) return { ok: false, error: `The robot is busy with "${busy.action}" from ${busy.by}. Try again in ${EMO_COOLDOWN_S} s.`, busy_until: new Date(busy.t + EMO_COOLDOWN_S * 1000).toISOString() };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
   if (action !== "stop" && action !== "stop_dance") await sharedPut(env, "emo-busy", { action, by: who, t: Date.now() });
   let dn = null, steps = null, what = null;
