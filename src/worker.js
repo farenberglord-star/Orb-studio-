@@ -12,6 +12,7 @@ import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
+import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
@@ -812,6 +813,32 @@ async function radarCheck(env, ctx, origin, text) {
 }
 setRadarProvider((text, env) => radarCheck(env, { waitUntil() {} }, "https://orbstudio.org", text));
 
+// ================= Сейсмодатчик (USGS GeoJSON): /api/v1/quakes, MCP get_earthquakes =================
+async function quakesData() {
+  const fresh = new Request("https://orbstudio.org/__cache/quakes-v1"), stale = new Request("https://orbstudio.org/__cache/quakes-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let body, status = "ok", err = null;
+  if (hit) { body = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const { d, s } = await fetchUsgs();
+      body = summarizeQuakes(d, s);
+      const put = (k, ttl) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + ttl } }));
+      await put(fresh, 300); await put(stale, 6 * 3600);
+    } catch (e) {
+      err = String(e.message || e).slice(0, 80);
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", error: err, note: "USGS did not answer and there is no recent copy. Nothing is estimated.", source: "USGS" };
+      body = await old.json(); status = "degraded";
+    }
+  }
+  return {
+    status, ...(err ? { error: err } : {}), ...body,
+    source: "USGS Earthquake Hazards Program open feeds (https://earthquake.usgs.gov/earthquakes/feed/)",
+    scope_note: "Global events of magnitude 4.5 and above in the last 24 hours, plus USGS 'significant' events of the last 7 days. Smaller earthquakes are not included. This is a record of what USGS has published, not a forecast: earthquakes cannot be predicted. Magnitudes can be revised by USGS later.",
+    page: "https://orbstudio.org/api/v1/quakes",
+  };
+}
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
@@ -1514,6 +1541,7 @@ const OA_GET = [
   ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
+  ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
   ["/api/v1/live", "getLive", "Official events (ECB, Fed, Bundestag, OPEC+, SpaceX launches, AI events) with UTC times and, after they end, their text summary.", [OA_Q("status", "upcoming, live, done or all"), OA_Q("limit", "Max events", { pattern: "^[0-9]+$" })]],
@@ -5555,6 +5583,9 @@ const MCP_TOOLS = [
   { name: "get_agent_wallet", title: "Agent wallet: what an AI agent with a small daily budget buys",
     description: "Public log of an experiment: an AI agent spends at most a couple of USDC a day on paid x402 resources. Returns the wallet address, the spending rules (per-purchase and daily caps), totals and the latest purchases with price, seller, the agent's stated reason, the Base transaction hash and whether the purchase helped. Read-only.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
+    description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_aviation_sensors", title: "Civil aviation: aircraft in the air, Hamburg sector, Finkenwerder landings",
     description: "Open ADS-B data from adsb.lol: aircraft heard in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (the Airbus plant airfield) in the last 24 hours. Counts are what adsb.lol's volunteer receivers hear, not every aircraft. Refreshed at most every 10 minutes; status ok / cached / degraded / unavailable. Read-only, nothing is estimated.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -5798,6 +5829,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { ...v, outcome_note: note };
   }
   if (name === "get_agent_wallet") { const r = await agentWallet(new Request("https://orbstudio.org/api/v1/agent-wallet"), env, { sharedGet, sharedPut }); return { ...(await r.json()), referral: ref }; }
+  if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
     const d = await roadsData(env), road = String(args.road || "").toUpperCase(), f = (a) => (road ? a.filter((i) => i.road === road) : a);
@@ -6351,6 +6383,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname.startsWith("/api/v1/agent-wallet")) {
       const r = await agentWallet(request, env, { sharedGet, sharedPut });
       if (r) return r;
+    }
+    if (url.pathname === "/api/v1/quakes") {
+      const d = await quakesData();
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
     }
     if (url.pathname === "/api/v1/aviation") {
       const d = await aviationData(env, ctx);
