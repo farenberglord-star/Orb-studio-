@@ -872,6 +872,26 @@ async function emoAviationReact(env, landings) {
   return { ok: r.ok };
 }
 
+// Продажа на сайте (скрипка дня за USDC по x402): EMO радуется (моргает глазами-эмоциями), танцует, а планшет рядом вслух объявляет покупку.
+// Срабатывает на каждую подтверждённую продажу (settle прошёл), в любое время суток. Если робот занят — ждёт до 40 с.
+async function emoSaleReact(env, d) {
+  try {
+    for (let i = 0; i < 8 && (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)); i++) await new Promise((r) => setTimeout(r, 5000));
+    const r = await emoQuick(env, ["mood_happy", "mood_excited"], "sale", 6000);
+    if (r.ok) {
+      const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+      await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoAnimSteps("d1_EmoDance", 9000), label: "sale dance" }) })).catch(() => null);
+    }
+    const usd = d.usdc != null ? d.usdc + " USDC" : "", buyer = String(d.agent || "").replace(/^human\/unknown$/, "") || "покупатель";
+    const said = `Ура! Покупка на Orb Studio: скрипка дня за ${usd || "USDC"}. Спасибо, ${buyer}!`.slice(0, 200);
+    const sa = await emoCall(env, "/say", { id: "sale" + Date.now().toString(36), by: "Orb Studio · покупка", text: said, kind: "say" }).catch(() => ({ ok: false }));
+    const tx = d.tx ? String(d.tx).slice(0, 80) : null;
+    await emoPushReport(env, emoCard({ for: "everyone", action: "sale", confirmed: r.ok, said: sa.ok ? said : null, tx, usdc: d.usdc ?? null, buyer: d.agent || null,
+      text_en: `EMO here: a purchase on Orb Studio — the violin of the day was bought for ${usd} by ${d.agent || "a buyer"}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "I am happy, blinking and dancing! Confirmed by the robot over Bluetooth." : "I could not dance right now (" + (r.error || "no answer") + ")."}${sa.ok ? " The tablet next to me announced it out loud." : ""}`,
+      text_ru: `EMO на связи: покупка на Orb Studio — скрипку дня купил ${d.agent || "покупатель"} за ${usd}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "Радуюсь, моргаю и танцую! Робот подтвердил по Bluetooth." : "Станцевать сейчас не вышло (" + (r.error || "нет ответа") + ")."}${sa.ok ? " Планшет рядом со мной объявил покупку вслух." : ""}` }));
+  } catch (e) { /* реакция робота никогда не ломает продажу */ }
+}
+
 // ================= Тарифы банков (/tariffs) =================
 // Карточки лежат в public/data/tariffs.json — их раз в неделю обновляет автономная задача Claude (push в main).
 // Базовая линия США (FDIC через FRED) подтягивается здесь же, раз в 12 часов, без участия человека.
@@ -6244,7 +6264,7 @@ async function handleRequest(request, env, ctx) {
           ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
           piece: (day) => violinPiece(env, ctx, day),
           hit: (page, kind, name) => recordHit(env, page, kind, name),
-          log: (kind, data) => violinSaleLog(env, kind, data),
+          log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return violinSaleLog(env, kind, data); },
         });
       } catch (e) { return json({ error: "violin sale error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
