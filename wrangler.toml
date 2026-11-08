@@ -21,6 +21,13 @@ STARLINK_URL = "https://starlink.com/?referral=RC-DF-8749102-31259-49&app_source
 X402_PAY_TO = "0xA91269022be3dc5208Ab3Da1eb288E261DE23DB5"   # MetaMask автора, сеть Base (только публичный адрес)
 # Фасилитатор PayAI (публичный адрес, не секрет). Здесь, а не только в панели: деплой из GitHub стирает переменные, заданные лишь в панели.
 X402_FACILITATOR_URL = "https://facilitator.payai.network"
+# Кошелёк агента: публичный адрес и правила эксперимента (10 USDC, до 11.11.2026 09:15 по Берлину = 08:15 UTC). Ежедневные покупки выключены.
+AGENT_WALLET_ADDRESS = "0x909Ac2c8432440FEAC21d1caF4862104b2299CEf"
+AGENT_LIMITS_ENABLED = "1"
+AGENT_MAX_PURCHASE_USD = "0.02"
+AGENT_DAILY_CAP_USD = "2"
+AGENT_TOTAL_CAP_USD = "10"
+AGENT_EXPIRES_AT = "2026-11-11T08:15:00Z"
 # X402_PRICE_USD = "0.01"
 # X402_NETWORK = "eip155:8453"   # Base; для теста eip155:84532 (Base Sepolia) + X402_FACILITATOR_URL = "https://x402.org/facilitator"
 # Секреты (панель Worker → Settings → Variables and Secrets): CDP_API_KEY_ID, CDP_API_KEY_SECRET — фасилитатор Coinbase CDP.

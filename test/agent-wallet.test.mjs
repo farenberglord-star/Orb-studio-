@@ -16,6 +16,18 @@ assert.equal(decide({ ...rules, allowed_hosts: ["a.com"] }, [], ok, now).ok, fal
 const spent = Array.from({ length: 40 }, (_, i) => ({ id: "x" + i, t: now - 1000, outcome: "bought", amount_usdc: 0.05, host: "h" }));
 assert.equal(decide({ ...rules, limits_enabled: true }, spent, ok, now).ok, false);
 assert.equal(decide(rules, spent, ok, now).screened, true);
+{ // бюджет эксперимента: 0,02 за покупку, 10 всего, срок до 11.11.2026 09:15 по Берлину
+  const exp = walletRules({ AGENT_LIMITS_ENABLED: "1", AGENT_MAX_PURCHASE_USD: "0.02", AGENT_DAILY_CAP_USD: "2", AGENT_TOTAL_CAP_USD: "10", AGENT_EXPIRES_AT: "2026-11-11T08:15:00Z" });
+  const cheap = { ...ok, amount_usdc: 0.01 };
+  assert.equal(exp.total_usdc, 10); assert.equal(exp.expires_at, "2026-11-11T08:15:00.000Z");
+  assert.equal(decide(exp, [], cheap, now).screened, true);
+  assert.equal(decide(exp, [], { ...ok, amount_usdc: 0.03 }, now).ok, false);
+  assert.match(decide(exp, [], cheap, Date.UTC(2026, 10, 11, 8, 15)).reason, /period ended/);
+  assert.equal(decide(exp, [], cheap, Date.UTC(2026, 10, 11, 8, 14)).screened, true);
+  const old = Array.from({ length: 500 }, (_, i) => ({ id: "o" + i, t: now - (2 + (i % 3)) * 864e5, outcome: "bought", amount_usdc: 0.02, host: "h" })); // 10 USDC за прошлые дни
+  assert.match(decide(exp, old, cheap, now).reason, /total experiment budget/);
+  assert.match(decide(exp, [{ id: "p", t: now - 864e5, outcome: "pending", amount_usdc: 9.995, resource_url: "https://z.example/x" }], cheap, now).reason, /total experiment budget/);
+}
 assert.equal(summarizeLedger(spent, now).spent_today_usdc, 2);
 assert.equal(summarizeLedger(spent, now + 864e5).spent_today_usdc, 0);
 // API: чтение открыто, запись только с ключом

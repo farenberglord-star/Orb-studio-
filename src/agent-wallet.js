@@ -8,7 +8,8 @@ const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": 
 
 export function walletRules(env) {
   const num = (v, d) => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : d; };
-  return { limits_enabled: env.AGENT_LIMITS_ENABLED === "1", per_purchase_usdc: num(env.AGENT_MAX_PURCHASE_USD, 0.05), daily_usdc: num(env.AGENT_DAILY_CAP_USD, 2), network: "Base (eip155:8453)", asset: "USDC",
+  return { limits_enabled: env.AGENT_LIMITS_ENABLED === "1", per_purchase_usdc: num(env.AGENT_MAX_PURCHASE_USD, 0.05), daily_usdc: num(env.AGENT_DAILY_CAP_USD, 2),
+    total_usdc: num(env.AGENT_TOTAL_CAP_USD, 0) || null, expires_at: Number.isFinite(Date.parse(env.AGENT_EXPIRES_AT || "")) ? new Date(env.AGENT_EXPIRES_AT).toISOString() : null, network: "Base (eip155:8453)", asset: "USDC",
     allowed_hosts: (env.AGENT_ALLOWED_HOSTS || "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean) };
 }
 const day = (t) => new Date(t).toISOString().slice(0, 10);
@@ -63,6 +64,11 @@ export function decide(rules, entries, req, now = Date.now()) {
   if (clip(req.reason, 400).length < 15) return { ok: false, reason: "reason (15–400 characters) is required: say why this purchase" };
   if (entries.some((e) => e.outcome === "pending" && e.resource_url === u.href)) return { ok: false, reason: "an earlier payment for this resource is still unresolved; do not sign a new authorization" };
   const s = summarizeLedger(entries, now);
+  if (rules.limits_enabled && rules.expires_at && now >= Date.parse(rules.expires_at)) return { ok: false, reason: `the experiment period ended at ${rules.expires_at}; payments are blocked` };
+  if (rules.limits_enabled && rules.total_usdc) {
+    const unresolved = entries.filter((e) => e.outcome === "pending").reduce((a, e) => a + (e.amount_usdc || 0), 0);
+    if (s.spent_total_usdc + unresolved + s.reserved_usdc + amount > rules.total_usdc + 1e-9) return { ok: false, reason: `over the total experiment budget of ${rules.total_usdc} USDC (spent ${s.spent_total_usdc}, unresolved ${round(unresolved)}, reserved ${s.reserved_usdc})` };
+  }
   if (rules.limits_enabled && s.spent_today_usdc + s.reserved_usdc + amount > rules.daily_usdc + 1e-9) return { ok: false, reason: `over the daily cap of ${rules.daily_usdc} USDC (spent ${s.spent_today_usdc}, reserved ${s.reserved_usdc})` };
   return { ok: false, screened: true, host: u.hostname.toLowerCase(), amount: round(amount), href: u.href, reason: "one-time user approval required" };
 }
@@ -79,7 +85,7 @@ export async function agentWallet(request, env, deps) {
       title: "Agent wallet: an AI agent with a small daily budget and a public purchase log",
       status: addr ? "active" : "wallet_not_set_yet",
       wallet: addr ? { address: addr, network: rules.network, explorer: "https://basescan.org/address/" + addr, note: "Every payment is verifiable on-chain; tx hashes in the log are reported by the agent, check them at the explorer." } : null,
-      rules: { limits_enabled: rules.limits_enabled, per_purchase_usdc: rules.limits_enabled ? rules.per_purchase_usdc : null, daily_usdc: rules.limits_enabled ? rules.daily_usdc : null, allowed_hosts: rules.allowed_hosts.length ? rules.allowed_hosts : "any public https host",
+      rules: { limits_enabled: rules.limits_enabled, per_purchase_usdc: rules.limits_enabled ? rules.per_purchase_usdc : null, daily_usdc: rules.limits_enabled ? rules.daily_usdc : null, total_usdc: rules.limits_enabled ? rules.total_usdc : null, expires_at: rules.limits_enabled ? rules.expires_at : null, allowed_hosts: rules.allowed_hosts.length ? rules.allowed_hosts : "any public https host",
         enforcement: "Потолок суммы не является разрешением на покупку. Каждый платёж требует отдельного подтверждения продавца, сети, ресурса и суммы. Автопополнения нет." },
       summary: s, entries: entries.slice(-50).reverse().map(({ host, ...e }) => ({ host, ...e })),
       how_it_works: "1) The user records a one-time approval of merchant, network, resource and total. 2) The agent asks POST /api/v1/agent-wallet/authorize. Budget alone is refused. 3) It pays only after that exact approval, then POST /api/v1/agent-wallet/result. The ledger key cannot create an approval.",
