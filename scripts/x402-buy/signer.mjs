@@ -17,6 +17,7 @@ export function assertEip3009(req) {
   const before = BigInt(req.validBefore || 0);
   const after = BigInt(req.validAfter || 0);
   if (before <= now || before <= after || before > now + 120n) throw Object.assign(new Error("authorization expiry rejected"), { code: "signer_policy" });
+  if (after > now - 5n) throw Object.assign(new Error("validAfter must be in the past (facilitator rejects validAfter >= now)"), { code: "signer_policy" });
   if (!req.resourceUrl || req.resourceUrl !== req.approvedResource) throw Object.assign(new Error("resource does not match the one-time approval"), { code: "signer_policy" });
 }
 

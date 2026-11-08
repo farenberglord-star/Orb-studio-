@@ -84,7 +84,7 @@ export function proposalFromChallenge(resource, challenge, now = Math.floor(Date
     amount_atomic: String(req.amount),
     amount_usdc: (Number(req.amount) / 1e6).toFixed(6),
     timeout,
-    valid_after: String(now),
+    valid_after: String(now - 60),
     valid_before: String(now + timeout),
     domain_name: USDC_NAME,
     state: "approval_needed",

@@ -56,7 +56,7 @@ export async function run(opts) {
   const nonce = "0x" + Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex");
   let signed;
   try {
-    signed = await signer.signEip3009({ network: req.network, asset: req.asset, payTo: req.payTo, approvedPayTo: auth.data.pay_to, value: String(req.amount), approvedAtomic: String(Math.round(Number(auth.data.amount_usdc) * 1e6)), resourceUrl: new URL(url).href, approvedResource: auth.data.resource_url, validAfter: String(now), validBefore: String(now + Math.min(req.maxTimeoutSeconds || 120, 120)), nonce, now, accepted: req, challenge: ch });
+    signed = await signer.signEip3009({ network: req.network, asset: req.asset, payTo: req.payTo, approvedPayTo: auth.data.pay_to, value: String(req.amount), approvedAtomic: String(Math.round(Number(auth.data.amount_usdc) * 1e6)), resourceUrl: new URL(url).href, approvedResource: auth.data.resource_url, validAfter: String(now - 60), validBefore: String(now + Math.min(req.maxTimeoutSeconds || 120, 120)), nonce, now, accepted: req, challenge: ch });
   } catch (e) {
     if (e.code === "signer_blocked" || e.code === "signer_policy") {
       await orb("/api/v1/agent-wallet/result", { id: auth.data.id, outcome: "blocked", error: e.code }, fetchImpl);
@@ -83,9 +83,10 @@ export async function run(opts) {
     }
     const text = await response.text();
     if (response.status === 202 || response.status === 502 || /nonce_already_used/.test(text)) { uncertain = true; await wait(); continue; }
-    await orb("/api/v1/agent-wallet/result", { id: auth.data.id, outcome: "failed", error: "HTTP " + response.status }, fetchImpl);
-    log("Покупка отклонена до перевода: HTTP " + response.status);
-    return { failed: response.status };
+    let why = ""; try { const j = JSON.parse(text); why = String(j.error || "").replace(/[^A-Za-z0-9_:. -]/g, "").slice(0, 120); } catch (e) {}
+    await orb("/api/v1/agent-wallet/result", { id: auth.data.id, outcome: "failed", error: ("HTTP " + response.status + " " + why).trim() }, fetchImpl);
+    log("Покупка отклонена до перевода: HTTP " + response.status + (why ? ", причина: " + why : ""));
+    return { failed: response.status, reason: why };
   }
   await orb("/api/v1/agent-wallet/result", { id: auth.data.id, outcome: "pending", error: "same authorization still unresolved" }, fetchImpl);
   log("Исход платежа неясен. Повторяйте тот же запрос позже. Новую подпись не создавать.");
