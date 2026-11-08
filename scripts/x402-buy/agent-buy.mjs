@@ -5,6 +5,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { blockedSigner, BASE_NETWORK, BASE_USDC } from "./signer.mjs";
 import { safeFetch } from "./safe-http.mjs";
+import { localSignerFromEnv } from "./signer-local.mjs";
 
 const ORB = () => process.env.ORB_URL || "https://orbstudio.org";
 const arg = (n) => { const a = process.argv.find((x) => x.startsWith("--" + n + "=")); return a ? a.slice(n.length + 3) : ""; };
@@ -38,7 +39,7 @@ async function orb(path, body, fetchImpl) {
 }
 
 export async function run(opts) {
-  const { url, reason, maxUsdc = null, pay, useful, log = console.log, fetchImpl = fetch, signer = blockedSigner, wait = async () => {} } = opts;
+  const { url, reason, maxUsdc = null, pay, useful, log = console.log, fetchImpl = fetch, signer = localSignerFromEnv() || blockedSigner, wait = async () => {} } = opts;
   const allowHttpTest = process.env.ALLOW_HTTP_TEST === "1";
   const first = await safeFetch(url, { headers: { "User-Agent": "OrbStudio-agent-buyer/1.0" } }, fetchImpl, { allowHttpTest });
   if (first.status !== 402) { log("Ресурс не просит оплату (статус " + first.status + "). Покупать нечего."); return { skipped: first.status }; }
@@ -55,7 +56,7 @@ export async function run(opts) {
   const nonce = "0x" + Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex");
   let signed;
   try {
-    signed = await signer.signEip3009({ network: req.network, asset: req.asset, payTo: req.payTo, approvedPayTo: auth.data.pay_to, value: String(req.amount), approvedAtomic: String(Math.round(Number(auth.data.amount_usdc) * 1e6)), resourceUrl: new URL(url).href, approvedResource: auth.data.resource_url, validAfter: String(now), validBefore: String(now + Math.min(req.maxTimeoutSeconds || 120, 120)), nonce, now });
+    signed = await signer.signEip3009({ network: req.network, asset: req.asset, payTo: req.payTo, approvedPayTo: auth.data.pay_to, value: String(req.amount), approvedAtomic: String(Math.round(Number(auth.data.amount_usdc) * 1e6)), resourceUrl: new URL(url).href, approvedResource: auth.data.resource_url, validAfter: String(now), validBefore: String(now + Math.min(req.maxTimeoutSeconds || 120, 120)), nonce, now, accepted: req, challenge: ch });
   } catch (e) {
     if (e.code === "signer_blocked" || e.code === "signer_policy") {
       await orb("/api/v1/agent-wallet/result", { id: auth.data.id, outcome: "blocked", error: e.code }, fetchImpl);
