@@ -239,10 +239,6 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       account = next;
       return view();
     },
-    // Есть ли у счёта код контракта на Base: true = смарт-кошелёк развёрнут, false = обычный счёт или ещё не развёрнутый смарт-кошелёк, null = узнать не удалось.
-    async hasContractCode(provider) {
-      try { const code = await provider.request({ method: "eth_getCode", params: [account, "latest"] }); return typeof code === "string" && /^0x[0-9a-fA-F]*$/.test(code) ? code.length > 2 : null; } catch (e) { return null; }
-    },
     async readChain(provider) {
       const hex = await provider.request({ method: "eth_chainId" });
       chainOk = String(hex).toLowerCase() === BASE_CHAIN_HEX;
@@ -252,7 +248,7 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BASE_CHAIN_HEX }] });
       return this.readChain(provider);
     },
-    async sign(provider, fetchImpl, { preview = false, contractWallet = false } = {}) {
+    async sign(provider, fetchImpl, { preview = false } = {}) {
       if (preview || (proposal && proposal.fixture)) fail("preview_blocked");
       if (!proposal) fail("no_proposal");
       if (violinProblem(proposal.resource)) fail("external_payment_disabled");
@@ -273,9 +269,7 @@ export function createReview({ now = () => Math.floor(Date.now() / 1000) } = {})
       let signature;
       try { signature = await provider.request({ method: "eth_signTypedData_v4", params: [account, JSON.stringify(pending.typed)] }); }
       catch (e) { pending = null; fail("wallet_rejected"); }
-      // Обычный кошелёк (EOA): ровно 65 байт. Смарт-кошелёк (Passkey): подпись контракта переменной длины (ERC-1271 или обёртка ERC-6492), но только чётный hex разумной длины.
-      const okSig = typeof signature === "string" && (/^0x[0-9a-fA-F]{130}$/.test(signature) || (contractWallet && /^0x([0-9a-fA-F]{2}){65,2000}$/.test(signature)));
-      if (!okSig) { pending = null; fail("wallet_rejected"); }
+      if (typeof signature !== "string" || !/^0x[0-9a-fA-F]{130}$/.test(signature)) { pending = null; fail("wallet_rejected"); }
       pending.header = paymentHeader(proposal.accepted, pending.typed, signature);
       pending.submitted = true;
       return submit(fetchImpl);
