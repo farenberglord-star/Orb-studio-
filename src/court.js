@@ -226,8 +226,14 @@ const json = (o, s = 200, extra = {}) => new Response(JSON.stringify(o, null, 2)
 
 // Единая точка входа: вызывается в начале fetch(). Возвращает Response только для /api/v1/court*,
 // иначе null — и запрос идёт дальше по сайту как обычно (никаких блокировок).
+import { signedBody, publicKeyDoc } from "./court-signing.js";
+
 export async function courtGate(request, env, ctx) {
   const url = new URL(request.url);
+  if (url.pathname === "/.well-known/orb-court-key.json" && request.method === "GET") {
+    const doc = await publicKeyDoc(env);
+    return json(doc, doc.error ? 503 : 200, { "Cache-Control": "public, max-age=3600" });
+  }
   if (url.pathname === "/api/v1/investigator/analyze") {
     try { return await investigatorApi(request, env, ctx); }
     catch (e) { return json({ error: "investigator error", detail: String(e && e.message || e).slice(0, 200) }, 500); }
@@ -272,7 +278,7 @@ async function courtApi(request, env, url) {
     const lim = Math.min(50, Math.max(1, Number(url.searchParams.get("limit")) || 20));
     const rows = (await env.DB.prepare("SELECT * FROM court_cases ORDER BY ts DESC LIMIT ?1").bind(lim).all()).results || [];
     const stats = (await env.DB.prepare("SELECT charge, COUNT(*) AS n FROM court_cases WHERE ts>?1 GROUP BY charge").bind(Date.now() - 7 * 864e5).all()).results || [];
-    return json({
+    return json(await signedBody(env, {
       court: "Orb Studio Agent Court", page: "https://orbstudio.org/tools/court",
       principle: "Observation only. No blocking, no fines, no AI calls. Verdicts come from a fixed table. IPs are never stored: only a daily-salted 8-character hash.",
       code: Object.fromEntries(Object.entries(ARTICLES).map(([k, v]) => [k, v.en])),
@@ -281,7 +287,7 @@ async function courtApi(request, env, url) {
       feed: { json: "https://orbstudio.org/api/v1/court/feed", atom: "https://orbstudio.org/api/v1/court/feed.xml" },
       insights: await courtInsights(env),
       cases: rows.map(caseCard),
-    }, 200, { "Cache-Control": "public, max-age=60" });
+    }), 200, { "Cache-Control": "public, max-age=60" });
   }
   return json({ error: "unknown court route" }, 404);
 }
