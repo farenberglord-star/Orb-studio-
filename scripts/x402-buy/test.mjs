@@ -8,9 +8,9 @@ checkChallenge(ch);
 for (const bad of [{ payTo: "0x" + "1".repeat(40) }, { network: "eip155:1" }, { amount: "50000" }, { asset: "0x" + "2".repeat(40) }]) assert.throws(() => checkChallenge({ x402Version: 2, accepts: [{ ...ch.accepts[0], ...bad }] }));
 
 const now = 1_000_000;
-const good = { network: "eip155:8453", asset: ch.accepts[0].asset, payTo, approvedPayTo: payTo, value: "10000", approvedAtomic: "10000", nonce: "0x" + "ab".repeat(32), validAfter: String(now), validBefore: String(now + 60), now, resourceUrl: "https://orbstudio.org/api/v1/violin/midi", approvedResource: "https://orbstudio.org/api/v1/violin/midi" };
+const good = { network: "eip155:8453", asset: ch.accepts[0].asset, payTo, approvedPayTo: payTo, value: "10000", approvedAtomic: "10000", nonce: "0x" + "ab".repeat(32), validAfter: String(now - 60), validBefore: String(now + 60), now, resourceUrl: "https://orbstudio.org/api/v1/violin/midi", approvedResource: "https://orbstudio.org/api/v1/violin/midi" };
 assertEip3009(good);
-for (const bad of [{ network: "eip155:84532" }, { payTo: "0x" + "2".repeat(40) }, { value: "10001" }, { validBefore: String(now) }, { nonce: "0x11" }, { approvedResource: "https://evil.example/pay" }]) assert.throws(() => assertEip3009({ ...good, ...bad }), (e) => e.code === "signer_policy");
+for (const bad of [{ network: "eip155:84532" }, { payTo: "0x" + "2".repeat(40) }, { value: "10001" }, { validBefore: String(now) }, { validAfter: String(now) }, { nonce: "0x11" }, { approvedResource: "https://evil.example/pay" }]) assert.throws(() => assertEip3009({ ...good, ...bad }), (e) => e.code === "signer_policy");
 await assert.rejects(blockedSigner.signEip3009(good), (e) => e.code === "signer_blocked");
 const mock = mockSigner();
 const signed = await mock.signEip3009(good);
