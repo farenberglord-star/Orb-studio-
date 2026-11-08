@@ -13,6 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
+import { buildScene } from "./spatial.js";
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
 // Orb Studio — радары: сбор заголовков из открытых RSS, оценка риска, кэш.
@@ -1538,6 +1539,7 @@ const OA_GET = [
   ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
   ["/api/v1/violin/midi", "buyViolinMidi", "Paid MIDI file of the violin of the day: 0.01 USDC via x402 v2 (HTTP 402, Base). Returns audio/midi.", [OA_Q("date", "YYYY-MM-DD")]],
+  ["/api/v1/spatial/scene", "getSpatialScene", "Schematic spatial scene of the Orb Studio node (WebXR-friendly JSON): nodes on a circle around a centre, real status values (EMO, court activity, agent visits, score points of the violin). Positions are schematic, not measured.", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
   ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
   ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
@@ -1776,6 +1778,9 @@ async function handleApi(url, request, env, ctx) {
     return json({ ...canvasCard(piece, idx, "canvas-api"), referral: referral(env, "api-canvas") }, { ...H, "Cache-Control": "public, max-age=300" });
   }
 
+  if (p === "/api/v1/spatial/scene" || p === "/api/v1/spatial") {
+    return json({ ...(await spatialScene(env, ctx)), referral: referral(env, "api-spatial") }, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" });
+  }
   if (p === "/api/v1/violin") {
     const day = (url.searchParams.get("date") || url.searchParams.get("day") || "").match(/^\d{4}-\d{2}-\d{2}$/);
     const { piece, idx } = await violinPiece(env, ctx, day ? day[0] : null);
@@ -4547,6 +4552,16 @@ async function emoCall(env, path, body) {
   let j = null; try { j = await r.json(); } catch (e) {}
   return j || { ok: false, error: "relay status " + r.status };
 }
+async function spatialScene(env, ctx) {
+  const slow = (pr, ms) => Promise.race([pr, new Promise((r) => setTimeout(() => r(null), ms))]);
+  const [emo, stats, vp, court] = await Promise.all([
+    slow(emoState(env).catch(() => null), 2500),
+    slow(readStats(env, "spatial").catch(() => null), 2500),
+    violinPiece(env, ctx, null).catch(() => ({ piece: null })),
+    env.DB ? env.DB.prepare("SELECT COUNT(*) AS n FROM court_cases WHERE day=?1").bind(today()).first().then((r) => (r ? r.n : null)).catch(() => null) : null,
+  ]);
+  return buildScene({ emo, agentsToday: stats && stats.enabled ? stats.agents_today : null, courtToday: court, piece: vp && vp.piece });
+}
 async function emoState(env) {
   const on = await sharedGet(env, "emo-public", 1e13);
   const log = (await sharedGet(env, "emo-log", 1e13)) || [];
@@ -5486,6 +5501,10 @@ const MCP_TOOLS = [
   { name: "get_promises", title: "Said → did: ECB and Fed",
     description: "What the ECB and the Fed officially signalled about their next steps (exact quote from the official statement, with link) and what they did at the next rate decision (official data: ECB Data Portal, FRED). Verdicts: followed, not_yet, opposite, no_promise. Institutions only, no judgement of people; central banks rarely promise, so not_yet is not a broken promise. Rate changes since 2024 included.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_spatial_scene_data", title: "Schematic spatial scene (WebXR-friendly)",
+    description: "Returns a schematic 3D scene of the Orb Studio node for AR/VR headsets and spatial agents: nodes (EMO robot, violin, court activity, agent visits) on a circle around a centre with real status values and the score points of today's violin piece. Positions are schematic (not measured, no GPS); court colour is an activity marker, not a reputation.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_violin", title: "Violin of the day (sensors as music)",
     description: "Today's piece for solo violin, composed by Claude from Orb Studio's market and network sensors and played by an artificial violinist on https://orbstudio.org/violin. Returns title, key, meter, BPM, mood, how each sensor shaped the music (mapping), the full score in ABC notation and as a note list, sensor values and a listen link. Pass date=YYYY-MM-DD for an older piece.",
     inputSchema: { type: "object", properties: { date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Day (default: today or the latest piece)" } }, additionalProperties: false },
@@ -5727,6 +5746,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     if (!(await promPublic(env))) throw new Error("Not available yet");
     return { ...promCard(await promUpdate(env, ctx)), referral: ref };
   }
+  if (name === "get_spatial_scene_data") return { ...(await spatialScene(env, ctx)), referral: ref };
   if (name === "get_violin") {
     const day = /^\d{4}-\d{2}-\d{2}$/.test(String(args.date || "")) ? args.date : null;
     const { piece, idx } = await violinPiece(env, ctx, day);

@@ -119,6 +119,7 @@
       "get_david_episodes",
       "get_tracks",
       "get_violin",
+      "get_spatial_scene_data",
       "get_canvas",
       "ask_david",
       "get_question_status",
