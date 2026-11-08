@@ -9,6 +9,7 @@ import EMO_PRESETS from "../public/robot/presets.json";
 export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
+import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
 import { agentWallet } from "./agent-wallet.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
@@ -1535,6 +1536,7 @@ const OA_GET = [
   ["/api/v1/check", "checkHeadline", "Check any headline: how many outlets reported the same story in the last 2 days (with links), verdict and tone. Measures spread, not truth.", [OA_Q("headline", "Headline or short text, 12–300 characters")]],
   ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
+  ["/api/v1/violin/midi", "buyViolinMidi", "Paid MIDI file of the violin of the day: 0.01 USDC via x402 v2 (HTTP 402, Base). Returns audio/midi.", [OA_Q("date", "YYYY-MM-DD")]],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
   ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
   ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
@@ -6267,6 +6269,21 @@ async function handleRequest(request, env, ctx) {
           log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return violinSaleLog(env, kind, data); },
         });
       } catch (e) { return json({ error: "violin sale error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
+    }
+    // Платное сообщение автору (x402, 0,05 USDC): ящик читает только владелец (GET с ключом администратора).
+    if (url.pathname === "/api/v1/author-message") {
+      try {
+        if (request.method === "GET") {
+          if (!(await adminKeyOk(env, request.headers.get("x-admin-key")))) return json({ error: "Use POST with JSON {\"message\": \"...\"}. Price 0.05 USDC via x402. See https://orbstudio.org/llms.txt" }, { "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" }, 405);
+          return json({ inbox: (await sharedGet(env, "author-inbox", 1e15)) || [] }, { "Cache-Control": "no-store" });
+        }
+        return await handleAuthorMessage(request, env, {
+          ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "unknown",
+          store: async (e) => sharedPut(env, "author-inbox", inboxPush(await sharedGet(env, "author-inbox", 1e15), e)),
+          update: async (id, patch) => sharedPut(env, "author-inbox", inboxPatch(await sharedGet(env, "author-inbox", 1e15), id, patch)),
+          react: async () => { if (!(await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000))) await emoQuick(env, ["mood_happy"], "author-message", 4000); },
+        });
+      } catch (e) { return json({ error: "author message error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     if (url.pathname === "/api/v1/vote" && (request.method === "POST" || request.method === "OPTIONS")) {
       const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };

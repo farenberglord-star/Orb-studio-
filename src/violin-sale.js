@@ -17,8 +17,8 @@ const NETS = {
 };
 const CDP_HOST = "api.cdp.coinbase.com", CDP_ROUTE = "/platform/v2/x402";
 const RESOURCE = "https://orbstudio.org/api/v1/violin/midi";
-const DESCRIPTION = "Violin of the day as a Standard MIDI File: a short solo violin piece that Claude composes once a day from Orb Studio's open market and network sensors (funding, fees, rates, FX). Program 40 (violin), tempo, meter, dynamics as velocity, articulations. Import into any DAW or notation app. Free text version with ABC score: https://orbstudio.org/api/v1/violin";
-const CORS = {
+const DESCRIPTION = "Violin of the day as a Standard MIDI File: a short solo violin piece that Claude composes once a day from Orb Studio's open market and network sensors (Bitcoin, stablecoins, derivatives, ECB rates, internet outages). Program 40 (violin), tempo, meter, dynamics as velocity, articulations. Import into any DAW or notation app. Free text version with ABC score: https://orbstudio.org/api/v1/violin";
+export const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
   "Access-Control-Allow-Headers": "PAYMENT-SIGNATURE, X-PAYMENT, Content-Type, X-Agent-Name",
@@ -42,6 +42,7 @@ export function violinToMidi(piece) {
   const [num, den] = String(piece.meter || "4/4").split("/").map(Number);
   ev.push([0, meta(0x03, txt(piece.title || "Violin of the day"))]);
   ev.push([0, meta(0x02, txt(`Orb Studio · orbstudio.org · ${piece.day || ""}`))]);
+  ev.push([0, meta(0x01, txt("Composed by Claude from Orb Studio market and network sensors. Free score and data: orbstudio.org/api/v1/violin · agents: orbstudio.org/llms.txt"))]);
   ev.push([0, meta(0x51, [(us >> 16) & 255, (us >> 8) & 255, us & 255])]);
   ev.push([0, meta(0x58, [num || 4, Math.round(Math.log2(den || 4)), 24, 8])]);
   let t = 0, prog = -1;
@@ -72,8 +73,8 @@ export function violinToMidi(piece) {
 }
 
 // ---------- base64 / JWT для фасилитатора Coinbase CDP (WebCrypto, без зависимостей) ----------
-const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
-const unb64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
+export const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+export const unb64 = (s) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
 const b64url = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 export async function cdpJwt(keyId, secret, method, path, now = Math.floor(Date.now() / 1000)) {
   const nonceBytes = crypto.getRandomValues(new Uint8Array(16));
@@ -178,12 +179,12 @@ function paymentRequired(cfg, error) {
 }
 
 const sameAddr = (a, b) => String(a || "").toLowerCase() === String(b || "").toLowerCase();
-function matches(req, acc) {
+export function matches(req, acc) {
   return acc && acc.scheme === req.scheme && acc.network === req.network && String(acc.amount) === req.amount &&
     sameAddr(acc.asset, req.asset) && sameAddr(acc.payTo, req.payTo);
 }
 
-async function facilitatorCall(cfg, op, body) {
+export async function facilitatorCall(cfg, op, body) {
   const headers = { "Content-Type": "application/json" };
   if (cfg.cdp) headers.Authorization = "Bearer " + (await cdpJwt(cfg.keyId, cfg.keySecret, "POST", `${CDP_ROUTE}/${op}`));
   const r = await fetch(`${cfg.facilitator}/${op}`, { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(25000) });
