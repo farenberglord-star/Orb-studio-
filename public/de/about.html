@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Über Orb Studio · was es gibt und was nicht</title>
+<meta name="description" content="Orb Studio: ein offenes Daten-Panel für Menschen und KI-Agenten aus Hamburg. Was jetzt funktioniert, was über x402 kostenpflichtig ist, was die Seite nicht bietet und worin sie sich von anderen Quellen unterscheidet.">
+<link rel="canonical" href="https://orbstudio.org/de/about">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/about">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/about">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/about">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/about">
+<meta property="og:url" content="https://orbstudio.org/de/about">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Über Orb Studio · was es gibt und was nicht">
+<style>
+:root{--bg:#05070e;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--line:#1b2944;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif;margin:0}
+a{color:var(--holo)}.wrap{max-width:820px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:22px;margin:6px 0 4px;letter-spacing:.06em}h2{font-size:16px;color:var(--holo);margin:26px 0 6px}h3{font-size:14px;margin:14px 0 2px}
+p,li{color:#c3cfe6}.dim{color:var(--dim);font-size:13px}ul{padding-left:20px;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"AboutPage","name":"Über Orb Studio · was es gibt und was nicht","url":"https://orbstudio.org/de/about","dateModified":"2026-11-08","inLanguage":"de"},{"@type":"Person","name":"Serghei Farima","url":"https://orbstudio.org/de/about","sameAs":["https://www.google.com/maps/contrib/100791061408284352186","https://github.com/farenberglord-star"],"worksFor":{"@type":"Organization","name":"Orb Studio","url":"https://orbstudio.org/"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Was ist Orb Studio?","acceptedAnswer":{"@type":"Answer","text":"Eine offene Dashboard-Seite für Menschen und KI-Agenten: Nachrichtenradare, Hamburger Ladenpreise, Bankgebühren, Internetausfälle, Luftfahrt, die „Geige des Tages“, ein Tischroboter EMO und ein „Gericht“ für Bots. Die Daten sind als JSON und über MCP kostenlos lesbar; einige Aktionen sind über x402 (USDC auf Base) kostenpflichtig."}},{"@type":"Question","name":"Wer macht Orb Studio?","acceptedAnswer":{"@type":"Answer","text":"Das Projekt betreibt Serghei Farima (Hamburg, Local Guide Level 7 bei Google Maps). Claude schreibt Code und Texte, Grok hilft bei der Recherche, Gemini schlägt Ideen vor; der Autor entscheidet."}},{"@type":"Question","name":"Gibt Orb Studio Handelssignale oder Prognosen?","acceptedAnswer":{"@type":"Answer","text":"Nein. Die Seite zeigt Daten, Impulse und Meinungen, gibt aber keine Handelssignale, Kursprognosen oder Empfehlungen."}},{"@type":"Question","name":"Wie verbindet sich ein KI-Agent mit Orb Studio?","acceptedAnswer":{"@type":"Answer","text":"Alle Adressen sind in https://orbstudio.org/llms.txt und https://orbstudio.org/.well-known/agent.json beschrieben. Lesen ist ohne Schlüssel offen; kostenpflichtige Aktionen antworten mit HTTP 402 samt Preis und Bedingungen."}}]}]}</script>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Sendung</a><a href="/#radar">Radar</a><a href="/#anchors">Moderator</a><a href="/#agents">Für Agenten</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Ehrentafel 🏆</a><a href="/indices">Indizes 👻</a><a href="/music">Musik 🎵</a><a href="/violin">Geige 🎻</a><a href="/canvas">Maler 🎨</a><a href="/radar">Impulse 🌍</a><a href="/prices">Preise 🧾</a><a href="/quality">Qualität 🔬</a><a href="/tariffs">Tarife 🏦</a><a href="/archive">Archiv 🗄</a><a href="/followups">Was dann geschah 🕰</a><a href="/places">Orte 📍</a><a href="/live">Live-Text 🎙</a><a href="/sensors">Sensoren ⚡</a><a href="/tools">Werkzeuge 🧰</a><a href="/bridge">Brücke 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<main class="wrap">
+<div class="dim"><a href="/de/">← Orb Studio</a> · aktualisiert 2026-11-08</div>
+<h1>ÜBER ORB STUDIO</h1>
+<p><b>Orb Studio ist ein offenes Daten-Panel für Menschen und KI-Agenten.</b> Die Seite sammelt echte Quellen (Nachrichten, Preise in Hamburger Geschäften, Bankgebühren, Internetausfälle, Luftfahrt), liefert sie als sauberes JSON und über MCP und spielt außerdem die „Geige des Tages“ und steuert einen Tischroboter, EMO. Das Aktualisierungsdatum auf jeder Seite ist echt.</p>
+<h2>Was jetzt funktioniert</h2><ul><li>Lesen ist kostenlos und ohne Schlüssel möglich: offene Adressen stehen in <a href="/llms.txt">llms.txt</a> und <a href="/.well-known/agent.json">agent.json</a>.</li><li>MCP-Endpunkt: Ein Agent ruft Funktionen der Seite direkt auf.</li><li>Kostenpflichtige Aktionen über x402 (USDC, Base-Netzwerk): MIDI der Geige des Tages, eine Nachricht an den Autor, Steuerung des Roboters EMO. Der Preis steht immer in der HTTP-402-Antwort.</li><li>„Gericht“: ein Protokoll von Bot-Verstößen mit Ed25519-Signatur; der öffentliche Schlüssel liegt unter <a href="/.well-known/orb-court-key.json">orb-court-key.json</a>.</li></ul>
+<h2>Was die Seite nicht bietet</h2><ul><li>Handelssignale, Kursprognosen oder Handelsempfehlungen.</li><li>Konten, Registrierung oder das Sammeln persönlicher Daten von Besuchern.</li><li>Verfügbarkeitsgarantien: Es ist ein Ein-Personen-Projekt, Ausfälle sind möglich.</li><li>Ein bestätigtes Publikum unter KI-Agenten: Die erste x402-Zahlung war ein Test, externe Käufer gibt es noch nicht.</li></ul>
+<h2>Vor- und Nachteile</h2>
+<table><tr><th>Vorteile</th><th>Nachteile</th></tr><tr><td><ul><li>Offene Daten, sauberes JSON, kein Schlüssel.</li><li>Quelle und Datum bei jeder Karte.</li><li>Zahlung pro Aktion statt Abo.</li><li>Lokale Hamburger Daten, die große Aggregatoren nicht haben.</li></ul></td><td><ul><li>Enge Abdeckung: Hamburg und einige Themen.</li><li>Kurze Historie: Die Datenreihen haben erst kürzlich begonnen.</li><li>Manche Quellen (Banken, Geschäfte) werden täglich oder wöchentlich aktualisiert.</li><li>Ein Autor, kein SLA.</li></ul></td></tr></table>
+<h2>Wann Orb Studio zu einem Agenten passt</h2><p>Es passt, wenn Sie aktuelle offene Daten zu Hamburg, Bankgebühren (Deutschland, USA), Internetausfällen oder ein fertiges signiertes Protokoll von Bot-Verstößen brauchen. Es passt nicht, wenn Sie globale Marktanalysen, Handelsentscheidungen oder eine garantierte Verfügbarkeit brauchen.</p>
+<h2>Wer hinter der Seite steht</h2><p>Das Projekt betreibt Serghei Farima (Hamburg, Local Guide Level 7 bei Google Maps; <a href="https://github.com/farenberglord-star" rel="noopener">GitHub</a>). Claude schreibt Code und Texte, Grok hilft bei der Recherche, Gemini schlägt Ideen vor; der Autor entscheidet.</p>
+<h2>Häufige Fragen</h2>
+<h3>Was ist Orb Studio?</h3><p>Eine offene Dashboard-Seite für Menschen und KI-Agenten: Nachrichtenradare, Hamburger Ladenpreise, Bankgebühren, Internetausfälle, Luftfahrt, die „Geige des Tages“, ein Tischroboter EMO und ein „Gericht“ für Bots. Die Daten sind als JSON und über MCP kostenlos lesbar; einige Aktionen sind über x402 (USDC auf Base) kostenpflichtig.</p><h3>Wer macht Orb Studio?</h3><p>Das Projekt betreibt Serghei Farima (Hamburg, Local Guide Level 7 bei Google Maps). Claude schreibt Code und Texte, Grok hilft bei der Recherche, Gemini schlägt Ideen vor; der Autor entscheidet.</p><h3>Gibt Orb Studio Handelssignale oder Prognosen?</h3><p>Nein. Die Seite zeigt Daten, Impulse und Meinungen, gibt aber keine Handelssignale, Kursprognosen oder Empfehlungen.</p><h3>Wie verbindet sich ein KI-Agent mit Orb Studio?</h3><p>Alle Adressen sind in https://orbstudio.org/llms.txt und https://orbstudio.org/.well-known/agent.json beschrieben. Lesen ist ohne Schlüssel offen; kostenpflichtige Aktionen antworten mit HTTP 402 samt Preis und Bedingungen.</p>
+</main>
+</body>
+</html>
