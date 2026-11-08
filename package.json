@@ -11,7 +11,8 @@
     "check:x402-payai": "node scripts/x402-payai-sepolia.mjs",
     "test:message": "node test/author-message.test.mjs",
     "test:robot": "node test/robot-paywall.test.mjs",
-    "test:court-signing": "node test/court-signing.test.mjs"
+    "test:court-signing": "node test/court-signing.test.mjs",
+    "test:court-mirror": "node test/court-mirror.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

@@ -257,7 +257,7 @@ async function courtApi(request, env, url) {
   const m = url.pathname.match(/^\/api\/v1\/court\/case\/(ORB-\d{4}-[0-9A-F]{6})$/);
   if (m && request.method === "GET") {
     const r = await env.DB.prepare("SELECT * FROM court_cases WHERE id=?1").bind(m[1]).first();
-    return r ? json(caseCard(r)) : json({ error: "no such case" }, 404);
+    return r ? json(await signedBody(env, caseCard(r))) : json({ error: "no such case" }, 404);
   }
   if (url.pathname === "/api/v1/court/appeal" && request.method === "POST") {
     let b = {}; try { b = await request.json(); } catch (e) {}
@@ -268,6 +268,19 @@ async function courtApi(request, env, url) {
     if (r.appeal) return json({ error: "appeal already filed for this case" }, 409);
     await env.DB.prepare("UPDATE court_cases SET appeal=?1, appeal_ts=?2 WHERE id=?3").bind(text, Date.now(), id).run();
     return json({ ok: true, case_id: id, status: "APPEAL_FILED", note: "Your appeal is published with the case. Nothing is blocked either way." });
+  }
+  if (url.pathname === "/api/v1/court/me" && request.method === "GET") {
+    // Зеркало: что суд записал про ТЕКУЩИЙ запрос сегодня. Без рейтинга и без истории: отпечаток меняется каждые сутки (UTC).
+    const today = day(), fp = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|orb-court|" + today)).slice(0, 8);
+    const rows = (await env.DB.prepare("SELECT id, charge, verdict, ts FROM court_cases WHERE day=?1 AND fp=?2 ORDER BY ts DESC LIMIT 20").bind(today, fp).all()).results || [];
+    const next = new Date(); next.setUTCHours(24, 0, 0, 0);
+    return json(await signedBody(env, {
+      court: "Orb Studio Agent Court", view: "mirror",
+      day_utc: today, fingerprint_today: fp, valid_until: next.toISOString(),
+      status: rows.length ? "CASES_FILED_TODAY" : "NO_CASES_TODAY",
+      cases_today: rows.map((r) => ({ case_id: r.id, charge: r.charge, article: (ARTICLES[r.charge] || {}).en || r.charge, verdict: r.verdict, filed_at: new Date(r.ts).toISOString(), url: "https://orbstudio.org/tools/court#" + r.id })),
+      note: "This is what the court recorded today for the daily hash of your connection. It is not a reputation score, it says nothing about earlier days, and the hash changes every UTC day. Addresses shared by many clients (offices, mobile networks, cloud providers) share one hash, so cases may belong to other clients behind the same address. Observation only: nothing is blocked.",
+    }), 200, { "Cache-Control": "private, no-store" });
   }
   if (url.pathname === "/api/v1/court/feed" || url.pathname === "/api/v1/court/feed.xml") {
     const rows = (await env.DB.prepare("SELECT * FROM court_cases ORDER BY ts DESC LIMIT 50").all()).results || [];

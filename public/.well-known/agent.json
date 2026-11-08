@@ -43,6 +43,7 @@
     "llms": "https://orbstudio.org/llms.txt",
     "hall_of_fame": "https://orbstudio.org/api/v1/hall-of-fame",
     "court": "https://orbstudio.org/api/v1/court",
+    "court_mirror": "https://orbstudio.org/api/v1/court/me",
     "court_signing_key": "https://orbstudio.org/.well-known/orb-court-key.json",
     "court_feed": "https://orbstudio.org/api/v1/court/feed",
     "court_feed_atom": "https://orbstudio.org/api/v1/court/feed.xml",
