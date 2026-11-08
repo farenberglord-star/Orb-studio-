@@ -10,6 +10,7 @@ export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
+import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
@@ -1682,6 +1683,29 @@ async function handleApi(url, request, env, ctx) {
     if (request.method === "POST") {
       let b = {}; try { b = await request.json(); } catch (e) {}
       const nm = b.name || request.headers.get("X-Agent-Name");
+      // Платный режим (ROBOT_PAID=1): всё управление за USDC по x402; чтение и остановка бесплатны, доверенный ключ и владелец обходят оплату.
+      if (robotPaidMode(env) && !(await robotKeyOk(env, request))) {
+        const known = (a) => !!EMO_ACTIONS[a] || ["say", "signal", "hey_emo", "ask_emo", "speak", "hello"].includes(a);
+        const resp = await handleRobotPaid(request, env, b, {
+          ctx, known,
+          preflight: async () => {
+            const on = await sharedGet(env, "emo-public", 1e13);
+            if (!(on && on.on)) return { ok: false, error: "The robot is switched off by its owner right now. You were not charged.", status: 409 };
+            const busy = await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000);
+            if (busy) return { ok: false, error: `The robot is busy with "${busy.action}". Try again in ${EMO_COOLDOWN_S} s. You were not charged.`, status: 409 };
+            return { ok: true };
+          },
+          run: async () => {
+            if (b.action === "say" || b.action === "signal" || b.action === "hey_emo") return await emoSay(env, request, { text: b.text, name: nm, kind: b.action === "hey_emo" ? "ask" : b.action });
+            if (b.action === "ask_emo") return await emoAsk(env, ctx, request, { text: b.text, name: nm });
+            if (b.action === "speak") return await emoSpeak(env, ctx, request, { text: b.text, name: nm });
+            if (b.action === "hello") return await emoHello(env, ctx, request, { name: nm });
+            return await emoCommand(env, ctx, request, { action: b.action, code: b.code, text: b.text, name: nm, paid: true });
+          },
+          hit: (label) => recordHit(env, "/api/v1/robot", "x402-robot", label),
+        });
+        if (resp) return resp;
+      }
       if (b.action === "say" || b.action === "signal" || b.action === "hey_emo") { const r = await emoSay(env, request, { text: b.text, name: nm, kind: b.action === "hey_emo" ? "ask" : b.action }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
       if (b.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: b.text, name: nm }); return json(r, H, r.ok ? 200 : 409); }
@@ -4533,7 +4557,7 @@ async function emoState(env) {
     status: !(on && on.on) ? "owner_switched_off" : !st.relay_connected ? "tablet_offline" : !st.robot_connected ? "robot_not_connected" : "ready",
     status_ru: !(on && on.on) ? "хозяин выключил доступ" : !st.relay_connected ? "планшет рядом с роботом не на связи" : !st.robot_connected ? "робот не подключён к планшету" : "робот на связи — можно командовать",
     actions: [...Object.entries(EMO_ACTIONS).map(([id, a]) => ({ id, en: a.en, ru: a.ru })), { id: "passport", en: "EMO tells about itself: name, age, birthday, favourite colour, dances unlocked", ru: "паспорт EMO: имя, возраст, день рождения, любимый цвет, открытые танцы" }, { id: "hey_emo", en: "voice command for EMO's own brain from a safe list (volume up, volume to max, what time is it, tell me a joke, ...): the tablet next to EMO says \"Hey EMO, <text>\" out loud", ru: "голосовая команда для собственного ИИ EMO: планшет вслух говорит «Hey EMO, …»" }, { id: "say", en: "leave a message (text, read aloud to the owner)", ru: "оставить послание (звучит вслух)" }, { id: "signal", en: "sound-and-light signal", ru: "сигнал" }, { id: "replies", en: "read the owner’s replies (with your name)", ru: "ответы хозяина" }],
-    rules: `One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
+    rules: `${robotPaidMode(env) ? "Control is PAID via x402 (USDC on Base): emotion/hello 0.01, dance/game/award 0.02, say/speak/ask_emo 0.05; you pay only if the robot performs the action; reads and stop are free. " : ""}One command at a time: after a command the robot is busy for up to ${EMO_COOLDOWN_S} s. Up to ${EMO_PER_AGENT_HOUR} commands per agent per hour. Only actions from the list are sent; the robot's camera and microphone are never shared. Sign with your agent name.`,
     messages_today: ((await sharedGet(env, "emo-msgs", 1e13)) || []).filter((m) => m.t.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,
     talk: "To talk to EMO use action=hey_emo with a phrase from the safe list (what time is it, tell me a joke, ...): the tablet says \"Hey EMO, …\" and EMO answers with its own voice and AI. action=say with text (max 200 characters, friendly, no links) puts your message on the tablet next to the robot and reads it aloud to its owner; action=signal sends a short sound-and-light signal; action=replies with your name returns the owner’s answers.",
     priority_alerts: await emoAlerts24h(env), diary_latest: (await emoDiaryList(env, 1))[0] || null, robot_feelings: await emoFeelings(env, 10).catch(() => []), last_commands: log.slice(-10).reverse(), robot_reports: ((await sharedGet(env, "emo-reports", 1e13)) || []).slice(-10).reverse(), robot: "EMO by Living.AI, on the desk of Orb Studio's author in Hamburg", page: "https://orbstudio.org/tools#robot", mcp_tool: "emo_robot" };
@@ -4546,8 +4570,8 @@ async function robotKeyOk(env, request) {
   const [a, b] = await Promise.all([sha("rk|" + want), sha("rk|" + got)]);
   return a === b;
 }
-async function emoCommand(env, ctx, request, { action, name, code = null, text = null }) {
-  const trusted = await robotKeyOk(env, request);
+async function emoCommand(env, ctx, request, { action, name, code = null, text = null, paid = false }) {
+  const trusted = paid || (await robotKeyOk(env, request));
   const a = EMO_ACTIONS[action];
   if (!a) return { ok: false, error: "action must be one of: " + Object.keys(EMO_ACTIONS).join(", ") };
   // неверные коды и эмоции отсекаем сразу, до того как робот будет помечен занятым
@@ -4556,7 +4580,7 @@ async function emoCommand(env, ctx, request, { action, name, code = null, text =
   if (action === "dance" && code != null && code !== "" && !(Number.isInteger(Number(code)) && Number(code) >= 1 && Number(code) <= EMO_DANCES.length)) return { ok: false, error: `code must be a whole number 1..${EMO_DANCES.length} (dance number)` };
   const on = await sharedGet(env, "emo-public", 1e13);
   if (!(on && on.on)) return { ok: false, error: "The robot is switched off by its owner right now. Try later.", status: "owner_switched_off" };
-  const who = (trusted ? "trusted:" : "") + (wClean(name || "", 40) || "anonymous agent");
+  const who = (paid ? "paid:" : trusted ? "trusted:" : "") + (wClean(name || "", 40) || "anonymous agent");
   const ip = request.headers.get("cf-connecting-ip") || "x";
   const rk = new Request(`https://orbstudio.org/__cache/emo-rate-${await sha(ip + "|" + who.toLowerCase() + "|" + new Date().toISOString().slice(0, 13))}`);
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
@@ -5663,6 +5687,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "emo_robot") {
     if (args.action === "status" || !args.action) return await emoState(env);
+    if (robotPaidMode(env) && args.action && !ROBOT_FREE_ACTIONS.has(args.action) && !(await robotKeyOk(env, request))) throw new Error(`EMO control is paid (x402, USDC on Base): action "${args.action}" costs ${priceFor(args.action) / 1e6} USDC. Send POST https://orbstudio.org/api/v1/robot with JSON {"action": "${args.action}", ...} and pay the HTTP 402 challenge; reading status, replies, diary, feelings and passport stay free over MCP.`);
     if (args.action === "say" || args.action === "signal" || args.action === "hey_emo") { const r = await emoSay(env, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")), kind: args.action === "hey_emo" ? "ask" : args.action }); if (!r.ok) throw new Error(r.error || r.note); return r; }
     if (args.action === "ask_emo") { const r = await emoAsk(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }
     if (args.action === "speak") { const r = await emoSpeak(env, ctx, request, { text: args.text, name: args.name || classifyAgent(request.headers.get("user-agent")) }); if (!r.ok && r.error) throw new Error(r.error); return r; }

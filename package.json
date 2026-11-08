@@ -9,7 +9,8 @@
     "test:aviation": "node test/aviation.test.mjs",
     "test:wallet": "node test/agent-wallet.test.mjs",
     "check:x402-payai": "node scripts/x402-payai-sepolia.mjs",
-    "test:message": "node test/author-message.test.mjs"
+    "test:message": "node test/author-message.test.mjs",
+    "test:robot": "node test/robot-paywall.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
