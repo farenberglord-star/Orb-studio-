@@ -32,6 +32,7 @@ button:disabled{opacity:.45}
     <div id="proposal" class="note">Ресурс ещё не проверен.</div>
     <button id="load" type="button">Показать условие</button>
     <button id="connect" class="ghost" type="button">Подключить MetaMask</button>
+    <button id="passkey" class="ghost" type="button">Войти по Passkey (Coinbase, проверка)</button>
     <button id="base" class="ghost" type="button" hidden>Переключить на Base</button>
     <button id="sign" type="button" disabled>Подписать и запросить файл</button>
     <p id="status" class="note"></p>
@@ -44,7 +45,8 @@ import { createReview, pageQuery, reasonText } from "./buyer-review.js";
 const $ = (id) => document.getElementById(id);
 const review = createReview();
 const query = pageQuery(location.search);
-const provider = () => window.ethereum;
+let passkeyProvider = null, smartWallet = false;
+const provider = () => passkeyProvider || window.ethereum;
 function say(text) { $("status").textContent = text; }
 function draw() {
   const view = review.view();
@@ -81,6 +83,21 @@ $("connect").onclick = async () => {
     draw();
   } catch (e) { say("Подключение не выполнено."); }
 };
+$("passkey").onclick = async () => {
+  if (query.preview) return say("В учебном экране кошелёк не вызывается.");
+  try {
+    const { createCoinbaseWalletSDK } = await import("./vendor/coinbase-wallet-sdk.js");
+    const sdk = createCoinbaseWalletSDK({ appName: "Orb Studio", preference: { options: "smartWalletOnly" } });
+    passkeyProvider = sdk.getProvider(); smartWallet = true;
+    await review.connect(passkeyProvider);
+    const chain = await review.readChain(passkeyProvider);
+    const code = await review.hasContractCode(passkeyProvider);
+    $("base").hidden = chain.chain_ok;
+    $("sign").disabled = !chain.chain_ok;
+    draw();
+    say(code === true ? "Смарт-кошелёк развёрнут: платёж должен пройти." : code === false ? "Смарт-кошелёк ещё не развёрнут в сети. Платёж может быть отклонён посредником; если это так, ничего не списывается." : "Не удалось проверить, развёрнут ли кошелёк.");
+  } catch (e) { passkeyProvider = null; smartWallet = false; say("Вход по Passkey не выполнен."); }
+};
 $("base").onclick = async () => {
   if (query.preview || !provider()) return;
   try {
@@ -108,7 +125,7 @@ $("sign").onclick = async () => {
   if (query.preview || !provider()) return say("Подпись не запрашивается.");
   $("sign").disabled = true;
   try {
-    const result = await review.sign(provider(), fetch);
+    const result = await review.sign(provider(), fetch, { contractWallet: smartWallet });
     if (result.state === "bought") {
       say(result.tx ? "Файл получен. Хэш из ответа ресурса: " + result.tx : "Файл получен. Хэш в ответе ресурса не пришёл.");
       fileLink(result);
