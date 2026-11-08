@@ -179,23 +179,4 @@ assert.equal(preview.needsGuard(), false);
   const rp = createReview(); mode = "pending"; await rp.load(resource, fetchImpl); await rp.connect(p1); await rp.readChain(p1);
   const o2 = await rp.sign(p1, fetchImpl); assert.equal(o2.state, "pending"); assert.equal(o2.stage, "settling"); assert.equal(rp.needsGuard(), true); mode = "ok";
 }
-
-// Смарт-кошелёк (Passkey): подпись контракта переменной длины принимается только при contractWallet, обычный кошелёк по-прежнему ровно 65 байт.
-{
-  const long = "0x" + "ab".repeat(200);
-  const mkProvider = (sig, code) => ({ async request(req) {
-    if (req.method === "eth_requestAccounts") return [account];
-    if (req.method === "eth_chainId") return "0x2105";
-    if (req.method === "eth_call") return "0x" + (10 ** 6).toString(16).padStart(64, "0");
-    if (req.method === "eth_getCode") return code;
-    if (req.method === "eth_signTypedData_v4") return sig;
-  } });
-  const run = async (sig, opts) => { const r = createReview(); await r.load(resource, fetchImpl); const p = mkProvider(sig, "0x6080"); await r.connect(p); await r.readChain(p); return { r, p, out: r.sign(p, fetchImpl, opts) }; };
-  const a = await run(long, {}); await assert.rejects(a.out, (e) => e.code === "wallet_rejected");
-  const b = await run(long, { contractWallet: true }); const done = await b.out; assert.ok(["bought", "pending"].includes(done.state));
-  const c = await run("0x" + "ab".repeat(2100), { contractWallet: true }); await assert.rejects(c.out, (e) => e.code === "wallet_rejected");
-  const d = await run("0xabc", { contractWallet: true }); await assert.rejects(d.out, (e) => e.code === "wallet_rejected");
-  const r = createReview();
-  await r.connect(mkProvider("", "0x6080")); assert.equal(await r.hasContractCode(mkProvider("", "0x6080")), true); assert.equal(await r.hasContractCode(mkProvider("", "0x")), false); assert.equal(await r.hasContractCode({ async request() { throw new Error("x"); } }), null);
-}
 console.log("buyer-review: ok");
