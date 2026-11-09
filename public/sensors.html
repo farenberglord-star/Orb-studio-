@@ -182,6 +182,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="roads"><div class="nm"><i></i>🛣 Автобаны вокруг Гамбурга</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="sky"><div class="nm"><i></i>✈ Небо над Гамбургом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="quakes"><div class="nm"><i></i>🌋 Землетрясения мира</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="route"><div class="nm"><i></i>🧭 Маршрут по Гамбургу</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn gold" data-s="predict"><div class="nm"><i></i>🎯 Люди против ИИ</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="kraken"><div class="nm"><i></i>₿ Котировки Kraken</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sgrp">Рынок и сеть</div>
@@ -231,6 +232,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="ground"><div class="k">Наземная правда · последний ценник</div><div class="v" id="oGround">—</div></div>
       <div class="row" data-o="roads"><div class="k">Автобаны вокруг Гамбурга · Autobahn GmbH</div><div class="v" id="oRoads">—</div></div>
       <div class="row" data-o="sky"><div class="k">Небо над Гамбургом · adsb.lol (ADS-B)</div><div class="v" id="oSky">—</div></div>
+      <div class="row" data-o="route"><div class="k">Маршрут · OSM + автобаны (бесплатно)</div><div class="v" id="oRoute">—</div></div>
       <div class="row" data-o="quakes"><div class="k">Землетрясения мира · USGS (M4.5+)</div><div class="v" id="oQuake">—</div></div>
       <div class="row" data-o="predict"><div class="k">Прогноз дня</div><div class="v" id="oPred">—</div></div>
       <div class="row" data-o="kraken"><div class="k">Kraken · за 24 ч</div><div class="v" id="oKr">—</div></div>
@@ -433,6 +435,13 @@ async function loadSky(){
     L.slice(-4).reverse().map(x=>`<div style="margin-top:2px;color:var(--dim);font-size:12px">${hm(x.time)} · ${esc(x.callsign||'без позывного')} · ${x.evidence==='on_ground'?'сел, виден на земле':'пропал у полосы'}</div>`).join('')+
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">Считаются самолёты, которых слышат волонтёрские приёмники adsb.lol; с выключенным транспондером не видны${d.status!=='ok'?' · '+(d.status==='cached'?'из кэша':'источник не ответил, прошлые данные'):''}</div>`;
 }
+async function loadRoute(){
+  const d=await fetch('/api/v1/route?from=airport&to=hauptbahnhof&mode=car').then(r=>r.json());
+  if(d.status!=='ok'){setSensor('route','маршрутизатор не ответил',Date.now(),'x');$('oRoute').textContent='Маршрутизатор не ответил — цифры не выдумываю.';return}
+  const n=(d.motorway_reports_near_route||[]).length;
+  setSensor('route',`аэропорт → вокзал: ${(d.distance_m/1000).toFixed(1).replace('.',',')} км · ${Math.round(d.duration_min)} мин · отчётов автобанов рядом: ${n}`,Date.now(),d.distance_m+'/'+n);
+  $('oRoute').innerHTML=`<div>Аэропорт → главный вокзал: <b>${(d.distance_m/1000).toFixed(1).replace('.',',')} км</b>, около ${Math.round(d.duration_min)} мин без пробок · рядом с маршрутом сообщений автобанов: ${n}</div><div style="margin-top:4px"><a href="/route">Построить свой маршрут →</a> · ИИ-агентам: <a href="/api/v1/route?from=airport&to=hauptbahnhof&mode=car">/api/v1/route</a>, MCP get_route_context</div>`;
+}
 async function loadQuakes(){
   const d=await fetch('/api/v1/quakes').then(r=>r.json());
   if(d.status==='unavailable'||!d.last_24h_m45){setSensor('quakes','источник не ответил',Date.now(),'x');$('oQuake').textContent='USGS не ответил — цифры не выдумываю.';return}
@@ -522,7 +531,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Режим выбирает Claude по всем датчикам сайта, страховки правил v'+d.rules.version+' остаются.':'Правила v'+d.rules.version+' записаны заранее.'} Решение раз в день в 08:10, баланс счёта обновляется при открытии страницы; от приложения Kraken сумма может отличаться на пару евро из-за цены пересчёта. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
