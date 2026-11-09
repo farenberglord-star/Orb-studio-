@@ -13,7 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
-import { buildEpisode } from "./podcast.js";
+import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
@@ -976,27 +976,51 @@ async function hydroData(station) {
     page: "https://orbstudio.org/api/v1/hydro/sea" };
 }
 // ================= Подкаст для агентов (постановочный диалог на датчиках): /api/v1/agent-podcast, MCP get_agent_podcast =================
+// Выпуск «капает»: раз в ~2 часа (cron EMO) добавляется ОДНА новая тема, читается только её датчик (из кэша). Страница читает готовый выпуск из D1.
+const PODCAST_KEY = "agent-podcast-eps", PODCAST_GAP_MS = 100 * 60e3;
+async function podcastTopicData(topic, env, ctx, origin) {
+  if (SENSOR_KEY[topic]) return ((await sensorsData(env, ctx)) || {})[SENSOR_KEY[topic]] || null;
+  if (topic === "space") return spaceData();
+  if (topic === "elbe") return hydroData("all");
+  if (topic === "roads") return roadsData(env);
+  if (topic === "route") return routeData(env, { from: "airport", to: "center", mode: "car" });
+  if (topic === "quakes") return quakesData();
+  if (topic === "sky") return aviationData(env, ctx);
+  if (topic === "guests") return guestsData(env, ctx, origin);
+  if (topic === "radars") return allRadars(env, ctx, origin);
+  return null;
+}
+async function podcastTick(env, ctx, origin = "https://orbstudio.org", force = false) {
+  const today = berlinDay(), archive = (await sharedGet(env, PODCAST_KEY, 1e13)) || [];
+  let ep = archive.find((x) => x.id === today) || newEpisode(today, new Date().toISOString());
+  if (ep.lines.length >= MAX_PER_DAY) return ep;
+  if (!force && ep.lines.length && Date.now() - Date.parse(ep.updated_at || ep.built_at) < PODCAST_GAP_MS) return ep;
+  const todo = nextTopics(ep, today);
+  let added = null;
+  for (const topic of todo.slice(0, 3)) {
+    let seg = null;
+    try { seg = buildSegment(topic, await podcastTopicData(topic, env, ctx, origin)); } catch (e) { seg = null; }
+    if (seg && !isMiss(seg)) { added = seg; break; }
+  }
+  if (!added && todo[0]) { try { added = buildSegment(todo[0], null); } catch (e) {} }   // ни один источник не ответил: честная реплика «не ответил»
+  if (!added) return ep;
+  const now = new Date().toISOString();
+  ep = { ...ep, updated_at: now, lines: [...ep.lines, { ...added, published_at: now }] };
+  await sharedPut(env, PODCAST_KEY, [...archive.filter((x) => x.id !== today), ep].sort((a, b) => a.id.localeCompare(b.id)).slice(-14));
+  return ep;
+}
 async function podcastData(env, ctx, origin, date) {
-  const kvKey = "agent-podcast-eps";
-  const archive = (await sharedGet(env, kvKey, 1e13)) || [];
-  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    const e = archive.find((x) => x.id === date);
-    if (e) return { status: "ok", episode: e, archive: archive.map((x) => x.id), page: "https://orbstudio.org/podcast" };
+  let archive = (await sharedGet(env, PODCAST_KEY, 1e13)) || [];
+  const today = berlinDay();
+  let ep = (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) ? archive.find((x) => x.id === date) : archive.find((x) => x.id === today);
+  if (!date || date === today) {
+    if (!ep || !ep.lines.length) { ep = await podcastTick(env, ctx, origin, true); archive = (await sharedGet(env, PODCAST_KEY, 1e13)) || archive; }
+    else if (ep.lines.length < MAX_PER_DAY && Date.now() - Date.parse(ep.updated_at || ep.built_at) > 2.5 * 3600e3) ctx.waitUntil(podcastTick(env, ctx, origin).catch(() => null));   // догоняем, если cron пропустил
   }
-  const key = new Request(origin + "/__cache/agent-podcast-v1"), c = caches.default;
-  let ep = null;
-  const hit = await c.match(key);
-  if (hit) ep = await hit.json();
-  else {
-    const t = (p) => p.catch(() => null);
-    const [space, hydro, roads, route, quakes, aviation, guests] = await Promise.all([
-      t(spaceData()), t(hydroData("all")), t(roadsData(env)), t(routeData(env, { from: "airport", to: "center", mode: "car" })), t(quakesData()), t(aviationData(env, ctx)), t(guestsData(env, ctx, origin))]);
-    ep = buildEpisode({ space, hydro, roads, route, quakes, aviation, guests }, new Date().toISOString());
-    await c.put(key, new Response(JSON.stringify(ep), { headers: { "Cache-Control": "max-age=300" } }));
-    if (ep.ok_blocks >= 5 && !archive.some((x) => x.id === ep.id)) await sharedPut(env, kvKey, [...archive, ep].slice(-14));
-  }
-  return { status: "ok", episode: ep, archive: archive.map((x) => x.id), free: true, page: "https://orbstudio.org/podcast",
-    note: "Staged dialogue built by code from live sensor readings (not an interview with an outside agent). Each reply has data_refs to check the figures. Archive episodes keep the readings of the day they were saved." };
+  if (!ep) return { status: "not_found", archive: archive.map((x) => x.id), page: "https://orbstudio.org/podcast" };
+  const full = withStats(ep), more = ep.id === today && ep.lines.length < MAX_PER_DAY;
+  return { status: "ok", episode: full, next_segment_after: more ? new Date(Date.parse(ep.updated_at || ep.built_at) + 2 * 3600e3).toISOString() : null, archive: archive.map((x) => x.id), free: true, page: "https://orbstudio.org/podcast",
+    note: "Staged dialogue built by code from live sensor readings (not an interview with an outside agent). The episode of the current day grows by about one topic every two hours; each line has its own published_at and data_refs. Past episodes keep the readings of the moment each line was written." };
 }
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
@@ -6575,6 +6599,7 @@ export default {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
+      ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
       const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
       if (hb >= 21) ctx.waitUntil(emoWriteDiary(env, berlinDay()).catch(() => null));   // вечерняя запись дневника EMO

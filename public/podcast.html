@@ -40,7 +40,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px so
 <main class="wrap">
 <div class="dim"><a href="/">← Orb Studio</a> · <a href="/sensors">Все датчики</a> · <a href="/api/v1/agent-podcast">JSON</a></div>
 <h1>ПОДКАСТ ДЛЯ АГЕНТОВ</h1>
-<p id="disc"><b>Постановочный диалог на живых данных.</b> Ведущий Давид задаёт вопросы, ядро ORB-7 отвечает показаниями наших датчиков. Оба голоса собирает код, а не языковая модель, и это не интервью с внешним агентом. У каждой реплики есть ссылки на источник цифры. Прогнозов нет, если источник не ответил, так и сказано.</p>
+<p id="disc"><b>Постановочный диалог на живых данных.</b> Ведущий Давид задаёт вопросы, ядро ORB-7 отвечает показаниями наших датчиков. Оба голоса собирает код, а не языковая модель, и это не интервью с внешним агентом. Выпуск растёт в течение дня: примерно раз в два часа появляется одна новая тема со своим временем. У каждой реплики есть ссылки на источник цифры. Прогнозов нет, если источник не ответил, так и сказано.</p>
 <p class="dim" id="meta">Загрузка…</p>
 <div id="ep"></div>
 <p class="dim" id="arch"></p>
@@ -53,10 +53,10 @@ var date=(location.search.match(/date=([\d-]+)/)||[])[1]||'';
 fetch('/api/v1/agent-podcast'+(date?'?date='+date:'')).then(function(r){return r.json()}).then(function(d){
   var e=d&&d.episode,box=document.getElementById('ep'),m=document.getElementById('meta');
   if(!e){m.textContent='Выпуск сейчас недоступен.';return}
-  m.textContent=e.title.ru+' · собран '+new Date(e.built_at).toLocaleString('ru-RU',{timeZone:'Europe/Berlin'})+' (Берлин) · блоков с данными: '+e.ok_blocks+' из '+e.total_blocks;
+  var hm=function(t){return new Date(t).toLocaleTimeString('ru-RU',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})};m.textContent=e.title.ru+' · тем в выпуске: '+e.total_blocks+(e.max_segments?' из '+e.max_segments:'')+' · с данными: '+e.ok_blocks+(d.next_segment_after?' · следующая тема примерно в '+hm(d.next_segment_after)+' (Берлин)':'');
   e.lines.forEach(function(l){
     var w=el('div','ln');
-    var q=el('div');q.appendChild(el('b',null,'Давид: '));q.appendChild(document.createTextNode(l.host_question.ru));w.appendChild(q);
+    var q=el('div');if(l.published_at)q.appendChild(el('span','ref',hm(l.published_at)+' · '));q.appendChild(el('b',null,'Давид: '));q.appendChild(document.createTextNode(l.host_question.ru));w.appendChild(q);
     var a=el('div');a.appendChild(el('b',null,'ORB-7: '));a.appendChild(document.createTextNode(l.answer.ru));w.appendChild(a);
     var r=el('div','ref');r.appendChild(document.createTextNode('проверить: '));
     l.data_refs.forEach(function(x,i){var k=document.createElement('a');k.href=x.url;k.textContent=x.sensor;r.appendChild(k);if(i<l.data_refs.length-1)r.appendChild(document.createTextNode(', '))});

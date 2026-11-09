@@ -2,7 +2,7 @@ import test from "node:test"; import assert from "node:assert/strict";
 import { buildEpisode } from "../src/podcast.js";
 const full = {
   space: { kp: { ok: true, kp: 2.67, max_24h: 4, time: "t" }, noaa_scales: { ok: true, current: { geomagnetic: { scale: "G0" }, radio_blackout: { scale: "R0" }, radiation: { scale: "S0" } } }, solar_wind: { ok: true, speed_kms: 704.68, density_pcm3: 1.54, time: "t" }, solar_flares: { ok: true, count_24h: 2, strongest: "M1.1" } },
-  hydro: { stations: [{ station: "st_pauli", ok: true, water_level_cm: 649, measured_at: "x", observed_change: { change_cm: 55, window_min: 60 } }, { station: "cuxhaven", ok: true, water_level_cm: 596, observed_change: { change_cm: -53, window_min: 62 } }] },
+  elbe: { stations: [{ station: "st_pauli", ok: true, water_level_cm: 649, measured_at: "x", observed_change: { change_cm: 55, window_min: 60 } }, { station: "cuxhaven", ok: true, water_level_cm: 596, observed_change: { change_cm: -53, window_min: 62 } }] },
   roads: { updated: "u", summary: { jams: 2, closures: 4, roadworks: 55, max_delay_min: 2 } },
   route: { status: "ok", distance_m: 12105, duration_min: 23.2, motorway_reports_near_route: [] },
   quakes: { last_24h_m45: { count: 16, strongest: { mag: 6.4, place: "Solomon Islands", depth_km: 17, tsunami_flag: false } } },
@@ -34,4 +34,24 @@ test("roads with no readable source is not reported as zero", () => {
 test("guests without names", () => {
   const e = buildEpisode({ ...full, guests: { status: "ok", window_days: 7, named_total: 0, unnamed_requests: 5, guests: [] } }, "2026-11-09T13:50:00Z");
   assert.ok(!e.lines.find((x) => x.topic === "guests").answer.en.includes("Most active"));
+});
+import { buildSegment, dayPlan, nextTopics, newEpisode, TOPICS, MAX_PER_DAY, isMiss } from "../src/podcast.js";
+test("new topics copy numbers and admit gaps", () => {
+  const r = buildSegment("radars", [{ title: "Geo", lvl: 72, prev: 60 }, { title: "Energy", lvl: 40, prev: 41 }]);
+  assert.ok(r.answer.en.includes("Geo 72 (+12 in 24 h)"));
+  assert.ok(buildSegment("power", { now_eur_mwh: 96.5, now_ct_kwh: 9.65, renewables: { renewable_share_pct: 41 } }).answer.en.includes("96.5 EUR/MWh"));
+  assert.ok(buildSegment("bitcoin", { fee_fast_sat_vb: 3, fee_hour_sat_vb: 2, mempool_tx: 1000, hashrate_ehs: 900 }).answer.en.includes("3 sat/vB"));
+  assert.ok(buildSegment("ecb", { deposit_rate_pct: { value: 2, date: "2026-10" }, eurusd: { value: 1.08, date: "2026-11-07" } }).answer.en.includes("deposit rate 2%"));
+  assert.ok(buildSegment("inflation", { hicp_annual_pct: 2.1, period: "2026-10" }).answer.en.includes("2.1%"));
+  assert.ok(buildSegment("internet", { outages_24h: 2, outages: [{ country: "X", ongoing: true }], confirmed_block_countries: 5 }).answer.en.includes("strongest: X (ongoing)"));
+  assert.ok(buildSegment("stablecoins", { total_usd: 3.1e11, change_7d_pct: 0.4 }).answer.en.includes("310 billion"));
+  for (const t of ["radars", "power", "bitcoin", "ecb", "inflation", "internet", "stablecoins", "space", "elbe"]) { const l = buildSegment(t, null); assert.ok(isMiss(l), t); assert.ok(l.data_refs.length >= 1); }
+  assert.equal(buildSegment("nope", {}), null);
+});
+test("day plan rotates and drip continues where it stopped", () => {
+  const a = dayPlan("2026-11-09"), b = dayPlan("2026-11-10");
+  assert.equal(a.length, TOPICS.length); assert.notEqual(a[0], b[0]); assert.deepEqual([...a].sort(), [...TOPICS].sort());
+  const ep = newEpisode("2026-11-09", "2026-11-09T01:00:00Z");
+  ep.lines.push({ topic: a[0] }, { topic: a[1] });
+  assert.equal(nextTopics(ep, "2026-11-09")[0], a[2]); assert.ok(MAX_PER_DAY <= TOPICS.length);
 });
