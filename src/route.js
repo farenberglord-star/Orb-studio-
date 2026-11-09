@@ -54,3 +54,22 @@ export function summarizeRoute(osrm, mode, roads) {
   } else out.motorway_check = "not applicable for this mode (motorway reports are only checked for car routes)";
   return out;
 }
+
+// Small built-in list of well-known places (approximate centre points) so agents need no geocoder.
+export const PLACES = {
+  airport: [53.6304, 9.9882, "Hamburg Airport (Flughafen)"], flughafen: [53.6304, 9.9882, "Hamburg Airport (Flughafen)"],
+  center: [53.5503, 9.9920, "City centre (Rathaus)"], centre: [53.5503, 9.9920, "City centre (Rathaus)"], rathaus: [53.5503, 9.9920, "City centre (Rathaus)"], zentrum: [53.5503, 9.9920, "City centre (Rathaus)"],
+  hauptbahnhof: [53.5530, 10.0067, "Hamburg Hauptbahnhof"], hbf: [53.5530, 10.0067, "Hamburg Hauptbahnhof"],
+  altona: [53.5517, 9.9353, "Hamburg-Altona station"], harburg: [53.4560, 9.9930, "Hamburg-Harburg station"], bergedorf: [53.4896, 10.2127, "Hamburg-Bergedorf station"],
+  finkenwerder: [53.5392, 9.8386, "Airbus plant Finkenwerder"], airbus: [53.5392, 9.8386, "Airbus plant Finkenwerder"],
+  elbphilharmonie: [53.5413, 9.9841, "Elbphilharmonie"], landungsbruecken: [53.5456, 9.9690, "Landungsbrücken (harbour)"], hafen: [53.5456, 9.9690, "Landungsbrücken (harbour)"],
+  messe: [53.5633, 9.9712, "Hamburg Messe"], volksparkstadion: [53.5871, 9.8987, "Volksparkstadion"],
+  buxtehude: [53.4731, 9.7014, "Buxtehude station"], stade: [53.5986, 9.4760, "Stade"], luebeck: [53.8670, 10.6694, "Lübeck Hauptbahnhof"],
+  elbtunnel: [53.5435, 9.8870, "Elbtunnel (A7), approximate"],
+};
+export function resolvePlace(s) {
+  const k = String(s || "").trim().toLowerCase().replace(/ü/g, "ue").replace(/ö/g, "oe").replace(/ä/g, "ae").replace(/ß/g, "ss").replace(/[^a-z]/g, "");
+  const p = PLACES[k];
+  return p ? { lat: p[0], lon: p[1], place: p[2] } : null;
+}
+export function parsePlaceOrPoint(s) { return resolvePlace(s) || parsePoint(s); }

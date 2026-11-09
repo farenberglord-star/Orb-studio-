@@ -22,3 +22,12 @@ test("incidentsNear and summary", () => {
   assert.equal(summarizeRoute({ routes: [] }, "car", roads), null);
   assert.equal(incidentsNear([{ lat: 1, lon: 1 }, { lat: 1, lon: 1.001 }], roads).length, 0);
 });
+
+import { resolvePlace, parsePlaceOrPoint } from "../src/route.js";
+test("places", () => {
+  assert.equal(resolvePlace("Flughafen").lat, 53.6304);
+  assert.equal(resolvePlace("Lübeck").place.startsWith("Lübeck"), true);
+  assert.equal(resolvePlace("nowhere"), null);
+  assert.equal(parsePlaceOrPoint("53.55,9.99").lat, 53.55);
+  assert.equal(parsePlaceOrPoint("Hbf").lon, 10.0067);
+});
