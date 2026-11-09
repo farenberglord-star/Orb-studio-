@@ -13,6 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
+import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
@@ -889,6 +890,40 @@ async function routeData(env, params) {
     sources: "Routing: OSRM, FOSSGIS demo server, map data © OpenStreetMap contributors (ODbL, https://www.openstreetmap.org/copyright). Motorway reports: Autobahn GmbH des Bundes, verkehr.autobahn.de.",
     free: true, note: "Free to use. Best effort, no guarantee. This is a record of router output and official reports, not a forecast.", page: "https://orbstudio.org/api/v1/route" };
 }
+// ================= Космическая погода (NOAA SWPC, открытые данные): /api/v1/space, MCP get_space_weather =================
+const SWPC = "https://services.swpc.noaa.gov";
+async function swpcGet(path) {
+  const r = await fetch(SWPC + path, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/space)", Accept: "application/json" } });
+  if (!r.ok) throw new Error("swpc http " + r.status);
+  return r.json();
+}
+async function spaceData() {
+  const fresh = new Request("https://orbstudio.org/__cache/space-v1"), stale = new Request("https://orbstudio.org/__cache/space-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let body, status = "ok";
+  if (hit) { body = await hit.json(); status = "cached"; }
+  else {
+    const tryGet = async (path, parse) => { try { return parse(await swpcGet(path)); } catch (e) { return { ok: false }; } };
+    const [kp, scales, wind, flares] = await Promise.all([
+      tryGet("/products/noaa-planetary-k-index.json", parseKp), tryGet("/products/noaa-scales.json", parseScales),
+      tryGet("/products/solar-wind/plasma-2-hour.json", parseWind), tryGet("/json/goes/primary/xray-flares-7-day.json", (j) => parseFlares(j))]);
+    const blocks = { kp, noaa_scales: scales, solar_wind: wind, solar_flares: flares }, okN = Object.values(blocks).filter((b) => b.ok).length;
+    if (okN === 0) {
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", note: "NOAA SWPC did not answer and there is no recent copy. Nothing is estimated.", source: "NOAA SWPC" };
+      body = await old.json(); status = "degraded";
+    } else {
+      body = { computed_at: new Date().toISOString(), blocks_ok: okN, blocks_total: 4, ...blocks };
+      await c.put(fresh, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=300" } }));
+      await c.put(stale, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=21600" } }));
+      if (okN < 4) status = "partial";
+    }
+  }
+  return { status, ...body, free: true,
+    source: "NOAA Space Weather Prediction Center open data (https://www.swpc.noaa.gov), US government public data",
+    scope_note: "Observed values and NOAA's own published scales only: Kp index, G/R/S scales (current and past 24 h maximum), solar wind speed and density, M/X solar flares of the last 24 h. Not a forecast and not an assessment of how any particular GPS, radio or satellite system is affected. A block with ok=false means NOAA's file was not readable, nothing is filled in.",
+    page: "https://orbstudio.org/api/v1/space" };
+}
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
@@ -1593,6 +1628,7 @@ const OA_GET = [
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
   ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
+  ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -5736,6 +5772,9 @@ const MCP_TOOLS = [
   { name: "get_agent_guests", title: "Guest cards of AI agents that visited Orb Studio",
     description: "Cards of AI agents that visited Orb Studio in the last 7 days: the name they sent themselves (not verified), requests, what they read, whether they looked at a paid endpoint, a greeting and what to explore next. Built from our own counters; no IP addresses, countries or message texts. Use it to see who else reads this site or to find your own card.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_space_weather", title: "Space weather: Kp, storm scales, solar wind, flares (NOAA SWPC)",
+    description: "Free. Observed space weather from NOAA SWPC open data: planetary Kp index (now and 24 h maximum), NOAA G/R/S storm scales (current and past 24 h maximum), solar wind speed and density, M/X solar flares of the last 24 hours. Observed values and NOAA's own scales only, not a forecast and not an assessment of effects on a specific system; blocks NOAA did not deliver say ok=false. Refreshed every 5 minutes.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
     description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -5987,6 +6026,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_agent_wallet") { const r = await agentWallet(new Request("https://orbstudio.org/api/v1/agent-wallet"), env, { sharedGet, sharedPut }); return { ...(await r.json()), referral: ref }; }
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
   if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
+  if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -6550,6 +6590,10 @@ async function handleRequest(request, env, ctx) {
       const d = await routeData(env, Object.fromEntries(url.searchParams));
       const { http, ...rest } = d;
       return json(rest, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/space") {
+      const d = await spaceData();
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();
