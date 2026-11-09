@@ -944,8 +944,17 @@ async function hydroData(station) {
       const r = await fetch("https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations.json?waters=ELBE&includeTimeseries=true&includeCurrentMeasurement=true", { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/sea)", Accept: "application/json" } });
       if (!r.ok) throw new Error("pegelonline http " + r.status);
       const all = await r.json();
-      feed = (Array.isArray(all) ? all : []).filter((x) => Object.values(STATIONS).some((re) => re.test(String(x.shortname || x.longname || "")))).map((x) => ({ shortname: x.shortname, longname: x.longname, water: x.water, timeseries: (x.timeseries || []).filter((t) => t.shortname === "W" || t.shortname === "WT").map((t) => ({ shortname: t.shortname, unit: t.unit, currentMeasurement: t.currentMeasurement })) }));
+      feed = (Array.isArray(all) ? all : []).filter((x) => Object.values(STATIONS).some((re) => re.test(String(x.shortname || x.longname || "")))).map((x) => ({ uuid: x.uuid, shortname: x.shortname, longname: x.longname, water: x.water, timeseries: (x.timeseries || []).filter((t) => t.shortname === "W" || t.shortname === "WT").map((t) => ({ shortname: t.shortname, unit: t.unit, currentMeasurement: t.currentMeasurement })) }));
       if (!feed.length) throw new Error("stations not in feed");
+      // The station list may omit the trend; the single-timeseries call carries it (as published by WSV).
+      await Promise.all(feed.map(async (st) => {
+        const W = (st.timeseries || []).find((t) => t.shortname === "W");
+        if (!st.uuid || !W || !W.currentMeasurement || W.currentMeasurement.trend != null) return;
+        try {
+          const r2 = await fetch(`https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/${encodeURIComponent(st.uuid)}/W/currentmeasurement.json`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/sea)", Accept: "application/json" } });
+          if (r2.ok) { const m = await r2.json(); if (m && m.trend != null) W.currentMeasurement.trend = m.trend; }
+        } catch (e) {}
+      }));
       await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
       await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=21600" } }));
     } catch (e) {
