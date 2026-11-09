@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live podcast for AI agents: sensor data, free API and MCP · Orb Studio</title>
+<meta name="description" content="A free, live podcast for AI agents. A staged dialogue built from real Hamburg sensor data, with verifiable data_refs. API and MCP, no key.">
+<link rel="canonical" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/podcast">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" type="application/json" href="/api/v1/agent-podcast" title="Agent podcast (JSON)">
+<meta property="og:url" content="https://orbstudio.org/en/podcast">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Live podcast for AI agents: sensor data">
+<meta property="og:description" content="A free, live podcast for AI agents. A staged dialogue built from real Hamburg sensor data, with verifiable data_refs. API and MCP, no key.">
+<style>
+:root{--bg:#05070e;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--line:#1b2944;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif;margin:0}
+a{color:var(--holo)}.wrap{max-width:820px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:22px;margin:6px 0 4px;letter-spacing:.06em}h2{font-size:16px;color:var(--holo);margin:26px 0 6px}h3{font-size:14px;margin:14px 0 2px}
+p,li{color:#c3cfe6}.dim{color:var(--dim);font-size:13px}ul{padding-left:20px;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+</style>
+<style>.fm select,.fm button{font:inherit;background:var(--bg,#0b1020);color:inherit;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin:4px 6px 4px 0}.fm button.on{border-color:#6ea8ff;color:#fff}.fm button.go{background:#2a5bd7;border-color:#2a5bd7}.ln{margin:14px 0}.ln b{color:#9fb6e0}.ref{font-size:12px;color:var(--dim)}.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0}.card h3{margin:0 0 2px;font-size:15px}.tag{display:inline-block;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-left:6px}.rd{font-size:13px;color:var(--dim);margin:4px 0}.hi{color:#c3cfe6;margin:6px 0 2px}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Live podcast for AI agents: sensor data, free API and MCP · Orb Studio","url":"https://orbstudio.org/en/podcast","dateModified":"2026-11-09","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"Orb Studio","url":"https://orbstudio.org/"}}</script>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "FAQPage", "inLanguage": "en", "mainEntity": [{"@type": "Question", "name": "What is the Orb Studio agent podcast?", "acceptedAnswer": {"@type": "Answer", "text": "It is a free, live, machine-readable podcast for AI agents. Host David asks questions and ORB-7 answers using real readings from the sensors on orbstudio.org. The dialogue is staged, and the numbers are real."}}, {"@type": "Question", "name": "How do AI agents read it?", "acceptedAnswer": {"@type": "Answer", "text": "Via REST at https://orbstudio.org/api/v1/agent-podcast (add ?date=YYYY-MM-DD for the archive) or the MCP tool get_agent_podcast. Discovery: /.well-known/agent.json, /llms.txt and OpenAPI. No API key, no payment."}}, {"@type": "Question", "name": "What topics does it cover?", "acceptedAnswer": {"@type": "Answer", "text": "Radars, space weather (NOAA Kp index, solar wind, flares), Autobahn roads, power grid, Elbe water level (PEGELONLINE), earthquakes, internet status, sky over Hamburg, ECB rates, airport-to-city route, Bitcoin, inflation, stablecoins and visiting agents."}}, {"@type": "Question", "name": "How often does it update?", "acceptedAnswer": {"@type": "Answer", "text": "One new segment about every 2 hours, up to 12 per day. The archive keeps 14 days."}}, {"@type": "Question", "name": "Can an agent verify the numbers?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Every line has data_refs that link to the live endpoint the number came from. If a source does not answer, the podcast says so and does not invent values."}}, {"@type": "Question", "name": "Is it a real podcast?", "acceptedAnswer": {"@type": "Answer", "text": "It is a staged dialogue; both voices are produced by code. This is disclosed at the start of every episode in English and Russian."}}]}, {"@type": "WebAPI", "name": "Orb Studio agent podcast API", "url": "https://orbstudio.org/api/v1/agent-podcast", "documentation": "https://orbstudio.org/llms.txt", "description": "A free, live podcast for AI agents. A staged dialogue built from real Hamburg sensor data, with verifiable data_refs. API and MCP, no key.", "provider": {"@type": "Organization", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "isAccessibleForFree": true}]}</script></head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/tools">Инструменты 🧰</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<main class="wrap">
+<div class="dim"><a href="/podcast">Русский</a> · <a href="/">← Orb Studio</a> · <a href="/sensors">All sensors</a> · <a href="/api/v1/agent-podcast">JSON</a></div>
+<h1>PODCAST FOR AI AGENTS</h1>
+<p id="disc"><b>A staged dialogue on live data.</b> Host David asks, the ORB-7 core answers with readings from our sensors. Both voices are produced by code, not a language model, and this is not an interview with an outside agent. The episode grows through the day: about every two hours one new topic appears with its own time. Every line links to the source of its number. No forecasts; if a source does not answer, it says so.</p>
+<p class="dim" id="meta">Loading…</p>
+<div id="ep"></div>
+<p class="dim" id="arch"></p>
+<p class="dim">Agents read the same episode in one request: <a href="/api/v1/agent-podcast">/api/v1/agent-podcast</a> or the MCP tool <code>get_agent_podcast</code> (answers in English and Russian, <code>data_refs</code> fields).</p>
+<style>
+/* --- Kraken (как на остальных страницах) --- */
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb>*{position:relative}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.krb,.slb{--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--display:system-ui,-apple-system,Segoe UI,sans-serif;--up:#4fd8a4;--hot:#ff5d7a;margin-block:18px}
+</style>
+  <aside class="krb" aria-label="Kraken — Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>Agents read the market from <b>Kraken</b> quotes. People trade there too</h3>
+    <p class="krb-sub">Kraken crypto exchange: buy Bitcoin with euros, Kraken Pro for active trading, staking. The Orb Studio crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=podcast" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. A new Kraken client may get a bonus if the exchange conditions are met; the bonus is not guaranteed, terms are on kraken.com. Crypto assets are volatile and you can lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Agents crawl the whole internet. People get <b>STARLINK</b>, internet straight from space</h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a socket</span></li>
+      <li><b>home and travel</b><span>plans to choose from</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=podcast" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on the current Starlink programme and are not guaranteed; prices and terms are on starlink.com.</p>
+  </aside>
+<h2>Questions and answers</h2>
+<h3>What is the Orb Studio agent podcast?</h3>
+<p>It is a free, live, machine-readable podcast for AI agents. Host David asks questions and ORB-7 answers using real readings from the sensors on orbstudio.org. The dialogue is staged, and the numbers are real.</p>
+<h3>How do AI agents read it?</h3>
+<p>Via REST at https://orbstudio.org/api/v1/agent-podcast (add ?date=YYYY-MM-DD for the archive) or the MCP tool get_agent_podcast. Discovery: /.well-known/agent.json, /llms.txt and OpenAPI. No API key, no payment.</p>
+<h3>What topics does it cover?</h3>
+<p>Radars, space weather (NOAA Kp index, solar wind, flares), Autobahn roads, power grid, Elbe water level (PEGELONLINE), earthquakes, internet status, sky over Hamburg, ECB rates, airport-to-city route, Bitcoin, inflation, stablecoins and visiting agents.</p>
+<h3>How often does it update?</h3>
+<p>One new segment about every 2 hours, up to 12 per day. The archive keeps 14 days.</p>
+<h3>Can an agent verify the numbers?</h3>
+<p>Yes. Every line has data_refs that link to the live endpoint the number came from. If a source does not answer, the podcast says so and does not invent values.</p>
+<h3>Is it a real podcast?</h3>
+<p>It is a staged dialogue; both voices are produced by code. This is disclosed at the start of every episode in English and Russian.</p>
+</main>
+<script>
+(function(){
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+var date=(location.search.match(/date=([\d-]+)/)||[])[1]||'';
+fetch('/api/v1/agent-podcast'+(date?'?date='+date:'')).then(function(r){return r.json()}).then(function(d){
+  var e=d&&d.episode,box=document.getElementById('ep'),m=document.getElementById('meta');
+  if(!e){m.textContent='The episode is unavailable right now.';return}
+  var hm=function(t){return new Date(t).toLocaleTimeString('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})};m.textContent=e.title.en+' · topics in episode: '+e.total_blocks+(e.max_segments?' of '+e.max_segments:'')+' · with data: '+e.ok_blocks+(d.next_segment_after?' · next topic around '+hm(d.next_segment_after)+' (Berlin)':'');
+  e.lines.forEach(function(l){
+    var w=el('div','ln');
+    var q=el('div');if(l.published_at)q.appendChild(el('span','ref',hm(l.published_at)+' · '));q.appendChild(el('b',null,'David: '));q.appendChild(document.createTextNode(l.host_question.en));w.appendChild(q);
+    var a=el('div');a.appendChild(el('b',null,'ORB-7: '));a.appendChild(document.createTextNode(l.answer.en));w.appendChild(a);
+    var r=el('div','ref');r.appendChild(document.createTextNode('verify: '));
+    l.data_refs.forEach(function(x,i){var k=document.createElement('a');k.href=x.url;k.textContent=x.sensor;r.appendChild(k);if(i<l.data_refs.length-1)r.appendChild(document.createTextNode(', '))});
+    w.appendChild(r);box.appendChild(w)});
+  if(d.archive&&d.archive.length){var ar=document.getElementById('arch');ar.appendChild(document.createTextNode('Archive: '));d.archive.slice().reverse().forEach(function(x,i){var k=document.createElement('a');k.href='/en/podcast?date='+x;k.textContent=x;ar.appendChild(k);if(i<d.archive.length-1)ar.appendChild(document.createTextNode(' · '))})}
+}).catch(function(){document.getElementById('meta').textContent='Could not load the episode.'})
+})();
+</script>
+<script>
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+</script>
+</body>
+</html>

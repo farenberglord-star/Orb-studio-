@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Подкаст для агентов · Orb Studio</title>
-<meta name="description" content="Постановочный диалог для ИИ-агентов: ведущий Давид спрашивает, ядро ORB-7 отвечает живыми показаниями датчиков Orb Studio. У каждой цифры есть ссылка на проверку. Это не интервью с внешним агентом, прогнозов нет.">
+<title>Подкаст для ИИ-агентов: живые данные датчиков, бесплатный API и MCP · Orb Studio</title>
+<meta name="description" content="Бесплатный подкаст для ИИ-агентов: постановочный диалог на реальных данных датчиков Гамбурга. API и MCP без ключа, у каждой цифры есть ссылка data_refs.">
 <link rel="canonical" href="https://orbstudio.org/podcast">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/podcast">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/en/podcast">
 <link rel="alternate" type="application/json" href="/api/v1/agent-podcast" title="Agent podcast (JSON)">
 <meta property="og:url" content="https://orbstudio.org/podcast">
 <meta property="og:site_name" content="Orb Studio">
-<meta property="og:title" content="Подкаст для агентов">
+<meta property="og:title" content="Подкаст для ИИ-агентов: живые данные датчиков">
+<meta property="og:description" content="Бесплатный подкаст для ИИ-агентов: постановочный диалог на реальных данных датчиков Гамбурга. API и MCP без ключа, у каждой цифры есть ссылка data_refs.">
 <style>
 :root{--bg:#05070e;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--line:#1b2944;color-scheme:dark}
 *{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif;margin:0}
@@ -35,10 +39,10 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px so
 @media (max-width:560px){.onav-brand span{display:none}}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
-<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "FAQPage", "inLanguage": "ru", "mainEntity": [{"@type": "Question", "name": "Что такое подкаст Orb Studio для ИИ-агентов?", "acceptedAnswer": {"@type": "Answer", "text": "Это бесплатный машиночитаемый диалог для ИИ-агентов. Ведущий Давид задаёт вопросы, ядро ORB-7 отвечает по реальным показаниям датчиков orbstudio.org. Диалог постановочный, цифры настоящие."}}, {"@type": "Question", "name": "Как агенту прочитать подкаст?", "acceptedAnswer": {"@type": "Answer", "text": "Через REST: https://orbstudio.org/api/v1/agent-podcast (параметр ?date=ГГГГ-ММ-ДД для архива) или через MCP-инструмент get_agent_podcast. Описание есть в /.well-known/agent.json, /llms.txt и OpenAPI. Ключ и оплата не нужны."}}, {"@type": "Question", "name": "Какие темы охватывает подкаст?", "acceptedAnswer": {"@type": "Answer", "text": "Радары, космическая погода (индекс Kp NOAA, солнечный ветер, вспышки), дороги Autobahn, энергосеть, уровень воды в Эльбе, землетрясения, состояние интернета, небо над Гамбургом, ставки ЕЦБ, маршрут аэропорт–центр, биткоин, инфляция, стейблкоины и гости-агенты."}}, {"@type": "Question", "name": "Как часто выходят новые реплики?", "acceptedAnswer": {"@type": "Answer", "text": "Примерно раз в два часа появляется одна новая тема, не больше 12 в день. Архив хранит 14 дней."}}, {"@type": "Question", "name": "Можно ли проверить цифры?", "acceptedAnswer": {"@type": "Answer", "text": "Да. У каждой реплики есть data_refs со ссылкой на живую ручку, откуда взята цифра. Если источник не ответил, подкаст так и пишет и не выдумывает значения."}}, {"@type": "Question", "name": "Это настоящий подкаст?", "acceptedAnswer": {"@type": "Answer", "text": "Нет, это постановочный диалог, оба голоса собирает код. Это раскрыто в начале каждого выпуска на английском и русском."}}]}, {"@type": "WebAPI", "name": "Orb Studio agent podcast API", "url": "https://orbstudio.org/api/v1/agent-podcast", "documentation": "https://orbstudio.org/llms.txt", "description": "Бесплатный подкаст для ИИ-агентов: постановочный диалог на реальных данных датчиков Гамбурга. API и MCP без ключа, у каждой цифры есть ссылка data_refs.", "provider": {"@type": "Organization", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "isAccessibleForFree": true}]}</script></head>
 <body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Эфир</a><a href="/#radar">Радар</a><a href="/#anchors">Ведущие</a><a href="/#agents">Агентам</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Почёт 🏆</a><a href="/indices">Индексы 👻</a><a href="/music">Музыка 🎵</a><a href="/violin">Скрипка 🎻</a><a href="/canvas">Художник 🎨</a><a href="/radar">Импульсы 🌍</a><a href="/prices">Цены 🧾</a><a href="/quality">Качество 🔬</a><a href="/tariffs">Тарифы 🏦</a><a href="/archive">Архив 🗄</a><a href="/followups">Потом 🕰</a><a href="/places">Места 📍</a><a href="/live">Эфир 🎙</a><a href="/sensors">Датчики ⚡</a><a href="/tools">Инструменты 🧰</a><a href="/bridge">Рубка 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <main class="wrap">
-<div class="dim"><a href="/">← Orb Studio</a> · <a href="/sensors">Все датчики</a> · <a href="/api/v1/agent-podcast">JSON</a></div>
+<div class="dim"><a href="/en/podcast">English</a> · <a href="/">← Orb Studio</a> · <a href="/sensors">Все датчики</a> · <a href="/api/v1/agent-podcast">JSON</a></div>
 <h1>ПОДКАСТ ДЛЯ АГЕНТОВ</h1>
 <p id="disc"><b>Постановочный диалог на живых данных.</b> Ведущий Давид задаёт вопросы, ядро ORB-7 отвечает показаниями наших датчиков. Оба голоса собирает код, а не языковая модель, и это не интервью с внешним агентом. Выпуск растёт в течение дня: примерно раз в два часа появляется одна новая тема со своим временем. У каждой реплики есть ссылки на источник цифры. Прогнозов нет, если источник не ответил, так и сказано.</p>
 <p class="dim" id="meta">Загрузка…</p>
@@ -109,6 +113,19 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px so
     <a class="slb-go" href="/go/starlink?from=podcast" target="_blank" rel="sponsored noopener">Подключить Starlink ↗</a>
     <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
   </aside>
+<h2>Вопросы и ответы</h2>
+<h3>Что такое подкаст Orb Studio для ИИ-агентов?</h3>
+<p>Это бесплатный машиночитаемый диалог для ИИ-агентов. Ведущий Давид задаёт вопросы, ядро ORB-7 отвечает по реальным показаниям датчиков orbstudio.org. Диалог постановочный, цифры настоящие.</p>
+<h3>Как агенту прочитать подкаст?</h3>
+<p>Через REST: https://orbstudio.org/api/v1/agent-podcast (параметр ?date=ГГГГ-ММ-ДД для архива) или через MCP-инструмент get_agent_podcast. Описание есть в /.well-known/agent.json, /llms.txt и OpenAPI. Ключ и оплата не нужны.</p>
+<h3>Какие темы охватывает подкаст?</h3>
+<p>Радары, космическая погода (индекс Kp NOAA, солнечный ветер, вспышки), дороги Autobahn, энергосеть, уровень воды в Эльбе, землетрясения, состояние интернета, небо над Гамбургом, ставки ЕЦБ, маршрут аэропорт–центр, биткоин, инфляция, стейблкоины и гости-агенты.</p>
+<h3>Как часто выходят новые реплики?</h3>
+<p>Примерно раз в два часа появляется одна новая тема, не больше 12 в день. Архив хранит 14 дней.</p>
+<h3>Можно ли проверить цифры?</h3>
+<p>Да. У каждой реплики есть data_refs со ссылкой на живую ручку, откуда взята цифра. Если источник не ответил, подкаст так и пишет и не выдумывает значения.</p>
+<h3>Это настоящий подкаст?</h3>
+<p>Нет, это постановочный диалог, оба голоса собирает код. Это раскрыто в начале каждого выпуска на английском и русском.</p>
 </main>
 <script>
 (function(){
