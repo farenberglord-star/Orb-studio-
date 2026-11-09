@@ -13,6 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
+import { parsePoint, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
@@ -859,6 +860,35 @@ async function quakesData() {
     page: "https://orbstudio.org/api/v1/quakes",
   };
 }
+// ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
+// Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
+async function routeData(env, params) {
+  const a = parsePoint(params.from), b = parsePoint(params.to), mode = MODES[params.mode] ? params.mode : (params.mode ? null : "car");
+  if (!a || !b || mode === null) return { status: "bad_request", http: 400, error: "Use from=lat,lon&to=lat,lon&mode=foot|bike|car (default car).", example: "https://orbstudio.org/api/v1/route?from=53.5511,9.9937&to=53.5392,9.8386&mode=car" };
+  if (a.outside || b.outside) return { status: "bad_request", http: 400, error: "Points must be in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9). The free router is not offered for other areas." };
+  const key = new Request(`https://orbstudio.org/__cache/route-v1/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
+  const hit = await c.match(key);
+  let body;
+  if (hit) body = await hit.json();
+  else {
+    let osrm;
+    try {
+      const u = `https://routing.openstreetmap.de/${MODES[mode]}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=true`;
+      const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/route)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("router http " + r.status);
+      osrm = await r.json();
+    } catch (e) { return { status: "unavailable", http: 503, error: String(e.message || e).slice(0, 80), note: "The free OSM router did not answer. Nothing is estimated.", source: "OSRM / FOSSGIS" }; }
+    let roads = null;
+    if (mode === "car") { try { const d = await roadsData(env); if (d.sources_ok > 0 && !d.stale) roads = d; } catch (e) {} }
+    body = summarizeRoute(osrm, mode, roads);
+    if (!body) return { status: "no_route", http: 404, note: "The router found no route between these points." };
+    body.roads_updated = roads ? roads.updated : null;
+    await c.put(key, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=300" } }));
+  }
+  return { status: "ok", from: a, to: b, ...body,
+    sources: "Routing: OSRM, FOSSGIS demo server, map data © OpenStreetMap contributors (ODbL, https://www.openstreetmap.org/copyright). Motorway reports: Autobahn GmbH des Bundes, verkehr.autobahn.de.",
+    free: true, note: "Free to use. Best effort, no guarantee. This is a record of router output and official reports, not a forecast.", page: "https://orbstudio.org/api/v1/route" };
+}
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
@@ -1562,6 +1592,7 @@ const OA_GET = [
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
+  ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937"), OA_Q("to", "End as lat,lon, e.g. 53.5392,9.8386"), OA_Q("mode", "foot, bike or car (default car)")]],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -5617,6 +5648,9 @@ const MCP_TOOLS = [
   { name: "get_aviation_sensors", title: "Civil aviation: aircraft in the air, Hamburg sector, Finkenwerder landings",
     description: "Open ADS-B data from adsb.lol: aircraft heard in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (the Airbus plant airfield) in the last 24 hours. Counts are what adsb.lol's volunteer receivers hear, not every aircraft. Refreshed at most every 10 minutes; status ok / cached / degraded / unavailable. Read-only, nothing is estimated.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_route_context", title: "Free route and surroundings in the Hamburg region (OSM router + motorway reports)",
+    description: "Free. Route between two points in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9): distance, free-flow duration and main streets from the open OSRM router (OpenStreetMap data), and for car routes the Autobahn GmbH jams, closures and roadworks within 1 km of the route. Duration does not include live traffic; city streets are not covered by the reports. Best effort, nothing is estimated.",
+    inputSchema: { type: "object", properties: { from: { type: "string", description: "Start as lat,lon, e.g. 53.5511,9.9937" }, to: { type: "string", description: "End as lat,lon" }, mode: { type: "string", enum: ["foot", "bike", "car"] } }, required: ["from", "to"], additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_roads", title: "Motorways around Hamburg: jams, closures, roadworks",
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -5858,6 +5892,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "get_agent_wallet") { const r = await agentWallet(new Request("https://orbstudio.org/api/v1/agent-wallet"), env, { sharedGet, sharedPut }); return { ...(await r.json()), referral: ref }; }
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
+  if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -6416,6 +6451,11 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/guests") {
       const d = await guestsData(env, ctx, url.origin);
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/route") {
+      const d = await routeData(env, Object.fromEntries(url.searchParams));
+      const { http, ...rest } = d;
+      return json(rest, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();
