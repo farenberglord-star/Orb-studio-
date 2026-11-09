@@ -949,7 +949,12 @@ async function hydroData(station) {
       // The station list may omit the trend; the single-timeseries call carries it (as published by WSV).
       await Promise.all(feed.map(async (st) => {
         const W = (st.timeseries || []).find((t) => t.shortname === "W");
-        if (!st.uuid || !W || !W.currentMeasurement || W.currentMeasurement.trend != null) return;
+        if (!st.uuid || !W || !W.currentMeasurement) return;
+        try {
+          const h = await fetch(`https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/${encodeURIComponent(st.uuid)}/W/measurements.json?start=PT65M`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/sea)", Accept: "application/json" } });
+          if (h.ok) { const arr = await h.json(); if (Array.isArray(arr)) W.history = arr.slice(-80).map((m) => ({ timestamp: m.timestamp, value: m.value })); }
+        } catch (e) {}
+        if (W.currentMeasurement.trend != null) return;
         try {
           const r2 = await fetch(`https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/${encodeURIComponent(st.uuid)}/W/currentmeasurement.json`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/sea)", Accept: "application/json" } });
           if (r2.ok) { const m = await r2.json(); if (m && m.trend != null) W.currentMeasurement.trend = m.trend; }

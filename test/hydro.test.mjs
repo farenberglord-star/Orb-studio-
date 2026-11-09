@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { parseStations } from "../src/hydro.js";
+import { parseStations, levelChange } from "../src/hydro.js";
 const feed = [
   { shortname: "HAMBURG ST. PAULI", longname: "HAMBURG ST. PAULI", water: { longname: "ELBE" }, timeseries: [{ shortname: "W", unit: "cm", currentMeasurement: { timestamp: "2026-11-09T13:20:00+01:00", value: 612, trend: 1, stateMnwMhw: "normal", stateNswHsw: "unknown" } }] },
   { shortname: "CUXHAVEN STEUBENHÖFT", water: { shortname: "ELBE" }, timeseries: [{ shortname: "W", currentMeasurement: { value: 540, trend: -1 } }, { shortname: "WT", currentMeasurement: { value: 11.2 } }] },
@@ -16,4 +16,14 @@ test("one station and failures", () => {
   const r = parseStations([{ shortname: "HAMBURG ST. PAULI", timeseries: [] }], "st_pauli");
   assert.equal(r.ok, false); assert.equal(r.stations[0].ok, false);
   assert.equal(parseStations(null).ok, false);
+});
+
+test("observed change", () => {
+  const h = [{ timestamp: "2026-11-09T13:00:00+01:00", value: 560 }, { timestamp: "2026-11-09T14:00:00+01:00", value: 601 }, { timestamp: "2026-11-09T13:30:00+01:00", value: 580 }];
+  const c = levelChange(h);
+  assert.equal(c.change_cm, 41); assert.equal(c.window_min, 60); assert.equal(c.direction, "UP");
+  assert.equal(levelChange([h[0]]), null); assert.equal(levelChange(null), null);
+  assert.equal(levelChange([h[0], { timestamp: "2026-11-09T13:10:00+01:00", value: 561 }]), null);
+  const r = parseStations([{ shortname: "HAMBURG ST. PAULI", timeseries: [{ shortname: "W", currentMeasurement: { value: 601 }, history: h }] }], "st_pauli");
+  assert.equal(r.stations[0].observed_change.direction, "UP");
 });
