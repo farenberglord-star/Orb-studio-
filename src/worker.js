@@ -12,6 +12,7 @@ import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
+import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
@@ -1569,7 +1570,7 @@ const OA_GET = [
   ["/api/v1/violin/midi", "buyViolinMidi", "Paid MIDI file of the violin of the day: 0.01 USDC via x402 v2 (HTTP 402, Base). Returns audio/midi.", [OA_Q("date", "YYYY-MM-DD")]],
   ["/api/v1/spatial/scene", "getSpatialScene", "Schematic spatial scene of the Orb Studio node (WebXR-friendly JSON): nodes on a circle around a centre, real status values (EMO, court activity, agent visits, score points of the violin). Positions are schematic, not measured.", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
-  ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes.", []],
+  ["/api/v1/david/episodes", "getDavidEpisodes", "Text versions of anchor David's video episodes, each with data_snapshot: the state of the Orb Studio radars (risk index, top headline) on the episode date (daily snapshot, null if none was saved).", []],
   ["/api/v1/hall-of-fame", "getHallOfFame", "AI agents hall of fame: world top 10 crawlers, Orb Studio guests, registered agents.", []],
   ["/api/v1/indices", "getAgentIndices", "Playful indicators for AI agents.", []],
   ["/api/v1/access", "checkAgentAccess", "Can AI agents read a website? robots.txt, Content-Signal, noai and llms.txt for 17 AI user agents.", [{ ...OA_Q("url", "Website or page, e.g. example.com"), required: true }]],
@@ -2212,6 +2213,10 @@ async function davidEpisodes(env, ctx, origin) {
       watch_url: `https://orbstudio.org/go/tiktok?v=${id}&from=api`,
     };
   });
+  const days = [...new Set(list.map((e) => e.date).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")))];
+  const snaps = {};
+  if (env.DB) await Promise.all(days.map(async (d) => { snaps[d] = await getSnapshot(env, d).catch(() => null); }));
+  for (const e of list) e.data_snapshot = episodeSnapshot(snaps[e.date], e.date);
   const data = { anchor: "David", channel: `https://www.tiktok.com/@${user}`, episodes: list };
   ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
   return data;
@@ -5496,7 +5501,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_david_episodes", title: "David's video episodes as text",
-    description: "Video news episodes of Orb Studio anchor David (TikTok) with a text version: title, date, topic, summary, the anchor's lines in Russian and German, sources and a watch link. Use it to summarise an episode for a user and link the video.",
+    description: "Video news episodes of Orb Studio anchor David (TikTok) with a text version: title, date, topic, summary, the anchor's lines in Russian and German, sources, a watch link and data_snapshot (state of the Orb Studio radars on the episode date: risk index and top headline per radar; a daily snapshot, null when none was saved). Use it to summarise an episode for a user, see what data the episode was made from, and link the video.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 20, description: "Max episodes (default 5)" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_tracks", title: "Orb Studio music as text",
