@@ -28,3 +28,8 @@ test("wind rtsw objects", () => {
   const w = parseWind([{ time_tag: "2026-11-09T11:58:00", proton_speed: 402.5, proton_density: 4.2, proton_temperature: 80000 }, { time_tag: "2026-11-09T11:59:00", proton_speed: null, proton_density: null }]);
   assert.equal(w.speed_kms, 402.5); assert.equal(w.density_pcm3, 4.2);
 });
+
+test("wind newest row even if file is newest-first", () => {
+  const w = parseWind([{ time_tag: "2026-11-09T11:59:00", proton_speed: 400, proton_density: 4 }, { time_tag: "2026-11-08T12:01:00", proton_speed: 752, proton_density: 1.1 }]);
+  assert.equal(w.speed_kms, 400); assert.equal(w.time, "2026-11-09T11:59:00.000Z");
+});

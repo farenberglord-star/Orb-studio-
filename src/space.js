@@ -26,7 +26,7 @@ export function parseScales(j) {
     note: "Scales as published by NOAA: G geomagnetic storms, R radio blackouts, S solar radiation storms (0 = none). Forecast days in the NOAA product are deliberately not used." };
 }
 export function parseWind(j) {
-  const rows = tbl(j).map((r) => ({ time: iso(r.time_tag), density: num(r.density ?? r.proton_density), speed: num(r.speed ?? r.proton_speed), temperature: num(r.temperature ?? r.proton_temperature) })).filter((r) => r.time && (r.speed != null || r.density != null));
+  const rows = tbl(j).map((r) => ({ time: iso(r.time_tag), density: num(r.density ?? r.proton_density), speed: num(r.speed ?? r.proton_speed), temperature: num(r.temperature ?? r.proton_temperature) })).filter((r) => r.time && (r.speed != null || r.density != null)).sort((a, b) => Date.parse(a.time) - Date.parse(b.time));
   const last = [...rows].reverse().find((r) => r.speed != null && r.density != null) || rows[rows.length - 1];
   if (!last) return { ok: false };
   return { ok: true, time: last.time, speed_kms: last.speed, density_pcm3: last.density, temperature_k: last.temperature };
