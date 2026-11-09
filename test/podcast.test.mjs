@@ -55,3 +55,11 @@ test("day plan rotates and drip continues where it stopped", () => {
   ep.lines.push({ topic: a[0] }, { topic: a[1] });
   assert.equal(nextTopics(ep, "2026-11-09")[0], a[2]); assert.ok(MAX_PER_DAY <= TOPICS.length);
 });
+test("radiation topic copies figures and admits gaps", () => {
+  const d = { ok: true, latest_measurement_at: "2026-11-09T18:00:00.000Z", stations: { in_operation_with_reading: 1564 }, germany: { median: 0.112, min: { station: "FINO 2", dose_rate_usv_h: 0.056 }, max: { station: "Herrischried", dose_rate_usv_h: 0.239 } }, nearest: [{ station: "Hamburg-Wilhelmsburg", station_id: "DEZ3235", dose_rate_usv_h: 0.101, measured_at: "2026-11-09T18:00:00Z" }] };
+  const l = buildSegment("radiation", d);
+  for (const x of ["Median 0.112 µSv/h", "1564 stations", "0.056 (FINO 2)", "0.239 (Herrischried)", "Hamburg-Wilhelmsburg 0.101"]) assert.ok(l.answer.en.includes(x), x);
+  assert.ok(l.answer.ru.includes("Медиана 0.112 мкЗв/ч")); assert.ok(l.data_refs.length === 2); assert.ok(!/alarm|danger|safe/i.test(l.answer.en.replace("no thresholds and no assessment", "")));
+  assert.ok(isMiss(buildSegment("radiation", null))); assert.ok(isMiss(buildSegment("radiation", { ok: false })));
+  assert.ok(TOPICS.includes("radiation"));
+});

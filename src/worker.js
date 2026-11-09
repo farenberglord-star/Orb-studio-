@@ -1011,6 +1011,7 @@ async function podcastTopicData(topic, env, ctx, origin) {
   if (SENSOR_KEY[topic]) return ((await sensorsData(env, ctx)) || {})[SENSOR_KEY[topic]] || null;
   if (topic === "space") return spaceData();
   if (topic === "elbe") return hydroData("all");
+  if (topic === "radiation") return radiationData();
   if (topic === "roads") return roadsData(env);
   if (topic === "route") return routeData(env, { from: "airport", to: "center", mode: "car" });
   if (topic === "quakes") return quakesData();

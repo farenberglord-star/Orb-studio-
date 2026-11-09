@@ -19,6 +19,16 @@ const SEG = {
     const ru = [kp && `индекс Kp ${kp.kp} (максимум за сутки ${kp.max_24h})`, scl && `шкалы NOAA ${scl}`, w && `солнечный ветер ${Math.round(w.speed_kms)} км/с, плотность ${f1(w.density_pcm3)} частиц/см³`, fl && `вспышек M/X за сутки: ${fl.count_24h}${fl.strongest ? ` (сильнейшая ${fl.strongest})` : ""}`].filter(Boolean).join("; ") + ".";
     return line("space", q, { en, ru }, refs);
   },
+  radiation(d) {
+    const q = { en: "What is the gamma radiation background in Germany?", ru: "Что с гамма-фоном в Германии?" };
+    const refs = [{ sensor: "radiation", url: `${O}/api/v1/radiation`, time: d && d.latest_measurement_at }];
+    if (!d || !d.ok || !d.germany) return line("radiation", q, miss("Gamma background:", "Гамма-фон:"), refs);
+    const g = d.germany, n = (d.nearest || [])[0], k = d.stations ? d.stations.in_operation_with_reading : null, v = (x) => String(Math.round(+x * 1000) / 1000);
+    const en = `Median ${v(g.median)} µSv/h${k ? ` across ${k} stations` : ""}, from ${v(g.min.dose_rate_usv_h)} (${g.min.station}) to ${v(g.max.dose_rate_usv_h)} (${g.max.station})${n ? `; nearest to central Hamburg: ${n.station} ${v(n.dose_rate_usv_h)} µSv/h` : ""}. Hourly means of the BfS ODL network, no thresholds and no assessment.`;
+    const ru = `Медиана ${v(g.median)} мкЗв/ч${k ? ` по ${k} станциям` : ""}, от ${v(g.min.dose_rate_usv_h)} (${g.min.station}) до ${v(g.max.dose_rate_usv_h)} (${g.max.station})${n ? `; ближайшая к центру Гамбурга: ${n.station} ${v(n.dose_rate_usv_h)} мкЗв/ч` : ""}. Часовые средние сети ODL (BfS), без порогов и оценок.`;
+    if (n) refs.push({ sensor: "radiation:" + n.station_id, value: n.dose_rate_usv_h, unit: "µSv/h", time: n.measured_at, url: `${O}/api/v1/radiation` });
+    return line("radiation", q, { en, ru }, refs);
+  },
   elbe(h) {
     const st = (h && h.stations || []).filter((x) => x.ok), q = { en: "What is the Elbe doing?", ru: "Что с Эльбой?" };
     if (!st.length) return line("elbe", q, miss("Elbe:", "Эльба:"), [{ sensor: "elbe", url: `${O}/api/v1/hydro/sea` }]);
@@ -101,7 +111,7 @@ const SEG = {
 };
 // key of the sensors snapshot (when the topic lives there); otherwise the worker has a dedicated fetcher
 export const SENSOR_KEY = { power: "power", bitcoin: "bitcoin", ecb: "ecb", inflation: "inflation", internet: "internet", stablecoins: "stablecoins" };
-export const TOPICS = ["radars", "space", "roads", "power", "elbe", "quakes", "internet", "sky", "ecb", "route", "bitcoin", "guests", "inflation", "stablecoins"];
+export const TOPICS = ["radars", "space", "roads", "power", "elbe", "quakes", "internet", "sky", "ecb", "route", "bitcoin", "guests", "inflation", "stablecoins", "radiation"];
 export const MAX_PER_DAY = 12;
 export function buildSegment(topic, data) { return SEG[topic] ? SEG[topic](data) : null; }
 // The day's order: a fixed list rotated by the date so that different topics are skipped on different days.
