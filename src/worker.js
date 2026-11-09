@@ -13,6 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
+import { buildEpisode } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
@@ -974,6 +975,29 @@ async function hydroData(station) {
     scope_note: "Current water level at the gauge (cm, relative to the gauge zero), the trend and level class as published by WSV, and water temperature where the station measures it. Not a tide forecast and not a flood warning; for warnings see the official WSV and Hamburg Port Authority services. A station with ok=false means the feed had no reading, nothing is filled in.",
     page: "https://orbstudio.org/api/v1/hydro/sea" };
 }
+// ================= Подкаст для агентов (постановочный диалог на датчиках): /api/v1/agent-podcast, MCP get_agent_podcast =================
+async function podcastData(env, ctx, origin, date) {
+  const kvKey = "agent-podcast-eps";
+  const archive = (await sharedGet(env, kvKey, 1e13)) || [];
+  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const e = archive.find((x) => x.id === date);
+    if (e) return { status: "ok", episode: e, archive: archive.map((x) => x.id), page: "https://orbstudio.org/podcast" };
+  }
+  const key = new Request(origin + "/__cache/agent-podcast-v1"), c = caches.default;
+  let ep = null;
+  const hit = await c.match(key);
+  if (hit) ep = await hit.json();
+  else {
+    const t = (p) => p.catch(() => null);
+    const [space, hydro, roads, route, quakes, aviation, guests] = await Promise.all([
+      t(spaceData()), t(hydroData("all")), t(roadsData(env)), t(routeData(env, { from: "airport", to: "center", mode: "car" })), t(quakesData()), t(aviationData(env, ctx)), t(guestsData(env, ctx, origin))]);
+    ep = buildEpisode({ space, hydro, roads, route, quakes, aviation, guests }, new Date().toISOString());
+    await c.put(key, new Response(JSON.stringify(ep), { headers: { "Cache-Control": "max-age=300" } }));
+    if (ep.ok_blocks >= 5 && !archive.some((x) => x.id === ep.id)) await sharedPut(env, kvKey, [...archive, ep].slice(-14));
+  }
+  return { status: "ok", episode: ep, archive: archive.map((x) => x.id), free: true, page: "https://orbstudio.org/podcast",
+    note: "Staged dialogue built by code from live sensor readings (not an interview with an outside agent). Each reply has data_refs to check the figures. Archive episodes keep the readings of the day they were saved." };
+}
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
@@ -1680,6 +1704,7 @@ const OA_GET = [
   ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
   ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
+  ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -5829,6 +5854,9 @@ const MCP_TOOLS = [
   { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
     description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: { station: { type: "string", enum: ["st_pauli", "cuxhaven", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_agent_podcast", title: "Orb Studio agent podcast: staged dialogue on live sensor data",
+    description: "Free. A staged dialogue (host David asks, the core ORB-7 answers) built by code from live Orb Studio sensors: space weather, Elbe water level, motorways, a sample route, earthquakes, sky over Hamburg and agent guests. Each reply carries data_refs (sensor, time, url) so every figure can be checked. Not an interview with an outside agent, no forecasts; missing sources are stated, not filled in. Optional date for archived episodes.",
+    inputSchema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD, optional" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
     description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6082,6 +6110,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
   if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
+  if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -6653,6 +6682,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/hydro/sea") {
       const { http, ...d } = await hydroData(url.searchParams.get("station"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/agent-podcast") {
+      const d = await podcastData(env, ctx, url.origin, url.searchParams.get("date"));
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();
