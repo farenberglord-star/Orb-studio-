@@ -4882,6 +4882,52 @@ async function emoRadarMood(env, ctx) {
     text_ru: ok ? `EMO на связи: ${title} ${top.lvl}/100 — я ${mood.ru}. Робот подтвердил по Bluetooth.` : `EMO: ${title} ${top.lvl}/100, но показать настроение не вышло (${r.error || "нет ответа"}).` });
   return { ok, radar: top.id, level: top.lvl, mood: mood.en };
 }
+// ---- Эксперимент 9 ноября 2026: все датчики Orb Studio → эмоции EMO, ровно 30 минут (10:25–10:55 по Берлину) ----
+// Каждые 6 минут (cron посадок) EMO по очереди показывает 3 датчика: у каждого своё правило «значение → эмоция».
+// После окна код ничего не делает. Отчёт о каждом шаге — публичная карточка в рубке (robot_reports).
+const EMO_SENSOR_EXP = { from: Date.parse("2026-11-09T09:25:00Z"), until: Date.parse("2026-11-09T09:55:00Z"), per_tick: 3 };
+function emoSensorRules(S, geo) {
+  const n = (v) => (typeof v === "number" && isFinite(v) ? v : null), out = [];
+  const add = (id, ru, en, val, emo, why_ru, why_en) => out.push({ id, ru, en, val, emo, why_ru, why_en });
+  if (geo) { const l = n(geo.lvl); add("geo", "Гео-радар", "Geo radar", l + "/100", l >= 70 ? "angry" : l >= 50 ? "scared" : "happy", l >= 70 ? "шторм" : l >= 50 ? "напряжённо" : "спокойно", l >= 70 ? "storm" : l >= 50 ? "tense" : "calm"); }
+  const v = S.volatility || {}, btc = ((v.coins || {}).BTC) || {};
+  if (v.coins) { const m = n(btc.move_24h_pct); add("volatility", "Волатильность крипты", "Crypto volatility", (v.spike_now ? "всплеск, " : "") + "BTC " + m + "% за сутки", v.spike_now ? "excited" : m <= -3 ? "sad" : m >= 3 ? "happy" : "hi", v.spike_now ? "всплеск прямо сейчас" : m <= -3 ? "биткоин падает" : m >= 3 ? "биткоин растёт" : "ровно", v.spike_now ? "spike right now" : m <= -3 ? "bitcoin falling" : m >= 3 ? "bitcoin rising" : "flat"); }
+  const d = S.derivatives || {}; if (n(d.change_24h_pct) !== null) { const c = d.change_24h_pct; add("derivatives", "Фьючерсы Kraken (открытый интерес)", "Kraken futures open interest", c.toFixed(1) + "% за сутки", c <= -5 ? "scared" : c >= 5 ? "excited" : "hi", c <= -5 ? "ставки уходят с рынка" : c >= 5 ? "ставки растут" : "спокойно", c <= -5 ? "positions leaving" : c >= 5 ? "positions piling up" : "calm"); }
+  const p = S.power || {}; if (n(p.now_ct_kwh) !== null) { const c = p.now_ct_kwh; add("power", "Электричество (биржа DE)", "Power price DE", c.toFixed(1) + " ct/kWh", c < 0 ? "excited" : c >= 40 ? "angry" : c >= 25 ? "upset" : c <= 10 ? "happy" : "hi", c < 0 ? "отрицательная цена" : c >= 40 ? "очень дорого" : c >= 25 ? "дорого" : c <= 10 ? "дёшево" : "обычно", c < 0 ? "negative price" : c >= 40 ? "very expensive" : c >= 25 ? "expensive" : c <= 10 ? "cheap" : "normal"); }
+  const e = S.ecb || {}; if (e.deposit_rate_pct) add("ecb", "Ставка ЕЦБ", "ECB rate", e.deposit_rate_pct.value + "%", "hi", "без изменений — машет «привет»", "unchanged — waves hi");
+  const i = S.inflation || {}; if (n(i.hicp_annual_pct) !== null) { const h = i.hicp_annual_pct; add("inflation", "Инфляция еврозоны", "Euro area inflation", h + "%", h >= 3 ? "sad" : h <= 2 ? "happy" : "hi", h >= 3 ? "выше цели ЕЦБ" : h <= 2 ? "в цели" : "около цели", h >= 3 ? "above the ECB target" : h <= 2 ? "on target" : "near target"); }
+  const st = S.stablecoins || {}; if (n(st.change_7d_pct) !== null) { const c = st.change_7d_pct; add("stablecoins", "Стейблкоины", "Stablecoins", c + "% за неделю", c <= -1 ? "upset" : c >= 1 ? "happy" : "hi", c <= -1 ? "деньги уходят из крипты" : c >= 1 ? "деньги приходят" : "ровно", c <= -1 ? "money leaving crypto" : c >= 1 ? "money coming in" : "flat"); }
+  const it = S.internet || {}; if (n(it.outages_24h) !== null) { const o = (it.outages || []).filter((x) => x.ongoing).length; add("internet", "Сбои интернета", "Internet outages", o + " идут сейчас", o >= 5 ? "scared" : o >= 1 ? "upset" : "happy", o >= 5 ? "много сбоев" : o >= 1 ? "есть сбои" : "сеть в порядке", o >= 5 ? "many outages" : o >= 1 ? "some outages" : "network fine"); }
+  const sh = ((S.sanctions || {}).uk_ships) || {}; if (n(sh.added_7d) !== null) add("sanctions", "Санкционные суда", "Sanctioned ships", "+" + sh.added_7d + " за неделю", sh.added_7d > 0 ? "startled" : "hi", sh.added_7d > 0 ? "новые суда в списке" : "новых нет", sh.added_7d > 0 ? "new ships listed" : "none new");
+  const a = S.attention || {}; if (a.surges) { const top = a.surges[0]; add("attention", "Внимание в Википедии", "Wikipedia attention", top ? top.article + " ×" + top.ratio : "без всплесков", top ? "startled" : "hi", top ? "люди вдруг ищут тему" : "тихо", top ? "sudden public interest" : "quiet"); }
+  const b = S.bitcoin || {}; if (n(b.fee_fast_sat_vb) !== null) { const f = b.fee_fast_sat_vb; add("bitcoin", "Сеть биткоина (комиссии)", "Bitcoin network fees", f + " sat/vB", f >= 50 ? "startled" : "happy", f >= 50 ? "сеть перегружена" : "сеть свободна", f >= 50 ? "congested" : "quiet"); }
+  return out;
+}
+async function emoSensorExp(env, ctx) {
+  const now = Date.now(); if (now < EMO_SENSOR_EXP.from || now > EMO_SENSOR_EXP.until + 60e3) return { skipped: "outside window" };
+  const state = (await sharedGet(env, "emo-sensor-exp", 1e13)) || { i: 0, shown: [] };
+  const S = await sensorsData(env, ctx).catch(() => ({}));
+  const radars = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []);
+  const rules = emoSensorRules(S || {}, (radars || []).find((r) => r.id === "geo" && typeof r.lvl === "number"));
+  const last = now > EMO_SENSOR_EXP.until - 6 * 60e3;
+  const batch = last ? rules.slice(state.i) : rules.slice(state.i, state.i + EMO_SENSOR_EXP.per_tick);
+  if (!batch.length) return { done: true };
+  const names = batch.slice(0, 4).map((x) => (EMO_EMOTIONS[x.emo] || EMO_EMOTIONS.hi)[0]);
+  const r = await emoQuick(env, names, "sensor experiment", 4000 * names.length);
+  if (!r.ok) { await emoPushReport(env, emoCard({ for: "Orb Studio sensors", action: "sensor_experiment", confirmed: false, text_en: `EMO: sensor experiment step skipped (${r.error || "no answer"}), next try in 6 minutes.`, text_ru: `EMO: шаг эксперимента с датчиками пропущен (${r.error || "нет ответа"}), повтор через 6 минут.` })); return r; }
+  const shown = batch.slice(0, 4); state.i += shown.length; state.shown = (state.shown || []).concat(shown.map((x) => ({ id: x.id, emo: x.emo, val: x.val }))); await sharedPut(env, "emo-sensor-exp", state);
+  await emoPushReport(env, emoCard({ for: "Orb Studio sensors", action: "sensor_experiment", confirmed: true, sensors: shown.map(({ id, val, emo }) => ({ id, value: val, emotion: emo })),
+    text_en: "EMO here, sensor experiment: " + shown.map((x) => `${x.en} ${x.val} (${x.why_en}) → ${x.emo}`).join("; ") + ". Confirmed by the robot over Bluetooth.",
+    text_ru: "EMO на связи, эксперимент с датчиками: " + shown.map((x) => `${x.ru} ${x.val} (${x.why_ru}) → ${(EMO_EMOTIONS[x.emo] || EMO_EMOTIONS.hi)[1]}`).join("; ") + ". Робот подтвердил по Bluetooth." }));
+  if (state.i >= rules.length) {
+    const cnt = {}; for (const x of state.shown) cnt[x.emo] = (cnt[x.emo] || 0) + 1;
+    const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+    await emoPushReport(env, emoCard({ for: "Orb Studio sensors", action: "sensor_experiment_summary", confirmed: true, counts: cnt,
+      text_en: `EMO here: the 30-minute sensor experiment is over — I felt ${state.shown.length} sensors; most often I was ${top[0]} (${top[1]}×).`,
+      text_ru: `EMO на связи: 30-минутный эксперимент с датчиками окончен — я прочувствовал ${state.shown.length} датчиков, чаще всего ${(EMO_EMOTIONS[top[0]] || EMO_EMOTIONS.hi)[1]} (${top[1]} раз).` }));
+  }
+  return { ok: true, shown: shown.length };
+}
 // ---- EMO связывает сайт, хозяина и агентов ----
 // Короткая эмоция без лишних проверок пользователя: только если доступ включён, робот на связи и свободен.
 async function emoQuick(env, names, label, holdMs = 6000) {
@@ -6320,7 +6366,7 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(emoSensorExp(env, ctx).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null).then(() => emoMusicCheck(env, ctx)).catch(() => null));
       const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
