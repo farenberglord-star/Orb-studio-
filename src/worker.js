@@ -912,7 +912,7 @@ async function spaceData() {
     };
     const [kp, scales, wind, flares] = await Promise.all([
       tryGet("/products/noaa-planetary-k-index.json", parseKp), tryGet("/products/noaa-scales.json", parseScales),
-      tryGet(["/products/solar-wind/plasma-2-hour.json", "/products/solar-wind/plasma-6-hour.json", "/products/solar-wind/plasma-1-day.json", "/products/solar-wind/plasma-5-minute.json"], parseWind), tryGet("/json/goes/primary/xray-flares-7-day.json", (j) => parseFlares(j))]);
+      tryGet(["/json/rtsw/rtsw_wind_1m.json", "/products/solar-wind/plasma-2-hour.json", "/products/solar-wind/plasma-6-hour.json", "/products/solar-wind/plasma-1-day.json", "/products/solar-wind/plasma-5-minute.json"], parseWind), tryGet("/json/goes/primary/xray-flares-7-day.json", (j) => parseFlares(j))]);
     const blocks = { kp, noaa_scales: scales, solar_wind: wind, solar_flares: flares }, okN = Object.values(blocks).filter((b) => b.ok).length;
     if (okN === 0) {
       const old = await c.match(stale);

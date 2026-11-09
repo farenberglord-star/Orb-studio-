@@ -23,3 +23,8 @@ test("flares", () => {
   assert.equal(f.count_24h, 2); assert.equal(f.strongest, "M5.0");
   assert.equal(parseFlares({}).ok, false);
 });
+
+test("wind rtsw objects", () => {
+  const w = parseWind([{ time_tag: "2026-11-09T11:58:00", proton_speed: 402.5, proton_density: 4.2, proton_temperature: 80000 }, { time_tag: "2026-11-09T11:59:00", proton_speed: null, proton_density: null }]);
+  assert.equal(w.speed_kms, 402.5); assert.equal(w.density_pcm3, 4.2);
+});
