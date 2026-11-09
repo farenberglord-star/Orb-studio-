@@ -12,6 +12,7 @@ import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
+import { buildGuests } from "./guests.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
@@ -814,6 +815,24 @@ async function radarCheck(env, ctx, origin, text) {
 }
 setRadarProvider((text, env) => radarCheck(env, { waitUntil() {} }, "https://orbstudio.org", text));
 
+// ================= Карточки гостей-агентов: /api/v1/guests, MCP get_agent_guests =================
+async function guestsData(env, ctx, origin) {
+  const cache = caches.default, key = new Request(origin + "/__cache/guests-v1");
+  const hit = await cache.match(key);
+  if (hit) return hit.json();
+  if (!env.DB) return { status: "unavailable", note: "No counters here, nothing is estimated." };
+  await ensureTable(env);
+  const since = new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10);
+  const rows = (await env.DB.prepare("SELECT name, page, day, n FROM hits WHERE kind='agent' AND day>=?1 AND name<>'' LIMIT 9000").bind(since).all()).results || [];
+  const g = buildGuests(rows);
+  const data = {
+    status: "ok", generated_at: new Date().toISOString(), window_days: 7,
+    note: "Who visited Orb Studio in the last 7 days and what they read, from our own request counters. Names are labels the agents sent themselves (User-Agent) and are not verified. No IP addresses, countries or message texts are published. Visitors with a generic or suspicious label, and one-request visitors, get no card. Looking at a paid endpoint is not a purchase.",
+    ...g, page: "https://orbstudio.org/guests",
+  };
+  ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
+  return data;
+}
 // ================= Сейсмодатчик (USGS GeoJSON): /api/v1/quakes, MCP get_earthquakes =================
 async function quakesData() {
   const fresh = new Request("https://orbstudio.org/__cache/quakes-v1"), stale = new Request("https://orbstudio.org/__cache/quakes-v1-stale"), c = caches.default;
@@ -1542,6 +1561,7 @@ const OA_GET = [
   ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
+  ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -5588,6 +5608,9 @@ const MCP_TOOLS = [
   { name: "get_agent_wallet", title: "Agent wallet: what an AI agent with a small daily budget buys",
     description: "Public log of an experiment: an AI agent spends at most a couple of USDC a day on paid x402 resources. Returns the wallet address, the spending rules (per-purchase and daily caps), totals and the latest purchases with price, seller, the agent's stated reason, the Base transaction hash and whether the purchase helped. Read-only.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_agent_guests", title: "Guest cards of AI agents that visited Orb Studio",
+    description: "Cards of AI agents that visited Orb Studio in the last 7 days: the name they sent themselves (not verified), requests, what they read, whether they looked at a paid endpoint, a greeting and what to explore next. Built from our own counters; no IP addresses, countries or message texts. Use it to see who else reads this site or to find your own card.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
     description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -5834,6 +5857,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { ...v, outcome_note: note };
   }
   if (name === "get_agent_wallet") { const r = await agentWallet(new Request("https://orbstudio.org/api/v1/agent-wallet"), env, { sharedGet, sharedPut }); return { ...(await r.json()), referral: ref }; }
+  if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -6388,6 +6412,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname.startsWith("/api/v1/agent-wallet")) {
       const r = await agentWallet(request, env, { sharedGet, sharedPut });
       if (r) return r;
+    }
+    if (url.pathname === "/api/v1/guests") {
+      const d = await guestsData(env, ctx, url.origin);
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();
