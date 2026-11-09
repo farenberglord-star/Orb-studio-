@@ -903,10 +903,16 @@ async function spaceData() {
   let body, status = "ok";
   if (hit) { body = await hit.json(); status = "cached"; }
   else {
-    const tryGet = async (path, parse) => { try { return parse(await swpcGet(path)); } catch (e) { return { ok: false }; } };
+    const tryGet = async (paths, parse) => {
+      let why = null;
+      for (const path of [].concat(paths)) {
+        try { const r = parse(await swpcGet(path)); if (r.ok) return r; why = "unreadable: " + path.split("/").pop(); } catch (e) { why = String(e.message || e).slice(0, 40) + ": " + path.split("/").pop(); }
+      }
+      return { ok: false, reason: why };
+    };
     const [kp, scales, wind, flares] = await Promise.all([
       tryGet("/products/noaa-planetary-k-index.json", parseKp), tryGet("/products/noaa-scales.json", parseScales),
-      tryGet("/products/solar-wind/plasma-2-hour.json", parseWind), tryGet("/json/goes/primary/xray-flares-7-day.json", (j) => parseFlares(j))]);
+      tryGet(["/products/solar-wind/plasma-2-hour.json", "/products/solar-wind/plasma-6-hour.json", "/products/solar-wind/plasma-1-day.json", "/products/solar-wind/plasma-5-minute.json"], parseWind), tryGet("/json/goes/primary/xray-flares-7-day.json", (j) => parseFlares(j))]);
     const blocks = { kp, noaa_scales: scales, solar_wind: wind, solar_flares: flares }, okN = Object.values(blocks).filter((b) => b.ok).length;
     if (okN === 0) {
       const old = await c.match(stale);
