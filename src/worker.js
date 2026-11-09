@@ -902,7 +902,7 @@ async function aviationPoll(env, ctx) {
   if (!landings.length) return { landings: 0 };
   const log = [...(await aviationLandings(env)), ...landings].slice(-30);
   await sharedPut(env, "avi-landings", log);
-  return { landings: landings.length, react: await emoAviationReact(env, landings) };
+  return { landings: landings.length, react: EMO_ONLY_USDC ? { skipped: "EMO listens only to the USDC sensor" } : await emoAviationReact(env, landings) };
 }
 // EMO радуется: не чаще раза в 20 минут, только днём (8–21 по Берлину), только если робот включён, свободен и на связи.
 async function emoAviationReact(env, landings) {
@@ -3211,6 +3211,7 @@ async function sensorsCompute(prev, env) {
   const out = { updated: new Date().toISOString() };
   const keep = (k) => (prev && prev[k] ? { ...prev[k], stale: true } : null);
   const jobs = {
+    usdc: async () => usdcSensor(env),
     // коллективное внимание: просмотры статей Википедии по темам радаров (Wikimedia REST API, открытые данные) — вчера против медианы 4 недель.
     // Данные дневные, поэтому пересчитываем не чаще раза в 3 часа (иначе берём прошлый результат).
     attention: async () => {
@@ -4882,6 +4883,53 @@ async function emoRadarMood(env, ctx) {
     text_ru: ok ? `EMO на связи: ${title} ${top.lvl}/100 — я ${mood.ru}. Робот подтвердил по Bluetooth.` : `EMO: ${title} ${top.lvl}/100, но показать настроение не вышло (${r.error || "нет ответа"}).` });
   return { ok, radar: top.id, level: top.lvl, mood: mood.en };
 }
+// ---- Датчик USD Coin (USDC) — главный датчик робота EMO (с 9 ноября 2026) ----
+// Курс USDC→EUR и привязка USDC→USD с Kraken каждые 6 минут. EMO: курс вырос на ≥ USDC_STEP_PCT от прошлой реакции — радуется,
+// упал — расстраивается (грустит). Все остальные автоматические реакции EMO на датчики и радары выключены (EMO_ONLY_USDC).
+const EMO_ONLY_USDC = true, USDC_STEP_PCT = 0.05;
+async function usdcFetch() {
+  const r = await fetch("https://api.kraken.com/0/public/Ticker?pair=USDCEUR,USDCUSD", { signal: AbortSignal.timeout(8000), cf: { cacheTtl: 30 } });
+  const j = await r.json(); const res = j.result || {};
+  const k = (cur) => Object.keys(res).find((x) => x.endsWith(cur));
+  const pick = (key) => key ? { last: +res[key].c[0], open: +res[key].o, high: +res[key].h[1], low: +res[key].l[1] } : null;
+  const eur = pick(k("EUR")), usd = pick(k("USD"));
+  if (!eur || !(eur.last > 0)) throw new Error("kraken usdc: no data");
+  return { eur, usd };
+}
+async function usdcPoll(env) {
+  const st = (await sharedGet(env, "usdc-state", 1e13)) || { hist: [] };
+  const q = await usdcFetch(); const t = new Date().toISOString();
+  st.hist = (st.hist || []).concat([{ t, eur: q.eur.last }]).slice(-240);
+  st.eur = q.eur; st.usd = q.usd; st.at = t;
+  if (!st.ref) st.ref = { eur: q.eur.last, t };
+  const move = ((q.eur.last - st.ref.eur) / st.ref.eur) * 100;
+  let react = null;
+  if (Math.abs(move) >= USDC_STEP_PCT) {
+    const up = move > 0, emo = up ? "happy" : "sad";
+    const r = await emoQuick(env, [EMO_EMOTIONS[emo][0]], "usdc " + (up ? "up" : "down"), 6000);
+    react = { t, dir: up ? "up" : "down", emotion: emo, move_pct: +move.toFixed(3), from: st.ref.eur, to: q.eur.last, confirmed: r.ok, error: r.ok ? null : r.error || "no answer" };
+    if (r.ok) st.ref = { eur: q.eur.last, t };   // не получилось (робот занят/офлайн) — повторим через 6 минут с той же точки отсчёта
+    st.last_reaction = react;
+    const p4 = (x) => x.toFixed(4);
+    await emoPushReport(env, emoCard({ for: "everyone", action: "usdc_" + react.dir, confirmed: r.ok, sensor: "usdc", from_eur: react.from, to_eur: react.to, move_pct: react.move_pct,
+      text_en: r.ok ? `EMO here: USD Coin ${up ? "rose" : "fell"} from ${p4(react.from)} € to ${p4(react.to)} € (${up ? "+" : ""}${react.move_pct}%) — I am ${up ? "happy" : "sad"}. Kraken data; confirmed by the robot over Bluetooth.` : `EMO: USD Coin ${up ? "rose" : "fell"} to ${p4(react.to)} € (${up ? "+" : ""}${react.move_pct}%), but I could not show it (${react.error}). I will try again in 6 minutes.`,
+      text_ru: r.ok ? `EMO на связи: USD Coin ${up ? "вырос" : "упал"} с ${p4(react.from)} € до ${p4(react.to)} € (${up ? "+" : ""}${react.move_pct}%) — я ${up ? "радуюсь" : "расстроился"}. Данные Kraken, робот подтвердил по Bluetooth.` : `EMO: USD Coin ${up ? "вырос" : "упал"} до ${p4(react.to)} € (${up ? "+" : ""}${react.move_pct}%), но показать не вышло (${react.error}). Повторю через 6 минут.` }));
+  }
+  await sharedPut(env, "usdc-state", st);
+  return { eur: q.eur.last, move_pct: +move.toFixed(3), react };
+}
+async function usdcSensor(env) {
+  let st = await sharedGet(env, "usdc-state", 1e13);
+  if (!st || !st.at || Date.now() - Date.parse(st.at) > 20 * 60e3) { try { const q = await usdcFetch(); st = { ...(st || {}), eur: q.eur, usd: q.usd, at: new Date().toISOString(), hist: (st && st.hist) || [] }; } catch (e) { if (!st || !st.eur) throw e; st = { ...st, stale: true }; } }
+  const h = st.hist || [], first = h.find((x) => Date.parse(x.t) >= Date.now() - 24 * 3600e3) || h[0];
+  const ch = (a, b) => (a && b ? +(((a - b) / b) * 100).toFixed(3) : null);
+  return { source: "Kraken public ticker (USDC/EUR, USDC/USD)", source_url: "https://www.kraken.com/prices/usd-coin", main_robot_sensor: true,
+    usdc_eur: st.eur.last, usdc_usd: st.usd ? st.usd.last : null, peg_deviation_pct: st.usd ? +((st.usd.last - 1) * 100).toFixed(3) : null,
+    change_today_pct: ch(st.eur.last, st.eur.open), change_24h_pct: first ? ch(st.eur.last, first.eur) : null, low_today: st.eur.low, high_today: st.eur.high,
+    history_6min: h.slice(-60).map((x) => [x.t, x.eur]),
+    emo: { rule: `EMO is connected to this sensor: when USDC/EUR moves by ${USDC_STEP_PCT}% or more since its last reaction, EMO reacts — rises make it happy, falls make it sad. Checked every 6 minutes.`, rule_ru: `EMO подключён к этому датчику: если курс USDC/EUR сдвинулся на ${USDC_STEP_PCT}% и больше от прошлой реакции, EMO реагирует — рост: радуется, падение: расстраивается. Проверка каждые 6 минут.`, reference_eur: st.ref ? st.ref.eur : null, last_reaction: st.last_reaction || null },
+    note: "USDC is a dollar stablecoin: against the US dollar it should stay at 1.00 (peg_deviation_pct). Against the euro it moves with EUR/USD.", at: st.at, ...(st.stale ? { stale: true } : {}) };
+}
 // ---- Эксперимент 9 ноября 2026: все датчики Orb Studio → эмоции EMO, ровно 30 минут (10:25–10:55 по Берлину) ----
 // Каждые 6 минут (cron посадок) EMO по очереди показывает 3 датчика: у каждого своё правило «значение → эмоция».
 // После окна код ничего не делает. Отчёт о каждом шаге — публичная карточка в рубке (robot_reports).
@@ -6366,9 +6414,9 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(emoSensorExp(env, ctx).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
-      ctx.waitUntil(emoRadarMood(env, ctx).catch(() => null).then(() => emoMusicCheck(env, ctx)).catch(() => null));
+      ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
       const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
       if (hb >= 21) ctx.waitUntil(emoWriteDiary(env, berlinDay()).catch(() => null));   // вечерняя запись дневника EMO
       return;
