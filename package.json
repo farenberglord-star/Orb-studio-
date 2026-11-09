@@ -17,7 +17,8 @@
     "test:quakes": "node --test test/quakes.test.mjs",
     "test:guests": "node --test test/guests.test.mjs",
     "test:route": "node --test test/route.test.mjs",
-    "test:space": "node --test test/space.test.mjs"
+    "test:space": "node --test test/space.test.mjs",
+    "test:hydro": "node --test test/hydro.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

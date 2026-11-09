@@ -1,0 +1,19 @@
+import test from "node:test"; import assert from "node:assert/strict";
+import { parseStations } from "../src/hydro.js";
+const feed = [
+  { shortname: "HAMBURG ST. PAULI", longname: "HAMBURG ST. PAULI", water: { longname: "ELBE" }, timeseries: [{ shortname: "W", unit: "cm", currentMeasurement: { timestamp: "2026-11-09T13:20:00+01:00", value: 612, trend: 1, stateMnwMhw: "normal", stateNswHsw: "unknown" } }] },
+  { shortname: "CUXHAVEN STEUBENHÖFT", water: { shortname: "ELBE" }, timeseries: [{ shortname: "W", currentMeasurement: { value: 540, trend: -1 } }, { shortname: "WT", currentMeasurement: { value: 11.2 } }] },
+  { shortname: "WITTENBERGE", timeseries: [] }];
+test("parse both stations", () => {
+  const r = parseStations(feed);
+  assert.equal(r.ok, true); assert.equal(r.stations.length, 2);
+  assert.equal(r.stations[0].water_level_cm, 612); assert.equal(r.stations[0].trend, "RISING"); assert.equal(r.stations[0].level_state, "normal");
+  assert.equal(r.stations[1].trend, "FALLING"); assert.equal(r.stations[1].water_temp_c, 11.2); assert.equal(r.stations[0].water_temp_c, null);
+});
+test("one station and failures", () => {
+  assert.equal(parseStations(feed, "cuxhaven").stations.length, 1);
+  assert.equal(parseStations(feed, "nope").ok, false);
+  const r = parseStations([{ shortname: "HAMBURG ST. PAULI", timeseries: [] }], "st_pauli");
+  assert.equal(r.ok, false); assert.equal(r.stations[0].ok, false);
+  assert.equal(parseStations(null).ok, false);
+});

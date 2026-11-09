@@ -13,6 +13,7 @@ import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js"
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
+import { parseStations, STATIONS } from "./hydro.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
@@ -930,6 +931,35 @@ async function spaceData() {
     scope_note: "Observed values and NOAA's own published scales only: Kp index, G/R/S scales (current and past 24 h maximum), solar wind speed and density, M/X solar flares of the last 24 h. Not a forecast and not an assessment of how any particular GPS, radio or satellite system is affected. A block with ok=false means NOAA's file was not readable, nothing is filled in.",
     page: "https://orbstudio.org/api/v1/space" };
 }
+// ================= Эльба: уровень воды (PEGELONLINE, WSV): /api/v1/hydro/sea, MCP get_marine_hydro_context =================
+async function hydroData(station) {
+  const which = station && STATIONS[station] ? station : (!station || station === "auto" || station === "all" ? "all" : null);
+  if (which === null) return { status: "bad_request", http: 400, error: "station must be st_pauli, cuxhaven or all (default)." };
+  const fresh = new Request("https://orbstudio.org/__cache/hydro-v1"), stale = new Request("https://orbstudio.org/__cache/hydro-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let feed, status = "ok";
+  if (hit) { feed = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch("https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations.json?waters=ELBE&includeTimeseries=true&includeCurrentMeasurement=true", { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/sea)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("pegelonline http " + r.status);
+      const all = await r.json();
+      feed = (Array.isArray(all) ? all : []).filter((x) => Object.values(STATIONS).some((re) => re.test(String(x.shortname || x.longname || "")))).map((x) => ({ shortname: x.shortname, longname: x.longname, water: x.water, timeseries: (x.timeseries || []).filter((t) => t.shortname === "W" || t.shortname === "WT").map((t) => ({ shortname: t.shortname, unit: t.unit, currentMeasurement: t.currentMeasurement })) }));
+      if (!feed.length) throw new Error("stations not in feed");
+      await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
+      await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=21600" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "PEGELONLINE did not answer and there is no recent copy. Nothing is estimated.", source: "PEGELONLINE (WSV)" };
+      feed = await old.json(); status = "degraded";
+    }
+  }
+  const p = parseStations(feed, which);
+  return { status, ok: p.ok, stations: p.stations || [], area: "Elbe at Hamburg (St. Pauli) and Cuxhaven", free: true,
+    source: "PEGELONLINE, Wasserstraßen- und Schifffahrtsverwaltung des Bundes (WSV), open data (https://www.pegelonline.wsv.de)",
+    scope_note: "Current water level at the gauge (cm, relative to the gauge zero), the trend and level class as published by WSV, and water temperature where the station measures it. Not a tide forecast and not a flood warning; for warnings see the official WSV and Hamburg Port Authority services. A station with ok=false means the feed had no reading, nothing is filled in.",
+    page: "https://orbstudio.org/api/v1/hydro/sea" };
+}
 // ================= Авиамост (adsb.lol ADS-B): /api/v1/aviation, MCP get_aviation_sensors, посадки в Финкенвердере → EMO =================
 const AVI_CRON = "*/6 * * * *";
 async function aviationLandings(env) {
@@ -1635,6 +1665,7 @@ const OA_GET = [
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
   ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
   ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
+  ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -5781,6 +5812,9 @@ const MCP_TOOLS = [
   { name: "get_space_weather", title: "Space weather: Kp, storm scales, solar wind, flares (NOAA SWPC)",
     description: "Free. Observed space weather from NOAA SWPC open data: planetary Kp index (now and 24 h maximum), NOAA G/R/S storm scales (current and past 24 h maximum), solar wind speed and density, M/X solar flares of the last 24 hours. Observed values and NOAA's own scales only, not a forecast and not an assessment of effects on a specific system; blocks NOAA did not deliver say ok=false. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
+    description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
+    inputSchema: { type: "object", properties: { station: { type: "string", enum: ["st_pauli", "cuxhaven", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
     description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6033,6 +6067,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
   if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
   if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
+  if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -6600,6 +6635,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/space") {
       const d = await spaceData();
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/hydro/sea") {
+      const { http, ...d } = await hydroData(url.searchParams.get("station"));
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();
