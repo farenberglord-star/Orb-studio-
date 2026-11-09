@@ -1,6 +1,6 @@
 {
  "schema": "orbstudio.tariffs.v1",
- "updated_at": "2026-11-02",
+ "updated_at": "2026-11-09",
  "method": "Read automatically from banks' own official pages and fee documents (Germany: Entgeltinformation under the Payment Accounts Act ZKG, Preis- und Leistungsverzeichnis; USA: fee schedules and rate pages). US baseline from FDIC National Rates and Rate Caps via FRED. Every card carries source_url and checked_at. If a source cannot be read, the card keeps the last verified values and gets status 'stale' or 'blocked' instead of a guessed number.",
  "disclaimer": "Information only, not financial advice. Conditions change; check with the bank before opening an account.",
  "baseline": {
@@ -60,7 +60,7 @@
    "doc_date": "2026-06-01",
    "source_type": "html",
    "source_url": "https://www.ing.de/girokonto/konditionen/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -120,7 +120,7 @@
    "doc_date": null,
    "source_type": "html",
    "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -136,7 +136,7 @@
    ],
    "source_type": "pdf",
    "source_url": "https://dok.dkb.de/pdf/plv_pk_konten.pdf",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "blocked"
   },
   {
@@ -146,22 +146,22 @@
    "product": "savings",
    "name": "Extra-Konto (Tagesgeld)",
    "currency": "EUR",
-   "rate": 3.5,
+   "rate": 3.75,
    "rate_type": "promo",
    "promo_months": 4,
-   "promo_rate_with_giro": 3.75,
+   "promo_rate_with_giro": 4.0,
    "promo_max_amount": 250000,
    "rate_after_promo": 0.75,
    "fee_monthly": 0,
    "conditions": [
     "New customers only: no Extra-Konto at ING in the last 12 months",
-    "3.75% if opened together with a Girokonto",
+    "4.00% if opened together with a Girokonto",
     "0.75% variable after 4 months and above 250,000 EUR"
    ],
    "deposit_insurance": "DE statutory, 100,000 EUR",
    "source_type": "html",
    "source_url": "https://www.ing.de/sparen-anlegen/sparen/tagesgeld/konditionen/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -181,7 +181,7 @@
    ],
    "source_type": "html",
    "source_url": "https://traderepublic.com/de-de/zinsen",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "check"
   },
   {
@@ -203,7 +203,7 @@
    ],
    "source_type": "html",
    "source_url": "https://www.chase.com/personal/checking/total-checking",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -230,7 +230,7 @@
    "doc_date": "2026-08",
    "source_type": "pdf",
    "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -248,10 +248,10 @@
     "No minimum balance to open or earn APY"
    ],
    "deposit_insurance": "FDIC, $250,000",
-   "doc_date": "2026-10-30",
+   "doc_date": "2026-11-05",
    "source_type": "html",
    "source_url": "https://www.ally.com/bank/savings-account-rates/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -286,7 +286,7 @@
    "doc_date": "2025-10-01",
    "source_type": "pdf",
    "source_url": "https://www.spkhb.de/content/dam/myif/sk-harburg-buxtehude/work/dokumente/pdf/preise-leistungen/entgeltinformation-girokonto-online.pdf",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -314,13 +314,14 @@
    "notes": [
     "Girocard with Visa function free; 2nd card 10 EUR/year",
     "Credit card (Mastercard/Visa Classic) 39.90 EUR/year, FX 1.75%",
-    "Tolerated overdraft 14.40% p.a."
+    "Tolerated overdraft 14.40% p.a.",
+    "Not re-verified on 2026-11-09: document could not be fetched, values from 2026-11-02"
    ],
    "doc_date": "2025-12-01",
    "source_type": "pdf",
    "source_url": "https://www.commerzbank.de/portal/media/efw-dokumente/ent_girokonto.pdf",
    "checked_at": "2026-11-02",
-   "status": "ok"
+   "status": "stale"
   },
   {
    "id": "de-c24-smart",
@@ -347,7 +348,7 @@
    "doc_date": "2026-05-05",
    "source_type": "pdf",
    "source_url": "https://api.c24.de/api/documents/c24giro_fees/download/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -367,7 +368,7 @@
    ],
    "source_type": "html",
    "source_url": "https://n26.com/de-de/auslandsgebuhren",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "check"
   },
   {
@@ -390,13 +391,14 @@
     "No full waiver: the lowest price for adults is 7.95 EUR/month for members",
     "girocard 12 EUR/year",
     "FutureKonto for pupils, trainees and students up to 27: max 2.00 EUR/month",
-    "Overdraft rates only in the separate Preisaushang"
+    "Overdraft rates only in the separate Preisaushang",
+    "Not re-verified on 2026-11-09: price list URL redirects to a third-party CDN, values from 2026-11-02"
    ],
    "doc_date": "2026-10-01",
    "source_type": "pdf",
    "source_url": "https://www.hamburger-volksbank.de/service/preisverzeichnis.html",
    "checked_at": "2026-11-02",
-   "status": "ok"
+   "status": "stale"
   },
   {
    "id": "us-wellsfargo-everyday",
@@ -417,7 +419,7 @@
    ],
    "source_type": "html",
    "source_url": "https://www.wellsfargo.com/checking/everyday/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "ok"
   },
   {
@@ -432,16 +434,36 @@
    "fee_monthly": 0,
    "conditions": [
     "No minimum balance",
-    "Rates effective 2026-10-30 per the page, but the APY figure loads by script and could not be read"
+    "Rates effective 2026-11-06 per the page, but the APY figure loads by script and could not be read"
    ],
    "deposit_insurance": "FDIC, $250,000",
    "source_type": "html",
    "source_url": "https://www.capitalone.com/bank/savings-accounts/online-performance-savings-account/",
-   "checked_at": "2026-11-02",
+   "checked_at": "2026-11-09",
    "status": "check"
   }
  ],
  "changes": [
+  {
+   "date": "2026-11-09",
+   "bank": "ING",
+   "card": "de-ing-tagesgeld",
+   "field": "rate",
+   "old": 3.5,
+   "new": 3.75,
+   "text": "Extra-Konto new-customer promo rate raised from 3.50% to 3.75% for 4 months",
+   "text_ru": "Промо-ставка Extra-Konto для новых клиентов выросла с 3,50% до 3,75% на 4 месяца"
+  },
+  {
+   "date": "2026-11-09",
+   "bank": "ING",
+   "card": "de-ing-tagesgeld",
+   "field": "promo_rate_with_giro",
+   "old": 3.75,
+   "new": 4.0,
+   "text": "Promo rate with a Girokonto raised from 3.75% to 4.00%",
+   "text_ru": "Ставка при открытии вместе с Girokonto выросла с 3,75% до 4,00%"
+  },
   {
    "date": "2026-11-02",
    "bank": "Sparkasse Harburg-Buxtehude",
