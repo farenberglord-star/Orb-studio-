@@ -15,6 +15,7 @@ import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
+import { reduceDawum, summarizePolls, ATTRIBUTION as POLL_ATTRIBUTION, CONTEXT_NOTE as POLL_NOTE } from "./polls.js";
 import { reduceFeed, summarize, parsePointParams, ATTRIBUTION as ODL_ATTRIBUTION, CONTEXT_NOTE as ODL_NOTE } from "./radiation.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
@@ -1024,6 +1025,32 @@ async function radiationData(latP, lonP) {
     scope_note: "Hourly mean ambient gamma dose rate in µSv/h as published by BfS: how many stations report, national median / minimum / maximum, and the stations nearest to a point (default Hamburg). Values are unchanged measurements; Orb Studio only aggregates. No thresholds, no alarm and no assessment of health effects; for official information see odlinfo.bfs.de.",
     page: "https://orbstudio.org/api/v1/radiation" };
 }
+// ================= Опросы Sonntagsfrage (DAWUM, ODbL): /api/v1/polls, MCP get_german_polls =================
+async function pollsData(parliamentP) {
+  const fresh = new Request("https://orbstudio.org/__cache/dawum-v1"), stale = new Request("https://orbstudio.org/__cache/dawum-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let feed, status = "ok";
+  if (hit) { feed = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch("https://api.dawum.de/newest_surveys.json", { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/polls)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("dawum http " + r.status);
+      feed = reduceDawum(await r.json());
+      if (!feed || !feed.surveys.length) throw new Error("no polls in feed");
+      await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=1800" } }));
+      await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=172800" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "The DAWUM data interface did not answer and there is no recent copy. Nothing is estimated.", source: "dawum.de", attribution: POLL_ATTRIBUTION };
+      feed = await old.json(); status = "degraded";
+    }
+  }
+  const sm = summarizePolls(feed, parliamentP);
+  if (sm.bad_request) return { status: "bad_request", http: 400, ok: false, error: "Unknown parliament. Use one of: " + sm.parliaments.join(", "), parliaments: sm.parliaments };
+  return { status, ...sm, free: true, context_note: POLL_NOTE, attribution: POLL_ATTRIBUTION, source: "DAWUM (https://dawum.de), open database, ODC-ODbL",
+    scope_note: "Latest published voting-intention poll of each institute (last 35 days), with the unweighted mean, minimum and maximum per party, and every poll listed with institute, date and sample size. Poll values are unchanged; Orb Studio only aggregates. This is stated voting intention in samples, not a measure of support among the whole population: no forecast, no seat or coalition projection.",
+    page: "https://orbstudio.org/api/v1/polls" };
+}
 // ================= Подкаст для агентов (постановочный диалог на датчиках): /api/v1/agent-podcast, MCP get_agent_podcast =================
 // Выпуск «капает»: раз в ~2 часа (cron EMO) добавляется ОДНА новая тема, читается только её датчик (из кэша). Страница читает готовый выпуск из D1.
 const PODCAST_KEY = "agent-podcast-eps", PODCAST_GAP_MS = 100 * 60e3;
@@ -1777,6 +1804,7 @@ const OA_GET = [
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
   ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
   ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
+  ["/api/v1/polls", "getGermanPolls", "Free German voting-intention polls (Sonntagsfrage) from DAWUM (open database, ODC-ODbL): the latest poll of each institute in the last 35 days, unweighted mean, minimum and maximum per party (CDU/CSU, AfD, SPD, Grüne, Linke, BSW, FDP, ...), each poll with institute, date and sample size. Default Bundestag; optional state parliament. Stated voting intention in samples, not a forecast, no seat or coalition projection.", [OA_Q("parliament", "Parliament shortcut, e.g. Bundestag, Bayern, Berlin (optional, default Bundestag)", { type: "string" })]],
   ["/api/v1/radiation", "getRadiationDoseRate", "Free ambient gamma dose rate in Germany from the BfS ODL network (open data, Datenlizenz Deutschland Namensnennung 2.0): stations reporting, national median/min/max in µSv/h and the stations nearest to a point (default Hamburg). Unchanged measurements, aggregated by Orb Studio; no thresholds, no alarm, no health assessment.", [OA_Q("lat", "Latitude 47.0–55.2 (optional, default Hamburg)", { type: "number" }), OA_Q("lon", "Longitude 5.5–15.6 (optional, default Hamburg)", { type: "number" })]],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
@@ -5929,6 +5957,9 @@ const MCP_TOOLS = [
   { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
     description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: { station: { type: "string", enum: ["st_pauli", "cuxhaven", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_german_polls", title: "German voting-intention polls (Sonntagsfrage, DAWUM)",
+    description: "Free. Latest published poll of each institute in the last 35 days from DAWUM (open database, ODbL), with unweighted mean, minimum and maximum per party (CDU/CSU, AfD, SPD, Grüne, Linke, BSW, FDP, ...) and every poll with institute, date and sample size. Default Bundestag; optional parliament (e.g. Bayern). Stated voting intention in samples, not support among the whole population, no forecast, no seat or coalition projection. Attribution is in the response. Refreshed every 30 minutes.",
+    inputSchema: { type: "object", properties: { parliament: { type: "string", description: "e.g. Bundestag (default), Bayern, Berlin" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_radiation_dose_rate", title: "Ambient gamma dose rate in Germany (BfS ODL network)",
     description: "Free. Hourly mean ambient gamma dose rate in µSv/h from the BfS ODL measuring network (open data): number of reporting stations, national median / minimum / maximum, and the stations nearest to a point in Germany (default Hamburg; optional lat and lon). Values are unchanged measurements, aggregated by Orb Studio; no thresholds, no alarm, no health assessment. Source attribution is in the response. Refreshed every 10 minutes.",
     inputSchema: { type: "object", properties: { lat: { type: "number", description: "47.0–55.2, optional" }, lon: { type: "number", description: "5.5–15.6, optional" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6187,6 +6218,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
   if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
   if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
+  if (name === "get_german_polls") { const { http, ...d } = await pollsData(args.parliament); return { ...d, referral: ref }; }
   if (name === "get_radiation_dose_rate") { const { http, ...d } = await radiationData(args.lat, args.lon); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
@@ -6758,6 +6790,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/space") {
       const d = await spaceData();
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/polls") {
+      const { http, ...d } = await pollsData(url.searchParams.get("parliament"));
+      return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/radiation") {
       const { http, ...d } = await radiationData(url.searchParams.get("lat"), url.searchParams.get("lon"));

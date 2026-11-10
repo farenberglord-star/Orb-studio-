@@ -183,6 +183,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="sky"><div class="nm"><i></i>✈ Небо над Гамбургом</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="quakes"><div class="nm"><i></i>🌋 Землетрясения мира</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="elbe"><div class="nm"><i></i>🌊 Эльба: уровень воды</div><div class="vl">загрузка…</div><div class="ag"></div></div>
+      <div class="sn" data-s="polls"><div class="nm"><i></i>🗳 Опросы Sonntagsfrage</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="radiation"><div class="nm"><i></i>☢ Гамма-фон Германии</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="space"><div class="nm"><i></i>☀ Космическая погода</div><div class="vl">загрузка…</div><div class="ag"></div></div>
       <div class="sn" data-s="route"><div class="nm"><i></i>🧭 Маршрут по Гамбургу</div><div class="vl">загрузка…</div><div class="ag"></div></div>
@@ -236,6 +237,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="roads"><div class="k">Автобаны вокруг Гамбурга · Autobahn GmbH</div><div class="v" id="oRoads">—</div></div>
       <div class="row" data-o="sky"><div class="k">Небо над Гамбургом · adsb.lol (ADS-B)</div><div class="v" id="oSky">—</div></div>
       <div class="row" data-o="elbe"><div class="k">Эльба · PEGELONLINE (уровень воды)</div><div class="v" id="oElbe">—</div></div>
+      <div class="row" data-o="polls"><div class="k">Опросы Sonntagsfrage · DAWUM (заявленные намерения голосовать)</div><div class="v" id="oPolls">—</div></div>
       <div class="row" data-o="radiation"><div class="k">Гамма-фон · BfS, сеть ODL (измерения)</div><div class="v" id="oRad">—</div></div>
       <div class="row" data-o="space"><div class="k">Космическая погода · NOAA SWPC (наблюдения)</div><div class="v" id="oSpace">—</div></div>
       <div class="row" data-o="route"><div class="k">Маршрут · OSM + автобаны (бесплатно)</div><div class="v" id="oRoute">—</div></div>
@@ -450,6 +452,15 @@ async function loadElbe(){
   setSensor('elbe',`${sp.station==='st_pauli'?'Св. Паули':'Куксхафен'}: ${sp.water_level_cm} см${sp.trend?' · '+TR[sp.trend]:''}${sp.observed_change?` · ${sp.observed_change.change_cm>0?'+':''}${sp.observed_change.change_cm} см/${sp.observed_change.window_min} мин`:''}`,sp.measured_at?Date.parse(sp.measured_at):Date.now(),sp.water_level_cm+'/'+sp.trend);
   $('oElbe').innerHTML=ok.map((x,i)=>`<div${i?' style="margin-top:3px"':''}>${x.station==='st_pauli'?'Гамбург, Санкт-Паули':'Куксхафен'}: <b>${x.water_level_cm} см</b>${x.trend?` · ${TR[x.trend]}`:''}${x.observed_change?` · за ${x.observed_change.window_min} мин ${x.observed_change.change_cm>0?'+':''}${x.observed_change.change_cm} см`:''}${x.level_state&&x.level_state!=='unknown'?` · класс: ${esc(x.level_state)}`:''}${x.water_temp_c!=null?` · вода ${x.water_temp_c} °C`:''}</div>`).join('')+`<div style="margin-top:4px;color:var(--dim);font-size:12px">Уровень относительно нуля поста по данным WSV; изменение за окно мы считаем сами по её измерениям, не прогноз приливов и не штормовое предупреждение${d.status==='degraded'?' · источник не ответил, прошлые данные':''} · <a href="/api/v1/hydro/sea">JSON</a></div>`;
 }
+async function loadPolls(){
+  const d=await fetch('/api/v1/polls').then(r=>r.json());
+  const f=(x)=>String(x).replace('.',',');
+  if(d.status==='unavailable'||!d.ok){setSensor('polls','DAWUM не ответил',Date.now(),'x');$('oPolls').textContent='Интерфейс DAWUM не ответил — цифры не выдумываю.';return}
+  const top=d.parties.slice(0,3);
+  setSensor('polls',top.map(p=>esc(p.party)+' '+f(p.mean)+'%').join(' · '),d.polls&&d.polls[0]?Date.parse(d.polls[0].published):Date.now(),top.map(p=>p.mean).join('/'));
+  $('oPolls').innerHTML=`<div>Бундестаг, среднее по ${d.institutes_used} институтам (последний опрос каждого за ${d.window_days} дней):</div><div style="margin-top:3px">`+d.parties.map(p=>`<b>${esc(p.party)}</b> ${f(p.mean)}% <span style="color:var(--dim)">(${f(p.min)}–${f(p.max)})</span>`).join(' · ')+`</div>`+
+    `<div style="margin-top:4px;color:var(--dim);font-size:12px">Это заявленные намерения голосовать в выборках, а не поддержка среди всего населения. Погрешность обычно ±2–3 пункта, у институтов разные методики; среднее простое, без весов. Прогнозов и расчёта мест не даём. Данные: <a href="https://dawum.de" rel="noopener">dawum.de</a> (<a href="https://opendatacommons.org/licenses/odbl/1-0/" rel="noopener">ODbL</a>)${d.status==='degraded'?' · показана сохранённая копия':''}.</div>`;
+}
 async function loadRadiation(){
   const d=await fetch('/api/v1/radiation').then(r=>r.json());
   const f=(x)=>String(x).replace('.',',');
@@ -569,7 +580,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Режим выбирает Claude по всем датчикам сайта, страховки правил v'+d.rules.version+' остаются.':'Правила v'+d.rules.version+' записаны заранее.'} Решение раз в день в 08:10, баланс счёта обновляется при открытии страницы; от приложения Kraken сумма может отличаться на пару евро из-за цены пересчёта. Каждое решение — в журнале: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],elbe:[loadElbe,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
