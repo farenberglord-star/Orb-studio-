@@ -9,6 +9,7 @@ export const PARTIES = [
   { party: "Linke", title: "Die_Linke" },
   { party: "FDP", title: "Freie_Demokratische_Partei" },
   { party: "BSW", title: "Bündnis_Sahra_Wagenknecht" },
+  { party: "Freie Wähler", title: "Freie_Wähler_(Partei)" },
 ];
 export const SURGE = 2.5;
 export const ATTRIBUTION = "Pageview data: Wikimedia Foundation, Pageviews API (https://wikimedia.org/api/rest_v1/), CC0. Articles: German Wikipedia (https://de.wikipedia.org). Aggregated by Orb Studio (yesterday vs the median of the 28 days before).";
