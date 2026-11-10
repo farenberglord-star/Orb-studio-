@@ -38,7 +38,7 @@
     ".osm .card{min-height:150px}.osm .card h4{font:700 17px 'Chakra Petch',sans-serif;letter-spacing:.06em;margin:0 0 6px}.osm .card p{margin:6px 0;font-size:14px;line-height:1.5;color:var(--dim)}" +
     ".osm dl{display:grid;grid-template-columns:max-content 1fr;gap:5px 12px;margin:10px 0 0;font-size:13px}.osm dt{color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}.osm dd{margin:0;word-break:break-word}" +
     ".osm .st{display:inline-block;border-radius:999px;padding:2px 9px;font:12px 'JetBrains Mono',monospace;border:1px solid var(--up);color:var(--up)}.osm .st.w{border-color:var(--warm);color:var(--warm)}.osm .st.b{border-color:var(--hot);color:var(--hot)}.osm .st.g{border-color:var(--dim);color:var(--dim)}" +
-    ".osm .lst{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}.osm .foot{margin-top:14px;font-size:12px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}.osm code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--holo)}";
+    ".osm.compact svg{max-height:560px}.osm .lst{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}.osm .foot{margin-top:14px;font-size:12px;color:var(--dim);display:flex;gap:14px;flex-wrap:wrap}.osm code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--holo)}";
   function el(n, a, kids) { var e = document.createElement(n); if (a) for (var k in a) { if (k === "text") e.textContent = a[k]; else e.setAttribute(k, a[k]); } (kids || []).forEach(function (c) { if (c) e.appendChild(c); }); return e; }
   function sv(n, a, kids) { var e = document.createElementNS(NS, n); if (a) for (var k in a) e.setAttribute(k, a[k]); (kids || []).forEach(function (c) { if (c) e.appendChild(c); }); return e; }
   function path(d, cls) { return sv("path", { d: d, "class": cls }); }
@@ -55,18 +55,18 @@
   function mount(root, opts) {
     opts = opts || {}; var lang = pickLang(opts), geo = null, man = null, sel = null, tok = 0, pins = [], pinEls = {};
     if (!document.getElementById("osm-css")) { var st = el("style", { id: "osm-css" }); st.textContent = CSS; document.head.appendChild(st); }
-    root.classList.add("osm"); root.textContent = "";
+    root.classList.add("osm"); if (opts.compact) root.classList.add("compact"); root.textContent = "";
     var tx = function (k) { return T[lang][k] || k; };
     function render() {
       root.textContent = ""; pins = []; pinEls = {};
       var langs = el("div", { "class": "lang", role: "group", "aria-label": "Language" }, ["ru", "de", "en"].map(function (l) { var b = el("button", { type: "button", "aria-pressed": String(l === lang), text: l.toUpperCase() }); b.onclick = function () { lang = l; try { document.documentElement.lang = l; } catch (e) {} render(); if (sel) select(sel, true); }; return b; }));
-      root.appendChild(el("div", { "class": "top" }, [el("div", null, [el("div", { "class": "eb", text: tx("eyebrow") }), el("h2", { text: tx("title") }), el("p", { "class": "ld", text: tx("lead") })]), langs]));
+      root.appendChild(el("div", { "class": "top" }, [el("div", null, [el("div", { "class": "eb", text: tx("eyebrow") }), el("h2", { text: tx("title") }), el("p", { "class": "ld", text: tx("lead") })]), opts.noLang ? null : langs]));
       var grid = el("div", { "class": "grid" }); root.appendChild(grid);
       var left = el("div", { "class": "pn" }), right = el("div", { "class": "pn" }); grid.appendChild(right); grid.appendChild(left);
       // DACH inset with pins
       var I = geo.inset, svg = sv("svg", { viewBox: "0 0 " + I.w + " " + I.h, role: "img", "aria-label": tx("dach") });
       svg.appendChild(sv("rect", { width: I.w, height: I.h, "class": "sea" })); svg.appendChild(path(I.rest, "nb")); ["DE", "AT", "CH"].forEach(function (c) { var p = path(I.dach[c], "dc"); p.setAttribute("data-c", c); svg.appendChild(p); });
-      I.cities.forEach(function (c) { svg.appendChild(sv("circle", { cx: c.x, cy: c.y, r: 2.5, "class": "city" })); svg.appendChild(sv("text", { x: c.x + 6, y: c.y + 3.5, "class": "cl" }, [])).textContent = c.n; });
+      I.cities.forEach(function (c) { svg.appendChild(sv("circle", { cx: c.x, cy: c.y, r: 2.5, "class": "city" })); svg.appendChild(sv("text", c.n === "Hamburg" ? { x: c.x + 14, y: c.y + 24, "class": "cl" } : { x: c.x + 6, y: c.y + 3.5, "class": "cl" }, [])).textContent = c.n; });
       var items = [];
       man.sensors.forEach(function (s) { (s.pins || []).forEach(function (p) { var x = (p.lon - I.bbox.lon0) / (I.bbox.lon1 - I.bbox.lon0) * I.w, y = (mer(I.bbox.lat1) - mer(p.lat)) / (mer(I.bbox.lat1) - mer(I.bbox.lat0)) * I.h; items.push({ s: s, p: p, tx: x, ty: y, x: x, y: y }); }); });
       for (var it = 0; it < 40; it++) for (var i = 0; i < items.length; i++) for (var j = i + 1; j < items.length; j++) { var a = items[i], b = items[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01; if (d < 26) { var k = (26 - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; } }

@@ -69,6 +69,7 @@ T = [
  "Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink's current programme and are not guaranteed; prices and terms on starlink.com."),
 # --- радары ---
 ("Радары", "Radare", "Radars"),
+("Правосудие и безопасность", "Justiz und Sicherheit", "Justice & security"),
 ("нажми — откроется страница радара с его ведущим", "tippen — die Radarseite mit Moderator öffnet sich", "tap to open the radar page with its anchor"),
 ("РАДАР · ", "RADAR · ", "RADAR · "), ("РАДАР", "RADAR", "RADAR"),
 ("индекс риска 0–100", "Risikoindex 0–100", "risk index 0–100"),

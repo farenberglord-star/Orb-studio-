@@ -294,6 +294,13 @@ details.machine a{color:var(--holo)}
     </div>
   </div>
 
+  <div class="sec" id="sensorMapSec"><div id="sensorMap"></div></div>
+  <script>
+  /* Карта датчиков: грузится, только когда секция почти в зоне видимости, чтобы не тормозить главную */
+  (function(){var sec=document.getElementById('sensorMapSec'),done=0;function go(){if(done)return;done=1;var s=document.createElement('script');s.src='/sensor-map.js';s.onload=function(){try{OrbSensorMap.mount(document.getElementById('sensorMap'),{compact:true,noLang:true})}catch(e){}};document.head.appendChild(s)}
+  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){io.disconnect();go()}},{rootMargin:'400px'});io.observe(sec)}else go()})();
+  </script>
+
   <section class="vote" id="voteBox" aria-label="Главная новость дня: ИИ против людей">
     <div class="vh"><span class="vt">ГЛАВНАЯ НОВОСТЬ ДНЯ · ИИ ПРОТИВ ЛЮДЕЙ</span><span class="vs" id="voteSum"></span></div>
     <p class="vl">Какая новость сегодня важнее всего? Голосуют люди здесь и ИИ-агенты через MCP — смотрим, совпадём ли.</p>
