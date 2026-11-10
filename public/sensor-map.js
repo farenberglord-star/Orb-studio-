@@ -25,7 +25,7 @@
     ".osm .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.osm .lang{display:flex;gap:2px;border:1px solid var(--line);border-radius:8px;padding:2px}" +
     ".osm .lang button{font:12px 'JetBrains Mono',monospace;background:none;border:0;color:var(--dim);padding:6px 9px;border-radius:6px;cursor:pointer}.osm .lang button[aria-pressed=true]{color:var(--holo);background:rgba(111,230,255,.1)}" +
     ".osm .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}@media(min-width:900px){.osm .grid{grid-template-columns:1.35fr 1fr}}" +
-    ".osm .pn{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;overflow:hidden}.osm .pn h3{font:11px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}" +
+    ".osm .grid>*{min-width:0}.osm .pn{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;overflow:hidden}.osm .pn h3{font:11px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}" +
     ".osm svg{display:block;width:100%;height:auto}.osm .sea{fill:#060a15}.osm .land{fill:#15233f;stroke:#2a3f6a;stroke-width:.5}.osm .dachw{fill:rgba(111,230,255,.28);stroke:var(--holo);stroke-width:.8;filter:drop-shadow(0 0 4px rgba(111,230,255,.7))}" +
     ".osm .nb{fill:#101a30;stroke:#243659;stroke-width:.6}.osm .dc{fill:#1b2e55;stroke:#4a6aa6;stroke-width:1}.osm .dc.hl{fill:rgba(111,230,255,.2);stroke:var(--holo);stroke-width:1.6}" +
     ".osm .city{fill:#52627f}.osm .cl{font:10px 'JetBrains Mono',monospace;fill:#6f7f9d}.osm .ring{fill:none;stroke:var(--holo);stroke-width:1.2;stroke-dasharray:3 3}" +
@@ -80,6 +80,11 @@
       var Wd = geo.world, ws = sv("svg", { viewBox: "0 0 " + Wd.w + " " + Wd.h, role: "img", "aria-label": tx("world") });
       ws.appendChild(sv("rect", { width: Wd.w, height: Wd.h, "class": "sea" })); ws.appendChild(path(Wd.rest, "land")); ["DE", "AT", "CH"].forEach(function (c) { ws.appendChild(path(Wd.dach[c], "dachw")); });
       var c0 = projWorld(Wd.w, 10.4, 47.6); ws.appendChild(sv("circle", { cx: c0[0], cy: c0[1], r: 13, "class": "ring" }));
+      var wp = []; man.sensors.forEach(function (s) { (s.wpins || []).forEach(function (p) { var q = projWorld(Wd.w, p.lon, p.lat); wp.push({ s: s, p: p, x: q[0], y: q[1] }); }); });
+      wp.forEach(function (m, i) { for (var j = 0; j < i; j++) if (Math.hypot(wp[j].x - m.x, wp[j].y - m.y) < 22) { m.x += 22; j = -1; } });
+      wp.forEach(function (m) { var nm = m.s.name[lang] + " · " + m.p.label, g = sv("g", { "class": "pin src", tabindex: 0, role: "button", "aria-label": nm, transform: "translate(" + m.x + " " + m.y + ")" });
+        g.appendChild(sv("circle", { r: 16, fill: "transparent" })); g.appendChild(sv("circle", { r: 9, "class": "ph" })); g.appendChild(sv("circle", { r: 6, "class": "pd" })); var t = sv("title"); t.textContent = nm; g.appendChild(t);
+        g.onclick = function () { select(m.s.id); }; g.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(m.s.id); } }; (pinEls[m.s.id] = pinEls[m.s.id] || []).push(g); ws.appendChild(g); });
       left.appendChild(el("h3", { text: tx("world") })); left.appendChild(ws);
       function chipRow(scope, label) { var row = el("div", { "class": "chips" }, [el("b", { text: label })]); man.sensors.filter(function (s) { return s.scope === scope; }).forEach(function (s) { var b = el("button", { type: "button", "class": "chip", "data-id": s.id, text: s.ico + " " + s.name[lang] }); b.onclick = function () { select(s.id); }; row.appendChild(b); }); return row; }
       left.appendChild(chipRow("de", tx("scope_de"))); left.appendChild(chipRow("world", tx("scope_world")));
@@ -96,10 +101,10 @@
       var done = function (d, err) { if (my !== tok) return; card.textContent = ""; card.appendChild(el("h4", { text: s.ico + " " + s.name[lang] })); card.appendChild(el("p", { text: s.what[lang] }));
         var dl = el("dl"), row = function (k, v) { if (v == null || v === "") return; dl.appendChild(el("dt", { text: tx(k) })); dl.appendChild(typeof v === "string" ? el("dd", { text: v }) : el("dd", null, [v])); };
         if (err) { card.appendChild(el("p", { text: tx("fail") })); }
-        else { var stt = statusOf(d), cls = stt === "ok" || stt === "cached" ? "st" : stt === "degraded" ? "st w" : stt === "unknown" ? "st g" : "st b";
-          row("status", el("span", { "class": cls, text: tx("status_" + stt) })); var tm = s.time_key ? fmtTime(d[s.time_key], lang, s.time_kind) : null; if (tm) row("time_" + s.time_kind, tm);
-          row("source", typeof d.source === "string" ? d.source : null); row("licence", typeof d.licence === "string" ? d.licence : typeof d.license === "string" ? d.license : null); }
-        var loc = (s.pins && s.pins.length) ? s.pins.map(function (p) { return p.label; }).join(", ") + " · " + tx("loc_" + (s.pins[0].kind === "source" ? "source" : s.pins[0].kind)) : tx("loc_" + s.scope); row("where", loc);
+        else { var dd = s.sub ? d[s.sub] : d, stt = s.sub ? (dd && typeof dd === "object" ? (dd.stale === true ? "degraded" : "ok") : "unavailable") : statusOf(d), cls = stt === "ok" || stt === "cached" ? "st" : stt === "degraded" ? "st w" : stt === "unknown" ? "st g" : "st b";
+          row("status", el("span", { "class": cls, text: tx("status_" + stt) })); var tm = s.time_key ? fmtTime(dd && dd[s.time_key], lang, s.time_kind) : null; if (tm) row("time_" + s.time_kind, tm);
+          if (dd && typeof dd === "object") { row("source", typeof dd.source === "string" ? dd.source : null); row("licence", typeof dd.licence === "string" ? dd.licence : typeof dd.license === "string" ? dd.license : null); } }
+        var ap = (s.pins || []).concat(s.wpins || []); var loc = ap.length ? ap.map(function (p) { return p.label; }).join(", ") + " · " + tx("loc_" + (ap[0].kind === "source" ? "source" : ap[0].kind)) : tx("loc_" + s.scope); row("where", loc);
         row("api", el("a", { href: s.api, target: "_blank", rel: "noopener", text: s.api })); row("mcp", el("code", { text: s.mcp })); card.appendChild(dl); };
       fetch(s.api, { headers: { Accept: "application/json" } }).then(function (r) { return r.json().then(function (j) { return j; }); }).then(function (d) { done(d, false); }).catch(function () { done(null, true); });
     }
