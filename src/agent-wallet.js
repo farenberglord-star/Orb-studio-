@@ -117,14 +117,17 @@ export async function agentWallet(request, env, deps) {
   if (!env.AGENT_LEDGER_KEY) return json({ error: "agent ledger key is not configured" }, 503);
   if (!eq(request.headers.get("x-agent-key"), env.AGENT_LEDGER_KEY)) return json({ error: "bad or missing x-agent-key" }, 401);
   const entries = await load();
+  // денежный сигнал (монеты на планшете у робота EMO): никогда не задерживает и не ломает кошелёк
+  const signal = (ev) => { try { if (deps && deps.onEvent) deps.onEvent(ev); } catch (e) {} };
   if (url.pathname === "/api/v1/agent-wallet/authorize") {
     const d = decide(rules, entries, b, now), id = "AW-" + crypto.randomUUID();
     const href = (() => { try { return new URL(b.resource_url).href; } catch (e) { return clip(b.resource_url, 300); } })();
     const base = { id, t: now, resource_url: href, amount_usdc: Number(b.amount_usdc) || 0, reason: clip(b.reason, 400) };
-    const refuse = async (reason) => { entries.push({ ...base, host: d.host || "", outcome: "refused", refusal: reason }); await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES)); return json({ approved: false, reason }); };
+    const refuse = async (reason) => { entries.push({ ...base, host: d.host || "", outcome: "refused", refusal: reason }); await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES)); signal({ type: "refused", ...base, host: d.host || "", reason }); return json({ approved: false, reason }); };
     if (d.autonomous) {
       entries.push({ ...base, host: d.host, amount_usdc: d.amount, outcome: "approved", autonomous: true, pay_to: String(b.pay_to).toLowerCase(), network: BASE_NETWORK, asset: BASE_USDC });
       await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES));
+      signal({ type: "look", ...base, host: d.host, amount_usdc: d.amount });
       return json({ approved: true, autonomous: true, id, amount_usdc: d.amount, network: BASE_NETWORK, asset: BASE_USDC, pay_to: String(b.pay_to).toLowerCase(), resource_url: href, note: "Your own decision within the caps. One payment only. On 202 or an uncertain settle, repeat the same signed authorization. Do not sign a new one. Report the result, including what you got and whether it was useful." });
     }
     if (!d.screened) return refuse(d.reason);
@@ -135,6 +138,7 @@ export async function agentWallet(request, env, deps) {
     entries.push({ ...base, host: d.host, amount_usdc: d.amount, outcome: "approved", approval_id: match.id, pay_to: match.pay_to, network: BASE_NETWORK, asset: BASE_USDC });
     await sharedPut(env, APPROVALS, approvals);
     await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES));
+    signal({ type: "look", ...base, host: d.host, amount_usdc: d.amount });
     return json({ approved: true, id, amount_usdc: d.amount, network: BASE_NETWORK, asset: BASE_USDC, pay_to: match.pay_to, resource_url: href, note: "One payment only. On 202 or an uncertain settle, repeat the same signed authorization. Do not sign a new one." });
   }
   if (url.pathname === "/api/v1/agent-wallet/result") {
@@ -159,6 +163,7 @@ export async function agentWallet(request, env, deps) {
     e.got = clip(b.got || b.result_summary, 500); e.useful = ["yes", "partly", "no"].includes(b.useful) ? b.useful : undefined;
     await sharedPut(env, APPROVALS, approvals);
     await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES));
+    signal({ type: e.outcome, ...e });
     return json({ recorded: true, id: e.id, outcome: e.outcome });
   }
   return json({ error: "unknown path" }, 404);

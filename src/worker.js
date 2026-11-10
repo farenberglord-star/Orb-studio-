@@ -1198,6 +1198,27 @@ async function emoAviationReact(env, landings) {
   return { ok: r.ok };
 }
 
+// Денежный сигнал: агент с кошельком (Грок-бот, USDC на Base) что-то делает → у робота EMO звенят монеты (звук на планшете рядом) и меняется лицо.
+//   look — агент присмотрел покупку и получил разрешение: одна монета «дзынь», EMO в восторге;
+//   bought — купил: каскад монет и звонок кассы «ка-чинг», EMO радуется; pending — оплата ушла, ждёт подтверждения: одна монета;
+//   refused / failed / blocked — не вышло: монета падает вниз, EMO грустит. Голосом не читается (робот стоит в кабине).
+async function emoWalletSignal(env, ev) {
+  const kind = ev.type === "bought" ? "coin_buy" : ev.type === "look" || ev.type === "pending" ? "coin_look" : "coin_lost";
+  const amt = Number(ev.amount_usdc) ? Number(ev.amount_usdc).toFixed(2) + " USDC" : "";
+  let what = ""; try { const u = new URL(ev.resource_url); what = u.host + u.pathname; } catch (e) { what = String(ev.resource_url || ev.host || "").slice(0, 80); }
+  const why = String(ev.reason || ev.failure || ev.refusal || "").slice(0, 120);
+  const ru = { look: `присмотрел покупку: ${what} за ${amt}`, pending: `оплатил ${what} (${amt}), ждёт подтверждения сети`, bought: `купил ${what} за ${amt}`, refused: `покупка не разрешена: ${what} (${why})`, failed: `покупка не прошла: ${what} (${why})`, blocked: `покупка заблокирована: ${what} (${why})` }[ev.type] || `действие кошелька: ${ev.type}`;
+  const en = { look: `is about to buy ${what} for ${amt}`, pending: `paid ${what} (${amt}), waiting for the network`, bought: `bought ${what} for ${amt}`, refused: `was not allowed to buy ${what} (${why})`, failed: `failed to buy ${what} (${why})`, blocked: `was blocked buying ${what} (${why})` }[ev.type] || `wallet action: ${ev.type}`;
+  const sa = await emoCall(env, "/say", { id: "coin" + Date.now().toString(36), by: "Агент-кошелёк · Грок-бот", text: (kind === "coin_buy" ? "💰 " : kind === "coin_look" ? "🪙 " : "🫥 ") + ru + (ev.type === "bought" && why ? " · зачем: " + why : ""), kind }).catch(() => ({ ok: false }));
+  let r = { ok: false, error: "robot busy" };
+  for (let i = 0; i < 4 && (await sharedGet(env, "emo-busy", EMO_COOLDOWN_S * 1000)); i++) await new Promise((res) => setTimeout(res, 5000));
+  const face = kind === "coin_buy" ? ["mood_happy", "mood_excited"] : kind === "coin_look" ? ["mood_excited"] : ["mood_sad"];
+  r = await emoQuick(env, face, "wallet " + ev.type, kind === "coin_buy" ? 6000 : 3500).catch((e) => ({ ok: false, error: String(e.message || e).slice(0, 60) }));
+  await emoPushReport(env, emoCard({ for: "everyone", action: "wallet_" + ev.type, confirmed: r.ok, coin_signal: sa.ok ? kind : null, amount_usdc: Number(ev.amount_usdc) || null, resource_url: ev.resource_url || null, tx_url: ev.tx_url || null,
+    text_en: `EMO here — money signal: the wallet agent (Grok-bot) ${en}. ${sa.ok ? "Coins rang on the tablet next to me" : "The tablet is offline, no coin sound"}${r.ok ? ", and my face showed it (confirmed over Bluetooth)." : "; I could not react (" + (r.error || "no answer") + ")."}`,
+    text_ru: `EMO на связи — денежный сигнал: агент-кошелёк (Грок-бот) ${ru}. ${sa.ok ? "На планшете рядом звякнули монеты" : "Планшет не на связи, монеты не звякнули"}${r.ok ? ", я показал это лицом (подтверждено по Bluetooth)." : "; среагировать не вышло (" + (r.error || "нет ответа") + ")."}` }));
+}
+
 // Продажа на сайте (скрипка дня за USDC по x402): EMO радуется (моргает глазами-эмоциями), танцует, а планшет рядом вслух объявляет покупку.
 // Срабатывает на каждую подтверждённую продажу (settle прошёл), в любое время суток. Если робот занят — ждёт до 40 с.
 async function emoSaleReact(env, d) {
@@ -6816,7 +6837,7 @@ async function handleRequest(request, env, ctx) {
       } catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, H, 500); }
     }
     if (url.pathname.startsWith("/api/v1/agent-wallet")) {
-      const r = await agentWallet(request, env, { sharedGet, sharedPut });
+      const r = await agentWallet(request, env, { sharedGet, sharedPut, onEvent: (ev) => ctx.waitUntil(emoWalletSignal(env, ev).catch(() => null)) });
       if (r) return r;
     }
     if (url.pathname === "/api/v1/guests") {

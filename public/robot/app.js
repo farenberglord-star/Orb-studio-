@@ -336,7 +336,28 @@ function chime() {
       g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3); o.start(t0); o.stop(t0 + 0.32); });
   } catch (e) {}
 }
+// денежный сигнал агента-кошелька: монеты вместо голоса
+function coin(kind) {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)();
+    const tone = (f, t, d, type = "square", vol = 0.22) => { const o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + t; o.type = type; o.frequency.value = f; o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d); o.start(t0); o.stop(t0 + d + 0.02); };
+    const one = (t) => { tone(988, t, 0.08); tone(1319, t + 0.08, 0.4); };      // классическая монета «дзынь»
+    if (kind === "coin_buy") { [0, 0.16, 0.32, 0.48].forEach(one); tone(2093, 0.75, 1.2, "sine", 0.3); tone(2637, 0.75, 1.2, "sine", 0.22); tone(3136, 0.8, 1.0, "sine", 0.15); }  // монеты + касса «ка-чинг»
+    else if (kind === "coin_look") one(0);
+    else { [1319, 988, 659, 440].forEach((f, i) => tone(f, i * 0.14, 0.18, "triangle", 0.25)); }   // монета падает
+  } catch (e) {}
+}
 function showMsg(m) {
+  if (String(m.kind || "").startsWith("coin")) {
+    const box = $("msgs"); if (!box) return;
+    const card = document.createElement("div"); card.className = "msg sig";
+    card.innerHTML = '<div class="who"></div><div class="txt"></div>';
+    card.querySelector(".who").textContent = "💸 " + m.by + " · " + new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    card.querySelector(".txt").textContent = m.text;
+    box.prepend(card); document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 1200);
+    coin(m.kind); log("денежный сигнал: " + m.kind); return;
+  }
   const box = $("msgs"); if (!box) return;
   const card = document.createElement("div"); card.className = "msg" + (m.kind === "signal" ? " sig" : "");
   const t = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
