@@ -155,6 +155,7 @@
       "get_route_context",
       "get_space_weather",
       "get_marine_hydro_context",
+      "get_gas_storage",
       "get_radiation_dose_rate",
       "get_german_polls",
       "get_party_attention",

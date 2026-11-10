@@ -191,6 +191,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="sky"><div class="nm"><i></i>✈ Sky over Hamburg</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="quakes"><div class="nm"><i></i>🌋 Earthquakes worldwide</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="elbe"><div class="nm"><i></i>🌊 Elbe: water level</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="gas"><div class="nm"><i></i>🔥 German gas storage</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="polls"><div class="nm"><i></i>🗳 Sonntagsfrage polls</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="radiation"><div class="nm"><i></i>☢ Gamma background Germany</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="space"><div class="nm"><i></i>☀ Space weather</div><div class="vl">loading…</div><div class="ag"></div></div>
@@ -245,6 +246,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="roads"><div class="k">Motorways around Hamburg · Autobahn GmbH</div><div class="v" id="oRoads">—</div></div>
       <div class="row" data-o="sky"><div class="k">Sky over Hamburg · adsb.lol (ADS-B)</div><div class="v" id="oSky">—</div></div>
       <div class="row" data-o="elbe"><div class="k">Elbe · PEGELONLINE (water level)</div><div class="v" id="oElbe">—</div></div>
+      <div class="row" data-o="gas"><div class="k">Gas storage · GIE AGSI+ (fill level)</div><div class="v" id="oGas">—</div></div>
       <div class="row" data-o="polls"><div class="k">Sonntagsfrage polls · DAWUM (stated voting intention)</div><div class="v" id="oPolls">—</div></div>
       <div class="row" data-o="radiation"><div class="k">Gamma background · BfS, ODL network (measurements)</div><div class="v" id="oRad">—</div></div>
       <div class="row" data-o="space"><div class="k">Space weather · NOAA SWPC (observations)</div><div class="v" id="oSpace">—</div></div>
@@ -322,7 +324,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'updated '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3,gas:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -450,6 +452,17 @@ async function loadSky(){
     `<div style="margin-top:3px">✈ Finkenwerder (Airbus): ${L.length?`<b class="up">${L.length} landings in 24 h</b>, last at ${hm(last.time)}${last.callsign?' · '+esc(last.callsign):''}`:'no landings recorded in 24 h so far'}</div>`+
     L.slice(-4).reverse().map(x=>`<div style="margin-top:2px;color:var(--dim);font-size:12px">${hm(x.time)} · ${esc(x.callsign||'no callsign')} · ${x.evidence==='on_ground'?'landed, visible on the ground':'disappeared at the runway'}</div>`).join('')+
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">Counted are aircraft heard by adsb.lol’s volunteer receivers; with the transponder switched off they are not visible${d.status!=='ok'?' · '+(d.status==='cached'?'from cache':'source did not answer, previous data'):''}</div>`;
+}
+async function loadGas(){
+  const d=await fetch('/api/v1/gas/storage').then(r=>r.json());
+  if(!d.ok){const m=d.status==='not_configured'?'AGSI+ key not set on the server':'AGSI+ did not respond';setSensor('gas',m,Date.now(),'x');$('oGas').textContent=m+' — I don’t invent numbers.';return}
+  const FL={WITHDRAWING:'withdrawal exceeds injection',INJECTING:'injection exceeds withdrawal',BALANCED:'withdrawal and injection equal'};
+  const ch=d.observed_change_7d,dash=v=>v==null?'—':v,sg=ch?(ch.change_pp>0?'+':'')+ch.change_pp:'';
+  setSensor('gas',d.full_percent+'% full'+(ch?' · '+sg+' pp in 7 days':''),Date.parse(d.gas_day)||Date.now(),String(d.full_percent));
+  $('oGas').innerHTML='<b>'+d.full_percent+'%</b> of working gas volume ('+dash(d.gas_in_storage_twh)+' of '+dash(d.working_gas_volume_twh)+' TWh), gas day '+esc(d.gas_day)+
+    (d.net_flow?'<div style="margin-top:3px">'+FL[d.net_flow]+': injection '+dash(d.injection_gwh_d)+', withdrawal '+dash(d.withdrawal_gwh_d)+' GWh/day</div>':'')+
+    (ch?'<div style="margin-top:3px;color:var(--dim);font-size:12px">Over 7 days: '+sg+' pp (difference of two published values, not a forecast)</div>':'')+
+    '<div style="margin-top:3px;color:var(--dim);font-size:12px">'+(d.data_status==='C'?'Confirmed data':'Preliminary or estimated data')+'</div>';
 }
 async function loadElbe(){
   const d=await fetch('/api/v1/hydro/sea').then(r=>r.json());
@@ -590,7 +603,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Claude chooses the mode from all of the site’s sensors, safeguards of rules v'+d.rules.version+' remain.':'Rules v'+d.rules.version+' recorded in advance.'} One decision a day at 08:10, the account balance updates when the page opens; compared with the Kraken app the total may differ by a couple of euros because of the conversion price. Every decision is in the log: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],gas:[loadGas,1800e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
