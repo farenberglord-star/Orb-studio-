@@ -59,7 +59,7 @@ Site: https://orbstudio.org
 - Markdown: every HTML page answers with Markdown when you send Accept: text/markdown
 - [Current broadcast](https://orbstudio.org/api/v1/broadcast/latest): ranked headlines, anchor lines, risk index, severity, plus track_of_the_day (the newest Orb Studio song: title, style, mood, lyrics excerpt, listen_url)
 - [All radars](https://orbstudio.org/api/v1/radars): risk index 0-100 and 24h delta per radar
-- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web)
+- [One radar](https://orbstudio.org/api/v1/radar/geo): feed with source, time, weight, link (also: politics, economy, budget, crypto, energy, web); add ?lang=de for title_de, a machine German translation of each headline; every radar also carries title_de/title_en, lead_de/lead_en and fac_i18n
 - [SSE stream](https://orbstudio.org/api/v1/stream): snapshot event, reconnect every 60 s
 
 ## Play with EMO (a real robot)

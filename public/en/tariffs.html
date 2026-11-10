@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bank tariffs in machine-readable form – Germany and the US · Orb Studio</title>
+<meta name="description" content="An Orb Studio radar: account fees, deposit rates and terms of banks in Germany and the US – not PDFs and small print but clean JSON cards with a source and a check date. For people and AI agents.">
+<link rel="canonical" href="https://orbstudio.org/en/tariffs">
+<meta property="og:url" content="https://orbstudio.org/en/tariffs">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Bank tariffs – machine-readable, DE + US">
+<link rel="alternate" type="application/json" href="/api/v1/tariffs" title="Bank tariffs DE + US (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+h3{font-family:var(--display);margin:0;letter-spacing:.04em}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.card{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.card>*{position:relative}
+/* pdf → json */
+.morph{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.morph .pdf{display:flex;flex-direction:column;gap:8px;background:rgba(7,11,22,.6);border:1px solid rgba(255,93,122,.35);border-radius:10px;padding:10px;height:132px;overflow:hidden;min-width:0}
+.morph .pdf-tag{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--hot);border:1px solid rgba(255,93,122,.5);border-radius:99px;padding:2px 8px;text-transform:uppercase}
+.morph .pdf-txt{font-family:var(--mono);font-size:9.5px;line-height:1.4;color:#5d6b89;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+.morph .arr{font-family:var(--display);color:var(--holo);font-size:22px;text-shadow:0 0 14px rgba(111,230,255,.5)}
+.morph pre{min-width:0;margin:0;font-family:var(--mono);font-size:10.5px;line-height:1.45;color:var(--fg);background:rgba(111,230,255,.06);border:1px solid rgba(111,230,255,.4);border-radius:10px;padding:10px;height:132px;overflow:hidden;white-space:pre}
+.morph pre b{color:var(--holo);font-weight:600}.morph pre i{color:var(--warm);font-style:normal}
+/* разрыв США */
+.gap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.gap div{background:rgba(7,11,22,.6);border:1px solid var(--line);border-radius:12px;padding:12px 10px;text-align:center;min-width:0}
+.gap b{display:block;font-family:var(--display);font-size:clamp(24px,6vw,34px);line-height:1.05;font-variant-numeric:tabular-nums}
+.gap span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin-top:5px;line-height:1.35}
+.gap .avg b{color:var(--hot)}.gap .best b{color:var(--up);text-shadow:0 0 18px rgba(79,216,164,.35)}.gap .cap b{color:var(--dim)}
+.bar2{height:8px;border-radius:99px;background:#121c33;margin-top:12px;position:relative;overflow:hidden}
+.bar2 i{position:absolute;top:0;bottom:0;left:0;border-radius:99px}
+.gapline{font-size:13.5px;line-height:1.5;margin:12px 0 0}
+.gapline b{color:var(--warm)}
+/* фильтры */
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 12px;cursor:pointer}
+.tabs button[aria-pressed="true"]{color:var(--bg);background:var(--holo);border-color:var(--holo)}
+/* карточки тарифов */
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:680px){.grid{grid-template-columns:1fr 1fr}}
+.t{display:flex;flex-direction:column;gap:10px}
+.t-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.t-head small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.06em;margin-top:3px}
+.big{text-align:right;white-space:nowrap}
+.big b{font-family:var(--display);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.big span{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+.big.free b{color:var(--up)}.big.fee b{color:var(--warm)}.big.rate b{color:var(--holo)}.big.na b{color:var(--dim)}
+.cond{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:12.5px;line-height:1.4;color:var(--fg)}
+.cond li{padding-left:16px;position:relative}
+.cond li::before{content:"";position:absolute;left:3px;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--c,var(--up))}
+.kv{display:flex;flex-wrap:wrap;gap:6px}
+.kv span{font-family:var(--mono);font-size:11px;background:rgba(7,11,22,.6);border:1px solid var(--line);border-radius:8px;padding:4px 8px;color:var(--dim)}
+.kv span b{color:var(--fg);font-weight:600}
+.promo{font-size:12.5px;border-left:3px solid var(--warm);padding:4px 0 4px 10px;line-height:1.45}
+.promo b{color:var(--warm)}
+.t-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.st{padding:2px 8px;border-radius:99px;border:1px solid currentColor;letter-spacing:.08em}
+.st.ok{color:var(--up)}.st.check{color:var(--warm)}.st.blocked{color:var(--hot)}.st.stale{color:var(--dim)}
+.t.blocked{opacity:.78;border-style:dashed}
+.flag{font-size:15px;margin-right:4px}
+/* как работает мостик */
+.flow{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:f}
+.flow li{display:grid;grid-template-columns:30px 1fr;gap:10px;padding:9px 0;font-size:13.5px;line-height:1.45;counter-increment:f}
+.flow li::before{content:counter(f);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:600 12px var(--mono);color:var(--holo);border:1px solid rgba(111,230,255,.5);background:rgba(111,230,255,.06)}
+.flow li+li{border-top:1px solid var(--line)}
+.flow small{color:var(--dim)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.changes{font-size:13px;color:var(--dim);margin:0}
+.author{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.45}
+.author .lg{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(111,230,255,.10);border:1px solid rgba(111,230,255,.45);color:var(--holo);font:700 15px var(--mono)}
+.author small{color:var(--dim)}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+@media(max-width:520px){.morph{grid-template-columns:1fr;gap:6px}.morph .arr{transform:rotate(90deg);justify-self:center;line-height:1}.morph .pdf{height:auto}.morph .pdf-txt{max-height:4.2em;font-size:10px}.morph pre{height:auto;font-size:11.5px}}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tariffs">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tariffs">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tariffs">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tariffs">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality">Quality 🔬</a><a href="/tariffs" class="on" aria-current="page">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tariffs" hreflang="ru" lang="ru">RU</a><a href="/de/tariffs" hreflang="de" lang="de">DE</a><a href="/en/tariffs" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · radar · household budget</div>
+    <h1>🏦 BANK TARIFFS · MACHINE-READABLE</h1>
+  </div>
+  <p class="lead">Account fees, deposit rates and loan terms are hidden by banks in PDFs and small print. Ready-made cards of the kind <code>{"rate":3.5,"fee":0}</code> hardly exist, so neither a person nor an AI agent can honestly compare offers. Here is the bridge: we read the official documents of banks in Germany and the US ourselves and publish them as clean cards with a source and a check date.</p>
+
+  <div class="card" aria-label="From PDF to JSON">
+    <div class="morph">
+      <div class="pdf" aria-hidden="true"><span class="pdf-tag">PDF · small print</span><div class="pdf-txt">Entgeltinformation · Name des Kontoanbieters: ING-DiBa AG · Kontobezeichnung: Girokonto · Datum: 15.10.2026 · Hiermit informieren wir Sie über die Entgelte, die bei Nutzung der wichtigsten mit dem Zahlungskonto verbundenen Dienste anfallen … Kontoführung bei einem mtl. Geldeingang¹ von mind. 1.000 Euro oder für Kontoinhaber unter 28 Jahren monatlich 0 Euro · Sonst monatlich 4,90 Euro · Jährliche Gesamtentgelte 58,80 Euro · Ausgabe einer Debitkarte [girocard] 1,49 Euro monatlich · Fremdwährungsentgelt 2,20 % · Sollzinssatz für eingeräumte Kontoüberziehung 9,39 % p.a. …</div></div>
+      <div class="arr" aria-hidden="true">→</div>
+<pre>{
+ <b>"bank"</b>: "ING",
+ <b>"fee_monthly"</b>: <i>4.9</i>,
+ <b>"waived_if"</b>: ["≥1000 € in",
+               "under 28"],
+ <b>"girocard"</b>: <i>1.49</i>,
+ <b>"fx_fee_pct"</b>: <i>2.2</i>,
+ <b>"overdraft"</b>: <i>9.39</i>,
+ <b>"checked_at"</b>: "2026-11-02"
+}</pre>
+    </div>
+  </div>
+
+  <h2>🇺🇸 GAP OF THE DAY · SAVINGS IN THE US</h2>
+  <div class="card" id="gapCard">
+    <div class="gap">
+      <div class="avg"><b id="gAvg">0,38%</b><span>average rate<br>of all banks (FDIC)</span></div>
+      <div class="best"><b id="gBest">3,20%</b><span id="gBestN">best of<br>tracked · Ally</span></div>
+      <div class="cap"><b id="gCap">4,63%</b><span>FDIC cap<br>for savings</span></div>
+    </div>
+    <div class="bar2" aria-hidden="true"><i id="bCap" style="width:100%;background:#1f2c4a"></i><i id="bBest" style="width:69%;background:linear-gradient(90deg,var(--up),#9ff0cf)"></i><i id="bAvg" style="width:8%;background:var(--hot)"></i></div>
+    <p class="gapline" id="gLine">At the average rate, 10,000 $ earns about <b>38 $</b> a year, at the best tracked bank about <b>320 $</b>. The difference is more than 8 times – only because of where the money is kept.</p>
+    <p class="agentline" id="gSrc" style="margin-top:8px">FDIC National Rates and Rate Caps via FRED · data for 10.2026 · updated automatically</p>
+  </div>
+
+  <h2>CARDS</h2>
+  <div class="tabs" role="group" aria-label="Filter">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="DE" aria-pressed="false">🇩🇪 Germany</button>
+    <button type="button" data-f="US" aria-pressed="false">🇺🇸 US</button>
+    <button type="button" data-f="checking" aria-pressed="false">Accounts</button>
+    <button type="button" data-f="savings" aria-pressed="false">Deposits</button>
+  </div>
+  <div class="legend"><span><span class="st ok">OK</span> checked in this run</span><span><span class="st check">CHECK</span> the source has no date</span><span><span class="st blocked">BLOCKED</span> the bank has blocked the document for bots</span></div>
+  <div class="grid" id="grid"><p class="lead">Loading cards…</p></div>
+
+  <h2>CHANGE LOG</h2>
+  <div class="card"><p class="changes" id="changes">First run on 02.11.2026. With every further check, changes will appear here: who raised a fee, cut a rate or ended a promotion.</p></div>
+
+  <h2>HOW THE BRIDGE WORKS</h2>
+  <div class="card">
+    <ol class="flow">
+      <li><span><b>Once a week – automatically.</b><br><small>Claude opens the banks’ official documents itself: in Germany the Entgeltinformation that banks must publish under the payment accounts act (ZKG), in the US the fee schedule and rate pages.</small></span></li>
+      <li><span><b>Official domains only.</b><br><small>Copies on other sites are often out of date (for example an ING price list from 2020 with a 700 € threshold), so we do not use them.</small></span></li>
+      <li><span><b>No certainty – no number.</b><br><small>If a document does not open or the figures look odd, the card keeps the previous value and gets a status instead of a guess.</small></span></li>
+      <li><span><b>US average rate – every 12 hours.</b><br><small>The FDIC series (SNDR, SNRC) are fetched by the Orb Studio server itself, without human involvement.</small></span></li>
+    </ol>
+  </div>
+
+  <p class="lead" style="font-size:12.5px">Information, not financial advice. Bank terms change; check them with the bank via the “source” link before opening an account.</p>
+
+  <div class="author">
+    <div class="lg" aria-hidden="true">7</div>
+    <div><b>Whose bridge:</b> Serghei Farima, author of Orb Studio – Google Maps Local Guide level 7. The data is collected by the AI agent Claude.<br><small><a href="https://www.google.com/maps/contrib/100791061408284352186" target="_blank" rel="me noopener">Profile on Google Maps ↗</a> · <a href="/prices">Hamburg prices →</a></small></div>
+  </div>
+
+<aside class="krb" aria-label="Kraken – Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>Comparing bank rates? Bitcoin for euros is on <b>Kraken</b></h3>
+    <p class="krb-sub">Kraken crypto exchange: buy bitcoin with euros, Kraken Pro for active trading, staking. Orb Studio’s crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=tariffs" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. Kraken may give new customers a bonus if the exchange’s conditions are met; the bonus is not guaranteed, terms at kraken.com. Not investment advice. Crypto assets are volatile; you may lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Counting every euro? Have a look at the internet plans too <b>STARLINK</b> for home</h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a power socket</span></li>
+      <li><b>home and travel</b><span>choice of plans</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=tariffs" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
+  </aside>
+<style>
+.klb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(255,168,205,.45);background:radial-gradient(110% 100% at 100% 0%,rgba(255,168,205,.20),transparent 60%),#0d0a12}
+.klb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#ffb8d6;text-transform:uppercase}
+.klb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;text-wrap:balance;color:#fff}
+.klb h3 b{color:#ffc4de;letter-spacing:.04em}
+.klb-sub{color:#b9aebd;font-size:13.5px;margin:0;max-width:62ch}
+.klb-go{display:inline-flex;align-items:center;gap:8px;margin-top:14px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:14px;color:#17111c;background:#ffa8cd;border-radius:10px;padding:10px 16px}
+.klb-go:hover,.klb-go:focus-visible{filter:brightness(1.06);outline:2px solid #fff;outline-offset:2px}
+.klb-note{color:#8f8594;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:70ch}
+</style>
+  <aside class="klb" aria-label="Klarna – Orb Studio referral link">
+    <div class="klb-eye">Orb Studio partner · referral link</div>
+    <h3>Counting payments and plans? Instalments are available via <b>Klarna</b></h3>
+    <p class="klb-sub">Klarna is a payment service: pay later or in instalments, in shops and online. On Klarna’s invitation a new participant may be offered a bonus: the amount and terms are set by Klarna itself and depend on the region.</p>
+    <a class="klb-go" href="/go/klarna?from=tariffs" target="_blank" rel="sponsored noopener">Open the Klarna invitation ↗</a>
+    <p class="klb-note">Referral link: Orb Studio may receive a reward. The bonus terms and their changes are on Klarna’s side.</p>
+  </aside>
+
+  
+  <p class="agentline">🤖 For agents: all cards as JSON → <a href="/api/v1/tariffs">/api/v1/tariffs</a> · raw data <a href="/data/tariffs.json">/data/tariffs.json</a> · MCP <b>get_tariffs</b> (country: DE|US, product: checking|savings) at <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <section class="machine" style="font-size:12.5px;color:var(--dim)"><h2 style="font-size:13px">RADAR TEXT · FOR HUMANS AND AI AGENTS</h2><p id="machineText">Bank tariffs, checked 09.11.2026. Germany: ING Girokonto 4.90 €/month, free with deposits from 1,000 € or up to age 28, girocard 1.49 €/month, overdraft 9.39%; comdirect Girokonto 4.90 €/month, free with 700 € deposits or 3 Apple/Google Pay payments (document did not open, figures from the last check); Haspa HaspaJoker 9.95 €/month fixed; ING Tagesgeld 3.75% for 4 months for new customers (4.00% with a Girokonto), then 0.75%; Trade Republic 2.5% on the balance. Sparkasse Harburg-Buxtehude giro best 9.90 €/month (0 € for ages 18–24, 50% for 25–29), overdraft 11.66%; Commerzbank GiroKonto 4.90 €/month, free with assets from 50,000 €, overdraft 11.90% (not updated); C24 Smartkonto 0 €, 4 free withdrawals a month, overdraft up to 11.49%; N26 Standard 0 € (terms undated – “check”); Hamburger Volksbank Große Freiheit PrivatKonto 10.95 €/month (7.95 € for cooperative members, not updated). DKB: document closed to bots. US: average FDIC savings rate 0.38% (10.2026), cap 4.63%; Ally Online Savings 3.20% APY (05.11.2026); Chase Total Checking 15 $/month, waived with 500 $ deposits; Bank of America Advantage Plus 12 $/month, waived with pay from 250 $; Wells Fargo Everyday Checking 15 $/month, waived with 500 $ deposits or a balance from 1,500 $; Capital One 360 Performance Savings – the rate could not be read, status “check”. Sources are in the JSON.</p></section>
+</div>
+<script id="seed" type="application/json">null</script>
+<script>
+(function(){
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const num=(v,d=2)=>Number(v).toLocaleString('en-GB',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const money=(v,cur)=>cur==='USD'?num(v,v%1?2:0)+' $':num(v,2)+' €';
+  const dt=s=>{if(!s)return'—';const m=String(s).match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);return m?(m[3]?m[3]+'.':'')+m[2]+'.'+m[1]:esc(s)};
+  const flag={DE:'🇩🇪',US:'🇺🇸'};
+  const stTxt={ok:'OK',check:'CHECK',blocked:'BLOCKED',stale:'NOT UPDATED'};
+  const ru={'monthly incoming payments of at least 1,000 EUR':'deposits from 1,000 € per month','account holder under 28':'holder under 28','700 EUR monthly incoming payments':'deposits from 700 € per month','3 payments per month via Apple Pay or Google Pay':'3 payments a month via Apple Pay / Google Pay','1 securities trade or savings-plan execution per month':'1 trade or savings-plan execution per month','under 28 and in education':'under 28 and studying','$500+ in qualifying electronic deposits per statement period':'from 500 $ electronic deposits','$1,500+ balance at the beginning of each day':'balance from 1,500 $ every day','$5,000+ average beginning-day balance incl. linked deposits/investments':'average balance from 5,000 $ together with linked accounts','linked to a qualifying Chase checking account':'linked to another Chase account','one qualifying direct deposit of $250+':'salary / direct deposit from 250 $','$1,500+ minimum daily balance':'minimum balance from 1,500 $','BofA Rewards Preferred Plus tier or higher':'BofA Rewards Preferred Plus status and above','New customers only: no Extra-Konto at ING in the last 12 months':'new customers only (no Extra-Konto for 12 months)','3.75% if opened together with a Girokonto':'3.75% when opened together with a Girokonto','0.75% variable after 4 months and above 250,000 EUR':'after 4 months and above 250,000 € – 0.75%','Advertised on unlimited cash':'on the whole balance without a limit','Page gives no date for the rate':'the page shows no rate date','No minimum balance to open or earn APY':'no minimum balance','account holder aged 18-24':'holder aged 18–24','50% (4.95 EUR/month) for account holders aged 25-29':'50% (4.95 €/month) for ages 25–29','assets of 50,000 EUR or more at Commerzbank in the calendar month':'assets at Commerzbank from 50,000 € per month','7.95 EUR/month for members (shareholders)':'7.95 €/month for cooperative members','Further discount in the house-bank model depending on other products used; the bank can change or end it without notice':'additional discount in the “house bank” model for other products; the bank may cancel it without notice','$500+ in qualifying electronic deposits per fee period':'from 500 $ electronic deposits','$1,500+ minimum daily balance':'minimum balance from 1,500 $','primary owner aged 17-24':'holder aged 17–24','$5,000+ in linked deposit or investment balances':'from 5,000 $ on linked accounts and investments','No minimum balance':'no minimum balance','Rates effective 2026-10-30 per the page, but the APY figure loads by script and could not be read':'rate on the page from 30.10.2026, but the figure is loaded by a script and could not be read','Free account with a virtual card; a physical debit card costs 10 EUR once':'account free with a virtual card; plastic card – 10 € one-off','No full waiver: the lowest price for adults is 7.95 EUR/month for members':'there is no free option for adults: at least 7.95 €/month for cooperative members','Sparkassen-Card included in the package':'Sparkassen-Card is included in the package','Girocard with Visa function free; 2nd card 10 EUR/year':'girocard with Visa function free; second card 10 €/year','4 free cash withdrawals per month (ATM or viacash), then 2.00 EUR':'4 free withdrawals a month, then 2 €'};
+  const T=s=>ru[s]||s;
+  let DATA=null,F='all';
+  function card(c){
+    const cur=c.currency;let big='';
+    if(c.status==='blocked')big='<div class="big na"><b>?</b><span>no verified figure</span></div>';
+    else if(c.product==='savings'&&c.rate==null)big='<div class="big na"><b>?</b><span>the rate could not be read</span></div>';
+    else if(c.product==='savings')big=`<div class="big rate"><b>${num(c.rate)}%</b><span>${c.rate_type==='promo'?'promotion':'per year'}</span></div>`;
+    else if(c.fee_monthly===0)big='<div class="big free"><b>0</b><span>per month</span></div>';
+    else if(c.fee_monthly!=null)big=`<div class="big fee"><b>${money(c.fee_monthly,cur)}</b><span>per month${(c.fee_monthly_waived_if||[]).length?' · or 0':''}</span></div>`;
+    let body='';
+    const w=c.fee_monthly_waived_if||[];
+    if(c.product==='checking'&&w.length)body+=`<div><div class="eyebrow" style="font-size:10px">free if one of the following applies:</div><ul class="cond">${w.map(x=>'<li>'+esc(T(x))+'</li>').join('')}</ul></div>`;
+    if(c.product==='savings'&&c.rate_type==='promo')body+=`<div class="promo">Promotion <b>${num(c.rate)}%</b> for ${c.promo_months} mo.${c.promo_max_amount?' up to '+Number(c.promo_max_amount).toLocaleString('en-GB')+' €':''} → then <b>${num(c.rate_after_promo)}%</b>. This is exactly where banks hide the catch.</div>`;
+    if((c.discounts||[]).length)body+=`<div><div class="eyebrow" style="font-size:10px">discounts</div><ul class="cond" style="--c:var(--warm)">${c.discounts.map(x=>'<li>'+esc(T(x))+'</li>').join('')}</ul></div>`;
+    if(c.product==='savings'&&(c.conditions||[]).length)body+=`<ul class="cond" style="--c:var(--warm)">${c.conditions.map(x=>'<li>'+esc(T(x))+'</li>').join('')}</ul>`;
+    const kv=[];
+    if(c.cards){if(c.cards.visa_debit_monthly!=null)kv.push(['Visa Debit',money(c.cards.visa_debit_monthly,cur)+'/month']);if(c.cards.girocard_monthly!=null)kv.push(['girocard',money(c.cards.girocard_monthly,cur)+'/month'])}
+    if(c.fx_fee_pct!=null)kv.push(['currency',num(c.fx_fee_pct)+'%']);
+    if(c.overdraft_rate!=null)kv.push(['Dispo',num(c.overdraft_rate)+'%']);
+    if(c.overdraft_fee!=null)kv.push(['overdraft',money(c.overdraft_fee,cur)]);
+    if(c.atm&&c.atm.non_bofa_us)kv.push(['other bank’s ATM',esc(c.atm.non_bofa_us)]);
+    if(c.deposit_insurance)kv.push(['insurance',esc(c.deposit_insurance.replace('statutory','by law'))]);
+    if(kv.length)body+=`<div class="kv">${kv.map(([k,v])=>`<span>${k} <b>${v}</b></span>`).join('')}</div>`;
+    if(c.status==='blocked'||(c.product==='checking'&&!w.length&&c.notes))body+=`<p class="lead" style="font-size:12.5px">${esc(T((c.notes||[])[0]||''))}</p>`;
+    const kind=c.product==='savings'?'deposit':'account';
+    return `<article class="card t ${c.status}" data-c="${c.country}" data-p="${c.product}">
+      <div class="t-head"><div><h3><span class="flag">${flag[c.country]||''}</span>${esc(c.bank)}</h3><small>${esc(c.name)} · ${kind}${c.doc_date?' · document '+dt(c.doc_date):''}</small></div>${big}</div>
+      ${body}
+      <div class="t-foot"><span>checked ${dt(c.checked_at)} · <a href="${esc(c.source_url)}" target="_blank" rel="noopener nofollow">source ${c.source_type==='pdf'?'PDF':''} ↗</a></span><span class="st ${c.status}">${stTxt[c.status]||c.status}</span></div>
+    </article>`;
+  }
+  function render(){
+    const g=document.getElementById('grid');
+    const list=DATA.cards.filter(c=>F==='all'||c.country===F||c.product===F);
+    g.innerHTML=list.map(card).join('')||'<p class="lead">No cards.</p>';
+  }
+  function gap(d){
+    const us=d.baseline&&d.baseline.us;if(!us)return;
+    const s=us.series||{},avg=s.SNDR&&s.SNDR.value,cap=s.SNRC&&s.SNRC.value;
+    const best=(us.gap&&us.gap.best_tracked)||(()=>{const b=d.cards.filter(c=>c.country==='US'&&c.product==='savings'&&c.status==='ok').sort((a,b)=>b.rate-a.rate)[0];return b?{bank:b.bank,rate:b.rate}:null})();
+    if(avg!=null)document.getElementById('gAvg').textContent=num(avg)+'%';
+    if(cap!=null)document.getElementById('gCap').textContent=num(cap)+'%';
+    if(best){document.getElementById('gBest').textContent=num(best.rate)+'%';document.getElementById('gBestN').innerHTML='best of<br>tracked · '+esc(best.bank)}
+    if(avg!=null&&cap&&best){
+      document.getElementById('bAvg').style.width=Math.max(2,avg/cap*100)+'%';
+      document.getElementById('bBest').style.width=Math.min(100,best.rate/cap*100)+'%';
+      const x=Math.round(best.rate/avg);
+      document.getElementById('gLine').innerHTML=`At the average rate, 10,000 $ earns about <b>${Math.round(avg*100)} $</b> a year, at the best tracked bank about <b>${Math.round(best.rate*100)} $</b>. The difference is more than ${x} times – only because of where the money is kept.`;
+    }
+    if(s.SNDR&&s.SNDR.date)document.getElementById('gSrc').textContent='FDIC National Rates and Rate Caps via FRED · data for '+dt(s.SNDR.date).replace(/^01\./,'')+(s.SNDR.live?' · just now from FRED':'')+' · updated automatically';
+  }
+  function changes(d){
+    const ch=d.changes||[];if(!ch.length)return;
+    document.getElementById('changes').innerHTML=ch.slice(0,12).map(x=>`<span style="display:block;padding:4px 0;border-bottom:1px solid var(--line)"><b style="color:var(--fg)">${dt(x.date)}</b> · ${esc(x.bank)} · ${esc(x.text_ru||x.text)}</span>`).join('');
+  }
+  function use(d){if(!d||!d.cards)return false;DATA=d;render();gap(d);changes(d);return true}
+  let seedOk=false;try{seedOk=use(JSON.parse(document.getElementById('seed').textContent))}catch(e){}
+  fetch('/api/v1/tariffs').then(r=>r.ok?r.json():null).then(d=>{if(!use(d))return fetch('/data/tariffs.json').then(r=>r.ok?r.json():null).then(use)}).catch(()=>{});
+  document.querySelector('.tabs').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b||!DATA)return;F=b.dataset.f;
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));render();
+  });
+})();
+</script>
+<script>
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+
+
+</script>
+<script>
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_tariffs')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=tariffs'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"tariffs"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_tariffs','1')}catch(e){}document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('en-GB');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+<section class="orb-geo" style="max-width:860px;margin:32px auto;padding:0 16px;color:#8b9bb8;font:14px/1.55 system-ui,sans-serif"><h2 style="font-size:15px;color:#c8d6ee;margin:0 0 8px">About this page in brief · updated 2026-11-08</h2><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Where do the bank tariffs on the page come from?</h3><p style="margin:0">From official bank documents (Germany: Entgeltinformation/ZKG; US: fee schedules) plus the average FDIC rate. Every card has a status, a check date and a link to the source.</p><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">What does the status blocked or check mean?</h3><p style="margin:0">“check” – the source gives no date; “blocked” – the bank blocks the document from automatic reading and the figure is not published.</p><p style="margin:12px 0 0"><a href="/about" style="color:#5fe3ff">About Orb Studio: what exists and what does not</a> · <a href="/llms.txt" style="color:#5fe3ff">llms.txt</a></p></section>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Тарифы банков · Orb Studio","url":"https://orbstudio.org/tariffs","dateModified":"2026-11-08","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"Orb Studio","url":"https://orbstudio.org/"},"author":{"@type":"Person","name":"Serghei Farima","url":"https://orbstudio.org/about"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Откуда берутся тарифы банков на странице?","acceptedAnswer":{"@type":"Answer","text":"Из официальных документов банков (Германия: Entgeltinformation/ZKG; США: fee schedules) плюс средняя ставка FDIC. У каждой карточки есть статус, дата проверки и ссылка на источник."}},{"@type":"Question","name":"Что значит статус blocked или check?","acceptedAnswer":{"@type":"Answer","text":"«check» — источник не указывает дату; «blocked» — банк закрывает документ от автоматического чтения, и число не публикуется."}}]}]}</script>
+</body>
+</html>

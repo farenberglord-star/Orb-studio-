@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quality · Price · Lidl – rating of the basic basket products · Orb Studio</title>
+<meta name="description" content="An Orb Studio column: a personal check of the basic basket products from Lidl Hamburg – potatoes, onions, bread, pelmeni, butter, milk. Shelf life, manufacturer, the cut, customer reviews and the price from a real receipt.">
+<link rel="canonical" href="https://orbstudio.org/en/quality">
+<meta property="og:url" content="https://orbstudio.org/en/quality">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Quality · Price · Lidl – basket check">
+<link rel="alternate" type="application/json" href="/api/v1/receipts" title="Lidl receipts Hamburg (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+h3{font-family:var(--display);margin:0;letter-spacing:.04em}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.card{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.card>*{position:relative}
+/* шкала корзины */
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:620px){.shelf{grid-template-columns:repeat(6,1fr)}}
+.item{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+.item .em{font-size:26px;line-height:1}
+.item .nm{font-family:var(--display);font-size:13px;letter-spacing:.04em}
+.item .st{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+.item.done{border-color:color-mix(in srgb,var(--warm) 55%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--warm) 20%,transparent) inset}
+.item.done .st{color:var(--warm)}
+/* карточка обзора */
+.rv-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.rv-title small{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.06em;margin-top:4px}
+.score{text-align:right}
+.score b{font-family:var(--display);font-size:38px;color:var(--warm);text-shadow:0 0 18px rgba(255,181,71,.35);line-height:1}
+.score span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+.meters{display:grid;gap:9px;margin:14px 0 4px}
+.m{display:grid;grid-template-columns:118px 1fr 44px;gap:10px;align-items:center;font-size:13px}
+.m .bar{height:7px;background:#121c33;border-radius:99px;overflow:hidden}
+.m .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--c),color-mix(in srgb,var(--c) 60%,#fff))}
+.m b{font-family:var(--mono);font-size:12px;text-align:right;color:var(--c)}
+.facts{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+@media(min-width:620px){.facts{grid-template-columns:1fr 1fr}}
+.fact{background:rgba(7,11,22,.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45}
+.fact .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:3px}
+.fact.ok .k{color:var(--up)}.fact.warn .k{color:var(--warm)}.fact.bad .k{color:var(--hot)}
+.cut{display:flex;gap:12px;align-items:center;border:1px dashed rgba(111,230,255,.45);border-radius:12px;padding:12px;margin-top:12px;font-size:13px;color:var(--dim)}
+.cut .ph{flex:none;width:64px;height:64px;border-radius:10px;display:grid;place-items:center;background:rgba(111,230,255,.06);font-size:26px}
+.cutph{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.cutph figure{margin:0}
+.cutph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block}
+.cutph figcaption{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:4px;letter-spacing:.06em}
+.quote{margin:12px 0 0;padding:12px 14px;background:rgba(79,216,164,.07);border:1px solid rgba(79,216,164,.35);border-radius:12px}
+.quote p{margin:0;font-size:14.5px;line-height:1.5}
+.quote cite{display:block;margin-top:6px;font-style:normal;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.verdict{margin-top:12px;font-size:14px;line-height:1.5;border-left:3px solid var(--warm);padding-left:12px}
+.chain{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.chain li{display:grid;grid-template-columns:26px 1fr;gap:10px;padding:8px 0;font-size:13.5px;line-height:1.45}
+.chain .dot{width:14px;height:14px;border-radius:50%;margin:3px 6px;border:2px solid var(--c);background:color-mix(in srgb,var(--c) 25%,transparent)}
+.chain li+li{border-top:1px solid var(--line)}
+.chain small{color:var(--dim)}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:2px 7px;border-radius:99px;border:1px solid currentColor;margin-left:6px;vertical-align:1px}
+.tag.ok{color:var(--up)}.tag.hyp{color:var(--warm)}.tag.unk{color:var(--dim)}
+.next{display:grid;gap:8px}
+.next .card{display:flex;gap:12px;align-items:center;padding:12px 14px}
+.next .em{font-size:24px}
+.next b{font-family:var(--display);letter-spacing:.04em}
+.next small{display:block;color:var(--dim);font-size:12.5px;margin-top:2px}
+.next .pr{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--dim);white-space:nowrap}
+.author{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.45}
+.author .lg{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:rgba(255,181,71,.12);border:1px solid rgba(255,181,71,.45);color:var(--warm);font:700 15px var(--mono)}
+.author small{color:var(--dim)}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/quality">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/quality">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/quality">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/quality">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality" class="on" aria-current="page">Quality 🔬</a><a href="/tariffs">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/quality" hreflang="ru" lang="ru">RU</a><a href="/de/quality" hreflang="de" lang="de">DE</a><a href="/en/quality" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · column · Lidl Hamburg</div>
+    <h1>🔬 QUALITY · PRICE · LIDL</h1>
+  </div>
+  <p class="lead">We check what really lies in every family’s basket: potatoes, onions, bread, pelmeni, butter, milk, canned goods. Shelf life, who actually makes it, the cut, customer reviews and the price from a real receipt. No advertising and no leaflets – every pack was held in the hand.</p>
+
+  <h2>BASIC BASKET</h2>
+  <nav class="shelf" aria-label="Products of the column">
+    <a class="item" href="#next"><span class="em">🥔</span><span class="nm">Potatoes</span><span class="st">awaiting its check</span></a>
+    <a class="item" href="#next"><span class="em">🧅</span><span class="nm">Onions</span><span class="st">awaiting its check</span></a>
+    <a class="item done" href="#toast"><span class="em">🍞</span><span class="nm">Bread</span><span class="st">4,3 · №2</span></a>
+    <a class="item done" href="#pelmeni"><span class="em">🥟</span><span class="nm">Pelmeni</span><span class="st">3,5 · №1</span></a>
+    <a class="item" href="#next"><span class="em">🧈</span><span class="nm">Butter</span><span class="st">awaiting its check</span></a>
+    <a class="item" href="#next"><span class="em">🥛</span><span class="nm">Milk</span><span class="st">awaiting its check</span></a>
+    <a class="item done" href="#peas"><span class="em">🫛</span><span class="nm">Peas</span><span class="st">4,3 · №3</span></a>
+  </nav>
+
+  <h2 id="peas">ISSUE NO. 3 · PEAS</h2>
+  <article class="card">
+    <div class="rv-head">
+      <div class="rv-title">
+        <h3>Freshona Junge Erbsen sehr fein · 400 g</h3>
+        <small>canned young peas · Lidl own brand · 05.11.2026 · Lidl Hausbruch</small>
+      </div>
+      <div class="score"><b>4,3</b><span>out of 5 · Orb Studio</span></div>
+    </div>
+
+    <div class="meters">
+      <div class="m" style="--c:var(--up)"><span>Ingredients</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Shelf life</span><span class="bar"><i style="width:100%"></i></span><b>5/5</b></div>
+      <div class="m" style="--c:var(--holo)"><span>Price</span><span class="bar"><i style="width:90%"></i></span><b>4,5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Share of peas</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+      <div class="m" style="--c:var(--warm)"><span>View in the jar</span><span class="bar"><i style="width:70%"></i></span><b>3,5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Taste (tasting)</span><span class="bar"><i style="width:100%"></i></span><b>5/5</b></div>
+    </div>
+
+    <div class="facts">
+      <div class="fact ok"><span class="k">✓ Ingredients</span>Peas, water, sugar, salt. No colourings or thickeners.</div>
+      <div class="fact ok"><span class="k">✓ Shelf life</span>until <b>24.06.2030</b>, batch <b>L2660BB 3B</b> (on the lid) – more than 4.5 years of stock. After opening, keep in a non-metal container in the fridge and eat within 2 days.</div>
+      <div class="fact ok"><span class="k">✓ Production</span>Poland: <b>Dawtona Sp. z o.o.</b>, ul. Bieniewicka 52, Błonie near Warsaw – the address on the jar matches Dawtona’s official address.</div>
+      <div class="fact ok"><span class="k">✓ Price from receipts</span>0.85 € (0.89 € in July, −4.5%). Per kg: 2.13 € gross, <b>3.04 € per kg of peas</b> without liquid.</div>
+      <div class="fact warn"><span class="k">! How many peas</span>Net 400 g, peas after draining 280 g – 70%, the rest is liquid. Enough for about 2.8 portions of 100 g.</div>
+      <div class="fact ok"><span class="k">✓ Per 100 g of peas</span>89 kcal · protein <b>7.0 g</b> · fibre <b>7.4 g</b> · carbohydrates 9.5 g, sugar 1.0 g · fat 1.0 g · salt 0.52 g.</div>
+      <div class="fact warn"><span class="k">! In the jar</span>The peas are olive green – the natural colour of canned peas without colourings. The size is mostly even, but for “sehr fein” some large ones turn up. No burst peas or skins are visible on top, the liquid is clear.</div>
+    </div>
+
+    <div class="cutph">
+      <figure><img src="/media/peas-open.jpg" alt="Opened can of Freshona peas: peas in clear liquid" loading="lazy"><figcaption>Opened can</figcaption></figure>
+      <figure><img src="/media/peas-lid.jpg" alt="Can lid: best before 24.06.2030, batch L2660BB 3B" loading="lazy"><figcaption>Shelf life and batch on the lid</figcaption></figure>
+      <figure><img src="/media/peas-ingredients.jpg" alt="Ingredients of the Freshona peas and the manufacturer’s address" loading="lazy"><figcaption>Ingredients, weight, manufacturer</figcaption></figure>
+      <figure><img src="/media/peas-nutrition.jpg" alt="Nutrition of Freshona peas per 100 g" loading="lazy"><figcaption>Nutrition</figcaption></figure>
+    </div>
+    <blockquote class="quote"><p>“The peas are excellent.”</p><cite>— Serghei Farima, author of Orb Studio · batch L2660BB 3B · 05.11.2026</cite></blockquote>
+    <p class="verdict"><b>Verdict:</b> a simple, honest can – peas, water, sugar and salt, no colourings, 70% peas, plenty of protein and fibre, good until summer 2030. Made in Poland at Dawtona. The taste is excellent, and the price has even dropped a little since summer. The only minus: for “sehr fein” some large peas turn up.</p>
+  </article>
+
+  <h2 id="toast">ISSUE NO. 2 · BREAD</h2>
+  <article class="card">
+    <div class="rv-head">
+      <div class="rv-title">
+        <h3>Grafschafter Vollkorn Toast · 500 g</h3>
+        <small>wholegrain toast · Lidl own brand · 05.11.2026 · Lidl Hausbruch and Buxtehude</small>
+      </div>
+      <div class="score"><b>4,3</b><span>out of 5 · preliminary</span></div>
+    </div>
+
+    <div class="meters">
+      <div class="m" style="--c:var(--up)"><span>Ingredients and fibre</span><span class="bar"><i style="width:90%"></i></span><b>4,5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Stiftung Warentest</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+      <div class="m" style="--c:var(--holo)"><span>Price</span><span class="bar"><i style="width:100%"></i></span><b>5/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Price stable</span><span class="bar"><i style="width:100%"></i></span><b>5/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Crumb (slice)</span><span class="bar"><i style="width:90%"></i></span><b>4,5</b></div>
+      <div class="m" style="--c:var(--warm)"><span>Shelf life and batch</span><span class="bar"><i style="width:60%"></i></span><b>3/5</b></div>
+      <div class="m" style="--c:var(--dim)"><span>Taste (tasting)</span><span class="bar"><i style="width:0%"></i></span><b>soon</b></div>
+    </div>
+
+    <div class="facts">
+      <div class="fact ok"><span class="k">✓ Price from receipts</span>0.89 € for 500 g – 1.78 € per kg. The same price on 3 November (Buxtehude) and 5 November (Hausbruch).</div>
+      <div class="fact ok"><span class="k">✓ Composition per 100 g</span>250 kcal · fibre <b>6.0 g</b> · protein 8.5 g · fat 4.0 g (saturated 0.4) · carbohydrates 42 g, sugar 3.2 g · salt 1.0 g. One 25 g slice = 67 kcal, 20 slices in the pack.</div>
+      <div class="fact ok"><span class="k">✓ Stiftung Warentest</span>“GUT (2.3)”, issue 5/2025: 24 toasts tested, wholegrain best for nutrition, acrylamide normal in all.</div>
+      <div class="fact warn"><span class="k">! But the test covers a different batch</span>A pack with a best-before date of 12.11.2024 was tested. Our batch has the code <b>2023 1637</b> on the seam of the pack. That is why we check ourselves.</div>
+      <div class="fact warn"><span class="k">! Who bakes it</span>On the bag: “Back…der GmbH, Robert-Bosch-Str. 5, 65462 Ginsheim” (Hesse) – the name is blurred in the photo. According to GIGA, Lidl names Harry-Brot for this toast; not confirmed for our pack.</div>
+      <div class="fact ok"><span class="k">✓ Marks</span>Vegan, V-Label, “reich an Ballaststoffen”, can be frozen.</div>
+    </div>
+
+    <div class="cutph">
+      <figure><img src="/media/toast-vollkorn-front.jpg" alt="Pack of Grafschafter Vollkorn Toast 500 g with the Stiftung Warentest seal" loading="lazy"><figcaption>Pack and test seal</figcaption></figure>
+      <figure><img src="/media/toast-vollkorn-back.jpg" alt="Nutrition table and manufacturer’s address on the toast pack" loading="lazy"><figcaption>Ingredients and manufacturer</figcaption></figure>
+      <figure><img src="/media/toast-vollkorn-batch.jpg" alt="Batch code 2023 1637 on the seam of the toast pack" loading="lazy"><figcaption>Batch code on the seam</figcaption></figure>
+      <figure><img src="/media/toast-vollkorn-slice.jpg" alt="Slice of Grafschafter Vollkorn toast: crumb on top and at the break" loading="lazy"><figcaption>Slice: crumb and break</figcaption></figure>
+    </div>
+    <div class="facts">
+      <div class="fact ok"><span class="k">✓ Slice of batch 2023 1637</span>Crumb fine and even, pores small and uniform, bran particles visible. No big holes, raw or dense streaks, no mould. Crust thin and soft.</div>
+      <div class="fact ok"><span class="k">✓ At the break</span>Slice about 1 cm, springy and breaks without turning to crumbs.</div>
+    </div>
+    <p class="verdict"><b>Preliminary verdict:</b> a solid everyday toast – lots of fibre, little fat and sugar, “gut” from Stiftung Warentest and only 1.78 € per kg at a stable price. The lab rating is for a pack from 2024, so we checked this batch ourselves: the slice is right – even crumb, bran visible, no holes or mould. The author’s tasting comes in the next update.</p>
+  </article>
+
+  <h2 id="pelmeni">ISSUE NO. 1 · PELMENI</h2>
+  <article class="card">
+    <div class="rv-head">
+      <div class="rv-title">
+        <h3>DOVGAN Taschki Pelmeni · 1000 g</h3>
+        <small>frozen · checked on 01.11.2026 · Lidl, Hamburg</small>
+      </div>
+      <div class="score"><b>3,5</b><span>out of 5 · Orb Studio</span></div>
+    </div>
+
+    <div class="meters">
+      <div class="m" style="--c:var(--up)"><span>Shelf life and packaging</span><span class="bar"><i style="width:95%"></i></span><b>5/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Dough</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+      <div class="m" style="--c:var(--up)"><span>Taste (tasting)</span><span class="bar"><i style="width:90%"></i></span><b>4,5</b></div>
+      <div class="m" style="--c:var(--warm)"><span>Filling (cut)</span><span class="bar"><i style="width:55%"></i></span><b>2,5</b></div>
+      <div class="m" style="--c:var(--hot)"><span>Filling (reviews)</span><span class="bar"><i style="width:30%"></i></span><b>1,5</b></div>
+      <div class="m" style="--c:var(--warm)"><span>Stability</span><span class="bar"><i style="width:40%"></i></span><b>2/5</b></div>
+      <div class="m" style="--c:var(--holo)"><span>Price</span><span class="bar"><i style="width:80%"></i></span><b>4/5</b></div>
+    </div>
+
+    <div class="facts">
+      <div class="fact ok"><span class="k">✓ Shelf life</span>until 25.09.2027 at −18 °C, batch 26395 – almost 11 months of stock.</div>
+      <div class="fact ok"><span class="k">✓ Production</span>Latvia, plant with EU approval: oval mark <b>LV A003563 EK</b>. Dovgan (Hamburg) is only the distributor.</div>
+      <div class="fact bad"><span class="k">✗ Filling – the main complaint</span>Buyers on Trustpilot and Supermarktcheck write about fat, sinews and a “slimy” filling, “it used to be better”.</div>
+      <div class="fact warn"><span class="k">! Unstable</span>On mydealz people write that after the change of production the quality jumps from batch to batch.</div>
+    </div>
+
+    <div class="cutph">
+      <figure><img src="/media/pelmeni-cut-section.jpg" alt="Dovgan pelmeni cut open after cooking" loading="lazy"><figcaption>Cut after cooking</figcaption></figure>
+      <figure><img src="/media/pelmeni-cut-filling.jpg" alt="The filling of a Dovgan pelmeni, taken out whole" loading="lazy"><figcaption>Whole filling</figcaption></figure>
+    </div>
+    <div class="facts">
+      <div class="fact ok"><span class="k">✓ Cut of batch 26395</span>Cooked through, nothing pink. The dough did not burst. No sinews, cartilage or bones visible.</div>
+      <div class="fact warn"><span class="k">! What matches the reviews</span>The filling is very fine and even, almost a paste, pale, with voids. Little meat: the dough is thicker, the filling about a third of the pelmeni.</div>
+    </div>
+    <blockquote class="quote"><p>“I tried them with sour cream and a little vinegar – a very pleasant taste, really delicious. Apparently the quality depends on the batch, so every batch has to be watched.”</p><cite>— Serghei Farima, author of Orb Studio · batch 26395 · 01.11.2026</cite></blockquote>
+    <p class="verdict"><b>Verdict:</b> batch 26395 is a good one – cooked through, no “slime” or sinews, tasty with sour cream. Not much filling, finely ground. The complaints online seem to concern other batches: quality jumps around, which is why we check and record every batch separately.</p>
+  </article>
+
+  <h2>SUPPLY CHAIN · PELMENI</h2>
+  <div class="card">
+    <ol class="chain">
+      <li style="--c:var(--warm)"><span class="dot"></span><span><b>Plant in Latvia</b><span class="tag hyp">HYPOTHESIS</span><br><small>The code LV A003563 points to a Latvian plant. The country’s largest pelmeni factory is Maag Latvija (“Rīgas Miesnieks”) in Jelgava, about 60% of output goes for export, including to Germany. That A003563 is exactly this plant is not yet confirmed.</small></span></li>
+      <li style="--c:var(--dim)"><span class="dot"></span><span><b>Refrigerated truck −18 °C</b><span class="tag unk">TYPICAL</span><br><small>Via Baltica through Lithuania and Poland or by ferry Liepāja/Ventspils → Travemünde. The exact truck route is not published.</small></span></li>
+      <li style="--c:var(--up)"><span class="dot"></span><span><b>DOVGAN GmbH, Hamburg</b><span class="tag ok">ON THE PACKAGING</span><br><small>Zinkhüttenweg 6 – brand and distributor for retail chains in Germany.</small></span></li>
+      <li style="--c:var(--dim)"><span class="dot"></span><span><b>Lidl distribution centre → shelf</b><span class="tag unk">TYPICAL</span><br><small>The chain’s freezer warehouse and a store in Hamburg.</small></span></li>
+    </ol>
+  </div>
+
+  <h2 id="next">NEXT IN LINE</h2>
+  <div class="next" id="nextList">
+    <div class="card" data-re="kartoff"><span class="em">🥔</span><div><b>Potatoes</b><small>variety, country, sprouts and spots, price per kg</small></div><span class="pr">waiting for the photo</span></div>
+    <div class="card" data-re="zwiebel"><span class="em">🧅</span><div><b>Onions</b><small>country, rot inside the net, price per kg</small></div><span class="pr">waiting for the photo</span></div>
+    <div class="card" data-re="butter"><span class="em">🧈</span><div><b>Butter</b><small>fat content, country, does it melt “as it should”</small></div><span class="pr">waiting for the photo</span></div>
+    <div class="card" data-re="milch"><span class="em">🥛</span><div><b>Milk</b><small>fat content, shelf life, dairy by the oval code</small></div><span class="pr">waiting for the photo</span></div>
+  </div>
+
+  <p class="lead" style="font-size:12.5px">How we rate: shelf life and packaging – from the photo of the pack; manufacturer – from the oval EU code; taste and filling – from the cut and our tasting; reviews – only open sources with links; price – from a real Lidl receipt. This is a personal observation, not a lab test.</p>
+
+  <div class="author">
+    <div class="lg" aria-hidden="true">7</div>
+    <div><b>Who checks:</b> Serghei Farima, author of Orb Studio – Google Maps Local Guide level 7.<br><small><a href="https://www.google.com/maps/contrib/100791061408284352186" target="_blank" rel="me noopener">Profile on Google Maps ↗</a> · <a href="/prices">Receipt of the day and Hamburg prices →</a></small></div>
+  </div>
+
+<aside class="krb" aria-label="Kraken – Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>Counting basket prices in euros? Bitcoin for euros is on <b>Kraken</b></h3>
+    <p class="krb-sub">Kraken crypto exchange: buy bitcoin with euros, Kraken Pro for active trading, staking. Orb Studio’s crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=quality" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. Kraken may give new customers a bonus if the exchange’s conditions are met; the bonus is not guaranteed, terms at kraken.com. Not investment advice. Crypto assets are volatile; you may lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Counting every euro? Have a look at the internet plans too <b>STARLINK</b> for home</h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a power socket</span></li>
+      <li><b>home and travel</b><span>choice of plans</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=quality" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
+  </aside>
+
+  <p class="agentline">🤖 For agents: the column’s issues as JSON → <a href="/api/v1/quality">/api/v1/quality</a> · prices from Lidl receipts → <a href="/api/v1/receipts">/api/v1/receipts</a> · MCP <b>get_quality</b>, <b>get_receipts</b> on <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <section class="machine" id="review-text" style="font-size:12.5px;color:var(--dim)"><h2 style="font-size:13px">ISSUE TEXT · FOR HUMANS AND AI AGENTS</h2><p>The “Quality · Price · Lidl” column, issue no. 1: DOVGAN Taschki Pelmeni 1000 g, best before 25.09.2027, batch 26395, made in Latvia (LV A003563 EK), distributor Dovgan GmbH Hamburg. Orb Studio rating 3.5/5. Cut of batch 26395: cooked through, no sinews or “slime”, filling fine and even, filling about a third. The author’s tasting (Serghei Farima) with sour cream and vinegar: very tasty. Negative reviews online probably concern other batches – quality depends on the batch.</p><p>Issue no. 2 (preliminary): Grafschafter Vollkorn Toast 500 g, Lidl own brand, 0.89 € (1.78 €/kg) per receipts of 03.11.2026 and 05.11.2026, batch code on the seam 2023 1637. Per 100 g: 250 kcal, fibre 6.0 g, protein 8.5 g, fat 4.0 g, sugar 3.2 g, salt 1.0 g. Stiftung Warentest 05/2025: GUT (2.3) – for a pack with a best-before date of 12.11.2024. Manufacturer per the bag – a company in Ginsheim (Robert-Bosch-Str. 5), the name is blurred. Slice from batch 2023 1637: fine, even crumb, bran visible, no holes or mould, thickness about 1 cm, does not crumble. Preliminary Orb Studio rating 4.3/5; the author’s tasting will be added.</p><p>Issue no. 3: Freshona Junge Erbsen sehr fein, 400 g can, peas 280 g, Lidl own brand. Manufacturer Dawtona Sp. z o.o., Błonie, Poland. Ingredients: peas, water, sugar, salt. Best before 24.06.2030, batch L2660BB 3B. Per 100 g of peas: 89 kcal, protein 7.0 g, fibre 7.4 g, salt 0.52 g. Price 0.85 € at Lidl Hausbruch on 05.11.2026 (0.89 € in July). The author’s tasting: “The peas are excellent.” Orb Studio rating 4.3/5.</p></section>
+  <details class="machine"><summary>Text version of the radars · for humans and AI agents</summary><section id="machine-feed"><p>Data: <a href="/api/v1/receipts">/api/v1/receipts</a>.</p></section></details>
+</div>
+<script>
+// цены с настоящих чеков Lidl для продуктов из очереди
+(function(){
+  const eur=x=>Number(x).toFixed(2).replace('.',',')+' €';
+  fetch('/api/v1/receipts?full=1').then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!d.receipts)return;
+    document.querySelectorAll('#nextList [data-re]').forEach(c=>{
+      const re=new RegExp(c.dataset.re,'i');let hit=null;
+      for(const rc of d.receipts)for(const it of rc.items)if(re.test(it.name))hit={p:it.price,n:it.name,d:rc.date};
+      if(hit)c.querySelector('.pr').innerHTML=eur(hit.p)+'<br><small style="font-size:10px">'+hit.n.replace(/[<>&]/g,'')+'</small>';
+    });
+  }).catch(()=>{});
+})();
+</script>
+<script>
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+
+
+</script>
+<script>
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_quality')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=quality'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"quality"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_quality','1')}catch(e){}document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString('en-GB');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>

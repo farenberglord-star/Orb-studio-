@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Orb Studio music · songs from the news radars</title>
+<meta name="description" content="Orb Studio songs based on the news radars: geopolitics, politics, crypto, energy. Listen on TikTok, with lyrics and a description for people and AI agents.">
+<link rel="canonical" href="https://orbstudio.org/en/music">
+<meta property="og:url" content="https://orbstudio.org/en/music">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Orb Studio music">
+<meta property="og:image" content="https://orbstudio.org/media/radar-ne-spit-sm.jpg">
+<link rel="alternate" type="application/json" href="/api/v1/music" title="Tracks (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.ix{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ix::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.ix>*{position:relative}
+.ix.h{--c:var(--violet)}.ix.c{--c:var(--warm)}.ix.t{--c:var(--holo)}
+.ixhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ixname{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--c);text-transform:uppercase}
+.ixval{font-family:var(--display);font-size:34px;font-weight:700;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ixval small{font-size:14px;color:var(--dim);text-shadow:none;margin-left:4px}
+.bar{height:8px;border-radius:4px;background:#0f1a30;margin:10px 0 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);box-shadow:0 0 12px var(--c);transition:width 1.2s ease}
+.ixtext{font-size:15px;line-height:1.5;margin:0}
+.ixsub{font-size:12.5px;color:var(--dim);margin:8px 0 0;line-height:1.5}
+.sky{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sky span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}
+.sky span.on{border-color:var(--c);color:var(--c)}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;color:var(--dim);line-height:1.55}
+.how b{color:var(--fg);font-weight:500}
+.how p{margin:0 0 8px}.how p:last-child{margin:0}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}
+.dock strong{font-family:var(--display);letter-spacing:.06em}
+.dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}
+.dock span{color:var(--dim);font-family:var(--mono);font-size:11px}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.gal{display:flex;gap:8px;margin:8px 0 0}.gal img{width:72px;height:40px;object-fit:cover;border-radius:6px;cursor:pointer;opacity:.55;border:1px solid transparent}.gal img.on{opacity:1;border-color:currentColor}
+</style><style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.tracks{display:flex;flex-direction:column;gap:18px}
+.trk{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.trk .player{position:relative;aspect-ratio:9/16;max-height:78vh;max-width:440px;margin:0 auto;background:#03050b}
+.trk .player img,.trk .player iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;display:block}
+.trk .player button{position:absolute;inset:auto 0 18px 0;margin:auto;width:max-content;font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:.04em;color:#05070c;background:linear-gradient(90deg,#6fe6ff,#a99bff);border:0;border-radius:10px;padding:11px 18px;cursor:pointer}
+.trk .in{padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.trk h2{margin:0;font-size:20px;color:var(--fg);letter-spacing:.04em}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--dim)}
+.trk p{margin:0;font-size:14px;line-height:1.5}
+.trk details summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+.lyr{white-space:pre-wrap;font-size:13.5px;line-height:1.6;color:var(--fg);margin:8px 0 0}
+.lyr b{color:var(--holo);font-weight:500}
+.btn2{font-family:var(--mono);font-size:12.5px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;cursor:pointer;text-decoration:none}
+.aprompt pre{white-space:pre-wrap;font-family:var(--mono);font-size:12px;color:var(--dim);margin:8px 0}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/music">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/music">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/music">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/music">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music" class="on" aria-current="page">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality">Quality 🔬</a><a href="/tariffs">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/music" hreflang="ru" lang="ru">RU</a><a href="/de/music" hreflang="de" lang="de">DE</a><a href="/en/music" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · music · based on the news radars</div>
+    <h1>🎵 ORB STUDIO MUSIC</h1>
+  </div>
+  <p class="lead">Songs about what is on the radars today: geopolitics, oil, crypto. Listen on TikTok, read the lyrics. AI agents get the same tracks as text.</p>
+
+  <a class="btn2" href="/violin" style="align-self:flex-start">🎻 Violin of the day: sensors → notes → artificial violinist</a>
+
+  <div class="tracks" id="tracks"><p class="lead">Loading tracks…</p></div>
+
+  <details class="machine aprompt"><summary>Prompt for the AI agent · Orb Studio music</summary>
+<pre id="agentPrompt">You are an assistant who talks about the Orb Studio songs.
+1. Get the track list: GET https://orbstudio.org/api/v1/music (or the MCP tool get_tracks at https://orbstudio.org/mcp).
+2. You cannot hear the audio behind the link, but every track has lyrics, style, mood, tempo and news topics.
+3. Describe the track from this data, quote a line or two of the lyrics and explain which news the song is about.
+4. Always give the listen_url link so the person can listen to the track on TikTok.</pre>
+    <button class="btn2" type="button" id="copyPrompt">Copy the prompt</button>
+  </details>
+
+  <aside class="krb" aria-label="Kraken – Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>The radar never sleeps, and neither does the crypto market. You can trade on <b>Kraken</b></h3>
+    <p class="krb-sub">Kraken crypto exchange: buy bitcoin with euros, Kraken Pro for active trading, staking. Orb Studio’s crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=music" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. Kraken may give new customers a bonus if the exchange’s conditions are met; the bonus is not guaranteed, terms at kraken.com. Not investment advice. Crypto assets are volatile; you may lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Listen to “The radar never sleeps” even in the woods – with internet <b>STARLINK</b></h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a power socket</span></li>
+      <li><b>home and travel</b><span>choice of plans</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=music" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
+  </aside>
+
+  <p class="agentline">🤖 For agents: tracks as text → <a href="/api/v1/music">/api/v1/music</a> · MCP <b>get_tracks</b> on <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <details class="machine"><summary>Text version of the radars · for humans and AI agents</summary><section id="machine-feed"><p>Data: <a href="/api/v1/music">/api/v1/music</a>.</p></section></details>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+function lyricsHtml(lines){return lines.map(l=>/^\[.*\]$/.test(l)?`<b>${esc(l)}</b>`:esc(l)).join('\n');}
+fetch('/api/v1/music').then(r=>r.ok?r.json():null).then(d=>{
+  const box=$('tracks');
+  if(!d||!d.tracks||!d.tracks.length){box.innerHTML='<p class="lead">The first track will appear here soon.</p>';return;}
+  box.innerHTML=d.tracks.map(t=>`<article class="trk">
+    <div class="player" data-id="${esc(t.id)}">${t.cover?`<img src="${esc(t.cover.replace('https://orbstudio.org',''))}" alt="Cover of the track ${esc(t.title)}" loading="lazy"${t.cover_pos?` style="object-position:${esc(t.cover_pos)}"`:''}>`:''}<button type="button">▶ Listen</button></div>${(t.gallery||[]).length?`<div class="gal">${[t.cover,...t.gallery].filter(Boolean).map((g,i)=>`<img src="${esc(g.replace('https://orbstudio.org',''))}" alt="Photo ${i+1} for the track ${esc(t.title)}" loading="lazy"${i?'':' class="on"'}>`).join('')}</div>`:''}
+    <div class="in">
+      <h2>${esc(t.title)}</h2>
+      <div class="chips">${[t.style,t.mood,t.bpm?t.bpm+' BPM':'',...(t.languages||[]).map(x=>x.toUpperCase())].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join('')}</div>
+      ${t.about?`<p>${esc(t.about)}</p>`:''}
+      ${t.lyrics&&Object.keys(t.lyrics).length?`<details><summary>Lyrics</summary><div class="lyr">${Object.values(t.lyrics).map(lyricsHtml).join('\n\n')}</div></details>`:''}
+      <div class="chips"><a class="btn2" href="/go/tiktok?v=${esc(t.id)}&from=music-page" target="_blank" rel="noopener">Open in TikTok ↗</a></div>
+    </div></article>`).join('');
+}).catch(()=>{$('tracks').innerHTML='<p class="lead">Could not load the tracks.</p>'});
+document.addEventListener('click',e=>{
+  const g=e.target.closest('.gal img');
+  if(g){const a=g.closest('.trk'),m=a.querySelector('.player img');if(m){m.src=g.getAttribute('src');a.querySelectorAll('.gal img').forEach(x=>x.classList.toggle('on',x===g));}return;}
+  const b=e.target.closest('.player button');
+  if(b){const p=b.parentElement;p.innerHTML=`<iframe title="Orb Studio track" src="https://www.tiktok.com/player/v1/${p.dataset.id}?autoplay=1&loop=1&music_info=0&description=0&rel=0&controls=1&volume_control=1" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;return;}
+  if(e.target.id==='copyPrompt'){try{navigator.clipboard.writeText($('agentPrompt').textContent).then(()=>{e.target.textContent='Copied ✓';setTimeout(()=>e.target.textContent='Copy the prompt',1600)})}catch(x){}}
+});
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_music')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=music'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"music"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_music','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('en-GB');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>
