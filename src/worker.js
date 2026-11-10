@@ -1067,7 +1067,7 @@ async function lhpData() {
       const txt = await r.text(), sn = txt.slice(0, 70).replace(/[^\x20-\x7e]/g, "?");
       if (!r.ok) throw new Error("lhp http " + r.status + " " + (r.headers.get("content-type") || "") + " " + sn);
       try { feed = JSON.parse(txt); } catch { throw new Error("not json, ct=" + (r.headers.get("content-type") || "") + " " + sn); }
-      if (!parseLhp(feed).ok) throw new Error("unexpected shape: type=" + String(feed && feed.type).slice(0, 20) + " keys=" + Object.keys(feed && typeof feed === "object" ? feed : {}).slice(0, 24).join(",") + " feat=" + Array.isArray(feed && feed.features) + " st=" + JSON.stringify(feed && feed.status).slice(0, 50) + " upd=" + String(feed && feed.updated).slice(0, 25) + " ttl=" + String(feed && feed.title).slice(0, 40));
+      if (!parseLhp(feed).ok) throw new Error("unexpected shape: type=" + String(feed && feed.type).slice(0, 20) + " keys=" + Object.keys(feed && typeof feed === "object" ? feed : {}).slice(0, 24).join(",") + " feat=" + Array.isArray(feed && feed.features) + " data=" + (Array.isArray(feed && feed.data) ? "array" + feed.data.length : typeof (feed && feed.data) + ":" + Object.keys(feed && feed.data && typeof feed.data === "object" ? feed.data : {}).slice(0, 6).join(",")) + " st=" + JSON.stringify(feed && feed.status).slice(0, 50) + " upd=" + String(feed && feed.updated).slice(0, 25) + " ttl=" + String(feed && feed.title).slice(0, 40));
       await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
       await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=86400" } }));
     } catch (e) {
