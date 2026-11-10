@@ -1775,3 +1775,12 @@ CODE = {
  "radar": [("'ru-RU'", "'de-DE'", "'en-GB'"), ("im.from_name", "im.from_name_de", "im.from_name_en"), ("im.to_name", "im.to_name_de", "im.to_name_en"),
            ("${im.side}", "${im.side_de}", "${im.side_en}"), ("'+im.side", "'+im.side_de", "'+im.side_en"), ("im.radar_title", "im.radar_title_de", "im.radar_title_en"), ("n.name_ru", "n.name_de", "n.name_en")],
 }
+
+PAGES["map"] = [
+ ("Карта датчиков · Orb Studio", "Sensorkarte · Orb Studio", "Sensor map · Orb Studio"),
+ ("Карта датчиков Orb Studio", "Orb Studio Sensorkarte", "Orb Studio sensor map"),
+ ("Живая карта источников Orb Studio: где измеряется или находится источник каждого датчика — Эльба, небо над Гамбургом, автобаны, BaFin, газовые хранилища, паводки, гамма-фон, землетрясения, космическая погода. Статус проверяется запросом к API.",
+  "Lebendige Karte der Orb-Studio-Quellen: wo die Quelle jedes Sensors misst oder sitzt – Elbe, Himmel über Hamburg, Autobahnen, BaFin, Gasspeicher, Hochwasser, Gammastrahlung, Erdbeben, Weltraumwetter. Der Status wird per API-Abfrage geprüft.",
+  "Live map of Orb Studio sources: where each sensor measures or where its source sits – Elbe, sky over Hamburg, motorways, BaFin, gas storage, floods, gamma dose rate, earthquakes, space weather. Status is checked with a request to the API."),
+ ("Загрузка карты…", "Karte wird geladen …", "Loading map…"),
+]
