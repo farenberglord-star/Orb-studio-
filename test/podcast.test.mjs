@@ -63,3 +63,15 @@ test("radiation topic copies figures and admits gaps", () => {
   assert.ok(isMiss(buildSegment("radiation", null))); assert.ok(isMiss(buildSegment("radiation", { ok: false })));
   assert.ok(TOPICS.includes("radiation"));
 });
+test("polls and party attention topics copy figures, state limits, admit gaps", () => {
+  const d = { ok: true, institutes_used: 10, window_days: 35, database_updated_at: "t", parties: [{ party: "AfD", mean: 27.8, min: 26, max: 30 }, { party: "CDU/CSU", mean: 20, min: 18, max: 23 }] };
+  const l = buildSegment("polls", d);
+  for (const x of ["AfD 27.8% (26–30)", "CDU/CSU 20% (18–23)", "10 institutes", "no forecast"]) assert.ok(l.answer.en.includes(x), x);
+  assert.ok(l.answer.ru.includes("не прогноз")); assert.ok(!/win|lead/i.test(l.answer.en));
+  assert.ok(isMiss(buildSegment("polls", null))); assert.ok(isMiss(buildSegment("polls", { ok: false })));
+  const a = buildSegment("party_attention", { ok: true, day: "2026-11-09", parties: [{ party: "AfD", ratio: 0.68, views: 949, usual: 1403.5, surge: false }, { party: "Freie Wähler", ratio: 5.11, views: 999, usual: 195.5, surge: true }] });
+  for (const x of ["AfD ×0.68", "Freie Wähler ×5.11", "Surge (at least 2.5×): Freie Wähler (999 views against a usual 196)", "Attention, not support"]) assert.ok(a.answer.en.includes(x), x);
+  assert.ok(buildSegment("party_attention", { ok: true, day: "d", parties: [{ party: "AfD", ratio: 1, views: 1, usual: 1, surge: false }] }).answer.en.includes("No surge"));
+  assert.ok(isMiss(buildSegment("party_attention", null)));
+  assert.ok(TOPICS.includes("polls") && TOPICS.includes("party_attention"));
+});

@@ -29,6 +29,24 @@ const SEG = {
     if (n) refs.push({ sensor: "radiation:" + n.station_id, value: n.dose_rate_usv_h, unit: "µSv/h", time: n.measured_at, url: `${O}/api/v1/radiation` });
     return line("radiation", q, { en, ru }, refs);
   },
+  polls(d) {
+    const q = { en: "What do the German polls say?", ru: "Что говорят немецкие опросы?" }, refs = [{ sensor: "polls", url: `${O}/api/v1/polls`, time: d && d.database_updated_at }];
+    if (!d || !d.ok || !Array.isArray(d.parties) || !d.parties.length) return line("polls", q, miss("German polls:", "Немецкие опросы:"), refs);
+    const f = (x) => String(x), list = d.parties.map((p) => `${p.party} ${f(p.mean)}% (${f(p.min)}–${f(p.max)})`).join(", ");
+    const en = `Bundestag voting intention, mean of the latest poll of ${d.institutes_used} institutes in the last ${d.window_days} days: ${list}. Stated intention in samples, margin of error about ±2–3 points, simple unweighted mean; not support among the whole population, no forecast, no seat or coalition projection.`;
+    const ru = `Намерения голосовать на выборах в Бундестаг, среднее по последнему опросу ${d.institutes_used} институтов за ${d.window_days} дней: ${list}. Это заявленные намерения в выборках, погрешность около ±2–3 пунктов, простое среднее без весов; не поддержка среди всего населения, не прогноз, без расчёта мест и коалиций.`;
+    return line("polls", q, { en, ru }, refs);
+  },
+  party_attention(d) {
+    const q = { en: "What are people reading about the parties?", ru: "Что люди читают о партиях?" }, refs = [{ sensor: "party_attention", url: `${O}/api/v1/polls/attention`, time: d && d.day }];
+    if (!d || !d.ok || !Array.isArray(d.parties) || !d.parties.length) return line("party_attention", q, miss("Party attention:", "Внимание к партиям:"), refs);
+    const x = (r) => (r.ratio == null ? "n/a" : "×" + String(r.ratio)), list = d.parties.map((r) => `${r.party} ${x(r)}`).join(", "), sp = d.parties.filter((r) => r.surge);
+    const surge = sp.length ? sp.map((r) => `${r.party} (${r.views} views against a usual ${Math.round(r.usual)})`).join("; ") : "";
+    const surgeRu = sp.length ? sp.map((r) => `${r.party} (${r.views} просмотров при обычных ${Math.round(r.usual)})`).join("; ") : "";
+    const en = `Views of the parties' German Wikipedia articles on ${d.day} against the usual day: ${list}. ${sp.length ? "Surge (at least 2.5×): " + surge + "." : "No surge (at least 2.5×)."} Attention, not support: readers worldwide, not search queries, not only Germany; CDU and CSU are two articles; no forecast and no ranking.`;
+    const ru = `Просмотры статей немецкой Википедии о партиях за ${d.day} к обычному дню: ${list}. ${sp.length ? "Всплеск (не меньше 2,5×): " + surgeRu + "." : "Всплесков (от 2,5×) нет."} Это внимание, а не поддержка: читатели со всего мира, не поисковые запросы и не только Германия; CDU и CSU это две статьи; без прогнозов и рейтинга.`;
+    return line("party_attention", q, { en, ru }, refs);
+  },
   elbe(h) {
     const st = (h && h.stations || []).filter((x) => x.ok), q = { en: "What is the Elbe doing?", ru: "Что с Эльбой?" };
     if (!st.length) return line("elbe", q, miss("Elbe:", "Эльба:"), [{ sensor: "elbe", url: `${O}/api/v1/hydro/sea` }]);
@@ -111,7 +129,7 @@ const SEG = {
 };
 // key of the sensors snapshot (when the topic lives there); otherwise the worker has a dedicated fetcher
 export const SENSOR_KEY = { power: "power", bitcoin: "bitcoin", ecb: "ecb", inflation: "inflation", internet: "internet", stablecoins: "stablecoins" };
-export const TOPICS = ["radars", "space", "roads", "power", "elbe", "quakes", "internet", "sky", "ecb", "route", "bitcoin", "guests", "inflation", "stablecoins", "radiation"];
+export const TOPICS = ["radars", "space", "roads", "power", "elbe", "quakes", "internet", "sky", "ecb", "route", "bitcoin", "guests", "inflation", "stablecoins", "radiation", "polls", "party_attention"];
 export const MAX_PER_DAY = 12;
 export function buildSegment(topic, data) { return SEG[topic] ? SEG[topic](data) : null; }
 // The day's order: a fixed list rotated by the date so that different topics are skipped on different days.

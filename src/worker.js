@@ -1093,6 +1093,8 @@ async function podcastTopicData(topic, env, ctx, origin) {
   if (topic === "space") return spaceData();
   if (topic === "elbe") return hydroData("all");
   if (topic === "radiation") return radiationData();
+  if (topic === "polls") return pollsData();
+  if (topic === "party_attention") return partyAttentionData();
   if (topic === "roads") return roadsData(env);
   if (topic === "route") return routeData(env, { from: "airport", to: "center", mode: "car" });
   if (topic === "quakes") return quakesData();
