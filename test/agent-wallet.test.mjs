@@ -59,3 +59,33 @@ assert.equal((await call("/api/v1/agent-wallet/result", "POST", { id: p.id, outc
 const again = await (await call("/api/v1/agent-wallet/authorize", "POST", other, env.AGENT_LEDGER_KEY)).json();
 assert.equal(again.approved, false);
 console.log("agent-wallet: ok");
+{ // автономный режим с 10.11.2026: 1,5 за покупку, 10 всего, 30 дней, без одноразового ключа
+  const au = walletRules({ AGENT_LIMITS_ENABLED: "1", AGENT_AUTONOMOUS: "1", AGENT_MAX_PURCHASE_USD: "1.5", AGENT_DAILY_CAP_USD: "10", AGENT_TOTAL_CAP_USD: "10", AGENT_EXPIRES_AT: "2026-12-10T08:00:00Z" });
+  const t0 = Date.UTC(2026, 10, 10, 8), buy = { ...ok, amount_usdc: 1.5 };
+  assert.equal(au.autonomous, true);
+  assert.equal(decide(au, [], buy, t0).ok, true);                                                     // сам решает, без одобрения
+  assert.equal(decide(au, [], { ...buy, amount_usdc: 1.51 }, t0).ok, false);                          // потолок на покупку
+  assert.equal(decide({ ...au, autonomous: false }, [], buy, t0).screened, true);                     // без флага прежняя схема
+  assert.equal(decide({ ...au, limits_enabled: false }, [], buy, t0).screened, true);                 // выключатель: без лимитов автономии нет
+  assert.match(decide(au, [], buy, Date.UTC(2026, 11, 10, 8)).reason, /period ended/);                // срок
+  assert.equal(decide(au, [], { ...buy, network: "eip155:1" }, t0).ok, false);                        // только Base
+  assert.equal(decide(au, [], { ...buy, asset: "0x" + "1".repeat(40) }, t0).ok, false);               // только USDC
+  assert.equal(decide(au, [], { ...buy, pay_to: "nope" }, t0).ok, false);                             // адрес продавца обязателен
+  assert.equal(decide(au, [], { ...buy, reason: "x" }, t0).ok, false);                                // причина обязательна
+  assert.equal(decide(au, [], { ...buy, resource_url: "https://127.0.0.1/x" }, t0).ok, false);
+  const spent9 = Array.from({ length: 6 }, (_, i) => ({ id: "s" + i, t: t0 - 864e5, outcome: "bought", amount_usdc: 1.5, host: "h" })); // 9 USDC
+  assert.equal(decide(au, spent9, { ...buy, amount_usdc: 1 }, t0).ok, true);
+  assert.match(decide(au, spent9, buy, t0).reason, /total experiment budget/);                         // 9 + 1,5 > 10
+  // через API: без одобрения, запись в журнал с пометкой autonomous
+  const mem2 = {}, deps2 = { sharedGet: async (e, k) => mem2[k] || null, sharedPut: async (e, k, v) => { mem2[k] = v; } };
+  const env2 = { ...env, AGENT_LIMITS_ENABLED: "1", AGENT_AUTONOMOUS: "1", AGENT_MAX_PURCHASE_USD: "1.5", AGENT_DAILY_CAP_USD: "10", AGENT_TOTAL_CAP_USD: "10", AGENT_EXPIRES_AT: "2099-01-01T00:00:00Z" };
+  const c2 = (path, body) => agentWallet(new Request("https://x" + path, { method: "POST", headers: { "content-type": "application/json", "x-agent-key": env2.AGENT_LEDGER_KEY }, body: JSON.stringify(body) }), env2, deps2);
+  const r1 = await (await c2("/api/v1/agent-wallet/authorize", { ...ok, amount_usdc: 0.4 })).json();
+  assert.equal(r1.approved, true); assert.equal(r1.autonomous, true); assert.equal(r1.pay_to, ok.pay_to.toLowerCase());
+  const r2 = await (await c2("/api/v1/agent-wallet/authorize", { ...ok, amount_usdc: 2 })).json();
+  assert.equal(r2.approved, false); assert.match(r2.reason, /per-purchase cap/);
+  assert.equal((await c2("/api/v1/agent-wallet/result", { id: r1.id, outcome: "bought", tx_hash: "0x" + "cd".repeat(32), got: "data", useful: "yes" })).status, 200);
+  const pub = await (await agentWallet(new Request("https://x/api/v1/agent-wallet"), env2, deps2)).json();
+  assert.equal(pub.rules.autonomous, true); assert.equal(pub.summary.purchases, 1); assert.match(pub.how_it_works, /decides by itself/);
+}
+console.log("agent-wallet autonomous: ok");

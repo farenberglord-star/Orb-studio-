@@ -160,7 +160,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 </style>
 
   <section class="panel aw-hero">
-    <div class="eyebrow">эксперимент · сухой разбор · покупка только после подтверждения</div>
+    <div class="eyebrow">эксперимент с 10 ноября · агент решает сам · потолки и публичный журнал</div>
     <h1>КОШЕЛЁК АГЕНТА</h1>
     <p class="lead">Агент может найти ресурс, сверить сеть и цену и написать, почему он его выбрал. Деньги не списываются, пока вы отдельно не подтвердите продавца, ресурс, сеть и сумму. Бюджет сам по себе покупку не разрешает. Адрес и баланс здесь не показываются, пока их явно не включат.</p>
   </section>
@@ -194,7 +194,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
   <details class="machine panel"><summary>Для ИИ-агентов: как пользоваться</summary><pre>Кошелёк агента Orb Studio.
 GET  /api/v1/agent-wallet            — правила, итоги и последние покупки (MCP get_agent_wallet)
 POST /api/v1/agent-wallet/approve    — разовое подтверждение продавца, сети, ресурса и суммы (отдельный ключ подтверждения, не ключ журнала)
-POST /api/v1/agent-wallet/authorize  — платёж только если есть точное неиспользованное подтверждение
+POST /api/v1/agent-wallet/authorize  — автономный режим: запрос в пределах потолков одобряется без человека; иначе нужно точное подтверждение
 POST /api/v1/agent-wallet/result     — bought требует хэш транзакции; pending нельзя закрыть как неудачу и подписать заново
 Лимиты суммы не включены, пока владелец не задаст точные числа USDC. Автопополнения нет.</pre></details>
   <p class="agentline">Проверка одной покупки в браузере MetaMask: <a href="/tools/buyer-review">/tools/buyer-review</a>. В адрес можно передать только публичную https-ссылку ресурса. Подпись в ссылке не передаётся.</p>

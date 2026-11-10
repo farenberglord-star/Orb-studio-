@@ -10,6 +10,7 @@ export function walletRules(env) {
   const num = (v, d) => { const n = parseFloat(v); return Number.isFinite(n) && n > 0 ? n : d; };
   return { limits_enabled: env.AGENT_LIMITS_ENABLED === "1", per_purchase_usdc: num(env.AGENT_MAX_PURCHASE_USD, 0.05), daily_usdc: num(env.AGENT_DAILY_CAP_USD, 2),
     total_usdc: num(env.AGENT_TOTAL_CAP_USD, 0) || null, expires_at: Number.isFinite(Date.parse(env.AGENT_EXPIRES_AT || "")) ? new Date(env.AGENT_EXPIRES_AT).toISOString() : null, network: "Base (eip155:8453)", asset: "USDC",
+    autonomous: env.AGENT_AUTONOMOUS === "1",
     allowed_hosts: (env.AGENT_ALLOWED_HOSTS || "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean) };
 }
 const day = (t) => new Date(t).toISOString().slice(0, 10);
@@ -70,6 +71,12 @@ export function decide(rules, entries, req, now = Date.now()) {
     if (s.spent_total_usdc + unresolved + s.reserved_usdc + amount > rules.total_usdc + 1e-9) return { ok: false, reason: `over the total experiment budget of ${rules.total_usdc} USDC (spent ${s.spent_total_usdc}, unresolved ${round(unresolved)}, reserved ${s.reserved_usdc})` };
   }
   if (rules.limits_enabled && s.spent_today_usdc + s.reserved_usdc + amount > rules.daily_usdc + 1e-9) return { ok: false, reason: `over the daily cap of ${rules.daily_usdc} USDC (spent ${s.spent_today_usdc}, reserved ${s.reserved_usdc})` };
+  // Автономный режим: агент сам решает, что покупать, в рамках потолков выше. Сеть, актив и адрес продавца всё равно проверяются.
+  if (rules.limits_enabled && rules.autonomous) {
+    if (req.network !== BASE_NETWORK || String(req.asset || "").toLowerCase() !== BASE_USDC.toLowerCase()) return { ok: false, reason: "only Base (eip155:8453) USDC" };
+    if (!/^0x[0-9a-fA-F]{40}$/.test(String(req.pay_to || ""))) return { ok: false, reason: "pay_to must be the merchant's 0x address from its 402 challenge" };
+    return { ok: true, autonomous: true, host: u.hostname.toLowerCase(), amount: round(amount), href: u.href };
+  }
   return { ok: false, screened: true, host: u.hostname.toLowerCase(), amount: round(amount), href: u.href, reason: "one-time user approval required" };
 }
 
@@ -85,10 +92,10 @@ export async function agentWallet(request, env, deps) {
       title: "Agent wallet: an AI agent with a small daily budget and a public purchase log",
       status: addr ? "active" : "wallet_not_set_yet",
       wallet: addr ? { address: addr, network: rules.network, explorer: "https://basescan.org/address/" + addr, note: "Every payment is verifiable on-chain; tx hashes in the log are reported by the agent, check them at the explorer." } : null,
-      rules: { limits_enabled: rules.limits_enabled, per_purchase_usdc: rules.limits_enabled ? rules.per_purchase_usdc : null, daily_usdc: rules.limits_enabled ? rules.daily_usdc : null, total_usdc: rules.limits_enabled ? rules.total_usdc : null, expires_at: rules.limits_enabled ? rules.expires_at : null, allowed_hosts: rules.allowed_hosts.length ? rules.allowed_hosts : "any public https host",
-        enforcement: "Потолок суммы не является разрешением на покупку. Каждый платёж требует отдельного подтверждения продавца, сети, ресурса и суммы. Автопополнения нет." },
+      rules: { autonomous: rules.autonomous, limits_enabled: rules.limits_enabled, per_purchase_usdc: rules.limits_enabled ? rules.per_purchase_usdc : null, daily_usdc: rules.limits_enabled ? rules.daily_usdc : null, total_usdc: rules.limits_enabled ? rules.total_usdc : null, expires_at: rules.limits_enabled ? rules.expires_at : null, allowed_hosts: rules.allowed_hosts.length ? rules.allowed_hosts : "any public https host",
+        enforcement: rules.autonomous ? "Автономный режим: агент сам решает, покупать ли и что. Границы: потолок на одну покупку, общий бюджет и срок; только Base USDC; продавец, сеть и сумма проверяются, причина покупки обязательна и публична. Автопополнения нет, выключатель у владельца." : "Потолок суммы не является разрешением на покупку. Каждый платёж требует отдельного подтверждения продавца, сети, ресурса и суммы. Автопополнения нет." },
       summary: s, entries: entries.slice(-50).reverse().map(({ host, ...e }) => ({ host, ...e })),
-      how_it_works: "1) The user records a one-time approval of merchant, network, resource and total. 2) The agent asks POST /api/v1/agent-wallet/authorize. Budget alone is refused. 3) It pays only after that exact approval, then POST /api/v1/agent-wallet/result. The ledger key cannot create an approval.",
+      how_it_works: rules.autonomous ? "1) The agent decides by itself whether and what to buy, within the per-purchase cap, the total budget and the end date. 2) It asks POST /api/v1/agent-wallet/authorize with resource_url, network, asset, pay_to, amount_usdc and a reason; a request inside the caps is approved without a human. 3) It pays and reports POST /api/v1/agent-wallet/result with what it got and whether it was useful. Everything is public in the log; the owner can switch it off." : "1) The user records a one-time approval of merchant, network, resource and total. 2) The agent asks POST /api/v1/agent-wallet/authorize. Budget alone is refused. 3) It pays only after that exact approval, then POST /api/v1/agent-wallet/result. The ledger key cannot create an approval.",
       page: "https://orbstudio.org/tools/agent-wallet",
     });
   }
@@ -115,6 +122,11 @@ export async function agentWallet(request, env, deps) {
     const href = (() => { try { return new URL(b.resource_url).href; } catch (e) { return clip(b.resource_url, 300); } })();
     const base = { id, t: now, resource_url: href, amount_usdc: Number(b.amount_usdc) || 0, reason: clip(b.reason, 400) };
     const refuse = async (reason) => { entries.push({ ...base, host: d.host || "", outcome: "refused", refusal: reason }); await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES)); return json({ approved: false, reason }); };
+    if (d.autonomous) {
+      entries.push({ ...base, host: d.host, amount_usdc: d.amount, outcome: "approved", autonomous: true, pay_to: String(b.pay_to).toLowerCase(), network: BASE_NETWORK, asset: BASE_USDC });
+      await sharedPut(env, KEY, entries.slice(-MAX_ENTRIES));
+      return json({ approved: true, autonomous: true, id, amount_usdc: d.amount, network: BASE_NETWORK, asset: BASE_USDC, pay_to: String(b.pay_to).toLowerCase(), resource_url: href, note: "Your own decision within the caps. One payment only. On 202 or an uncertain settle, repeat the same signed authorization. Do not sign a new one. Report the result, including what you got and whether it was useful." });
+    }
     if (!d.screened) return refuse(d.reason);
     const approvals = (await sharedGet(env, APPROVALS, 1e13)) || [];
     const match = approvals.find((a) => approvalMatches(a, { ...b, resource_url: href }));
