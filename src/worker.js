@@ -2462,7 +2462,7 @@ const FIGHT_RE = /\b(clash\w*|dispute\w*|reject\w*|oppos\w*|row|split|protest\w*
 const WEIRD_FEEDS = ["https://rss.upi.com/news/odd_news.rss"];
 const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
 async function agentIndices(env, ctx, origin) {
-  const cache = caches.default, key = new Request(origin + "/__cache/indices-v1");
+  const cache = caches.default, key = new Request(origin + "/__cache/indices-v2");
   const hit = await cache.match(key);
   if (hit) return hit.json();
   const [radars, weird] = await Promise.all([allRadars(env, ctx, origin), Promise.all(WEIRD_FEEDS.map((u) => fetchFeed(u))).then((a) => a.flat()).catch(() => [])]);
@@ -2473,30 +2473,36 @@ async function agentIndices(env, ctx, origin) {
   const weirdSerious = weird.filter((w) => SERIOUS_RE.test(w.title));
   const hwi = clamp(8 + oddRadar.length / n * 250 + weirdSerious.length * 4);
   const top = oddRadar[0] || (weirdSerious[0] && { title: weirdSerious[0].title, source: weirdSerious[0].source, link: weirdSerious[0].url }) || null;
-  const hwiText = hwi < 25 ? "Реальность почти логична. Галлюцинаций не обнаружено." : hwi < 50 ? "Мир слегка фантазирует. Перепроверяйте необычные факты." : hwi < 75 ? "Реальность звучит как ответ нейросети без контекста." : "Мир галлюцинирует сильнее любой модели. Это не вы ошиблись.";
+  const HW = [["Реальность почти логична. Галлюцинаций не обнаружено.", "Die Wirklichkeit ist fast logisch. Keine Halluzinationen entdeckt.", "Reality is almost logical. No hallucinations detected."], ["Мир слегка фантазирует. Перепроверяйте необычные факты.", "Die Welt fantasiert ein wenig. Ungewöhnliche Fakten besser gegenprüfen.", "The world is fantasising a little. Double-check unusual facts."], ["Реальность звучит как ответ нейросети без контекста.", "Die Wirklichkeit klingt wie die Antwort eines neuronalen Netzes ohne Kontext.", "Reality sounds like a neural network's answer without context."], ["Мир галлюцинирует сильнее любой модели. Это не вы ошиблись.", "Die Welt halluziniert stärker als jedes Modell. Der Fehler liegt nicht bei Ihnen.", "The world hallucinates harder than any model. It is not you who is wrong."]];
+  const hwiK = hwi < 25 ? 0 : hwi < 50 ? 1 : hwi < 75 ? 2 : 3;
+  const hwiText = HW[hwiK][0];
   // 2. Согласие: доля «договорились» среди «договорились + поругались»
   const agree = heads.filter((h) => AGREE_RE.test(h.title)), fight = heads.filter((h) => FIGHT_RE.test(h.title));
   const cons = clamp(100 * agree.length / Math.max(1, agree.length + fight.length));
-  const consText = cons < 25 ? `Мир спорит: ${fight.length} конфликтов на ${agree.length} согласий. Поддакивать некому.` : cons < 50 ? "Больше споров, чем согласия. Обычный рабочий день планеты." : cons < 75 ? "Все понемногу договариваются. Подозрительно мило." : "Тревожное единодушие: все со всеми согласны. Обычно это перед бурей.";
+  const consK = cons < 25 ? 0 : cons < 50 ? 1 : cons < 75 ? 2 : 3;
+  const CT = [[`Мир спорит: ${fight.length} конфликтов на ${agree.length} согласий. Поддакивать некому.`, `Die Welt streitet: ${fight.length} Konflikte auf ${agree.length} Einigungen. Niemand nickt mit.`, `The world is arguing: ${fight.length} conflicts to ${agree.length} agreements. Nobody to nod along.`], ["Больше споров, чем согласия. Обычный рабочий день планеты.", "Mehr Streit als Einigkeit. Ein ganz normaler Arbeitstag des Planeten.", "More dispute than agreement. An ordinary working day for the planet."], ["Все понемногу договариваются. Подозрительно мило.", "Alle einigen sich allmählich. Verdächtig nett.", "Everyone is slowly agreeing. Suspiciously nice."], ["Тревожное единодушие: все со всеми согласны. Обычно это перед бурей.", "Beunruhigende Einigkeit: alle stimmen allen zu. Meist ist das die Ruhe vor dem Sturm.", "Worrying unanimity: everyone agrees with everyone. Usually that comes before a storm."]];
+  const consText = CT[consK][0];
   // 3. Токеновый голод: сколько токенов нужно, чтобы понять сегодняшний мир
   const avg = radars.reduce((a, r) => a + r.lvl, 0) / Math.max(1, radars.length);
   const chars = heads.reduce((a, h) => a + h.title.length, 0);
   const tokens = Math.round(chars / 4 * (1 + avg / 100) * radars.length / 2 / 100) * 100;
   const hot = radars.slice().sort((a, b) => b.lvl - a.lvl).filter((r) => r.lvl >= 60).map((r) => r.title.replace(/-радар$/, "").toLowerCase());
-  const sky = tokens < 2000 ? { id: "clear", ru: "ясно", de: "klar" } : tokens <= 5000 ? { id: "cloudy", ru: "облачно", de: "bewölkt" } : { id: "storm", ru: "гроза", de: "Gewitter" };
+  const hotEn = radars.slice().sort((a, b) => b.lvl - a.lvl).filter((r) => r.lvl >= 60).map((r) => (RADAR_TITLE_I18N[r.id] || [r.title, r.title])[1].toLowerCase());
+  const sky = tokens < 2000 ? { id: "clear", ru: "ясно", de: "klar", en: "clear" } : tokens <= 5000 ? { id: "cloudy", ru: "облачно", de: "bewölkt", en: "cloudy" } : { id: "storm", ru: "гроза", de: "Gewitter", en: "stormy" };
   const tk = tokens.toLocaleString("ru-RU");
   const forecastRu = `Прогноз токеновой погоды: сегодня ${sky.ru}, чтобы понять мир, агенту хватит около ${tk} токенов.` + (hot.length ? ` Повышенная облачность над радарами: ${hot.slice(0, 2).join(" и ")}.` : " Без осадков в новостях.");
   const forecastDe = `Token-Wetter: heute ${sky.de}, ein Agent braucht etwa ${tokens.toLocaleString("de-DE")} Token, um die Welt zu verstehen.`;
+  const forecastEn = `Token weather: today ${sky.en}, an agent needs about ${tokens.toLocaleString("en-GB")} tokens to understand the world.` + (hotEn.length ? ` Heavier cloud over the radars: ${hotEn.slice(0, 2).join(" and ")}.` : " No precipitation in the news.");
   const data = {
     generated_at: new Date().toISOString(), playful: true,
     note: "Playful indicators for AI agents, computed from Orb Studio radar headlines by keyword rules. Not analytics, not advice.",
     headlines_scanned: heads.length + weird.length, weird_feed_items: weird.length,
     indices: [
-      { id: "hallucination", name_ru: "Индекс галлюцинаций мира", name_en: "World Hallucination Index", value: hwi, scale: "0 = boring logical day, 100 = reality sounds like a hallucinating model", text_ru: hwiText, weirdest: top },
-      { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, scale: "0 = everyone argues, 100 = suspicious unanimity", text_ru: consText, agree: agree.length, conflict: fight.length },
-      { id: "token_hunger", name_ru: "Токеновый голод", name_en: "Token Hunger Index", value: tokens, unit: "tokens", sky: sky.id, sky_ru: sky.ru, scale: "<2000 clear, 2000-5000 cloudy, >5000 storm", text_ru: forecastRu, hot_radars: hot },
+      { id: "hallucination", name_ru: "Индекс галлюцинаций мира", name_en: "World Hallucination Index", value: hwi, scale: "0 = boring logical day, 100 = reality sounds like a hallucinating model", text_ru: hwiText, text_de: HW[hwiK][1], text_en: HW[hwiK][2], name_de: "Welt-Halluzinationsindex", weirdest: top },
+      { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, scale: "0 = everyone argues, 100 = suspicious unanimity", text_ru: consText, text_de: CT[consK][1], text_en: CT[consK][2], name_de: "Barometer „Du hast völlig recht!“", agree: agree.length, conflict: fight.length },
+      { id: "token_hunger", name_ru: "Токеновый голод", name_en: "Token Hunger Index", value: tokens, unit: "tokens", sky: sky.id, sky_ru: sky.ru, scale: "<2000 clear, 2000-5000 cloudy, >5000 storm", text_ru: forecastRu, text_de: forecastDe, text_en: forecastEn, name_de: "Token-Hunger-Index", hot_radars: hot },
     ],
-    forecast: { ru: forecastRu, de: forecastDe },
+    forecast: { ru: forecastRu, de: forecastDe, en: forecastEn },
     page: "https://orbstudio.org/indices",
   };
   ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
@@ -6698,7 +6704,7 @@ function pickLang(request) {
   return "en";
 }
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
-const TRANSLATED_PAGES = new Set(["prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools"]);
+const TRANSLATED_PAGES = new Set(["prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7"]);
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
