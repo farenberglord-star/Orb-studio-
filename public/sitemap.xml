@@ -45,4 +45,16 @@
   <url><loc>https://orbstudio.org/de/sensors</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/en/sensors</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/podcast</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/music</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/music</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/places</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/places</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/quality</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/quality</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/violin</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/violin</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/tariffs</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tariffs</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/tools</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
 </urlset>
