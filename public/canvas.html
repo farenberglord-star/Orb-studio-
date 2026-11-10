@@ -186,7 +186,7 @@ const $=(id)=>document.getElementById(id);
 const esc=(s)=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const berlin=(slot)=>new Date(slot.replace('Z',':00Z')).toLocaleString('ru-RU',{timeZone:'Europe/Berlin',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'});
 const HUE={geo:352,politics:318,economy:212,budget:146,crypto:268,energy:36,web:186};
-const RN={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
+const RN={justice:'Правосудие',geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
 let cur=null;
 function show(card){
   cur=card; $('cv').src='/api/v1/canvas.svg?slot='+encodeURIComponent(card.slot);

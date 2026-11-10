@@ -972,7 +972,7 @@ function renderAnchors(){
 }
 let TT=null;
 // ---- голосование «ИИ против людей» ----
-const VOTE_NAMES=()=>{const T=window.I18N_RADAR||{};const ru={geo:'Гео-радар',budget:'Бюджет домохозяйств',politics:'Политика',economy:'Экономика',crypto:'Крипто-радар',energy:'Энерго-радар',web:'Открытый веб'};return id=>(T[id]&&T[id].title)||ru[id]||id;};
+const VOTE_NAMES=()=>{const T=window.I18N_RADAR||{};const ru={justice:'Правосудие и безопасность',geo:'Гео-радар',budget:'Бюджет домохозяйств',politics:'Политика',economy:'Экономика',crypto:'Крипто-радар',energy:'Энерго-радар',web:'Открытый веб'};return id=>(T[id]&&T[id].title)||ru[id]||id;};
 let MYVOTE=null;try{const v=JSON.parse(localStorage.getItem('orbVote')||'null');if(v&&v.day===new Date().toISOString().slice(0,10))MYVOTE=v.choice}catch(e){}
 function renderVote(d){
   const box=document.getElementById('voteList');if(!box||!d||!d.candidates)return;

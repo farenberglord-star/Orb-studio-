@@ -364,7 +364,7 @@ fetch('/api/v1/broadcast/latest').then(r=>r.ok?r.json():null).then(b=>{
   const it=b.items.slice(0,6);
   LINES.ru=[b.greeting&&b.greeting.ru,...it.map(x=>x.line_ru),b.signoff&&b.signoff.ru].filter(Boolean);
   LINES.de=[b.greeting&&b.greeting.de,...it.map(x=>x.line_de),b.signoff&&b.signoff.de].filter(Boolean);
-  const names={geo:'Гео',budget:'Бюджет',crypto:'Крипто',energy:'Энерго',politics:'Политика',economy:'Экономика',web:'Веб'};
+  const names={justice:'Правосудие',geo:'Гео',budget:'Бюджет',crypto:'Крипто',energy:'Энерго',politics:'Политика',economy:'Экономика',web:'Веб'};
   HEAD.length=0;it.forEach(x=>HEAD.push(`${names[x.radar]||x.radar} ${x.risk_index}: ${x.headline}`.slice(0,90)));HEAD.push('ORB STUDIO · orbstudio.org');
   idx=0;
   // прогноз токеновой погоды перед прощанием

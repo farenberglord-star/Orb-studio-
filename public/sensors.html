@@ -321,7 +321,7 @@ function flash(id){const s=S[id];s.el.classList.remove('flash');void s.el.offset
 setInterval(()=>{for(const id in S)if(S[id].at&&!S[id].label)S[id].el.querySelector('.ag').textContent='обновлено '+ago(S[id].at)},30000);
 
 // ---------- данные (точки подключения к API сайта) ----------
-const RN={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
+const RN={justice:'Правосудие',geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'};
 let coreNow=null;
 async function loadRadars(){
   const d=await fetch('/api/v1/radars').then(r=>r.json());const rs=d.radars||[];if(!rs.length)return;
@@ -398,7 +398,7 @@ async function loadMarket(){
     const rng=(x,l)=>x?`${l}: ${fmt(x.min_eur_mwh)}–${fmt(x.max_eur_mwh)} €/MWh, в среднем ${fmt(x.avg_eur_mwh)}${x.negative_quarter_hours?` · отрицательная цена ${x.negative_quarter_hours/4} ч`:''}`:'';
     $('oPower').innerHTML=`Сейчас <b>${fmt(pw.now_eur_mwh)} €/MWh</b> (${fmt(pw.now_ct_kwh,1)} ct/kWh)${pw.renewables?` · ветер и солнце <b>${pw.renewables.renewable_share_pct} %</b>`:''}<br>${rng(pw.today,'Сегодня')}${pw.tomorrow?'<br>'+rng(pw.tomorrow,'Завтра'):'<br><span style="color:var(--dim)">цены на завтра публикуются около 13:00</span>'}${pw.cheapest_3h?`<br>Дешевле всего: ${dayw(pw.cheapest_3h.from)} ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${fmt(pw.cheapest_3h.avg_eur_mwh)} €/MWh)`:''}${pw.most_expensive_3h?` · дороже всего: ${dayw(pw.most_expensive_3h.from)} ${hm(pw.most_expensive_3h.from)}–${hm(pw.most_expensive_3h.to)}`:''}<br><small style="color:var(--dim)">Это оптовая цена биржи; счёт дома выше на сети, налоги и сборы.</small>${stl(pw)}`;}
   const at=d.attention;
-  if(at&&at.articles){const RN2={geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'},top=at.articles[0],su=at.surges||[],dd2=x=>x.slice(8,10)+'.'+x.slice(5,7);
+  if(at&&at.articles){const RN2={justice:'Правосудие',geo:'Гео',politics:'Политика',economy:'Экономика',budget:'Бюджет',crypto:'Крипто',energy:'Энергия',web:'Веб'},top=at.articles[0],su=at.surges||[],dd2=x=>x.slice(8,10)+'.'+x.slice(5,7);
     setSensor('attn',su.length?`<b class="up">⚡ всплеск</b> · ${esc(su[0].article)} ×${fmt(su[0].ratio,1)}`:`спокойно · больше всех: ${esc(top.article)} ×${fmt(top.ratio,1)}`,Date.parse(at.at),at.day+'|'+su.map(x=>x.article).join(),'данные за '+dd2(at.day)+' · обновляются раз в день');
     const mx=Math.max(...at.articles.slice(0,6).map(a=>a.ratio),2.5);
     $('oAttn').innerHTML=`<div class="bars">`+at.articles.slice(0,6).map(a=>`<div><span title="${esc(a.article)}">${esc(({'European Central Bank':'ECB','Federal Reserve':'Fed','Russo-Ukrainian war':'Ukraine war','Artificial intelligence':'AI','Strait of Hormuz':'Hormuz','Price of oil':'Oil price'})[a.article]||a.article)}</span><i><b style="width:${Math.min(100,Math.round(a.ratio/mx*100))}%;background:${a.ratio>=2.5?'var(--hot)':a.ratio>=1.5?'var(--warm)':'var(--holo)'}"></b></i><span>×${fmt(a.ratio,1)}</span></div>`).join('')+`</div>`+

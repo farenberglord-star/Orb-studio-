@@ -176,7 +176,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 <script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-const NAMES={geo:'Гео',budget:'Бюджет',politics:'Политика',economy:'Экономика',crypto:'Крипто',energy:'Энергия',web:'Открытый веб',david:'Выпуск Давида'};
+const NAMES={justice:'Правосудие',geo:'Гео',budget:'Бюджет',politics:'Политика',economy:'Экономика',crypto:'Крипто',energy:'Энергия',web:'Открытый веб',david:'Выпуск Давида'};
 const VERD={confirmed:'Подтвердилось',not:'Не подтвердилось',unclear:'Неясно'};
 let ST='open',MY={};try{MY=JSON.parse(localStorage.getItem('orbFu')||'{}')}catch(e){}
 function bar(label,v){const t=Math.max(1,v.confirmed+v.not+v.unclear),n=v.confirmed+v.not+v.unclear;

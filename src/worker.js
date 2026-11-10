@@ -149,6 +149,26 @@ const RADARS = [
     },
   },
   {
+    id: "justice", title: "Правосудие и безопасность", anchor: "david",
+    lead: "Сколько публикуют СМИ о преступлениях и правосудии (Германия, мир). Это число публикаций, а не число преступлений и не статистика.",
+    filter: /(mord|totschlag|tötung|messer|schüsse|gewalt|vergewaltig|sexualdelikt|missbrauch|diebstahl|einbruch|raub|überfall|korruption|bestechung|untreue|clan|organisierte kriminalität|mafia|razzia|drogenhandel|festnahme|anklage|urteil|prozess|staatsanwalt|polizei|murder|homicide|shooting|stabbing|rape|sexual assault|theft|robbery|burglary|corruption|bribery|organi[sz]ed crime|arrest|trial|verdict|prosecutor)/i,
+    feeds: [
+      "https://www.tagesschau.de/inland/index~rss2.xml",
+      "https://www.spiegel.de/panorama/index.rss",
+      "https://rss.dw.com/rdf/rss-de-all",
+      "https://feeds.bbci.co.uk/news/world/rss.xml",
+      gnews("Polizei OR Staatsanwaltschaft OR Gericht OR Urteil when:1d", "de", "DE"),
+      gnews("organisierte Kriminalität OR Korruption OR Razzia when:2d", "de", "DE"),
+    ],
+    factors: {
+      "Организованная преступность": { w: 50, k: ["clan","organisierte kriminalität","mafia","razzia","drogenhandel","organized crime","organised crime","организованн"] },
+      "Убийства и насилие":          { w: 50, k: ["mord","totschlag","tötung","messer","schüsse","gewalt","murder","homicide","shooting","stabbing","убийств","насили"] },
+      "Сексуальные преступления":    { w: 50, k: ["vergewaltig","sexualdelikt","missbrauch","rape","sexual assault","изнасилован"] },
+      "Кражи и ограбления":          { w: 50, k: ["diebstahl","einbruch","raub","überfall","theft","robbery","burglary","кража","ограблен"] },
+      "Коррупция":                   { w: 50, k: ["korruption","bestechung","untreue","corruption","bribery","коррупц","взятк"] },
+    },
+  },
+  {
     id: "web", title: "Открытый веб", anchor: "orbi",
     lead: "Насколько интернет открыт для ИИ-агентов: блокировки ботов, суды за парсинг, платный доступ для краулеров.",
     filter: /\b(ai|bots?|crawl\w*|scrap\w*|robots\.txt|copyright|llms?|openai|anthropic|perplexity|chatgpt|claude|gemini|agents?|ki|urheberrecht|publishers?|paywall)\b/i,
@@ -1750,7 +1770,7 @@ const OA_Q = (name, desc, extra = {}) => ({ name, in: "query", required: false, 
 const OA_P = (name, desc, extra = {}) => ({ name, in: "path", required: true, description: desc, schema: { type: "string", ...extra } });
 const OA_GET = [
   ["/api/v1/radars", "getRadars", "All news radars: risk index 0–100 and 24h change for geopolitics, politics, economy, household budget, crypto, energy and the open web.", []],
-  ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "web"] })]],
+  ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "justice", "web"] })]],
   ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
@@ -5790,7 +5810,7 @@ async function handleLive(url, request, env, ctx) {
 // ================= MCP-сервер (Streamable HTTP, без сессий): orbstudio.org/mcp =================
 // Агенты (Claude, Cursor и др.) подключают Orb Studio как инструмент. JSON-RPC 2.0, ответы — JSON.
 const MCP_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
-const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy", "web"];
+const RADAR_IDS = ["geo", "politics", "economy", "budget", "crypto", "energy", "justice", "web"];
 const MCP_TOOLS = [
   { name: "get_changes_since", title: "What changed since a date",
     description: "Memory for agents: what changed on Orb Studio between two dates — every radar from → to with peak and low, the top headlines then and now, how stories of that period turned out (checked outcomes), daily sensor digests (volatility spikes, Wikipedia attention, funding, stablecoins, power price, internet outages, sanctions) and the AI trading experiment. The archive starts on 2026-10-29.",
