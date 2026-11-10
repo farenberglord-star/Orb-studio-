@@ -885,6 +885,16 @@ PAGES["sensors"] = [
  (' · в ленте ', ' · im Feed ', ' · in feed '),
  (' мер в ленте, последняя ', ' Maßnahmen im Feed, letzte ', ' measures in the feed, latest '),
  ('Заголовки на немецком, как у BaFin. Меры против физических лиц скрыты. Мера не оценка компании.', 'Titel auf Deutsch, wie bei der BaFin. Maßnahmen gegen natürliche Personen sind ausgeblendet. Eine Maßnahme ist keine Bewertung eines Unternehmens.', 'Titles in German, as published by BaFin. Measures against natural persons are hidden. A measure is not a rating of a company.'),
+ ('🌊 Паводковые предупреждения', '🌊 Hochwasserwarnungen', '🌊 Flood warnings'),
+ ('Паводковые предупреждения · LHP (Германия)', 'Hochwasserwarnungen · LHP (Deutschland)', 'Flood warnings · LHP (Germany)'),
+ ('LHP не ответил', 'LHP hat nicht geantwortet', 'LHP did not respond'),
+ ('Портал LHP не ответил — цифры не выдумываю.', 'Das LHP-Portal hat nicht geantwortet — ich erfinde keine Zahlen.', "The LHP portal did not respond — I don't invent numbers."),
+ ('нет активных предупреждений', 'keine aktiven Warnungen', 'no active warnings'),
+ (' предупр. · высший класс ', ' Warn. · höchste Klasse ', ' warn. · highest class '),
+ (' предупреждений, высший класс: ', ' Warnungen, höchste Klasse: ', ' warnings, highest class: '),
+ ('Нет активных предупреждений', 'Keine aktiven Warnungen', 'No active warnings'),
+ ('Состояние на ', 'Datenstand ', 'As of '),
+ (' (Stand). Только предупреждения и классы, без уровней воды. Не прогноз. Для срочной опасности следуйте указаниям властей.', ' Uhr. Nur Warnungen und Klassen, keine Wasserstände. Keine Prognose. Bei akuter Gefahr den Anweisungen der Behörden folgen.', ' (Stand). Warnings and classes only, no water levels. Not a forecast. In acute danger follow the authorities.'),
 ]
 
 # --- этап 2 ---
