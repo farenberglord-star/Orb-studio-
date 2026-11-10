@@ -6,7 +6,7 @@ compatibility_date = "2026-10-01"
 directory = "./public"
 binding = "ASSETS"
 # Машинные файлы проходят через Worker, чтобы считать визиты ИИ-агентов
-run_worker_first = ["/de/*", "/en/*", "/ru/*", "/sensors", "/sensors.html", "/live", "/live.html", "/places", "/places.html", "/followups", "/followups.html", "/", "/index.html", "/ru", "/orb7.html", "/orb7", "/orbi.html", "/orbi", "/hall.html", "/hall", "/indices.html", "/indices", "/music.html", "/music", "/violin.html", "/violin", "/canvas.html", "/canvas", "/prices.html", "/prices", "/archive.html", "/archive", "/radar.html", "/radar", "/bridge.html", "/bridge", "/about", "/tools/court", "/llms.txt", "/.well-known/*", "/robots.txt"]
+run_worker_first = ["/de/*", "/en/*", "/ru/*", "/sensors", "/sensors.html", "/live", "/live.html", "/places", "/places.html", "/followups", "/followups.html", "/", "/index.html", "/ru", "/orb7.html", "/orb7", "/orbi.html", "/orbi", "/hall.html", "/hall", "/indices.html", "/indices", "/music.html", "/music", "/violin.html", "/violin", "/canvas.html", "/canvas", "/prices.html", "/prices", "/archive.html", "/archive", "/radar.html", "/radar", "/bridge.html", "/bridge", "/about", "/route", "/route.html", "/guests", "/guests.html", "/tools/court", "/llms.txt", "/.well-known/*", "/robots.txt"]
 
 [vars]
 KRAKEN_CODE = "ghqspfzq"
