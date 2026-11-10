@@ -15,6 +15,7 @@ import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
+import { PARTIES as PA_PARTIES, reduceDaily as paReduce, rowFor as paRow, summarizeAttention as paSummarize, dayRange as paRange, apiUrl as paApi, ATTRIBUTION as PA_ATTRIBUTION, CONTEXT_NOTE as PA_NOTE } from "./partyattention.js";
 import { reduceDawum, summarizePolls, ATTRIBUTION as POLL_ATTRIBUTION, CONTEXT_NOTE as POLL_NOTE } from "./polls.js";
 import { reduceFeed, summarize, parsePointParams, ATTRIBUTION as ODL_ATTRIBUTION, CONTEXT_NOTE as ODL_NOTE } from "./radiation.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
@@ -1051,6 +1052,39 @@ async function pollsData(parliamentP) {
     scope_note: "Latest published voting-intention poll of each institute (last 35 days), with the unweighted mean, minimum and maximum per party, and every poll listed with institute, date and sample size. Poll values are unchanged; Orb Studio only aggregates. This is stated voting intention in samples, not a measure of support among the whole population: no forecast, no seat or coalition projection.",
     page: "https://orbstudio.org/api/v1/polls" };
 }
+// ================= Внимание к партиям (просмотры de.wikipedia, CC0): /api/v1/polls/attention, MCP get_party_attention =================
+async function partyAttentionData() {
+  const fresh = new Request("https://orbstudio.org/__cache/party-attn-v1"), stale = new Request("https://orbstudio.org/__cache/party-attn-v1-stale"), c = caches.default;
+  const paMonthly = (items) => { const it = (Array.isArray(items) ? items : []).map((x) => ({ day: String(x.timestamp || "").slice(0, 8), v: Number(x.views) })).filter((x) => /^\d{8}$/.test(x.day) && Number.isFinite(x.v)); return it.length ? it : null; };
+  const hit = await c.match(fresh);
+  let sm, status = "ok";
+  if (hit) { sm = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const { from, to } = paRange(), m0 = new Date(Date.now() - 5 * 365 * 864e5), m1 = new Date(); m1.setUTCDate(1); m1.setUTCDate(0);
+      const mf = m0.toISOString().slice(0, 7).replace("-", "") + "0100", mt = m1.toISOString().slice(0, 7).replace("-", "") + "0100";
+      const rows = await Promise.all(PA_PARTIES.map(async (p) => {
+        try {
+          const it = paReduce((await sensorsFetchJson(paApi(p.title, "daily", from, to))).items); if (!it) return null;
+          let monthly = null;
+          try { monthly = paMonthly((await sensorsFetchJson(paApi(p.title, "monthly", mf, mt), 8000)).items); } catch (e) { /* long context is optional */ }
+          return paRow(p, it, monthly);
+        } catch (e) { return null; }
+      }));
+      sm = paSummarize(rows);
+      if (!sm.ok) throw new Error(sm.reason);
+      await c.put(fresh, new Response(JSON.stringify(sm), { headers: { "Cache-Control": "max-age=10800" } }));
+      await c.put(stale, new Response(JSON.stringify(sm), { headers: { "Cache-Control": "max-age=172800" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "The Wikimedia pageviews interface did not answer and there is no recent copy. Nothing is estimated.", attribution: PA_ATTRIBUTION };
+      sm = await old.json(); status = "degraded";
+    }
+  }
+  return { status, ...sm, free: true, source: "Wikimedia Pageviews API, German Wikipedia articles of the parties (CC0)", attribution: PA_ATTRIBUTION, context_note: PA_NOTE,
+    scope_note: "Fixed list of party articles in German Wikipedia: views on the last full day, the usual day (median of the 28 days before), ratio, a surge flag (≥ 2.5×), the last 7 days and monthly views for about five years. Shown next to /api/v1/polls but it is a different thing: attention, not support.",
+    polls: "https://orbstudio.org/api/v1/polls", page: "https://orbstudio.org/api/v1/polls/attention" };
+}
 // ================= Подкаст для агентов (постановочный диалог на датчиках): /api/v1/agent-podcast, MCP get_agent_podcast =================
 // Выпуск «капает»: раз в ~2 часа (cron EMO) добавляется ОДНА новая тема, читается только её датчик (из кэша). Страница читает готовый выпуск из D1.
 const PODCAST_KEY = "agent-podcast-eps", PODCAST_GAP_MS = 100 * 60e3;
@@ -1804,6 +1838,7 @@ const OA_GET = [
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
   ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
   ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
+  ["/api/v1/polls/attention", "getPartyAttention", "Free attention to Bundestag parties: views of the parties' German Wikipedia articles (Wikimedia Pageviews API, CC0): last full day vs the usual day, ratio, surge flag (>= 2.5x), 7-day series and monthly views for about five years. Not support, not a forecast, not search queries, not limited to Germany; no ranking.", []],
   ["/api/v1/polls", "getGermanPolls", "Free German voting-intention polls (Sonntagsfrage) from DAWUM (open database, ODC-ODbL): the latest poll of each institute in the last 35 days, unweighted mean, minimum and maximum per party (CDU/CSU, AfD, SPD, Grüne, Linke, BSW, FDP, ...), each poll with institute, date and sample size. Default Bundestag; optional state parliament. Stated voting intention in samples, not a forecast, no seat or coalition projection.", [OA_Q("parliament", "Parliament shortcut, e.g. Bundestag, Bayern, Berlin (optional, default Bundestag)", { type: "string" })]],
   ["/api/v1/radiation", "getRadiationDoseRate", "Free ambient gamma dose rate in Germany from the BfS ODL network (open data, Datenlizenz Deutschland Namensnennung 2.0): stations reporting, national median/min/max in µSv/h and the stations nearest to a point (default Hamburg). Unchanged measurements, aggregated by Orb Studio; no thresholds, no alarm, no health assessment.", [OA_Q("lat", "Latitude 47.0–55.2 (optional, default Hamburg)", { type: "number" }), OA_Q("lon", "Longitude 5.5–15.6 (optional, default Hamburg)", { type: "number" })]],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
@@ -5957,6 +5992,9 @@ const MCP_TOOLS = [
   { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
     description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: { station: { type: "string", enum: ["st_pauli", "cuxhaven", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_party_attention", title: "Attention to German parties (Wikipedia pageviews)",
+    description: "Free. Views of the Bundestag parties' German Wikipedia articles (Wikimedia Pageviews API, CC0, human readers): last full day vs the usual day (median of 28 days), ratio, surge flag at 2.5x, 7-day series and monthly views for about five years. This is attention, not support: not a forecast, not search queries, not an audience limited to Germany, no ranking, no seat or coalition projection. CDU and CSU are separate articles (polls combine them). Attribution is in the response. Refreshed every 3 hours.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_german_polls", title: "German voting-intention polls (Sonntagsfrage, DAWUM)",
     description: "Free. Latest published poll of each institute in the last 35 days from DAWUM (open database, ODbL), with unweighted mean, minimum and maximum per party (CDU/CSU, AfD, SPD, Grüne, Linke, BSW, FDP, ...) and every poll with institute, date and sample size. Default Bundestag; optional parliament (e.g. Bayern). Stated voting intention in samples, not support among the whole population, no forecast, no seat or coalition projection. Attribution is in the response. Refreshed every 30 minutes.",
     inputSchema: { type: "object", properties: { parliament: { type: "string", description: "e.g. Bundestag (default), Bayern, Berlin" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6218,6 +6256,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
   if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
   if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
+  if (name === "get_party_attention") { const { http, ...d } = await partyAttentionData(); return { ...d, referral: ref }; }
   if (name === "get_german_polls") { const { http, ...d } = await pollsData(args.parliament); return { ...d, referral: ref }; }
   if (name === "get_radiation_dose_rate") { const { http, ...d } = await radiationData(args.lat, args.lon); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
@@ -6790,6 +6829,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/space") {
       const d = await spaceData();
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/polls/attention") {
+      const { http, ...d } = await partyAttentionData();
+      return json(d, { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/polls") {
       const { http, ...d } = await pollsData(url.searchParams.get("parliament"));
