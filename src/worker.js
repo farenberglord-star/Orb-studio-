@@ -1064,14 +1064,15 @@ async function lhpData() {
   else {
     try {
       const r = await fetch(LHP_URL, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/json" } });
-      if (!r.ok) throw new Error("lhp http " + r.status);
-      feed = await r.json();
-      if (!parseLhp(feed).ok) throw new Error("no usable feed");
+      const txt = await r.text(), sn = txt.slice(0, 70).replace(/[^\x20-\x7e]/g, "?");
+      if (!r.ok) throw new Error("lhp http " + r.status + " " + (r.headers.get("content-type") || "") + " " + sn);
+      try { feed = JSON.parse(txt); } catch { throw new Error("not json, ct=" + (r.headers.get("content-type") || "") + " " + sn); }
+      if (!parseLhp(feed).ok) throw new Error("unexpected shape: type=" + String(feed && feed.type).slice(0, 20) + " keys=" + Object.keys(feed && typeof feed === "object" ? feed : {}).slice(0, 8).join(",") + " feat=" + Array.isArray(feed && feed.features));
       await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
       await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=86400" } }));
     } catch (e) {
       const old = await c.match(stale);
-      if (!old) return { ...base, status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "The LHP service did not answer and there is no recent copy. Nothing is estimated." };
+      if (!old) return { ...base, status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 200), note: "The LHP service did not answer and there is no recent copy. Nothing is estimated." };
       feed = await old.json(); status = "degraded";
     }
   }
