@@ -873,6 +873,18 @@ PAGES["sensors"] = [
  (' п.п. (разница двух опубликованных значений, не прогноз)', ' PP (Differenz zweier veröffentlichter Werte, keine Prognose)', ' pp (difference of two published values, not a forecast)'),
  ('Подтверждённые данные', 'Bestätigte Daten', 'Confirmed data'),
  ('Данные предварительные или оценочные', 'Vorläufige oder geschätzte Daten', 'Preliminary or estimated data'),
+ ('🏛 Меры надзора BaFin', '🏛 BaFin-Aufsichtsmaßnahmen', '🏛 BaFin supervisory measures'),
+ ('Меры надзора BaFin · официальная лента', 'BaFin-Aufsichtsmaßnahmen · offizieller Feed', 'BaFin supervisory measures · official feed'),
+ ('BaFin не ответил', 'BaFin hat nicht geantwortet', 'BaFin did not respond'),
+ ('Лента BaFin не ответила — цифры не выдумываю.', 'Der BaFin-Feed hat nicht geantwortet — ich erfinde keine Zahlen.', "The BaFin feed did not respond — I don't invent numbers."),
+ ('страхование', 'Versicherung', 'insurance'),
+ ('банки и отмывание денег', 'Banken und Geldwäsche', 'banks and money laundering'),
+ ('ценные бумаги и раскрытие', 'Wertpapiere und Offenlegung', 'securities and disclosure'),
+ ('другое', 'Sonstiges', 'other'),
+ ('последняя мера ', 'letzte Maßnahme ', 'latest measure '),
+ (' · в ленте ', ' · im Feed ', ' · in feed '),
+ (' мер в ленте, последняя ', ' Maßnahmen im Feed, letzte ', ' measures in the feed, latest '),
+ ('Заголовки на немецком, как у BaFin. Меры против физических лиц скрыты. Мера не оценка компании.', 'Titel auf Deutsch, wie bei der BaFin. Maßnahmen gegen natürliche Personen sind ausgeblendet. Eine Maßnahme ist keine Bewertung eines Unternehmens.', 'Titles in German, as published by BaFin. Measures against natural persons are hidden. A measure is not a rating of a company.'),
 ]
 
 # --- этап 2 ---
