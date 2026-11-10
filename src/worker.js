@@ -17,6 +17,7 @@ import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseGas } from "./gas.js";
+import { parseKarlsruhe, parseLeipzig, KA_URL, LE_URL, SOURCES as PARK_SRC, STALE_MIN as PARK_STALE_MIN } from "./parking.js";
 import { parseBafin, BAFIN_FEED } from "./bafin.js";
 import { parseLhp, LHP_URL } from "./lhp.js";
 import { PARTIES as PA_PARTIES, reduceDaily as paReduce, rowFor as paRow, summarizeAttention as paSummarize, dayRange as paRange, apiUrl as paApi, ATTRIBUTION as PA_ATTRIBUTION, CONTEXT_NOTE as PA_NOTE } from "./partyattention.js";
@@ -1029,6 +1030,40 @@ async function gasData(env) {
   }
   return { ...base, status, ...parseGas(feed), area: "Germany, all storage sites combined" };
 }
+// ================= Парковки Karlsruhe (Parkhäuser) и Leipzig (P+R): /api/v1/parking-de, MCP get_parking_de =================
+async function parkingSource(key, url, parse, accept) {
+  const fresh = new Request(`https://orbstudio.org/__cache/parking-${key}-v1`), stale = new Request(`https://orbstudio.org/__cache/parking-${key}-v1-stale`), c = caches.default;
+  const hit = await c.match(fresh);
+  if (hit) { const r = parse(await hit.text()); return { ...r, state: "cached" }; }
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: accept } });
+    if (!r.ok) throw new Error("http " + r.status);
+    const body = await r.text(), parsed = parse(body);
+    if (!parsed.ok) throw new Error("no usable rows");
+    await c.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } }));
+    await c.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } }));
+    return { ...parsed, state: "ok" };
+  } catch (e) {
+    const old = await c.match(stale);
+    if (old) { const parsed = parse(await old.text()); if (parsed.ok) return { ...parsed, state: "degraded", error: String(e.message || e).slice(0, 60) }; }
+    return { ok: false, items: [], state: "unavailable", error: String(e.message || e).slice(0, 60) };
+  }
+}
+async function parkingData(city, liveOnly) {
+  const jsonParse = (t) => { try { return parseKarlsruhe(JSON.parse(t)); } catch { return { ok: false, items: [] }; } };
+  const [ka, le] = await Promise.all([parkingSource("karlsruhe", KA_URL, jsonParse, "application/json"), parkingSource("leipzig", LE_URL, (t) => parseLeipzig(t), "text/csv")]);
+  const part = [["karlsruhe", ka], ["leipzig", le]];
+  const sources = part.map(([id, r]) => ({ id, status: r.state, facilities: r.items.length, live: r.items.filter((x) => x.live).length, ...(r.error ? { error: r.error } : {}), attribution: PARK_SRC[id].attribution, license: PARK_SRC[id].license, license_url: PARK_SRC[id].license_url, url: PARK_SRC[id].url }));
+  const okN = part.filter(([, r]) => r.ok).length;
+  const all = part.flatMap(([, r]) => r.items);
+  const q = city ? String(city).toLowerCase().slice(0, 40) : "";
+  let items = q ? all.filter((x) => (x.city || "").toLowerCase().includes(q)) : all;
+  const liveTotal = items.filter((x) => x.live).length;
+  if (liveOnly) items = items.filter((x) => x.live);
+  const status = okN === 0 ? "unavailable" : part.some(([, r]) => r.state === "degraded" || r.state === "unavailable") ? "degraded" : part.every(([, r]) => r.state === "cached") ? "cached" : "ok";
+  return { free: true, status, ok: okN > 0, http: okN === 0 ? 503 : 200, checked_at: new Date().toISOString(), live_max_age_min: PARK_STALE_MIN, live_count: liveTotal, facilities_count: items.length, items, sources, page: "https://orbstudio.org/api/v1/parking-de",
+    note: "Free-space counts from two open municipal feeds, passed through unchanged. live=false means the source marks the facility as not real-time or closed, or its last reading is older than live_max_age_min; no numbers are shown for it. Data converted by Orb Studio to one format (Leipzig local time written with its UTC offset). Not an official product of Stadt Karlsruhe or Stadt Leipzig and not endorsed by them. Parking-space counts are not a promise that a space will be free on arrival." };
+}
 // ================= BaFin «Maßnahmen» (меры надзора, RSS): /api/v1/finance/bafin-measures, MCP get_bafin_measures =================
 async function bafinData() {
   const base = { free: true, source: "© Bundesanstalt für Finanzdienstleistungsaufsicht / www.bafin.de (RSS «Maßnahmen»)", page: "https://orbstudio.org/api/v1/finance/bafin-measures",
@@ -1946,6 +1981,7 @@ const OA_GET = [
   ["/api/v1/radiation", "getRadiationDoseRate", "Free ambient gamma dose rate in Germany from the BfS ODL network (open data, Datenlizenz Deutschland Namensnennung 2.0): stations reporting, national median/min/max in µSv/h and the stations nearest to a point (default Hamburg). Unchanged measurements, aggregated by Orb Studio; no thresholds, no alarm, no health assessment.", [OA_Q("lat", "Latitude 47.0–55.2 (optional, default Hamburg)", { type: "number" }), OA_Q("lon", "Longitude 5.5–15.6 (optional, default Hamburg)", { type: "number" })]],
   ["/api/v1/hydro/flood-warnings", "getFloodWarnings", "Free official German flood warnings and situation classes from LHP (hochwasserzentralen.de), CC BY 4.0: active warnings with class and name, highest class, stand time. No water levels, not a forecast.", []],
   ["/api/v1/finance/bafin-measures", "getBafinMeasures", "Free official BaFin supervisory measures (RSS Maßnahmen), last 20 entries: date, title (unchanged, German), sector derived from the link path, url, source. Measures against natural persons are withheld. Not a company rating.", []],
+  ["/api/v1/parking-de", "getParkingDe", "Free live parking occupancy from two open municipal feeds: Karlsruhe region car parks (Stadt Karlsruhe, CC BY 4.0) and Leipzig Park+Ride (Stadt Leipzig, dl-de/by-2-0). Free spaces, capacity, occupancy and reading time per facility; stale or non-real-time facilities are marked live=false with no numbers.", [OA_Q("city", "filter by city name, e.g. Leipzig, Rastatt, Karlsruhe"), OA_Q("live", "1 = only facilities with a fresh live reading")]],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
@@ -6110,6 +6146,9 @@ const MCP_TOOLS = [
   { name: "get_bafin_measures", title: "BaFin supervisory measures (RSS)",
     description: "Free. Official supervisory measures published by BaFin (German financial regulator), last 20 feed entries: date, title (unchanged, German), sector derived from the link path (insurance, banking_aml, securities_disclosure, other), url, source. Measures against natural persons are withheld. Not a rating of any company and not advice. Returns unavailable instead of estimating when the feed cannot be read.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_parking_de", title: "Live parking occupancy: Karlsruhe region and Leipzig P+R",
+    description: "Free. Free spaces, capacity and occupancy of car parks in the Karlsruhe region (Stadt Karlsruhe open data, CC BY 4.0) and Leipzig Park+Ride facilities (Stadt Leipzig, dl-de/by-2-0), with the reading time of each. A facility that is not real-time, closed or older than live_max_age_min is returned with live=false and no numbers. Source attribution and licence are in every item. Not an official product of the cities; not a guarantee that a space will be free.",
+    inputSchema: { type: "object", properties: { city: { type: "string", description: "City name filter, e.g. Leipzig, Rastatt, Karlsruhe" }, live_only: { type: "boolean" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_gas_storage", title: "German gas storage fill level (GIE AGSI+)",
     description: "Free. Fill level of German gas storage from GIE AGSI+ (EU transparency data): percent full, TWh in storage, injection and withdrawal per day, trend as published and a 30-day series. Not a supply forecast and not a statement about security of supply. Returns not_configured or unavailable instead of estimating when the source cannot be read.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6387,6 +6426,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_radiation_dose_rate") { const { http, ...d } = await radiationData(args.lat, args.lon); return { ...d, referral: ref }; }
   if (name === "get_flood_warnings") { const { http, ...d } = await lhpData(); return { ...d, referral: ref }; }
   if (name === "get_bafin_measures") { const { http, ...d } = await bafinData(); return { ...d, referral: ref }; }
+  if (name === "get_parking_de") { const { http, ...d } = await parkingData(args && args.city, !!(args && args.live_only)); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
@@ -6978,6 +7018,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/finance/bafin-measures") {
       const { http, ...d } = await bafinData();
       return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/parking-de") {
+      const { http, ...d } = await parkingData(url.searchParams.get("city"), url.searchParams.get("live") === "1");
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/gas/storage") {
       const { http, ...d } = await gasData(env);

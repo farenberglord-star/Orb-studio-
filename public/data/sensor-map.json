@@ -364,6 +364,39 @@
      "label": "Wikimedia, San Francisco"
     }
    ]
+  },
+  {
+   "id": "parking",
+   "ico": "🅿",
+   "scope": "place",
+   "api": "/api/v1/parking-de",
+   "mcp": "get_parking_de",
+   "time_key": null,
+   "time_kind": null,
+   "name": {
+    "ru": "Парковки: Karlsruhe и Leipzig",
+    "de": "Parken: Karlsruhe und Leipzig",
+    "en": "Parking: Karlsruhe and Leipzig"
+   },
+   "what": {
+    "ru": "Свободные места на парковках региона Karlsruhe и на P+R в Leipzig. Площадки без свежих данных помечены и без цифр.",
+    "de": "Freie Plätze in Parkhäusern der Region Karlsruhe und an den P+R-Anlagen in Leipzig. Anlagen ohne frische Daten sind markiert und ohne Zahlen.",
+    "en": "Free spaces in car parks of the Karlsruhe region and at Leipzig Park+Ride sites. Facilities without fresh data are marked and show no numbers."
+   },
+   "pins": [
+    {
+     "lat": 49.0069,
+     "lon": 8.4037,
+     "kind": "area",
+     "label": "Karlsruhe, Rastatt, Baden-Baden"
+    },
+    {
+     "lat": 51.3397,
+     "lon": 12.3731,
+     "kind": "area",
+     "label": "Leipzig P+R"
+    }
+   ]
   }
  ]
 }
