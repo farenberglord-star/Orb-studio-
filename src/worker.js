@@ -18,6 +18,7 @@ import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MA
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseGas } from "./gas.js";
 import { parseBafin, BAFIN_FEED } from "./bafin.js";
+import { parseLhp, LHP_URL } from "./lhp.js";
 import { PARTIES as PA_PARTIES, reduceDaily as paReduce, rowFor as paRow, summarizeAttention as paSummarize, dayRange as paRange, apiUrl as paApi, ATTRIBUTION as PA_ATTRIBUTION, CONTEXT_NOTE as PA_NOTE } from "./partyattention.js";
 import { reduceDawum, summarizePolls, ATTRIBUTION as POLL_ATTRIBUTION, CONTEXT_NOTE as POLL_NOTE } from "./polls.js";
 import { reduceFeed, summarize, parsePointParams, ATTRIBUTION as ODL_ATTRIBUTION, CONTEXT_NOTE as ODL_NOTE } from "./radiation.js";
@@ -1052,6 +1053,30 @@ async function bafinData() {
   }
   return { ...base, status, ...parseBafin(xml), fetched_note: "The feed holds only the last 20 entries; counts describe the feed, not all BaFin measures." };
 }
+// ================= Паводковые предупреждения (LHP, hochwasserzentralen.de): /api/v1/hydro/flood-warnings, MCP get_flood_warnings =================
+async function lhpData() {
+  const base = { free: true, source: "Datenquelle: www.hochwasserzentralen.de (Länderübergreifendes Hochwasser Portal, LHP), CC BY 4.0", source_url: "https://www.hochwasserzentralen.de", page: "https://orbstudio.org/api/v1/hydro/flood-warnings",
+    scope_note: "Official flood warnings and situation classes of the German LHP, passed through as published (warnings and classes only, no water levels). Empty list means no active warnings at the stated time (stand). Not a forecast and not a substitute for official warnings; for acute danger follow the authorities." };
+  const fresh = new Request("https://orbstudio.org/__cache/lhp-v1"), stale = new Request("https://orbstudio.org/__cache/lhp-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let feed, status = "ok";
+  if (hit) { feed = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch(LHP_URL, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("lhp http " + r.status);
+      feed = await r.json();
+      if (!parseLhp(feed).ok) throw new Error("no usable feed");
+      await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
+      await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=86400" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { ...base, status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "The LHP service did not answer and there is no recent copy. Nothing is estimated." };
+      feed = await old.json(); status = "degraded";
+    }
+  }
+  return { ...base, status, ...parseLhp(feed) };
+}
 // ================= Гамма-фон Германии (BfS ODL, open data): /api/v1/radiation, MCP get_radiation_dose_rate =================
 async function radiationData(latP, lonP) {
   const pp = parsePointParams(latP, lonP);
@@ -1918,6 +1943,7 @@ const OA_GET = [
   ["/api/v1/polls/attention", "getPartyAttention", "Free attention to Bundestag parties: views of the parties' German Wikipedia articles (Wikimedia Pageviews API, CC0): last full day vs the usual day, ratio, surge flag (>= 2.5x), 7-day series and monthly views for about five years. Not support, not a forecast, not search queries, not limited to Germany; no ranking.", []],
   ["/api/v1/polls", "getGermanPolls", "Free German voting-intention polls (Sonntagsfrage) from DAWUM (open database, ODC-ODbL): the latest poll of each institute in the last 35 days, unweighted mean, minimum and maximum per party (CDU/CSU, AfD, SPD, Grüne, Linke, BSW, FDP, ...), each poll with institute, date and sample size. Default Bundestag; optional state parliament. Stated voting intention in samples, not a forecast, no seat or coalition projection.", [OA_Q("parliament", "Parliament shortcut, e.g. Bundestag, Bayern, Berlin (optional, default Bundestag)", { type: "string" })]],
   ["/api/v1/radiation", "getRadiationDoseRate", "Free ambient gamma dose rate in Germany from the BfS ODL network (open data, Datenlizenz Deutschland Namensnennung 2.0): stations reporting, national median/min/max in µSv/h and the stations nearest to a point (default Hamburg). Unchanged measurements, aggregated by Orb Studio; no thresholds, no alarm, no health assessment.", [OA_Q("lat", "Latitude 47.0–55.2 (optional, default Hamburg)", { type: "number" }), OA_Q("lon", "Longitude 5.5–15.6 (optional, default Hamburg)", { type: "number" })]],
+  ["/api/v1/hydro/flood-warnings", "getFloodWarnings", "Free official German flood warnings and situation classes from LHP (hochwasserzentralen.de), CC BY 4.0: active warnings with class and name, highest class, stand time. No water levels, not a forecast.", []],
   ["/api/v1/finance/bafin-measures", "getBafinMeasures", "Free official BaFin supervisory measures (RSS Maßnahmen), last 20 entries: date, title (unchanged, German), sector derived from the link path, url, source. Measures against natural persons are withheld. Not a company rating.", []],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
@@ -6077,6 +6103,9 @@ const MCP_TOOLS = [
   { name: "get_space_weather", title: "Space weather: Kp, storm scales, solar wind, flares (NOAA SWPC)",
     description: "Free. Observed space weather from NOAA SWPC open data: planetary Kp index (now and 24 h maximum), NOAA G/R/S storm scales (current and past 24 h maximum), solar wind speed and density, M/X solar flares of the last 24 hours. Observed values and NOAA's own scales only, not a forecast and not an assessment of effects on a specific system; blocks NOAA did not deliver say ok=false. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_flood_warnings", title: "German flood warnings (LHP)",
+    description: "Free. Official German flood warnings and situation classes from the Länderübergreifendes Hochwasser Portal (hochwasserzentralen.de, CC BY 4.0): active warnings with class and name, highest class, number per class and the stand time. An empty list means no active warnings at that time. No water levels, not a forecast, not a substitute for official warnings. Returns unavailable instead of estimating when the source cannot be read.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_bafin_measures", title: "BaFin supervisory measures (RSS)",
     description: "Free. Official supervisory measures published by BaFin (German financial regulator), last 20 feed entries: date, title (unchanged, German), sector derived from the link path (insurance, banking_aml, securities_disclosure, other), url, source. Measures against natural persons are withheld. Not a rating of any company and not advice. Returns unavailable instead of estimating when the feed cannot be read.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6355,6 +6384,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_party_attention") { const { http, ...d } = await partyAttentionData(); return { ...d, referral: ref }; }
   if (name === "get_german_polls") { const { http, ...d } = await pollsData(args.parliament); return { ...d, referral: ref }; }
   if (name === "get_radiation_dose_rate") { const { http, ...d } = await radiationData(args.lat, args.lon); return { ...d, referral: ref }; }
+  if (name === "get_flood_warnings") { const { http, ...d } = await lhpData(); return { ...d, referral: ref }; }
   if (name === "get_bafin_measures") { const { http, ...d } = await bafinData(); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
@@ -6938,6 +6968,10 @@ async function handleRequest(request, env, ctx) {
     }
     if (url.pathname === "/api/v1/radiation") {
       const { http, ...d } = await radiationData(url.searchParams.get("lat"), url.searchParams.get("lon"));
+      return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/hydro/flood-warnings") {
+      const { http, ...d } = await lhpData();
       return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/finance/bafin-measures") {
