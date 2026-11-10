@@ -57,4 +57,18 @@
   <url><loc>https://orbstudio.org/en/tariffs</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/de/tools</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/archive</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/archive</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/followups</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/followups</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/live</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/live</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/canvas</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/canvas</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/orbi</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/orbi</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/indices</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/indices</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/de/orb7</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/orb7</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
 </urlset>

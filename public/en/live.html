@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live broadcast as text · ECB, Fed, Bundestag, OPEC+ · Orb Studio</title>
+<meta name="description" content="The schedule of official broadcasts – ECB and Fed decisions, Bundestag sessions, OPEC+ meetings, SpaceX/Starlink launches, Anthropic and Google broadcasts – and their text after the event: official press releases, the radars’ reaction, a short summary. For people and AI agents who cannot hear broadcasts.">
+<link rel="canonical" href="https://orbstudio.org/en/live">
+<meta property="og:url" content="https://orbstudio.org/en/live">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Live broadcast as text · Orb Studio">
+<link rel="alternate" type="application/json" href="/api/v1/live" title="Live as text (JSON)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:16px;letter-spacing:.1em;margin:10px 0 0;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:62ch;line-height:1.5}
+.ix{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ix::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.ix>*{position:relative}
+.ix.h{--c:var(--violet)}.ix.c{--c:var(--warm)}.ix.t{--c:var(--holo)}
+.ixhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ixname{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--c);text-transform:uppercase}
+.ixval{font-family:var(--display);font-size:34px;font-weight:700;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ixval small{font-size:14px;color:var(--dim);text-shadow:none;margin-left:4px}
+.bar{height:8px;border-radius:4px;background:#0f1a30;margin:10px 0 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);box-shadow:0 0 12px var(--c);transition:width 1.2s ease}
+.ixtext{font-size:15px;line-height:1.5;margin:0}
+.ixsub{font-size:12.5px;color:var(--dim);margin:8px 0 0;line-height:1.5}
+.sky{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sky span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}
+.sky span.on{border-color:var(--c);color:var(--c)}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;color:var(--dim);line-height:1.55}
+.how b{color:var(--fg);font-weight:500}
+.how p{margin:0 0 8px}.how p:last-child{margin:0}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}
+.dock strong{font-family:var(--display);letter-spacing:.06em}
+.dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}
+.dock span{color:var(--dim);font-family:var(--mono);font-size:11px}
+.agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style><style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.ltabs{display:flex;gap:6px;flex-wrap:wrap}
+.ltabs button{font-family:var(--mono);font-size:12px;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer}
+.ltabs button.on{border-color:var(--holo);color:var(--holo)}
+.next{background:var(--panel);border:1px solid rgba(111,230,255,.45);border-radius:14px;padding:14px}
+.next .t{font-family:var(--display);font-size:18px;margin:4px 0}
+.next .w{font-family:var(--mono);font-size:12px;color:var(--holo)}
+.sched{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.sched div{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid var(--line);font-size:13.5px}
+.sched div:first-child{border-top:0}.sched span{color:var(--dim);font-family:var(--mono);font-size:11px;white-space:nowrap}
+.ev{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ev .meta{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.ev h2{margin:0;font-size:17px;color:var(--fg);letter-spacing:.02em}
+.ev p{margin:0;font-size:14px;line-height:1.55}
+.badge{font-family:var(--mono);font-size:11px;border-radius:999px;padding:3px 9px;border:1px solid var(--line)}
+.b-summarized{color:var(--up);border-color:var(--up)}.b-text_available{color:var(--holo);border-color:var(--holo)}.b-awaiting_text{color:var(--warm);border-color:var(--warm)}.b-live{color:var(--hot);border-color:var(--hot)}.b-upcoming{color:var(--dim)}
+.nums{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.nums div{background:#070b16;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.nums small{display:block;font-family:var(--mono);font-size:10.5px;color:var(--dim)}.nums b{font-family:var(--display);font-size:18px}
+.facts{margin:0;padding-left:18px;font-size:13.5px;line-height:1.5}
+.srcs{font-size:12.5px;color:var(--dim);line-height:1.5}.srcs a{word-break:break-word}
+.wtopic{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.wtopic h2{margin:0;font-size:17px;color:var(--fg);text-transform:capitalize}
+.voice{border-top:1px solid var(--line);padding:7px 0 0;font-size:13.5px;line-height:1.45}
+.voice .who{font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between;gap:8px}
+.voice a{color:var(--fg);text-decoration:none}.voice a:hover{color:var(--holo)}
+.own-state{color:var(--warm)}.own-independent{color:var(--violet)}
+.frames{background:#070b16;border:1px solid rgba(111,230,255,.35);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.5}
+.empty{background:var(--panel);border:1px dashed rgba(111,230,255,.45);border-radius:14px;padding:16px;font-size:14px;line-height:1.55}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/live">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/live">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/live">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/live">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality">Quality 🔬</a><a href="/tariffs">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live" class="on" aria-current="page">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/live" hreflang="ru" lang="ru">RU</a><a href="/de/live" hreflang="de" lang="de">DE</a><a href="/en/live" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow"><a href="/">← Orb Studio</a> · broadcast · official events</div>
+    <h1>🎙 LIVE BROADCAST AS TEXT</h1>
+  </div>
+  <p class="lead">AI agents cannot hear broadcasts, and people do not always manage to watch them. Here is the schedule of official broadcasts – ECB, Fed, Bundestag, OPEC+, SpaceX/Starlink launches, Anthropic and Google broadcasts on AI – and their text after the event: official press releases, the radars’ reaction and a short summary. The text appears 10–60 minutes after the broadcast. The “World” tab shows how 16 international stations present the same story.</p>
+  <div id="next"></div>
+  <div class="ltabs" id="tabs"><button type="button" data-t="upcoming" class="on">Soon</button><button type="button" data-t="past">Past</button><button type="button" data-t="all">All</button><button type="button" data-t="world">🌍 World</button></div>
+  <div id="list" style="display:flex;flex-direction:column;gap:12px"><p class="lead">Loading…</p></div>
+
+  <aside class="krb" aria-label="Kraken – Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>Oil and rates move the markets after every broadcast. Quotes are on <b>Kraken</b></h3>
+    <p class="krb-sub">Kraken crypto exchange: buy bitcoin with euros, Kraken Pro for active trading, staking. Orb Studio’s crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=live" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. Kraken may give new customers a bonus if the exchange’s conditions are met; the bonus is not guaranteed, terms at kraken.com. Not investment advice. Crypto assets are volatile; you may lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Missed the broadcast? The text catches up with you anywhere – with <b>STARLINK</b></h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a power socket</span></li>
+      <li><b>home and travel</b><span>choice of plans</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=live" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
+  </aside>
+
+  <p class="agentline">🤖 For agents: the broadcast as text → <a href="/api/v1/live">/api/v1/live</a> (?status=upcoming|live|past) · MCP <b>get_live</b> on <a href="/mcp">/mcp</a> · <a href="/api/v1/world-radio">/api/v1/world-radio</a> · MCP <b>get_world_voices</b> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <details class="machine"><summary>Text version · for humans and AI agents</summary><section id="machine-feed"><p>Data: <a href="/api/v1/live">/api/v1/live</a>. Time is UTC in the API and Berlin time on the page.</p></section></details>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const L=o=>o?(o.en||o.de||o.ru||''):'';
+const ST={upcoming:'soon',live:'on now',awaiting_text:'awaiting the text',text_available:'text available',summarized:'outcome available'};
+const RAD={economy:'economy',politics:'politics',energy:'energy',geo:'geopolitics',budget:'budget',crypto:'crypto',web:'AI and web'};
+const tf=(iso,opt)=>new Date(iso).toLocaleString('en-GB',Object.assign({timeZone:'Europe/Berlin'},opt));
+const when=e=>{const d=tf(e.start,{day:'numeric',month:'short'}),de=tf(e.end,{day:'numeric',month:'short'});return (d!==de?d+' – '+de:d)+(e.time_confirmed?' · '+tf(e.start,{hour:'2-digit',minute:'2-digit'}):'');};
+const inTxt=m=>m<60?m+' min':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' d';
+let DATA=null,TAB='upcoming';
+function card(e){
+  return `<article class="ev"><div class="meta"><span>${esc(when(e))} · ${esc(e.org)}${e.radar?' · '+esc(RAD[e.radar]||e.radar):''}</span><span class="badge b-${e.status}">${ST[e.status]||e.status}</span></div>
+  <h2>${esc(L(e.summary&&e.summary.headline)||L(e.title))}</h2>
+  ${e.summary&&e.summary.headline?`<div class="srcs">${esc(L(e.title))}</div>`:''}
+  ${e.summary?`<p>${esc(L(e.summary.text||e.summary))}</p>`:''}
+  ${e.numbers&&e.numbers.length?`<div class="nums">${e.numbers.map(n=>`<div><small>${esc(L(n.label))}</small><b>${esc(n.value)}</b></div>`).join('')}</div>`:''}
+  ${e.facts&&e.facts.length?`<ul class="facts">${e.facts.map(f=>`<li>${esc(L(f))}</li>`).join('')}</ul>`:''}
+  ${e.where&&e.status==='upcoming'?`<div class="srcs">${esc(L(e.where))}</div>`:''}
+  ${e.official_texts.length?`<div class="srcs">📄 ${e.kind==='launch'?'Launch reports':e.kind==='announcement'?'Announcement':'Official text'}: ${e.official_texts.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>`).join(' · ')}</div>`:''}
+  ${e.radar_reaction.length?`<div class="srcs">📡 Radar reaction: ${e.radar_reaction.map(t=>`<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a> (${esc(t.source)})`).join(' · ')}</div>`:''}
+  <div class="srcs">${e.watch_url?`▶ <a href="${esc(e.watch_url)}" target="_blank" rel="noopener">official broadcast</a>`:''}${e.source_url?` · source: <a href="${esc(e.source_url)}" target="_blank" rel="noopener">${esc(e.source_name||'link')}</a>`:''}${e.next?' · next: '+esc(L(e.next)):''}</div>${e.data_note?'<div class="srcs">ⓘ Schedule from the Launch Library mirror: time and status may lag.</div>':''}</article>`;
+}
+const OWN={public:'public',state_funded:'state-funded',state_owned:'state-owned company',state:'state',private:'private',independent:'independent, in exile'};
+let WORLD=null;
+function voice(v){return `<div class="voice"><div class="who"><span>${esc(v.flag)} ${esc(v.station)}</span><span class="own-${esc(v.ownership)}">${esc(OWN[v.ownership]||v.ownership)}</span></div><a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.title)}</a></div>`;}
+function renderWorld(){
+  const box=$('list');
+  if(!WORLD){box.innerHTML='<p class="lead">Loading the world broadcast…</p>';fetch('/api/v1/world-radio').then(r=>r.ok?r.json():null).then(d=>{WORLD=d||{stations:[],topics:[]};if(TAB==='world')renderWorld();}).catch(()=>{WORLD={stations:[],topics:[]};renderWorld();});return;}
+  const ed=WORLD.editor_frames,on=WORLD.stations.filter(s=>s.online).length;
+  let h=`<p class="lead" style="font-size:13px">Fresh headlines from ${on} international stations and topics that several write about at once. Headlines are as published (mostly in English). We compare the presentation, not the “truth”: each station chooses what to emphasise.</p>`;
+  if(ed&&ed.frames)h+=`<article class="wtopic"><div class="meta" style="font-family:var(--mono);font-size:11px;color:var(--dim)">Topic of the day · editors’ analysis</div><h2 style="text-transform:none">${esc(L(ed.label))}</h2><div class="frames">${esc(L(ed.frames))}</div>${ed.silent&&ed.silent.length?`<div class="srcs">Silent: ${esc(ed.silent.join(', '))}</div>`:''}</article>`;
+  h+=(WORLD.topics||[]).map(t=>`<article class="wtopic"><div class="meta" style="font-family:var(--mono);font-size:11px;color:var(--dim)">One topic – different voices · stations: ${t.stations_count}</div><h2>${esc(t.label)}</h2>${t.by_ownership?`<div class="srcs">Who writes: ${Object.entries(t.by_ownership).map(([o,v])=>`<span class="own-${esc(o)}">${esc(OWN[o]||o)} ${v.covering}/${v.online}</span>`).join(' · ')}</div>`:''}${t.voices.map(voice).join('')}${t.silent.length?`<div class="srcs" style="margin-top:6px">Silent: ${esc(t.silent.join(', '))}</div>`:''}</article>`).join('');
+  h+=`<h2 style="margin-top:6px">On air in the world now</h2><div class="sched">${WORLD.stations.filter(s=>s.latest.length).map(s=>`<div style="display:block"><div class="who" style="font-family:var(--mono);font-size:11px;color:var(--dim);display:flex;justify-content:space-between"><span>${esc(s.flag)} ${esc(s.name)} · ${esc(s.country)}</span><span class="own-${esc(s.ownership)}">${esc(OWN[s.ownership]||'')}</span></div><a href="${esc(s.latest[0].url)}" target="_blank" rel="noopener" style="color:var(--fg);text-decoration:none">${esc(s.latest[0].title)}</a></div>`).join('')}</div>`;
+  box.innerHTML=h;
+}
+function render(){
+  if(TAB==='world'){document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));renderWorld();return;}
+  if(!DATA){$('list').innerHTML='<div class="empty">Could not load the data. Try refreshing the page.</div>';return;}
+  const ev=DATA.events,up=ev.filter(e=>e.status==='upcoming'),live=ev.filter(e=>e.status==='live');
+  const n=live[0]||up[0];
+  $('next').innerHTML=n?`<div class="next"><div class="w">${live[0]?'● ON AIR NOW':'⏱ NEXT · in '+inTxt(n.starts_in_min)}</div><div class="t">${esc(L(n.title))}</div><div class="srcs">${esc(when(n))}${n.where?' · '+esc(L(n.where)):''}</div></div>`:'';
+  if(TAB==='upcoming'){
+    const list=live.concat(up);
+    $('list').innerHTML=list.length?`<div class="sched">${list.map(e=>`<div><b style="font-weight:500">${esc(when(e))} · ${esc(L(e.title))}</b><span>${esc(RAD[e.radar]||'')}</span></div>`).join('')}</div>`:'<div class="empty">No upcoming events yet.</div>';
+  } else {
+    const list=(TAB==='past'?ev.filter(e=>!['upcoming','live'].includes(e.status)).reverse():ev);
+    $('list').innerHTML=list.length?list.map(card).join(''):'<div class="empty">No past events yet.</div>';
+  }
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===TAB));
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-t]');if(t){TAB=t.dataset.t;try{history.replaceState(null,'',TAB==='world'?'#world':location.pathname)}catch(err){}render();}});
+if(location.hash==='#world')TAB='world';
+fetch('/api/v1/live').then(r=>r.ok?r.json():null).then(d=>{DATA=d;if(TAB!=='world'&&d&&!d.events.some(e=>['upcoming','live'].includes(e.status)))TAB='past';render();}).catch(()=>{DATA=null;render();});
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+
+
+
+
+
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_live')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=live'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"live"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_live','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('en-GB');}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>
