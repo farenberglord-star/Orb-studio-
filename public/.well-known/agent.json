@@ -158,6 +158,7 @@
       "get_gas_storage",
       "get_bafin_measures",
       "get_flood_warnings",
+      "get_parking_de",
       "get_radiation_dose_rate",
       "get_german_polls",
       "get_party_attention",
