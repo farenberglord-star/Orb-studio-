@@ -192,6 +192,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="quakes"><div class="nm"><i></i>🌋 Earthquakes worldwide</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="elbe"><div class="nm"><i></i>🌊 Elbe: water level</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="gas"><div class="nm"><i></i>🔥 German gas storage</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="bafin"><div class="nm"><i></i>🏛 BaFin supervisory measures</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="polls"><div class="nm"><i></i>🗳 Sonntagsfrage polls</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="radiation"><div class="nm"><i></i>☢ Gamma background Germany</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="space"><div class="nm"><i></i>☀ Space weather</div><div class="vl">loading…</div><div class="ag"></div></div>
@@ -247,6 +248,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="sky"><div class="k">Sky over Hamburg · adsb.lol (ADS-B)</div><div class="v" id="oSky">—</div></div>
       <div class="row" data-o="elbe"><div class="k">Elbe · PEGELONLINE (water level)</div><div class="v" id="oElbe">—</div></div>
       <div class="row" data-o="gas"><div class="k">Gas storage · GIE AGSI+ (fill level)</div><div class="v" id="oGas">—</div></div>
+      <div class="row" data-o="bafin"><div class="k">BaFin supervisory measures · official feed</div><div class="v" id="oBafin">—</div></div>
       <div class="row" data-o="polls"><div class="k">Sonntagsfrage polls · DAWUM (stated voting intention)</div><div class="v" id="oPolls">—</div></div>
       <div class="row" data-o="radiation"><div class="k">Gamma background · BfS, ODL network (measurements)</div><div class="v" id="oRad">—</div></div>
       <div class="row" data-o="space"><div class="k">Space weather · NOAA SWPC (observations)</div><div class="v" id="oSpace">—</div></div>
@@ -324,7 +326,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'updated '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3,gas:3}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3,gas:3,bafin:10}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -452,6 +454,16 @@ async function loadSky(){
     `<div style="margin-top:3px">✈ Finkenwerder (Airbus): ${L.length?`<b class="up">${L.length} landings in 24 h</b>, last at ${hm(last.time)}${last.callsign?' · '+esc(last.callsign):''}`:'no landings recorded in 24 h so far'}</div>`+
     L.slice(-4).reverse().map(x=>`<div style="margin-top:2px;color:var(--dim);font-size:12px">${hm(x.time)} · ${esc(x.callsign||'no callsign')} · ${x.evidence==='on_ground'?'landed, visible on the ground':'disappeared at the runway'}</div>`).join('')+
     `<div style="margin-top:4px;color:var(--dim);font-size:12px">Counted are aircraft heard by adsb.lol’s volunteer receivers; with the transponder switched off they are not visible${d.status!=='ok'?' · '+(d.status==='cached'?'from cache':'source did not answer, previous data'):''}</div>`;
+}
+async function loadBafin(){
+  const d=await fetch('/api/v1/finance/bafin-measures').then(r=>r.json());
+  if(!d.ok){setSensor('bafin','BaFin did not respond',Date.now(),'x');$('oBafin').textContent='The BaFin feed did not respond — I don’t invent numbers.';return}
+  const SEC={insurance:'insurance',banking_aml:'banks and money laundering',securities_disclosure:'securities and disclosure',other:'other'};
+  const day=iso=>new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'});
+  setSensor('bafin','latest measure '+day(d.latest_published)+' · in feed '+d.count_in_feed,Date.parse(d.latest_published)||Date.now(),String(d.latest_published));
+  $('oBafin').innerHTML='<b>'+d.count_in_feed+'</b> measures in the feed, latest '+day(d.latest_published)+
+    d.items.slice(0,3).map(x=>'<div style="margin-top:3px"><a href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.title)+'</a> <span style="color:var(--dim);font-size:12px">'+day(x.date)+' · '+(SEC[x.sector]||SEC.other)+'</span></div>').join('')+
+    '<div style="margin-top:3px;color:var(--dim);font-size:12px">Titles in German, as published by BaFin. Measures against natural persons are hidden. A measure is not a rating of a company.</div><div style="margin-top:3px;color:var(--dim);font-size:12px">© Bundesanstalt für Finanzdienstleistungsaufsicht / www.bafin.de</div>';
 }
 async function loadGas(){
   const d=await fetch('/api/v1/gas/storage').then(r=>r.json());
@@ -603,7 +615,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Claude chooses the mode from all of the site’s sensors, safeguards of rules v'+d.rules.version+' remain.':'Rules v'+d.rules.version+' recorded in advance.'} One decision a day at 08:10, the account balance updates when the page opens; compared with the Kraken app the total may differ by a couple of euros because of the conversion price. Every decision is in the log: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],gas:[loadGas,1800e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],gas:[loadGas,1800e3],bafin:[loadBafin,3600e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------
