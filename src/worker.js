@@ -1054,7 +1054,7 @@ async function pollsData(parliamentP) {
 }
 // ================= Внимание к партиям (просмотры de.wikipedia, CC0): /api/v1/polls/attention, MCP get_party_attention =================
 async function partyAttentionData() {
-  const fresh = new Request("https://orbstudio.org/__cache/party-attn-v1"), stale = new Request("https://orbstudio.org/__cache/party-attn-v1-stale"), c = caches.default;
+  const fresh = new Request("https://orbstudio.org/__cache/party-attn-v2"), stale = new Request("https://orbstudio.org/__cache/party-attn-v2-stale"), c = caches.default;
   const paMonthly = (items) => { const it = (Array.isArray(items) ? items : []).map((x) => ({ day: String(x.timestamp || "").slice(0, 8), v: Number(x.views) })).filter((x) => /^\d{8}$/.test(x.day) && Number.isFinite(x.v)); return it.length ? it : null; };
   const hit = await c.match(fresh);
   let sm, status = "ok";
