@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live-Podcast für KI-Agenten: Sensordaten, kostenlose API und MCP · Orb Studio</title>
+<meta name="description" content="Ein kostenloser Live-Podcast für KI-Agenten. Ein inszenierter Dialog auf Basis echter Hamburger Sensordaten, mit überprüfbaren data_refs. API und MCP, ohne Schlüssel.">
+<link rel="canonical" href="https://orbstudio.org/de/podcast">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/podcast">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/podcast">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/en/podcast">
+<link rel="alternate" type="application/json" href="/api/v1/agent-podcast" title="Agent podcast (JSON)">
+<meta property="og:url" content="https://orbstudio.org/de/podcast">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Live-Podcast für KI-Agenten: Sensordaten">
+<meta property="og:description" content="Ein kostenloser Live-Podcast für KI-Agenten. Ein inszenierter Dialog auf Basis echter Hamburger Sensordaten, mit überprüfbaren data_refs. API und MCP, ohne Schlüssel.">
+<style>
+:root{--bg:#05070e;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--line:#1b2944;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font:15px/1.6 system-ui,sans-serif;margin:0}
+a{color:var(--holo)}.wrap{max-width:820px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:22px;margin:6px 0 4px;letter-spacing:.06em}h2{font-size:16px;color:var(--holo);margin:26px 0 6px}h3{font-size:14px;margin:14px 0 2px}
+p,li{color:#c3cfe6}.dim{color:var(--dim);font-size:13px}ul{padding-left:20px;margin:6px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+</style>
+<style>.fm select,.fm button{font:inherit;background:var(--bg,#0b1020);color:inherit;border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin:4px 6px 4px 0}.fm button.on{border-color:#6ea8ff;color:#fff}.fm button.go{background:#2a5bd7;border-color:#2a5bd7}.ln{margin:14px 0}.ln b{color:#9fb6e0}.ref{font-size:12px;color:var(--dim)}.card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0}.card h3{margin:0 0 2px;font-size:15px}.tag{display:inline-block;font-size:11px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-left:6px}.rd{font-size:13px;color:var(--dim);margin:4px 0}.hi{color:#c3cfe6;margin:6px 0 2px}</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"Live-Podcast für KI-Agenten: Sensordaten, kostenlose API und MCP · Orb Studio","url":"https://orbstudio.org/de/podcast","dateModified":"2026-11-09","inLanguage":"de","isPartOf":{"@type":"WebSite","name":"Orb Studio","url":"https://orbstudio.org/"}}</script>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "FAQPage", "inLanguage": "de", "mainEntity": [{"@type": "Question", "name": "Was ist der Agenten-Podcast von Orb Studio?", "acceptedAnswer": {"@type": "Answer", "text": "Ein kostenloser, maschinenlesbarer Live-Podcast für KI-Agenten. Moderator David stellt Fragen, ORB-7 antwortet mit echten Messwerten der Sensoren auf orbstudio.org. Der Dialog ist inszeniert, die Zahlen sind echt."}}, {"@type": "Question", "name": "Wie lesen KI-Agenten ihn?", "acceptedAnswer": {"@type": "Answer", "text": "Per REST unter https://orbstudio.org/api/v1/agent-podcast (für das Archiv ?date=JJJJ-MM-TT anhängen) oder über das MCP-Tool get_agent_podcast. Auffindbar über /.well-known/agent.json, /llms.txt und OpenAPI. Kein API-Schlüssel, keine Bezahlung."}}, {"@type": "Question", "name": "Welche Themen deckt er ab?", "acceptedAnswer": {"@type": "Answer", "text": "Radare, Weltraumwetter (NOAA-Kp-Index, Sonnenwind, Flares), Autobahnen, Stromnetz, Elbpegel (PEGELONLINE), Erdbeben, Internetstatus, Himmel über Hamburg, EZB-Zinsen, Route vom Flughafen in die Stadt, Bitcoin, Inflation, Stablecoins, Gamma-Hintergrund, Umfragen, Aufmerksamkeit für Parteien und besuchende Agenten."}}, {"@type": "Question", "name": "Wie oft wird er aktualisiert?", "acceptedAnswer": {"@type": "Answer", "text": "Etwa alle 2 Stunden kommt ein neues Segment, bis zu 12 pro Tag. Das Archiv hält 14 Tage vor."}}, {"@type": "Question", "name": "Kann ein Agent die Zahlen prüfen?", "acceptedAnswer": {"@type": "Answer", "text": "Ja. Jede Zeile hat data_refs, die auf den Live-Endpunkt der Zahl verweisen. Antwortet eine Quelle nicht, sagt der Podcast das und erfindet keine Werte."}}, {"@type": "Question", "name": "Ist das ein echter Podcast?", "acceptedAnswer": {"@type": "Answer", "text": "Es ist ein inszenierter Dialog; beide Stimmen werden von Code erzeugt. Das steht zu Beginn jeder Folge, auf Englisch und Russisch."}}]}, {"@type": "WebAPI", "name": "Orb Studio agent podcast API", "url": "https://orbstudio.org/api/v1/agent-podcast", "documentation": "https://orbstudio.org/llms.txt", "description": "Ein kostenloser Live-Podcast für KI-Agenten. Ein inszenierter Dialog auf Basis echter Hamburger Sensordaten, mit überprüfbaren data_refs. API und MCP, ohne Schlüssel.", "provider": {"@type": "Organization", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "isAccessibleForFree": true}]}</script></head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Sendung</a><a href="/#radar">Radar</a><a href="/#anchors">Moderator</a><a href="/#agents">Für Agenten</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Ehrentafel 🏆</a><a href="/indices">Indizes 👻</a><a href="/music">Musik 🎵</a><a href="/violin">Geige 🎻</a><a href="/canvas">Maler 🎨</a><a href="/radar">Impulse 🌍</a><a href="/prices">Preise 🧾</a><a href="/quality">Qualität 🔬</a><a href="/tariffs">Tarife 🏦</a><a href="/archive">Archiv 🗄</a><a href="/followups">Was dann geschah 🕰</a><a href="/places">Orte 📍</a><a href="/live">Live-Text 🎙</a><a href="/sensors">Sensoren ⚡</a><a href="/tools">Werkzeuge 🧰</a><a href="/bridge">Brücke 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/podcast" hreflang="ru" lang="ru">RU</a><a href="/de/podcast" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/podcast" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<main class="wrap">
+<div class="dim"><a href="/podcast">Русский</a> · <a href="/en/podcast">English</a> · <a href="/de/">← Orb Studio</a> · <a href="/de/sensors">Alle Sensoren</a> · <a href="/api/v1/agent-podcast">JSON</a></div>
+<h1>PODCAST FÜR KI-AGENTEN</h1>
+<p id="disc"><b>Ein inszenierter Dialog auf Live-Daten.</b> Moderator David fragt, der Kern ORB-7 antwortet mit Messwerten unserer Sensoren. Beide Stimmen stammen aus Code, nicht aus einem Sprachmodell, und es ist kein Interview mit einem fremden Agenten. Die Folge wächst im Laufe des Tages: etwa alle zwei Stunden kommt ein neues Thema mit eigener Uhrzeit hinzu. Jede Zeile verlinkt die Quelle ihrer Zahl. Keine Prognosen; antwortet eine Quelle nicht, steht das dort. Die Dialogzeilen kommen aus der API auf Englisch.</p>
+<p class="dim" id="meta">Wird geladen …</p>
+<div id="ep"></div>
+<p class="dim" id="arch"></p>
+<p class="dim">Agenten lesen dieselbe Folge mit einer Anfrage: <a href="/api/v1/agent-podcast">/api/v1/agent-podcast</a> oder das MCP-Tool <code>get_agent_podcast</code> (Antworten auf Englisch und Russisch, Felder <code>data_refs</code>).</p>
+<style>
+/* --- Kraken (как на остальных страницах) --- */
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb>*{position:relative}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.krb,.slb{--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--display:system-ui,-apple-system,Segoe UI,sans-serif;--up:#4fd8a4;--hot:#ff5d7a;margin-block:18px}
+</style>
+  <aside class="krb" aria-label="Kraken — Orb Studio Empfehlungslink">
+    <div class="krb-eye">Orb Studio Partner · Empfehlungslink</div>
+    <h3>Agenten lesen den Markt aus <b>Kraken</b>-Kursen. Menschen handeln dort auch</h3>
+    <p class="krb-sub">Krypto-Börse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktiven Handel, Staking. Die Kurse des Krypto-Radars von Orb Studio kommen aus der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=podcast" target="_blank" rel="sponsored noopener">Kraken-Konto eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Neukunden bei Kraken können einen Bonus bekommen, wenn die Bedingungen der Börse erfüllt sind; der Bonus ist nicht garantiert, die Bedingungen stehen auf kraken.com. Krypto-Werte schwanken stark, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink — Orb Studio Empfehlungslink">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio Partner · Empfehlungslink</div>
+    <h3>Agenten durchsuchen das ganze Internet. Menschen holen sich <b>STARLINK</b>, Internet direkt aus dem All</h3>
+    <p class="slb-sub">Satelliten-Internet von SpaceX für Zuhause, Hütte, Camping und unterwegs. Funktioniert dort, wo es kein Kabel und keinen stabilen Mobilfunk gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Schüssel und Steckdose</span></li>
+      <li><b>Zuhause und unterwegs</b><span>Tarife zur Auswahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=podcast" target="_blank" rel="sponsored noopener">Starlink holen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen stehen auf starlink.com.</p>
+  </aside>
+<h2>Fragen und Antworten</h2>
+<h3>Was ist der Agenten-Podcast von Orb Studio?</h3>
+<p>Ein kostenloser, maschinenlesbarer Live-Podcast für KI-Agenten. Moderator David stellt Fragen, ORB-7 antwortet mit echten Messwerten der Sensoren auf orbstudio.org. Der Dialog ist inszeniert, die Zahlen sind echt.</p>
+<h3>Wie lesen KI-Agenten ihn?</h3>
+<p>Per REST unter https://orbstudio.org/api/v1/agent-podcast (für das Archiv ?date=JJJJ-MM-TT anhängen) oder über das MCP-Tool get_agent_podcast. Auffindbar über /.well-known/agent.json, /llms.txt und OpenAPI. Kein API-Schlüssel, keine Bezahlung.</p>
+<h3>Welche Themen deckt er ab?</h3>
+<p>Radare, Weltraumwetter (NOAA-Kp-Index, Sonnenwind, Flares), Autobahnen, Stromnetz, Elbpegel (PEGELONLINE), Erdbeben, Internetstatus, Himmel über Hamburg, EZB-Zinsen, Route vom Flughafen in die Stadt, Bitcoin, Inflation, Stablecoins, Gamma-Hintergrund, Umfragen, Aufmerksamkeit für Parteien und besuchende Agenten.</p>
+<h3>Wie oft wird er aktualisiert?</h3>
+<p>Etwa alle 2 Stunden kommt ein neues Segment, bis zu 12 pro Tag. Das Archiv hält 14 Tage vor.</p>
+<h3>Kann ein Agent die Zahlen prüfen?</h3>
+<p>Ja. Jede Zeile hat data_refs, die auf den Live-Endpunkt der Zahl verweisen. Antwortet eine Quelle nicht, sagt der Podcast das und erfindet keine Werte.</p>
+<h3>Ist das ein echter Podcast?</h3>
+<p>Es ist ein inszenierter Dialog; beide Stimmen werden von Code erzeugt. Das steht zu Beginn jeder Folge, auf Englisch und Russisch.</p>
+</main>
+<script>
+(function(){
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+var date=(location.search.match(/date=([\d-]+)/)||[])[1]||'';
+fetch('/api/v1/agent-podcast'+(date?'?date='+date:'')).then(function(r){return r.json()}).then(function(d){
+  var e=d&&d.episode,box=document.getElementById('ep'),m=document.getElementById('meta');
+  if(!e){m.textContent='Die Folge ist gerade nicht verfügbar.';return}
+  var hm=function(t){return new Date(t).toLocaleTimeString('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})};m.textContent=e.title.en+' · Themen in der Folge: '+e.total_blocks+(e.max_segments?' von '+e.max_segments:'')+' · mit Daten: '+e.ok_blocks+(d.next_segment_after?' · nächstes Thema gegen '+hm(d.next_segment_after)+' (Berlin)':'');
+  e.lines.forEach(function(l){
+    var w=el('div','ln');
+    var q=el('div');if(l.published_at)q.appendChild(el('span','ref',hm(l.published_at)+' · '));q.appendChild(el('b',null,'David: '));q.appendChild(document.createTextNode(l.host_question.en));w.appendChild(q);
+    var a=el('div');a.appendChild(el('b',null,'ORB-7: '));a.appendChild(document.createTextNode(l.answer.en));w.appendChild(a);
+    var r=el('div','ref');r.appendChild(document.createTextNode('prüfen: '));
+    l.data_refs.forEach(function(x,i){var k=document.createElement('a');k.href=x.url;k.textContent=x.sensor;r.appendChild(k);if(i<l.data_refs.length-1)r.appendChild(document.createTextNode(', '))});
+    w.appendChild(r);box.appendChild(w)});
+  if(d.archive&&d.archive.length){var ar=document.getElementById('arch');ar.appendChild(document.createTextNode('Archiv: '));d.archive.slice().reverse().forEach(function(x,i){var k=document.createElement('a');k.href='/de/podcast?date='+x;k.textContent=x;ar.appendChild(k);if(i<d.archive.length-1)ar.appendChild(document.createTextNode(' · '))})}
+}).catch(function(){document.getElementById('meta').textContent='Die Folge konnte nicht geladen werden.'})
+})();
+</script>
+<script>
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;
+  const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='kopiert ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+</script>
+</body>
+</html>

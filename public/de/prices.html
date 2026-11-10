@@ -140,11 +140,15 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
 .onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
 .onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
 @media (max-width:560px){.onav-brand span{display:none}}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--></head>
-<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Sendung</a><a href="/#radar">Radar</a><a href="/#anchors">Moderator</a><a href="/#agents">Für Agenten</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Ehrentafel 🏆</a><a href="/indices">Indizes 👻</a><a href="/music">Musik 🎵</a><a href="/violin">Geige 🎻</a><a href="/canvas">Maler 🎨</a><a href="/radar">Impulse 🌍</a><a href="/prices" class="on" aria-current="page">Preise 🧾</a><a href="/quality">Qualität 🔬</a><a href="/tariffs">Tarife 🏦</a><a href="/archive">Archiv 🗄</a><a href="/followups">Was dann geschah 🕰</a><a href="/places">Orte 📍</a><a href="/live">Live-Text 🎙</a><a href="/sensors">Sensoren ⚡</a><a href="/tools">Werkzeuge 🧰</a><a href="/bridge">Brücke 🧭</a></nav></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Sendung</a><a href="/#radar">Radar</a><a href="/#anchors">Moderator</a><a href="/#agents">Für Agenten</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Ehrentafel 🏆</a><a href="/indices">Indizes 👻</a><a href="/music">Musik 🎵</a><a href="/violin">Geige 🎻</a><a href="/canvas">Maler 🎨</a><a href="/radar">Impulse 🌍</a><a href="/prices" class="on" aria-current="page">Preise 🧾</a><a href="/quality">Qualität 🔬</a><a href="/tariffs">Tarife 🏦</a><a href="/archive">Archiv 🗄</a><a href="/followups">Was dann geschah 🕰</a><a href="/places">Orte 📍</a><a href="/live">Live-Text 🎙</a><a href="/sensors">Sensoren ⚡</a><a href="/tools">Werkzeuge 🧰</a><a href="/bridge">Brücke 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/prices" hreflang="ru" lang="ru">RU</a><a href="/de/prices" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/prices" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <div class="wrap">
   <div>
     <div class="eyebrow"><a href="/">← Orb Studio</a> · Preisradar · Hamburg und Umgebung</div>
@@ -209,12 +213,12 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .klb-go:hover,.klb-go:focus-visible{filter:brightness(1.06);outline:2px solid #fff;outline-offset:2px}
 .klb-note{color:#8f8594;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:70ch}
 </style>
-  <aside class="klb" aria-label="Klarna – Orb Studio referral link">
+  <aside class="klb" aria-label="Klarna — реферальная ссылка Orb Studio">
     <div class="klb-eye">Partner von Orb Studio · Empfehlungslink</div>
-    <h3>Zahlst du in Deutschland? Später zahlen mit <b>Klarna</b></h3>
-    <p class="klb-sub">Klarna ist ein Zahlungsdienst: später oder in Raten zahlen, im Laden und online. Wer über eine Einladung beitritt, kann einen Bonus erhalten: Höhe und Bedingungen legt Klarna fest und sie hängen von der Region ab.</p>
-    <a class="klb-go" href="/go/klarna?from=prices" target="_blank" rel="sponsored noopener">Klarna-Einladung öffnen ↗</a>
-    <p class="klb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Bonusbedingungen und Änderungen liegen bei Klarna.</p>
+    <h3>Платишь за покупки в Германии? Оплата позже — через <b>Klarna</b></h3>
+    <p class="klb-sub">Klarna — платёжный сервис: оплата позже или частями в магазинах и онлайн. По приглашению Klarna новому участнику может предложить бонус: размер и условия определяет сама Klarna и они зависят от региона.</p>
+    <a class="klb-go" href="/go/klarna?from=prices" target="_blank" rel="sponsored noopener">Открыть приглашение Klarna ↗</a>
+    <p class="klb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Условия бонуса и их изменения — на стороне Klarna.</p>
   </aside>
 
   <p class="agentline">🤖 Für Agenten: Hamburger Preise als JSON → <a href="/api/v1/prices">/api/v1/prices</a> · MCP <b>get_prices</b> bei <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>

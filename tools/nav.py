@@ -27,6 +27,10 @@ CSS = """<!--orb-nav-css--><style>
 .onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
 .onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
 .onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
 @media (max-width:560px){.onav-brand span{display:none}}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
@@ -53,5 +57,45 @@ def main():
         open(path, "w", encoding="utf-8").write(s)
         print("nav:", p)
 
+
+
+
+# ---- переключатель языка RU / DE / EN: ссылки на ту же страницу на другом языке (если перевод есть), иначе на главную языка ----
+import glob
+def _translated():
+    w = open(os.path.join(ROOT, "..", "src", "worker.js"), encoding="utf-8").read()
+    m = re.search(r"const TRANSLATED_PAGES = new Set\(\[(.*?)\]\)", w)
+    return set(re.findall(r'"([a-z0-9-]+)"', m.group(1)))
+
+def lang_html(name, cur):
+    tr = _translated()
+    have = {l: {os.path.basename(f)[:-5] for f in glob.glob(os.path.join(ROOT, l, "*.html"))} for l in ("de", "en")}
+    out = []
+    for l, label in (("ru", "RU"), ("de", "DE"), ("en", "EN")):
+        if l == "ru":
+            href = ("/ru/" + name) if name in tr else "/" + name
+        else:
+            href = f"/{l}/{name}" if name in have[l] else f"/{l}/"
+        on = ' class="on" aria-current="true"' if l == cur else ""
+        out.append(f'<a href="{href}" hreflang="{l}" lang="{l}"{on}>{label}</a>')
+    return '<!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык">' + "".join(out) + '</div><!--/orb-lang-->'
+
+def lang_all():
+    for path in sorted(glob.glob(os.path.join(ROOT, "*.html")) + glob.glob(os.path.join(ROOT, "de", "*.html")) + glob.glob(os.path.join(ROOT, "en", "*.html"))):
+        s = open(path, encoding="utf-8").read()
+        if "<!--orb-nav-->" not in s: continue
+        rel = os.path.relpath(path, ROOT).split(os.sep)
+        cur, name = (rel[0], rel[1][:-5]) if len(rel) == 2 else ("ru", rel[0][:-5])
+        s = put(s, "<!--orb-nav-css-->", "<!--/orb-nav-css-->", CSS, "</head>", after=False)
+        blk = lang_html(name, cur)
+        if "<!--orb-lang-->" in s:
+            s = re.sub(r"<!--orb-lang-->.*?<!--/orb-lang-->", lambda m: blk, s, count=1, flags=re.S)
+        else:
+            assert "</nav></div></header>" in s, path
+            s = s.replace("</nav></div></header>", "</nav>" + blk + "</div></header>", 1)
+        open(path, "w", encoding="utf-8").write(s)
+        print("lang:", os.path.relpath(path, ROOT))
+
 if __name__ == "__main__":
     main()
+    lang_all()
