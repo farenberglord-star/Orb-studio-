@@ -59,3 +59,5 @@ def build(page):
 
 for p in (sys.argv[1:] or list(PAGES)):
     build(p)
+
+import nav as _n; _n.lang_all()  # переключатель языка в меню (после сборки де/ен)
