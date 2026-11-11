@@ -397,6 +397,57 @@
      "label": "Leipzig P+R"
     }
    ]
+  },
+  {
+   "id": "weather_at",
+   "ico": "⛅",
+   "scope": "place",
+   "api": "/api/v1/weather-at",
+   "mcp": "get_weather_at",
+   "time_key": "observed_at",
+   "time_kind": "stand",
+   "name": {
+    "ru": "Погода Австрии: станции TAWES",
+    "de": "Wetter Österreich: TAWES-Stationen",
+    "en": "Austria weather: TAWES stations"
+   },
+   "what": {
+    "ru": "Текущие 10-минутные измерения 12 станций GeoSphere Austria: температура, ветер, осадки, давление, снег. Источник: GeoSphere Austria, CC BY 4.0.",
+    "de": "Aktuelle 10-Minuten-Messwerte von 12 GeoSphere-Austria-Stationen: Temperatur, Wind, Niederschlag, Druck, Schnee. Quelle: GeoSphere Austria, CC BY 4.0.",
+    "en": "Current 10-minute observations from 12 GeoSphere Austria stations: temperature, wind, precipitation, pressure, snow. Source: GeoSphere Austria, CC BY 4.0."
+   },
+   "pins": [
+    {
+     "lat": 48.2486,
+     "lon": 16.3564,
+     "kind": "point",
+     "label": "Wien, Hohe Warte"
+    },
+    {
+     "lat": 47.7894,
+     "lon": 13.0086,
+     "kind": "point",
+     "label": "Salzburg"
+    },
+    {
+     "lat": 47.26,
+     "lon": 11.3842,
+     "kind": "point",
+     "label": "Innsbruck"
+    },
+    {
+     "lat": 46.9806,
+     "lon": 15.44,
+     "kind": "point",
+     "label": "Graz, Thalerhof"
+    },
+    {
+     "lat": 47.0542,
+     "lon": 12.9575,
+     "kind": "point",
+     "label": "Sonnblick (3109 m)"
+    }
+   ]
   }
  ]
 }
