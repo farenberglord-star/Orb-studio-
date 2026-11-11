@@ -17,6 +17,7 @@ import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseGas } from "./gas.js";
+import { snapshot as pulseSnapshot, diff as pulseDiff, mergeEvents, sinceMs, etagBasis, PULSE_SENSORS } from "./pulse.js";
 import { parseTawes, TAWES_URL, ATTRIBUTION as TAWES_ATTR, STALE_MIN as TAWES_STALE_MIN } from "./weather_at.js";
 import { parseKarlsruhe, parseLeipzig, KA_URL, LE_URL, SOURCES as PARK_SRC, STALE_MIN as PARK_STALE_MIN } from "./parking.js";
 import { parseBafin, BAFIN_FEED } from "./bafin.js";
@@ -1031,6 +1032,44 @@ async function gasData(env) {
   }
   return { ...base, status, ...parseGas(feed), area: "Germany, all storage sites combined" };
 }
+// ================= Импульсы: /api/v1/changes и MCP get_changes («что изменилось с момента T»), ETag/304 на датчиках =================
+const PULSE_GUARD_MS = 4 * 60 * 1000;
+async function pulseRefresh(env, force) {
+  const st = await sharedGet(env, "pulse:state", 1e13) || {};
+  if (!force && st.checked_at && Date.now() - st.checked_at < PULSE_GUARD_MS) return st;
+  const run = (f) => f().catch(() => null);
+  const [gas, bafin, flood, quakes, space] = await Promise.all([run(() => gasData(env)), run(() => bafinData()), run(() => lhpData()), run(() => quakesData()), run(() => spaceData())]);
+  const snaps = { gas: pulseSnapshot("gas", gas), bafin: pulseSnapshot("bafin", bafin), flood: pulseSnapshot("flood", flood), quakes: pulseSnapshot("quakes", quakes), space: pulseSnapshot("space", space) };
+  const now = Date.now(), { state, events } = pulseDiff(st.state || {}, snaps, now);
+  const log = mergeEvents(await sharedGet(env, "pulse:events", 1e13) || [], events);
+  if (events.length) await sharedPut(env, "pulse:events", log);
+  const next = { state, checked_at: now, baseline_at: st.baseline_at || now };
+  await sharedPut(env, "pulse:state", next);
+  return next;
+}
+async function changesData(env, since, sensor, limit) {
+  const st = await pulseRefresh(env, false).catch(() => null), log = (await sharedGet(env, "pulse:events", 1e13)) || [];
+  const t = sinceMs(since), q = sensor && PULSE_SENSORS[sensor] ? sensor : null;
+  if (Number.isNaN(t)) return { http: 400, ok: false, error: "since must be an ISO time (2026-11-11T10:00:00Z) or epoch seconds/milliseconds, not in the future" };
+  let ev = log.filter((e) => (!q || e.sensor === q) && (t == null || Date.parse(e.detected_at) > t));
+  const n = Math.max(1, Math.min(100, +limit || (t == null ? 20 : 100)));
+  ev = ev.slice(0, n);
+  return { free: true, http: 200, ok: true, status: st ? "ok" : "degraded", now: new Date().toISOString(), since: t == null ? null : new Date(t).toISOString(), baseline_at: st && st.baseline_at ? new Date(st.baseline_at).toISOString() : null, last_check_at: st && st.checked_at ? new Date(st.checked_at).toISOString() : null,
+    poll_interval_min: 6, count: ev.length, events: ev,
+    sensors_watched: Object.entries(PULSE_SENSORS).map(([id, v]) => ({ id, endpoint: v.endpoint, event_basis: v.basis, last_event_at: (log.find((e) => e.sensor === id) || {}).detected_at || null })), page: "https://orbstudio.org/api/v1/changes",
+    note: "Events are facts noticed by Orb Studio's own poll of each source (detected_at), at most about 6 minutes after the source published them. They are not predictions. The first run only recorded a baseline, so events start after baseline_at. The log keeps the latest 100 events. Use ETag / If-None-Match on the sensor endpoints for a cheap 'has anything changed' check." };
+}
+const ETAG_PATHS = new Set(["/api/v1/hydro/sea", "/api/v1/quakes", "/api/v1/space", "/api/v1/gas/storage", "/api/v1/finance/bafin-measures", "/api/v1/hydro/flood-warnings", "/api/v1/parking-de", "/api/v1/weather-at", "/api/v1/changes"]);
+async function withEtag(request, res) {
+  if (request.method !== "GET" || !res || res.status !== 200 || !ETAG_PATHS.has(new URL(request.url).pathname) || !/json/i.test(res.headers.get("content-type") || "")) return res;
+  const text = await res.clone().text();
+  let basis; try { basis = JSON.stringify(etagBasis(JSON.parse(text))); } catch (e) { return res; }
+  const dig = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(basis))), tag = 'W/"' + Array.from(dig.slice(0, 10), (b) => b.toString(16).padStart(2, "0")).join("") + '"';
+  const h = new Headers(res.headers); h.set("ETag", tag); h.set("Access-Control-Expose-Headers", "ETag");
+  const inm = (request.headers.get("if-none-match") || "").split(",").map((x) => x.trim().replace(/^W\//, ""));
+  if (inm.includes(tag.replace(/^W\//, ""))) { h.delete("content-length"); h.delete("content-type"); return new Response(null, { status: 304, headers: h }); }
+  return new Response(text, { status: 200, headers: h });
+}
 // ================= Парковки Karlsruhe (Parkhäuser) и Leipzig (P+R): /api/v1/parking-de, MCP get_parking_de =================
 async function parkingSource(key, url, parse, accept) {
   const fresh = new Request(`https://orbstudio.org/__cache/parking-${key}-v1`), stale = new Request(`https://orbstudio.org/__cache/parking-${key}-v1-stale`), c = caches.default;
@@ -2011,6 +2050,7 @@ const OA_GET = [
   ["/api/v1/hydro/flood-warnings", "getFloodWarnings", "Free official German flood warnings and situation classes from LHP (hochwasserzentralen.de), CC BY 4.0: active warnings with class and name, highest class, stand time. No water levels, not a forecast.", []],
   ["/api/v1/finance/bafin-measures", "getBafinMeasures", "Free official BaFin supervisory measures (RSS Maßnahmen), last 20 entries: date, title (unchanged, German), sector derived from the link path, url, source. Measures against natural persons are withheld. Not a company rating.", []],
   ["/api/v1/parking-de", "getParkingDe", "Free live parking occupancy from two open municipal feeds: Karlsruhe region car parks (Stadt Karlsruhe, CC BY 4.0) and Leipzig Park+Ride (Stadt Leipzig, dl-de/by-2-0). Free spaces, capacity, occupancy and reading time per facility; stale or non-real-time facilities are marked live=false with no numbers.", [OA_Q("city", "filter by city name, e.g. Leipzig, Rastatt, Karlsruhe"), OA_Q("live", "1 = only facilities with a fresh live reading")]],
+  ["/api/v1/changes", "getChanges", "Free impulse log: what changed in the sensors since a given time (new gas day, new BaFin measure, new significant earthquake, change of flood warnings, change of a NOAA space-weather scale). Facts noticed by our own poll, not predictions. Sensor endpoints also support ETag / If-None-Match (304) for a cheap change check.", [OA_Q("since", "ISO time or epoch seconds/milliseconds; omit for the latest events"), OA_Q("sensor", "gas, bafin, flood, quakes or space"), OA_Q("limit", "1-100")]],
   ["/api/v1/weather-at", "getWeatherAt", "Free live 10-minute weather observations from 12 GeoSphere Austria TAWES stations (Austria only, CC BY 4.0): temperature, precipitation, wind, gust, pressure, humidity, sunshine, snow depth. Values unchanged, empty readings stay null, a station without a reading is live=false. Not a forecast.", [OA_Q("station", "filter by station id, name or state, e.g. 11035, Wien, Tirol")]],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
@@ -6179,6 +6219,9 @@ const MCP_TOOLS = [
   { name: "get_parking_de", title: "Live parking occupancy: Karlsruhe region and Leipzig P+R",
     description: "Free. Free spaces, capacity and occupancy of car parks in the Karlsruhe region (Stadt Karlsruhe open data, CC BY 4.0) and Leipzig Park+Ride facilities (Stadt Leipzig, dl-de/by-2-0), with the reading time of each. A facility that is not real-time, closed or older than live_max_age_min is returned with live=false and no numbers. Source attribution and licence are in every item. Not an official product of the cities; not a guarantee that a space will be free.",
     inputSchema: { type: "object", properties: { city: { type: "string", description: "City name filter, e.g. Leipzig, Rastatt, Karlsruhe" }, live_only: { type: "boolean" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_changes", title: "What changed: impulse log of the sensors",
+    description: "Free. Instead of polling every sensor, ask what changed since a time: new gas storage day, new BaFin measure, new significant earthquake, change of the active flood warnings, change of a NOAA space-weather scale. Each event has detected_at (when our poll noticed it, at most about 6 minutes after the source published) and the source time where there is one. Facts, not predictions. The log starts after its baseline_at and keeps the latest 100 events. Sensor HTTP endpoints also answer 304 to If-None-Match.",
+    inputSchema: { type: "object", properties: { since: { type: "string", description: "ISO time (2026-11-11T10:00:00Z) or epoch seconds/milliseconds" }, sensor: { type: "string", enum: ["gas", "bafin", "flood", "quakes", "space"] }, limit: { type: "integer", minimum: 1, maximum: 100 } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_weather_at", title: "Austria: live weather stations (GeoSphere TAWES)",
     description: "Free. Current 10-minute observations of 12 selected GeoSphere Austria TAWES stations (Wien, Salzburg, Innsbruck, Graz, Linz, Klagenfurt, Bregenz, Eisenstadt, St. Pölten and the mountain stations Sonnblick, Galzig, Patscherkofel): temperature, precipitation, wind speed, direction and gust, pressure, humidity, sunshine, snow depth. Values are passed through unchanged; an empty reading is null and a station without a reading is live=false. Austria only; not a forecast or warning. Source: Datenquelle: GeoSphere Austria - https://data.hub.geosphere.at (CC BY 4.0), rewritten into one format by Orb Studio; not endorsed by GeoSphere Austria.",
     inputSchema: { type: "object", properties: { station: { type: "string", description: "Station id, name or state filter, e.g. 11035, Wien, Tirol" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6460,6 +6503,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_flood_warnings") { const { http, ...d } = await lhpData(); return { ...d, referral: ref }; }
   if (name === "get_bafin_measures") { const { http, ...d } = await bafinData(); return { ...d, referral: ref }; }
   if (name === "get_parking_de") { const { http, ...d } = await parkingData(args && args.city, !!(args && args.live_only)); return { ...d, referral: ref }; }
+  if (name === "get_changes") { const { http, ...d } = await changesData(env, args && args.since, args && args.sensor, args && args.limit); return { ...d, referral: ref }; }
   if (name === "get_weather_at") { const { http, ...d } = await weatherAtData(args && args.station); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
@@ -6926,7 +6970,7 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
@@ -6944,7 +6988,8 @@ export default {
     if (request.method === "GET") { const ua = request.headers.get("user-agent") || "", g = EMO_GREET_BOTS.find(([, re]) => re.test(ua)); if (g) ctx.waitUntil(emoGreetBot(env, g[0], new URL(request.url).pathname, g[2]).catch(() => null)); }
     { const court = await courtGate(request, env, ctx).catch(() => null); if (court) return withSecurityHeaders(court); } // суд агентов: только /api/v1/court*, остальное идёт дальше
     if (new URL(request.url).pathname === "/api/v1/csp-report" && request.method === "POST") return handleCspReport(request, env, ctx);
-    const res = withSecurityHeaders(await handleRequest(request, env, ctx));
+    let res = withSecurityHeaders(await handleRequest(request, env, ctx));
+    res = await withEtag(request, res).catch(() => res);
     // ИИ-ассистенту (не поисковому краулеру) EMO представляется прямо в странице
     const ai = request.method === "GET" && EMO_AI_GUESTS.test(request.headers.get("user-agent") || "");
     if (ai && res && res.status === 200 && /text\/html/i.test(res.headers.get("content-type") || "")) {
@@ -7056,6 +7101,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/parking-de") {
       const { http, ...d } = await parkingData(url.searchParams.get("city"), url.searchParams.get("live") === "1");
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/changes") {
+      const { http, ...d } = await changesData(env, url.searchParams.get("since"), url.searchParams.get("sensor"), url.searchParams.get("limit"));
+      return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/weather-at") {
       const { http, ...d } = await weatherAtData(url.searchParams.get("station"));
