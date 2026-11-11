@@ -17,6 +17,7 @@ import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
 import { parseStations, STATIONS } from "./hydro.js";
 import { parseGas } from "./gas.js";
+import { parseTawes, TAWES_URL, ATTRIBUTION as TAWES_ATTR, STALE_MIN as TAWES_STALE_MIN } from "./weather_at.js";
 import { parseKarlsruhe, parseLeipzig, KA_URL, LE_URL, SOURCES as PARK_SRC, STALE_MIN as PARK_STALE_MIN } from "./parking.js";
 import { parseBafin, BAFIN_FEED } from "./bafin.js";
 import { parseLhp, LHP_URL } from "./lhp.js";
@@ -1064,6 +1065,34 @@ async function parkingData(city, liveOnly) {
   return { free: true, status, ok: okN > 0, http: okN === 0 ? 503 : 200, checked_at: new Date().toISOString(), live_max_age_min: PARK_STALE_MIN, live_count: liveTotal, facilities_count: items.length, items, sources, page: "https://orbstudio.org/api/v1/parking-de",
     note: "Free-space counts from two open municipal feeds, passed through unchanged. live=false means the source marks the facility as not real-time or closed, or its last reading is older than live_max_age_min; no numbers are shown for it. Data converted by Orb Studio to one format (Leipzig local time written with its UTC offset). Not an official product of Stadt Karlsruhe or Stadt Leipzig and not endorsed by them. Parking-space counts are not a promise that a space will be free on arrival." };
 }
+// ================= Австрия: живые станции TAWES (GeoSphere Austria): /api/v1/weather-at, MCP get_weather_at =================
+async function weatherAtData(stationFilter) {
+  const base = { free: true, source: TAWES_ATTR.text, license: TAWES_ATTR.license, license_url: TAWES_ATTR.license_url, dataset_url: TAWES_ATTR.url, page: "https://orbstudio.org/api/v1/weather-at", live_max_age_min: TAWES_STALE_MIN,
+    scope_note: "Current 10-minute observations of 12 selected GeoSphere Austria TAWES weather stations (Austria only). Values are passed through unchanged, an empty reading stays null and a station without a reading is live=false. Selected and rewritten into one format by Orb Studio (station names, field names); values are not altered. Not an official product of GeoSphere Austria and not endorsed by it; GeoSphere gives no guarantee of accuracy or availability. Not a forecast and not a weather warning. Germany and Switzerland are covered by other tools." };
+  const fresh = new Request("https://orbstudio.org/__cache/weather-at-v1"), stale = new Request("https://orbstudio.org/__cache/weather-at-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let body, status = "ok";
+  if (hit) { body = await hit.text(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch(TAWES_URL, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("geosphere http " + r.status);
+      body = await r.text();
+      if (!parseTawes(JSON.parse(body)).ok) throw new Error("no usable rows");
+      await c.put(fresh, new Response(body, { headers: { "Cache-Control": "max-age=300" } }));
+      await c.put(stale, new Response(body, { headers: { "Cache-Control": "max-age=86400" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { ...base, status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "GeoSphere Austria did not answer and there is no recent copy. Nothing is estimated." };
+      body = await old.text(); status = "degraded";
+    }
+  }
+  let d; try { d = parseTawes(JSON.parse(body)); } catch { d = { ok: false }; }
+  if (!d.ok) return { ...base, status: "unavailable", http: 503, ok: false, note: "GeoSphere Austria answer could not be read. Nothing is estimated." };
+  const q = stationFilter ? String(stationFilter).toLowerCase().slice(0, 40) : "";
+  const stations = q ? d.stations.filter((x) => x.station === q || x.name.toLowerCase().includes(q) || x.state.toLowerCase().includes(q)) : d.stations;
+  return { ...base, status: d.stale && status !== "degraded" ? "degraded" : status, ok: true, http: 200, observed_at: d.observed_at, age_min: d.age_min, stale: d.stale, live_count: d.live_count, stations_count: stations.length, stations };
+}
 // ================= BaFin «Maßnahmen» (меры надзора, RSS): /api/v1/finance/bafin-measures, MCP get_bafin_measures =================
 async function bafinData() {
   const base = { free: true, source: "© Bundesanstalt für Finanzdienstleistungsaufsicht / www.bafin.de (RSS «Maßnahmen»)", page: "https://orbstudio.org/api/v1/finance/bafin-measures",
@@ -1982,6 +2011,7 @@ const OA_GET = [
   ["/api/v1/hydro/flood-warnings", "getFloodWarnings", "Free official German flood warnings and situation classes from LHP (hochwasserzentralen.de), CC BY 4.0: active warnings with class and name, highest class, stand time. No water levels, not a forecast.", []],
   ["/api/v1/finance/bafin-measures", "getBafinMeasures", "Free official BaFin supervisory measures (RSS Maßnahmen), last 20 entries: date, title (unchanged, German), sector derived from the link path, url, source. Measures against natural persons are withheld. Not a company rating.", []],
   ["/api/v1/parking-de", "getParkingDe", "Free live parking occupancy from two open municipal feeds: Karlsruhe region car parks (Stadt Karlsruhe, CC BY 4.0) and Leipzig Park+Ride (Stadt Leipzig, dl-de/by-2-0). Free spaces, capacity, occupancy and reading time per facility; stale or non-real-time facilities are marked live=false with no numbers.", [OA_Q("city", "filter by city name, e.g. Leipzig, Rastatt, Karlsruhe"), OA_Q("live", "1 = only facilities with a fresh live reading")]],
+  ["/api/v1/weather-at", "getWeatherAt", "Free live 10-minute weather observations from 12 GeoSphere Austria TAWES stations (Austria only, CC BY 4.0): temperature, precipitation, wind, gust, pressure, humidity, sunshine, snow depth. Values unchanged, empty readings stay null, a station without a reading is live=false. Not a forecast.", [OA_Q("station", "filter by station id, name or state, e.g. 11035, Wien, Tirol")]],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
@@ -6149,6 +6179,9 @@ const MCP_TOOLS = [
   { name: "get_parking_de", title: "Live parking occupancy: Karlsruhe region and Leipzig P+R",
     description: "Free. Free spaces, capacity and occupancy of car parks in the Karlsruhe region (Stadt Karlsruhe open data, CC BY 4.0) and Leipzig Park+Ride facilities (Stadt Leipzig, dl-de/by-2-0), with the reading time of each. A facility that is not real-time, closed or older than live_max_age_min is returned with live=false and no numbers. Source attribution and licence are in every item. Not an official product of the cities; not a guarantee that a space will be free.",
     inputSchema: { type: "object", properties: { city: { type: "string", description: "City name filter, e.g. Leipzig, Rastatt, Karlsruhe" }, live_only: { type: "boolean" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_weather_at", title: "Austria: live weather stations (GeoSphere TAWES)",
+    description: "Free. Current 10-minute observations of 12 selected GeoSphere Austria TAWES stations (Wien, Salzburg, Innsbruck, Graz, Linz, Klagenfurt, Bregenz, Eisenstadt, St. Pölten and the mountain stations Sonnblick, Galzig, Patscherkofel): temperature, precipitation, wind speed, direction and gust, pressure, humidity, sunshine, snow depth. Values are passed through unchanged; an empty reading is null and a station without a reading is live=false. Austria only; not a forecast or warning. Source: Datenquelle: GeoSphere Austria - https://data.hub.geosphere.at (CC BY 4.0), rewritten into one format by Orb Studio; not endorsed by GeoSphere Austria.",
+    inputSchema: { type: "object", properties: { station: { type: "string", description: "Station id, name or state filter, e.g. 11035, Wien, Tirol" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_gas_storage", title: "German gas storage fill level (GIE AGSI+)",
     description: "Free. Fill level of German gas storage from GIE AGSI+ (EU transparency data): percent full, TWh in storage, injection and withdrawal per day, trend as published and a 30-day series. Not a supply forecast and not a statement about security of supply. Returns not_configured or unavailable instead of estimating when the source cannot be read.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6427,6 +6460,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_flood_warnings") { const { http, ...d } = await lhpData(); return { ...d, referral: ref }; }
   if (name === "get_bafin_measures") { const { http, ...d } = await bafinData(); return { ...d, referral: ref }; }
   if (name === "get_parking_de") { const { http, ...d } = await parkingData(args && args.city, !!(args && args.live_only)); return { ...d, referral: ref }; }
+  if (name === "get_weather_at") { const { http, ...d } = await weatherAtData(args && args.station); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
@@ -7021,6 +7055,10 @@ async function handleRequest(request, env, ctx) {
     }
     if (url.pathname === "/api/v1/parking-de") {
       const { http, ...d } = await parkingData(url.searchParams.get("city"), url.searchParams.get("live") === "1");
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/weather-at") {
+      const { http, ...d } = await weatherAtData(url.searchParams.get("station"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/gas/storage") {
