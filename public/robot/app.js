@@ -348,7 +348,27 @@ function coin(kind) {
     else { [1319, 988, 659, 440].forEach((f, i) => tone(f, i * 0.14, 0.18, "triangle", 0.25)); }   // монета падает
   } catch (e) {}
 }
+// тревога: сирена вместо голоса (бот зашёл на сайт — коротко; новое дело в суде агентов — дольше)
+function siren(kind) {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime;
+    const court = kind === "alarm_court", dur = court ? 3.2 : 1.2, step = court ? 0.4 : 0.3;
+    o.type = "sawtooth"; o.connect(g); g.connect(c.destination);
+    for (let t = 0, i = 0; t < dur; t += step, i++) o.frequency.setValueAtTime(court ? (i % 2 ? 620 : 960) : (i % 2 ? 700 : 1050), t0 + t);   // «ти-ту»
+    g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.03); g.gain.setValueAtTime(0.25, t0 + dur - 0.1); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  } catch (e) {}
+}
 function showMsg(m) {
+  if (String(m.kind || "").startsWith("alarm")) {
+    const box = $("msgs"); if (!box) return;
+    const card = document.createElement("div"); card.className = "msg sig"; card.style.borderColor = "#ff4d4d";
+    card.innerHTML = '<div class="who"></div><div class="txt"></div>';
+    card.querySelector(".who").textContent = "🚨 " + m.by + " · " + new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    card.querySelector(".txt").textContent = m.text;
+    box.prepend(card); document.body.classList.add("flash"); setTimeout(() => document.body.classList.remove("flash"), 1200);
+    siren(m.kind); log("тревога: " + m.kind); return;
+  }
   if (String(m.kind || "").startsWith("coin")) {
     const box = $("msgs"); if (!box) return;
     const card = document.createElement("div"); card.className = "msg sig";
