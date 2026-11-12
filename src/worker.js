@@ -2704,27 +2704,36 @@ async function ixRecord(env, ctx) {
   const v = Object.fromEntries(d.indices.map((x) => [x.id, x.value]));
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS ix_hist (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, h INTEGER, c INTEGER, t INTEGER)").run();
   const now = Date.now();
-  await env.DB.prepare("INSERT OR IGNORE INTO ix_hist (slot, ts, h, c, t) VALUES (?, ?, ?, ?, ?)").bind(Math.floor(now / 18e5), now, v.hallucination, v.consensus, v.token_hunger).run();
+  for (const col of ["g", "k"]) { try { await env.DB.prepare(`ALTER TABLE ix_hist ADD COLUMN ${col} INTEGER`).run(); } catch (e) {} }
+  const rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), lv = (id) => ((rs || []).find((r) => r.id === id) || {}).lvl ?? null;
+  await env.DB.prepare("INSERT OR IGNORE INTO ix_hist (slot, ts, h, c, t, g, k) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(Math.floor(now / 18e5), now, v.hallucination, v.consensus, v.token_hunger, lv("geo"), lv("crypto")).run();
 }
 async function ixExtras(env, d) {
   let rows = [];
-  try { rows = (await env.DB.prepare("SELECT ts, h, c, t FROM ix_hist WHERE ts > ? ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch (e) {}
+  try { rows = (await env.DB.prepare("SELECT * FROM ix_hist WHERE ts > ? ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch (e) {}
   const cur = Object.fromEntries(d.indices.map((x) => [x.id, x.value]));
   const target = Date.now() - 864e5;
   let base = null;
   for (const r of rows) if (Math.abs(r.ts - target) <= 3 * 36e5 && (!base || Math.abs(r.ts - target) < Math.abs(base.ts - target))) base = r;
   const delta = base ? { hallucination: cur.hallucination - base.h, consensus: cur.consensus - base.c, token_hunger: cur.token_hunger - base.t, vs: new Date(base.ts).toISOString() } : null;
-  return { delta_24h: delta, history_7d: rows.map((r) => ({ t: new Date(r.ts).toISOString(), hallucination: r.h, consensus: r.c, token_hunger: r.t })), history_since: rows[0] ? new Date(rows[0].ts).toISOString() : null, history_step: "30 min" };
+  return { delta_24h: delta, history_7d: rows.map((r) => ({ t: new Date(r.ts).toISOString(), hallucination: r.h, consensus: r.c, token_hunger: r.t })), history_since: rows[0] ? new Date(rows[0].ts).toISOString() : null, history_step: "30 min", radar_7d: rows.filter((r) => r.g != null).map((r) => ({ t: new Date(r.ts).toISOString(), geo: r.g, crypto: r.k })) };
 }
 const IX_L = {
   ru: { tok: "токенов", day: "за сутки", wk: "линия за 7 дней", wait: "история копится — линия и дельта появятся через сутки", trig: "Повод часа", weird: "Самая «галлюцинаторная» новость: ", at: "данные на", loc: "ru-RU" },
   de: { tok: "Token", day: "in 24 Std.", wk: "Verlauf 7 Tage", wait: "Verlauf wird gesammelt — Linie und Veränderung erscheinen nach einem Tag", trig: "Anlass der Stunde", weird: "Die „halluzinatorischste“ Nachricht: ", at: "Stand", loc: "de-DE" },
   en: { tok: "tokens", day: "in 24 h", wk: "7-day line", wait: "history is being collected — the line and change appear after a day", trig: "Trigger of the hour", weird: "The most “hallucinatory” story: ", at: "as of", loc: "en-GB" },
 };
-function ixSpark(vals) {
+function ixSpark(vals, uid = "s" + Math.random().toString(36).slice(2, 8)) {
   const lo = Math.min(...vals), hi = Math.max(...vals), sp = hi - lo || 1, n = vals.length;
-  const pts = vals.map((v, i) => `${(i / (n - 1) * 300).toFixed(1)},${(36 - (v - lo) / sp * 32).toFixed(1)}`).join(" ");
-  return `<svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,40 ${pts} 300,40" class="sa"/><polyline points="${pts}" class="sl"/></svg>`;
+  const P = vals.map((v, i) => [i / (n - 1) * 300, 50 - (v - lo) / sp * 40]);
+  // сглаживание (Catmull-Rom → кривые Безье), чтобы линия была живой, а не ломаной
+  let d = `M${P[0][0].toFixed(1)},${P[0][1].toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+    d += ` C${(p1[0] + (p2[0] - p0[0]) / 6).toFixed(1)},${(p1[1] + (p2[1] - p0[1]) / 6).toFixed(1)} ${(p2[0] - (p3[0] - p1[0]) / 6).toFixed(1)},${(p2[1] - (p3[1] - p1[1]) / 6).toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  const L = P[n - 1];
+  return `<svg viewBox="-4 0 308 60" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".38"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="${d} L300,60 L0,60 Z" fill="url(#${uid})" class="sa"/><path d="${d}" class="sl" pathLength="1"/><line x1="${L[0].toFixed(1)}" y1="${L[1].toFixed(1)}" x2="${L[0].toFixed(1)}" y2="60" class="sv"/></svg><i class="sdot" style="left:${((L[0] + 4) / 308 * 100).toFixed(2)}%;top:${(L[1] / 60 * 100).toFixed(2)}%"></i>`;
 }
 async function ixRewrite(rw, env, ctx, origin, radars, lang) {
   const d = await Promise.race([agentIndices(env, ctx, origin), new Promise((r) => setTimeout(() => r(null), 1500))]).catch(() => null);
@@ -2750,19 +2759,21 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
   let snaps = [];
   try { snaps = ((await env.DB.prepare("SELECT day, data FROM snapshots ORDER BY day DESC LIMIT 8").all()).results || []).reverse().map((r) => { try { return JSON.parse(r.data); } catch (e) { return null; } }).filter(Boolean); } catch (e) {}
   const today = new Date().toISOString().slice(0, 10);
-  const card = (name, val, max, dv, vals, col, href) => {
-    const dl = typeof dv === "number" ? `<span class="ixd ${dv > 0 ? "up" : dv < 0 ? "dn" : ""}">${dv > 0 ? "▲ +" : dv < 0 ? "▼ −" : "± "}${Math.abs(dv)} ${L.day}</span>` : "";
-    return `<a class="ixk" href="${href}" style="--c:${col}"><small>${escH(name)}</small><b>${val}${max ? `<i>/${max}</i>` : ""}</b>${dl}${vals && vals.length >= 3 ? `<div class="spark">${ixSpark(vals)}</div><small>${L.wk}</small>` : `<small class="wait">${L.wait}</small>`}</a>`;
+  const card = (name, val, max, dv, vals, col, href, key) => {
+    const dl = `<span class="ixd ${typeof dv !== "number" ? "none" : dv > 0 ? "up" : dv < 0 ? "dn" : ""}" data-d="${key}">${typeof dv === "number" ? (dv > 0 ? "+" : dv < 0 ? "−" : "±") + Math.abs(dv) : ""}</span>`;
+    return `<a class="ixk" href="${href}" style="--c:${col}" data-k="${key}"><div class="ixk-top"><small>${escH(name)}</small><span class="live"><i></i>LIVE</span></div><div class="ixk-v"><b data-v="${key}">${val}</b>${max ? `<i>/${max}</i>` : ""}${dl}</div>${vals && vals.length >= 3 ? `<div class="spark">${ixSpark(vals, "g-" + key)}</div><small class="ft">${L.wk} · <span data-t>${tm}</span></small>` : `<div class="spark empty"><span></span></div><small class="ft wait">${L.wait}</small>`}</a>`;
   };
   const rcard = (id, col) => {
     const r = (radars || []).find((y) => y.id === id); if (!r) return "";
     const nm = lang === "de" ? (RADAR_TITLE_I18N[id] || [r.title])[0] : lang === "en" ? (RADAR_TITLE_I18N[id] || [r.title, r.title])[1] : r.title;
-    const vals = snaps.filter((sn) => sn.day !== today).map((sn) => ((sn.radars || []).find((y) => y.id === id) || {}).risk_index).filter((v) => typeof v === "number").slice(-7);
+    let vals = snaps.filter((sn) => sn.day !== today).map((sn) => ((sn.radars || []).find((y) => y.id === id) || {}).risk_index).filter((v) => typeof v === "number").slice(-7);
     vals.push(r.lvl);
-    return card(nm, r.lvl, 100, typeof r.prev === "number" ? r.lvl - r.prev : null, vals, col, "/#radar");
+    const fine = x.radar_7d.map((pp) => pp[id]).filter((v) => typeof v === "number");
+    if (fine.length >= 96) vals = fine.concat(r.lvl);
+    return card(nm, r.lvl, 100, typeof r.prev === "number" ? r.lvl - r.prev : null, vals, col, "/#radar", id);
   };
   const hv = x.history_7d.map((pp) => pp.hallucination), hok = hv.length >= 4 && Date.now() - Date.parse(x.history_since) > 6 * 36e5;
-  const panel = `<div class="ixrow">${card(lang === "de" ? h.name_de : lang === "en" ? h.name_en : h.name_ru, h.value, 100, x.delta_24h ? x.delta_24h.hallucination : null, hok ? hv : null, "var(--violet)", "#hal")}${rcard("geo", "var(--holo)")}${rcard("crypto", "var(--warm)")}</div>`;
+  const panel = `<div class="ixrow">${card(lang === "de" ? h.name_de : lang === "en" ? h.name_en : h.name_ru, h.value, 100, x.delta_24h ? x.delta_24h.hallucination : null, hok ? hv : null, "var(--violet)", "#hal", "hallucination")}${rcard("geo", "var(--holo)")}${rcard("crypto", "var(--warm)")}</div>`;
   rw = rw
     .on("#hV", { element(e) { e.setInnerContent(String(h.value)); } })
     .on("#cV", { element(e) { e.setInnerContent(String(c.value)); } })
