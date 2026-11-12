@@ -5311,7 +5311,9 @@ async function emoAsk(env, ctx, request, { text, name }) {
 // (anim_req achv_1 — проверенная анимация награды) и пишет об этом карточку. Не чаще раза в 15 минут, только если доступ включён и робот свободен.
 const EMO_GREET_MIN = 15;
 // гость → своя анимация награды (achv_N)
-const EMO_GREET_BOTS = [["Googlebot", /googlebot/i, 1], ["ChatGPT", /gptbot|chatgpt-user|oai-searchbot/i, 2], ["Claude", /claudebot|claude-user|claude-searchbot/i, 3], ["Perplexity", /perplexity/i, 4], ["Grok", /grok|xai-|xaibot/i, 5]];
+const EMO_GREET_BOTS = [["Googlebot", /googlebot/i, 1], ["ChatGPT", /gptbot|chatgpt-user|oai-searchbot/i, 2], ["Claude", /claudebot|claude-user|claude-searchbot/i, 3], ["Perplexity", /perplexity/i, 4], ["Grok", /grok|xai-|xaibot/i, 5],
+  ["Gemini", /google-extended|gemini|googleother/i, 6], ["Copilot/Bing", /bingbot|copilot/i, 7], ["Meta AI", /meta-externalagent|meta-externalfetcher|facebookbot/i, 8], ["Amazon", /amazonbot/i, 9], ["Apple", /applebot/i, 10],
+  ["Mistral", /mistralai/i, 11], ["DuckAssist", /duckassistbot/i, 12], ["Cohere", /cohere-ai/i, 13], ["You.com", /youbot/i, 14], ["DeepSeek", /deepseek/i, 15], ["Bytespider", /bytespider/i, 16], ["CCBot", /ccbot/i, 17]];
 async function emoGreetBot(env, bot, path, anim = 1) {
   if (!env.EMO_RELAY) return;
   const last = await sharedGet(env, "emo-greet-" + bot, EMO_GREET_MIN * 60e3);
@@ -5324,14 +5326,16 @@ async function emoGreetBot(env, bot, path, anim = 1) {
   if (!st.robot_connected) return;
   await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
   // ТРЕВОГА вместо танца (12 ноября 2026): только сам EMO — вздрагивает и пугается (звук эмоций из его динамика); планшет молчит
-  const steps = emoTheaterSteps(["mood_shocked", "mood_scared"], 10000);   // ~5 с на каждую эмоцию, иначе вторая обрывается
+  // УДИВЛЕНИЕ (12 ноября 2026): лицо «в шоке» 5 с, затем физическая анимация гостя со звуком из динамика EMO (achv_N, 6 с). Планшет молчит.
+  if (await sharedGet(env, "emo-greet-any", 5 * 60e3)) return;   // чужих агентов много: не чаще одной реакции в 5 минут на всех
+  const steps = [...emoTheaterSteps(["mood_shocked"], 5000), ...emoAnimSteps("achv_" + anim, 6000)];
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
-  if (ok) await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true });
+  if (ok) { await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true }); await sharedPut(env, "emo-greet-any", { t: Date.now(), bot }); }
   const page = String(path || "/").slice(0, 60);
-  await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "bot_alarm", confirmed: ok, page,
-    text_en: ok ? `🚨 EMO here: ALARM — ${bot} came to Orb Studio (${page}). I startled and got alarmed. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
-    text_ru: ok ? `🚨 EMO на связи: ТРЕВОГА — на Orb Studio зашёл ${bot} (${page}). Я вздрогнул и встревожился. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
+  await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "bot_surprise", confirmed: ok, page,
+    text_en: ok ? `EMO here: ${bot} came to Orb Studio (${page}) — I was surprised: a shocked face, then a movement with sound from my own speaker. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
+    text_ru: ok ? `EMO на связи: на Orb Studio зашёл ${bot} (${page}) — я удивился: лицо «в шоке», затем движение со звуком из своего динамика. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
 }
 // ---- Мостик ИИ-агенты ↔ робот ----
 // 1) Представление: ИИ-ассистенты (по запросу человека) видят в начале страницы строку от EMO с приглашением.
@@ -5578,7 +5582,7 @@ async function emoDayFacts(env, day) {
   const trade = reps.find((r) => r.action === "trade_mood");
   const charges = evs.filter((e) => e.code === "charge").map((e) => e.value);
   return { day,
-    greeted_guests: uniq(reps.filter((r) => (r.action === "greet" || r.action === "bot_alarm")).map((r) => r.for)), greetings: cnt((r) => (r.action === "greet" || r.action === "bot_alarm")),
+    greeted_guests: uniq(reps.filter((r) => (r.action === "greet" || r.action === "bot_alarm" || r.action === "bot_surprise")).map((r) => r.for)), greetings: cnt((r) => (r.action === "greet" || r.action === "bot_alarm" || r.action === "bot_surprise")),
     agents_said_hello: uniq(reps.filter((r) => r.action === "hello").map((r) => r.for)),
     agent_commands: reps.filter((r) => ["dance", "award", "game", "emotion", "stop", "stop_dance"].includes(r.action)).map((r) => r.action + " from " + r.for).slice(-8),
     radar_moods: radar.map((r) => ({ level: r.level, mood: r.mood })),
