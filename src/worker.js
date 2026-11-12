@@ -5383,6 +5383,34 @@ async function emoRadarMood(env, ctx) {
     text_ru: ok ? `EMO на связи: ${title} ${top.lvl}/100 — я ${mood.ru}. Робот подтвердил по Bluetooth.` : `EMO: ${title} ${top.lvl}/100, но показать настроение не вышло (${r.error || "нет ответа"}).` });
   return { ok, radar: top.id, level: top.lvl, mood: mood.en };
 }
+// ---- Разовая диагностика EMO (12 ноября 2026, по просьбе хозяина): связь и каждая команда по отдельности, один раз, затем ничего не делает ----
+const EMO_DIAG = { from: Date.parse("2026-11-12T05:50:00Z"), until: Date.parse("2026-11-12T06:20:00Z"), key: "emo-diag-20261112" };
+async function emoDiagnostic(env) {
+  const now = Date.now(); if (now < EMO_DIAG.from || now > EMO_DIAG.until || !env.EMO_RELAY) return;
+  if (await sharedGet(env, EMO_DIAG.key, 1e13)) return;
+  await sharedPut(env, EMO_DIAG.key, { t: new Date().toISOString(), state: "running" });
+  const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
+  const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
+  const tests = Object.entries(EMO_EMOTIONS).map(([id, [name, ru]]) => ({ id, ru, steps: emoTheaterSteps([name], 4000) }))
+    .concat([{ id: "award", ru: "награда №1", steps: emoAnimSteps("achv_1", 5000) }, { id: "dance", ru: "танец (5 с)", steps: emoAnimSteps("d1_EmoDance", 5000) }]);
+  const res = [];
+  if (st.robot_connected) {
+    await sharedPut(env, "emo-busy", { action: "diagnostic", by: "Orb Studio", t: Date.now() });
+    for (const t of tests) {
+      const t0 = Date.now();
+      const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: t.steps, label: "diag " + t.id }) }))).json().catch((e) => ({ ok: false, error: String(e.message || e).slice(0, 60) }));
+      const play = (r.results || []).find((x) => x && x.label && /:play/.test(x.label));
+      res.push({ id: t.id, ru: t.ru, ok: !!r.ok && !!(play && play.response), relay_ok: !!r.ok, robot_answer: play ? (play.response ? String(play.response).slice(0, 60) : "нет ответа") : "команда не дошла", error: r.error || null, ms: Date.now() - t0 });
+      await sharedPut(env, "emo-busy", { action: "diagnostic", by: "Orb Studio", t: Date.now() });
+      await new Promise((x) => setTimeout(x, 1500));
+    }
+  }
+  const good = res.filter((x) => x.ok).length;
+  await sharedPut(env, EMO_DIAG.key, { t: new Date().toISOString(), state: "done", status: st, results: res });
+  await emoPushReport(env, emoCard({ for: "owner", action: "diagnostic", confirmed: good > 0, status: { relay_connected: !!st.relay_connected, robot_connected: !!st.robot_connected }, results: res,
+    text_en: `EMO diagnostic: tablet ${st.relay_connected ? "online" : "OFFLINE"}, robot ${st.robot_connected ? "connected" : "NOT connected"}; commands confirmed by the robot: ${good} of ${res.length}.`,
+    text_ru: `Диагностика EMO: планшет ${st.relay_connected ? "на связи" : "НЕ на связи"}, робот ${st.robot_connected ? "подключён" : "НЕ подключён"}; команд подтверждено роботом: ${good} из ${res.length}. ` + res.map((x) => `${x.ru} — ${x.ok ? "✓" : "✗ " + (x.error || x.robot_answer)}`).join("; ") }));
+}
 // ---- Датчик USD Coin (USDC) — главный датчик робота EMO (с 9 ноября 2026) ----
 // Курс USDC→EUR и привязка USDC→USD с Kraken каждые 6 минут. EMO: курс вырос на ≥ USDC_STEP_PCT от прошлой реакции — радуется,
 // упал — расстраивается (грустит). Все остальные автоматические реакции EMO на датчики и радары выключены (EMO_ONLY_USDC).
@@ -6968,7 +6996,7 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
