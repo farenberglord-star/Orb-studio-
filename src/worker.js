@@ -5384,15 +5384,19 @@ async function emoRadarMood(env, ctx) {
   return { ok, radar: top.id, level: top.lvl, mood: mood.en };
 }
 // ---- Разовая диагностика EMO (12 ноября 2026, по просьбе хозяина): связь и каждая команда по отдельности, один раз, затем ничего не делает ----
-const EMO_DIAG = { from: Date.parse("2026-11-12T05:50:00Z"), until: Date.parse("2026-11-12T06:20:00Z"), key: "emo-diag-20261112" };
+const EMO_DIAG_RUNS = [{ from: Date.parse("2026-11-12T05:50:00Z"), until: Date.parse("2026-11-12T06:02:00Z"), key: "emo-diag-20261112" },
+  { from: Date.parse("2026-11-12T06:03:00Z"), until: Date.parse("2026-11-12T06:20:00Z"), key: "emo-diag-20261112-eyes", only: ["startled", "furious", "happy", "award", "dance"], hold: 6000 }];
+const EMOTION_IDS = new Set(Object.keys(EMO_EMOTIONS));
 async function emoDiagnostic(env) {
-  const now = Date.now(); if (now < EMO_DIAG.from || now > EMO_DIAG.until || !env.EMO_RELAY) return;
+  const now = Date.now(), EMO_DIAG = EMO_DIAG_RUNS.find((x) => now >= x.from && now <= x.until); if (!EMO_DIAG || !env.EMO_RELAY) return;
   if (await sharedGet(env, EMO_DIAG.key, 1e13)) return;
   await sharedPut(env, EMO_DIAG.key, { t: new Date().toISOString(), state: "running" });
   const stub = env.EMO_RELAY.get(env.EMO_RELAY.idFromName("emo"));
   const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
   const tests = Object.entries(EMO_EMOTIONS).map(([id, [name, ru]]) => ({ id, ru, steps: emoTheaterSteps([name], 4000) }))
-    .concat([{ id: "award", ru: "награда №1", steps: emoAnimSteps("achv_1", 5000) }, { id: "dance", ru: "танец (5 с)", steps: emoAnimSteps("d1_EmoDance", 5000) }]);
+    .concat([{ id: "award", ru: "награда №1", steps: emoAnimSteps("achv_1", 5000) }, { id: "dance", ru: "танец (5 с)", steps: emoAnimSteps("d1_EmoDance", 5000) }])
+    .filter((t) => !EMO_DIAG.only || EMO_DIAG.only.includes(t.id)).map((t) => EMO_DIAG.hold && EMOTION_IDS.has(t.id) ? { ...t, steps: emoTheaterSteps([EMO_EMOTIONS[t.id][0]], EMO_DIAG.hold) } : t);
+  if (EMO_DIAG.only) tests.sort((a, b) => EMO_DIAG.only.indexOf(a.id) - EMO_DIAG.only.indexOf(b.id));
   const res = [];
   if (st.robot_connected) {
     await sharedPut(env, "emo-busy", { action: "diagnostic", by: "Orb Studio", t: Date.now() });
@@ -5402,7 +5406,7 @@ async function emoDiagnostic(env) {
       const play = (r.results || []).find((x) => x && x.label && /:play/.test(x.label));
       res.push({ id: t.id, ru: t.ru, ok: !!r.ok && !!(play && play.response), relay_ok: !!r.ok, robot_answer: play ? (play.response ? String(play.response).slice(0, 60) : "нет ответа") : "команда не дошла", error: r.error || null, ms: Date.now() - t0 });
       await sharedPut(env, "emo-busy", { action: "diagnostic", by: "Orb Studio", t: Date.now() });
-      await new Promise((x) => setTimeout(x, 1500));
+      await new Promise((x) => setTimeout(x, EMO_DIAG.only ? 3000 : 1500));
     }
   }
   const good = res.filter((x) => x.ok).length;
