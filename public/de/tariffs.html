@@ -119,6 +119,7 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
 .slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
 .slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
 
+.b3d-box{position:relative;border:1px solid rgba(111,230,255,.22);border-radius:16px;overflow:hidden;background:#05070f;aspect-ratio:16/10}.b3d-box::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.035) 0 1px,transparent 1px 3px)}@media (max-width:640px){.b3d-box{aspect-ratio:4/5}}.b3d-cap{font-size:12.5px;color:var(--dim);margin:6px 2px 0;line-height:1.5}.b3d-h{font-family:var(--mono,monospace);font-size:11px;letter-spacing:.12em;color:#6fe6ff;text-transform:uppercase;margin:0 0 6px}
 </style>
 <!--orb-nav-css--><style>
 @view-transition{navigation:auto}
@@ -151,6 +152,7 @@ h3{font-family:var(--display);margin:0;letter-spacing:.04em}
     <h1>🏦 BANKTARIFE · MASCHINENLESBAR</h1>
   </div>
   <p class="lead">Kontogebühren, Einlagenzinsen und Kreditbedingungen verstecken Banken in PDFs und im Kleingedruckten. Fertige Karten der Art <code>{"rate":3.5,"fee":0}</code> fast nicht, deshalb kann weder ein Mensch noch ein KI-Agent Angebote ehrlich vergleichen. Hier ist die Brücke: Wir lesen die offiziellen Dokumente der Banken in Deutschland und den USA selbst und stellen sie als saubere Karten mit Quelle und Prüfdatum bereit.</p>
+  <section class="b3d" id="b3dsec" hidden><p class="b3d-h">Straße der Banken · 3D</p><div class="b3d-box" id="b3d" role="img" aria-label="Straße der Banken · 3D"></div><p class="b3d-cap">Jedes Gebäude ist eine Bank aus der Tabelle unten: Turmhöhe = Kontogebühr, Kuppel = Sparzins, Bögen über der Straße = Fremdwährungsgebühr, Rot unter dem Pflaster = Dispozins. Gebäude antippen oder darüberfahren für Zahlen und Quelle. Ziehen zum Drehen.</p></section>
 
   <div class="card" aria-label="Von PDF zu JSON">
     <div class="morph">
@@ -361,5 +363,11 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_tariffs')==='1'}catch
 <script src="/banners.js" defer></script>
 <section class="orb-geo" style="max-width:860px;margin:32px auto;padding:0 16px;color:#8b9bb8;font:14px/1.55 system-ui,sans-serif"><h2 style="font-size:15px;color:#c8d6ee;margin:0 0 8px">Kurz zur Seite · aktualisiert 2026-11-08</h2><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Woher kommen die Banktarife auf der Seite?</h3><p style="margin:0">Aus offiziellen Bankdokumenten (Deutschland: Entgeltinformation/ZKG; USA: Fee Schedules) plus dem durchschnittlichen FDIC-Zins. Jede Karte hat einen Status, ein Prüfdatum und einen Link zur Quelle.</p><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Was bedeutet der Status blocked oder check?</h3><p style="margin:0">„check“ – die Quelle nennt kein Datum; „blocked“ – die Bank sperrt das Dokument für das automatische Lesen, und die Zahl wird nicht veröffentlicht.</p><p style="margin:12px 0 0"><a href="/about" style="color:#5fe3ff">Über Orb Studio: was es gibt und was nicht</a> · <a href="/llms.txt" style="color:#5fe3ff">llms.txt</a></p></section>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Тарифы банков · Orb Studio","url":"https://orbstudio.org/tariffs","dateModified":"2026-11-08","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"Orb Studio","url":"https://orbstudio.org/"},"author":{"@type":"Person","name":"Serghei Farima","url":"https://orbstudio.org/about"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Откуда берутся тарифы банков на странице?","acceptedAnswer":{"@type":"Answer","text":"Из официальных документов банков (Германия: Entgeltinformation/ZKG; США: fee schedules) плюс средняя ставка FDIC. У каждой карточки есть статус, дата проверки и ссылка на источник."}},{"@type":"Question","name":"Что значит статус blocked или check?","acceptedAnswer":{"@type":"Answer","text":"«check» — источник не указывает дату; «blocked» — банк закрывает документ от автоматического чтения, и число не публикуется."}}]}]}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/bank3d.js" defer></script>
+<script>/* 3D «Улица банков» по тем же данным, что и таблица */
+window.addEventListener('DOMContentLoaded',function(){var s=document.getElementById('b3dsec'),el=document.getElementById('b3d');if(!window.OrbBank3D||!el)return;s.hidden=false;
+if(!OrbBank3D.init(el)){s.hidden=true;return}
+var seed=null;try{seed=JSON.parse(document.getElementById('seed').textContent)}catch(e){}if(seed&&seed.cards)OrbBank3D.update(seed);
+fetch('/api/v1/tariffs').then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.cards)OrbBank3D.update(d)}).catch(function(){})});</script>
 </body>
 </html>
