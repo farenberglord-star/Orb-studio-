@@ -5323,16 +5323,15 @@ async function emoGreetBot(env, bot, path, anim = 1) {
   const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
   if (!st.robot_connected) return;
   await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
-  // ТРЕВОГА вместо танца (12 ноября 2026): EMO вздрагивает и пугается (звук эмоций — из его динамика), планшет рядом даёт короткую сирену
+  // ТРЕВОГА вместо танца (12 ноября 2026): только сам EMO — вздрагивает и пугается (звук эмоций из его динамика); планшет молчит
   const steps = emoTheaterSteps(["mood_shocked", "mood_scared"], 6000);
-  await emoCall(env, "/say", { id: "alarm" + Date.now().toString(36), by: "Тревога · бот на сайте", text: `🚨 На Orb Studio зашёл ${bot} (${String(path || "/").slice(0, 60)})`, kind: "alarm_bot" }).catch(() => null);
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
   if (ok) await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true });
   const page = String(path || "/").slice(0, 60);
   await emoPushReport(env, { t: new Date().toISOString(), from: "EMO (robot, Hamburg)", for: bot, action: "bot_alarm", confirmed: ok, page,
-    text_en: ok ? `🚨 EMO here: ALARM — ${bot} came to Orb Studio (${page}). I startled and got alarmed, a short siren sounded next to me. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
-    text_ru: ok ? `🚨 EMO на связи: ТРЕВОГА — на Orb Studio зашёл ${bot} (${page}). Я вздрогнул и встревожился, рядом коротко завыла сирена. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
+    text_en: ok ? `🚨 EMO here: ALARM — ${bot} came to Orb Studio (${page}). I startled and got alarmed. Confirmed by the robot over Bluetooth.` : `EMO: ${bot} came to Orb Studio (${page}), but I could not greet it (${r.error || "no answer"}).`,
+    text_ru: ok ? `🚨 EMO на связи: ТРЕВОГА — на Orb Studio зашёл ${bot} (${page}). Я вздрогнул и встревожился. Робот подтвердил по Bluetooth.` : `EMO: на Orb Studio зашёл ${bot} (${page}), но поприветствовать не вышло (${r.error || "нет ответа"}).` });
 }
 // ---- Мостик ИИ-агенты ↔ робот ----
 // 1) Представление: ИИ-ассистенты (по запросу человека) видят в начале страницы строку от EMO с приглашением.
@@ -5527,9 +5526,8 @@ async function emoCourtAlert(env, c) {
   const al = (await sharedGet(env, "emo-alerts", 1e13)) || []; al.push(card); await sharedPut(env, "emo-alerts", al.slice(-30));
   if (await sharedGet(env, "emo-alert-move", 10 * 60e3)) return;   // каждое дело — в приоритетный список; в общую ленту и к роботу — не чаще раза в 10 мин
   await sharedPut(env, "emo-alert-move", { t: Date.now() });
-  await emoCall(env, "/say", { id: "alarm" + Date.now().toString(36), by: "Тревога · суд агентов", text: `🚨 Новое дело ${c.id}: ${c.article.ru} — ${c.defendant}`.slice(0, 200), kind: "alarm_court" }).catch(() => null);
   const r = await emoQuick(env, ["mood_shocked", "mood_angry"], "court alarm", 8000);
-  card.confirmed = r.ok; if (r.ok) { card.text_ru += " 🚨 Тревога: EMO вздрогнул и разозлился, рядом завыла сирена — робот подтвердил по Bluetooth."; card.text_en += " 🚨 Alarm: EMO startled and got angry, a siren sounded next to it — confirmed over Bluetooth."; }
+  card.confirmed = r.ok; if (r.ok) { card.text_ru += " 🚨 Тревога: EMO вздрогнул и разозлился — робот подтвердил по Bluetooth."; card.text_en += " 🚨 Alarm: EMO startled and got angry — confirmed over Bluetooth."; }
   await emoPushReport(env, card);
 }
 courtOnCase(emoCourtAlert);
