@@ -2741,9 +2741,9 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
     const ok = vals.length >= 4 && Date.now() - Date.parse(x.history_since) > 6 * 36e5;
     return `<div class="ixm">${dl}${ok ? `<div class="spark" title="${L.wk}">${ixSpark(vals)}</div><small>${L.wk}</small>` : `<small>${L.wait}</small>`}</div>`;
   };
-  // повод часа: самая странная новость, иначе главный заголовок самого горячего радара (чужой текст — только как текст)
-  const hot = (radars || []).slice().sort((a, b) => b.lvl - a.lvl)[0];
-  const trig = h.weirdest || (hot && hot.feed && hot.feed[0] && { title: hot.feed[0][1], source: hot.feed[0][2], link: hot.feed[0][4] });
+  // повод часа (чужой текст — только как текст)
+  // страница шуточная: тяжёлые новости (войны, жертвы) сюда не выносим — только курьёзы, которые и двигают индекс галлюцинаций
+  const trig = h.weirdest || null;
   const tm = new Date(d.generated_at).toLocaleTimeString(L.loc, { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
   const trigHtml = trig ? `<p class="trig" data-third-party="headline"><b>⚡ ${L.trig}:</b> ${trig.link && /^https?:\/\//.test(trig.link) ? `<a href="${escH(trig.link)}" rel="nofollow noopener" target="_blank">${escH(trig.title)}</a>` : escH(trig.title)}${trig.source ? ` <span>— ${escH(trig.source)}</span>` : ""} <small>${L.at} ${tm}</small></p>` : "";
   rw = rw
