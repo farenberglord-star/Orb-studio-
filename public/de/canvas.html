@@ -61,6 +61,28 @@ table.map td b{color:var(--fg);font-variant-numeric:tabular-nums}
 details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 .agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+.artl{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tl{position:relative;padding:12px 14px 10px;border:1px solid rgba(111,230,255,.18);border-radius:14px;background:linear-gradient(180deg,#0e1526,#0a0f1c)}
+.tl-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.tl-play{font:inherit;letter-spacing:.08em;color:#6fe6ff;background:rgba(111,230,255,.1);border:1px solid rgba(111,230,255,.35);border-radius:999px;padding:4px 12px;cursor:pointer}.tl-play[aria-pressed="true"]{background:#6fe6ff;color:#04101c}
+.tl-track{position:relative;height:44px;margin:0 16px}
+.tl-track svg{position:absolute;inset:0 0 16px 0;width:100%;height:28px;overflow:visible}
+.tl-track .tll{fill:none;stroke:#ff6b81;stroke-width:1.8;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 3px #ff6b81);opacity:.85}
+.tl-track .tla{fill:url(#tlg)}
+.tl-b{position:absolute;top:0;width:28px;margin-left:-14px;height:44px;padding:0;border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;color:var(--dim);font-family:var(--mono);font-size:10px}
+.tl-b i{width:9px;height:9px;border-radius:50%;background:var(--c,#6fe6ff);box-shadow:0 0 0 2px #0a0f1c,0 0 8px var(--c,#6fe6ff);margin-bottom:2px;transition:transform .25s}
+.tl-b.on{color:#fff}.tl-b.on i{transform:scale(1.6);background:#fff;box-shadow:0 0 0 3px var(--c,#6fe6ff),0 0 14px 3px var(--c,#6fe6ff)}
+.tl-b:focus-visible{outline:2px solid #6fe6ff;outline-offset:2px;border-radius:6px}
+.tele{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.tc{position:relative;overflow:hidden;padding:12px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:radial-gradient(120% 120% at 100% 0%,color-mix(in srgb,var(--c) 22%,transparent),transparent 55%),linear-gradient(180deg,#121a2c,#0b111f)}
+.tc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:#c9d4ea;text-transform:uppercase}
+.tc-ch{font-family:var(--mono);font-size:12px;padding:2px 8px;border-radius:8px;letter-spacing:0;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.tc-v{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.tc-v b{font-family:var(--display);font-size:38px;line-height:1.1;color:var(--c);text-shadow:0 0 20px color-mix(in srgb,var(--c) 40%,transparent);font-variant-numeric:tabular-nums}.tc-v b small{font-size:17px;color:var(--dim);text-shadow:none}
+.tc-tag{font-family:var(--display);font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--c);padding:4px 10px;border-radius:9px;background:color-mix(in srgb,var(--c) 12%,transparent);border:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.tc-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.07);margin-top:8px;overflow:hidden}.tc-bar i{display:block;height:100%;width:var(--w);background:linear-gradient(90deg,color-mix(in srgb,var(--c) 50%,transparent),var(--c));box-shadow:0 0 10px var(--c);transition:width .8s cubic-bezier(.4,0,.2,1)}
+.tc-sub{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.45}
+.tc-v b.lh{font-size:28px}
+@media (prefers-reduced-motion:reduce){.tc-bar i,.tl-b i{transition:none}}
 </style>
 <style>
 .krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
@@ -133,7 +155,7 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
   </div>
 
   <section class="art">
-    <div class="frame"><img id="cv" src="/api/v1/canvas.svg" width="1080" height="1350" alt="Stadt am Meer: ein Bild aus den Daten der Orb-Studio-Radare"><span class="tag" id="tag">wird geladen…</span></div>
+    <div class="artl"><div class="frame"><img id="cv" src="/api/v1/canvas.svg" width="1080" height="1350" alt="Stadt am Meer: ein Bild aus den Daten der Orb-Studio-Radare"><span class="tag" id="tag">wird geladen…</span></div><div class="tl" id="tl"></div></div>
     <div class="panel">
       <div class="eyebrow" id="slotLine">—</div>
       <p class="title" id="title">—</p>
@@ -254,5 +276,30 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_canvas')==='1'}catch(
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_canvas','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script>/* живая телеметрия и таймлапс суток: только реальные поля /api/v1/canvas */
+(function(){var L={"loc": "de-DE", "tl": "Ein Tag Bilder · alle 3 Stunden", "play": "▶ Zeitraffer", "stop": "■ Stopp", "ten": "Spannung", "tur": "Turbulenz", "avg": "Radar-Mittel", "mv": "Größte Bewegung in 24 Std.", "wiki": "Leuchtturm · Wikipedia-Aufmerksamkeit", "vs": "zum letzten Bild", "fr": "Streuung", "noj": "kein Aufmerksamkeitssprung", "lang": "de"},RN2={justice:'Justiz',geo:'Geo',politics:'Politik',economy:'Wirtschaft',budget:'Budget',crypto:'Krypto',energy:'Energie',web:'Web'},cache={},day=[],timer=null;
+function $$(id){return document.getElementById(id)}function e(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function hm(slot){return new Date(slot.replace('Z',':00Z')).toLocaleTimeString(L.loc,{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})}
+function tcol(v){return v>=65?'#ff5d7a':v>=45?'#ffb547':'#6fe6ff'}
+function tele(c){var g=$$('gauges');if(!g||!c||!c.state)return;var st=c.state,ar=c.archive||[],i=ar.findIndex(function(a){return a.slot===c.slot}),pv=i>=0&&ar[i+1]?ar[i+1].tension:null,dt=pv==null?null:st.tension-pv;
+var mv=(c.inputs&&c.inputs.radars||[]).slice().sort(function(a,b){return Math.abs(b.delta_24h||0)-Math.abs(a.delta_24h||0)})[0];
+var wk=(c.dominant_signals||[]).find(function(s){return /wikipedia/i.test(s)}),wv=wk?wk.split(': ').slice(1).join(': '):null,beam=c.scene_elements&&c.scene_elements.lighthouse_beam;
+var h='<div class="tc" style="--c:'+tcol(st.tension)+'"><div class="tc-top"><span>'+L.ten+'</span>'+(dt==null?'':'<span class="tc-ch">'+(dt>0?'▲ +':dt<0?'▼ −':'± ')+Math.abs(dt)+' '+L.vs+'</span>')+'</div><div class="tc-v"><b>'+st.tension+'<small>/100</small></b><span class="tc-tag">'+e(c['art_style_'+L.lang]||c.art_style)+'</span></div><div class="tc-bar"><i style="--w:'+st.tension+'%"></i></div></div>';
+h+='<div class="tc" style="--c:#6fe6ff"><div class="tc-top"><span>'+L.tur+'</span><span>'+L.avg+' '+st.intensity+' · '+L.fr+' '+st.fracture+'</span></div><div class="tc-v"><b>'+st.turbulence+'<small>/100</small></b></div><div class="tc-bar"><i style="--w:'+st.turbulence+'%"></i></div></div>';
+if(mv&&mv.delta_24h)h+='<div class="tc" style="--c:'+(mv.delta_24h<0?'#ffb547':'#ff5d7a')+'"><div class="tc-top"><span>'+L.mv+'</span></div><div class="tc-v"><b>'+(mv.delta_24h>0?'+':'−')+Math.abs(mv.delta_24h)+'</b><span class="tc-tag">'+e(RN2[mv.id]||mv.id)+' '+mv.risk_index+'</span></div></div>';
+h+='<div class="tc" style="--c:#a99bff"><div class="tc-top"><span>'+L.wiki+'</span>'+(beam!=null?'<span class="tc-ch">'+beam+'/10</span>':'')+'</div><div class="tc-v"><b class="lh">'+(wv?e(wv):'—')+'</b></div>'+(wv?'':'<div class="tc-sub">'+L.noj+'</div>')+'</div>';
+g.className='tele';g.innerHTML=h}
+function mark(c){document.querySelectorAll('.tl-b').forEach(function(b){b.classList.toggle('on',b.dataset.slot===c.slot)})}
+function build(c){var box=$$('tl');if(!box||day.length)return;day=(c.archive||[]).slice(0,8).reverse();if(day.length<2){box.hidden=true;return}
+var n=day.length,ts=day.map(function(a){return a.tension}),lo=Math.min.apply(null,ts),sp=(Math.max.apply(null,ts)-lo)||1,pts=day.map(function(a,k){return[(k/(n-1)*100),26-(a.tension-lo)/sp*22]}),d=pts.map(function(p,k){return(k?'L':'M')+p[0].toFixed(2)+','+p[1].toFixed(2)}).join(' ');
+var h='<div class="tl-head"><span>'+L.tl+'</span><button class="tl-play" type="button" aria-pressed="false">'+L.play+'</button></div><div class="tl-track"><svg viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="tlg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6b81" stop-opacity=".3"/><stop offset="1" stop-color="#ff6b81" stop-opacity="0"/></linearGradient></defs><path class="tla" d="'+d+' L100,28 L0,28 Z"/><path class="tll" d="'+d+'"/></svg>';
+day.forEach(function(a,k){h+='<button type="button" class="tl-b" data-slot="'+e(a.slot)+'" style="left:'+(k/(n-1)*100).toFixed(2)+'%;--c:'+tcol(a.tension)+'" aria-label="'+e(hm(a.slot))+' · '+a.tension+'"><i></i>'+e(hm(a.slot))+'</button>'});
+box.innerHTML=h+'</div>';
+day.forEach(function(a){load(a.slot).then(function(x){cache[a.slot]=x;var im=new Image();im.src='/api/v1/canvas.svg?slot='+encodeURIComponent(a.slot)}).catch(function(){})});
+box.addEventListener('click',function(ev){var b=ev.target.closest('.tl-b');if(b){stop();go(b.dataset.slot)}var p=ev.target.closest('.tl-play');if(p){timer?stop():play(p)}})}
+function go(slot){if(cache[slot])show(cache[slot]);else load(slot).then(function(x){cache[slot]=x;show(x)})}
+function play(p){p.setAttribute('aria-pressed','true');p.textContent=L.stop;var k=Math.max(0,day.findIndex(function(a){return cur&&a.slot===cur.slot})+1);function step(){if(k>=day.length)k=0;go(day[k++].slot)}step();timer=setInterval(step,1400)}
+function stop(){if(!timer)return;clearInterval(timer);timer=null;var p=document.querySelector('.tl-play');if(p){p.setAttribute('aria-pressed','false');p.textContent=L.play}}
+var _s=show;show=function(c){_s(c);tele(c);build(c);mark(c)};if(cur){tele(cur);build(cur);mark(cur)}})();</script>
 </body>
 </html>
