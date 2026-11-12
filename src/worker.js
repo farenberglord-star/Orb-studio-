@@ -2746,6 +2746,23 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
   const trig = h.weirdest || null;
   const tm = new Date(d.generated_at).toLocaleTimeString(L.loc, { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
   const trigHtml = trig ? `<p class="trig" data-third-party="headline"><b>⚡ ${L.trig}:</b> ${trig.link && /^https?:\/\//.test(trig.link) ? `<a href="${escH(trig.link)}" rel="nofollow noopener" target="_blank">${escH(trig.title)}</a>` : escH(trig.title)}${trig.source ? ` <span>— ${escH(trig.source)}</span>` : ""} <small>${L.at} ${tm}</small></p>` : "";
+  // панель как в макете: индекс галлюцинаций + гео- и крипто-радар, у радаров линия за 7 дней из дневных снимков
+  let snaps = [];
+  try { snaps = ((await env.DB.prepare("SELECT day, data FROM snapshots ORDER BY day DESC LIMIT 8").all()).results || []).reverse().map((r) => { try { return JSON.parse(r.data); } catch (e) { return null; } }).filter(Boolean); } catch (e) {}
+  const today = new Date().toISOString().slice(0, 10);
+  const card = (name, val, max, dv, vals, col, href) => {
+    const dl = typeof dv === "number" ? `<span class="ixd ${dv > 0 ? "up" : dv < 0 ? "dn" : ""}">${dv > 0 ? "▲ +" : dv < 0 ? "▼ −" : "± "}${Math.abs(dv)} ${L.day}</span>` : "";
+    return `<a class="ixk" href="${href}" style="--c:${col}"><small>${escH(name)}</small><b>${val}${max ? `<i>/${max}</i>` : ""}</b>${dl}${vals && vals.length >= 3 ? `<div class="spark">${ixSpark(vals)}</div><small>${L.wk}</small>` : `<small class="wait">${L.wait}</small>`}</a>`;
+  };
+  const rcard = (id, col) => {
+    const r = (radars || []).find((y) => y.id === id); if (!r) return "";
+    const nm = lang === "de" ? (RADAR_TITLE_I18N[id] || [r.title])[0] : lang === "en" ? (RADAR_TITLE_I18N[id] || [r.title, r.title])[1] : r.title;
+    const vals = snaps.filter((sn) => sn.day !== today).map((sn) => ((sn.radars || []).find((y) => y.id === id) || {}).risk_index).filter((v) => typeof v === "number").slice(-7);
+    vals.push(r.lvl);
+    return card(nm, r.lvl, 100, typeof r.prev === "number" ? r.lvl - r.prev : null, vals, col, "/#radar");
+  };
+  const hv = x.history_7d.map((pp) => pp.hallucination), hok = hv.length >= 4 && Date.now() - Date.parse(x.history_since) > 6 * 36e5;
+  const panel = `<div class="ixrow">${card(lang === "de" ? h.name_de : lang === "en" ? h.name_en : h.name_ru, h.value, 100, x.delta_24h ? x.delta_24h.hallucination : null, hok ? hv : null, "var(--violet)", "#hal")}${rcard("geo", "var(--holo)")}${rcard("crypto", "var(--warm)")}</div>`;
   rw = rw
     .on("#hV", { element(e) { e.setInnerContent(String(h.value)); } })
     .on("#cV", { element(e) { e.setInnerContent(String(c.value)); } })
@@ -2760,7 +2777,7 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
     .on("article.ix.h .ixhead", { element(e) { e.after(meta("hallucination"), { html: true }); } })
     .on("article.ix.c .ixhead", { element(e) { e.after(meta("consensus"), { html: true }); } })
     .on("article.ix.t .ixhead", { element(e) { e.after(meta("token_hunger"), { html: true }); } })
-    .on("article.ix.h", { element(e) { if (trigHtml) e.before(trigHtml, { html: true }); } });
+    .on("article.ix.h", { element(e) { e.setAttribute("id", "hal"); e.before(panel + trigHtml, { html: true }); } });
   if (h.weirdest) rw = rw.on("#hS", { element(e) { e.setInnerContent(L.weird + (h.weirdest.link && /^https?:\/\//.test(h.weirdest.link) ? `<a href="${escH(h.weirdest.link)}" rel="nofollow noopener" target="_blank">${escH(h.weirdest.title)}</a>` : escH(h.weirdest.title)) + (h.weirdest.source ? " — " + escH(h.weirdest.source) : ""), { html: true }); } });
   const cr = (radars || []).find((r) => r.id === "crypto");
   if (cr && cr.market) {
