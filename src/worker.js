@@ -5324,7 +5324,7 @@ async function emoGreetBot(env, bot, path, anim = 1) {
   if (!st.robot_connected) return;
   await sharedPut(env, "emo-busy", { action: "greet", by: bot, t: Date.now() });
   // ТРЕВОГА вместо танца (12 ноября 2026): только сам EMO — вздрагивает и пугается (звук эмоций из его динамика); планшет молчит
-  const steps = emoTheaterSteps(["mood_shocked", "mood_scared"], 6000);
+  const steps = emoTheaterSteps(["mood_shocked", "mood_scared"], 10000);   // ~5 с на каждую эмоцию, иначе вторая обрывается
   const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps, label: "greet " + bot }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   const ok = !!r.ok && (r.results || []).some((x) => x && x.response);
   if (ok) await sharedPut(env, "emo-greet-" + bot, { t: Date.now(), done: true });
@@ -5514,7 +5514,7 @@ async function emoQuick(env, names, label, holdMs = 6000) {
   const st = await (await stub.fetch(new Request("https://do/status"))).json().catch(() => ({}));
   if (!st.robot_connected) return { ok: false, error: "robot offline" };
   await sharedPut(env, "emo-busy", { action: label, by: "Orb Studio", t: Date.now() });
-  const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoTheaterSteps(names, holdMs), label }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
+  const r = await (await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoTheaterSteps(names, Math.max(holdMs, names.length * 5000)), label }) }))).json().catch(() => ({ ok: false, error: "relay error" }));
   return { ok: !!r.ok && (r.results || []).some((x) => x && x.label && x.label.startsWith("theater:play") && x.response), error: r.error };
 }
 const emoCard = (o) => ({ t: new Date().toISOString(), from: "EMO (robot, Hamburg)", ...o });
