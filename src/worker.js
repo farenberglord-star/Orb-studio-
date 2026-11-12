@@ -2299,7 +2299,7 @@ async function handleApi(url, request, env, ctx) {
     const H = { "Access-Control-Allow-Origin": "*" };
     const slot = (url.searchParams.get("slot") || "").match(/^\d{4}-\d{2}-\d{2}T\d{2}:00Z$/);
     const png = p.endsWith(".png"), width = png ? (url.searchParams.get("w") === "1080" ? 1080 : 720) : 0;
-    const ck = new Request(`${origin}/__cache/canvas-v2-${slot ? slot[0] : "cur-" + canvasSlot()}-${png ? width : "svg"}`);
+    const ck = new Request(`${origin}/__cache/canvas-v3-${slot ? slot[0] : "cur-" + canvasSlot()}-${png ? width : "svg"}`);
     const hitC = await caches.default.match(ck); if (hitC) return hitC;
     const { piece } = await canvasPiece(env, ctx, slot ? slot[0] : null);
     if (!piece) return json({ error: "No picture for this slot" }, { ...H, "Cache-Control": "no-store" }, 404);
@@ -3000,8 +3000,10 @@ function canvasSvg(p) {
     `<radialGradient id="hz" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="${hslHex(mh, 85, 62)}" stop-opacity="${f1(0.25 + p.intensity / 200)}"/><stop offset="1" stop-color="${hslHex(mh, 85, 62)}" stop-opacity="0"/></radialGradient>`,
     `<radialGradient id="cl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="${hslHex(240, 12, 30 - ten * 18)}" stop-opacity=".95"/><stop offset=".7" stop-color="${hslHex(240, 12, 26 - ten * 16)}" stop-opacity=".55"/><stop offset="1" stop-color="${hslHex(240, 12, 22)}" stop-opacity="0"/></radialGradient>`,
     `<radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6e0"/><stop offset=".35" stop-color="${hslHex(36, 95, 70)}" stop-opacity=".9"/><stop offset="1" stop-color="${hslHex(28, 95, 60)}" stop-opacity="0"/></radialGradient>`,
-    `<linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff8d8" stop-opacity=".75"/><stop offset="1" stop-color="#fff8d8" stop-opacity="0"/></linearGradient></defs>`);
+    `<linearGradient id="beam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff8d8" stop-opacity=".75"/><stop offset="1" stop-color="#fff8d8" stop-opacity="0"/></linearGradient><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hslHex(mh, 30, 30)}" stop-opacity="0"/><stop offset="1" stop-color="${hslHex(mh, 35, 32)}" stop-opacity=".35"/></linearGradient></defs>`);
   out.push(`<rect width="${W}" height="${HZ}" fill="url(#sky)"/>`, `<rect y="${HZ - 520}" width="${W}" height="520" fill="url(#hz)"/>`);
+  // звёзды в тёмном небе: декор, данных не несут
+  if (p.style === "construct" || p.style === "impression") for (let i = 0; i < 70; i++) out.push(`<circle cx="${f1(rnd() * W)}" cy="${f1(rnd() * (HZ - 380))}" r="${f1(0.6 + rnd() * 1.3)}" fill="#e8eeff" opacity="${f1(0.15 + rnd() * 0.5)}"/>`);
   // солнце только в спокойном небе
   if (p.style === "calm" || p.style === "impression") { const sx = 160 + rnd() * 560, sr = p.style === "calm" ? 150 : 110; out.push(`<circle cx="${f1(sx)}" cy="${HZ - 420 - rnd() * 120}" r="${sr}" fill="url(#sun)"/>`); }
   // дальний город для глубины
@@ -3018,22 +3020,44 @@ function canvasSvg(p) {
     out.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="#e9e4ff" stroke-width="${f1(2.5 + rnd() * 2)}" stroke-linejoin="bevel" opacity=".9"/>`,
       `<polyline points="${pts.join(" ")}" fill="none" stroke="${hslHex(268, 90, 75)}" stroke-width="12" opacity=".18"/>`);
   }
-  // 7 домов = 7 радаров; высота и окна = индекс
+  // 7 домов = 7 радаров; высота и окна = индекс. Объёмные башни: фасад с градиентом, боковая грань, силуэт крыши, свечение окон
   const R = Object.fromEntries((p.inputs.radars || []).map((r) => [r.id, r]));
-  const ids = CANVAS_ORDER.filter((id) => R[id]), n = ids.length, gap = 14, bw = Math.min(112, (W - 230 - gap * (n - 1)) / n), x0 = 50;
+  const ids = CANVAS_ORDER.filter((id) => R[id]), n = ids.length, gap = 12, bw = Math.min(116, (W - 220 - gap * (n - 1)) / n), x0 = 46;
+  const glowW = [], sharpW = [], tw = [];
   ids.forEach((id, i) => {
     const r = R[id], h = 200 + r.risk_index * 5.2, x = x0 + i * (bw + gap), top = HZ - h, hue = CANVAS_HUES[id][0];
-    out.push(`<rect x="${f1(x)}" y="${f1(top)}" width="${f1(bw)}" height="${f1(h)}" fill="${hslHex(225, 30, 7)}"/>`, `<rect x="${f1(x)}" y="${f1(top)}" width="${f1(bw)}" height="4" fill="${hslHex(hue, 70, 55)}" opacity=".9"/>`);
-    const cols = 4, rows = Math.floor((h - 30) / 34), ww = (bw - 14 * 2 - (cols - 1) * 8) / cols, lit = r.risk_index / 100;
+    const fw = bw * 0.84, sw = bw - fw, kind = i % 4, inset = fw * 0.16, setY = top + h * 0.22;
+    // силуэт фасада
+    let face;
+    if (kind === 1) face = `M${f1(x)} ${HZ} V${f1(setY)} H${f1(x + inset)} V${f1(top)} H${f1(x + fw - inset)} V${f1(setY)} H${f1(x + fw)} V${HZ} Z`;
+    else if (kind === 2) face = `M${f1(x)} ${HZ} V${f1(top + 30)} L${f1(x + fw / 2)} ${f1(top - 46)} L${f1(x + fw)} ${f1(top + 30)} V${HZ} Z`;
+    else if (kind === 3) face = `M${f1(x)} ${HZ} V${f1(top + 24)} H${f1(x + inset * 0.6)} V${f1(top + 10)} H${f1(x + inset * 1.2)} V${f1(top)} H${f1(x + fw - inset * 1.2)} V${f1(top + 10)} H${f1(x + fw - inset * 0.6)} V${f1(top + 24)} H${f1(x + fw)} V${HZ} Z`;
+    else face = `M${f1(x)} ${HZ} V${f1(top)} H${f1(x + fw)} V${HZ} Z`;
+    tw.push(`<linearGradient id="tw${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hslHex(hue, 22, 17)}"/><stop offset=".35" stop-color="${hslHex(228, 26, 10)}"/><stop offset="1" stop-color="${hslHex(228, 30, 5)}"/></linearGradient>`);
+    // боковая грань (тень) и фасад
+    const sideTop = kind === 2 ? top + 30 : kind === 1 ? setY : top;
+    out.push(`<path d="M${f1(x + fw)} ${HZ} V${f1(sideTop)} L${f1(x + fw + sw)} ${f1(sideTop + sw * 0.6)} V${HZ} Z" fill="${hslHex(228, 30, 4)}"/>`, `<path d="${face}" fill="url(#tw${i})"/>`);
+    // контровой свет по краю и кромке крыши — цвет радара
+    out.push(`<path d="${face}" fill="none" stroke="${hslHex(hue, 75, 60)}" stroke-width="1.6" stroke-opacity=".5"/>`);
+    // антенна с красным огнём на плоских крышах
+    if (kind === 0) out.push(`<rect x="${f1(x + fw / 2 - 1.5)}" y="${f1(top - 54)}" width="3" height="54" fill="${hslHex(228, 20, 18)}"/>`, `<circle cx="${f1(x + fw / 2)}" cy="${f1(top - 56)}" r="9" fill="#ff4d5e" opacity=".25"/>`, `<circle cx="${f1(x + fw / 2)}" cy="${f1(top - 56)}" r="3.2" fill="#ff6b78"/>`);
+    // окна: только на фасаде, чем выше индекс — тем больше горит
+    const cols = 5, wy0 = (kind === 2 ? top + 46 : kind === 3 ? top + 36 : top + 22), rows = Math.floor((HZ - 26 - wy0) / 25), pad = 10, gx = 6, ww = (fw - pad * 2 - (cols - 1) * gx) / cols, lit = r.risk_index / 100;
     for (let yy = 0; yy < rows; yy++) for (let xx = 0; xx < cols; xx++) {
-      const on = rnd() < lit, wx = x + 14 + xx * (ww + 8), wy = top + 20 + yy * 34;
-      out.push(`<rect x="${f1(wx)}" y="${f1(wy)}" width="${f1(ww)}" height="18" fill="${on ? hslHex(hue + (rnd() - 0.5) * 16, 85, 62 + rnd() * 12) : hslHex(225, 25, 12)}"${on ? ` opacity="${f1(0.75 + rnd() * 0.25)}"` : ""}/>`);
+      const wy = wy0 + yy * 25;
+      if (kind === 1 && wy < setY + 8 && (xx === 0 || xx === cols - 1)) { rnd(); continue; }
+      const on = rnd() < lit, wx = x + pad + xx * (ww + gx);
+      if (on) { const c = hslHex(hue + (rnd() - 0.5) * 16, 90, 64 + rnd() * 12), o = f1(0.75 + rnd() * 0.25); glowW.push(`<rect x="${f1(wx - 2)}" y="${f1(wy - 2)}" width="${f1(ww + 4)}" height="16" fill="${c}"/>`); sharpW.push(`<rect x="${f1(wx)}" y="${f1(wy)}" width="${f1(ww)}" height="12" rx="1" fill="${c}" opacity="${o}"/>`); }
+      else sharpW.push(`<rect x="${f1(wx)}" y="${f1(wy)}" width="${f1(ww)}" height="12" rx="1" fill="${hslHex(226, 26, 11)}"/>`);
     }
     if (p.beacon && p.beacon.radar === id) {
-      const bx = x + bw / 2, by = top - 26;
-      out.push(`<rect x="${f1(bx - 2)}" y="${f1(by)}" width="4" height="26" fill="${hslHex(225, 20, 20)}"/>`, `<circle cx="${f1(bx)}" cy="${f1(by)}" r="34" fill="${hslHex(hue, 95, 60)}" opacity=".28"/>`, `<circle cx="${f1(bx)}" cy="${f1(by)}" r="9" fill="${hslHex(hue, 95, 75)}"/>`);
+      const bx = x + fw / 2, by = (kind === 2 ? top - 46 : top) - 26;
+      out.push(`<rect x="${f1(bx - 2)}" y="${f1(by)}" width="4" height="26" fill="${hslHex(225, 20, 20)}"/>`, `<circle cx="${f1(bx)}" cy="${f1(by)}" r="38" fill="${hslHex(hue, 95, 60)}" opacity=".25"/>`, `<circle cx="${f1(bx)}" cy="${f1(by)}" r="10" fill="${hslHex(hue, 95, 78)}"/>`);
     }
   });
+  out.push(`<defs>${tw.join("")}</defs>`, `<g filter="url(#gl)" opacity=".55">${glowW.join("")}</g>`, sharpW.join(""));
+  // дымка у подножия
+  out.push(`<rect y="${HZ - 140}" width="${W}" height="140" fill="url(#mist)"/>`);
   // маяк справа = внимание в Википедии
   const lx = 990, ly = HZ + 10;
   out.push(`<path d="M${lx - 80} ${HZ + 30} Q${lx - 40} ${HZ - 20} ${lx} ${HZ - 4} Q${lx + 50} ${HZ - 18} ${lx + 95} ${HZ + 30} Z" fill="${hslHex(225, 18, 9)}"/>`);
@@ -3045,12 +3069,15 @@ function canvasSvg(p) {
   } else out.push(`<circle cx="${lx}" cy="${ly - 183}" r="8" fill="${hslHex(225, 15, 30)}"/>`);
   // море, отражения окон, волны
   out.push(`<rect y="${HZ}" width="${W}" height="${Hh - HZ}" fill="url(#sea)"/>`);
-  ids.forEach((id, i) => { const x = x0 + i * (bw + gap), hue = CANVAS_HUES[id][0], lit = R[id].risk_index / 100;
-    out.push(`<rect x="${f1(x + bw * 0.2)}" y="${HZ + 6}" width="${f1(bw * 0.6)}" height="${f1(120 + lit * 200)}" fill="${hslHex(hue, 80, 55)}" opacity="${f1(0.06 + lit * 0.14)}"/>`); });
+  // отражения окон: мерцающие полосы, длиннее у ярких домов
+  ids.forEach((id, i) => { const x = x0 + i * (bw + gap), hue = CANVAS_HUES[id][0], lit = R[id].risk_index / 100, len = 120 + lit * 220;
+    for (let y = HZ + 6; y < HZ + len; y += 7 + (y - HZ) * 0.04) { const k = (y - HZ) / len, w = bw * 0.7 * (1 - k * 0.5) * (0.6 + rnd() * 0.5), jx = (rnd() - 0.5) * (6 + k * 22) * (0.5 + tu);
+      out.push(`<rect x="${f1(x + bw * 0.42 - w / 2 + jx)}" y="${f1(y)}" width="${f1(w)}" height="${f1(2 + k * 2)}" rx="1" fill="${hslHex(hue, 85, 62)}" opacity="${f1((0.1 + lit * 0.3) * (1 - k))}"/>`); } });
+  // волны: ряды тем гуще и выше, чем сильнее турбулентность; перспектива — дальние ряды мельче и плотнее
   for (let k = 0; k < p.waves; k++) {
-    const y = HZ + 30 + k * ((Hh - HZ - 40) / p.waves), amp = 3 + tu * 16 + k * tu * 2.5, len = 60 + rnd() * 60;
+    const t = (k + 1) / p.waves, y = HZ + 14 + Math.pow(t, 1.6) * (Hh - HZ - 30), amp = (1.5 + tu * 9) * (0.4 + t), len = (40 + rnd() * 30) * (0.6 + t);
     let d = `M0 ${f1(y)}`; for (let x = 0; x <= W; x += len / 2) d += ` Q${f1(x + len / 4)} ${f1(y + (rnd() < 0.5 ? -amp : amp))} ${f1(x + len / 2)} ${f1(y)}`;
-    out.push(`<path d="${d}" fill="none" stroke="${hslHex(mh, 40, 55 + k * 2)}" stroke-width="${f1(1.2 + tu * 1.8)}" opacity="${f1(0.12 + tu * 0.22)}"/>`);
+    out.push(`<path d="${d}" fill="none" stroke="${hslHex(mh, 35, 60 + k)}" stroke-width="${f1(0.8 + t * (0.6 + tu))}" opacity="${f1((0.06 + tu * 0.14) * (0.6 + t * 0.6))}"/>`);
   }
   // корабли на воде = санкционный список (1 на 100 судов)
   for (let i = 0; i < (p.ships || 0); i++) {
