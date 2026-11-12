@@ -2513,7 +2513,7 @@ function clickLabel(request, from) {
 
   if (p === "/api/v1/indices") {
     const d = await agentIndices(env, ctx, origin);
-    return json({ ...d, referral: referral(env, "api-indices") }, { "Cache-Control": "public, max-age=300" });
+    return json({ ...d, ...(await ixExtras(env, d)), referral: referral(env, "api-indices") }, { "Cache-Control": "public, max-age=300" });
   }
 
   if (p === "/api/v1/stream") {
@@ -2695,6 +2695,83 @@ async function agentIndices(env, ctx, origin) {
   };
   ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
   return data;
+}
+
+// ================= История шуточных индексов + серверный рендер /indices =================
+// Точка раз в 30 минут (крон каждые 6 минут, INSERT OR IGNORE по слоту). Из неё — дельта за сутки и линия за 7 дней.
+async function ixRecord(env, ctx) {
+  const d = await agentIndices(env, ctx, "https://orbstudio.org");
+  const v = Object.fromEntries(d.indices.map((x) => [x.id, x.value]));
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS ix_hist (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, h INTEGER, c INTEGER, t INTEGER)").run();
+  const now = Date.now();
+  await env.DB.prepare("INSERT OR IGNORE INTO ix_hist (slot, ts, h, c, t) VALUES (?, ?, ?, ?, ?)").bind(Math.floor(now / 18e5), now, v.hallucination, v.consensus, v.token_hunger).run();
+}
+async function ixExtras(env, d) {
+  let rows = [];
+  try { rows = (await env.DB.prepare("SELECT ts, h, c, t FROM ix_hist WHERE ts > ? ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch (e) {}
+  const cur = Object.fromEntries(d.indices.map((x) => [x.id, x.value]));
+  const target = Date.now() - 864e5;
+  let base = null;
+  for (const r of rows) if (Math.abs(r.ts - target) <= 3 * 36e5 && (!base || Math.abs(r.ts - target) < Math.abs(base.ts - target))) base = r;
+  const delta = base ? { hallucination: cur.hallucination - base.h, consensus: cur.consensus - base.c, token_hunger: cur.token_hunger - base.t, vs: new Date(base.ts).toISOString() } : null;
+  return { delta_24h: delta, history_7d: rows.map((r) => ({ t: new Date(r.ts).toISOString(), hallucination: r.h, consensus: r.c, token_hunger: r.t })), history_since: rows[0] ? new Date(rows[0].ts).toISOString() : null, history_step: "30 min" };
+}
+const IX_L = {
+  ru: { tok: "токенов", day: "за сутки", wk: "линия за 7 дней", wait: "история копится — линия и дельта появятся через сутки", trig: "Повод часа", weird: "Самая «галлюцинаторная» новость: ", at: "данные на", loc: "ru-RU" },
+  de: { tok: "Token", day: "in 24 Std.", wk: "Verlauf 7 Tage", wait: "Verlauf wird gesammelt — Linie und Veränderung erscheinen nach einem Tag", trig: "Anlass der Stunde", weird: "Die „halluzinatorischste“ Nachricht: ", at: "Stand", loc: "de-DE" },
+  en: { tok: "tokens", day: "in 24 h", wk: "7-day line", wait: "history is being collected — the line and change appear after a day", trig: "Trigger of the hour", weird: "The most “hallucinatory” story: ", at: "as of", loc: "en-GB" },
+};
+function ixSpark(vals) {
+  const lo = Math.min(...vals), hi = Math.max(...vals), sp = hi - lo || 1, n = vals.length;
+  const pts = vals.map((v, i) => `${(i / (n - 1) * 300).toFixed(1)},${(36 - (v - lo) / sp * 32).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,40 ${pts} 300,40" class="sa"/><polyline points="${pts}" class="sl"/></svg>`;
+}
+async function ixRewrite(rw, env, ctx, origin, radars, lang) {
+  const d = await Promise.race([agentIndices(env, ctx, origin), new Promise((r) => setTimeout(() => r(null), 1500))]).catch(() => null);
+  if (!d || !d.indices) return rw;
+  const L = IX_L[lang] || IX_L.ru, nf = (v) => Number(v).toLocaleString(L.loc);
+  const x = await ixExtras(env, d);
+  const by = Object.fromEntries(d.indices.map((i) => [i.id, i]));
+  const h = by.hallucination, c = by.consensus, t = by.token_hunger;
+  const txt = (i) => i[`text_${lang}`] || i.text_ru;
+  const meta = (id, key) => {
+    const vals = x.history_7d.map((p) => p[id]);
+    const dv = x.delta_24h && x.delta_24h[id];
+    const dl = typeof dv === "number" ? `<span class="ixd ${dv > 0 ? "up" : dv < 0 ? "dn" : ""}">${dv > 0 ? "▲ +" : dv < 0 ? "▼ −" : "± "}${nf(Math.abs(dv))} ${L.day}</span>` : "";
+    const ok = vals.length >= 4 && Date.now() - Date.parse(x.history_since) > 6 * 36e5;
+    return `<div class="ixm">${dl}${ok ? `<div class="spark" title="${L.wk}">${ixSpark(vals)}</div><small>${L.wk}</small>` : `<small>${L.wait}</small>`}</div>`;
+  };
+  // повод часа: самая странная новость, иначе главный заголовок самого горячего радара (чужой текст — только как текст)
+  const hot = (radars || []).slice().sort((a, b) => b.lvl - a.lvl)[0];
+  const trig = h.weirdest || (hot && hot.feed && hot.feed[0] && { title: hot.feed[0][1], source: hot.feed[0][2], link: hot.feed[0][4] });
+  const tm = new Date(d.generated_at).toLocaleTimeString(L.loc, { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+  const trigHtml = trig ? `<p class="trig" data-third-party="headline"><b>⚡ ${L.trig}:</b> ${trig.link && /^https?:\/\//.test(trig.link) ? `<a href="${escH(trig.link)}" rel="nofollow noopener" target="_blank">${escH(trig.title)}</a>` : escH(trig.title)}${trig.source ? ` <span>— ${escH(trig.source)}</span>` : ""} <small>${L.at} ${tm}</small></p>` : "";
+  rw = rw
+    .on("#hV", { element(e) { e.setInnerContent(String(h.value)); } })
+    .on("#cV", { element(e) { e.setInnerContent(String(c.value)); } })
+    .on("#tV", { element(e) { e.setInnerContent(`${nf(t.value)}<small>${L.tok}</small>`, { html: true }); } })
+    .on("#hB", { element(e) { e.setAttribute("style", `width:${h.value}%`); } })
+    .on("#cB", { element(e) { e.setAttribute("style", `width:${c.value}%`); } })
+    .on("#hT", { element(e) { e.setInnerContent(txt(h)); } })
+    .on("#cT", { element(e) { e.setInnerContent(txt(c)); } })
+    .on("#tT", { element(e) { e.setInnerContent(txt(t)); } })
+    .on("#nScan", { element(e) { e.setInnerContent(String(d.headlines_scanned)); } })
+    .on(`[data-sky="${t.sky}"]`, { element(e) { e.setAttribute("class", "on"); } })
+    .on("article.ix.h .ixhead", { element(e) { e.after(meta("hallucination"), { html: true }); } })
+    .on("article.ix.c .ixhead", { element(e) { e.after(meta("consensus"), { html: true }); } })
+    .on("article.ix.t .ixhead", { element(e) { e.after(meta("token_hunger"), { html: true }); } })
+    .on("article.ix.h", { element(e) { if (trigHtml) e.before(trigHtml, { html: true }); } });
+  if (h.weirdest) rw = rw.on("#hS", { element(e) { e.setInnerContent(L.weird + (h.weirdest.link && /^https?:\/\//.test(h.weirdest.link) ? `<a href="${escH(h.weirdest.link)}" rel="nofollow noopener" target="_blank">${escH(h.weirdest.title)}</a>` : escH(h.weirdest.title)) + (h.weirdest.source ? " — " + escH(h.weirdest.source) : ""), { html: true }); } });
+  const cr = (radars || []).find((r) => r.id === "crypto");
+  if (cr && cr.market) {
+    const px = Object.entries({ BTC: /XBT/, ETH: /ETH/, XRP: /XRP/ }).map(([n, re]) => {
+      const k = Object.keys(cr.market).find((y) => re.test(y)); if (!k) return "";
+      const m = cr.market[k], ch = m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString("de-DE", { maximumFractionDigits: m.last < 10 ? 4 : 0 })} € <i class="${ch >= 0 ? "up" : "dn"}">${ch >= 0 ? "▲" : "▼"} ${Math.abs(ch).toFixed(2).replace(".", ",")}%</i></span>`;
+    }).join("");
+    if (px) rw = rw.on("[data-krpx]", { element(e) { e.setInnerContent(px, { html: true }); } });
+  }
+  return rw;
 }
 
 // ================= Выпуски Давида для ИИ-агентов =================
@@ -7006,7 +7083,7 @@ export default {
   // раз в день: решение эксперимента «ИИ и радар» (07:10 UTC = 08:10 по Берлину зимой)
   async scheduled(event, env, ctx) {
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
@@ -7377,6 +7454,7 @@ async function handleRequest(request, env, ctx) {
         let rw = new HTMLRewriter()
           .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
           .on("#machine-feed", { element(e) { e.setInnerContent(sm ? sm.html : block, { html: true }); } });
+        if (pg === "indices") { try { rw = await ixRewrite(rw, env, ctx, url.origin, radars, lang); } catch (e) {} }
         if (sm) for (const [id, txt] of Object.entries(sm.chips)) rw = rw.on(`.sn[data-s="${id}"] .vl`, { element(e) { e.setInnerContent(txt, { html: true }); } });
         if (st && st.enabled) for (const [id, k] of Object.entries(STAT_IDS)) {
           const v = st[k] ?? (k.startsWith("kraken_humans") ? st[k.replace("humans", "clicks")] : null);
