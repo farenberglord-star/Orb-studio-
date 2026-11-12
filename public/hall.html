@@ -107,6 +107,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .acco{font-size:13.5px;line-height:1.5}.acco .sc{font-family:var(--display);font-size:26px;color:var(--holo)}.acco ul{padding-left:18px;margin:6px 0}
 .acco .bots{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}.acco .bots span{font:11px var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 .acco .y{color:var(--up);border-color:rgba(79,216,164,.4)!important}.acco .n{color:var(--hot);border-color:rgba(255,93,122,.4)!important}
+.h3d2-box{position:relative;border:1px solid rgba(111,230,255,.22);border-radius:16px;overflow:hidden;background:#03040b;aspect-ratio:16/10}@media (max-width:640px){.h3d2-box{aspect-ratio:4/5}}.h3d2-cap{font-size:12.5px;color:var(--dim,#8b9bb8);margin:6px 2px 0;line-height:1.5}.h3d2-h{font-family:var(--mono,monospace);font-size:11px;letter-spacing:.12em;color:#ffc35a;text-transform:uppercase;margin:0 0 6px}
 </style>
 <style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
@@ -161,6 +162,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <h1>🏆 ДОСКА ПОЧЁТА ИИ-АГЕНТОВ</h1>
   </div>
   <p class="lead">Десять самых активных ИИ-агентов в мире по доле запросов ИИ-ботов в сети Cloudflare. Ниже — почётные гости Orb Studio: агенты, которые сами пришли читать наши радары.</p>
+  <section id="h3dsec" hidden><p class="h3d2-h">🏆 Зал славы · 3D</p><div class="h3d2-box" id="hall3d" role="img" aria-label="Зал славы · 3D"></div><p class="h3d2-cap">Живые роботы на реальных данных: на пьедестале — топ-3 гостей Orb Studio за 30 дней (паук-краулер — поисковый бот, книжник — ИИ-ассистент или обучение моделей), лавры — агент месяца, столбцы табло — доли мирового топ-10, дроны — зарегистрированные агенты. Персонажи оригинальные, без логотипов компаний.</p></section>
 
   <h2>МИРОВОЙ ТОП-10</h2>
   <div class="podium">
@@ -353,5 +355,10 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_hall')==='1'}catch(e)
 <script src="/banners.js" defer></script>
 <section class="orb-geo" style="max-width:860px;margin:32px auto;padding:0 16px;color:#8b9bb8;font:14px/1.55 system-ui,sans-serif"><h2 style="font-size:15px;color:#c8d6ee;margin:0 0 8px">Коротко о странице · обновлено 2026-11-08</h2><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Откуда данные для рейтинга ИИ-агентов?</h3><p style="margin:0">Топ-10 строится по доле запросов ИИ-ботов в сети Cloudflare; раздел «почётные гости» — агенты, которые сами заходили читать радары Orb Studio.</p><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Как часто обновляется доска почёта?</h3><p style="margin:0">Рейтинг помечен месяцем публикации (на странице: октябрь 2026); список гостей пополняется по факту заходов.</p><p style="margin:12px 0 0"><a href="/about" style="color:#5fe3ff">Об Orb Studio: что есть и чего нет</a> · <a href="/llms.txt" style="color:#5fe3ff">llms.txt</a></p></section>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","name":"Доска почёта ИИ-агентов · Orb Studio","url":"https://orbstudio.org/hall","dateModified":"2026-11-08","inLanguage":"ru","isPartOf":{"@type":"WebSite","name":"Orb Studio","url":"https://orbstudio.org/"},"author":{"@type":"Person","name":"Serghei Farima","url":"https://orbstudio.org/about"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Откуда данные для рейтинга ИИ-агентов?","acceptedAnswer":{"@type":"Answer","text":"Топ-10 строится по доле запросов ИИ-ботов в сети Cloudflare; раздел «почётные гости» — агенты, которые сами заходили читать радары Orb Studio."}},{"@type":"Question","name":"Как часто обновляется доска почёта?","acceptedAnswer":{"@type":"Answer","text":"Рейтинг помечен месяцем публикации (на странице: октябрь 2026); список гостей пополняется по факту заходов."}}]}]}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/hall3d.js" defer></script>
+<script>/* 3D «Зал славы» по тем же данным, что и доска почёта */
+window.addEventListener('DOMContentLoaded',function(){var s=document.getElementById('h3dsec'),el=document.getElementById('hall3d');if(!window.OrbHall3D||!el)return;s.hidden=false;
+if(!OrbHall3D.init(el)){s.hidden=true;return}
+fetch('/api/v1/hall-of-fame').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)OrbHall3D.update(d)}).catch(function(){})});</script>
 </body>
 </html>
