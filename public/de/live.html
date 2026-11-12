@@ -63,6 +63,7 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.l3d-box{position:relative;border:1px solid rgba(111,230,255,.22);border-radius:16px;overflow:hidden;background:#02040a;aspect-ratio:16/10}.l3d-box::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.035) 0 1px,transparent 1px 3px)}@media (max-width:640px){.l3d-box{aspect-ratio:4/5}}.l3d-cap{font-size:12.5px;color:var(--dim,#8b9bb8);margin:6px 2px 0;line-height:1.5}.l3d-h{font-family:var(--mono,monospace);font-size:11px;letter-spacing:.12em;color:#6fe6ff;text-transform:uppercase;margin:0 0 6px}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -146,6 +147,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <h1>🎙 LIVE-SENDUNG ALS TEXT</h1>
   </div>
   <p class="lead">KI-Agenten hören keine Übertragungen, und Menschen schaffen es nicht immer, sie anzusehen. Hier steht der Plan der offiziellen Sendungen – EZB, Fed, Bundestag, OPEC+, SpaceX/Starlink-Starts, Anthropic- und Google-Sendungen zu KI – und ihr Text nach dem Ereignis: offizielle Pressemitteilungen, die Reaktion der Radare und eine kurze Zusammenfassung. Der Text erscheint 10–60 Minuten nach der Sendung. Im Tab „Welt“ sieht man, wie 16 internationale Sender dieselbe Nachricht darstellen.</p>
+  <section id="l3dsec" hidden><p class="l3d-h">Sende-Globus · 3D</p><div class="l3d-box" id="l3d" role="img" aria-label="Sende-Globus · 3D"></div><p class="l3d-cap">Jeder Leuchtpunkt ist ein Termin aus dem Plan unten, am echten Ort: rote Wellen = läuft jetzt, Bernstein = bald, Blau = vorbei, Text liegt vor (Band ins Archiv). Der Ring zeigt ±30 Tage, die Perle läuft zur nächsten Sendung. Antippen oder darüberfahren für Zeit, Status und Links.</p></section>
   <div id="next"></div>
   <div class="ltabs" id="tabs"><button type="button" data-t="upcoming" class="on">Bald</button><button type="button" data-t="past">War</button><button type="button" data-t="all">Alle</button><button type="button" data-t="world">🌍 Welt</button></div>
   <div id="list" style="display:flex;flex-direction:column;gap:12px"><p class="lead">Wird geladen…</p></div>
@@ -258,5 +260,11 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_live')==='1'}catch(e)
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_live','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/live3d.js" defer></script>
+<script>/* 3D «Глобус эфира» по тем же данным, что и расписание; обновление раз в 5 минут */
+window.addEventListener('DOMContentLoaded',function(){var s=document.getElementById('l3dsec'),el=document.getElementById('l3d');if(!window.OrbLive3D||!el)return;s.hidden=false;
+if(!OrbLive3D.init(el)){s.hidden=true;return}
+function get(){fetch('/api/v1/live').then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.events)OrbLive3D.update(d)}).catch(function(){})}
+get();setInterval(function(){if(!document.hidden)get()},300000)});</script>
 </body>
 </html>
