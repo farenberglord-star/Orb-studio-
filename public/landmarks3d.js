@@ -111,5 +111,17 @@
       var h = B[p.id](g, { k: k, lit: p.radar.risk_index / 100, col: col, rnd: rnd });
       parent.add(g); return { group: g, id: p.id, height: h };
     },
+    // точка подключения мегаполиса (canvas3d.js от Грока): build(группа в центре, card, THREE, {radius})
+    build: function (slotG, card, THREE, opt) {
+      if (!card || !card.inputs) return;
+      var HUE = { geo: 352, politics: 318, economy: 212, budget: 146, crypto: 268, energy: 36, web: 186 };
+      var a = 2166136261, str = String(card.slot || "x"); for (var i = 0; i < str.length; i++) { a ^= str.charCodeAt(i); a = Math.imul(a, 16777619) >>> 0; }
+      var rnd = function () { a = (a + 0x6D2B79F5) >>> 0; var t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+      var r = this.add(THREE, slotG, card, rnd, function (id) { return HUE[id] || 200; });
+      // вписать в площадь мегаполиса: по ширине — в круг radius·1.6, по высоте — не выше башен-героев
+      var bb = new THREE.Box3().setFromObject(r.group), sz = bb.getSize(new THREE.Vector3());
+      var R = ((opt && opt.radius) || 1.5) * 1.6, k = Math.min(2 * R / Math.max(sz.x, sz.z, 0.01), 7.5 / Math.max(sz.y, 0.01));
+      r.group.scale.setScalar(k);
+    },
   };
 })();

@@ -305,7 +305,7 @@ function go(slot){if(cache[slot])show(cache[slot]);else load(slot).then(function
 function play(p){p.setAttribute('aria-pressed','true');p.textContent=L.stop;var k=Math.max(0,day.findIndex(function(a){return cur&&a.slot===cur.slot})+1);function step(){if(k>=day.length)k=0;go(day[k++].slot)}step();timer=setInterval(step,1400)}
 function stop(){if(!timer)return;clearInterval(timer);timer=null;var p=document.querySelector('.tl-play');if(p){p.setAttribute('aria-pressed','false');p.textContent=L.play}}
 var _s=show;show=function(c){_s(c);tele(c);build(c);mark(c)};if(cur){tele(cur);build(cur);mark(cur)}})();</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/canvas3d.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/landmarks3d.js" defer></script><script src="/canvas3d.js" defer></script>
 <script>/* 3D-голограмма вместо плоской картины, если браузер умеет WebGL */
 window.addEventListener('DOMContentLoaded',function(){var fr=document.querySelector('.frame'),h=document.getElementById('h3d'),btn=document.getElementById('v3d');
 if(!window.Orb3D||!fr||!Orb3D.init(h))return;var on=true;try{on=localStorage.getItem('orbCanvas3d')!=='0'}catch(e){}
