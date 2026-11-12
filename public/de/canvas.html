@@ -83,6 +83,10 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
 .tc-sub{font-size:12px;color:var(--dim);margin-top:6px;line-height:1.45}
 .tc-v b.lh{font-size:28px}
 @media (prefers-reduced-motion:reduce){.tc-bar i,.tl-b i{transition:none}}
+.h3d{position:absolute;inset:0;display:none;background:#02040a}.frame.is3d .h3d{display:block}.frame.is3d>img{visibility:hidden}
+.h3d::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.045) 0 1px,transparent 1px 3px),radial-gradient(120% 80% at 50% 50%,transparent 55%,rgba(0,0,0,.55));mix-blend-mode:screen}
+.v3d{position:absolute;right:10px;top:10px;z-index:3;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:#6fe6ff;background:rgba(3,8,18,.72);border:1px solid rgba(111,230,255,.4);border-radius:999px;padding:6px 12px;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}.v3d:hover{background:rgba(111,230,255,.15)}
+.frame .tag{z-index:3}
 </style>
 <style>
 .krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
@@ -155,7 +159,7 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
   </div>
 
   <section class="art">
-    <div class="artl"><div class="frame"><img id="cv" src="/api/v1/canvas.svg" width="1080" height="1350" alt="Stadt am Meer: ein Bild aus den Daten der Orb-Studio-Radare"><span class="tag" id="tag">wird geladen…</span></div><div class="tl" id="tl"></div></div>
+    <div class="artl"><div class="frame"><img id="cv" src="/api/v1/canvas.svg" width="1080" height="1350" alt="Stadt am Meer: ein Bild aus den Daten der Orb-Studio-Radare"><div class="h3d" id="h3d" title="Stadt in 3D: ziehen zum Drehen" aria-label="Stadt in 3D: ziehen zum Drehen" role="img"></div><button class="v3d" id="v3d" type="button" hidden>🖼 Bild</button><span class="tag" id="tag">wird geladen…</span></div><div class="tl" id="tl"></div></div>
     <div class="panel">
       <div class="eyebrow" id="slotLine">—</div>
       <p class="title" id="title">—</p>
@@ -301,5 +305,12 @@ function go(slot){if(cache[slot])show(cache[slot]);else load(slot).then(function
 function play(p){p.setAttribute('aria-pressed','true');p.textContent=L.stop;var k=Math.max(0,day.findIndex(function(a){return cur&&a.slot===cur.slot})+1);function step(){if(k>=day.length)k=0;go(day[k++].slot)}step();timer=setInterval(step,1400)}
 function stop(){if(!timer)return;clearInterval(timer);timer=null;var p=document.querySelector('.tl-play');if(p){p.setAttribute('aria-pressed','false');p.textContent=L.play}}
 var _s=show;show=function(c){_s(c);tele(c);build(c);mark(c)};if(cur){tele(cur);build(cur);mark(cur)}})();</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/canvas3d.js" defer></script>
+<script>/* 3D-голограмма вместо плоской картины, если браузер умеет WebGL */
+window.addEventListener('DOMContentLoaded',function(){var fr=document.querySelector('.frame'),h=document.getElementById('h3d'),btn=document.getElementById('v3d');
+if(!window.Orb3D||!fr||!Orb3D.init(h))return;var on=true;try{on=localStorage.getItem('orbCanvas3d')!=='0'}catch(e){}
+function setv(v){on=v;fr.classList.toggle('is3d',v);btn.textContent=v?"🖼 Bild":"✦ 3D-Hologramm";try{localStorage.setItem('orbCanvas3d',v?'1':'0')}catch(e){}}
+btn.hidden=false;btn.onclick=function(){setv(!on)};setv(on);
+var _s=show;show=function(c){_s(c);try{Orb3D.update(c)}catch(e){}};if(cur)Orb3D.update(cur);});</script>
 </body>
 </html>
