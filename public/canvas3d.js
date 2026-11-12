@@ -89,7 +89,7 @@
     var ids = ORDER.filter(function (id) { return lv[id]; }), n = ids.length;
     ids.forEach(function (id, i) {
       var r = lv[id], hue = HUE[id], h = 1.6 + r.risk_index * 0.075, w = 1.15, d = 1.15;
-      var x = (i - (n - 1) / 2) * 1.75, z = -1.5 + Math.pow((i - (n - 1) / 2) / ((n - 1) / 2), 2) * 1.6;
+      var x = (i - (n - 1) / 2) * 1.75, z = (window.OrbLandmarks ? -4.2 : -1.5) + Math.pow((i - (n - 1) / 2) / ((n - 1) / 2), 2) * (window.OrbLandmarks ? 2.6 : 1.6);
       var g = new T.Group(); g.position.set(x, 0, z); city.add(g);
       var c = col(hue, 0.85, 0.6);
       var geo = new T.BoxGeometry(w, h, d); geo.translate(0, h / 2, 0);
@@ -99,7 +99,7 @@
       var edges = new T.LineSegments(new T.EdgesGeometry(geo), new T.LineBasicMaterial({ color: c, transparent: true, opacity: 0.9, blending: T.AdditiveBlending }));
       g.add(shell, win, edges); anim.wins.push({ m: win.material, e: edges.material, ph: rnd() * 6 });
       // крыши: антенна, шпиль, уступ — разнообразие силуэта
-      var k = i % 4;
+      var k = Math.floor(rnd() * 4); // силуэт крыши меняется от смены к смене
       if (k === 2) { var sp = new T.ConeGeometry(0.62, 1.1, 4); sp.rotateY(Math.PI / 4); sp.translate(0, h + 0.55, 0); g.add(new T.LineSegments(new T.EdgesGeometry(sp), edges.material)); }
       if (k === 1) { var tp = new T.BoxGeometry(0.7, 0.6, 0.7); tp.translate(0, h + 0.3, 0); g.add(new T.LineSegments(new T.EdgesGeometry(tp), edges.material)); }
       if (k === 0 || k === 3) { var an = new T.BufferGeometry().setFromPoints([new T.Vector3(0, h, 0), new T.Vector3(0, h + 1.1, 0)]); g.add(new T.Line(an, edges.material));
@@ -113,6 +113,8 @@
         bc.position.y = halo.position.y = h + (k === 2 ? 1.5 : 1.0); g.add(bc, halo); anim.beacon = { a: bc, b: halo };
       }
     });
+    // достопримечательность смены за городом: выбор по главному радару и номеру смены
+    if (window.OrbLandmarks) { try { var lm = OrbLandmarks.add(T, city, card, rnd, function (id) { return HUE[id] || 200; }); lm.group.position.set(0, 0, 0.9); lm.group.scale.setScalar(Math.min(1.3, 9.5 / (lm.height || 8))); anim.lm = lm; } catch (e) {} }
     // море: голографическая сетка волн перед городом
     var sg = new T.PlaneGeometry(21, 9, 84, 36); sg.rotateX(-Math.PI / 2); sg.translate(0, 0, 4.2);
     sea = new T.Mesh(sg, new T.MeshBasicMaterial({ color: col(mainHue, 0.5, 0.55), wireframe: true, transparent: true, opacity: 0.07 + tu * 0.1, blending: T.AdditiveBlending, depthWrite: false }));
