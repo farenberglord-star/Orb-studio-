@@ -46,14 +46,24 @@
     G.uFogCol = { value: new T.Color(0x0a1024) };
     // sky dome: dusk gradient + stars (decor)
     var sky = new T.Mesh(new T.SphereGeometry(140, 32, 16), new T.ShaderMaterial({
-      uniforms: { uTime: G.uTime },
+      uniforms: { uTime: G.uTime, uReduce: G.uReduce },
       vertexShader: "varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "uniform float uTime; varying vec3 vD; float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453); }" +
+      fragmentShader: "uniform float uTime, uReduce; varying vec3 vD; float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453); }" +
+        // round stars of different size, colour and twinkle; each grid cell holds at most one star at a hashed offset
+        "vec3 stars(vec3 d, float S, float dens, float sz){ vec3 q = d * S, g = floor(q); float r = h(g); if (r < dens) return vec3(0.0);" +
+        " vec3 p = g + 0.5 + (vec3(h(g + 1.7), h(g + 4.3), h(g + 8.9)) - 0.5) * 0.7; float e = length(q - p);" +
+        " float b = pow(h(g + 2.1), 3.0); float core = exp(-e * e * (90.0 / sz)) + 0.25 * exp(-e * e * (14.0 / sz)) * b;" +
+        " float tw = uReduce > 0.5 ? 1.0 : 0.72 + 0.28 * sin(uTime * (1.3 + 3.0 * h(g + 6.6)) + r * 60.0);" +
+        " vec3 col = mix(vec3(0.68,0.78,1.0), vec3(1.0,0.82,0.62), smoothstep(0.55, 1.0, h(g + 5.5)));" +
+        " return col * core * (0.35 + 1.1 * b) * tw; }" +
         "void main(){ float y = vD.y; vec3 top = vec3(0.008,0.014,0.045), hor = vec3(0.06,0.05,0.14), glow = vec3(0.30,0.14,0.30);" +
         " vec3 c = mix(hor, top, smoothstep(0.0, 0.5, y)); c += glow * exp(-abs(y) * 9.0) * 0.6;" +
-        " vec3 g = floor(vD * 220.0); float s = step(0.9965, h(g)) * smoothstep(0.05, 0.3, y); c += vec3(0.8,0.85,1.0) * s * (0.5 + 0.5 * h(g + 3.1));" +
+        " vec3 mwN = normalize(vec3(0.42, 0.50, 0.76)); float mw = exp(-pow(dot(vD, mwN) * 5.0, 2.0));" + // faint Milky Way band (decor)
+        " float mwN2 = h(floor(vD * 90.0)) * 0.5 + h(floor(vD * 23.0)) * 0.5; c += vec3(0.11,0.08,0.17) * mw * (0.45 + 0.55 * mwN2) * smoothstep(-0.02, 0.2, y);" +
+        " float vis = smoothstep(-0.01, 0.06, y) * (0.55 + 0.45 * smoothstep(0.0, 0.25, y));" +
+        " c += (stars(vD, 160.0, 0.93, 1.6) + stars(vD, 330.0, 0.90, 1.0) + stars(vD, 330.0, 0.80, 0.8) * mw) * vis;" +
         " gl_FragColor = vec4(c, 1.0); }",
-      side: T.BackSide, depthWrite: false
+      side: T.DoubleSide, depthWrite: false   // DoubleSide: the mirror pass flips winding, BackSide alone vanished from the reflection
     }));
     root.add(reflect(sky));
 
@@ -78,7 +88,6 @@
         " float dash = step(0.5, fract(vW.x / 1.6)) * ln(vW.z, 0.04); c += vec3(0.75,0.8,0.9) * dash * 0.25;" +
         " c += vec3(0.3,0.9,1.0) * ln(az - uCurb, 0.025) * 0.5;" +
         " vec2 gg = abs(fract(vW.xz) - 0.5); float grid = max(ln(gg.x - 0.5, 0.012), ln(gg.y - 0.5, 0.012)); c += vec3(0.2,0.6,0.9) * grid * 0.06;" +
-        " c += vec3(0.95,0.75,0.45) * ln(vW.z, 0.012) * 0.0;" +
         " gl_FragColor = vec4(fogit(c), 1.0); }"
     }));
     pav.rotation.x = -Math.PI / 2; root.add(pav); anim.pav = pav;
@@ -86,8 +95,8 @@
     // street lamps (decor): instanced poles + glowing heads, both curbs every 3 units
     var lx = []; for (var x = -15; x <= 15.01; x += 3) { lx.push([x, -CURB - 0.3]); lx.push([x, CURB + 0.3]); }
     var poleG = new T.CylinderGeometry(0.025, 0.035, 2.3, 6, 1); poleG.translate(0, 1.15, 0);
-    var poles = new T.InstancedMesh(poleG, new T.MeshBasicMaterial({ color: 0x1a2236 }), lx.length);
-    var headG = new T.SphereGeometry(0.07, 10, 8), heads = new T.InstancedMesh(headG, new T.MeshBasicMaterial({ color: 0xffe2b0 }), lx.length);
+    var poles = new T.InstancedMesh(poleG, new T.MeshBasicMaterial({ color: 0x1a2236, side: T.DoubleSide }), lx.length);
+    var headG = new T.SphereGeometry(0.07, 10, 8), heads = new T.InstancedMesh(headG, new T.MeshBasicMaterial({ color: 0xffe2b0, side: T.DoubleSide }), lx.length);
     var m = new T.Matrix4(), hp = [];
     lx.forEach(function (p, i) { m.makeTranslation(p[0], 0, p[1]); poles.setMatrixAt(i, m); m.makeTranslation(p[0], 2.32, p[1] * 0.96); heads.setMatrixAt(i, m); hp.push(p[0], 2.32, p[1] * 0.96); });
     root.add(reflect(poles)); root.add(reflect(heads));
@@ -98,6 +107,126 @@
       fragmentShader: "void main(){ float d = length(gl_PointCoord - 0.5); gl_FragColor = vec4(vec3(1.0,0.8,0.55) * exp(-d * d * 22.0) * 0.55, 1.0); }"
     }));
     root.add(reflect(halo)); anim.halo = halo;
+    buildAndromeda();
+  }
+
+  /* ================= Andromeda hologram (DECOR, carries no tariff data) =================
+     Real J2000 positions (rounded) of the main stars of the constellation Andromeda, gnomonic projection
+     around RA 0.55h / Dec +38.8°, 0.24 units per degree. Depth = log10(distance in ly) — only for parallax.
+     Stick figure = common simplified scheme. M31 drawn 1.5× its apparent size so it is visible. */
+  var AND_STARS = [ // id, RA h, Dec °, mag, colour (spectral class), distance ly
+    ["a", 0.1397, 29.09, 2.06, 0xbfd4ff, 97], ["b", 1.1622, 35.62, 2.05, 0xffb070, 197], ["g", 2.0650, 42.33, 2.10, 0xffc488, 350],
+    ["d", 0.6555, 30.86, 3.27, 0xffcc90, 101], ["p", 0.6147, 33.72, 4.36, 0xb8ccff, 600], ["m", 0.9458, 38.50, 3.87, 0xf2f4ff, 120],
+    ["n", 0.8303, 41.08, 4.53, 0xbcd0ff, 680], ["e", 0.6425, 29.32, 4.37, 0xfff0d0, 155], ["o", 23.032, 42.33, 3.62, 0xc0d2ff, 690],
+    ["l", 23.626, 46.46, 3.82, 0xffe0b0, 85], ["k", 23.673, 44.33, 4.14, 0xd0dcff, 168], ["i", 23.636, 43.27, 4.29, 0xc4d6ff, 500],
+    ["51", 1.633, 48.63, 3.57, 0xffc488, 177], ["f", 1.158, 47.24, 4.25, 0xc4d6ff, 720]
+  ];
+  var AND_LINES = [["a", "d"], ["d", "b"], ["b", "g"], ["b", "m"], ["m", "n"], ["d", "e"], ["d", "p"], ["p", "i"], ["i", "k"], ["k", "l"], ["i", "o"]];
+  var HOLO_Y = 8.7, HOLO_K = 0.55, HOLO_S = 0.24, HOLO_W = 4.7, HOLO_H = 2.8;   // chart units; the whole hologram is scaled by HOLO_K
+  function skyXY(raH, dec) {
+    var D = Math.PI / 180, a0 = 0.55 * 15 * D, d0 = 38.8 * D, a = (raH > 12 ? raH - 24 : raH) * 15 * D, d = dec * D, da = a - a0;
+    var cc = Math.sin(d0) * Math.sin(d) + Math.cos(d0) * Math.cos(d) * Math.cos(da);
+    var X = Math.cos(d) * Math.sin(da) / cc, Y = (Math.cos(d0) * Math.sin(d) - Math.sin(d0) * Math.cos(d) * Math.cos(da)) / cc;
+    return [-X / D * HOLO_S, Y / D * HOLO_S];   // east to the left, as seen looking up
+  }
+  function rng(seed) { var s = Math.floor(hash(seed) * 4294967296) >>> 0; return function () { s = (s + 0x6D2B79F5) >>> 0; var t = Math.imul(s ^ (s >>> 15), 1 | s); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function buildAndromeda() {
+    var holo = new T.Group(); holo.position.set(0, HOLO_Y, 0); holo.scale.setScalar(HOLO_K); anim.holo = holo;
+    var pts = { p: [], c: [], s: [], k: [] }, ln = { p: [], c: [] }, byId = {};
+    function P(x, y, z, col, size, kind) { pts.p.push(x, y, z); var cc = new T.Color(col); pts.c.push(cc.r, cc.g, cc.b); pts.s.push(size); pts.k.push(kind); }
+    function Ls(a, b, col, k) { ln.p.push(a[0], a[1], a[2], b[0], b[1], b[2]); var cc = new T.Color(col); k = k == null ? 1 : k; ln.c.push(cc.r * k, cc.g * k, cc.b * k, cc.r * k, cc.g * k, cc.b * k); }
+    function inside(x, y) { return Math.abs(x) <= HOLO_W && Math.abs(y) <= HOLO_H; }
+    // stars
+    AND_STARS.forEach(function (s) {
+      var xy = skyXY(s[1], s[2]), z = -(Math.log(s[5]) / Math.LN10 - 2.3) * 0.55, v = [xy[0], xy[1], z];
+      byId[s[0]] = v; P(v[0], v[1], v[2], s[4], 560 * Math.pow(0.72, s[3] - 2), 1);
+    });
+    // stick figure + faint "drop lines" to the chart plane (3ds Max-like depth guides)
+    AND_LINES.forEach(function (l) { Ls(byId[l[0]], byId[l[1]], 0x7ff6ff, 0.8); });
+    AND_STARS.forEach(function (s) { var v = byId[s[0]]; if (Math.abs(v[2]) > 0.05) Ls(v, [v[0], v[1], 0], 0x4fa8ff, 0.35); });
+    // AutoCAD-style drafting: graticule (RA every 1h, Dec every 5°), frame with ticks and corner brackets
+    for (var ra = -1; ra <= 2; ra++) for (var dd = 24; dd < 54; dd += 1) { var u = skyXY(ra, dd), w = skyXY(ra, dd + 1); if (inside(u[0], u[1]) && inside(w[0], w[1])) Ls([u[0], u[1], 0], [w[0], w[1], 0], 0x2f6aa8, 0.55); }
+    for (var dc = 30; dc <= 50; dc += 5) for (var rr = -1.6; rr < 2.6; rr += 0.1) { var u2 = skyXY(rr, dc), w2 = skyXY(rr + 0.1, dc); if (inside(u2[0], u2[1]) && inside(w2[0], w2[1])) Ls([u2[0], u2[1], 0], [w2[0], w2[1], 0], 0x2f6aa8, 0.55); }
+    var fw = HOLO_W, fh = HOLO_H, FR = 0x4fe3d0;
+    [[-fw, -fh, fw, -fh], [fw, -fh, fw, fh], [fw, fh, -fw, fh], [-fw, fh, -fw, -fh]].forEach(function (e) { Ls([e[0], e[1], 0], [e[2], e[3], 0], FR, 0.45); });
+    for (var tx = -fw; tx <= fw + 1e-6; tx += HOLO_S) { var big = Math.abs(Math.round(tx / HOLO_S) % 5) === 0, tl = big ? 0.16 : 0.07; Ls([tx, -fh, 0], [tx, -fh + tl, 0], FR, 0.6); Ls([tx, fh, 0], [tx, fh - tl, 0], FR, 0.6); }
+    for (var ty = -fh; ty <= fh + 1e-6; ty += HOLO_S) { var big2 = Math.abs(Math.round(ty / HOLO_S) % 5) === 0, tl2 = big2 ? 0.16 : 0.07; Ls([-fw, ty, 0], [-fw + tl2, ty, 0], FR, 0.6); Ls([fw, ty, 0], [fw - tl2, ty, 0], FR, 0.6); }
+    [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(function (c) { var x0 = c[0] * (fw + 0.12), y0 = c[1] * (fh + 0.12); Ls([x0, y0, 0], [x0 - c[0] * 0.5, y0, 0], 0xe8fbff, 1); Ls([x0, y0, 0], [x0, y0 - c[1] * 0.5, 0], 0xe8fbff, 1); });
+    // UCS icon (AutoCAD): X red, Y green, with arrow heads, bottom-left corner
+    var ux = -fw + 0.35, uy = -fh + 0.35;
+    Ls([ux, uy, 0], [ux + 0.6, uy, 0], 0xff4a4a, 1); Ls([ux + 0.6, uy, 0], [ux + 0.5, uy + 0.05, 0], 0xff4a4a, 1); Ls([ux + 0.6, uy, 0], [ux + 0.5, uy - 0.05, 0], 0xff4a4a, 1);
+    Ls([ux, uy, 0], [ux, uy + 0.6, 0], 0x4aff6a, 1); Ls([ux, uy + 0.6, 0], [ux + 0.05, uy + 0.5, 0], 0x4aff6a, 1); Ls([ux, uy + 0.6, 0], [ux - 0.05, uy + 0.5, 0], 0x4aff6a, 1);
+    Ls([ux - 0.04, uy - 0.04, 0], [ux + 0.04, uy - 0.04, 0], 0xe8fbff, 0.8); Ls([ux + 0.04, uy - 0.04, 0], [ux + 0.04, uy + 0.04, 0], 0xe8fbff, 0.8);
+    // dimension line (AutoCAD style) from Alpheratz to Almach, below the figure: extension lines, dim line, arrowheads
+    var A = byId.a, Gm = byId.g, dy = -fh + 0.55, AM = 0xffb84a;
+    Ls([A[0], A[1] - 0.12, 0], [A[0], dy - 0.1, 0], AM, 0.5); Ls([Gm[0], Gm[1] - 0.12, 0], [Gm[0], dy - 0.1, 0], AM, 0.5);
+    Ls([A[0], dy, 0], [Gm[0], dy, 0], AM, 0.9);
+    var dir = Gm[0] < A[0] ? -1 : 1;
+    Ls([A[0], dy, 0], [A[0] + dir * 0.14, dy + 0.045, 0], AM, 0.9); Ls([A[0], dy, 0], [A[0] + dir * 0.14, dy - 0.045, 0], AM, 0.9);
+    Ls([Gm[0], dy, 0], [Gm[0] - dir * 0.14, dy + 0.045, 0], AM, 0.9); Ls([Gm[0], dy, 0], [Gm[0] - dir * 0.14, dy - 0.045, 0], AM, 0.9);
+    // M31 (+ M32, M110): particle galaxy, deterministic PRNG, inclined disk with two arms and a bulge
+    var m = skyXY(0.7122, 41.27), R = rng("M31"), PA = 35 * Math.PI / 180, semi = 1.6 * 1.5 * HOLO_S, incl = 0.32;
+    var ma = [-Math.sin(PA), Math.cos(PA)], mi = [Math.cos(PA), Math.sin(PA)], NM = 2600;
+    function gal(cx, cy, n, sm, inc, bulge, seed) {
+      var r2 = rng(seed);
+      for (var i = 0; i < n; i++) {
+        var u, v, isB = r2() < bulge;
+        if (isB) { var rb = Math.sqrt(-2 * Math.log(1 - r2() * 0.999)) * 0.13, tb = r2() * 6.2832; u = Math.cos(tb) * rb; v = Math.sin(tb) * rb; }
+        else { var rd = -Math.log(1 - r2() * 0.985) * 0.3, arm = (r2() < 0.5 ? 0 : Math.PI), th = arm + rd * 4.2 + (r2() - 0.5) * (0.9 - Math.min(0.6, rd * 0.6)); u = Math.cos(th) * rd; v = Math.sin(th) * rd; }
+        var x = cx + (ma[0] * u + mi[0] * v * inc) * sm, y = cy + (ma[1] * u + mi[1] * v * inc) * sm, z = (r2() - 0.5) * 0.05 * sm;
+        var col = isB ? 0xffe2b0 : (r2() < 0.18 ? 0xff9ac8 : 0xa8c8ff);
+        P(x, y, z, col, isB ? 40 + r2() * 30 : 20 + r2() * 24, 2);
+      }
+    }
+    gal(m[0], m[1], NM, semi, incl, 0.28, "M31"); gal(skyXY(0.7117, 40.865)[0], skyXY(0.7117, 40.865)[1], 140, 0.06, 0.8, 1, "M32"); gal(skyXY(0.6731, 41.685)[0], skyXY(0.6731, 41.685)[1], 200, 0.1, 0.55, 1, "M110");
+    // AutoCAD crosshair + pickbox on M31
+    Ls([m[0] - 0.9, m[1], 0], [m[0] - 0.12, m[1], 0], 0xe8fbff, 0.45); Ls([m[0] + 0.12, m[1], 0], [m[0] + 0.9, m[1], 0], 0xe8fbff, 0.45);
+    Ls([m[0], m[1] - 0.9, 0], [m[0], m[1] - 0.12, 0], 0xe8fbff, 0.45); Ls([m[0], m[1] + 0.12, 0], [m[0], m[1] + 0.9, 0], 0xe8fbff, 0.45);
+    [[-1, -1, 1, -1], [1, -1, 1, 1], [1, 1, -1, 1], [-1, 1, -1, -1]].forEach(function (e) { Ls([m[0] + e[0] * 0.05, m[1] + e[1] * 0.05, 0], [m[0] + e[2] * 0.05, m[1] + e[3] * 0.05, 0], 0xe8fbff, 0.8); });
+    // points
+    var pg = new T.BufferGeometry();
+    pg.setAttribute("position", new T.Float32BufferAttribute(pts.p, 3)); pg.setAttribute("aCol", new T.Float32BufferAttribute(pts.c, 3));
+    pg.setAttribute("aSize", new T.Float32BufferAttribute(pts.s, 1)); pg.setAttribute("aKind", new T.Float32BufferAttribute(pts.k, 1));
+    var pm = new T.ShaderMaterial({
+      uniforms: { uPx: { value: 1 }, uTime: G.uTime, uReduce: G.uReduce }, transparent: true, depthWrite: false, blending: T.AdditiveBlending,
+      vertexShader: "attribute vec3 aCol; attribute float aSize, aKind; uniform float uPx, uTime, uReduce; varying vec3 vC; varying float vK, vTw;" +
+        "void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = clamp(aSize * uPx / -mv.z, 1.0, 64.0); vC = aCol; vK = aKind;" +
+        " vTw = uReduce > 0.5 ? 1.0 : 0.8 + 0.2 * sin(uTime * 2.3 + position.x * 17.0 + position.y * 11.0); gl_Position = projectionMatrix * mv; }",
+      fragmentShader: "varying vec3 vC; varying float vK, vTw; void main(){ vec2 d = gl_PointCoord - 0.5; float r2 = dot(d, d);" +
+        " if (vK < 1.5) { float core = exp(-r2 * 140.0), halo = exp(-r2 * 18.0) * 0.32; float sp = (exp(-abs(d.x) * 70.0) * exp(-abs(d.y) * 7.0) + exp(-abs(d.y) * 70.0) * exp(-abs(d.x) * 7.0)) * 0.35;" +
+        "   gl_FragColor = vec4((mix(vC, vec3(1.0), 0.45) * core * 1.4 + vC * (halo + sp)) * vTw, 1.0); }" +
+        " else { float g = exp(-r2 * 30.0); gl_FragColor = vec4(vC * g * 0.5, 1.0); } }"
+    });
+    var stars = new T.Points(pg, pm); holo.add(reflect(stars)); anim.holoPts = stars;
+    var lg = new T.BufferGeometry(); lg.setAttribute("position", new T.Float32BufferAttribute(ln.p, 3)); lg.setAttribute("color", new T.Float32BufferAttribute(ln.c, 3));
+    holo.add(reflect(new T.LineSegments(lg, new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.85, blending: T.AdditiveBlending, depthWrite: false }))));
+    // 3ds Max-style rotate gizmo around M31: X/Y/Z rings (red/green/blue) + grey screen ring
+    var giz = new T.Group(); giz.position.set(m[0], m[1], 0);
+    [[0xff4a4a, [0, Math.PI / 2, 0]], [0x4aff6a, [Math.PI / 2, 0, 0]], [0x4a8cff, [0, 0, 0]]].forEach(function (g) {
+      var c = new T.LineLoop(new T.BufferGeometry().setFromPoints(new T.EllipseCurve(0, 0, 0.78, 0.78, 0, Math.PI * 2).getPoints(64)), lineMat(g[0], 0.55)); c.rotation.set(g[1][0], g[1][1], g[1][2]); giz.add(c);
+    });
+    giz.add(new T.LineLoop(new T.BufferGeometry().setFromPoints(new T.EllipseCurve(0, 0, 0.9, 0.9, 0, Math.PI * 2).getPoints(72)), lineMat(0x9aa6b8, 0.3)));
+    holo.add(reflect(giz)); anim.gizmo = giz;
+    // lasers: street projector under the hologram, one beam per star + M31; travelling pulses (static with reduced motion)
+    var lp = [], lt = [], ls = [], E = [0, (-HOLO_Y + 0.05) / HOLO_K, 0], tgt = AND_STARS.map(function (s) { return byId[s[0]]; }).concat([[m[0], m[1], 0]]);
+    tgt.forEach(function (t, j) {
+      var sd = hash("laser" + j), SEG = 24;
+      for (var k = 0; k < SEG; k++) { var a = k / SEG, b = (k + 1) / SEG; lp.push(E[0] + (t[0] - E[0]) * a, E[1] + (t[1] - E[1]) * a, E[2] + (t[2] - E[2]) * a, E[0] + (t[0] - E[0]) * b, E[1] + (t[1] - E[1]) * b, E[2] + (t[2] - E[2]) * b); lt.push(a, b); ls.push(sd, sd); }
+    });
+    var bg = new T.BufferGeometry(); bg.setAttribute("position", new T.Float32BufferAttribute(lp, 3)); bg.setAttribute("aT", new T.Float32BufferAttribute(lt, 1)); bg.setAttribute("aSeed", new T.Float32BufferAttribute(ls, 1));
+    holo.add(reflect(new T.LineSegments(bg, new T.ShaderMaterial({
+      uniforms: { uTime: G.uTime, uReduce: G.uReduce }, transparent: true, depthWrite: false, blending: T.AdditiveBlending,
+      vertexShader: "attribute float aT, aSeed; varying float vT, vS; void main(){ vT = aT; vS = aSeed; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader: "uniform float uTime, uReduce; varying float vT, vS; void main(){ float p = uReduce > 0.5 ? 0.0 : exp(-pow((fract(vT - uTime * 0.3 - vS) - 0.5) * 16.0, 2.0));" +
+        " vec3 c = vec3(0.35,1.0,0.75) * (0.07 + 0.08 * vT + 0.75 * p); gl_FragColor = vec4(c, 1.0); }"
+    }))));
+    root.add(holo);
+    // projector on the road (decor): base disk + emitter ring
+    var pb = new T.CylinderGeometry(0.28, 0.34, 0.06, 20); pb.translate(0, 0.03, 0);
+    root.add(reflect(new T.Mesh(pb, new T.MeshBasicMaterial({ color: 0x0c1a24 }))));
+    root.add(reflect(new T.LineSegments(new T.EdgesGeometry(pb), lineMat(0x5dffb0, 0.7))));
+    var er = new T.Mesh(new T.TorusGeometry(0.16, 0.012, 6, 32), glowMat(0x7dffc8, 0.9)); er.rotation.x = Math.PI / 2; er.position.y = 0.07; root.add(reflect(er));
+    st.holo = { stars: AND_STARS.length, figure_lines: AND_LINES.length, galaxy_points: NM + 340 };
   }
 
   /* ================= data scene (batched: few draw calls) ================= */
@@ -289,15 +418,14 @@
       x.strokeRect(ox + 22, oy + 18, CW - 44, CH - 36); x.restore();
       var top = l.top + 0.95 + (l.s < 0 && (i % 2) ? 0.62 : 0), seed = hash(l.b.bank), col = cv3(hollow ? 0x9aa0aa : brand(l.b.bank));
       var rect = [ox / cvs.width, 1 - (oy + CH) / cvs.height, CW / cvs.width, CH / cvs.height];
-      var q = new T.PlaneGeometry(SIGN_W, SIGN_H), qp = q.attributes.position.array, corners = [];
+      var q = new T.PlaneGeometry(SIGN_W, SIGN_H), corners = [];
       var qn = q.toNonIndexed(); var pa = qn.attributes.position.array; for (var k = 0; k < pa.length; k += 3) corners.push(pa[k], pa[k + 1]);
-      var cg = new T.BufferGeometry(); cg.setAttribute("position", new T.Float32BufferAttribute(pa.slice(), 3)); q.dispose(); qn.dispose();
+      q.dispose(); qn.dispose();
       var cornerArr = corners, n = cornerArr.length / 2, s = B.sign;
       for (var v = 0; v < n; v++) {
         s.pos.push(l.x, top, l.z); s.a.aCenter.push(l.x, top, l.z); s.a.aCorner.push(cornerArr[v * 2], cornerArr[v * 2 + 1]);
         s.a.aRect.push(rect[0], rect[1], rect[2], rect[3]); s.a.aCol.push(col[0], col[1], col[2]); s.a.aStatus.push(sStat); s.a.aSeed.push(seed);
       }
-      cg.dispose();
       // projector: small emitter on the roof + slow scan-line beam up to the sign (decor)
       var bh = top - SIGN_H / 2 - l.roof;
       if (bh > 0.05) {
@@ -510,6 +638,7 @@
     var pr = Math.min(window.devicePixelRatio || 1, 1.75); ren.setPixelRatio(pr); ren.setSize(w, h, false);
     cam.aspect = w / h; cam.updateProjectionMatrix(); rt.setSize(Math.round(w * pr * 0.5), Math.round(h * pr * 0.5));
     if (anim.halo) anim.halo.material.uniforms.uPx.value = h * pr / 600;
+    if (anim.holoPts) anim.holoPts.material.uniforms.uPx.value = h * pr / 600;
   }
   function frame() {
     raf = 0; if (!onScreen || document.hidden || !ren) return;
@@ -517,7 +646,9 @@
     if (!orbit.drag && !orbit.auto && !reduce && now - orbit.idle > 4000) orbit.auto = true;
     var dt = Math.min(0.1, t - (orbit.lt || t)); orbit.lt = t; if (orbit.auto && !reduce) orbit.a += dt * 0.1;   // time-based: ~0.1 rad/s
     cam.position.set(Math.sin(orbit.a) * orbit.r * Math.cos(orbit.e), 0.6 + Math.sin(orbit.e) * orbit.r, Math.cos(orbit.a) * orbit.r * Math.cos(orbit.e));
-    cam.lookAt(0, 1.5, 0); cam.updateMatrixWorld();
+    cam.lookAt(0, 2.7, 0); cam.updateMatrixWorld();   // a bit higher than before: room for the sky and the Andromeda hologram
+    if (anim.holo) anim.holo.rotation.y = orbit.a;   // hologram always faces the viewer (yaw only)
+    if (anim.gizmo && !reduce) { anim.gizmo.rotation.y = t * 0.35; anim.gizmo.rotation.x = 0.35 * Math.sin(t * 0.21); }
     anim.melts.forEach(function (m) { var f = reduce ? 0 : clamp(((t * 0.16 + m.top) % 1) * 1.25 - 0.1, 0, 1); var e = f * f * (3 - 2 * f); var y = m.top - (m.top - m.base) * e; m.m.position.y = y; m.m.scale.y = Math.max(0.001, y - m.base); m.c.position.y = y; m.c.material.opacity = 0.85 * (1 - e * 0.6); });
     anim.rings.forEach(function (r) {
       var f = reduce ? 0.5 : (t * 0.22 + r.ph) % 1;
@@ -569,7 +700,7 @@
     try { build(); } catch (err) { if (window.console) console.warn("[OrbBank3D] update failed", err); try { data = null; build(); } catch (e2) {} }
   }
   function stats() {
-    return { frames: st.frames, triangles_main: st.tris, triangles_mirror: st.trisMirror, triangles_total: st.tris + st.trisMirror, calls: st.calls, banks: st.banks, cards: st.cards, status: st.status, nulls: st.nulls.slice(), changes_drawn: st.changes, reducedMotion: reduce };
+    return { frames: st.frames, triangles_main: st.tris, triangles_mirror: st.trisMirror, triangles_total: st.tris + st.trisMirror, calls: st.calls, banks: st.banks, cards: st.cards, status: st.status, nulls: st.nulls.slice(), changes_drawn: st.changes, decor_andromeda: st.holo || null, reducedMotion: reduce };
   }
   window.OrbBank3D = { init: init, update: update, stats: stats };
 })();
