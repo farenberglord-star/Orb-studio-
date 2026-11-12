@@ -3089,6 +3089,20 @@ function canvasSvg(p) {
   if (p.style === "expression") { const sl = 18 + tu * 30; for (let i = 0; i < 160; i++) { const x = rnd() * W, y = rnd() * HZ; out.push(`<line x1="${f1(x)}" y1="${f1(y)}" x2="${f1(x - sl * 0.35)}" y2="${f1(y + sl)}" stroke="#c9d4e6" stroke-width="1.2" opacity=".22"/>`); } }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${Hh}" width="${W}" height="${Hh}">${out.join("")}</svg>`;
 }
+// снимок живых датчиков 3D-мегаполиса на момент смены: чтобы картина из архива восстанавливалась целиком
+async function canvasFeeds(env, ctx, sens) {
+  const [av, im] = await Promise.all([aviationData(env, ctx).catch(() => null), impulses(env, ctx, "https://orbstudio.org", 12).catch(() => null)]);
+  const pw = sens && sens.power, it = sens && sens.internet;
+  const f = { at: new Date().toISOString() };
+  if (pw || (sens && sens.bitcoin) || it) f.sensors = {
+    power: pw ? { now_eur_mwh: pw.now_eur_mwh, today: pw.today ? { min_eur_mwh: pw.today.min_eur_mwh, max_eur_mwh: pw.today.max_eur_mwh } : null, renewables: pw.renewables ? { renewable_share_pct: pw.renewables.renewable_share_pct } : null } : null,
+    bitcoin: sens.bitcoin ? { mempool_tx: sens.bitcoin.mempool_tx } : null,
+    internet: it ? { outages: (it.outages || []).map((o) => ({ cc: o.cc, ongoing: !!o.ongoing })) } : null,
+  };
+  if (av && av.hamburg_sector) f.aviation = { hamburg_sector: { airborne: av.hamburg_sector.airborne, on_ground: av.hamburg_sector.on_ground } };
+  if (im && Array.isArray(im.impulses)) f.impulses = { impulses: im.impulses.map((x) => ({ radar: x.radar, bearing_deg: x.bearing_deg, strength: x.strength, local: !!x.local })) };
+  return f;
+}
 async function canvasPiece(env, ctx, slot) {
   const idx = (await sharedGet(env, "canvas-index", 1e13)) || { slots: [] };
   idx.slots = idx.slots.filter((s) => s.v === 2);
@@ -3098,11 +3112,15 @@ async function canvasPiece(env, ctx, slot) {
   if (!piece || piece.v !== 2) {
     const [radars, sens] = await Promise.all([allRadars(env, ctx, "https://orbstudio.org"), sensorsData(env, ctx).catch(() => null)]);
     piece = canvasCompute(radars, sensorsDigest(sens), cur);
-    if (piece) {
+    if (piece) { try { piece.feeds = await canvasFeeds(env, ctx, sens); } catch (e) {}
       await sharedPut(env, "canvas:" + cur, piece);
       idx.slots = [{ v: 2, slot: cur, style: piece.style, tension: piece.tension, main: piece.main.radar }, ...idx.slots.filter((s) => s.slot !== cur)].slice(0, 240);
       await sharedPut(env, "canvas-index", idx);
     }
+  }
+  else if (!piece.feeds) {
+    // смена создана до снимков датчиков — дописываем один раз, пока она текущая
+    try { piece.feeds = await canvasFeeds(env, ctx, await sensorsData(env, ctx).catch(() => null)); await sharedPut(env, "canvas:" + cur, piece); } catch (e) {}
   }
   return { piece, idx };
 }
@@ -3118,6 +3136,8 @@ function canvasCard(piece, idx, from = "canvas-api") {
     scene_elements: { towers: piece.inputs.radars.length, lit_windows: "share = radar index", lightning: piece.lines, clouds: piece.clouds, wave_rows: piece.waves, ships: piece.ships, lighthouse_beam: piece.glow ? piece.glow.size : 0, rooftop_beacon: piece.beacon ? piece.beacon.radar : null, sun: piece.style === "calm" || piece.style === "impression", rain: piece.style === "expression" },
     towers_left_to_right: CANVAS_ORDER.filter((id) => piece.inputs.radars.some((r) => r.id === id)),
     mapping: piece.mapping, palette: piece.palette, inputs: piece.inputs,
+    feeds: piece.feeds || null, feeds_note: piece.feeds ? "Snapshot of the live sensors at the start of this slot (power price and renewables, Bitcoin mempool, internet outages, aircraft near Hamburg, news impulses): the 3D city is rebuilt exactly as it was." : "No sensor snapshot for this older slot: the 3D city uses the current sensors.",
+    sun_meaning: "scene_elements.sun = the painting draws a sun (calm or light sky); it is not the real sun position — the 3D city computes the real sun for Hamburg from the slot time.",
     image_svg: "https://orbstudio.org/api/v1/canvas.svg" + q, image_png: "https://orbstudio.org/api/v1/canvas.png" + q,
     view_url: `https://orbstudio.org/canvas${q}&from=${from}`, archive: idx.slots.slice(0, 24).map(({ slot, style, tension, main }) => ({ slot, style, tension, main })),
     how: "Every 3 hours the painter reads the 7 news radars and the sensors and draws a city by the sea by fixed public rules (see mapping): 7 towers are the 7 radars, the sky is the overall tension, lightning are crypto volatility spikes, the lighthouse beam is a jump in Wikipedia attention, dark ships are the UK sanctions list. The server draws it in code (SVG), so the same data always gives the same picture. Data art, not weather and not a forecast.",

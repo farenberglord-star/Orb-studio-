@@ -330,7 +330,9 @@
     var rnd = rng(slot);
     var radars = {}; (Array.isArray(inp.radars) ? inp.radars : []).forEach(function (r) { if (r && r.id) radars[r.id] = r; });
     var order = (Array.isArray(c.towers_left_to_right) && c.towers_left_to_right.length) ? c.towers_left_to_right : ORDER;
-    var S = feeds.sensors || {}, A = feeds.aviation || {}, I = feeds.impulses || {};
+    // у смены есть свой снимок датчиков — город из архива строится ровно таким, каким был; у старых смен — текущие датчики
+    var F = (c.feeds && typeof c.feeds === "object") ? c.feeds : {};
+    var S = F.sensors || feeds.sensors || {}, A = F.aviation || feeds.aviation || {}, I = F.impulses || feeds.impulses || {};
 
     /* --- небо и свет по реальному времени смены --- */
     var when = slot !== "no-slot" ? new Date(slot) : new Date();
