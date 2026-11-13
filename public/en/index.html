@@ -242,7 +242,7 @@ details.machine a{color:var(--holo)}
 <script>window.I18N_RADAR={"geo": {"title": "Geo radar", "lead": "Russia, China, USA: military, diplomatic and sanctions signals from open feeds.", "fac": {"Военные": "Military", "Санкции": "Sanctions", "Дипломатия": "Diplomacy", "Выборы": "Elections"}}, "budget": {"title": "Household budget", "lead": "Food prices, rent, utilities and interest rates in Germany and the EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energy", "Аренда": "Rent", "Ставки": "Rates"}}, "politics": {"title": "Politics", "lead": "Governments, elections and laws: Germany, EU, USA.", "fac": {"Кризисы": "Crises", "Выборы": "Elections", "Правительство": "Government", "Законы": "Laws"}}, "economy": {"title": "Economy", "lead": "Growth, recession, rates, jobs: Germany, euro area, USA.", "fac": {"Рецессия": "Recession", "Ставки": "Rates", "Работа": "Jobs", "Рост": "Growth"}}, "crypto": {"title": "Crypto radar", "lead": "BTC, ETH, XRP: news and Kraken market data.", "fac": {"Регуляторы": "Regulators", "Взломы": "Hacks", "Волатильность": "Volatility", "Институции": "Institutions"}}, "energy": {"title": "Energy radar", "lead": "Brent, gas, tankers and OPEC+ decisions.", "fac": {"Нефть": "Oil", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routes"}}, "web": {"title": "Open web", "lead": "How open the internet is for AI agents: bot blocking, scraping lawsuits, paid access for crawlers.", "fac": {"Блокировки": "Blocking", "Суды": "Lawsuits", "Платный доступ": "Paid access", "Открытость": "Openness"}}};</script>
 <style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
 <style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
-<style>/* голограмма HOLO-MAP на странице радара убрана: место под новую голограмму факторов */#v-radar .rhero{grid-template-columns:1fr}#v-radar .rhero>.studio{display:none}</style>
+<style>/* голограмма HOLO-MAP на странице радара убрана: место под новую голограмму факторов */#v-radar .rhero>.studio{display:none}#v-radar .rhero.no3d{grid-template-columns:1fr}.f3d-box{position:relative;border:1px solid rgba(80,230,150,.25);border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;align-self:start}@media (max-width:860px){.f3d-box{aspect-ratio:4/5}}</style>
 </head>
 <body>
 
@@ -424,6 +424,7 @@ details.machine a{color:var(--holo)}
       <div class="controls" id="rSwitch"></div>
       <p class="agentline">🤖 For agents: this radar as JSON → <a id="rApi" href="/api/v1/radar/geo">/api/v1/radar/geo</a></p>
     </div>
+    <div class="f3d-box" id="fac3d" role="img" aria-label="Tactical radar table"></div>
     <div class="studio" style="aspect-ratio:4/3"><canvas id="radarCv"></canvas><div class="scan"></div>
       <div class="hud"><span id="rHud">HOLO-MAP</span><span class="demo-tag">EXAMPLE</span></div>
       <div class="lower"><div class="who" id="rAnchor"></div><div class="say" id="rSay" style="min-height:0"></div></div>
@@ -1096,6 +1097,15 @@ setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=a
 <script src="/banners.js" defer></script>
 <script src="/media/david-hero.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/orbcore3d.js" defer></script>
+<script src="/factor3d.js" defer></script>
+<script>/* «Тактический стол радаров»: очередь радаров по яркости, факторы каждого по очереди */
+window.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('fac3d'),hero=el&&el.parentNode;if(!el)return;
+if(!window.OrbFactor3D||!OrbFactor3D.init(el)){el.remove();hero.classList.add('no3d');return}
+function getJ(u){return fetch('/api/v1/'+u).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
+function load(){getJ('radars').then(function(list){var ids=list&&Array.isArray(list.radars)?list.radars.map(function(r){return r&&r.id}).filter(Boolean):[];
+ return Promise.all(ids.map(function(id){return getJ('radar/'+encodeURIComponent(id))})).then(function(ds){var det={};ids.forEach(function(id,i){if(ds[i])det[id]=ds[i]});OrbFactor3D.update({radars:list,details:det})})}).catch(function(){OrbFactor3D.update({radars:null})})}
+load();setInterval(function(){if(!document.hidden)load()},300000)});</script>
+
 <script>/* «Ядро эфира ORB-7» вместо видео-аватара: если WebGL нет — остаётся прежний эфир */
 window.addEventListener('DOMContentLoaded',function(){var st=document.getElementById('studio');if(!st||!window.OrbCore3D)return;
 var box=document.createElement('div');box.className='orbcore';st.appendChild(box);
