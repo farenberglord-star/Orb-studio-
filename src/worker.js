@@ -2949,7 +2949,7 @@ function hslHex(h, s, l) {
 }
 const ruNum = (x) => String(x).replace(".", ",");
 function canvasCompute(radars, dg, slot) {
-  const R = radars.filter((r) => r.id in RADAR_TITLE_I18N).map((r) => ({ id: r.id, title: r.title, title_en: RADAR_TITLE_I18N[r.id][1], lvl: r.lvl, d: r.lvl - r.prev }));
+  const R = radars.filter((r) => r.id in RADAR_TITLE_I18N && r.id in CANVAS_HUES).map((r) => ({ id: r.id, title: r.title, title_en: RADAR_TITLE_I18N[r.id][1], lvl: r.lvl, d: r.lvl - r.prev }));
   if (!R.length) return null;
   const mean = R.reduce((s, r) => s + r.lvl, 0) / R.length;
   const sd = Math.sqrt(R.reduce((s, r) => s + (r.lvl - mean) ** 2, 0) / R.length);
