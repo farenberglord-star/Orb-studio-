@@ -138,6 +138,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 
   <a class="btn2" href="/violin" style="align-self:flex-start">🎻 Скрипка дня: датчики → ноты → искусственный скрипач</a>
 
+  <div id="mplayer" style="margin:14px 0 18px"></div>
   <div class="tracks" id="tracks"><p class="lead">Загружаю треки…</p></div>
 
   <details class="machine aprompt"><summary>Промпт для ИИ-агента · музыка Orb Studio</summary>
@@ -224,5 +225,11 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_music')==='1'}catch(e
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_music','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('ru-RU');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/music3d.js" defer></script><script src="/musicplayer.js" defer></script>
+<script>/* одно окно-плеер: голограмма трека + маленький TikTok, автопереход к следующему треку; старый список остаётся только без JS */
+window.addEventListener('DOMContentLoaded',function(){var el=document.getElementById('mplayer');if(!el||!window.OrbMusicPlayer||!OrbMusicPlayer.init(el)){if(el)el.remove();return}
+var old=document.getElementById('tracks');if(old)old.style.display='none';
+function load(){fetch('/api/v1/music').then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(d){OrbMusicPlayer.load(d)})}
+load();setInterval(function(){if(!document.hidden)load()},300000)});</script>
 </body>
 </html>
