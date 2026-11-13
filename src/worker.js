@@ -460,6 +460,13 @@ function anchorLine(r, item) {
   return `${tone} ${item[1]}. ${r.title} сейчас на ${r.lvl} из 100${d ? `, ${d > 0 ? "плюс" : "минус"} ${Math.abs(d)} за сутки` : ""}.`;
 }
 
+// немецкая строка шаблонного эфира (раньше de повторял русскую)
+function anchorLineDe(r, item) {
+  const v = item[3], d = r.lvl - r.prev, nm = (RADAR_TITLE_I18N[r.id] || [r.title])[0];
+  const tone = v >= 70 ? "Achtung." : v >= 45 ? "Wir behalten das im Blick." : "Keine Panik.";
+  return `${tone} ${item[1]}. ${nm} steht jetzt bei ${r.lvl} von 100${d ? `, ${d > 0 ? "plus" : "minus"} ${Math.abs(d)} in 24 Stunden` : ""}.`;
+}
+
 function referral(env, from) {
   return {
     exchange: "Kraken",
@@ -519,7 +526,7 @@ function templateBroadcast(items) {
     voice: "template",
     greeting: { ru: "Это Orb Studio, радары на связи.", de: "Hier ist Orb Studio, die Radare sind live.", en: "This is Orb Studio, the radars are live." },
     signoff: { ru: "Подпишись, чтобы радар не скучал.", de: "Abonniere, damit das Radar nicht allein ist.", en: "Subscribe so the radar never feels lonely." },
-    lines: items.map((it) => ({ ru: it.template, de: it.template, en: it.headline })),
+    lines: items.map((it) => ({ ru: it.template, de: it.template_de || it.template, en: it.headline })),
   };
 }
 
@@ -598,7 +605,7 @@ async function askClaude(env, items) {
     signoff: out.signoff,
     lines: items.map((it, i) => {
       const l = byI.get(i);
-      return l && l.ru ? { ru: l.ru, de: l.de || l.ru, en: l.en || it.headline } : { ru: it.template, de: it.template, en: it.headline };
+      return l && l.ru ? { ru: l.ru, de: l.de || it.template_de || l.ru, en: l.en || it.headline } : { ru: it.template, de: it.template_de || it.template, en: it.headline };
     }),
   };
 }
@@ -739,7 +746,7 @@ function broadcastItems(radars) {
     radar: r.id, radarTitle: r.title, anchor: r.anchor,
     headline: f[1], source: f[2], time: f[0], link: f[4], weight: f[3],
     severity: severity(f[3]), risk_index: r.lvl, delta_24h: r.lvl - r.prev,
-    template: anchorLine(r, f),
+    template: anchorLine(r, f), template_de: anchorLineDe(r, f),
   }))).sort((a, b) => b.weight - a.weight);
 }
 
@@ -766,7 +773,7 @@ const IMP_NODES = {
 const IMP_DIRS = ["севера", "северо-востока", "востока", "юго-востока", "юга", "юго-запада", "запада", "северо-запада"];
 const IMP_DIRS_EN = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"];
 const IMP_DIRS_DE = ["Norden", "Nordosten", "Osten", "Südosten", "Süden", "Südwesten", "Westen", "Nordwesten"];
-const RADAR_TITLE_I18N = { geo: ["Geo-Radar", "Geo radar"], politics: ["Politik", "Politics"], economy: ["Wirtschaft", "Economy"], budget: ["Haushaltsbudget", "Household budget"], crypto: ["Krypto-Radar", "Crypto radar"], energy: ["Energie-Radar", "Energy radar"], web: ["Offenes Web", "Open web"] };
+const RADAR_TITLE_I18N = { geo: ["Geo-Radar", "Geo radar"], politics: ["Politik", "Politics"], economy: ["Wirtschaft", "Economy"], budget: ["Haushaltsbudget", "Household budget"], crypto: ["Krypto-Radar", "Crypto radar"], energy: ["Energie-Radar", "Energy radar"], web: ["Offenes Web", "Open web"], justice: ["Justiz & Sicherheit", "Justice & security"] };
 const IMP_SHIP = /tanker|shipping|freight|vessel|container|strait|канал|танкер|фрахт|судоход|schiff|frachter/i;
 function impulseLayer(radarId, title) {
   if (IMP_SHIP.test(title) || /hormuz|suez|red sea|malacca|panama|ормуз|суэц|малакк/i.test(title)) return "ship";

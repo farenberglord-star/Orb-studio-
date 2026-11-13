@@ -240,6 +240,7 @@ details.machine a{color:var(--holo)}
 <link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 <script>window.I18N_RADAR={"geo": {"title": "Geo-Radar", "lead": "Russland, China, USA: militärische, diplomatische und Sanktionssignale aus offenen Feeds.", "fac": {"Военные": "Militär", "Санкции": "Sanktionen", "Дипломатия": "Diplomatie", "Выборы": "Wahlen"}}, "budget": {"title": "Haushaltsbudget", "lead": "Lebensmittelpreise, Miete, Nebenkosten und Zinsen in Deutschland und der EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energie", "Аренда": "Miete", "Ставки": "Zinsen"}}, "politics": {"title": "Politik", "lead": "Regierungen, Wahlen und Gesetze: Deutschland, EU, USA.", "fac": {"Кризисы": "Krisen", "Выборы": "Wahlen", "Правительство": "Regierung", "Законы": "Gesetze"}}, "economy": {"title": "Wirtschaft", "lead": "Wachstum, Rezession, Zinsen, Arbeitsmarkt: Deutschland, Euroraum, USA.", "fac": {"Рецессия": "Rezession", "Ставки": "Zinsen", "Работа": "Arbeit", "Рост": "Wachstum"}}, "crypto": {"title": "Krypto-Radar", "lead": "BTC, ETH, XRP: Nachrichten und Marktdaten von Kraken.", "fac": {"Регуляторы": "Regulierer", "Взломы": "Hacks", "Волатильность": "Volatilität", "Институции": "Institutionen"}}, "energy": {"title": "Energie-Radar", "lead": "Brent, Gas, Tanker und OPEC+-Beschlüsse.", "fac": {"Нефть": "Öl", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routen"}}, "web": {"title": "Offenes Web", "lead": "Wie offen das Internet für KI-Agenten ist: Bot-Sperren, Klagen wegen Scraping, bezahlter Zugang für Crawler.", "fac": {"Блокировки": "Sperren", "Суды": "Klagen", "Платный доступ": "Bezahlzugang", "Открытость": "Offenheit"}}};</script>
+<style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
 </head>
 <body>
 
@@ -1094,5 +1095,17 @@ setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=a
 </script>
 <script src="/banners.js" defer></script>
 <script src="/media/david-hero.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/orbcore3d.js" defer></script>
+<script>/* «Ядро эфира ORB-7» вместо видео-аватара: если WebGL нет — остаётся прежний эфир */
+window.addEventListener('DOMContentLoaded',function(){var st=document.getElementById('studio');if(!st||!window.OrbCore3D)return;
+var box=document.createElement('div');box.className='orbcore';st.appendChild(box);
+if(!OrbCore3D.init(box)){box.remove();return}st.classList.add('has-core');
+var v=st.querySelector('video.davidvid');if(v){try{v.pause()}catch(e){}}
+function get(p){return fetch('/api/v1/'+p).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
+function load(){Promise.all([get('radars'),get('broadcast/latest'),get('impulses')]).then(function(a){OrbCore3D.update({radars:a[0],broadcast:a[1],impulses:a[2]})})}
+load();setInterval(function(){if(!document.hidden)load()},300000);
+/* ядро «говорит», пока звучит эфир (голос браузера громкость не отдаёт — огибающая речи) */
+setInterval(function(){var on=(typeof talking!=='undefined'&&talking)||(window.speechSynthesis&&speechSynthesis.speaking);if(on){var t=performance.now()/1000;OrbCore3D.speak(Math.min(1,Math.max(0,Math.sin(t*9.1)*.5+Math.sin(t*23.7)*.3+Math.sin(t*2.3)*.4)))}},60);});</script>
+
 </body>
 </html>
