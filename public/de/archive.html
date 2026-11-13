@@ -62,6 +62,7 @@ details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14p
 details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.a3d-box{position:relative;border:1px solid rgba(111,230,255,.22);border-radius:16px;overflow:hidden;background:#010208;aspect-ratio:16/9}@media (max-width:640px){.a3d-box{aspect-ratio:4/5}}.a3d-cap{font-size:12.5px;color:var(--dim,#8b9bb8);margin:6px 2px 0;line-height:1.5}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -129,6 +130,7 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <h1>🗄 RADAR-ARCHIV</h1>
   </div>
   <p class="lead">Jeden Tag speichert die Seite einen Schnappschuss aller Radare: Risikoindizes und wichtigste Schlagzeilen. Je länger das Studio läuft, desto länger das Gedächtnis.</p>
+  <section id="a3dsec" hidden style="margin:14px 0 18px"><div class="a3d-box" id="arch3d" role="img" aria-label="Tageskamm · 3D"></div><p class="a3d-cap">Jeder leuchtende Kamm ist ein Radar, die Höhe ist der Risikoindex des Tages; Lücken sind Tage ohne Daten. Tippen Sie auf einen Tag: Schnitt, Top-Schlagzeilen, und unten öffnet sich das Archiv dieses Tages.</p></section>
 
   <h2>INDIZES NACH TAGEN</h2>
   <ul class="hist" id="hist"><li>Wird geladen…</li></ul>
@@ -214,5 +216,13 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_archive')==='1'}catch
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_archive','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/archive3d.js" defer></script>
+<script>/* 3D «Хребет дней»: те же данные, что и архив; касание дня открывает его ниже */
+window.addEventListener('DOMContentLoaded',function(){var s=document.getElementById('a3dsec'),el=document.getElementById('arch3d');if(!window.OrbArchive3D||!el)return;s.hidden=false;
+if(!OrbArchive3D.init(el,{autoplay:true})){s.hidden=true;return}
+var tap=0;el.addEventListener('pointerup',function(){tap=Date.now()});
+el.addEventListener('orbarchive:needday',function(e){fetch('/api/v1/history?date='+e.detail.date).then(function(r){return r.ok?r.json():null}).then(function(j){if(j)OrbArchive3D.update({day:j})}).catch(function(){})});
+el.addEventListener('orbarchive:select',function(e){if(Date.now()-tap<800&&typeof showDay==='function')showDay(e.detail.date)});
+fetch('/api/v1/history').then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(h){OrbArchive3D.update({history:h})})});</script>
 </body>
 </html>
