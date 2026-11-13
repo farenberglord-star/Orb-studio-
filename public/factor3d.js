@@ -81,7 +81,7 @@
   var TXT = { ru: { nosig: "нет сигналов", nodata: "НЕТ ДАННЫХ", factor: "ФАКТОР", loop: "КРУГ", sig: "СИГН", src: "ИСТ", sweep: "РАЗВ", vs: "к пред.", paused: "ПАУЗА", upd: "ОБН", d24: "24ч" },
     de: { nosig: "keine Signale", nodata: "KEINE DATEN", factor: "FAKTOR", loop: "RUNDE", sig: "SIG", src: "QUL", sweep: "SWP", vs: "zum Vorwert", paused: "PAUSE", upd: "AKT", d24: "24h" },
     en: { nosig: "no signals", nodata: "NO DATA", factor: "FACTOR", loop: "LOOP", sig: "SIG", src: "SRC", sweep: "SWP", vs: "vs prev", paused: "PAUSE", upd: "UPD", d24: "24h" } };
-  var SLOT = 3, WIPE = 1.1, PAUSE = 15, R = 1.6, RG0 = R + 0.10, RG1 = R + 0.30, WL = 4.8, MAXB = 12, MAXL = 12;
+  var SLOT = 5, WIPE = 2.0, PAUSE = 15, R = 1.6, RG0 = R + 0.10, RG1 = R + 0.30, WL = 4.8, MAXB = 12, MAXL = 12;
 
   var T, el, ren, scene, cam, ok = false, raf = 0, onScreen = true, io = null, ro = null, rmTimer = 0, listeners = [];
   var reduce = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -146,8 +146,8 @@
   function variation(id, loop) {
     var k = id + "|" + loop, h = function (s) { return hash(k + "|" + s); };
     return { az: (h("az") - 0.5) * 1.1, el: 0.86 + h("el") * 0.36, d: 1 + h("d") * 0.1, drift: h("dr") < 0.5 ? -1 : 1,
-      sdir: h("sd") < 0.5 ? 1 : -1, sper: 2.4 + h("sp") * 2.2, grid: Math.floor(h("g") * 3) % 3, gsc: 0.26 + h("gs") * 0.22, grot: h("gr") * 1.5708,
-      le: Math.floor(h("le") * 4) % 4, lh: 2.4 + h("lh") * 1.4, lsp: 0.8 + h("ls") * 0.35, bseed: k, brot: h("br") * 6.2832, wd: h("wd") * 6.2832 };
+      sdir: h("sd") < 0.5 ? 1 : -1, sper: 5.0 + h("sp") * 3.0, grid: Math.floor(h("g") * 3) % 3, gsc: 0.26 + h("gs") * 0.22, grot: h("gr") * 1.5708,
+      le: Math.floor(h("le") * 4) % 4, lh: 2.4 + h("lh") * 1.4, lsp: 0.45 + h("ls") * 0.2, bseed: k, brot: h("br") * 6.2832, wd: h("wd") * 6.2832 };
   }
 
   /* ---------- shaders ---------- */
@@ -426,7 +426,7 @@
 
   /* ---------- camera ---------- */
   function placeCam(dt, snap) {
-    var tv = V || { az: 0, el: 1.05, d: 1, drift: 1 }, k = snap || reduce ? 1 : 1 - Math.exp(-dt * 1.6);
+    var tv = V || { az: 0, el: 1.05, d: 1, drift: 1 }, k = snap || reduce ? 1 : 1 - Math.exp(-dt * 0.8);
     if (!camS.init) { camS.az = tv.az; camS.el = tv.el; camS.d = tv.d; camS.init = true; }
     camS.az += (tv.az - camS.az) * k; camS.el += (tv.el - camS.el) * k; camS.d += (tv.d - camS.d) * k;
     var az = camS.az + (reduce ? 0 : Math.sin(rt * 0.11) * 0.06 * tv.drift), elv = camS.el + (reduce ? 0 : Math.sin(rt * 0.07 + 1) * 0.03);
@@ -486,7 +486,7 @@
     U.t.value = rt; U.sw.value = sweep; U.dir.value = Vc.sdir;
     U.cut.value.set(wipe.dx, wipe.dz, wipe.pos, wipe.mode);
     var f = rv && rv.facs[curF], target = f && f.value != null ? f.value / 100 : 0;
-    M.gauge.uniforms.uFill.value = reduce ? target : target * sm(0.15, 1.05, (rt - facRt) / Math.max(0.6, Math.min(1, opts.timeScale > 1 ? 0.6 : 1)));
+    M.gauge.uniforms.uFill.value = reduce ? target : target * sm(0.2, 2.2, (rt - facRt) / Math.max(0.6, Math.min(1, opts.timeScale > 1 ? 0.6 : 1)));
     M.table.uniforms.uData.value = queue.length ? 1 : 0; var acc = lvlRGB(rv ? rv.lvl : null); M.table.uniforms.uAcc.value.setRGB(acc[0], acc[1] * 0.9, acc[2]);
     placeCam(dt, force && !camS.init); lasers();
     // centre label (no signals / no data)
