@@ -241,6 +241,7 @@ details.machine a{color:var(--holo)}
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 <script>window.I18N_RADAR={"geo": {"title": "Geo-Radar", "lead": "Russland, China, USA: militärische, diplomatische und Sanktionssignale aus offenen Feeds.", "fac": {"Военные": "Militär", "Санкции": "Sanktionen", "Дипломатия": "Diplomatie", "Выборы": "Wahlen"}}, "budget": {"title": "Haushaltsbudget", "lead": "Lebensmittelpreise, Miete, Nebenkosten und Zinsen in Deutschland und der EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energie", "Аренда": "Miete", "Ставки": "Zinsen"}}, "politics": {"title": "Politik", "lead": "Regierungen, Wahlen und Gesetze: Deutschland, EU, USA.", "fac": {"Кризисы": "Krisen", "Выборы": "Wahlen", "Правительство": "Regierung", "Законы": "Gesetze"}}, "economy": {"title": "Wirtschaft", "lead": "Wachstum, Rezession, Zinsen, Arbeitsmarkt: Deutschland, Euroraum, USA.", "fac": {"Рецессия": "Rezession", "Ставки": "Zinsen", "Работа": "Arbeit", "Рост": "Wachstum"}}, "crypto": {"title": "Krypto-Radar", "lead": "BTC, ETH, XRP: Nachrichten und Marktdaten von Kraken.", "fac": {"Регуляторы": "Regulierer", "Взломы": "Hacks", "Волатильность": "Volatilität", "Институции": "Institutionen"}}, "energy": {"title": "Energie-Radar", "lead": "Brent, Gas, Tanker und OPEC+-Beschlüsse.", "fac": {"Нефть": "Öl", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routen"}}, "web": {"title": "Offenes Web", "lead": "Wie offen das Internet für KI-Agenten ist: Bot-Sperren, Klagen wegen Scraping, bezahlter Zugang für Crawler.", "fac": {"Блокировки": "Sperren", "Суды": "Klagen", "Платный доступ": "Bezahlzugang", "Открытость": "Offenheit"}}};</script>
 <style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
+<style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
 </head>
 <body>
 
@@ -944,9 +945,7 @@ function renderRadars(){
     g.appendChild(el);requestAnimationFrame(()=>spark(el.querySelector('canvas'),r.lvl,c));
   });
   // upcoming radar slots
-  [['Migration und EU-Grenzen'],['Technologie und KI-Regulierung']].forEach(([t])=>{
-    const el=document.createElement('div');el.className='rc';el.style.borderStyle='dashed';
-    el.innerHTML=`<div class="row"><h3 style="color:var(--dim)">${t}</h3><span class="demo-tag">BALD</span></div><div class="hl">Neues Radar, neuer Moderator. Entsteht nach derselben Vorlage.</div>`;g.appendChild(el)});
+  {const el=document.createElement('div');el.className='rc soon';el.style.borderStyle='dashed';el.innerHTML=`<div class="row"><span class="eyebrow" style="color:var(--dim)">+2</span><span class="demo-tag">BALD</span></div><h3 style="color:var(--dim)">Migration und EU-Grenzen</h3><h3 style="color:var(--dim)">Technologie und KI-Regulierung</h3><div class="hl">Neues Radar, neuer Moderator. Entsteht nach derselben Vorlage.</div>`;g.appendChild(el)}
 }
 
 // ---- RADAR page ----

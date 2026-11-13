@@ -236,6 +236,7 @@ details.machine a{color:var(--holo)}
 <style>.studio video.davidvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;z-index:1;pointer-events:none}.studio .davidtalk{position:absolute;right:10px;top:34px;z-index:4;font-size:12px;padding:6px 10px;border-color:var(--holo);color:var(--holo);background:rgba(6,9,18,.7)}</style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
 <style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
+<style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
 </head>
 <body>
 
@@ -939,9 +940,7 @@ function renderRadars(){
     g.appendChild(el);requestAnimationFrame(()=>spark(el.querySelector('canvas'),r.lvl,c));
   });
   // upcoming radar slots
-  [['Миграция и границы ЕС'],['Технологии и ИИ-регулирование']].forEach(([t])=>{
-    const el=document.createElement('div');el.className='rc';el.style.borderStyle='dashed';
-    el.innerHTML=`<div class="row"><h3 style="color:var(--dim)">${t}</h3><span class="demo-tag">СКОРО</span></div><div class="hl">Новый радар и новый ведущий. Генерируется по тому же шаблону.</div>`;g.appendChild(el)});
+  {const el=document.createElement('div');el.className='rc soon';el.style.borderStyle='dashed';el.innerHTML=`<div class="row"><span class="eyebrow" style="color:var(--dim)">+2</span><span class="demo-tag">СКОРО</span></div><h3 style="color:var(--dim)">Миграция и границы ЕС</h3><h3 style="color:var(--dim)">Технологии и ИИ-регулирование</h3><div class="hl">Новый радар и новый ведущий. Генерируется по тому же шаблону.</div>`;g.appendChild(el)}
 }
 
 // ---- RADAR page ----
