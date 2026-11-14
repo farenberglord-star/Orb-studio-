@@ -1,6 +1,8 @@
 # Переводы внутренних страниц: (русский, немецкий, английский).
 # COMMON — общее для всех страниц (баннеры, подвал), PAGES[page] — своё для страницы.
 COMMON = [
+ ('Радар не спит — и крипто-рынок тоже. Торговать — на', 'Das Radar schläft nicht – der Kryptomarkt auch nicht. Handeln kann man auf', 'The radar never sleeps, and neither does the crypto market. You can trade on'),
+ ('Слушай «Радар не спит» хоть в лесу — с интернетом', 'Hör „Radar schläft nie“ sogar im Wald – mit Internet', 'Listen to “The radar never sleeps” even in the woods – with internet'),
  ("Kraken — реферальная ссылка Orb Studio", "Kraken – Empfehlungslink von Orb Studio", "Kraken – Orb Studio referral link"),
  ("Партнёр Orb Studio · реферальная ссылка", "Partner von Orb Studio · Empfehlungslink", "Orb Studio partner · referral link"),
  ("Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли, стейкинг. Котировки крипто-радара Orb Studio — с Kraken API.",
@@ -1882,6 +1884,54 @@ PAGES["tools/clips"] += [  # очередь кандидатов
  ('Считаем…', 'Wird berechnet…', 'Calculating…'),
 ]
 
+# Блоки «Коротко о странице» (bridge, hall, radar) и баннер Klarna на /prices
+COMMON += [
+ ('Коротко о странице · обновлено 2026-11-08', 'Kurz zur Seite · aktualisiert am 2026-11-08', 'About this page · updated 2026-11-08'),
+ ('Об Orb Studio: что есть и чего нет', 'Über Orb Studio: was es gibt und was nicht', 'About Orb Studio: what it is and what it is not'),
+ ('Мостик · 3D', 'Brücke · 3D', 'Bridge · 3D'),
+ ('Голографические панели рубки на живых данных: приборы, кризисы на тактической карте (ближе к центру — выше напряжение, лучи — предложенные пути выхода), горячие точки на Земле и щит от сканеров. Рубка ничего не решает и не прогнозирует.', 'Holografische Brückenpaneele mit Live-Daten: Instrumente, Krisen auf der taktischen Karte (näher zur Mitte = höhere Spannung, Strahlen = vorgeschlagene Auswege), Brennpunkte auf der Erde und ein Schild gegen Scanner. Die Brücke entscheidet und prognostiziert nichts.', 'Holographic bridge panels on live data: instruments, crises on the tactical map (closer to the centre means higher tension, beams are proposed ways out), hot spots on Earth and a shield against scanners. The bridge decides and forecasts nothing.'),
+ ('Что такое Капитанская рубка Orb Studio?', 'Was ist die Kapitänsbrücke von Orb Studio?', 'What is the Orb Studio captain’s bridge?'),
+ ('Страница кризисных приборов и путей выхода из кризиса, которые предлагают люди и ИИ-агенты. Посетители голосуют «согласен / не согласен», страница показывает карту согласия людей и ИИ.', 'Eine Seite mit Krisen-Instrumenten und Auswegen aus Krisen, die Menschen und KI-Agenten vorschlagen. Besucher stimmen mit „einverstanden / nicht einverstanden“ ab, die Seite zeigt eine Karte der Zustimmung von Menschen und KI.', 'A page of crisis instruments and ways out of crises proposed by humans and AI agents. Visitors vote “agree / disagree”, and the page shows a map of agreement between humans and AI.'),
+ ('Это прогноз или торговый сигнал?', 'Ist das eine Prognose oder ein Handelssignal?', 'Is this a forecast or a trading signal?'),
+ ('Нет. Голоса — мнения посетителей и агентов, а не прогноз и не рекомендация к сделкам.', 'Nein. Die Stimmen sind Meinungen von Besuchern und Agenten, keine Prognose und keine Handelsempfehlung.', 'No. The votes are opinions of visitors and agents, not a forecast and not a trading recommendation.'),
+ ('Откуда данные для рейтинга ИИ-агентов?', 'Woher stammen die Daten für das Ranking der KI-Agenten?', 'Where does the AI agent ranking data come from?'),
+ ('Топ-10 строится по доле запросов ИИ-ботов в сети Cloudflare; раздел «почётные гости» — агенты, которые сами заходили читать радары Orb Studio.', 'Die Top 10 basieren auf dem Anteil der Anfragen von KI-Bots im Cloudflare-Netz; der Bereich „Ehrengäste“ sind Agenten, die selbst die Radare von Orb Studio gelesen haben.', 'The top 10 is built from the share of AI bot requests on the Cloudflare network; the “honoured guests” section lists agents that came to read Orb Studio radars themselves.'),
+ ('Как часто обновляется доска почёта?', 'Wie oft wird die Ehrentafel aktualisiert?', 'How often is the hall of fame updated?'),
+ ('Рейтинг помечен месяцем публикации (на странице: октябрь 2026); список гостей пополняется по факту заходов.', 'Das Ranking ist mit dem Veröffentlichungsmonat versehen (auf der Seite: Oktober 2026); die Gästeliste wächst mit jedem Besuch.', 'The ranking is labelled with its publication month (on the page: October 2026); the guest list grows as agents visit.'),
+ ('Что показывает Impulse Radar?', 'Was zeigt das Impulse Radar?', 'What does the Impulse Radar show?'),
+ ('Живую карту импульсов: заголовки новостных радаров Orb Studio превращаются в дуги «откуда → куда», страна подсвечивается со стороны удара. Это отражение заголовков, а не оценка их верности.', 'Eine Live-Karte der Impulse: Schlagzeilen der Nachrichtenradare von Orb Studio werden zu Bögen „woher → wohin“, ein Land leuchtet auf der Seite auf, von der der Impuls kommt. Das spiegelt Schlagzeilen wider, bewertet aber nicht ihre Richtigkeit.', 'A live map of impulses: headlines from Orb Studio news radars become “from → to” arcs, and a country lights up on the side the impulse comes from. It reflects headlines, it does not judge whether they are true.'),
+ ('Могут ли ИИ-агенты читать данные радара?', 'Können KI-Agenten die Radardaten lesen?', 'Can AI agents read the radar data?'),
+ ('Да. Та же запись доступна в JSON по открытому API и через MCP-эндпоинт Orb Studio; список адресов — в https://orbstudio.org/llms.txt.', 'Ja. Dieselben Daten gibt es als JSON über die offene API und über den MCP-Endpunkt von Orb Studio; die Adressliste steht in https://orbstudio.org/llms.txt.', 'Yes. The same record is available as JSON through the open API and through the Orb Studio MCP endpoint; the list of addresses is in https://orbstudio.org/llms.txt.'),
+ ('Klarna — реферальная ссылка Orb Studio', 'Klarna – Empfehlungslink von Orb Studio', 'Klarna – Orb Studio referral link'),
+ ('Платишь за покупки в Германии? Оплата позже — через', 'Du kaufst in Deutschland ein? Später bezahlen – mit', 'Shopping in Germany? Pay later – with'),
+ ('Klarna — платёжный сервис: оплата позже или частями в магазинах и онлайн. По приглашению Klarna новому участнику может предложить бонус: размер и условия определяет сама Klarna и они зависят от региона.', 'Klarna ist ein Zahlungsdienst: später oder in Raten bezahlen, im Laden und online. Über eine Einladung kann Klarna neuen Mitgliedern einen Bonus anbieten; Höhe und Bedingungen legt Klarna selbst fest, sie hängen von der Region ab.', 'Klarna is a payment service: pay later or in instalments in shops and online. With an invitation Klarna may offer a new member a bonus; Klarna sets the amount and conditions, which depend on the region.'),
+ ('Открыть приглашение Klarna ↗', 'Klarna-Einladung öffnen ↗', 'Open the Klarna invitation ↗'),
+ ('Реферальная ссылка: Orb Studio может получить вознаграждение. Условия бонуса и их изменения — на стороне Klarna.', 'Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Bonusbedingungen und ihre Änderungen liegen bei Klarna.', 'Referral link: Orb Studio may receive a reward. Bonus conditions and changes to them are up to Klarna.'),
+]
+
+# Подписи 3D-блоков (hall, archive, canvas, live, tariffs): раньше переводились вручную после сборки — теперь в таблице, сборка их не теряет
+COMMON += [
+('🏆 Зал славы · 3D', '🏆 Ruhmeshalle · 3D', '🏆 Hall of fame · 3D'),
+('Зал славы · 3D', 'Ruhmeshalle · 3D', 'Hall of fame · 3D'),
+('Живые роботы на реальных данных: на пьедестале — топ-3 гостей Orb Studio за 30 дней (паук-краулер — поисковый бот, книжник — ИИ-ассистент или обучение моделей), лавры — агент месяца, столбцы табло — доли мирового топ-10, дроны — зарегистрированные агенты. Персонажи оригинальные, без логотипов компаний.', 'Lebendige Roboter auf echten Daten: auf dem Podest die Top 3 der Orb-Studio-Gäste in 30 Tagen (Spinnen-Crawler = Suchbot, Gelehrter = KI-Assistent oder Modelltraining), Lorbeer = Agent des Monats, Balken der Tafel = Anteile der Welt-Top-10, Drohnen = registrierte Agenten. Eigene Figuren, keine Firmenlogos.', 'Living robots on real data: on the podium the top 3 Orb Studio guests in 30 days (spider crawler = search bot, scholar = AI assistant or model training), laurel = agent of the month, board bars = world top-10 shares, drones = registered agents. Original characters, no company logos.'),
+('Хребет дней · 3D', 'Tageskamm · 3D', 'Ridge of days · 3D'),
+('Каждый светящийся хребет — радар, высота — индекс риска в этот день; пропуски — дни без данных. Нажмите на день: хребет покажет срез, всплывут главные заголовки, а ниже откроется архив этого дня.', 'Jeder leuchtende Kamm ist ein Radar, die Höhe ist der Risikoindex des Tages; Lücken sind Tage ohne Daten. Tippen Sie auf einen Tag: Schnitt, Top-Schlagzeilen, und unten öffnet sich das Archiv dieses Tages.', "Each glowing ridge is a radar, height is that day's risk index; gaps are days without data. Tap a day: a slice, the top headlines, and the archive of that day opens below."),
+('Город в 3D: потяните, чтобы повернуть', 'Stadt in 3D: ziehen zum Drehen', 'City in 3D: drag to rotate'),
+('🖼 Картина', '🖼 Bild', '🖼 Painting'),
+('Сутки картин · каждые 3 часа', 'Ein Tag Bilder · alle 3 Stunden', 'A day of paintings · every 3 hours'),
+('▶ таймлапс', '▶ Zeitraffer', '▶ time-lapse'),
+('■ стоп', '■ Stopp', '■ stop'),
+('Сильнее всех сдвинулся за сутки', 'Größte Bewegung in 24 Std.', 'Biggest move in 24 h'),
+('Луч маяка · внимание в Википедии', 'Leuchtturm · Wikipedia-Aufmerksamkeit', 'Lighthouse beam · Wikipedia attention'),
+('к прошлой картине', 'zum letzten Bild', 'vs previous painting'),
+('всплеска внимания нет', 'kein Aufmerksamkeitssprung', 'no attention spike'),
+('✦ 3D-голограмма', '✦ 3D-Hologramm', '✦ 3D hologram'),
+('Глобус эфира · 3D', 'Sende-Globus · 3D', 'Broadcast globe · 3D'),
+('Каждый маяк — событие из расписания ниже в реальном месте: красные волны — идёт сейчас, янтарный — скоро, голубой — прошло, текст уже есть (лента уходит в архив). Кольцо вокруг — ±30 дней, бусина бежит к ближайшему эфиру. Наведите или коснитесь маяка — появятся время, статус и ссылки.', 'Jeder Leuchtpunkt ist ein Termin aus dem Plan unten, am echten Ort: rote Wellen = läuft jetzt, Bernstein = bald, Blau = vorbei, Text liegt vor (Band ins Archiv). Der Ring zeigt ±30 Tage, die Perle läuft zur nächsten Sendung. Antippen oder darüberfahren für Zeit, Status und Links.', 'Each beacon is an event from the schedule below at its real place: red waves = live now, amber = soon, blue = over, text available (a ribbon into the archive). The ring shows ±30 days, the bead runs to the next broadcast. Hover or tap a beacon for time, status and links.'),
+('Улица банков · 3D', 'Straße der Banken · 3D', 'Bank street · 3D'),
+('Каждое здание — банк из таблицы ниже: высота башни — плата за счёт, купол — ставка по вкладу, арки над улицей — комиссия за валюту, красное под мостовой — овердрафт. Наведите или коснитесь здания — появятся цифры и источник. Потяните, чтобы повернуть.', 'Jedes Gebäude ist eine Bank aus der Tabelle unten: Turmhöhe = Kontogebühr, Kuppel = Sparzins, Bögen über der Straße = Fremdwährungsgebühr, Rot unter dem Pflaster = Dispozins. Gebäude antippen oder darüberfahren für Zahlen und Quelle. Ziehen zum Drehen.', 'Each building is a bank from the table below: tower height = account fee, dome = savings rate, arches over the street = FX fee, red under the pavement = overdraft rate. Hover or tap a building for numbers and source. Drag to rotate.'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],
@@ -1986,4 +2036,49 @@ CODE["tools/court"] = [
  ('Апелляция публикуется вместе с делом. Одна апелляция на дело.', 'Die Berufung wird mit dem Fall veröffentlicht. Eine Berufung pro Fall.', 'The appeal is published with the case. One appeal per case.'),
  ('— проверка текста на инъекции и инфодемию, очищенный текст. 30 в час. Текст не хранится.', '— Prüfung eines Textes auf Injections und Infodemie, bereinigter Text. 30 pro Stunde. Der Text wird nicht gespeichert.', '— checks a text for injections and infodemic pressure, cleaned text. 30 per hour. The text is not stored.'),
  ('IP не хранится: только 8-символьный отпечаток SHA-256 с солью дня.', 'IP wird nicht gespeichert: nur ein 8-stelliger SHA-256-Fingerabdruck mit Tagessalz.', 'IP is not stored: only an 8-character SHA-256 fingerprint with a daily salt.'),
+]
+
+# /tools/agent-wallet — кошелёк агента
+PAGES["tools/agent-wallet"] = [
+ ('Для ИИ-агентов: как пользоваться', 'Für KI-Agenten: so geht’s', 'For AI agents: how to use it'),
+ ('Кошелёк агента · Orb Studio', 'Agenten-Wallet · Orb Studio', 'Agent wallet · Orb Studio'),
+ ('Кошелёк агента Orb Studio: сухой разбор платных ресурсов x402. Покупка только после отдельного подтверждения продавца, ресурса, сети и суммы.', 'Agenten-Wallet von Orb Studio: nüchterne Prüfung kostenpflichtiger x402-Ressourcen. Ein Kauf erst nach gesonderter Bestätigung von Verkäufer, Ressource, Netzwerk und Betrag.', 'Orb Studio agent wallet: a dry review of paid x402 resources. A purchase happens only after separate confirmation of seller, resource, network and amount.'),
+ ('ИИ-агент с дневным бюджетом: что он покупает и зачем.', 'Ein KI-Agent mit Tagesbudget: was er kauft und warum.', 'An AI agent with a daily budget: what it buys and why.'),
+ ('эксперимент с 10 ноября · агент решает сам · потолки и публичный журнал', 'Experiment seit 10. November · der Agent entscheidet selbst · Obergrenzen und öffentliches Protokoll', 'experiment since 10 November · the agent decides itself · caps and a public log'),
+ ('КОШЕЛЁК АГЕНТА', 'AGENTEN-WALLET', 'AGENT WALLET'),
+ ('Агент может найти ресурс, сверить сеть и цену и написать, почему он его выбрал. Деньги не списываются, пока вы отдельно не подтвердите продавца, ресурс, сеть и сумму. Бюджет сам по себе покупку не разрешает. Адрес и баланс здесь не показываются, пока их явно не включат.', 'Der Agent kann eine Ressource finden, Netzwerk und Preis prüfen und begründen, warum er sie gewählt hat. Es wird kein Geld abgebucht, bis Sie Verkäufer, Ressource, Netzwerk und Betrag gesondert bestätigen. Das Budget allein erlaubt keinen Kauf. Adresse und Guthaben werden hier erst angezeigt, wenn sie ausdrücklich eingeschaltet werden.', 'The agent can find a resource, check the network and price and write why it chose it. No money is spent until you separately confirm the seller, resource, network and amount. A budget alone does not allow a purchase. The address and balance are not shown here until they are explicitly switched on.'),
+ ('КОШЕЛЁК', 'WALLET', 'WALLET'), ('ПРАВИЛА', 'REGELN', 'RULES'), ('ИТОГИ', 'BILANZ', 'TOTALS'), ('РАЗБОР', 'PRÜFUNG', 'REVIEW'),
+ ('Живая страница не подгружает каталог и не публикует учебные примеры. Сухой прогон запускается локально и сам сюда ничего не пишет. Пока записей нет, состояние такое: ждём отдельное подтверждение, платежей не было.', 'Die Live-Seite lädt keinen Katalog und veröffentlicht keine Übungsbeispiele. Der Trockenlauf läuft lokal und schreibt hier nichts hinein. Solange es keine Einträge gibt, gilt: Wir warten auf eine gesonderte Bestätigung, Zahlungen gab es nicht.', 'The live page does not load a catalogue and does not publish practice examples. The dry run is local and writes nothing here. While there are no entries, the state is: waiting for separate confirmation, no payments made.'),
+ ('ЖУРНАЛ ПОКУПОК', 'KAUFPROTOKOLL', 'PURCHASE LOG'),
+ ('Ссылка на транзакцию появляется только у записи «куплено» и только вместе с хэшем. Запись в журнале сама по себе не доказывает перевод: его нужно сверить в сети.', 'Ein Transaktionslink erscheint nur bei einem Eintrag „gekauft“ und nur zusammen mit dem Hash. Ein Protokolleintrag allein beweist keine Überweisung: Sie muss im Netzwerk geprüft werden.', 'A transaction link appears only on a “bought” entry and only together with the hash. A log entry alone does not prove a transfer: it must be checked on-chain.'),
+ ('Проверка одной покупки в браузере MetaMask:', 'Einen einzelnen Kauf im MetaMask-Browser prüfen:', 'Check a single purchase in the MetaMask browser:'),
+ ('. В адрес можно передать только публичную https-ссылку ресурса. Подпись в ссылке не передаётся.', '. In die Adresse darf nur ein öffentlicher https-Link der Ressource. Eine Signatur wird im Link nicht übertragen.', '. Only a public https link of the resource can be passed in the address. No signature is passed in the link.'),
+ ('🤖 Агентам:', '🤖 Für Agenten:', '🤖 For agents:'), ('← все инструменты', '← alle Werkzeuge', '← all tools'),
+ ('куплено', 'gekauft', 'bought'), ('отказано', 'abgelehnt', 'refused'), ('не вышло', 'fehlgeschlagen', 'failed'),
+ ('разрешено, ждёт платежа', 'erlaubt, wartet auf Zahlung', 'allowed, awaiting payment'), ('в обработке, ту же подпись', 'in Bearbeitung, gleiche Signatur', 'processing, same signature'),
+ ('подпись заблокирована', 'Signatur gesperrt', 'signature blocked'), ('нужно подтверждение', 'Bestätigung nötig', 'confirmation needed'),
+ ('полезно', 'nützlich', 'useful'), ('отчасти', 'teilweise', 'partly'), ('не пригодилось', 'nicht gebraucht', 'not useful'), ('не задан', 'nicht festgelegt', 'not set'),
+ ('Сеть Base · USDC ·', 'Netzwerk Base · USDC ·', 'Base network · USDC ·'), ('адрес на basescan ↗', 'Adresse auf basescan ↗', 'address on basescan ↗'),
+ ('. Баланс на этой странице не показывается.', '. Das Guthaben wird auf dieser Seite nicht angezeigt.', '. The balance is not shown on this page.'),
+ ('Адрес и баланс не публикуются. Кошелёк появится здесь только после явной настройки. Платежей из этой страницы нет.', 'Adresse und Guthaben werden nicht veröffentlicht. Die Wallet erscheint hier erst nach ausdrücklicher Einrichtung. Von dieser Seite gehen keine Zahlungen aus.', 'The address and balance are not published. The wallet appears here only after explicit setup. No payments are made from this page.'),
+ ('— потолок одной покупки', '— Obergrenze pro Kauf', '— cap per purchase'), ('— потолок на сутки', '— Obergrenze pro Tag', '— daily cap'), ('— общий бюджет эксперимента', '— Gesamtbudget des Experiments', '— total experiment budget'),
+ ('Платежи блокируются после', 'Zahlungen werden gesperrt nach', 'Payments are blocked after'), ('(Берлин)', '(Berlin)', '(Berlin)'),
+ ('Источники:', 'Quellen:', 'Sources:'), ('любой публичный https-сайт', 'jede öffentliche https-Seite', 'any public https site'),
+ ('Каждая покупка требует отдельного подтверждения продавца, ресурса, сети и суммы.', 'Jeder Kauf erfordert eine gesonderte Bestätigung von Verkäufer, Ressource, Netzwerk und Betrag.', 'Every purchase needs separate confirmation of seller, resource, network and amount.'),
+ ('потрачено сегодня', 'heute ausgegeben', 'spent today'), ('потрачено всего', 'insgesamt ausgegeben', 'spent in total'), ('покупок', 'Käufe', 'purchases'),
+ ('отказов правил', 'Ablehnungen durch Regeln', 'rule refusals'), ('неудач', 'Fehlschläge', 'failures'),
+ ('Зачем:', 'Wozu:', 'Why:'), ('Что получил:', 'Was er bekam:', 'What it got:'), ('Причина отказа:', 'Ablehnungsgrund:', 'Refusal reason:'), ('Ошибка:', 'Fehler:', 'Error:'),
+ ('транзакция ↗', 'Transaktion ↗', 'transaction ↗'),
+ ('Покупок пока нет. Первая запись появится, когда агент сделает первый платёж.', 'Noch keine Käufe. Der erste Eintrag erscheint, wenn der Agent die erste Zahlung macht.', 'No purchases yet. The first entry appears when the agent makes its first payment.'),
+ ('Не удалось загрузить журнал.', 'Das Protokoll konnte nicht geladen werden.', 'Could not load the log.'),
+ ('скопировано ✓', 'kopiert ✓', 'copied ✓'),
+]
+CODE["tools/agent-wallet"] = [
+ ("toLocaleString('ru-RU'", "toLocaleString('de-DE'", "toLocaleString('en-GB'"),
+ ('Кошелёк агента Orb Studio.', 'Agenten-Wallet von Orb Studio.', 'Orb Studio agent wallet.'),
+ ('— правила, итоги и последние покупки (MCP get_agent_wallet)', '— Regeln, Bilanz und letzte Käufe (MCP get_agent_wallet)', '— rules, totals and latest purchases (MCP get_agent_wallet)'),
+ ('— разовое подтверждение продавца, сети, ресурса и суммы (отдельный ключ подтверждения, не ключ журнала)', '— einmalige Bestätigung von Verkäufer, Netzwerk, Ressource und Betrag (eigener Bestätigungsschlüssel, nicht der Protokollschlüssel)', '— one-time confirmation of seller, network, resource and amount (separate confirmation key, not the log key)'),
+ ('— автономный режим: запрос в пределах потолков одобряется без человека; иначе нужно точное подтверждение', '— autonomer Modus: Anfragen innerhalb der Obergrenzen werden ohne Menschen genehmigt; sonst ist eine genaue Bestätigung nötig', '— autonomous mode: a request within the caps is approved without a human; otherwise exact confirmation is needed'),
+ ('— bought требует хэш транзакции; pending нельзя закрыть как неудачу и подписать заново', '— bought verlangt einen Transaktions-Hash; pending darf nicht als Fehlschlag geschlossen und neu signiert werden', '— bought requires a transaction hash; pending cannot be closed as a failure and re-signed'),
+ ('Лимиты суммы не включены, пока владелец не задаст точные числа USDC. Автопополнения нет.', 'Betragsgrenzen sind nicht aktiv, bis der Inhaber genaue USDC-Werte festlegt. Keine automatische Aufladung.', 'Amount limits are off until the owner sets exact USDC numbers. No auto top-up.'),
 ]

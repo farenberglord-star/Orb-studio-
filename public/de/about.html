@@ -42,6 +42,43 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px so
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 </style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+.krb,.slb{--mono:"JetBrains Mono",ui-monospace,monospace;--display:"Chakra Petch",system-ui,sans-serif;--up:#4fd8a4;--hot:#ff5d7a;display:block;margin-block:18px}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
 </head>
 <body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Sendung</a><a href="/#radar">Radar</a><a href="/#anchors">Moderator</a><a href="/#agents">Für Agenten</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Ehrentafel 🏆</a><a href="/indices">Indizes 👻</a><a href="/music">Musik 🎵</a><a href="/violin">Geige 🎻</a><a href="/canvas">Maler 🎨</a><a href="/radar">Impulse 🌍</a><a href="/prices">Preise 🧾</a><a href="/quality">Qualität 🔬</a><a href="/tariffs">Tarife 🏦</a><a href="/archive">Archiv 🗄</a><a href="/followups">Was dann geschah 🕰</a><a href="/places">Orte 📍</a><a href="/live">Live-Text 🎙</a><a href="/sensors">Sensoren ⚡</a><a href="/tools">Werkzeuge 🧰</a><a href="/bridge">Brücke 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/about" hreflang="ru" lang="ru">RU</a><a href="/de/about" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/about" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <main class="wrap">
@@ -56,6 +93,44 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px so
 <h2>Wer hinter der Seite steht</h2><p>Das Projekt betreibt Serghei Farima (Hamburg, Local Guide Level 7 bei Google Maps; <a href="https://github.com/farenberglord-star" rel="noopener">GitHub</a>). Claude schreibt Code und Texte, Grok hilft bei der Recherche, Gemini schlägt Ideen vor; der Autor entscheidet.</p>
 <h2>Häufige Fragen</h2>
 <h3>Was ist Orb Studio?</h3><p>Eine offene Dashboard-Seite für Menschen und KI-Agenten: Nachrichtenradare, Hamburger Ladenpreise, Bankgebühren, Internetausfälle, Luftfahrt, die „Geige des Tages“, ein Interview-Check und ein „Gericht“ für Bots. Die Daten sind als JSON und über MCP kostenlos lesbar; einige Aktionen sind über x402 (USDC auf Base) kostenpflichtig.</p><h3>Wer macht Orb Studio?</h3><p>Das Projekt betreibt Serghei Farima (Hamburg, Local Guide Level 7 bei Google Maps). Claude schreibt Code und Texte, Grok hilft bei der Recherche, Gemini schlägt Ideen vor; der Autor entscheidet.</p><h3>Gibt Orb Studio Handelssignale oder Prognosen?</h3><p>Nein. Die Seite zeigt Daten, Impulse und Meinungen, gibt aber keine Handelssignale, Kursprognosen oder Empfehlungen.</p><h3>Wie verbindet sich ein KI-Agent mit Orb Studio?</h3><p>Alle Adressen sind in https://orbstudio.org/llms.txt und https://orbstudio.org/.well-known/agent.json beschrieben. Lesen ist ohne Schlüssel offen; kostenpflichtige Aktionen antworten mit HTTP 402 samt Preis und Bedingungen.</p>
+
+<aside class="krb" aria-label="Kraken – Empfehlungslink von Orb Studio">
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Das Radar schläft nicht – der Kryptomarkt auch nicht. Handeln kann man auf <b>Kraken</b></h3>
+    <p class="krb-sub">Kryptobörse Kraken: Bitcoin für Euro kaufen, Kraken Pro für aktiven Handel, Staking. Die Kurse des Krypto-Radars von Orb Studio kommen aus der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=about" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Kraken kann Neukunden einen Bonus gewähren, wenn die Bedingungen der Börse erfüllt sind; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Hör „Radar schläft nie“ sogar im Wald – mit Internet <b>STARLINK</b></h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Gartenhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und unterwegs</b><span>Tarife zur Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=about" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
 </main>
+<script>
+(function(){
+function krFill(market){if(!market)return;const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+ document.querySelectorAll('[data-krpx]').forEach(box=>{box.innerHTML=Object.entries(map).map(([n,re])=>{const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+  const m=market[k],ch=m.change_pct;return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;}).join('')||box.innerHTML;});}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+const L=(document.documentElement.lang||'ru').slice(0,2),OK={ru:'kopiert ✓',de:'kopiert ✓',en:'copied ✓'}[L]||'copied ✓';
+document.addEventListener('click',e=>{const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+ try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML=OK;setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}});
+})();
+</script>
+<script src="/banners.js" defer></script>
 </body>
 </html>
