@@ -9,11 +9,11 @@
   var TT_PARAMS = "controls=1&progress_bar=1&play_button=1&volume_control=1&fullscreen_button=0&timestamp=0&loop=0&music_info=0&description=0&rel=0&native_context_menu=0&closed_caption=0";
   var READY_TIMEOUT = 12000, START_TIMEOUT = 7000;
   var I18N = {
-    ru: { listen: "▶ Слушать", next: "▶ Следующий трек", open: "Открыть в TikTok", lyrics: "Текст песни", hide: "Скрыть текст", nodata: "НЕТ ДАННЫХ", notempo: "темп не указан", bpm: "BPM", loading: "загрузка…", prev: "Предыдущий трек", nextT: "Следующий трек", play: "Играть", pause: "Пауза", queue: "Очередь", tt: "Видео TikTok",
+    ru: { listen: "▶ Слушать", next: "▶ Следующий трек", open: "Открыть в TikTok", lyrics: "Текст песни", share: "Поделиться в X", shareTxt: "Трек Orb Studio по живым данным радаров", hide: "Скрыть текст", nodata: "НЕТ ДАННЫХ", notempo: "темп не указан", bpm: "BPM", loading: "загрузка…", prev: "Предыдущий трек", nextT: "Следующий трек", play: "Играть", pause: "Пауза", queue: "Очередь", tt: "Видео TikTok",
       radars: { geo: "Гео", politics: "Политика", economy: "Экономика", budget: "Бюджет", crypto: "Крипто", energy: "Энергетика", justice: "Правосудие", web: "Веб" } },
-    de: { listen: "▶ Anhören", next: "▶ Nächster Titel", open: "In TikTok öffnen", lyrics: "Songtext", hide: "Text ausblenden", nodata: "KEINE DATEN", notempo: "Tempo nicht angegeben", bpm: "BPM", loading: "lädt…", prev: "Vorheriger Titel", nextT: "Nächster Titel", play: "Abspielen", pause: "Pause", queue: "Warteschlange", tt: "TikTok-Video",
+    de: { listen: "▶ Anhören", next: "▶ Nächster Titel", open: "In TikTok öffnen", lyrics: "Songtext", share: "Auf X teilen", shareTxt: "Ein Orb-Studio-Track aus Live-Radardaten", hide: "Text ausblenden", nodata: "KEINE DATEN", notempo: "Tempo nicht angegeben", bpm: "BPM", loading: "lädt…", prev: "Vorheriger Titel", nextT: "Nächster Titel", play: "Abspielen", pause: "Pause", queue: "Warteschlange", tt: "TikTok-Video",
       radars: { geo: "Geo", politics: "Politik", economy: "Wirtschaft", budget: "Haushalt", crypto: "Krypto", energy: "Energie", justice: "Justiz", web: "Web" } },
-    en: { listen: "▶ Listen", next: "▶ Next track", open: "Open in TikTok", lyrics: "Lyrics", hide: "Hide lyrics", nodata: "NO DATA", notempo: "tempo not specified", bpm: "BPM", loading: "loading…", prev: "Previous track", nextT: "Next track", play: "Play", pause: "Pause", queue: "Queue", tt: "TikTok video",
+    en: { listen: "▶ Listen", next: "▶ Next track", open: "Open in TikTok", lyrics: "Lyrics", share: "Share on X", shareTxt: "An Orb Studio track made from live radar data", hide: "Hide lyrics", nodata: "NO DATA", notempo: "tempo not specified", bpm: "BPM", loading: "loading…", prev: "Previous track", nextT: "Next track", play: "Play", pause: "Pause", queue: "Queue", tt: "TikTok video",
       radars: { geo: "Geo", politics: "Politics", economy: "Economy", budget: "Budget", crypto: "Crypto", energy: "Energy", justice: "Justice", web: "Web" } }
   };
   var HUE = { geo: 352, politics: 318, economy: 212, budget: 146, crypto: 268, energy: 36, justice: 28, web: 186 };
@@ -45,6 +45,7 @@
     ".omp-ttph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font:11px ui-monospace,monospace;color:#6fb9b1;letter-spacing:.06em}",
     ".omp-below{margin-top:10px}",
     ".omp-lb{font:600 13px system-ui,sans-serif;color:#bff;background:transparent;border:1px solid rgba(120,220,210,.35);border-radius:8px;padding:7px 14px;cursor:pointer}",
+    ".omp-x{display:inline-flex;align-items:center;gap:7px;margin-left:8px;font:600 13px system-ui,sans-serif;color:#fff;background:#000;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:7px 14px;text-decoration:none;vertical-align:top}.omp-x:hover,.omp-x:focus-visible{border-color:#fff;outline:none}.omp-x b{font:800 15px/1 system-ui,sans-serif}",
     ".omp-ly{margin-top:10px;padding:14px 16px;border-left:2px solid rgba(120,220,210,.4);white-space:pre-wrap;color:#d6ecea;font-size:14px;line-height:1.55}",
     ".omp-ly .tag{color:#78b8b1;font-size:12px;font-family:ui-monospace,Menlo,monospace}.omp-ly .gap{height:.7em}",
     "@media (max-width:700px){.omp-stage{aspect-ratio:4/5}.omp-top{max-width:92%}.omp-tt{width:30%}.omp-bot{right:35%}.omp-mid{right:0;align-items:flex-start;padding-top:46%}.omp-chip{max-width:120px}}",
@@ -75,7 +76,7 @@
     ui.prev = mk("button", "", ui.ctl, "⏮"); ui.pp = mk("button", "pp", ui.ctl, "▶"); ui.next = mk("button", "", ui.ctl, "⏭"); ui.q = mk("div", "omp-q", ui.bot);
     [ui.prev, ui.pp, ui.next].forEach(function (b) { b.type = "button"; });
     ui.tt = mk("div", "omp-tt", ui.stage); ui.ttph = mk("div", "omp-ttph", ui.tt); ui.open = mk("a", "omp-open", ui.tt); ui.open.target = "_blank"; ui.open.rel = "noopener noreferrer";
-    ui.below = mk("div", "omp-below", root); ui.lb = mk("button", "omp-lb", ui.below); ui.lb.type = "button"; ui.ly = mk("div", "omp-ly", ui.below); ui.ly.hidden = true;
+    ui.below = mk("div", "omp-below", root); ui.lb = mk("button", "omp-lb", ui.below); ui.lb.type = "button"; ui.xs = mk("a", "omp-x", ui.below); ui.xs.target = "_blank"; ui.xs.rel = "noopener noreferrer"; ui.ly = mk("div", "omp-ly", ui.below); ui.ly.hidden = true;
     on(ui.listen, "click", function () { play(idx); });
     on(ui.nextBig, "click", function () { show(ui.nextBig, false); wantPlay = true; mountTT(true); });
     on(ui.prev, "click", function () { prev(); }); on(ui.next, "click", function () { next(); }); on(ui.pp, "click", function () { toggle(); });
@@ -153,9 +154,16 @@
     ui.ly.textContent = ""; ui.ly.hidden = !(lyrOpen && lines && lines.length); if (ui.ly.hidden) return;
     lines.forEach(function (s) { s = String(s == null ? "" : s); if (!s.trim()) { mk("div", "gap", ui.ly); return; } mk("div", /^\s*[\[(]/.test(s) ? "tag" : "", ui.ly, s); });
   }
+  function renderShare() {
+    var t = tracks[idx]; if (!t || !validId(t.id)) { show(ui.xs, false); return; } show(ui.xs, true);
+    var l = lang(), page = "https://orbstudio.org/" + l + "/music?t=" + encodeURIComponent(String(t.id));
+    var title = String(t.title || "").slice(0, 90), text = "\u266B " + title + " \u2014 " + X().shareTxt;
+    ui.xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(text) + "&url=" + encodeURIComponent(page) + "&hashtags=OrbStudio,AImusic";
+    ui.xs.textContent = ""; mk("b", "", ui.xs, "\uD835\uDD4F"); ui.xs.appendChild(document.createTextNode(X().share)); ui.xs.setAttribute("aria-label", X().share + ": " + title);
+  }
   function select(i, autoplay) {
     if (!tracks.length) return; idx = ((i % tracks.length) + tracks.length) % tracks.length; var t = tracks[idx];
-    playing = false; show(ui.nextBig, false); renderQueue(); renderInfo(); renderLyrics();
+    playing = false; show(ui.nextBig, false); renderQueue(); renderInfo(); renderLyrics(); renderShare();
     if (has3d) window.OrbMusic3D.setTrack(t);
     mountTT(autoplay);
     if (cb.onTrack) try { cb.onTrack(t, idx); } catch (e) {}
@@ -168,7 +176,7 @@
     var seen = {}; tracks = list.filter(function (t) { var k = String(t.id); if (seen[k]) return false; seen[k] = 1; return true; });
     if (!tracks.length) { idx = 0; show(ui.nodata, true); show(ui.listen, false); renderQueue(); renderInfo(); renderLyrics(); if (has3d) window.OrbMusic3D.setTrack(null); mountTT(false); setState("idle"); return false; }
     show(ui.nodata, false);
-    if (first || curId == null) { show(ui.listen, !started); select(0, false); setState(started ? lastState : "idle"); return true; }
+    if (first || curId == null) { var si = 0; try { var q = new URLSearchParams(location.search).get("t"); if (q) tracks.forEach(function (t, i) { if (String(t.id) === q) si = i; }); } catch (e) {} show(ui.listen, !started); select(si, false); setState(started ? lastState : "idle"); return true; }
     var ni = -1; tracks.forEach(function (t, i) { if (String(t.id) === curId) ni = i; });
     if (ni >= 0) { idx = ni; tracks[idx] = tracks[ni]; renderQueue(); renderInfo(); renderLyrics(); } // new tracks join the queue, current keeps playing
     else select(Math.min(idx, tracks.length - 1), started);
