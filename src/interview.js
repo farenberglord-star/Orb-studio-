@@ -53,11 +53,11 @@ const SYSTEM = "You extract verifiable claims from an interview transcript for O
   "Find: (1) price_prediction — a price target for a crypto asset or market with a deadline; resolve relative deadlines ('end of this year', 'in 12 months') from the video date to an ISO date; " +
   "(2) forecast — other checkable predictions with a date (adoption, regulation, events); (3) fact — checkable statements about the present (numbers, market share, events); " +
   "(4) interest — the speaker says he owns, sells or is paid for what he promotes; (5) pressure — urgency or hype aimed at the listener ('last chance', 'guaranteed', 'happening very fast', 'x100'). " +
-  "Give the timecode in seconds where the claim is made (from the [mm:ss] marks). At most 10 items, most important first. Write each summary in Russian, German and English (max 25 words each).";
+  "For each item give the number of the transcript line (L123 → 123) where it is said. At most 10 items, most important first. Write each summary in Russian, German and English (max 25 words each).";
 const TOOL = { name: "report_claims", description: "Report the claims found in the interview.", input_schema: { type: "object", required: ["speaker", "claims"], properties: {
   speaker: { type: "string", description: "Main speaker's name if stated, else empty" },
-  claims: { type: "array", maxItems: 10, items: { type: "object", required: ["t_s", "kind", "summary"], properties: {
-    t_s: { type: "number" }, kind: { type: "string", enum: ["price_prediction", "forecast", "fact", "interest", "pressure"] },
+  claims: { type: "array", maxItems: 10, items: { type: "object", required: ["line", "kind", "summary"], properties: {
+    line: { type: "integer", description: "Number N of the transcript line LN where the claim is said" }, kind: { type: "string", enum: ["price_prediction", "forecast", "fact", "interest", "pressure"] },
     asset: { type: "string", description: "BTC, ETH, XRP, SOL or other ticker; empty if none" },
     direction: { type: "string", enum: ["above", "below", ""] }, target: { type: "number" }, currency: { type: "string", enum: ["USD", "EUR", ""] },
     deadline: { type: "string", description: "YYYY-MM-DD or empty" },
@@ -65,7 +65,10 @@ const TOOL = { name: "report_claims", description: "Report the claims found in t
 
 async function extract(env, meta, tr) {
   if (!env.ANTHROPIC_API_KEY) throw new Error("no ANTHROPIC_API_KEY");
-  let text = tr.seg.map((x) => `[${fmt(x.s)}] ${x.text}`).join("\n");
+  // строки по ~15 с с номером: модель возвращает номер строки, время берём сами (так тайм-код не «плывёт»)
+  const lines = [];
+  for (const x of tr.seg) { const last = lines[lines.length - 1]; if (last && x.s - last.s < 15) last.text += " " + x.text; else lines.push({ s: x.s, text: x.text }); }
+  let text = lines.map((x, i) => `L${i} [${fmt(x.s)}] ${x.text}`).join("\n");
   if (text.length > MAX_TRANSCRIPT) text = text.slice(0, MAX_TRANSCRIPT) + "\n[transcript cut]";
   const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(90000), method: "POST",
     headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
@@ -76,7 +79,7 @@ async function extract(env, meta, tr) {
   if (!t || !Array.isArray(t.input.claims)) throw new Error("no claims from Claude");
   const cl = (v, n) => String(v || "").replace(/[\u0000-\u001f]/g, " ").slice(0, n);
   return { speaker: cl(t.input.speaker, 80), model: j.model || null, claims: t.input.claims.slice(0, 10).map((c) => ({
-    t_s: Math.max(0, Math.round(Number(c.t_s) || 0)), kind: c.kind, asset: cl(c.asset, 10).toUpperCase(), direction: c.direction || "",
+    t_s: Math.round((lines[Math.max(0, Math.min(lines.length - 1, parseInt(c.line, 10) || 0))] || { s: 0 }).s), kind: c.kind, asset: cl(c.asset, 10).toUpperCase(), direction: c.direction || "",
     target: Number.isFinite(Number(c.target)) && Number(c.target) > 0 ? Number(c.target) : null, currency: c.currency || "",
     deadline: /^\d{4}-\d{2}-\d{2}$/.test(c.deadline || "") ? c.deadline : null,
     summary: { ru: cl(c.summary && c.summary.ru, 300), de: cl(c.summary && c.summary.de, 300), en: cl(c.summary && c.summary.en, 300) } })) };
@@ -101,9 +104,11 @@ async function verify(card, today) {
     if (!c.deadline || c.deadline > today) { c.check = judgePrice(null, c, card.video.date, today); continue; }
     const pair = base + (c.currency === "EUR" ? "EUR" : "USD");
     try {
-      if (!cache[pair]) { const r = await fetch(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=1440&since=${Math.floor(Date.parse(card.video.date) / 1000) - 86400}`, { signal: AbortSignal.timeout(15000) }); const j = await r.json(); cache[pair] = j.result ? Object.values(j.result).find(Array.isArray) || [] : []; }
+      if (!cache[pair]) { const r = await fetch(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=1440`, { signal: AbortSignal.timeout(15000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/tools/interview)" } }); const j = await r.json();
+        cache[pair] = j.result ? Object.values(j.result).find(Array.isArray) || [] : []; if (!cache[pair].length) cache[pair + ":err"] = (j.error || []).join(",") || "HTTP " + r.status; }
       c.check = { ...judgePrice(cache[pair], c, card.video.date, today), pair };
-    } catch (e) { c.check = { status: "no_data" }; }
+      if (c.check.status === "no_data") c.check.reason = cache[pair + ":err"] || (cache[pair].length ? "history starts " + new Date(cache[pair][0][0] * 1000).toISOString().slice(0, 10) : "empty");
+    } catch (e) { c.check = { status: "no_data", reason: String(e && e.message || e).slice(0, 80) }; }
   }
   card.checked_at = today;
   return card;
