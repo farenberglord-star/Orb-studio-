@@ -1858,6 +1858,13 @@ PAGES["tools"] += [  # карточки «Проверка интервью» и
  ('❤️\u200d🔥 Эмоциональные тайм-коды', '❤️\u200d🔥 Emotionale Zeitmarken', '❤️\u200d🔥 Emotional timecodes'),
 ]
 
+PAGES["tools/clips"] += [  # мостик к проверке интервью
+ ('🔎 Проверь интервью', '🔎 Interview prüfen', '🔎 Check an interview'),
+ ('Громкий прогноз в интервью про крипту? Вставьте ссылку на YouTube — ИИ выпишет утверждения с тайм-кодами и сверит прогнозы цены с Kraken.', 'Eine laute Prognose in einem Krypto-Interview? YouTube-Link einfügen – die KI listet Aussagen mit Zeitmarken auf und gleicht Kursprognosen mit Kraken ab.', 'A bold forecast in a crypto interview? Paste a YouTube link – the AI lists claims with timecodes and checks price targets against Kraken.'),
+ ('Ссылка на YouTube', 'YouTube-Link', 'YouTube link'),
+ ('Проверить', 'Prüfen', 'Check'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],

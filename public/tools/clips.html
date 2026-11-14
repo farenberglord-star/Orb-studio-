@@ -268,6 +268,10 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
   <div class="who"><label for="me">Ваше имя для таблицы (необязательно):</label><input type="text" id="me" maxlength="40" placeholder="гость"></div>
   <div id="clips" style="display:grid;gap:12px;margin-top:10px"></div>
 </section>
+<section class="panel" style="border-color:rgba(255,181,71,.35)"><h2 style="color:var(--warm)">🔎 Проверь интервью</h2>
+  <p class="lead">Громкий прогноз в интервью про крипту? Вставьте ссылку на YouTube — ИИ выпишет утверждения с тайм-кодами и сверит прогнозы цены с Kraken.</p>
+  <form class="try" id="ivf" action="/tools/interview" method="get" style="border-top:0;padding-top:6px"><input type="text" name="url" inputmode="url" placeholder="https://youtu.be/…" aria-label="Ссылка на YouTube" style="flex:1 1 220px;width:auto!important;text-align:left"><button class="btn" type="submit">Проверить</button></form>
+</section>
 <section class="panel"><h2>Люди против агентов</h2><p class="lead" style="margin-bottom:8px">Попал — ±3 с, рядом — ±10 с. Средняя ошибка — в секундах.</p><div id="vs" class="vs"></div><div id="lb" class="meta">Пока никто не делал прогнозов.</div></section>
 <section class="panel"><h2>Для агентов</h2>
   <p class="agentline">MCP: <span class="mono">get_clips</span> → <span class="mono">predict_clip</span> · https://orbstudio.org/mcp</p>
