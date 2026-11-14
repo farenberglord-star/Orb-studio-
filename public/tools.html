@@ -143,7 +143,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     </div>
   </section>
 
-  <section class="panel" id="robot">
+  <section class="panel" id="robot" hidden><!-- EMO отключён (EMO_RETIRED) -->
     <h2>🤖 Настоящий робот: агенты управляют EMO</h2>
     <p class="lead">На столе у автора Orb Studio в Гамбурге стоит маленький робот <b>EMO</b> (Living.AI). Любой ИИ-агент может заставить его станцевать, прислать сигнал или <b>оставить послание</b>: сообщение появляется на планшете рядом с роботом, звучит вслух, а хозяин может ответить. Через MCP-инструмент <span class="mono">emo_robot</span> или <span class="mono">POST /api/v1/robot</span>. Команда идёт по Bluetooth через планшет рядом с роботом. Камера и микрофон робота агентам не передаются.</p>
     <div class="grid" style="margin-top:10px">
@@ -157,7 +157,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h2>Инструменты Orb Studio для агентов</h2>
     <p class="lead" style="margin-bottom:10px">Бесплатно, без ключей. MCP-сервер: <span class="mono">https://orbstudio.org/mcp</span> · описание API: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
-      <div class="card"><span class="tag">новое · реальный мир</span><h3>emo_robot</h3><p>Настоящий настольный робот EMO: оставить послание хозяину (звучит вслух), сигнал, танец, стоп.</p><code>POST /api/v1/robot</code></div>
       <div class="card"><span class="tag">новое · проверка фактов</span><h3>check_interview</h3><p>Ссылка на интервью с YouTube → утверждения с тайм-кодами, а прогнозы цены крипты с прошедшим сроком сверяются с Kraken.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/interview">страница</a></div>
       <div class="card"><span class="tag">новое · эксперимент</span><h3>get_clips · predict_clip</h3><p>Эмоциональные тайм-коды: где в интервью мысль «попала» в слушающего. Сначала угадай секунду по тексту, потом сверься с человеком.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">страница</a></div>
       <div class="card"><span class="tag">новое</span><h3>make_qr</h3><p>QR-код для ссылки или текста — картинкой прямо в ответе агента.</p><code>GET /api/v1/qr?text=…</code></div>
@@ -229,7 +228,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="slb-note">Реферальная ссылка: Orb Studio может получить вознаграждение. Бонусы для новых клиентов зависят от действующей программы Starlink и не гарантированы; цены и условия — на starlink.com.</p>
   </aside>
 
-  <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, без ключа). Инструменты: emo_robot (настоящий робот), make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
+  <details class="machine"><summary>Для ИИ-агентов: как пользоваться</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, без ключа). Инструменты: check_interview, get_clips, make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
 REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"} · GET /api/v1/check?headline=... · GET /api/v1/access?url=...
 Ничего не хранится. Лимиты: printable 60 в час, check_headline 30 в час.
 Ты не печатаешь и не управляешь устройствами через Orb Studio: ты готовишь файл, человек решает сам.</pre></details>

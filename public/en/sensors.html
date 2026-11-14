@@ -212,7 +212,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="sanctions"><div class="nm"><i></i>🚢 Sanctions on ships</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="power"><div class="nm"><i></i>⚡ Electricity in Germany</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="macro"><div class="nm"><i></i>🏦 Macro · ECB</div><div class="vl">loading…</div><div class="ag"></div></div>
-      <div class="sn" data-s="usdc"><div class="nm"><i></i>🪙 USD Coin · EMO’s main sensor</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="usdc"><div class="nm"><i></i>🪙 USD Coin</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="stables"><div class="nm"><i></i>💵 Stablecoins</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn off" data-s="etf"><div class="nm"><i></i>📊 ETF flows</div><div class="vl">no free open source</div><div class="ag">not connected</div></div>
       <div class="sgrp">Orb Studio site</div>
@@ -220,7 +220,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="s_impulse"><div class="nm"><i></i>🌍 Impulses</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_david"><div class="nm"><i></i>🎙 David · episodes</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_music"><div class="nm"><i></i>🎵 Track of the day</div><div class="vl">loading…</div><div class="ag"></div></div>
-      <div class="sn" data-s="s_robot"><div class="nm"><i></i>🤖 EMO robot · agents control it</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="s_robot" hidden><div class="nm"><i></i>🤖 EMO robot · agents control it</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_pulse"><div class="nm"><i></i>🧠 AI pulse · in 24 h</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_promises"><div class="nm"><i></i>🧾 Promised → done · ECB and Fed</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="s_canvas"><div class="nm"><i></i>🎨 Painter · city by the sea</div><div class="vl">loading…</div><div class="ag"></div></div>
@@ -272,7 +272,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="macro"><div class="k">ECB and euro-area inflation</div><div class="v" id="oMacro">—</div></div>
       <div class="row" data-o="vol"><div class="k">Volatility spikes · hourly candles on Kraken</div><div class="v" id="oVol">—</div></div>
       <div class="row" data-o="attn"><div class="k">Collective attention · Wikipedia views yesterday against the usual day</div><div class="v" id="oAttn">—</div></div>
-      <div class="row" data-o="usdc"><div class="k">USD Coin (USDC) · euro rate, dollar peg and the EMO robot</div><div class="v" id="oUsdc">—</div></div>
+      <div class="row" data-o="usdc"><div class="k">USD Coin (USDC) · euro rate and dollar peg</div><div class="v" id="oUsdc">—</div></div>
       <div class="row" data-o="stables"><div class="k">Stablecoins · total in circulation</div><div class="v" id="oStab">—</div></div>
       <div class="row" data-o="site"><div class="k">Orb Studio site · what is new</div><div class="v" id="oSite">—</div></div>
       <div class="row" data-o="exp"><div class="k">Experiment · AI trades by the radar</div><div class="v" id="oExp">—</div></div>
@@ -438,7 +438,7 @@ async function loadMarket(){
     const arr=c==null?'':`<span class="${c>=0?'dn':'up'}">${c>=0?'▲':'▼'}${fmt(Math.abs(c),3)}%</span>`;
     setSensor('usdc',`1 USDC = ${fmt(uc.usdc_eur,4)} € ${arr}${lr?` · EMO ${lr.dir==='up'?'😊 is happy':'😢 is upset'}`:''}`,Date.parse(uc.at),String(uc.usdc_eur));
     $('oUsdc').innerHTML=`<b>1 USDC = ${fmt(uc.usdc_eur,4)} €</b> · in 24 h ${c==null?'—':(c>=0?'+':'')+fmt(c,3)+' %'} · today ${fmt(uc.low_today,4)}–${fmt(uc.high_today,4)} € · to the dollar ${uc.usdc_usd?fmt(uc.usdc_usd,4)+' $ (deviation from $1: '+fmt(uc.peg_deviation_pct,3)+' %)':'—'}`+
-      `<div style="margin-top:4px">🤖 ${esc(uc.emo.rule_ru)}</div>`+(lr?`<div style="margin-top:3px">EMO’s last reaction at ${hm(lr.t)}: rate ${lr.dir==='up'?'rose':'fell'} by ${fmt(Math.abs(lr.move_pct),3)}% – ${lr.dir==='up'?'was happy':'was upset'}${lr.confirmed?' (robot confirmed)':' (failed: '+esc(lr.error||'')+')'}</div>`:'<div style="margin-top:3px;color:var(--dim)">No EMO reactions yet: the rate has not moved by the required step.</div>')+`<div style="margin-top:4px;color:var(--dim);font-size:12px">Kraken data, checked every 6 minutes${stl(uc)}.</div>`;}
+      `<div style="margin-top:4px;color:var(--dim);font-size:12px">Kraken data, checked every 6 minutes${stl(uc)}.</div>`;}
   if(st&&st.total_usd){setSensor('stables',`${fmt(st.total_usd/1e9,1)} bn $ · over the week ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} %`,Date.parse(st.date+'T23:00:00Z'),st.total_usd,'data as of '+dd(st.date));
     $('oStab').innerHTML=`<b>${fmt(st.total_usd/1e9,1)} bn $</b> · over the week ${st.change_7d_pct>=0?'+':''}${fmt(st.change_7d_pct,2)} % (DefiLlama)${stl(st)}`;}
 }

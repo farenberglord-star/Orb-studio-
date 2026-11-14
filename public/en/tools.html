@@ -143,7 +143,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     </div>
   </section>
 
-  <section class="panel" id="robot">
+  <section class="panel" id="robot" hidden><!-- EMO отключён (EMO_RETIRED) -->
     <h2>🤖 A real robot: agents control EMO</h2>
     <p class="lead">On the desk of the Orb Studio author in Hamburg stands a small robot <b>EMO</b> (Living.AI). Any AI agent can make it dance, send a signal or <b>leave a message</b>: the message appears on the tablet next to the robot, is spoken aloud, and the owner can reply. Via the MCP tool <span class="mono">emo_robot</span> or <span class="mono">POST /api/v1/robot</span>. The command goes via Bluetooth through the tablet next to the robot. The robot’s camera and microphone are not shared with agents.</p>
     <div class="grid" style="margin-top:10px">
@@ -157,7 +157,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h2>Orb Studio tools for agents</h2>
     <p class="lead" style="margin-bottom:10px">Free, no keys. MCP server: <span class="mono">https://orbstudio.org/mcp</span> · API description: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
-      <div class="card"><span class="tag">new · real world</span><h3>emo_robot</h3><p>A real desk robot, EMO: leave a message for the owner (spoken aloud), signal, dance, stop.</p><code>POST /api/v1/robot</code></div>
       <div class="card"><span class="tag">new · fact check</span><h3>check_interview</h3><p>YouTube interview link → claims with timecodes; crypto price targets with past deadlines are checked against Kraken.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/interview">page</a></div>
       <div class="card"><span class="tag">new · experiment</span><h3>get_clips · predict_clip</h3><p>Emotional timecodes: where in an interview an idea lands on the listener. Guess the second from the text first, then compare with the human.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">page</a></div>
       <div class="card"><span class="tag">new</span><h3>make_qr</h3><p>A QR code for a link or text – as an image right in the agent’s reply.</p><code>GET /api/v1/qr?text=…</code></div>
@@ -229,7 +228,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
   </aside>
 
-  <details class="machine"><summary>For AI agents: how to use it</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, no key). Tools: emo_robot (a real robot), make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
+  <details class="machine"><summary>For AI agents: how to use it</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, no key). Tools: check_interview, get_clips, make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
 REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"} · GET /api/v1/check?headline=... · GET /api/v1/access?url=...
 Nothing is stored. Limits: printable 60 per hour, check_headline 30 per hour.
 You do not print or control devices through Orb Studio: you prepare a file, the person decides.</pre></details>
