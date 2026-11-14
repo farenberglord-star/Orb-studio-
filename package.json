@@ -25,7 +25,7 @@
     "test:clipstats": "node --test test/clipstats.test.mjs"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.160.0"
   },
   "dependencies": {
     "@resvg/resvg-wasm": "2.6.2",
