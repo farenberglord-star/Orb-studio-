@@ -186,7 +186,7 @@ export async function checkInterview(request, env, url) {
   await ensure(env);
   const today = new Date().toISOString().slice(0, 10);
   const old = await env.DB.prepare("SELECT data FROM interview_checks WHERE id=?1").bind(vid).first();
-  if (old) { const prev = JSON.parse(old.data), before = prev.claims.map((c) => c.check && c.check.status); const card = await verify(prev, today); await emitEvents(env, card, before); await env.DB.prepare("UPDATE interview_checks SET data=?2 WHERE id=?1").bind(vid, JSON.stringify(card)).run(); return { ...card, cached: true }; }
+  if (old) { const prev = JSON.parse(old.data), before = prev.claims.map((c) => c.check && c.check.status); const card = await verify(prev, today); await emitEvents(env, card, null); void before; /* повторы отсекает UNIQUE */ await env.DB.prepare("UPDATE interview_checks SET data=?2 WHERE id=?1").bind(vid, JSON.stringify(card)).run(); return { ...card, cached: true }; }
   if (!env.SUPADATA_API_KEY) return { error: "transcript service not configured" };
   const vk = await visitorKey(request, today);
   const [all, me] = await Promise.all([env.DB.prepare("SELECT n FROM interview_quota WHERE day=?1 AND k='all'").bind(today).first(), env.DB.prepare("SELECT n FROM interview_quota WHERE day=?1 AND k=?2").bind(today, vk).first()]);
