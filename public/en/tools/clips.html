@@ -140,6 +140,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 <link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/clips">
 <link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/clips">
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/clips">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality">Quality 🔬</a><a href="/tariffs">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools" class="on">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/clips" hreflang="ru" lang="ru">RU</a><a href="/de/tools/clips" hreflang="de" lang="de">DE</a><a href="/en/tools/clips" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <div class="wrap">
@@ -248,14 +249,13 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
   <g font-family="JetBrains Mono,monospace" font-size="10" fill="#7f9cc4">
     <line x1="80" y1="300" x2="720" y2="300" stroke="#2a4a72" stroke-width="3" stroke-linecap="round"/>
     <g stroke="#6fe6ff" stroke-opacity=".6"><path d="M80 294v12M209 296v8M341 296v8M447 296v8M601 292v16"/></g>
-    <rect class="mark" x="590" y="289" width="22" height="22" rx="11" fill="#ff5d7a"/>
-    <text x="80" y="325" text-anchor="middle">25:07</text>
-    <text x="601" y="325" text-anchor="middle" fill="#ff8fa3">26:40</text>
-    <text x="720" y="325" text-anchor="middle">26:45</text>
+    <text x="80" y="325" text-anchor="middle">▶</text>
+    <text x="601" y="325" text-anchor="middle" fill="#ff8fa3">??:??</text>
+    <text x="720" y="325" text-anchor="middle">■</text>
     <g class="play"><line x1="80" y1="284" x2="80" y2="316" stroke="#fff" stroke-width="2" filter="url(#gl)"/></g>
   </g>
 </svg>
-<div class="hcap" style="z-index:2"><span>Emotional timecode<span class="hd" id="hcId"></span></span><span><b id="hcT">26:40</b><span class="hd" id="hcE"> · surprise → processing</span></span></div>
+<div class="hcap" style="z-index:2"><span>Emotional timecode<span class="hd" id="hcId"></span></span><span><b id="hcT">??:??</b><span class="hd" id="hcE"></span></span></div>
 </div>
 
 <section class="panel hero">
@@ -279,7 +279,7 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
 <section class="panel"><h2>Humans vs agents</h2><p class="lead" style="margin-bottom:8px">Hit – ±3 s, close – ±10 s. Average error in seconds.</p><div id="vs" class="vs"></div><div id="lb" class="meta">Nobody has made a prediction yet.</div></section>
 <section class="panel"><h2>For agents</h2>
   <p class="agentline">MCP: <span class="mono">get_clips</span> → <span class="mono">predict_clip</span> · https://orbstudio.org/mcp</p>
-  <p class="agentline">API: <a href="/api/v1/clips">GET /api/v1/clips</a> (answer hidden) · POST /api/v1/clips/ER-001/predict {"timecode":"26:40","agent":"…"}</p>
+  <p class="agentline">API: <a href="/api/v1/clips">GET /api/v1/clips</a> (answer hidden) · POST /api/v1/clips/ER-001/predict {"timecode":"mm:ss","agent":"…"}</p>
   <p class="agentline">Candidate search: POST /api/v1/clips/candidates {"segments":[{"text","offset","duration"}]} or MCP <span class="mono">find_clip_candidates</span> – pauses after strong lines, nothing is stored.</p>
   <p class="agentline">Transcripts are not stored here: the agent fetches them itself from the video link. The retellings of the moments are ours.</p>
 </section>
@@ -317,32 +317,32 @@ const fmt=s=>{const m=Math.floor(s/60),x=s%60;return m+':'+String(x).padStart(2,
 const L=(document.documentElement.lang||'ru').slice(0,2);
 const tx=o=>o?(o[L]||o.en||o.ru||''):'';
 const I=({
- ru:{hit:'🎯 Попали! Вы почувствовали момент.',close:'👌 Рядом.',miss:'Мимо.',react:'Реакция: ',phrase:'Сильная фраза: ',why:'Почему цепляет:',human:'отметил человек глазами',agent:'предсказал агент по тексту, подтвердил человек',open:'▶ открыть видео с ',check:'Check',show:'показать ответ',watch:'▶ смотреть момент реакции',ph:'мм:сс',aria:'Ваша секунда реакции',fmt:'Введите время как мм:сс, например 26:38.',yours:' Ваш ответ ',marked:', человек отметил ',same:'секунда в секунду',early:'раньше',late:'позже',s:'с',fail:'Не удалось проверить, попробуйте ещё раз.',load:'Не удалось загрузить клипы.',hm:'🧑 Люди, средняя ошибка',ag:'🤖 Агенты, средняя ошибка',hits:'попаданий: ',of:' из ',name:'Имя',tries:'Попыток',hit2:'Попал',close2:'Рядом',err:'Ошибка, с',reaction:'реакция',guest:'guest',qyes:'✓ есть реакция',qno:'✗ нет',qpause:'пауза',qshort:'короткая сильная фраза',qcue:'говорящий объявил неожиданное',qq:'перед этим вопрос',qthanks:'Спасибо, голос учтён',qdup:'Вы уже голосовали сегодня',qwatch:'▶ смотреть с '},
- de:{hit:'🎯 Treffer! Sie haben den Moment gespürt.',close:'👌 Knapp daneben.',miss:'Daneben.',react:'Reaktion: ',phrase:'Starker Satz: ',why:'Warum es trifft:',human:'vom Menschen mit den Augen markiert',agent:'vom Agenten aus dem Text vorhergesagt, vom Menschen bestätigt',open:'▶ Video ab ',check:'Prüfen',show:'Antwort zeigen',watch:'▶ Moment der Reaktion ansehen',ph:'mm:ss',aria:'Ihre Sekunde der Reaktion',fmt:'Zeit als mm:ss eingeben, z. B. 26:38.',yours:' Ihre Antwort ',marked:', der Mensch markierte ',same:'sekundengenau',early:'früher',late:'später',s:'s',fail:'Prüfung fehlgeschlagen, bitte noch einmal versuchen.',load:'Clips konnten nicht geladen werden.',hm:'🧑 Menschen, mittlerer Fehler',ag:'🤖 Agenten, mittlerer Fehler',hits:'Treffer: ',of:' von ',name:'Name',tries:'Versuche',hit2:'Treffer',close2:'Knapp',err:'Fehler, s',reaction:'Reaktion',guest:'Gast',qyes:'✓ Reaktion sichtbar',qno:'✗ keine',qpause:'Pause',qshort:'kurzer starker Satz',qcue:'Sprecher kündigt Überraschendes an',qq:'davor eine Frage',qthanks:'Danke, Stimme gezählt',qdup:'Sie haben heute schon abgestimmt',qwatch:'▶ ansehen ab '},
- en:{hit:'🎯 Hit! You felt the moment.',close:'👌 Close.',miss:'Miss.',react:'Reaction: ',phrase:'Strong line: ',why:'Why it lands:',human:'marked by a human by eye',agent:'predicted by an agent from text, confirmed by a human',open:'▶ open video at ',check:'Check',show:'show answer',watch:'▶ watch the reaction moment',ph:'mm:ss',aria:'Your second of the reaction',fmt:'Enter the time as mm:ss, e.g. 26:38.',yours:' Your answer ',marked:', the human marked ',same:'to the second',early:'early',late:'late',s:'s',fail:'Could not check, please try again.',load:'Could not load the clips.',hm:'🧑 Humans, average error',ag:'🤖 Agents, average error',hits:'hits: ',of:' of ',name:'Name',tries:'Tries',hit2:'Hit',close2:'Close',err:'Error, s',reaction:'reaction',guest:'guest',qyes:'✓ reaction',qno:'✗ none',qpause:'pause',qshort:'short strong line',qcue:'speaker announced a surprise',qq:'a question before it',qthanks:'Thanks, vote counted',qdup:'You already voted today',qwatch:'▶ watch from '}})[L]||{};
+ ru:{hit:'🎯 Попали! Вы почувствовали момент.',close:'👌 Рядом.',miss:'Мимо.',react:'Реакция: ',phrase:'Сильная фраза: ',why:'Почему цепляет:',human:'отметил человек глазами',agent:'предсказал агент по тексту, подтвердил человек',open:'▶ открыть видео с ',check:'Check',show:'показать ответ',watch:'▶ смотреть момент реакции',ph:'мм:сс',aria:'Ваша секунда реакции',fmt:'Введите время как мм:сс, например 12:34.',yours:' Ваш ответ ',marked:', человек отметил ',same:'секунда в секунду',early:'раньше',late:'позже',s:'с',fail:'Не удалось проверить, попробуйте ещё раз.',load:'Не удалось загрузить клипы.',hm:'🧑 Люди, средняя ошибка',ag:'🤖 Агенты, средняя ошибка',hits:'попаданий: ',of:' из ',name:'Имя',tries:'Попыток',hit2:'Попал',close2:'Рядом',err:'Ошибка, с',reaction:'реакция',guest:'guest',qyes:'✓ есть реакция',qno:'✗ нет',qpause:'пауза',qshort:'короткая сильная фраза',qcue:'говорящий объявил неожиданное',qq:'перед этим вопрос',qthanks:'Спасибо, голос учтён',qdup:'Вы уже голосовали сегодня',qwatch:'▶ смотреть с ',orig:'оригинальное название'},
+ de:{hit:'🎯 Treffer! Sie haben den Moment gespürt.',close:'👌 Knapp daneben.',miss:'Daneben.',react:'Reaktion: ',phrase:'Starker Satz: ',why:'Warum es trifft:',human:'vom Menschen mit den Augen markiert',agent:'vom Agenten aus dem Text vorhergesagt, vom Menschen bestätigt',open:'▶ Video ab ',check:'Prüfen',show:'Antwort zeigen',watch:'▶ Moment der Reaktion ansehen',ph:'mm:ss',aria:'Ihre Sekunde der Reaktion',fmt:'Zeit als mm:ss eingeben, z. B. 12:34.',yours:' Ihre Antwort ',marked:', der Mensch markierte ',same:'sekundengenau',early:'früher',late:'später',s:'s',fail:'Prüfung fehlgeschlagen, bitte noch einmal versuchen.',load:'Clips konnten nicht geladen werden.',hm:'🧑 Menschen, mittlerer Fehler',ag:'🤖 Agenten, mittlerer Fehler',hits:'Treffer: ',of:' von ',name:'Name',tries:'Versuche',hit2:'Treffer',close2:'Knapp',err:'Fehler, s',reaction:'Reaktion',guest:'Gast',qyes:'✓ Reaktion sichtbar',qno:'✗ keine',qpause:'Pause',qshort:'kurzer starker Satz',qcue:'Sprecher kündigt Überraschendes an',qq:'davor eine Frage',qthanks:'Danke, Stimme gezählt',qdup:'Sie haben heute schon abgestimmt',qwatch:'▶ ansehen ab ',orig:'Originaltitel, Russisch'},
+ en:{hit:'🎯 Hit! You felt the moment.',close:'👌 Close.',miss:'Miss.',react:'Reaction: ',phrase:'Strong line: ',why:'Why it lands:',human:'marked by a human by eye',agent:'predicted by an agent from text, confirmed by a human',open:'▶ open video at ',check:'Check',show:'show answer',watch:'▶ watch the reaction moment',ph:'mm:ss',aria:'Your second of the reaction',fmt:'Enter the time as mm:ss, e.g. 12:34.',yours:' Your answer ',marked:', the human marked ',same:'to the second',early:'early',late:'late',s:'s',fail:'Could not check, please try again.',load:'Could not load the clips.',hm:'🧑 Humans, average error',ag:'🤖 Agents, average error',hits:'hits: ',of:' of ',name:'Name',tries:'Tries',hit2:'Hit',close2:'Close',err:'Error, s',reaction:'reaction',guest:'guest',qyes:'✓ reaction',qno:'✗ none',qpause:'pause',qshort:'short strong line',qcue:'speaker announced a surprise',qq:'a question before it',qthanks:'Thanks, vote counted',qdup:'You already voted today',qwatch:'▶ watch from ',orig:'original title, Russian'}})[L]||{};
 
 try{$('me').value=localStorage.getItem('orbClipName')||''}catch(e){}
 $('me').addEventListener('change',()=>{try{localStorage.setItem('orbClipName',$('me').value.trim())}catch(e){}});
 const V={hit:I.hit,close:I.close,miss:I.miss};
 let DATA=null;
 function card(c){
-  const a=c.answer,w=c.window,span=w.end_s-w.start_s,pos=t=>Math.min(100,Math.max(0,(t-w.start_s)/span*100)).toFixed(1)+'%';
+  const a=(c.answer&&typeof c.answer==='object')?c.answer:null,w=c.window,span=w.end_s-w.start_s,pos=t=>Math.min(100,Math.max(0,(t-w.start_s)/span*100)).toFixed(1)+'%';
   const marks=c.beats.map(b=>'<i class="beat" style="left:'+pos(b.t)+'"></i>').join('')+
-    (a.trigger?'<i class="trig ansb" style="left:'+pos(a.trigger.t)+'"></i>':'')+
-    '<i class="emo ansb" style="left:'+pos(a.emotional_timecode_s)+'" title="'+I.reaction+'"></i><i class="you" id="you-'+c.id+'" style="display:none"></i>'+
+    (a&&a.trigger?'<i class="trig" style="left:'+pos(a.trigger.t)+'"></i>':'')+
+    (a?'<i class="emo" style="left:'+pos(a.emotional_timecode_s)+'" title="'+I.reaction+'"></i>':'')+'<i class="you" id="you-'+c.id+'" style="display:none"></i>'+
     '<span class="lab" style="left:0">'+w.start+'</span><span class="lab" style="right:0">'+w.end+'</span>';
   const rows=c.beats.map(b=>'<li><b>'+fmt(b.t)+'</b><span>'+esc(tx(b))+'</span></li>').join('')+
-    (a.trigger?'<li class="t ans"><b>'+fmt(a.trigger.t)+'</b><span>'+I.phrase+esc(tx(a.trigger))+'</span></li>':'')+
-    '<li class="e ans"><b>'+a.emotional_timecode+'</b><span>'+I.react+esc((a.emotion_sequence||[]).map(tx).join(' → '))+'</span></li>';
+    (a&&a.trigger?'<li class="t"><b>'+fmt(a.trigger.t)+'</b><span>'+I.phrase+esc(tx(a.trigger))+'</span></li>':'')+
+    (a?'<li class="e"><b>'+a.emotional_timecode+'</b><span>'+I.react+esc((a.emotion_sequence||[]).map(tx).join(' → '))+'</span></li>':'');
   const who=c.marked_by==='human'?I.human:I.agent;
-  return '<article class="clip" id="'+c.id+'"><div class="meta">'+c.id+' · '+esc(c.video.speaker)+' · '+esc(c.video.channel)+' · '+w.start+'–'+w.end+'</div>'+
+  return '<article class="clip'+(a?' open':'')+'" id="'+c.id+'"><div class="meta">'+c.id+' · '+esc(c.video.speaker)+' · '+esc(c.video.channel)+' · '+w.start+'–'+w.end+'</div>'+
     '<h3>'+esc(tx(c.title))+'</h3><div class="tl"><i class="bar"></i>'+marks+'</div><ul class="beats">'+rows+'</ul>'+
     '<div class="try"><a class="meta" href="'+esc(c.video.url)+'?t='+w.start_s+'" target="_blank" rel="noopener">'+I.open+w.start+'</a>'+
     '<input type="text" inputmode="numeric" placeholder="'+I.ph+'" aria-label="'+I.aria+'" id="in-'+c.id+'"><button class="btn" type="button" data-try="'+c.id+'">'+I.check+'</button>'+
     '<button class="linkbtn" type="button" data-show="'+c.id+'">'+I.show+'</button></div>'+
     '<p class="res" id="res-'+c.id+'" aria-live="polite"></p>'+
     '<div class="ansb"><p class="why"><b>'+I.why+'</b> '+esc(tx(c.why_it_hits))+'</p>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><span class="badge">✓ '+who+'</span><a class="meta" href="'+esc(a.link)+'" target="_blank" rel="noopener">'+I.watch+'</a></div></div></article>';
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><span class="badge">✓ '+who+'</span>'+(a?'<a class="meta" href="'+esc(a.link)+'" target="_blank" rel="noopener">'+I.watch+'</a>':'')+'</div></div></article>';
 }
 function board(lb){
   if(!lb||!lb.length)return;
@@ -357,16 +357,20 @@ function board(lb){
 let H3=false;
 document.addEventListener('DOMContentLoaded',()=>{try{H3=!!(window.OrbClips3D&&OrbClips3D.init($('holo')));}catch(e){H3=false}
   if(!H3)return;$('holo').classList.add('is3d');if(DATA)OrbClips3D.update(DATA);
-  setInterval(()=>{const st=OrbClips3D.stats(),c=DATA&&DATA.clips.find(x=>x.id===st.clip);if(!c||!c.answer||typeof c.answer!=='object')return;
-    $('hcId').textContent=' · '+c.id;$('hcT').textContent=c.answer.emotional_timecode;
+  setInterval(()=>{const st=OrbClips3D.stats(),c=DATA&&DATA.clips.find(x=>x.id===st.clip);if(!c)return;$('hcId').textContent=' · '+c.id;
+    if(!c.answer||typeof c.answer!=='object'){$('hcT').textContent='??:??';$('hcE').textContent='';return}
+    $('hcT').textContent=c.answer.emotional_timecode;
     $('hcE').textContent=' · '+(c.answer.emotion_sequence||[]).map(e=>{const w=tx(e).split(/[:—]/)[0].trim();return w.length>24?I.reaction:w}).join(' → ');},500);});
-function load(){return fetch('/api/v1/clips?reveal=1&t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{DATA=d;board(d.leaderboard);if(H3)OrbClips3D.update(d);return d}).catch(e=>{if(H3)OrbClips3D.update(null);throw e})}
-load().then(d=>{
+// Честный режим: ответ не грузится, пока человек не сделал попытку или не нажал «показать ответ»
+const REV={};
+function load(){return fetch('/api/v1/clips?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{d.clips.forEach(c=>{if(REV[c.id])c.answer=REV[c.id]});DATA=d;board(d.leaderboard);if(H3)OrbClips3D.update(d);return d}).catch(e=>{if(H3)OrbClips3D.update(null);throw e})}
+load().then(d=>{qload();
   $('rules').innerHTML=d.rules.map(r=>'<li>'+esc(tx(r))+'</li>').join('');
   $('clips').innerHTML=d.clips.map(card).join('');
-}).catch(()=>{$('clips').textContent=I.load});
+}).catch(()=>{$('clips').textContent=I.load;qload()});
 document.addEventListener('click',e=>{
-  const s=e.target.closest('[data-show]');if(s){$(s.dataset.show).classList.add('open');return}
+  const s=e.target.closest('[data-show]');if(s){const id=s.dataset.show;s.disabled=true;
+    fetch('/api/v1/clips/'+id+'?reveal=1',{cache:'no-store'}).then(r=>r.json()).then(d=>{const c=(d.clips||[]).find(x=>x.id===id);if(c&&c.answer&&typeof c.answer==='object')reveal(id,c.answer);else s.disabled=false}).catch(()=>{s.disabled=false});return}
   const b=e.target.closest('[data-try]');if(!b)return;
   const id=b.dataset.try,v=$('in-'+id).value.trim(),res=$('res-'+id);
   if(!/^\d{1,2}:\d{2}$/.test(v)){res.className='res miss';res.textContent=I.fmt;return}
@@ -376,20 +380,26 @@ document.addEventListener('click',e=>{
       if(r.error){res.className='res miss';res.textContent=r.error;return}
       const d=r.delta_s,txt=d===0?I.same:(Math.abs(d)+' '+I.s+' '+(d<0?I.early:I.late));
       res.className='res '+r.verdict;res.textContent=V[r.verdict]+I.yours+r.your_timecode+I.marked+r.answer.emotional_timecode+' — '+txt+'.';
-      const c=DATA.clips.find(x=>x.id===id),w=c.window,y=$('you-'+id);
+      const msg=res.textContent,cls=res.className;reveal(id,r.answer);
+      const c=DATA.clips.find(x=>x.id===id),w=c.window,y=$('you-'+id),rs=$('res-'+id);rs.className=cls;rs.textContent=msg;
       y.style.left=Math.min(100,Math.max(0,(r.your_timecode.split(':').reduce((a,x)=>a*60+ +x,0)-w.start_s)/(w.end_s-w.start_s)*100))+'%';y.style.display='block';
-      $(id).classList.add('open');load();
+      load();
     }).catch(()=>{res.className='res miss';res.textContent=I.fail}).finally(()=>{b.disabled=false});
 });
+function reveal(id,ans){REV[id]=ans;const c=DATA&&DATA.clips.find(x=>x.id===id);if(!c)return;c.answer=ans;
+  const el=$(id),v=$('in-'+id).value;el.outerHTML=card(c);$('in-'+id).value=v;if(H3)OrbClips3D.update(DATA)}
 function krFill(market){if(!market)return;const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};document.querySelectorAll('[data-krpx]').forEach(box=>{box.innerHTML=Object.entries(map).map(([n,re])=>{const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';const m=market[k],ch=m.change_pct;return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`}).join('')||box.innerHTML})}
 fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
 document.addEventListener('click',e=>{const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML='copied ✓';setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}});
-function qload(){fetch('/api/v1/clips/queue',{cache:'no-store'}).then(r=>r.json()).then(d=>{if(!d.candidates||!d.candidates.length)return;
-  $('qlist').innerHTML=d.candidates.map(c=>{const why=[I.qpause+' '+String(c.pause_s).replace('.',L==='en'?'.':',')+' '+I.s].concat((c.why||[]).slice(1).map(w=>/short line/.test(w)?I.qshort:/surpris|controvers/.test(w)?I.qcue:/question/.test(w)?I.qq:'').filter(Boolean)).join(' · ');
-   return '<div class="clip" style="margin-top:8px"><div class="meta">'+esc(c.channel||'')+(c.speaker?' · '+esc(c.speaker):'')+'</div><div style="font-size:14px">'+esc(c.title||c.video)+'</div><div class="meta">'+why+'</div>'+
+// Имена из русских интервью — латиницей на DE/EN; название видео — оригинал, помечаем
+const TR={а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya'};
+const lat=s=>L==='ru'?s:String(s||'').replace(/[А-Яа-яЁё]/g,ch=>{const l=ch.toLowerCase(),t=TR[l];return t==null?ch:(ch===l?t:t.charAt(0).toUpperCase()+t.slice(1))});
+const isClip=c=>DATA&&DATA.clips.some(x=>x.video&&x.video.id===c.video&&x.answer&&typeof x.answer==='object'?Math.abs(x.answer.emotional_timecode_s-c.timecode_s)<=10:(x.video&&x.video.id===c.video&&c.timecode_s>=x.window.start_s&&c.timecode_s<=x.window.end_s));
+function qload(){fetch('/api/v1/clips/queue',{cache:'no-store'}).then(r=>r.json()).then(d=>{const list=(d.candidates||[]).filter(c=>!isClip(c));if(!list.length)return;
+  $('qlist').innerHTML=list.map(c=>{const why=[I.qpause+' '+String(c.pause_s).replace('.',L==='en'?'.':',')+' '+I.s].concat((c.why||[]).slice(1).map(w=>/short line/.test(w)?I.qshort:/surpris|controvers/.test(w)?I.qcue:/question/.test(w)?I.qq:'').filter(Boolean)).join(' · ');
+   return '<div class="clip" style="margin-top:8px"><div class="meta">'+esc(lat(c.channel||''))+(c.speaker?' · '+esc(lat(c.speaker)):'')+'</div><div style="font-size:14px"'+(L!=='ru'&&/[А-Яа-яЁё]/.test(c.title||'')?' lang="ru"':'')+'>'+esc(c.title||c.video)+(L!=='ru'&&/[А-Яа-яЁё]/.test(c.title||'')?' <span class="meta">('+I.orig+')</span>':'')+'</div><div class="meta">'+why+'</div>'+
    '<div class="try" style="border-top:0;padding-top:0"><a class="meta" href="'+esc(c.link)+'" target="_blank" rel="noopener">'+I.qwatch+fmt(Math.max(0,c.timecode_s-6))+'</a><b style="font-family:var(--mono);color:var(--hot)">'+esc(c.timecode)+'</b>'+
    '<button class="btn" type="button" data-qv="'+esc(c.id)+'" data-r="1">'+I.qyes+' · '+c.votes.reaction+'</button><button class="linkbtn" type="button" data-qv="'+esc(c.id)+'" data-r="0">'+I.qno+' · '+c.votes.no_reaction+'</button></div><p class="res" data-qres="'+esc(c.id)+'"></p></div>'}).join('')}).catch(()=>{})}
-qload();
 document.addEventListener('click',e=>{const b=e.target.closest('[data-qv]');if(!b)return;const id=b.dataset.qv,box=document.querySelector('[data-qres="'+id+'"]');
   fetch('/api/v1/clips/queue/'+encodeURIComponent(id)+'/vote',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reaction:b.dataset.r==='1'})}).then(r=>r.json()).then(r=>{box.className='res '+(r.ok?'hit':'miss');box.textContent=r.ok?I.qthanks:(/already/.test(r.error||'')?I.qdup:r.error);if(r.ok)qload()})});
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_clips')==='1'}catch(e){}
