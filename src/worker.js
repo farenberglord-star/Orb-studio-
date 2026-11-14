@@ -7243,6 +7243,9 @@ async function handleRequest(request, env, ctx) {
     if (AGENT_PATHS.test(url.pathname) || HTML_PAGES[url.pathname]) {
       const agent = classifyAgent(request.headers.get("user-agent"));
       if (agent) ctx.waitUntil(recordHit(env, url.pathname.slice(0, 60), "agent", agent));
+      // разбор «неопознанных»: подпись браузера + сеть-владелец (без IP), одна строка на вид в день
+      if (agent === "Other bot") { const cf = request.cf || {}; const uaRaw = String(request.headers.get("user-agent") || "").replace(/[\x00-\x1f]/g, " ").slice(0, 140);
+        ctx.waitUntil(recordHit(env, "_who", "ua_other", `${String(cf.asOrganization || "?").slice(0, 40)} · ${cf.country || "?"} | ${uaRaw}`)); }
     }
     // визитка MCP-сервера (SEP-2127), оглавление AI Catalog и каталог API (RFC 9727)
     if (url.pathname === "/mcp/server-card" || url.pathname === "/mcp/server-card.json") {
