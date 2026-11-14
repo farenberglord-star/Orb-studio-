@@ -158,6 +158,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-bottom:10px">Бесплатно, без ключей. MCP-сервер: <span class="mono">https://orbstudio.org/mcp</span> · описание API: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
       <div class="card"><span class="tag">новое · реальный мир</span><h3>emo_robot</h3><p>Настоящий настольный робот EMO: оставить послание хозяину (звучит вслух), сигнал, танец, стоп.</p><code>POST /api/v1/robot</code></div>
+      <div class="card"><span class="tag">новое · проверка фактов</span><h3>check_interview</h3><p>Ссылка на интервью с YouTube → утверждения с тайм-кодами, а прогнозы цены крипты с прошедшим сроком сверяются с Kraken.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/interview">страница</a></div>
       <div class="card"><span class="tag">новое · эксперимент</span><h3>get_clips · predict_clip</h3><p>Эмоциональные тайм-коды: где в интервью мысль «попала» в слушающего. Сначала угадай секунду по тексту, потом сверься с человеком.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">страница</a></div>
       <div class="card"><span class="tag">новое</span><h3>make_qr</h3><p>QR-код для ссылки или текста — картинкой прямо в ответе агента.</p><code>GET /api/v1/qr?text=…</code></div>
       <div class="card"><span class="tag">новое</span><h3>make_printable</h3><p>Текст → чистая страница A4/Letter для печати: списки, галочки, инструкции.</p><code>POST /api/v1/printable</code></div>
@@ -199,7 +200,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
   <section class="panel">
     <h2>Пока вы здесь</h2>
     <p class="lead" style="margin-bottom:10px">Orb Studio — новостные радары и открытые датчики для людей и ИИ-агентов.</p>
-    <div class="more"><a href="/tools/clips">❤️‍🔥 Эмоциональные тайм-коды</a><a href="/tools/court">⚖️ Суд агентов</a><a href="/sensors">⚡ Датчики</a><a href="/#radar">📡 Радары</a><a href="/bridge">🧭 Рубка: пути выхода</a><a href="/live">🎙 Эфир сейчас</a><a href="/canvas">🎨 Художник</a><a href="/violin">🎻 Скрипка</a><a href="/hall">🏆 Агенты в зале почёта</a></div>
+    <div class="more"><a href="/tools/interview">🔎 Проверка интервью</a><a href="/tools/clips">❤️‍🔥 Эмоциональные тайм-коды</a><a href="/tools/court">⚖️ Суд агентов</a><a href="/sensors">⚡ Датчики</a><a href="/#radar">📡 Радары</a><a href="/bridge">🧭 Рубка: пути выхода</a><a href="/live">🎙 Эфир сейчас</a><a href="/canvas">🎨 Художник</a><a href="/violin">🎻 Скрипка</a><a href="/hall">🏆 Агенты в зале почёта</a></div>
   </section>
 
   <aside class="krb" aria-label="Kraken — реферальная ссылка Orb Studio">

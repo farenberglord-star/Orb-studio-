@@ -1821,6 +1821,43 @@ PAGES["tools/clips"] = [
  ('🧰 Все инструменты', '🧰 Alle Werkzeuge', '🧰 All tools'),
 ]
 
+# /tools/interview — проверка интервью (строки в JS — словарь I на странице); общие строки берём у tools/clips
+PAGES["tools/interview"] = PAGES["tools/clips"] + [
+ ('Вставьте ссылку на интервью с YouTube. ИИ прочитает субтитры и выпишет проверяемые утверждения с тайм-кодами: прогнозы цены, сроки, факты, собственный интерес говорящего и давление на слушателя. Прогнозы цены криптовалют с прошедшим сроком сверяются с дневными ценами Kraken.', 'Fügen Sie einen YouTube-Link zu einem Interview ein. Die KI liest die Untertitel und listet überprüfbare Aussagen mit Zeitmarken auf: Kursprognosen, Fristen, Fakten, das Eigeninteresse des Sprechers und Druck auf die Zuhörer. Krypto-Kursprognosen mit abgelaufener Frist werden mit den Tageskursen von Kraken abgeglichen.', 'Paste a YouTube link to an interview. The AI reads the captions and lists checkable claims with timecodes: price targets, deadlines, facts, the speaker’s own interest and pressure on the listener. Crypto price targets whose deadline has passed are checked against Kraken daily prices.'),
+ ('Громкие прогнозы из интервью — против реальных цен: дошли или нет.', 'Laute Prognosen aus Interviews gegen echte Kurse: erreicht oder nicht.', 'Bold interview forecasts against real prices: reached or not.'),
+ ('Инструменты · проверка фактов', 'Werkzeuge · Faktencheck', 'Tools · fact check'),
+ ('Как читать результат', 'So lesen Sie das Ergebnis', 'How to read the result'),
+ ('Нет данных', 'Keine Daten', 'No data'),
+ ('Новое видео проверяется до минуты. Уже проверенные открываются сразу.', 'Ein neues Video wird bis zu einer Minute geprüft. Bereits geprüfte öffnen sich sofort.', 'A new video takes up to a minute. Already checked ones open instantly.'),
+ ('Пока пусто.', 'Noch leer.', 'Nothing yet.'),
+ ('Проверить', 'Prüfen', 'Check'),
+ ('Проверка интервью · Orb Studio', 'Interview-Check · Orb Studio', 'Interview check · Orb Studio'),
+ ('Проверка интервью про крипту: вставьте ссылку на YouTube — ИИ выпишет проверяемые утверждения с тайм-кодами, а прогнозы цены с прошедшим сроком сверит с ценами Kraken.', 'Interview-Check zu Krypto: YouTube-Link einfügen – die KI listet überprüfbare Aussagen mit Zeitmarken auf und gleicht Kursprognosen mit abgelaufener Frist mit Kraken-Kursen ab.', 'Crypto interview check: paste a YouTube link – the AI lists checkable claims with timecodes and checks price targets with past deadlines against Kraken prices.'),
+ ('Рано проверять', 'Zu früh', 'Too early'),
+ ('Расшифровки не хранятся — только наши пересказы утверждений, тайм-коды и результат сверки.', 'Transkripte werden nicht gespeichert – nur unsere Nacherzählungen der Aussagen, Zeitmarken und das Prüfergebnis.', 'Transcripts are not stored – only our retellings of the claims, timecodes and the check result.'),
+ ('Ссылка на YouTube', 'YouTube-Link', 'YouTube link'),
+ ('Уже проверено', 'Bereits geprüft', 'Already checked'),
+ ('Утверждения пересказывает ИИ по субтитрам — это приблизительно. Откройте тайм-код и послушайте сами.', 'Die KI gibt die Aussagen anhand der Untertitel wieder – das ist ungefähr. Öffnen Sie die Zeitmarke und hören Sie selbst.', 'The AI retells the claims from the captions – this is approximate. Open the timecode and listen yourself.'),
+ ('Цель достигнута', 'Ziel erreicht', 'Target reached'),
+ ('Цель не достигнута', 'Ziel nicht erreicht', 'Target not reached'),
+ ('— не крипта, нет точной цели или срока, или срок старше истории цен Kraken (около 2 лет).', '– keine Kryptowährung, kein genaues Ziel oder keine Frist, oder die Frist liegt vor der Kurshistorie von Kraken (etwa 2 Jahre).', '– not crypto, no exact target or deadline, or the deadline is older than Kraken’s price history (about 2 years).'),
+ ('— срок ещё не наступил, проверим в указанный день.', '– die Frist ist noch nicht erreicht, wir prüfen am genannten Tag.', '– the deadline has not come yet, we will check on that day.'),
+ ('— срок прошёл, цена не дошла. Это не доказательство лжи: человек мог искренне ошибаться.', '– die Frist ist vorbei, der Kurs hat das Ziel nicht erreicht. Das ist kein Beweis für eine Lüge: Der Mensch kann sich ehrlich geirrt haben.', '– the deadline has passed and the price did not get there. This is not proof of lying: the person may have honestly been wrong.'),
+ ('— цена дошла до названного уровня до срока.', '– der Kurs hat das genannte Niveau vor der Frist erreicht.', '– the price reached the named level before the deadline.'),
+ ('🔎 Проверка интервью', '🔎 Interview-Check', '🔎 Interview check'),
+ ('❤️\u200d🔥 Эмоциональные тайм-коды', '❤️\u200d🔥 Emotionale Zeitmarken', '❤️\u200d🔥 Emotional timecodes'),
+]
+
+PAGES["tools"] += [  # карточки «Проверка интервью» и «Эмоциональные тайм-коды»
+ ('новое · эксперимент', 'neu · Experiment', 'new · experiment'),
+ ('Эмоциональные тайм-коды: где в интервью мысль «попала» в слушающего. Сначала угадай секунду по тексту, потом сверься с человеком.', 'Emotionale Zeitmarken: wo in einem Interview ein Gedanke beim Zuhörer ankommt. Erst die Sekunde aus dem Text erraten, dann mit dem Menschen vergleichen.', 'Emotional timecodes: where in an interview an idea lands on the listener. Guess the second from the text first, then compare with the human.'),
+ ('страница', 'Seite', 'page'),
+ ('новое · проверка фактов', 'neu · Faktencheck', 'new · fact check'),
+ ('Ссылка на интервью с YouTube → утверждения с тайм-кодами, а прогнозы цены крипты с прошедшим сроком сверяются с Kraken.', 'YouTube-Interviewlink → Aussagen mit Zeitmarken; Krypto-Kursprognosen mit abgelaufener Frist werden mit Kraken abgeglichen.', 'YouTube interview link → claims with timecodes; crypto price targets with past deadlines are checked against Kraken.'),
+ ('🔎 Проверка интервью', '🔎 Interview-Check', '🔎 Interview check'),
+ ('❤️\u200d🔥 Эмоциональные тайм-коды', '❤️\u200d🔥 Emotionale Zeitmarken', '❤️\u200d🔥 Emotional timecodes'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],

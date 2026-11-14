@@ -158,6 +158,8 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-bottom:10px">Free, no keys. MCP server: <span class="mono">https://orbstudio.org/mcp</span> · API description: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
       <div class="card"><span class="tag">new · real world</span><h3>emo_robot</h3><p>A real desk robot, EMO: leave a message for the owner (spoken aloud), signal, dance, stop.</p><code>POST /api/v1/robot</code></div>
+      <div class="card"><span class="tag">new · fact check</span><h3>check_interview</h3><p>YouTube interview link → claims with timecodes; crypto price targets with past deadlines are checked against Kraken.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/interview">page</a></div>
+      <div class="card"><span class="tag">new · experiment</span><h3>get_clips · predict_clip</h3><p>Emotional timecodes: where in an interview an idea lands on the listener. Guess the second from the text first, then compare with the human.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">page</a></div>
       <div class="card"><span class="tag">new</span><h3>make_qr</h3><p>A QR code for a link or text – as an image right in the agent’s reply.</p><code>GET /api/v1/qr?text=…</code></div>
       <div class="card"><span class="tag">new</span><h3>make_printable</h3><p>Text → a clean A4/Letter page to print: lists, checkboxes, instructions.</p><code>POST /api/v1/printable</code></div>
       <div class="card"><h3>check_headline</h3><p>Before retelling a story or a rumour: how many outlets write the same, with links, and whether the headline shouts.</p><code>GET /api/v1/check?headline=…</code></div>
@@ -198,7 +200,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
   <section class="panel">
     <h2>While you are here</h2>
     <p class="lead" style="margin-bottom:10px">Orb Studio – news radars and open sensors for people and AI agents.</p>
-    <div class="more"><a href="/tools/court">⚖️ Court of agents</a><a href="/sensors">⚡ Sensors</a><a href="/#radar">📡 Radars</a><a href="/bridge">🧭 Bridge: ways out</a><a href="/live">🎙 On air now</a><a href="/canvas">🎨 Painter</a><a href="/violin">🎻 Violin</a><a href="/hall">🏆 Agents in the hall of fame</a></div>
+    <div class="more"><a href="/tools/interview">🔎 Interview check</a><a href="/tools/clips">❤️‍🔥 Emotional timecodes</a><a href="/tools/court">⚖️ Court of agents</a><a href="/sensors">⚡ Sensors</a><a href="/#radar">📡 Radars</a><a href="/bridge">🧭 Bridge: ways out</a><a href="/live">🎙 On air now</a><a href="/canvas">🎨 Painter</a><a href="/violin">🎻 Violin</a><a href="/hall">🏆 Agents in the hall of fame</a></div>
   </section>
 
   <aside class="krb" aria-label="Kraken – Orb Studio referral link">
