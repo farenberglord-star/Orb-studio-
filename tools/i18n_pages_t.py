@@ -1877,6 +1877,9 @@ PAGES["tools/clips"] += [  # очередь кандидатов
  ('🧪 Кандидаты — нужен ваш глаз', '🧪 Kandidaten – Ihr Blick ist gefragt', '🧪 Candidates – your eye is needed'),
  ('Эти моменты сайт нашёл сам в проверенных интервью: пауза после сильной фразы. Откройте видео, посмотрите на лицо слушающего в первые секунды — есть реакция или нет?', 'Diese Momente hat die Seite selbst in geprüften Interviews gefunden: eine Pause nach einem starken Satz. Video öffnen, auf das Gesicht des Zuhörers in den ersten Sekunden achten – gibt es eine Reaktion oder nicht?', 'The site found these moments itself in checked interviews: a pause after a strong line. Open the video and watch the listener’s face in the first seconds – is there a reaction or not?'),
  ('Пока кандидатов нет — они появятся после проверки интервью.', 'Noch keine Kandidaten – sie erscheinen nach einem Interview-Check.', 'No candidates yet – they appear after an interview check.'),
+ ('📏 Насколько точен алгоритм', '📏 Wie genau ist der Algorithmus', '📏 How accurate is the algorithm'),
+ ('Честные цифры: каждый ваш голос пересчитывает их. Пока размечено меньше 30 моментов, пороги подобраны вручную; после 30 — пересчитываются по данным.', 'Ehrliche Zahlen: jede Ihrer Stimmen berechnet sie neu. Solange weniger als 30 Momente markiert sind, sind die Schwellen von Hand gewählt; ab 30 werden sie aus den Daten neu berechnet.', 'Honest numbers: every vote recalculates them. Until 30 moments are labeled the thresholds are hand-picked; after 30 they are re-fitted from the data.'),
+ ('Считаем…', 'Wird berechnet…', 'Calculating…'),
 ]
 
 CODE = {

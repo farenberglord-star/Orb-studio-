@@ -5,6 +5,7 @@
 // Расшифровку не храним — только наши пересказы утверждений (ru/de/en), тайм-коды и результат сверки (D1 interview_checks).
 
 import { normalizeSegments, findCandidates } from "./clips.js";
+import { accuracy, cameraCuts, applyCamera } from "./clipstats.js";
 const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, x-agent-name", "Cache-Control": "no-store" };
 const json = (o, s = 200, extra = {}) => new Response(JSON.stringify(o, null, 2), { status: s, headers: { "content-type": "application/json; charset=utf-8", ...H, ...extra } });
 
@@ -153,7 +154,38 @@ export async function interviewDaily(env) {
     if (!card.checked_at) card.checked_at = today;
     events = events.concat(await emitEvents(env, card, null)); // повторы отсекает UNIQUE (video, claim, status)
   }
-  return { checked: (results || []).length, new_events: events.length, events };
+  let camera = null; try { camera = await cameraPass(env); } catch (e) { camera = { error: String(e && e.message || e).slice(0, 120) }; }
+  return { checked: (results || []).length, new_events: events.length, events, camera };
+}
+
+// ---------- Смена камеры: раз в сутки Gemini смотрит окна кандидатов (без ключа — пропуск) ----------
+const CAMERA_PER_DAY = 4;
+export async function cameraPass(env, max = CAMERA_PER_DAY) {
+  if (!env.DB || !env.GEMINI_API_KEY) return { skipped: "no GEMINI_API_KEY" };
+  await ensure(env);
+  const { results } = await env.DB.prepare("SELECT id, video, t_s, data FROM clip_queue ORDER BY ts DESC").all();
+  const todo = (results || []).filter((r) => !JSON.parse(r.data).camera).slice(0, max);
+  const done = [];
+  for (const r of todo) {
+    const c = JSON.parse(r.data), from = Math.max(0, (c.trigger_s ?? r.t_s - 8) - 2), to = r.t_s + 8;
+    const cam = await cameraCuts(env, r.video, from, to);
+    if (cam.error) { done.push({ id: r.id, error: cam.error }); if (/40[013]/.test(cam.error)) break; continue; }
+    const n = applyCamera({ ...c, timecode_s: r.t_s }, cam);
+    await env.DB.prepare("UPDATE clip_queue SET t_s=?2, data=?3 WHERE id=?1").bind(r.id, n.timecode_s, JSON.stringify(n)).run();
+    done.push({ id: r.id, cut_s: n.camera.cut_s, reaction_s: n.camera.reaction_s });
+  }
+  return { checked: done.length, done };
+}
+
+// ---------- Точность алгоритма: считается заново после каждого голоса ----------
+export async function clipAccuracy(env, origin = "https://orbstudio.org") {
+  let clips = [];
+  try { const r = await env.ASSETS.fetch(new Request(origin + "/data/clips.json")); if (r.ok) clips = (await r.json()).clips || []; } catch (e) {}
+  let queue = [];
+  if (env.DB) { await ensure(env); const { results } = await env.DB.prepare("SELECT video, t_s, data, yes, no FROM clip_queue").all();
+    queue = (results || []).map((r) => { const d = JSON.parse(r.data); return { video: r.video, t_s: r.t_s, yes: r.yes, no: r.no, pause_s: d.pause_s, rules: d.rules, camera: d.camera }; }); }
+  return { ...accuracy(queue, clips), page: "https://orbstudio.org/tools/clips#accuracy",
+    note: "Precision grows from human votes, recall from human-marked clips. Thresholds are re-fitted from data once 30 moments are labeled; until then they are hand-picked." };
 }
 
 export async function interviewEvents(env, { days = 30, limit = 30 } = {}) {
@@ -264,6 +296,10 @@ export const INTERVIEW_TOOLS = [
     description: "Moments found automatically in checked interviews (pauses after strong lines) that may be emotional reactions. Each has a YouTube link a few seconds before the moment and the votes so far. Watch the listener and vote with POST /api/v1/clips/queue/{id}/vote {reaction: true|false}; confirmed moments become clips.",
     inputSchema: { type: "object", properties: { limit: { type: "integer", minimum: 1, maximum: 100 } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_clip_accuracy", title: "How accurate is the emotional-timecode algorithm",
+    description: "Honest numbers for Orb Studio's reaction-finding algorithm: precision (of the candidates humans voted on, how many had a real reaction), recall (of human-marked moments, how many the algorithm found), the chance level of a random guess, and the data-fitted thresholds once 30 moments are labeled. Also how many candidates were checked for camera cuts.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_interview_events", title: "Deadline events: interview forecasts that just came true or failed",
     description: "Impulse feed: every day Orb Studio re-checks interview price targets whose deadline has passed against Kraken prices and posts an event (target reached / not reached), plus a scoreboard of speakers (how many of their checked price targets came true, failed or are pending). Use it before you repeat a famous forecast.",
     inputSchema: { type: "object", properties: { days: { type: "integer", minimum: 1, maximum: 365 }, limit: { type: "integer", minimum: 1, maximum: 100 } }, additionalProperties: false },
@@ -289,6 +325,7 @@ export async function interviewGate(request, env) {
       return json(r, r.error ? (r.limit ? 429 : 400) : 200);
     }
     const qv = url.pathname.match(/^\/api\/v1\/clips\/queue\/([A-Za-z0-9_-]{11}:\d+)\/vote$/);
+    if (url.pathname === "/api/v1/clips/queue/accuracy" && request.method === "GET") return json(await clipAccuracy(env, url.origin), 200, { "Cache-Control": "public, max-age=60" });
     if (url.pathname === "/api/v1/clips/queue" && request.method === "GET") return json(await clipQueue(env, +url.searchParams.get("limit") || 30), 200);
     if (qv && request.method === "POST") { let b = {}; try { b = await request.json(); } catch (e) {} const r = await voteQueue(request, env, qv[1], !!b.reaction); return json(r, r.error ? 400 : 200); }
     if (url.pathname === "/api/v1/interview/events" && request.method === "GET") return json(await interviewEvents(env, { days: +url.searchParams.get("days") || 30, limit: +url.searchParams.get("limit") || 30 }), 200, { "Cache-Control": "public, max-age=300" });

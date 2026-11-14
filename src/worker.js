@@ -31,7 +31,7 @@ import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
-import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue } from "./interview.js"; // Проверка интервью (/tools/interview)
+import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
@@ -2078,6 +2078,7 @@ const OA_GET = [
   ["/api/v1/followups", "getFollowups", "Older headlines and how they turned out (human and AI votes, outcomes with sources).", [OA_Q("status", "open, all, confirmed, not, unclear"), OA_Q("radar", "Radar id"), OA_Q("limit", "Max items", { pattern: "^[0-9]+$" })]],
   ["/api/v1/prices", "getPrices", "Real shop prices in Hamburg and suburbs from photos of price tags and receipts (14-day medians).", []],
   ["/api/v1/receipts", "getReceipts", "Real Lidl receipts from Hamburg: receipt of the day and price changes.", []],
+  ["/api/v1/clips/queue/accuracy", "getClipAccuracy", "Honest accuracy of the emotional-timecode algorithm: precision from human votes, recall vs human-marked clips, chance level, data-fitted thresholds after 30 labels.", []],
   ["/api/v1/clips/queue", "getClipQueue", "Candidate emotional moments from checked interviews waiting for a human eye, with votes.", [OA_Q("limit", "1–100")]],
   ["/api/v1/interview/events", "getInterviewEvents", "Impulse feed: interview price targets whose deadline passed (reached / not reached by Kraken prices) and a speaker scoreboard.", [OA_Q("days", "1–365"), OA_Q("limit", "1–100")]],
   ["/api/v1/interview/checks", "getInterviewChecks", "Interviews already fact-checked on Orb Studio: claims with timecodes and Kraken price checks.", []],
@@ -6651,6 +6652,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_interview_checks") return await listChecks(env, args.id);
   if (name === "get_interview_events") return await interviewEvents(env, args);
   if (name === "get_clip_queue") return await clipQueue(env, args.limit || 30);
+  if (name === "get_clip_accuracy") return await clipAccuracy(env);
   if (name === "find_clip_candidates") return findCandidates(normalizeSegments(args.segments), args);
   if (name === "check_headline") {
     if (!(await checkPublic(env))) throw new Error("Not available yet");
