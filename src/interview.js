@@ -56,7 +56,7 @@ const SYSTEM = "You extract verifiable claims from an interview transcript for O
   "Find: (1) price_prediction — a price target for a crypto asset or market with a deadline; resolve relative deadlines ('end of this year', 'in 12 months') from the video date to an ISO date; " +
   "(2) forecast — other checkable predictions with a date (adoption, regulation, events); (3) fact — checkable statements about the present (numbers, market share, events); " +
   "(4) interest — ONLY when the speaker personally owns, sells, invests in or is paid for what he praises (a financial or business stake); opinions, trust or using a tool are not interest; (5) pressure — urgency or hype aimed at the listener ('last chance', 'guaranteed', 'happening very fast', 'x100'). " +
-  "For each item give the number of the transcript line (L123 → 123) where it is said. At most 10 items, most important first. Write each summary in Russian, German and English (max 25 words each).";
+  "For each item give the number of the transcript line (L123 → 123) where it is said. At most 10 items, most important first. Write each summary in Russian, German and English (max 25 words each). Always answer by calling the report_claims tool exactly once (with an empty list if nothing is checkable).";
 const TOOL = { name: "report_claims", description: "Report the claims found in the interview.", input_schema: { type: "object", required: ["speaker", "claims"], properties: {
   speaker: { type: "string", description: "The guest's name if stated, else empty" },
   host: { type: "string", description: "The host's name if stated, else empty" },
@@ -77,7 +77,7 @@ async function extract(env, meta, tr) {
   if (text.length > MAX_TRANSCRIPT) text = text.slice(0, MAX_TRANSCRIPT) + "\n[transcript cut]";
   const res = await fetch("https://api.anthropic.com/v1/messages", { signal: AbortSignal.timeout(90000), method: "POST",
     headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: env.INTERVIEW_MODEL || "claude-sonnet-5-5", max_tokens: 4000, system: SYSTEM, tools: [TOOL], tool_choice: { type: "tool", name: "report_claims" },
+    body: JSON.stringify({ model: env.INTERVIEW_MODEL || "claude-sonnet-5-5", max_tokens: 4000, system: SYSTEM, tools: [TOOL], tool_choice: { type: "auto" }, // новые модели не принимают принудительный выбор инструмента — просим в тексте
       messages: [{ role: "user", content: `Video title: ${String(meta.title || "").slice(0, 200)}\nChannel: ${String(meta.channel || "").slice(0, 100)}\nVideo date: ${meta.date || "unknown"}\nTranscript language: ${tr.lang || "?"}\n\n<transcript>\n${text}\n</transcript>` }] }) });
   if (!res.ok) throw new Error(`Claude API ${res.status}: ${(await res.text()).slice(0, 160)}`);
   const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
