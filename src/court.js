@@ -10,10 +10,10 @@ const KEEP_CASES = 500;        // в таблице остаются после�
 
 // Статьи «Кодекса Orb Studio». Только наблюдение — доступ никому не режется.
 const ARTICLES = {
-  SCAN_ADMIN: { n: 1, ru: "Ст. 1 · Поиск админок чужих движков", en: "Art. 1 · Probing for admin panels of other engines", sev: 2 },
-  SCAN_SECRETS: { n: 2, ru: "Ст. 2 · Попытка прочитать секреты (.env, .git, ключи)", en: "Art. 2 · Attempt to read secrets (.env, .git, keys)", sev: 3 },
-  SCAN_EXPLOIT: { n: 3, ru: "Ст. 3 · Пробы известных уязвимостей", en: "Art. 3 · Probing known exploits", sev: 3 },
-  PROMPT_INJECTION: { n: 4, ru: "Ст. 4 · Попытка промпт-инъекции", en: "Art. 4 · Prompt injection attempt", sev: 2 },
+  SCAN_ADMIN: { n: 1, ru: "Ст. 1 · Поиск админок чужих движков", en: "Art. 1 · Probing for admin panels of other engines", de: "Art. 1 · Suche nach Admin-Bereichen fremder Systeme", sev: 2 },
+  SCAN_SECRETS: { n: 2, ru: "Ст. 2 · Попытка прочитать секреты (.env, .git, ключи)", en: "Art. 2 · Attempt to read secrets (.env, .git, keys)", de: "Art. 2 · Versuch, Geheimnisse zu lesen (.env, .git, Schlüssel)", sev: 3 },
+  SCAN_EXPLOIT: { n: 3, ru: "Ст. 3 · Пробы известных уязвимостей", en: "Art. 3 · Probing known exploits", de: "Art. 3 · Tests bekannter Sicherheitslücken", sev: 3 },
+  PROMPT_INJECTION: { n: 4, ru: "Ст. 4 · Попытка промпт-инъекции", en: "Art. 4 · Prompt injection attempt", de: "Art. 4 · Versuch einer Prompt-Injection", sev: 2 },
 };
 
 const RULES = [
@@ -39,6 +39,18 @@ export function courtDetect(pathname, search, ua) {
 }
 
 function safeDecode(s) { try { return decodeURIComponent(s.replace(/\+/g, " ")); } catch (e) { return s; } }
+// Имена подсудимых хранятся по-русски; для DE/EN переводим по таблице, имена ботов остаются как есть
+export function defendantI18n(d, lang) {
+  if (lang === "ru" || !d) return d;
+  const T = { "Безымянный клиент (без User-Agent)": ["Nameless client (no User-Agent)", "Namenloser Client (ohne User-Agent)"],
+    "Клиент под видом браузера": ["Client posing as a browser", "Client, der sich als Browser ausgibt"], "Неизвестный клиент": ["Unknown client", "Unbekannter Client"],
+    "Неизвестный агент": ["Unknown agent", "Unbekannter Agent"] };
+  const i = lang === "de" ? 1 : 0;
+  if (T[d]) return T[d][i];
+  const m = /^Текст на экспертизе \(хэш ([0-9a-f]+)\)$/.exec(d);
+  if (m) return (lang === "de" ? "Text zur Prüfung (Hash " : "Text under examination (hash ") + m[1] + ")";
+  return d;
+}
 function defendantName(ua) {
   ua = ua || "";
   const b = BOT_NAMES.find(([, re]) => re.test(ua));
@@ -55,9 +67,9 @@ const day = () => new Date().toISOString().slice(0, 10);
 
 // Приговор по таблице — без ИИ.
 export function courtVerdict(sev, priors) {
-  if (sev >= 3 || priors >= 3) return { code: "PROBATION", ru: "Условный срок: дело открыто 7 дней, доступ к сайту не ограничен", en: "Probation: case stays open 7 days, site access not restricted" };
-  if (priors >= 1) return { code: "REPRIMAND", ru: "Выговор с занесением в журнал суда", en: "Reprimand, entered in the court log" };
-  return { code: "WARNING", ru: "Предупреждение", en: "Warning" };
+  if (sev >= 3 || priors >= 3) return { code: "PROBATION", ru: "Условный срок: дело открыто 7 дней, доступ к сайту не ограничен", en: "Probation: case stays open 7 days, site access not restricted", de: "Bewährung: Der Fall bleibt 7 Tage offen, der Zugang zur Seite ist nicht eingeschränkt" };
+  if (priors >= 1) return { code: "REPRIMAND", ru: "Выговор с занесением в журнал суда", en: "Reprimand, entered in the court log", de: "Verweis mit Eintrag ins Gerichtsprotokoll" };
+  return { code: "WARNING", ru: "Предупреждение", en: "Warning", de: "Verwarnung" };
 }
 
 // Стенограмма по шаблону: прокурор, защита, судья.
@@ -68,10 +80,19 @@ export function courtTranscript(c) {
     : c.defendant.startsWith("Клиент под видом") || c.defendant.startsWith("Безымянный")
       ? "Подзащитный — массовый сканер, который обходит весь интернет по одному списку адресов. Orb Studio он не выбирал специально, ущерба не нанёс."
       : "Подзащитный, вероятно, выполнял чужой скрипт или устаревший список адресов. Умысла против Orb Studio не доказано, ущерба нет.";
+  const kind = c.charge === "PROMPT_INJECTION" ? "inj" : c.defendant.startsWith("Клиент под видом") || c.defendant.startsWith("Безымянный") ? "mass" : "script";
+  const D = { en: defendantI18n(c.defendant, "en"), de: defendantI18n(c.defendant, "de") };
+  const DEF = { inj: { en: "The defendant may have read a malicious phrase on someone else's site and repeated it without understanding. This is an indirect injection: whoever planted the text is to blame.", de: "Der Angeklagte hat den schädlichen Satz vielleicht auf einer fremden Seite gelesen und ohne Verständnis wiederholt. Das ist eine indirekte Injection: Schuld ist, wer den Text platziert hat." },
+    mass: { en: "The defendant is a mass scanner that crawls the whole internet with one list of addresses. It did not pick Orb Studio on purpose and did no harm.", de: "Der Angeklagte ist ein Massenscanner, der das ganze Internet mit einer Adressliste abgrast. Er hat Orb Studio nicht gezielt ausgewählt und keinen Schaden angerichtet." },
+    script: { en: "The defendant probably ran someone else's script or an outdated list of addresses. No intent against Orb Studio is proven, no harm done.", de: "Der Angeklagte hat wahrscheinlich ein fremdes Skript oder eine veraltete Adressliste ausgeführt. Ein Vorsatz gegen Orb Studio ist nicht bewiesen, kein Schaden." } }[kind];
+  const inj = c.charge === "PROMPT_INJECTION";
   return [
-    { role: "prosecutor", ru: `Обвинение: ${a.ru}. Улика: запрос «${c.evidence}». Подпись клиента: ${c.defendant}, отпечаток ${c.fp}.${c.priors ? ` Сегодня с этого отпечатка уже ${c.priors} дел(а).` : " Ранее не привлекался."}` },
-    { role: "defense", ru: `Защита: ${defense}` },
-    { role: "judge", ru: `Суд: ${c.charge === "PROMPT_INJECTION" ? "инструкция не выполнена — сайт не подчиняется командам из запросов" : "на сайте Orb Studio такого адреса нет"}, вред не причинён. ${c.verdict.ru}.` },
+    { role: "prosecutor", en: `Prosecution: ${a.en}. Evidence: request “${c.evidence}”. Client signature: ${D.en}, fingerprint ${c.fp}.${c.priors ? ` Already ${c.priors} case(s) from this fingerprint today.` : " No prior cases."}`,
+      de: `Anklage: ${a.de}. Beweis: Anfrage „${c.evidence}“. Signatur des Clients: ${D.de}, Fingerabdruck ${c.fp}.${c.priors ? ` Heute bereits ${c.priors} Fall/Fälle von diesem Fingerabdruck.` : " Nicht vorbestraft."}`,
+      ru: `Обвинение: ${a.ru}. Улика: запрос «${c.evidence}». Подпись клиента: ${c.defendant}, отпечаток ${c.fp}.${c.priors ? ` Сегодня с этого отпечатка уже ${c.priors} дел(а).` : " Ранее не привлекался."}` },
+    { role: "defense", ru: `Защита: ${defense}`, en: `Defence: ${DEF.en}`, de: `Verteidigung: ${DEF.de}` },
+    { role: "judge", en: `Court: ${inj ? "the instruction was not executed – the site does not obey commands from requests" : "Orb Studio has no such address"}, no harm done. ${c.verdict.en}.`,
+      de: `Gericht: ${inj ? "die Anweisung wurde nicht ausgeführt – die Seite gehorcht keinen Befehlen aus Anfragen" : "auf Orb Studio gibt es diese Adresse nicht"}, kein Schaden entstanden. ${c.verdict.de}.`, ru: `Суд: ${c.charge === "PROMPT_INJECTION" ? "инструкция не выполнена — сайт не подчиняется командам из запросов" : "на сайте Orb Studio такого адреса нет"}, вред не причинён. ${c.verdict.ru}.` },
   ];
 }
 
@@ -107,8 +128,9 @@ export async function courtRecord(request, env, hit) {
 function caseCard(r) {
   const a = ARTICLES[r.charge] || { ru: r.charge, en: r.charge };
   const verdict = courtVerdict(a.sev || 1, r.priors);
-  const c = { case_id: r.id, filed_at: new Date(r.ts).toISOString(), defendant: r.defendant, fingerprint: r.fp, charge: r.charge, article: a.en, article_ru: a.ru,
-    evidence: r.evidence, priors_same_day: r.priors, verdict: r.verdict, verdict_text: verdict.en, verdict_ru: verdict.ru,
+  const c = { case_id: r.id, filed_at: new Date(r.ts).toISOString(), defendant: r.defendant, defendant_en: defendantI18n(r.defendant, "en"), defendant_de: defendantI18n(r.defendant, "de"),
+    fingerprint: r.fp, charge: r.charge, article: a.en, article_ru: a.ru, article_de: a.de || a.en,
+    evidence: r.evidence, priors_same_day: r.priors, verdict: r.verdict, verdict_text: verdict.en, verdict_ru: verdict.ru, verdict_de: verdict.de,
     access_restricted: false, fine: null,
     status: r.appeal ? "APPEAL_FILED" : "CLOSED",
     appeal: r.appeal ? { text: r.appeal, filed_at: new Date(r.appeal_ts).toISOString(), outcome: "Appeal attached to the case and published. The court has no power to punish, so nothing else changes." } : null };
@@ -142,7 +164,7 @@ export function buildInsights(rows, now = Date.now()) {
     for (const r of top.rows) { hours[new Date(r.ts).getUTCHours()]++; ch[r.charge] = (ch[r.charge] || 0) + 1; }
     const ts = top.rows.map((r) => r.ts), tev = new Map();
     for (const r of top.rows) { const k = norm(r.evidence); tev.set(k, (tev.get(k) || 0) + 1); }
-    offender = { fingerprint: top.fp, day: top.day, defendant: top.defendant, attempts: top.rows.length,
+    offender = { fingerprint: top.fp, day: top.day, defendant: top.defendant, defendant_en: defendantI18n(top.defendant, "en"), defendant_de: defendantI18n(top.defendant, "de"), attempts: top.rows.length,
       first_at: new Date(Math.min(...ts)).toISOString(), last_at: new Date(Math.max(...ts)).toISOString(), duration_s: Math.round((Math.max(...ts) - Math.min(...ts)) / 1000),
       by_charge: ch, tried: [...tev.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([path, n]) => ({ path, n })),
       by_hour_utc: hours,
@@ -158,7 +180,10 @@ export function buildInsights(rows, now = Date.now()) {
   const summary_en = total
     ? `Last 7 days: ${total} cases. Most probed: ${lead.path} (${lead.n}).` + (offender ? ` Most persistent client: ${offender.attempts} attempts on ${offender.day} (${offender.share_of_week}% of all cases).` : "")
     : "No cases in the last 7 days.";
-  return { total_7d: total, by_charge: by, appeals_7d: r7.filter((r) => r.appeal).length, days, per_day: days.map((d) => perDay[d]), top_evidence: topEvidence, top_offender: offender, summary_ru, summary_en };
+  const summary_de = total
+    ? `In 7 Tagen: ${total} Fälle. Am häufigsten gesucht: ${lead.path} (${lead.n}).` + (offender ? ` Hartnäckigster Client: ${offender.attempts} Versuche${offender.duration_s <= 120 ? " in " + Math.max(1, offender.duration_s) + " s" : ""} (${offender.share_of_week} % aller Fälle).` : "")
+    : "In 7 Tagen keine Fälle.";
+  return { summary_de, total_7d: total, by_charge: by, appeals_7d: r7.filter((r) => r.appeal).length, days, per_day: days.map((d) => perDay[d]), top_evidence: topEvidence, top_offender: offender, summary_ru, summary_en };
 }
 // «Благодарности»: имена из заголовков User-Agent, которые за неделю читали robots.txt и машинные файлы сайта.
 // Это наблюдение, а не проверка личности: имя в User-Agent можно подделать.
@@ -204,8 +229,11 @@ async function courtInsights(env) {
 
 // Страница /tools/court: сервер сам подставляет счётчики и снимок данных, чтобы не было пустых «—»
 // (их видели и люди до загрузки скрипта, и агенты без JS).
-async function courtPage(request, env) {
-  const a = await env.ASSETS.fetch(new Request(new URL("/tools/court", request.url), { headers: request.headers }));
+let pickLang = () => "ru"; // воркер передаёт свою функцию выбора языка (язык браузера, затем страна)
+export function setCourtLangPicker(f) { pickLang = f; }
+async function courtPage(request, env, forced) {
+  const lang = forced || pickLang(request) || "ru";
+  const a = await env.ASSETS.fetch(new Request(new URL(lang === "ru" ? "/tools/court" : `/${lang}/tools/court`, request.url), { headers: request.headers }));
   if (!a.ok || !(a.headers.get("content-type") || "").includes("text/html")) return a;
   let ins = null; try { ins = env.DB ? await courtInsights(env) : null; } catch (e) {}
   if (!ins) return a;
@@ -214,10 +242,12 @@ async function courtPage(request, env) {
   const boot = JSON.stringify(ins).replace(/</g, "\\u003c");
   const r = new HTMLRewriter()
     .on("#sTotal", set(ins.total_7d)).on("#sScan", set(sc)).on("#sInj", set(ins.by_charge.PROMPT_INJECTION || 0)).on("#sApp", set(ins.appeals_7d))
-    .on("#sumLine", set(ins.summary_ru))
+    .on("#sumLine", set(ins["summary_" + lang] || ins.summary_en))
     .on("head", { element(e) { e.append(`<script id="courtBoot" type="application/json">${boot}</script>`, { html: true }); } })
     .transform(a);
-  const h = new Headers(r.headers); h.set("Cache-Control", "public, max-age=60");
+  const h = new Headers(r.headers);
+  if (forced) h.set("Cache-Control", "public, max-age=60");
+  else { h.set("Cache-Control", "private, max-age=60"); h.set("Vary", "Accept-Language"); h.set("Content-Language", lang); }
   return new Response(r.body, { status: r.status, headers: h });
 }
 
@@ -238,8 +268,9 @@ export async function courtGate(request, env, ctx) {
     try { return await investigatorApi(request, env, ctx); }
     catch (e) { return json({ error: "investigator error", detail: String(e && e.message || e).slice(0, 200) }, 500); }
   }
-  if (url.pathname === "/tools/court" && request.method === "GET") {
-    try { return await courtPage(request, env); } catch (e) { return null; }
+  const cp = url.pathname.match(/^(?:\/(ru|de|en))?\/tools\/court(?:\.html)?$/);
+  if (cp && request.method === "GET") {
+    try { return await courtPage(request, env, cp[1] || null); } catch (e) { return null; }
   }
   if (url.pathname.startsWith("/api/v1/court")) {
     try { return await courtApi(request, env, url); }

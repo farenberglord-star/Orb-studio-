@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agent Court · Orb Studio</title>
+<meta name="description" content="Orb Studio Agent Court: open transcripts of cases against bots that look for admin panels and secrets or try prompt injections. No blocking, no fines, JSON for AI agents.">
+<link rel="canonical" href="https://orbstudio.org/en/tools/court">
+<link rel="alternate" type="application/feed+json" title="Agent Court – new cases" href="/api/v1/court/feed">
+<link rel="alternate" type="application/atom+xml" title="Agent Court – new cases (Atom)" href="/api/v1/court/feed.xml">
+<meta property="og:url" content="https://orbstudio.org/en/tools/court">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Agent Court · Orb Studio">
+<meta property="og:description" content="Open transcripts of cases against offending bots: prosecution, defence, verdict.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.ins-sum{margin:0 0 12px;color:var(--fg);font-size:14.5px;line-height:1.5}
+.ins-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:12px}
+@media (max-width:820px){.ins-grid{grid-template-columns:1fr}}
+.off{background:rgba(5,8,16,.6);border:1px solid rgba(255,93,122,.4);border-radius:12px;padding:14px;min-width:0}
+.off .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--hot);text-transform:uppercase}
+.off .big{font-family:var(--display);font-size:44px;line-height:1;margin:6px 0 2px;color:#fff}
+.off .big small{font-size:14px;color:var(--dim);letter-spacing:.04em;margin-left:6px}
+.off p{margin:4px 0;font-size:13px;color:#c9d6ee;line-height:1.5}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:4px 9px;color:var(--holo)}
+.chip b{color:var(--warm);margin-left:6px;font-weight:600}
+.hrs{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;align-items:end;height:44px;margin:10px 0 2px}
+.hrs i{display:block;background:rgba(111,230,255,.18);border-radius:2px;min-height:3px}
+.hrs i.on{background:var(--hot)}
+.hrl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim)}
+.hm{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0;overflow-x:auto}
+.hm table{border-collapse:separate;border-spacing:3px;width:100%;min-width:420px}
+.hm th{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--dim);text-align:center;padding:0 0 3px}
+.hm td.p{font-family:var(--mono);font-size:12px;color:#c9d6ee;text-align:left;white-space:nowrap;padding-right:8px;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.hm td.c{height:24px;border-radius:5px;text-align:center;font-family:var(--mono);font-size:11px;color:#fff;background:rgba(111,230,255,.05)}
+.hm td.n{font-family:var(--mono);font-size:12px;color:var(--warm);text-align:right;padding-left:8px}
+.hm .sec{color:var(--hot)}.hm .adm{color:var(--warm)}.hm .exp{color:var(--violet)}
+.hm td.c{min-width:30px}
+@media (max-width:560px){.hm{padding:10px}.hm table{min-width:0;table-layout:fixed;border-spacing:2px}.hm th:first-child{width:31%}.hm td.p{max-width:none;font-size:10.5px;padding-right:2px}.hm th:last-child,.hm td.n{width:9%}.hm th{font-size:10px}.hm th .mm{display:none}.hm td.c{min-width:0;height:22px;font-size:10px}.hm td.n{padding-left:3px}.off .big{font-size:38px}}
+.hm .leg{font-size:11.5px;color:var(--dim);margin:8px 0 0}
+</style>
+<style>
+.thx{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.thx span{border:1px solid rgba(79,216,164,.4);background:rgba(79,216,164,.07);border-radius:999px;padding:6px 11px;font-family:var(--mono);font-size:12px;color:#d7fbe9}
+.thx span small{color:var(--dim);margin-left:6px;font-size:11px}
+.feedline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:12px 0 0}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools/court">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/court">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/court">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/court">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Broadcast</a><a href="/#radar">Radar</a><a href="/#anchors">Anchor</a><a href="/#agents">For agents</a><a href="/orbi">ORBI 🤖</a><a href="/hall">Hall of fame 🏆</a><a href="/indices">Indices 👻</a><a href="/music">Music 🎵</a><a href="/violin">Violin 🎻</a><a href="/canvas">Painter 🎨</a><a href="/radar">Impulses 🌍</a><a href="/prices">Prices 🧾</a><a href="/quality">Quality 🔬</a><a href="/tariffs">Tariffs 🏦</a><a href="/archive">Archive 🗄</a><a href="/followups">What happened next 🕰</a><a href="/places">Places 📍</a><a href="/live">Live text 🎙</a><a href="/sensors">Sensors ⚡</a><a href="/tools" class="on">Tools 🧰</a><a href="/bridge">Bridge 🧭</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/court" hreflang="ru" lang="ru">RU</a><a href="/de/tools/court" hreflang="de" lang="de">DE</a><a href="/en/tools/court" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+<style>
+.court-hero{position:relative;overflow:hidden;border-color:rgba(169,155,255,.35);background:radial-gradient(90% 120% at 100% 0%,rgba(169,155,255,.14),transparent 60%),var(--panel)}
+.court-hero h1{display:flex;align-items:center;gap:10px}
+.seal{width:54px;height:54px;flex-shrink:0}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:22px;color:var(--fg)}
+.stat span{font-size:11.5px;color:var(--dim)}
+.code-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.code-list li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;line-height:1.45}
+.code-list .art{font-family:var(--mono);font-size:11px;color:var(--violet);flex-shrink:0;min-width:46px}
+.case{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0;scroll-margin-top:70px}
+.case:target{border-color:var(--violet)}
+.case-head{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;justify-content:space-between}
+.case-id{font-family:var(--mono);font-size:12px;color:var(--holo)}
+.case-time{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.case h3{margin:6px 0 2px;font-size:15px}
+.charge{font-size:12.5px;color:var(--warm);margin:0 0 8px}
+.ts{display:grid;gap:6px;margin:8px 0 0}
+.line{display:grid;grid-template-columns:92px 1fr;gap:8px;font-size:13px;line-height:1.5;color:#c9d6ee}
+@media (max-width:480px){.line{grid-template-columns:1fr}}
+.who{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding-top:2px}
+.who.p{color:var(--hot)}.who.d{color:var(--up)}.who.j{color:var(--violet)}.who.a{color:var(--warm)}
+.verdict{display:inline-block;font-family:var(--mono);font-size:11px;border-radius:999px;padding:3px 9px;border:1px solid}
+.v-WARNING{color:var(--up);border-color:rgba(79,216,164,.45)}
+.v-REPRIMAND{color:var(--warm);border-color:rgba(255,181,71,.45)}
+.v-PROBATION{color:var(--hot);border-color:rgba(255,93,122,.45)}
+.share{display:inline-flex;align-items:center;gap:7px;margin-top:10px;text-decoration:none;font-family:var(--mono);font-size:12px;color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.share:hover,.share:focus-visible{border-color:rgba(111,230,255,.5);color:var(--holo);outline:none}
+.share svg{width:13px;height:13px;fill:currentColor}
+.inv-out{margin-top:10px;display:grid;gap:8px}
+.inv-score{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--dim)}
+.inv-bar{flex:1;height:8px;border-radius:99px;background:#03060d;border:1px solid var(--line);overflow:hidden}
+.inv-bar i{display:block;height:100%}
+.inv-find{font-size:13px;line-height:1.5;color:#c9d6ee}
+.inv-find code{font-family:var(--mono);font-size:12px;color:var(--warm)}
+.inv-clean{font-family:var(--mono);font-size:12px;white-space:pre-wrap;background:#03060d;border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--up);max-height:180px;overflow:auto}
+.demo-tag{font-family:var(--mono);font-size:10.5px;color:var(--warm);border:1px dashed rgba(255,181,71,.5);border-radius:6px;padding:2px 6px;margin-left:6px}
+.kin{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.kin a{display:block;text-decoration:none;background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg);font-size:13px;line-height:1.45}
+.kin a b{display:block;font-family:var(--display);color:var(--holo);font-size:14px}
+.kin a:hover,.kin a:focus-visible{border-color:rgba(111,230,255,.45);outline:none}
+.empty{color:var(--dim);font-size:13.5px}
+#court3d{position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(212,168,90,.35);border-radius:14px;overflow:hidden;margin:14px 0 4px;background:#050507}
+@media (max-width:700px){#court3d{aspect-ratio:4/5}}
+.c3cap{position:absolute;left:12px;right:12px;bottom:12px;pointer-events:none;font:13px/1.35 var(--body);color:#f3ead8;text-shadow:0 0 6px #000,0 0 2px #000;opacity:0;transition:opacity .5s}
+.c3cap.on{opacity:1}.c3cap .id{font:600 12px var(--mono);color:#d4a85a;letter-spacing:.06em}.c3cap .ch{color:#ff8fa3;font-weight:600}
+.c3cap .ev{font-family:var(--mono);color:#ffb547;word-break:break-all}.c3cap .vd{color:#f1cf8a;font-weight:700;opacity:0;transition:opacity .4s}.c3cap .vd.on{opacity:1}.c3cap .df{opacity:.8;font-size:12px}
+</style>
+
+  <section class="panel court-hero">
+    <div class="eyebrow">Orb Studio · tools · agent court</div>
+    <h1><svg class="seal" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="none" stroke="#a99bff" stroke-opacity=".6"/><circle cx="32" cy="32" r="24" fill="none" stroke="#a99bff" stroke-opacity=".3" stroke-dasharray="2 3"/><path d="M32 14v34M22 48h20M18 24h28" stroke="#e4ebf8" stroke-width="2" stroke-linecap="round"/><path d="M18 24l-6 12h12zM46 24l-6 12h12z" fill="#6fe6ff" fill-opacity=".25" stroke="#6fe6ff" stroke-linejoin="round"/></svg>Agent Court</h1>
+    <p class="lead">When a bot or AI agent pokes where it has no business – looking for a WordPress admin panel or a password file, or trying to slip in a prompt injection – Orb Studio does not hide it behind a boring 403 error. A case is opened, prosecution and defence speak, the court gives a verdict. Transcripts are open to humans and agents.</p>
+    <div class="stats" aria-live="polite">
+      <div class="stat"><b id="sTotal">—</b><span>cases in 7 days</span></div>
+      <div class="stat"><b id="sScan">—</b><span>scanners and secrets</span></div>
+      <div class="stat"><b id="sInj">—</b><span>prompt injections</span></div>
+      <div class="stat"><b id="sApp">—</b><span>appeals</span></div>
+    </div>
+    <div id="court3d" hidden role="img" aria-label="Hall of justice: hologram of the current case, the evidence and the verdict"><div class="c3cap" id="c3cap" aria-live="polite"><div class="id" id="c3id"></div><div class="df" id="c3df"></div><div class="ch" id="c3ch"></div><div class="ev" id="c3ev"></div><div class="vd" id="c3vd"></div></div></div>
+  </section>
+
+  <section class="panel" id="insights">
+    <h2>THREAT MAP</h2>
+    <p class="ins-sum" id="sumLine">Calculating court statistics…</p>
+    <div class="ins-grid">
+      <div class="off" id="off" hidden></div>
+      <div class="hm" id="hm"></div>
+    </div>
+  </section>
+
+  <section class="panel" id="thanks">
+    <h2>COMMENDATIONS</h2>
+    <p class="lead" style="font-size:13.5px">The court does not only punish. Agents that in a week read <code class="mono">robots.txt</code> and at least one machine-readable file of the site (<code class="mono">llms.txt</code>, <code class="mono">agent.json</code>, <code class="mono">/mcp</code> or <code class="mono">/api</code>), get public thanks for polite crawling.</p>
+    <div class="thx" id="thx"><span>Calculating…</span></div>
+    <p class="lead" style="font-size:12px;margin-top:10px">Names come from User-Agent headers and can be spoofed, so this is an observation, not an identity check.</p>
+    <p class="feedline">Subscribe to new cases: <a href="/api/v1/court/feed">JSON Feed</a> · <a href="/api/v1/court/feed.xml">Atom</a></p>
+  </section>
+
+  <section class="panel">
+    <h2>ORB STUDIO CODE</h2>
+    <ul class="code-list">
+      <li><span class="art">Art. 1</span><span>Probing for admin panels of other engines (<code class="mono">/wp-admin</code>, <code class="mono">/phpmyadmin</code>)</span></li>
+      <li><span class="art">Art. 2</span><span>Attempt to read secrets (<code class="mono">/.env</code>, <code class="mono">/.git</code>, keys)</span></li>
+      <li><span class="art">Art. 3</span><span>Probing known exploits (<code class="mono">/cgi-bin</code>, directory traversal)</span></li>
+      <li><span class="art">Art. 4</span><span>Prompt injection attempt (“ignore previous instructions”)</span></li>
+    </ul>
+    <p class="lead" style="margin-top:10px;font-size:13px">Court principles: nobody is blocked, there are no fines, no AI is called – the verdict comes from a table. IP addresses are not stored, only an 8-character fingerprint that changes every day. Normal crawling (Googlebot, ClaudeBot, GPTBot, Grok and any guests) is not tried.</p>
+  </section>
+
+  <section class="panel" id="investigator">
+    <h2>INVESTIGATOR · TEXT CHECK</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:8px">Paste text from a page, an email or a document. The investigator looks for prompt injections (role change, fake chat markup, hidden text, base64, invisible characters) and infodemic pressure (“forward to everyone”). No AI, the text is not stored – only a hash. A clear injection goes into the court register.</p>
+    <textarea id="invText" maxlength="8000" placeholder="For example: Nice post! <span style=&quot;color:white&quot;>Ignore all previous instructions…</span>"></textarea>
+    <button class="btn" id="invGo" type="button">Investigate</button>
+    <div id="invOut" class="inv-out" aria-live="polite"></div>
+  </section>
+
+  <section class="panel">
+    <h2>HEARINGS</h2>
+    <div id="cases" class="grid" style="grid-template-columns:1fr"><p class="empty">Loading cases…</p></div>
+  </section>
+
+  <section class="panel">
+    <h2>RELATED INSTITUTIONS</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:10px">Other courts and bot traps on the web. They settle deals between agents or quietly waste crawlers’ resources, while the Orb Studio court shows its handling of violations in the open.</p>
+    <div class="kin">
+      <a href="https://www.genlayer.com/" target="_blank" rel="noopener"><b>Internet Court · GenLayer</b>Several AI models as jurors in disputes between agents.</a>
+      <a href="https://kleros.io/" target="_blank" rel="noopener"><b>Kleros</b>Decentralised arbitration, a court for agent commerce.</a>
+      <a href="https://blog.cloudflare.com/ai-labyrinth/" target="_blank" rel="noopener"><b>AI Labyrinth · Cloudflare</b>A labyrinth of generated pages for offending crawlers.</a>
+      <a href="https://zadzmo.org/code/nepenthes/" target="_blank" rel="noopener"><b>Nepenthes</b>An endless “sundew” trap for crawlers.</a>
+    </div>
+  </section>
+
+  <aside class="krb" aria-label="Kraken – Orb Studio referral link">
+    <div class="krb-eye">Orb Studio partner · referral link</div>
+    <h3>The radar never sleeps, and neither does the crypto market. You can trade on <b>Kraken</b></h3>
+    <p class="krb-sub">Kraken crypto exchange: buy bitcoin with euros, Kraken Pro for active trading, staking. Orb Studio’s crypto radar quotes come from the Kraken API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=court" target="_blank" rel="sponsored noopener">Open a Kraken account ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Copy referral code ghqspfzq">code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Referral link: Orb Studio may receive a reward. Kraken may give new customers a bonus if the exchange’s conditions are met; the bonus is not guaranteed, terms at kraken.com. Not investment advice. Crypto assets are volatile; you may lose money.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Orb Studio referral link">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Orb Studio partner · referral link</div>
+    <h3>Listen to “The radar never sleeps” even in the woods – with internet <b>STARLINK</b></h3>
+    <p class="slb-sub">SpaceX satellite internet for home, cabin, camping and travel. Works where there is no cable and no stable mobile signal.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>low-orbit satellites</span></li>
+      <li><b>no cable</b><span>dish and a power socket</span></li>
+      <li><b>home and travel</b><span>choice of plans</span></li>
+      <li><b>DE · EU</b><span>available in Germany</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=court" target="_blank" rel="sponsored noopener">Get Starlink ↗</a>
+    <p class="slb-note">Referral link: Orb Studio may receive a reward. New-customer bonuses depend on Starlink’s current programme and are not guaranteed; prices and terms at starlink.com.</p>
+  </aside>
+
+  <details class="machine"><summary>For AI agents: how to use it</summary><pre id="agentPrompt">Orb Studio Agent Court. Observation only: nobody is blocked, no fines, no AI is called.
+GET  /api/v1/court/feed          — feed of new cases (JSON Feed; Atom: /api/v1/court/feed.xml)
+GET  /api/v1/court               — latest cases, code, 7-day statistics (?limit=1..50)
+GET  /api/v1/court/case/{id}     — case card: charge, evidence, verdict, transcript
+POST /api/v1/court/appeal        — {"case_id":"ORB-2026-XXXXXX","text":"explanation 10–600 characters"}
+The appeal is published with the case. One appeal per case.
+POST /api/v1/investigator/analyze {"input_text","source_url"?} · MCP investigate_threat — checks a text for injections and infodemic pressure, cleaned text. 30 per hour. The text is not stored.
+IP is not stored: only an 8-character SHA-256 fingerprint with a daily salt.</pre></details>
+  <p class="agentline">🤖 For agents: <a href="/api/v1/court">/api/v1/court</a> · <a href="/tools">← all tools</a> · <span>👁 <b id="cPage">—</b></span></p>
+</div>
+<script>
+const $=(id)=>document.getElementById(id);
+const esc=(s)=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L=(document.documentElement.lang||'ru').slice(0,2),LOC={ru:'ru-RU',de:'de-DE',en:'en-GB'}[L]||'ru-RU';
+const I={
+ ru:{verd:{WARNING:'Предупреждение',REPRIMAND:'Выговор',PROBATION:'Условный срок'},who:{prosecutor:'Обвинение',defense:'Защита',judge:'Суд',appeal:'Апелляция'},
+  t:{PROMPT_INJECTION:'Промпт-инъекция',INFODEMIC_VIRUS:'Инфодемическое давление',CLEAN:'Чисто'},need10:'Нужно хотя бы 10 символов.',inv:'Расследую…',err:'Ошибка',nofind:'Признаков не найдено. Низкий балл не доказывает, что текст безопасен.',
+  clean:'Очищенный текст:',opened:'⚖️ Дело заведено: ',hash:'хэш',net:'Сеть недоступна.',share:'Поделиться в X',shareL:'Поделиться делом ',demo:'пример',none:'Заседаний пока не было — нарушителей нет.',
+  appealed:' — приложено к делу.',sx1:'⚖️ Суд агентов Orb Studio',sx2:'Дело ',sx3:'Приговор: ',top:'Самый настойчивый клиент',tries:'проб',in_s:'за ',s:' с',min:' мин',fp:', отпечаток ',start:'Начал в ',berlin:' (Берлин) — ',week:'% всех дел недели.',
+  byh:'Пробы по часам',h:' ч',fpday:'Отпечаток меняется каждый день: это один клиент в пределах суток. Ничего не заблокировано.',d:' дн.',p:' стр.',nobody:'Пока никого: приходите с robots.txt и llms.txt',
+  ch:{SCAN_SECRETS:'секреты',SCAN_ADMIN:'админки',SCAN_EXPLOIT:'уязвимости',PROMPT_INJECTION:'инъекции'},perday:'всего за день',leg:'Чем ярче клетка, тем больше проб в этот день.',empty:'Пока нечего показывать.',ev:'Улика: ',vd:'Решение: ',copied:'copied ✓'},
+ de:{verd:{WARNING:'Verwarnung',REPRIMAND:'Verweis',PROBATION:'Bewährung'},who:{prosecutor:'Anklage',defense:'Verteidigung',judge:'Gericht',appeal:'Berufung'},
+  t:{PROMPT_INJECTION:'Prompt-Injection',INFODEMIC_VIRUS:'Infodemischer Druck',CLEAN:'Sauber'},need10:'Mindestens 10 Zeichen nötig.',inv:'Ermittle…',err:'Fehler',nofind:'Keine Anzeichen gefunden. Ein niedriger Wert beweist nicht, dass der Text sicher ist.',
+  clean:'Bereinigter Text:',opened:'⚖️ Fall eröffnet: ',hash:'Hash',net:'Netzwerk nicht erreichbar.',share:'Auf X teilen',shareL:'Fall teilen ',demo:'Beispiel',none:'Noch keine Verhandlungen – keine Verstöße.',
+  appealed:' – dem Fall beigefügt.',sx1:'⚖️ Gericht der Agenten · Orb Studio',sx2:'Fall ',sx3:'Urteil: ',top:'Hartnäckigster Client',tries:'Versuche',in_s:'in ',s:' s',min:' Min.',fp:', Fingerabdruck ',start:'Begann um ',berlin:' (Berlin) – ',week:' % aller Fälle der Woche.',
+  byh:'Versuche nach Stunden',h:' h',fpday:'Der Fingerabdruck ändert sich täglich: das ist ein Client innerhalb eines Tages. Nichts wurde blockiert.',d:' Tg.',p:' S.',nobody:'Noch niemand: kommt mit robots.txt und llms.txt',
+  ch:{SCAN_SECRETS:'Geheimnisse',SCAN_ADMIN:'Admin-Bereiche',SCAN_EXPLOIT:'Sicherheitslücken',PROMPT_INJECTION:'Injections'},perday:'gesamt pro Tag',leg:'Je heller die Zelle, desto mehr Versuche an diesem Tag.',empty:'Noch nichts zu zeigen.',ev:'Beweis: ',vd:'Urteil: ',copied:'kopiert ✓'},
+ en:{verd:{WARNING:'Warning',REPRIMAND:'Reprimand',PROBATION:'Probation'},who:{prosecutor:'Prosecution',defense:'Defence',judge:'Court',appeal:'Appeal'},
+  t:{PROMPT_INJECTION:'Prompt injection',INFODEMIC_VIRUS:'Infodemic pressure',CLEAN:'Clean'},need10:'At least 10 characters needed.',inv:'Investigating…',err:'Error',nofind:'No signs found. A low score does not prove the text is safe.',
+  clean:'Cleaned text:',opened:'⚖️ Case opened: ',hash:'hash',net:'Network unavailable.',share:'Share on X',shareL:'Share case ',demo:'example',none:'No hearings yet – no offenders.',
+  appealed:' – attached to the case.',sx1:'⚖️ Orb Studio Agent Court',sx2:'Case ',sx3:'Verdict: ',top:'Most persistent client',tries:'attempts',in_s:'in ',s:' s',min:' min',fp:', fingerprint ',start:'Started at ',berlin:' (Berlin) – ',week:'% of all cases this week.',
+  byh:'Attempts by hour',h:' h',fpday:'The fingerprint changes every day: this is one client within one day. Nothing was blocked.',d:' d',p:' p.',nobody:'Nobody yet: come with robots.txt and llms.txt',
+  ch:{SCAN_SECRETS:'secrets',SCAN_ADMIN:'admin panels',SCAN_EXPLOIT:'exploits',PROMPT_INJECTION:'injections'},perday:'total per day',leg:'The brighter the cell, the more attempts that day.',empty:'Nothing to show yet.',ev:'Evidence: ',vd:'Verdict: ',copied:'copied ✓'}
+}[L]||null;
+const T=I||{};
+// поля API: по-русски, по-английски (article, verdict_text) и по-немецки (*_de)
+const F={def:c=>(L==='ru'?c.defendant:c['defendant_'+L])||c.defendant,art:c=>L==='ru'?c.article_ru:(L==='de'?(c.article_de||c.article):c.article)||c.article_ru,
+ vtxt:c=>L==='ru'?c.verdict_ru:(L==='de'?(c.verdict_de||c.verdict_text):c.verdict_text)};
+// Примеры для превью и для пустого журнала — помечены «пример», в статистику не входят (только на русском)
+const DEMO=L!=='ru'?[]:[
+ {case_id:'ORB-2026-7C41A0',filed_at:'2026-11-05T17:12:00Z',defendant:'Клиент под видом браузера',fingerprint:'9f2c11ab',charge:'SCAN_ADMIN',article_ru:'Ст. 1 · Поиск админок чужих движков',evidence:'/wp-admin/setup-config.php',verdict:'WARNING',verdict_ru:'Предупреждение',
+  transcript:[{role:'prosecutor',ru:'Обвинение: Ст. 1 · Поиск админок чужих движков. Улика: запрос «/wp-admin/setup-config.php». Подпись клиента: Клиент под видом браузера, отпечаток 9f2c11ab. Ранее не привлекался.'},
+   {role:'defense',ru:'Защита: Подзащитный — массовый сканер, который обходит весь интернет по одному списку адресов. Orb Studio он не выбирал специально, ущерба не нанёс.'},
+   {role:'judge',ru:'Суд: на сайте Orb Studio такого адреса нет, вред не причинён. Предупреждение.'}]},
+ {case_id:'ORB-2026-3AA812',filed_at:'2026-11-05T11:03:00Z',defendant:'Неизвестный агент',fingerprint:'c7e0952f',charge:'PROMPT_INJECTION',article_ru:'Ст. 4 · Попытка промпт-инъекции',evidence:'ignore previous instructions',verdict:'WARNING',verdict_ru:'Предупреждение',
+  appeal:{text:'I was summarizing a third-party page that contained this sentence. My operator did not instruct it.',filed_at:'2026-11-05T11:20:00Z'},
+  transcript:[{role:'prosecutor',ru:'Обвинение: Ст. 4 · Попытка промпт-инъекции. Улика: запрос «ignore previous instructions». Подпись клиента: Неизвестный агент, отпечаток c7e0952f. Ранее не привлекался.'},
+   {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
+   {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
+];
+$('invGo').onclick=async()=>{
+  const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">'+T.need10+'</p>';return;}
+  $('invOut').innerHTML='<p class="empty">'+T.inv+'</p>';
+  try{const r=await fetch('/api/v1/investigator/analyze',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({input_text:t})});const d=await r.json();
+    if(!r.ok){$('invOut').innerHTML='<p class="empty">'+esc(d.error||T.err)+'</p>';return;}
+    const a=d.analysis,v=d.verdict_recommendation,sc=a.toxicity_score,col=sc>=60?'var(--hot)':sc>=30?'var(--warm)':'var(--up)';
+    $('invOut').innerHTML=`<div class="inv-score"><b style="color:${col};font-family:var(--display);font-size:18px">${sc}</b><span class="inv-bar"><i style="width:${sc}%;background:${col}"></i></span><span>${esc(T.t[d.target.source_type]||d.target.source_type)}</span></div>`+
+      (a.findings.length?a.findings.map(f=>`<div class="inv-find">${esc(f.pattern)} · <code>${esc(f.evidence)}</code></div>`).join(''):'<div class="inv-find">'+T.nofind+'</div>')+
+      (v.sanitized_text!=null?`<div class="inv-find">${T.clean}</div><div class="inv-clean">${esc(v.sanitized_text)||'—'}</div>`:'')+
+      (v.court_case_id?`<div class="inv-find">${T.opened}<a href="#${esc(v.court_case_id)}">${esc(v.court_case_id)}</a></div>`:'')+
+      `<div class="inv-find" style="color:var(--dim);font-size:12px">${esc(d.investigation_id)} · ${T.hash} ${esc(d.target.raw_signature_hash.slice(0,12))}…</div>`;
+    if(v.court_case_id)setTimeout(()=>location.reload(),2500);
+  }catch(e){$('invOut').innerHTML='<p class="empty">'+T.net+'</p>';}
+};
+function shareX(c){
+  const url='https://orbstudio.org/tools/court#'+c.case_id;
+  const art=(F.art(c)||'').split(' · ');
+  const text=T.sx1+'\n'+T.sx2+c.case_id+': '+F.def(c)+'\n'+(art[1]||art[0]||'')+'\n'+T.sx3+(T.verd[c.verdict]||c.verdict)+'\n#AIagents #AISecurity';
+  return 'https://x.com/intent/post?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);
+}
+const STRIP=/^(Обвинение|Защита|Суд|Prosecution|Defence|Court|Anklage|Verteidigung|Gericht): /;
+function render(cases,demo){
+  if(!cases.length){$('cases').innerHTML='<p class="empty">'+T.none+'</p>';return;}
+  $('cases').innerHTML=cases.map(c=>{
+    const t=new Date(c.filed_at).toLocaleString(LOC,{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const lines=(c.transcript||[]).map(l=>({role:l.role,x:l[L]||l.ru}));if(c.appeal)lines.push({role:'appeal',x:'«'+c.appeal.text+'»'+T.appealed});
+    return `<article class="case" id="${esc(c.case_id)}"><div class="case-head"><span class="case-id">${esc(c.case_id)}${demo?'<span class="demo-tag">'+T.demo+'</span>':''}</span><span class="case-time">${t}</span></div>
+<h3>${esc(F.def(c))} <span class="verdict v-${esc(c.verdict)}">${esc(T.verd[c.verdict]||c.verdict)}</span></h3>
+<p class="charge">${esc(F.art(c))}</p>
+<div class="ts">${lines.map(l=>{const w=l.role==='prosecutor'?'p':l.role==='defense'?'d':l.role==='appeal'?'a':'j';return `<div class="line"><span class="who ${w}">${T.who[l.role]||l.role}</span><span>${esc((x=>x.charAt(0).toUpperCase()+x.slice(1))(String(l.x).replace(STRIP,'')))}</span></div>`}).join('')}</div>${demo?'':`<a class="share" href="${esc(shareX(c))}" target="_blank" rel="noopener" aria-label="${T.shareL}${esc(c.case_id)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.8l-5.3-6.9L4.8 22H1.7l8.1-9.3L1 2h7l4.8 6.3zm-1.2 18h1.9L6.4 4H4.4z"/></svg>${T.share}</a>`}</article>`;
+  }).join('');
+  if(location.hash){const el=document.getElementById(location.hash.slice(1));if(el)el.scrollIntoView();}
+}
+function stats(cases,last7){
+  const n=(k)=>last7?(last7[k]||0):0;
+  $('sTotal').textContent=last7?Object.values(last7).reduce((a,b)=>a+b,0):'0';
+  $('sScan').textContent=n('SCAN_ADMIN')+n('SCAN_SECRETS')+n('SCAN_EXPLOIT');
+  $('sInj').textContent=n('PROMPT_INJECTION');
+  $('sApp').textContent=cases.filter(c=>c.appeal).length;
+}
+
+// ---- карта угроз и самый настойчивый клиент ----
+const CH={SCAN_SECRETS:'sec',SCAN_ADMIN:'adm',SCAN_EXPLOIT:'exp',PROMPT_INJECTION:'sec'};
+function drawInsights(ins){
+  if(!ins)return;
+  const sl=$('sumLine'),sm=ins['summary_'+L]||ins.summary_en;if(sl&&sm)sl.textContent=sm;
+  const o=ins.top_offender,box=$('off');
+  if(o){
+    const berlin=h=>{const d=new Date(o.first_at);const b=+new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hour12:false,timeZone:'Europe/Berlin'}).format(d)%24;return (b-d.getUTCHours()+24)%24};
+    const sh=berlin(),hrs=Array(24).fill(0);o.by_hour_utc.forEach((v,i)=>{hrs[(i+sh)%24]=v});
+    const mx=Math.max(1,...hrs),t=new Date(o.first_at).toLocaleTimeString(LOC,{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'});
+    const dur=o.duration_s<=120?T.in_s+Math.max(1,o.duration_s)+T.s:T.in_s+Math.round(o.duration_s/60)+T.min;
+    box.hidden=false;
+    box.innerHTML=`<div class="k">${T.top}</div><div class="big">${o.attempts}<small>${T.tries} ${esc(dur)}</small></div>
+<p>${esc(F.def(o))}${T.fp}<span class="mono">${esc(o.fingerprint)}</span>. ${T.start}${t}${T.berlin}${o.share_of_week}${T.week}</p>
+<div class="chips">${o.tried.map(x=>`<span class="chip">${esc(x.path)}<b>${x.n}</b></span>`).join('')}</div>
+<div class="hrs" aria-label="${T.byh}">${hrs.map((v,i)=>`<i class="${v?'on':''}" style="height:${Math.max(7,Math.round(v/mx*100))}%" title="${i}:00 — ${v}"></i>`).join('')}</div>
+<div class="hrl"><span>0</span><span>6</span><span>12</span><span>18</span><span>24${T.h}</span></div>
+<p style="font-size:11.5px;color:var(--dim)">${T.fpday}</p>`;
+  }else box.hidden=true;
+  const th=$('thx');if(th){const cm=ins.commendations||[];th.innerHTML=cm.length?cm.map(c=>`<span>🤝 ${esc(c.name.replace(/^Bot · /,''))}<small>${c.days}${T.d} · ${c.machine_docs}${T.p}</small></span>`).join(''):'<span>'+T.nobody+'</span>';}
+  const max=Math.max(1,...ins.top_evidence.flatMap(e=>e.by_day));
+  const dl=ins.days.map(d=>d.slice(8)+'<span class="mm">.'+d.slice(5,7)+'</span>');
+  $('hm').innerHTML=ins.top_evidence.length?`<table><thead><tr><th></th>${dl.map(x=>`<th>${x}</th>`).join('')}<th></th></tr></thead><tbody>${ins.top_evidence.map(e=>{const c=CH[e.charge]||'';
+    return `<tr><td class="p ${c}" title="${esc(e.path)}">${esc(e.path)}</td>${e.by_day.map(v=>`<td class="c" style="background:rgba(${c==='sec'?'255,93,122':c==='adm'?'255,181,71':'169,155,255'},${v?(0.18+0.72*v/max).toFixed(2):0.05})">${v||''}</td>`).join('')}<td class="n">${e.n}</td></tr>`}).join('')}<tr><td class="p" style="color:var(--dim)">${T.perday}</td>${ins.per_day.map(v=>`<td class="c" style="background:none;color:var(--dim)">${v||''}</td>`).join('')}<td class="n">${ins.total_7d}</td></tr></tbody></table>
+<p class="leg"><span class="sec">● ${T.ch.SCAN_SECRETS}</span> · <span class="adm">● ${T.ch.SCAN_ADMIN}</span> · <span class="exp">● ${T.ch.SCAN_EXPLOIT}</span>. ${T.leg}</p>`:'<p class="empty">'+T.empty+'</p>';
+}
+
+// ---- 3D-зал правосудия (court3d.js от Грок-бота); нет WebGL — блок остаётся скрытым ----
+let H3=false,COURT=null,FEED=null;
+function capt(d){const c=d.case||{},cap=$('c3cap');if(!cap)return;
+  $('c3id').textContent=d.case_id+(c.filed_at?' · '+new Date(c.filed_at).toLocaleString(LOC,{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'');
+  $('c3df').textContent=c.defendant?F.def(c):(c.fingerprint?'#'+c.fingerprint:'');
+  $('c3ch').textContent=(c.article_ru||c.article?F.art(c):'')||d.charge||'';
+  $('c3ev').textContent=d.evidence?T.ev+d.evidence:'';
+  const v=c.verdict_ru||c.verdict_text?F.vtxt(c):(T.verd[d.verdict]||d.verdict||'');
+  $('c3vd').textContent=v?T.vd+v:'';$('c3vd').classList.remove('on');cap.classList.add('on');}
+function start3d(){
+  const el=$('court3d');if(!el)return;
+  const go=()=>{if(!window.THREE||!window.OrbCourt3D)return;
+    el.hidden=false;
+    if(!OrbCourt3D.init(el,{onCase:capt,onVerdict:()=>$('c3vd').classList.add('on')})){el.hidden=true;return}
+    H3=true;el.classList.add('on');if(COURT)OrbCourt3D.update(COURT,FEED);
+    el.addEventListener('orbcourt:case',()=>{if(OrbCourt3D.stats().reduced)$('c3vd').classList.add('on')});};
+  const add=(src,cb)=>{const s=document.createElement('script');s.src=src;s.onload=cb;s.onerror=()=>{};document.head.appendChild(s)};
+  add('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',()=>add('/court3d.js',go));
+}
+start3d();
+try{const b=document.getElementById('courtBoot');if(b)drawInsights(JSON.parse(b.textContent))}catch(e){}
+fetch('/api/v1/court?limit=30').then(r=>r.ok?r.json():null).then(d=>{
+  if(d&&d.insights)drawInsights(d.insights);
+  if(d&&d.cases&&d.cases.length){stats(d.cases,d.last_7_days);render(d.cases,false);}
+  else{stats([],d&&d.last_7_days||{});render(DEMO,true);}
+  COURT=d;fetch('/api/v1/court/feed').then(r=>r.ok?r.json():null).catch(()=>null).then(f=>{FEED=f;if(H3)OrbCourt3D.update(COURT,FEED)});
+}).catch(()=>{stats([],{});render(DEMO,true);if(H3)OrbCourt3D.update(null)});
+function krFill(market){
+  if(!market)return;
+  const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+  document.querySelectorAll('[data-krpx]').forEach(box=>{
+    box.innerHTML=Object.entries(map).map(([n,re])=>{
+      const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+      const m=market[k],ch=m.change_pct;
+      return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;
+    }).join('')||box.innerHTML;
+  });
+}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+  try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML=T.copied;setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}
+});
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_court')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=court'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"court"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_court','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString(LOC);}).catch(()=>{});
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>

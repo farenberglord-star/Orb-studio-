@@ -31,6 +31,9 @@
   <url><loc>https://orbstudio.org/tools/interview</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/tools/clips</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/clips</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/court</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/court</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/court</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/de/tools/interview</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/interview</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/canvas</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
