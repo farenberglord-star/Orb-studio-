@@ -1865,6 +1865,14 @@ PAGES["tools/clips"] += [  # мостик к проверке интервью
  ('Проверить', 'Prüfen', 'Check'),
 ]
 
+PAGES["tools/interview"] += [  # импульсы: итоги прогнозов и счёт говорящих
+ ('⏰ Срок наступил — итоги прогнозов', '⏰ Frist erreicht – Ergebnisse der Prognosen', '⏰ Deadline reached – forecast results'),
+ ('Каждый день сайт сам перепроверяет прогнозы, у которых наступил срок, по ценам Kraken. Новые итоги видят и люди, и агенты.', 'Jeden Tag prüft die Seite selbst die Prognosen, deren Frist abgelaufen ist, anhand der Kraken-Kurse. Neue Ergebnisse sehen Menschen und Agenten.', 'Every day the site re-checks forecasts whose deadline has passed against Kraken prices. New results are visible to humans and agents.'),
+ ('Пока итогов нет.', 'Noch keine Ergebnisse.', 'No results yet.'),
+ ('📊 Счёт говорящих', '📊 Bilanz der Sprecher', '📊 Speaker scoreboard'),
+ ('Сколько прогнозов цены каждого человека сбылось, не сбылось или ждёт срока — по всем проверенным интервью.', 'Wie viele Kursprognosen jeder Person eingetroffen sind, nicht eingetroffen sind oder noch auf die Frist warten – über alle geprüften Interviews.', 'How many of each person’s price targets came true, failed or are waiting for the deadline – across all checked interviews.'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],

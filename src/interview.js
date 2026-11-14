@@ -114,8 +114,62 @@ async function verify(card, today) {
   return card;
 }
 
+// ---------- Импульсы: событие, когда у прогноза наступил срок и появился итог ----------
+const DECIDED = new Set(["reached", "not_reached"]);
+async function emitEvents(env, card, before) {
+  const out = [];
+  for (let i = 0; i < card.claims.length; i++) {
+    const c = card.claims[i], st = c.check && c.check.status;
+    if (!DECIDED.has(st) || (before && before[i] === st)) continue;
+    const ev = { video: card.id, title: card.video.title, channel: card.video.channel, speaker: card.speaker || null, timecode: c.timecode, link: c.link,
+      asset: c.asset, target: c.target, deadline: c.deadline, status: st, summary: c.summary, period_high: c.check.period_high, close_on_deadline: c.check.close_on_deadline, pair: c.check.pair,
+      page: "https://orbstudio.org/tools/interview?v=" + card.id };
+    const r = await env.DB.prepare("INSERT OR IGNORE INTO interview_events (ts, day, video, claim, speaker, status, data) VALUES (?1,?2,?3,?4,?5,?6,?7)")
+      .bind(Date.now(), card.checked_at, card.id, i, (card.speaker || "").toLowerCase().trim() || null, st, JSON.stringify(ev)).run();
+    if (r.meta && r.meta.changes) out.push(ev);
+  }
+  return out;
+}
+
+// Раз в сутки (крон 07:10 UTC): перепроверяем все карточки — без Supadata и Claude, только цены Kraken
+export async function interviewDaily(env) {
+  if (!env.DB) return { skipped: "no db" };
+  await ensure(env);
+  const today = new Date().toISOString().slice(0, 10);
+  const { results } = await env.DB.prepare("SELECT id, data FROM interview_checks").all();
+  let events = [];
+  for (const row of results || []) {
+    const card = JSON.parse(row.data);
+    if (card.claims.some((c) => c.check && c.check.status === "pending")) {
+      await verify(card, today);
+      await env.DB.prepare("UPDATE interview_checks SET data=?2 WHERE id=?1").bind(row.id, JSON.stringify(card)).run();
+    }
+    if (!card.checked_at) card.checked_at = today;
+    events = events.concat(await emitEvents(env, card, null)); // повторы отсекает UNIQUE (video, claim, status)
+  }
+  return { checked: (results || []).length, new_events: events.length, events };
+}
+
+export async function interviewEvents(env, { days = 30, limit = 30 } = {}) {
+  if (!env.DB) return { events: [], speakers: [] };
+  await ensure(env);
+  const since = Date.now() - Math.min(365, Math.max(1, days)) * 864e5;
+  const ev = (await env.DB.prepare("SELECT data FROM interview_events WHERE ts>?1 ORDER BY ts DESC LIMIT ?2").bind(since, Math.min(100, limit)).all()).results || [];
+  // счёт говорящих по всем карточкам: сколько прогнозов цены сбылось, не сбылось, ждёт срока
+  const sp = {};
+  for (const r of (await env.DB.prepare("SELECT data FROM interview_checks").all()).results || []) {
+    const c = JSON.parse(r.data), name = (c.speaker || "").trim(); if (!name) continue;
+    const k = name.toLowerCase(), o = sp[k] || (sp[k] = { speaker: name, videos: 0, reached: 0, not_reached: 0, pending: 0 });
+    o.videos++;
+    for (const x of c.claims) { const st = x.check && x.check.status; if (st === "reached" || st === "not_reached" || st === "pending") o[st]++; }
+  }
+  const speakers = Object.values(sp).filter((o) => o.reached + o.not_reached + o.pending > 0).sort((a, b) => (b.reached + b.not_reached) - (a.reached + a.not_reached) || b.videos - a.videos).slice(0, 30);
+  return { events: ev.map((r) => JSON.parse(r.data)), speakers, note: "Events appear when a price target's deadline has passed and Kraken prices decide it. A missed target is not proof of lying.", page: "https://orbstudio.org/tools/interview" };
+}
+
 async function ensure(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS interview_checks (id TEXT PRIMARY KEY, ts INTEGER NOT NULL, data TEXT NOT NULL)").run();
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS interview_events (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, video TEXT NOT NULL, claim INTEGER NOT NULL, speaker TEXT, status TEXT NOT NULL, data TEXT NOT NULL, UNIQUE (video, claim, status))").run();
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS interview_quota (day TEXT NOT NULL, k TEXT NOT NULL, n INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (day, k))").run();
 }
 async function visitorKey(request, day) {
@@ -132,7 +186,7 @@ export async function checkInterview(request, env, url) {
   await ensure(env);
   const today = new Date().toISOString().slice(0, 10);
   const old = await env.DB.prepare("SELECT data FROM interview_checks WHERE id=?1").bind(vid).first();
-  if (old) { const card = await verify(JSON.parse(old.data), today); await env.DB.prepare("UPDATE interview_checks SET data=?2 WHERE id=?1").bind(vid, JSON.stringify(card)).run(); return { ...card, cached: true }; }
+  if (old) { const prev = JSON.parse(old.data), before = prev.claims.map((c) => c.check && c.check.status); const card = await verify(prev, today); await emitEvents(env, card, before); await env.DB.prepare("UPDATE interview_checks SET data=?2 WHERE id=?1").bind(vid, JSON.stringify(card)).run(); return { ...card, cached: true }; }
   if (!env.SUPADATA_API_KEY) return { error: "transcript service not configured" };
   const vk = await visitorKey(request, today);
   const [all, me] = await Promise.all([env.DB.prepare("SELECT n FROM interview_quota WHERE day=?1 AND k='all'").bind(today).first(), env.DB.prepare("SELECT n FROM interview_quota WHERE day=?1 AND k=?2").bind(today, vk).first()]);
@@ -150,6 +204,7 @@ export async function checkInterview(request, env, url) {
     note: "Claims are paraphrased by AI from the captions — approximate, check the timecode yourself. A missed price target is not proof of lying." };
   await verify(card, today);
   await Promise.all([bump(env, today, "all"), bump(env, today, vk)]); // лимит считаем только за удачные проверки
+  await emitEvents(env, card, null); // уже решённые прогнозы сразу становятся событиями
   await env.DB.prepare("INSERT OR REPLACE INTO interview_checks (id, ts, data) VALUES (?1, ?2, ?3)").bind(vid, Date.now(), JSON.stringify(card)).run();
   return { ...card, cached: false };
 }
@@ -164,6 +219,10 @@ export async function listChecks(env, id) {
 }
 
 export const INTERVIEW_TOOLS = [
+  { name: "get_interview_events", title: "Deadline events: interview forecasts that just came true or failed",
+    description: "Impulse feed: every day Orb Studio re-checks interview price targets whose deadline has passed against Kraken prices and posts an event (target reached / not reached), plus a scoreboard of speakers (how many of their checked price targets came true, failed or are pending). Use it before you repeat a famous forecast.",
+    inputSchema: { type: "object", properties: { days: { type: "integer", minimum: 1, maximum: 365 }, limit: { type: "integer", minimum: 1, maximum: 100 } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "check_interview", title: "Fact-check a YouTube interview (crypto forecasts)",
     description: "Send a YouTube link. Orb Studio reads the captions, lists checkable claims with timecodes (price targets with deadlines, forecasts, facts, the speaker's own interest, pressure on the listener) and checks crypto price targets whose deadline has passed against Kraken daily prices: reached / not reached / too early / no data. Already checked videos are free; new videos are limited per day. AI paraphrase — approximate; a missed target is not proof of lying.",
     inputSchema: { type: "object", required: ["url"], properties: { url: { type: "string", description: "YouTube video link" } }, additionalProperties: false },
@@ -184,6 +243,7 @@ export async function interviewGate(request, env) {
       const r = await checkInterview(request, env, body.url);
       return json(r, r.error ? (r.limit ? 429 : 400) : 200);
     }
+    if (url.pathname === "/api/v1/interview/events" && request.method === "GET") return json(await interviewEvents(env, { days: +url.searchParams.get("days") || 30, limit: +url.searchParams.get("limit") || 30 }), 200, { "Cache-Control": "public, max-age=300" });
     const m = url.pathname.match(/^\/api\/v1\/interview(?:\/checks)?(?:\/([A-Za-z0-9_-]{11}))?\/?$/);
     if (m && request.method === "GET") { const r = await listChecks(env, m[1]); return json(r, r.error ? 404 : 200, { "Cache-Control": "public, max-age=120" }); }
     return json({ error: "not found", see: "/api/v1/interview/checks" }, 404);
