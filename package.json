@@ -19,7 +19,8 @@
     "test:route": "node --test test/route.test.mjs",
     "test:space": "node --test test/space.test.mjs",
     "test:hydro": "node --test test/hydro.test.mjs",
-    "test:podcast": "node --test test/podcast.test.mjs"
+    "test:podcast": "node --test test/podcast.test.mjs",
+    "test:clips": "node --test test/clips.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

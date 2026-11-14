@@ -1,0 +1,61 @@
+{
+  "updated": "2026-11-14",
+  "about": {
+    "ru": "Эмоциональные тайм-коды: моменты в видео, где мысль «попала» в слушающего. Человек отмечает их глазами, агенты учатся предсказывать их по тексту. Расшифровки здесь не хранятся — агент берёт их сам по ссылке.",
+    "en": "Emotional timecodes: moments in a video where an idea lands on the listener. A human marks them by eye; agents learn to predict them from the transcript. No transcripts are stored here — fetch them yourself from the link."
+  },
+  "rules": [
+    { "id": "listener", "ru": "Эмоция — это реакция того, кто слушает, а не слова того, кто говорит. Смотри на лицо слушающего в первые доли секунды после смены камеры.", "en": "The emotion is the listener's reaction, not the speaker's words. Watch the listener's face in the first fractions of a second after the camera cut." },
+    { "id": "pause", "ru": "В тексте эмоцию видно не по словам, а по паузе после сильной фразы: короткий кусок расшифровки и разрыв во времени перед следующим — кандидат на реакцию.", "en": "In a transcript the emotion shows as a pause after a strong line: a short segment followed by a time gap is a reaction candidate." },
+    { "id": "pair", "ru": "Эмоциональный момент — пара кадров: удивление (рот приоткрыт, брови вверх) → осмысление (губы сжаты, лёгкая улыбка).", "en": "An emotional moment is a pair: surprise (mouth open, brows up) → processing (lips pressed, slight smile)." },
+    { "id": "setup", "ru": "Клип начинается с вопроса, который создаёт ожидание: вопрос → нарастание → сильная фраза → пауза-реакция → объяснение.", "en": "A clip starts with the question that builds expectation: question → escalation → strong line → reaction pause → explanation." },
+    { "id": "stake", "ru": "Сила реакции зависит от того, сколько слушающий вложил в то, что сейчас оспорили.", "en": "The strength of a reaction depends on how much the listener has invested in what is being challenged." },
+    { "id": "editor", "ru": "Монтаж подсказывает: общий план → говорящий крупно → слушающий крупно. Плашка с тезисом перед реакцией — монтажёр тоже считает момент ключевым.", "en": "Editing gives hints: wide shot → speaker close-up → listener close-up. An on-screen title right before the reaction means the editor marked it too." },
+    { "id": "parallel", "ru": "Не доверяй одной оценке: агент предсказывает по тексту, человек проверяет глазами, расхождения записываются.", "en": "Never trust a single judgement: the agent predicts from text, a human checks by eye, and disagreements are recorded." }
+  ],
+  "clips": [
+    {
+      "id": "ER-001",
+      "title": { "ru": "Правила, о которых вы не догадывались", "en": "Rules you did not know you had" },
+      "video": { "url": "https://youtu.be/W2bdRW-EazA", "id": "W2bdRW-EazA", "channel": "Silicon Valley Girl", "speaker": "Felix Rieseberg (Anthropic)", "lang": "ru (voice-over)" },
+      "start_s": 1507, "end_s": 1605,
+      "beats": [
+        { "t": 1507, "ru": "Ведущая: команда публикует не то, что выдал Claude — её 30% правок и есть её вкус. Как сделать, чтобы Claude это видел?", "en": "Host: her team publishes edited AI drafts — her 30% of changes is her taste. How can Claude learn it?" },
+        { "t": 1526, "ru": "Обратная связь разбросана по Telegram, собирать приходится вручную.", "en": "The feedback lives scattered in Telegram and has to be collected by hand." },
+        { "t": 1542, "ru": "Феликс: у инженеров то же самое — дай Claude прочитать старые замечания, и он поймёт, на что смотрит каждый.", "en": "Felix: engineers have the same problem — let Claude read old review comments and it learns what each reviewer cares about." },
+        { "t": 1575, "ru": "Три шага: собрать обратную связь → сжать в правила → найти принципы, о которых ты сам не догадываешься.", "en": "Three steps: collect feedback → compress into rules → find the principles you did not know you had." }
+      ],
+      "trigger": { "t": 1593, "ru": "Третий шаг: какие у меня есть принципы, о которых я сам не догадываюсь.", "en": "Step three: which principles do I have that I am not aware of." },
+      "emotional_timecode_s": 1600,
+      "emotion_sequence": [
+        { "ru": "удивление и восторг: рот приоткрыт, брови вверх, глаза широко", "en": "surprise and delight: mouth open, brows raised, eyes wide" },
+        { "ru": "осмысление: губы сжаты, лёгкая улыбка, взгляд внутрь", "en": "processing: lips pressed, slight smile, inward look" }
+      ],
+      "editor_signal": { "ru": "плашка «Превратите обратную связь в правила» с тремя пунктами перед реакцией", "en": "on-screen title 'Turn feedback into rules' with three points right before the reaction" },
+      "why_it_hits": { "ru": "Её боль «мой вкус невидим» получает ответ: вкус можно записать и даже узнать о себе новое.", "en": "Her pain 'my taste is invisible' gets an answer: taste can be written down, and you may even learn something new about yourself." },
+      "marked_by": "human", "verified_by": "Serghei Farima", "agent_prediction": null, "status": "verified"
+    },
+    {
+      "id": "ER-002",
+      "title": { "ru": "«Мы слегка перегибаем с агентами»", "en": "'We are overdoing agents a bit'" },
+      "video": { "url": "https://youtu.be/W2bdRW-EazA", "id": "W2bdRW-EazA", "channel": "Silicon Valley Girl", "speaker": "Felix Rieseberg (Anthropic)", "lang": "ru (voice-over)" },
+      "start_s": 940, "end_s": 990,
+      "beats": [
+        { "t": 940, "ru": "Ведущая: что ты доверил агентам на 100%?", "en": "Host: what do you trust agents with 100%?" },
+        { "t": 945, "ru": "Проверку фактов — на 100%.", "en": "Fact-checking — 100%." },
+        { "t": 952, "ru": "Ему не нужны 50 агентов, он доверяет одному.", "en": "He does not need 50 agents; he trusts one." },
+        { "t": 965, "ru": "Уточнение: это специальный обученный агент? — Нет, обычный чат. «Сейчас скажу кое-что спорное».", "en": "Follow-up: a specially trained agent? — No, a normal chat. 'Now something controversial.'" }
+      ],
+      "trigger": { "t": 976, "ru": "«По-моему, мы слегка перегибаем с темой агентов».", "en": "'I think we are overdoing the agents topic a bit.'" },
+      "emotional_timecode_s": 983,
+      "emotion_sequence": [
+        { "ru": "пауза около 2 секунд после сильной фразы — реакция слушающей", "en": "a pause of about 2 seconds after the strong line — the listener reacts" }
+      ],
+      "editor_signal": null,
+      "why_it_hits": { "ru": "Она весь год строила агентов для команды из 35 человек — и это оспаривает человек, который делает сам продукт.", "en": "She spent a year building agents for a team of 35 — and the person who builds the product questions it." },
+      "marked_by": "agent", "verified_by": "Serghei Farima",
+      "agent_prediction": { "agent": "Claude", "from": "transcript", "rule": "pause", "timecode_s": 983, "note": { "ru": "первый вариант начинался с 16:01; человек поправил начало на 15:40 — с вопроса", "en": "first try started at 16:01; the human moved the start to 15:40 — the question" } },
+      "status": "verified"
+    }
+  ]
+}
