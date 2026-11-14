@@ -2,53 +2,63 @@
   "updated": "2026-11-14",
   "about": {
     "ru": "Эмоциональные тайм-коды: моменты в видео, где мысль «попала» в слушающего. Человек отмечает их глазами, агенты учатся предсказывать их по тексту. Расшифровки здесь не хранятся — агент берёт их сам по ссылке.",
-    "en": "Emotional timecodes: moments in a video where an idea lands on the listener. A human marks them by eye; agents learn to predict them from the transcript. No transcripts are stored here — fetch them yourself from the link."
+    "en": "Emotional timecodes: moments in a video where an idea lands on the listener. A human marks them by eye; agents learn to predict them from the transcript. No transcripts are stored here — fetch them yourself from the link.",
+    "de": "Emotionale Zeitmarken: Momente in einem Video, in denen ein Gedanke beim Zuhörer ankommt. Ein Mensch markiert sie mit den Augen, Agenten lernen, sie aus dem Transkript vorherzusagen. Transkripte werden hier nicht gespeichert — der Agent holt sie selbst über den Link."
   },
   "rules": [
     {
       "id": "listener",
       "ru": "Эмоция — это реакция того, кто слушает, а не слова того, кто говорит. Смотри на лицо слушающего в первые доли секунды после смены камеры.",
-      "en": "The emotion is the listener's reaction, not the speaker's words. Watch the listener's face in the first fractions of a second after the camera cut."
+      "en": "The emotion is the listener's reaction, not the speaker's words. Watch the listener's face in the first fractions of a second after the camera cut.",
+      "de": "Die Emotion ist die Reaktion des Zuhörers, nicht die Worte des Sprechers. Achte auf das Gesicht des Zuhörers in den ersten Sekundenbruchteilen nach dem Kameraschnitt."
     },
     {
       "id": "pause",
       "ru": "В тексте эмоцию видно не по словам, а по паузе после сильной фразы: короткий кусок расшифровки и разрыв во времени перед следующим — кандидат на реакцию.",
-      "en": "In a transcript the emotion shows as a pause after a strong line: a short segment followed by a time gap is a reaction candidate."
+      "en": "In a transcript the emotion shows as a pause after a strong line: a short segment followed by a time gap is a reaction candidate.",
+      "de": "Im Transkript zeigt sich die Emotion nicht an Worten, sondern an der Pause nach einem starken Satz: ein kurzes Segment und danach eine zeitliche Lücke sind ein Kandidat für eine Reaktion."
     },
     {
       "id": "pair",
       "ru": "Эмоциональный момент — пара кадров: удивление (рот приоткрыт, брови вверх) → осмысление (губы сжаты, лёгкая улыбка).",
-      "en": "An emotional moment is a pair: surprise (mouth open, brows up) → processing (lips pressed, slight smile)."
+      "en": "An emotional moment is a pair: surprise (mouth open, brows up) → processing (lips pressed, slight smile).",
+      "de": "Ein emotionaler Moment ist ein Paar: Überraschung (Mund offen, Brauen hoch) → Verarbeitung (Lippen zusammengepresst, leichtes Lächeln)."
     },
     {
       "id": "setup",
       "ru": "Клип начинается с вопроса, который создаёт ожидание: вопрос → нарастание → сильная фраза → пауза-реакция → объяснение.",
-      "en": "A clip starts with the question that builds expectation: question → escalation → strong line → reaction pause → explanation."
+      "en": "A clip starts with the question that builds expectation: question → escalation → strong line → reaction pause → explanation.",
+      "de": "Ein Clip beginnt mit der Frage, die Erwartung aufbaut: Frage → Steigerung → starker Satz → Reaktionspause → Erklärung."
     },
     {
       "id": "stake",
       "ru": "Сила реакции зависит от того, сколько слушающий вложил в то, что сейчас оспорили.",
-      "en": "The strength of a reaction depends on how much the listener has invested in what is being challenged."
+      "en": "The strength of a reaction depends on how much the listener has invested in what is being challenged.",
+      "de": "Die Stärke der Reaktion hängt davon ab, wie viel der Zuhörer in das investiert hat, was gerade infrage gestellt wird."
     },
     {
       "id": "editor",
       "ru": "Монтаж подсказывает: общий план → говорящий крупно → слушающий крупно. Плашка с тезисом перед реакцией — монтажёр тоже считает момент ключевым.",
-      "en": "Editing gives hints: wide shot → speaker close-up → listener close-up. An on-screen title right before the reaction means the editor marked it too."
+      "en": "Editing gives hints: wide shot → speaker close-up → listener close-up. An on-screen title right before the reaction means the editor marked it too.",
+      "de": "Der Schnitt gibt Hinweise: Totale → Sprecher nah → Zuhörer nah. Eine Texttafel kurz vor der Reaktion heißt: Auch der Cutter hält den Moment für wichtig."
     },
     {
       "id": "parallel",
       "ru": "Не доверяй одной оценке: агент предсказывает по тексту, человек проверяет глазами, расхождения записываются.",
-      "en": "Never trust a single judgement: the agent predicts from text, a human checks by eye, and disagreements are recorded."
+      "en": "Never trust a single judgement: the agent predicts from text, a human checks by eye, and disagreements are recorded.",
+      "de": "Vertraue nie einem einzigen Urteil: Der Agent sagt aus dem Text voraus, ein Mensch prüft mit den Augen, Abweichungen werden festgehalten."
     },
     {
       "id": "calibration",
       "ru": "Сравнивай реакцию с обычным лицом этого человека — например, в первые минуты видео. Сдержанный и очень эмоциональный человек выражают одно и то же по-разному.",
-      "en": "Compare the reaction with this person's normal face, e.g. in the first minutes of the video. A reserved and a very expressive person show the same thing differently."
+      "en": "Compare the reaction with this person's normal face, e.g. in the first minutes of the video. A reserved and a very expressive person show the same thing differently.",
+      "de": "Vergleiche die Reaktion mit dem normalen Gesicht dieser Person, etwa in den ersten Minuten des Videos. Ein zurückhaltender und ein sehr ausdrucksstarker Mensch zeigen dasselbe unterschiedlich."
     },
     {
       "id": "no_mindreading",
       "ru": "Отмечаем только видимую реакцию слушающего. Не приписываем людям скрытые мотивы, стресс или ложь — по лицу их надёжно не прочитать.",
-      "en": "We mark only the listener's visible reaction. We never attribute hidden motives, stress or lies to people — faces do not reliably reveal them."
+      "en": "We mark only the listener's visible reaction. We never attribute hidden motives, stress or lies to people — faces do not reliably reveal them.",
+      "de": "Wir markieren nur die sichtbare Reaktion des Zuhörers. Wir unterstellen Menschen keine verborgenen Motive, keinen Stress und keine Lügen — Gesichter verraten sie nicht zuverlässig."
     }
   ],
   "clips": [
@@ -56,7 +66,8 @@
       "id": "ER-001",
       "title": {
         "ru": "Правила, о которых вы не догадывались",
-        "en": "Rules you did not know you had"
+        "en": "Rules you did not know you had",
+        "de": "Regeln, von denen du nichts wusstest"
       },
       "video": {
         "url": "https://youtu.be/W2bdRW-EazA",
@@ -71,47 +82,56 @@
         {
           "t": 1507,
           "ru": "Ведущая: команда публикует не то, что выдал Claude — её 30% правок и есть её вкус. Как сделать, чтобы Claude это видел?",
-          "en": "Host: her team publishes edited AI drafts — her 30% of changes is her taste. How can Claude learn it?"
+          "en": "Host: her team publishes edited AI drafts — her 30% of changes is her taste. How can Claude learn it?",
+          "de": "Moderatorin: Ihr Team veröffentlicht überarbeitete KI-Entwürfe — ihre 30 % Änderungen sind ihr Geschmack. Wie lernt Claude das?"
         },
         {
           "t": 1526,
           "ru": "Обратная связь разбросана по Telegram, собирать приходится вручную.",
-          "en": "The feedback lives scattered in Telegram and has to be collected by hand."
+          "en": "The feedback lives scattered in Telegram and has to be collected by hand.",
+          "de": "Das Feedback liegt verstreut in Telegram und muss von Hand gesammelt werden."
         },
         {
           "t": 1542,
           "ru": "Феликс: у инженеров то же самое — дай Claude прочитать старые замечания, и он поймёт, на что смотрит каждый.",
-          "en": "Felix: engineers have the same problem — let Claude read old review comments and it learns what each reviewer cares about."
+          "en": "Felix: engineers have the same problem — let Claude read old review comments and it learns what each reviewer cares about.",
+          "de": "Felix: Ingenieure haben dasselbe Problem — lass Claude alte Review-Kommentare lesen, dann lernt er, worauf jeder achtet."
         },
         {
           "t": 1575,
           "ru": "Три шага: собрать обратную связь → сжать в правила → найти принципы, о которых ты сам не догадываешься.",
-          "en": "Three steps: collect feedback → compress into rules → find the principles you did not know you had."
+          "en": "Three steps: collect feedback → compress into rules → find the principles you did not know you had.",
+          "de": "Drei Schritte: Feedback sammeln → zu Regeln verdichten → Prinzipien finden, von denen man selbst nichts wusste."
         }
       ],
       "trigger": {
         "t": 1593,
         "ru": "Третий шаг: какие у меня есть принципы, о которых я сам не догадываюсь.",
-        "en": "Step three: which principles do I have that I am not aware of."
+        "en": "Step three: which principles do I have that I am not aware of.",
+        "de": "Schritt drei: Welche Prinzipien habe ich, von denen ich selbst nichts weiß."
       },
       "emotional_timecode_s": 1600,
       "emotion_sequence": [
         {
           "ru": "удивление и восторг: рот приоткрыт, брови вверх, глаза широко",
-          "en": "surprise and delight: mouth open, brows raised, eyes wide"
+          "en": "surprise and delight: mouth open, brows raised, eyes wide",
+          "de": "Überraschung und Begeisterung: Mund offen, Brauen hoch, Augen weit"
         },
         {
           "ru": "осмысление: губы сжаты, лёгкая улыбка, взгляд внутрь",
-          "en": "processing: lips pressed, slight smile, inward look"
+          "en": "processing: lips pressed, slight smile, inward look",
+          "de": "Verarbeitung: Lippen zusammengepresst, leichtes Lächeln, Blick nach innen"
         }
       ],
       "editor_signal": {
         "ru": "плашка «Превратите обратную связь в правила» с тремя пунктами перед реакцией",
-        "en": "on-screen title 'Turn feedback into rules' with three points right before the reaction"
+        "en": "on-screen title 'Turn feedback into rules' with three points right before the reaction",
+        "de": "Texttafel „Feedback in Regeln verwandeln“ mit drei Punkten direkt vor der Reaktion"
       },
       "why_it_hits": {
         "ru": "Её боль «мой вкус невидим» получает ответ: вкус можно записать и даже узнать о себе новое.",
-        "en": "Her pain 'my taste is invisible' gets an answer: taste can be written down, and you may even learn something new about yourself."
+        "en": "Her pain 'my taste is invisible' gets an answer: taste can be written down, and you may even learn something new about yourself.",
+        "de": "Ihr Schmerz „mein Geschmack ist unsichtbar“ bekommt eine Antwort: Geschmack lässt sich aufschreiben, und man lernt dabei sogar etwas Neues über sich."
       },
       "marked_by": "human",
       "verified_by": "Serghei Farima",
@@ -122,7 +142,8 @@
       "id": "ER-002",
       "title": {
         "ru": "«Мы слегка перегибаем с агентами»",
-        "en": "'We are overdoing agents a bit'"
+        "en": "'We are overdoing agents a bit'",
+        "de": "„Wir übertreiben es etwas mit Agenten“"
       },
       "video": {
         "url": "https://youtu.be/W2bdRW-EazA",
@@ -137,40 +158,47 @@
         {
           "t": 940,
           "ru": "Ведущая: что ты доверил агентам на 100%?",
-          "en": "Host: what do you trust agents with 100%?"
+          "en": "Host: what do you trust agents with 100%?",
+          "de": "Moderatorin: Was vertraust du Agenten zu 100 % an?"
         },
         {
           "t": 945,
           "ru": "Проверку фактов — на 100%.",
-          "en": "Fact-checking — 100%."
+          "en": "Fact-checking — 100%.",
+          "de": "Faktencheck — zu 100 %."
         },
         {
           "t": 952,
           "ru": "Ему не нужны 50 агентов, он доверяет одному.",
-          "en": "He does not need 50 agents; he trusts one."
+          "en": "He does not need 50 agents; he trusts one.",
+          "de": "Er braucht keine 50 Agenten, er vertraut einem."
         },
         {
           "t": 965,
           "ru": "Уточнение: это специальный обученный агент? — Нет, обычный чат. «Сейчас скажу кое-что спорное».",
-          "en": "Follow-up: a specially trained agent? — No, a normal chat. 'Now something controversial.'"
+          "en": "Follow-up: a specially trained agent? — No, a normal chat. 'Now something controversial.'",
+          "de": "Nachfrage: ein speziell trainierter Agent? — Nein, ein normaler Chat. „Jetzt sage ich etwas Umstrittenes.“"
         }
       ],
       "trigger": {
         "t": 976,
         "ru": "«По-моему, мы слегка перегибаем с темой агентов».",
-        "en": "'I think we are overdoing the agents topic a bit.'"
+        "en": "'I think we are overdoing the agents topic a bit.'",
+        "de": "„Ich finde, wir übertreiben es mit dem Thema Agenten etwas.“"
       },
       "emotional_timecode_s": 983,
       "emotion_sequence": [
         {
           "ru": "пауза около 2 секунд после сильной фразы — реакция слушающей",
-          "en": "a pause of about 2 seconds after the strong line — the listener reacts"
+          "en": "a pause of about 2 seconds after the strong line — the listener reacts",
+          "de": "eine Pause von etwa 2 Sekunden nach dem starken Satz — die Zuhörerin reagiert"
         }
       ],
       "editor_signal": null,
       "why_it_hits": {
         "ru": "Она весь год строила агентов для команды из 35 человек — и это оспаривает человек, который делает сам продукт.",
-        "en": "She spent a year building agents for a team of 35 — and the person who builds the product questions it."
+        "en": "She spent a year building agents for a team of 35 — and the person who builds the product questions it.",
+        "de": "Sie hat ein Jahr lang Agenten für ein Team von 35 Leuten gebaut — und ausgerechnet der Mensch, der das Produkt baut, stellt das infrage."
       },
       "marked_by": "agent",
       "verified_by": "Serghei Farima",
@@ -181,7 +209,8 @@
         "timecode_s": 983,
         "note": {
           "ru": "первый вариант начинался с 16:01; человек поправил начало на 15:40 — с вопроса",
-          "en": "first try started at 16:01; the human moved the start to 15:40 — the question"
+          "en": "first try started at 16:01; the human moved the start to 15:40 — the question",
+          "de": "der erste Versuch begann bei 16:01; der Mensch hat den Anfang auf 15:40 verschoben — zur Frage"
         }
       },
       "status": "verified"

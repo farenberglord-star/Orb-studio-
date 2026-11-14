@@ -7119,7 +7119,7 @@ function pickLang(request) {
   return "en";
 }
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
-const TRANSLATED_PAGES = new Set(["prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map"]);
+const TRANSLATED_PAGES = new Set(["prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
@@ -7500,7 +7500,7 @@ async function handleRequest(request, env, ctx) {
     } else {
       // остальные страницы: та же логика языка, что и на главной (язык браузера, затем страна по IP), если есть перевод
       const bare = url.pathname.replace(/\.html$/, "");
-      const m = bare.match(/^\/ru(\/[a-z0-9-]+)$/);
+      const m = bare.match(/^\/ru(\/[a-z0-9-]+(?:\/[a-z0-9-]+)?)$/);
       if (m && TRANSLATED_PAGES.has(m[1].slice(1))) assetReq = new Request(new URL(m[1], url.origin), request);
       else if (TRANSLATED_PAGES.has(bare.slice(1))) {
         autoLang = pickLang(request);

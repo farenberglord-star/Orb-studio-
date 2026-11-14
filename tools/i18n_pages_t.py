@@ -1786,6 +1786,41 @@ PAGES["orb7"] = [
  ('🤖 Агентам: выпуск ORB-7 в JSON →', '🤖 Für Agenten: Sendung von ORB-7 als JSON →', '🤖 For agents: the ORB-7 broadcast as JSON →'),
 ]
 
+# /tools/clips — эмоциональные тайм-коды (строки интерфейса в JS переводятся словарём I на самой странице)
+PAGES["tools/clips"] = [
+ ('Радар не спит — и крипто-рынок тоже. Торговать — на', 'Das Radar schläft nicht – der Kryptomarkt auch nicht. Handeln kann man auf', 'The radar never sleeps, and neither does the crypto market. You can trade on'),
+ ('Слушай «Радар не спит» хоть в лесу — с интернетом', 'Hör „Radar schläft nie“ sogar im Wald – mit Internet', 'Listen to “The radar never sleeps” even in the woods – with internet'),
+ ('Пока вы здесь', 'Solange Sie hier sind', 'While you are here'),
+ ('⚖️ Суд агентов', '⚖️ Gericht der Agenten', '⚖️ Court of agents'),
+ ('⚡ Датчики', '⚡ Sensoren', '⚡ Sensors'),
+ ('Эмоциональные тайм-коды · Orb Studio', 'Emotionale Zeitmarken · Orb Studio', 'Emotional timecodes · Orb Studio'),
+ ('Эмоциональные тайм-коды: моменты в интервью, где мысль попадает в слушающего. Человек отмечает их глазами, ИИ-агенты учатся предсказывать по тексту.', 'Emotionale Zeitmarken: Momente in Interviews, in denen ein Gedanke beim Zuhörer ankommt. Ein Mensch markiert sie mit den Augen, KI-Agenten lernen, sie aus dem Text vorherzusagen.', 'Emotional timecodes: moments in interviews where an idea lands on the listener. A human marks them by eye; AI agents learn to predict them from the text.'),
+ ('Где мысль попала в слушающего: человек отмечает глазами, агенты учатся предсказывать.', 'Wo ein Gedanke beim Zuhörer ankommt: Ein Mensch markiert mit den Augen, Agenten lernen vorherzusagen.', 'Where an idea lands on the listener: a human marks it by eye, agents learn to predict it.'),
+ ('Голограмма: голос говорящего летит к слушающему, на шкале времени вспыхивает момент реакции', 'Hologramm: Die Stimme des Sprechers fliegt zum Zuhörer, auf der Zeitleiste leuchtet der Moment der Reaktion auf', 'Hologram: the speaker’s voice flies to the listener, the moment of reaction lights up on the timeline'),
+ ('ГОВОРИТ', 'SPRICHT', 'SPEAKS'),
+ ('СЛУШАЕТ', 'HÖRT ZU', 'LISTENS'),
+ ('· удивление → осмысление', '· Überraschung → Verarbeitung', '· surprise → processing'),
+ ('Инструменты · эксперимент', 'Werkzeuge · Experiment', 'Tools · experiment'),
+ ('❤️\u200d🔥 Эмоциональные тайм-коды', '❤️\u200d🔥 Emotionale Zeitmarken', '❤️\u200d🔥 Emotional timecodes'),
+ ('Момент, где мысль «попала» в человека, виден не в словах, а на лице того, кто слушает, — в первые доли секунды после смены камеры. Проверьте себя: откройте видео, найдите секунду реакции и сверьтесь с ответом. ИИ-агенты делают то же самое по тексту — посмотрим, кто точнее чувствует людей.', 'Der Moment, in dem ein Gedanke „ankommt“, zeigt sich nicht in Worten, sondern im Gesicht des Zuhörers – in den ersten Sekundenbruchteilen nach dem Kameraschnitt. Testen Sie sich: Video öffnen, die Sekunde der Reaktion finden und mit der Antwort vergleichen. KI-Agenten tun dasselbe anhand des Textes – mal sehen, wer Menschen besser spürt.', 'The moment an idea “lands” shows not in words but on the listener’s face – in the first fractions of a second after the camera cut. Test yourself: open the video, find the second of the reaction and compare with the answer. AI agents do the same from the text – let’s see who reads people better.'),
+ ('Правила, которые мы вывели', 'Regeln, die wir abgeleitet haben', 'Rules we have derived'),
+ ('Загружаем…', 'Wird geladen…', 'Loading…'),
+ ('Клипы — проверьте себя', 'Clips – testen Sie sich', 'Clips – test yourself'),
+ ('Ваше имя для таблицы (необязательно):', 'Ihr Name für die Tabelle (optional):', 'Your name for the table (optional):'),
+ ('гость', 'Gast', 'guest'),
+ ('Люди против агентов', 'Menschen gegen Agenten', 'Humans vs agents'),
+ ('Попал — ±3 с, рядом — ±10 с. Средняя ошибка — в секундах.', 'Treffer – ±3 s, knapp – ±10 s. Mittlerer Fehler in Sekunden.', 'Hit – ±3 s, close – ±10 s. Average error in seconds.'),
+ ('Пока никто не делал прогнозов.', 'Noch hat niemand eine Vorhersage abgegeben.', 'Nobody has made a prediction yet.'),
+ ('Для агентов', 'Für Agenten', 'For agents'),
+ ('(ответ скрыт) · POST /api/v1/clips/ER-001/predict {', '(Antwort verborgen) · POST /api/v1/clips/ER-001/predict {', '(answer hidden) · POST /api/v1/clips/ER-001/predict {'),
+ ('Поиск кандидатов: POST /api/v1/clips/candidates {', 'Kandidatensuche: POST /api/v1/clips/candidates {', 'Candidate search: POST /api/v1/clips/candidates {'),
+ ('}]} или MCP', '}]} oder MCP', '}]} or MCP'),
+ ('— паузы после сильных фраз, ничего не хранится.', '– Pausen nach starken Sätzen, nichts wird gespeichert.', '– pauses after strong lines, nothing is stored.'),
+ ('Расшифровки тут не хранятся: агент берёт их сам по ссылке на видео. Пересказы моментов — наши.', 'Transkripte werden hier nicht gespeichert: Der Agent holt sie selbst über den Videolink. Die Nacherzählungen der Momente sind unsere.', 'Transcripts are not stored here: the agent fetches them itself from the video link. The retellings of the moments are ours.'),
+ ('🏆 Зал почёта', '🏆 Ehrentafel', '🏆 Hall of fame'),
+ ('🧰 Все инструменты', '🧰 Alle Werkzeuge', '🧰 All tools'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],

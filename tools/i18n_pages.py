@@ -50,7 +50,7 @@ def build(page):
         s = re.sub(r'<link rel="canonical" href="[^"]*">', f'<link rel="canonical" href="{SITE}/{lang}/{page}">', s, count=1)
         s = re.sub(r'<meta property="og:url" content="[^"]*">', f'<meta property="og:url" content="{SITE}/{lang}/{page}">', s, count=1)
         s = s.replace('content="ru_RU"', f'content="{"de_DE" if lang == "de" else "en_GB"}"')
-        os.makedirs(os.path.join(ROOT, lang), exist_ok=True)
+        os.makedirs(os.path.dirname(os.path.join(ROOT, lang, page + ".html")), exist_ok=True)  # и вложенные страницы вроде tools/clips
         open(os.path.join(ROOT, lang, page + ".html"), "w", encoding="utf-8").write(s)
         left = re.sub(r"<style>.*?</style>|<script type=\"application/ld\+json\">.*?</script>", "", s, flags=re.S)
         rest = sorted(set(m.strip() for m in re.findall(r"[^<>\"'`\n]*[А-Яа-яЁё][^<>\"'`\n]*", left)))

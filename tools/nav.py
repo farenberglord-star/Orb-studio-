@@ -65,11 +65,11 @@ import glob
 def _translated():
     w = open(os.path.join(ROOT, "..", "src", "worker.js"), encoding="utf-8").read()
     m = re.search(r"const TRANSLATED_PAGES = new Set\(\[(.*?)\]\)", w)
-    return set(re.findall(r'"([a-z0-9-]+)"', m.group(1)))
+    return set(re.findall(r'"([a-z0-9/-]+)"', m.group(1)))
 
 def lang_html(name, cur):
     tr = _translated()
-    have = {l: {os.path.basename(f)[:-5] for f in glob.glob(os.path.join(ROOT, l, "*.html"))} for l in ("de", "en")}
+    have = {l: {os.path.relpath(f, os.path.join(ROOT, l))[:-5].replace(os.sep, "/") for f in glob.glob(os.path.join(ROOT, l, "*.html")) + glob.glob(os.path.join(ROOT, l, "*", "*.html"))} for l in ("de", "en")}
     out = []
     for l, label in (("ru", "RU"), ("de", "DE"), ("en", "EN")):
         if l == "ru":
@@ -81,11 +81,15 @@ def lang_html(name, cur):
     return '<!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык">' + "".join(out) + '</div><!--/orb-lang-->'
 
 def lang_all():
-    for path in sorted(glob.glob(os.path.join(ROOT, "*.html")) + glob.glob(os.path.join(ROOT, "de", "*.html")) + glob.glob(os.path.join(ROOT, "en", "*.html"))):
+    # вложенные страницы (tools/clips) — только те, у которых есть немецкая версия
+    nested = [f for f in glob.glob(os.path.join(ROOT, "tools", "*.html")) if os.path.exists(os.path.join(ROOT, "de", os.path.relpath(f, ROOT)))]
+    nested += [os.path.join(ROOT, l, os.path.relpath(f, ROOT)) for f in nested for l in ("de", "en")]
+    for path in sorted(glob.glob(os.path.join(ROOT, "*.html")) + glob.glob(os.path.join(ROOT, "de", "*.html")) + glob.glob(os.path.join(ROOT, "en", "*.html")) + nested):
         s = open(path, encoding="utf-8").read()
         if "<!--orb-nav-->" not in s: continue
         rel = os.path.relpath(path, ROOT).split(os.sep)
-        cur, name = (rel[0], rel[1][:-5]) if len(rel) == 2 else ("ru", rel[0][:-5])
+        if rel[0] in ("de", "en"): cur, name = rel[0], "/".join(rel[1:])[:-5]
+        else: cur, name = "ru", "/".join(rel)[:-5]
         s = put(s, "<!--orb-nav-css-->", "<!--/orb-nav-css-->", CSS, "</head>", after=False)
         blk = lang_html(name, cur)
         if "<!--orb-lang-->" in s:
