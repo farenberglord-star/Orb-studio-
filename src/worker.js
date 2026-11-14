@@ -31,7 +31,7 @@ import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
-import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents } from "./interview.js"; // Проверка интервью (/tools/interview)
+import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue } from "./interview.js"; // Проверка интервью (/tools/interview)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
@@ -2078,6 +2078,7 @@ const OA_GET = [
   ["/api/v1/followups", "getFollowups", "Older headlines and how they turned out (human and AI votes, outcomes with sources).", [OA_Q("status", "open, all, confirmed, not, unclear"), OA_Q("radar", "Radar id"), OA_Q("limit", "Max items", { pattern: "^[0-9]+$" })]],
   ["/api/v1/prices", "getPrices", "Real shop prices in Hamburg and suburbs from photos of price tags and receipts (14-day medians).", []],
   ["/api/v1/receipts", "getReceipts", "Real Lidl receipts from Hamburg: receipt of the day and price changes.", []],
+  ["/api/v1/clips/queue", "getClipQueue", "Candidate emotional moments from checked interviews waiting for a human eye, with votes.", [OA_Q("limit", "1–100")]],
   ["/api/v1/interview/events", "getInterviewEvents", "Impulse feed: interview price targets whose deadline passed (reached / not reached by Kraken prices) and a speaker scoreboard.", [OA_Q("days", "1–365"), OA_Q("limit", "1–100")]],
   ["/api/v1/interview/checks", "getInterviewChecks", "Interviews already fact-checked on Orb Studio: claims with timecodes and Kraken price checks.", []],
   ["/api/v1/clips", "getClips", "Emotional timecodes: human-marked moments in interview videos where an idea lands on the listener, with rules to find them from a transcript. Answers hidden until you predict (reveal=1 shows them).", [OA_Q("reveal", "1 to show the human-verified answers")]],
@@ -6649,6 +6650,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "check_interview") { const r = await checkInterview(request, env, args.url); if (r.error) throw new Error(r.error); return r; }
   if (name === "get_interview_checks") return await listChecks(env, args.id);
   if (name === "get_interview_events") return await interviewEvents(env, args);
+  if (name === "get_clip_queue") return await clipQueue(env, args.limit || 30);
   if (name === "find_clip_candidates") return findCandidates(normalizeSegments(args.segments), args);
   if (name === "check_headline") {
     if (!(await checkPublic(env))) throw new Error("Not available yet");
@@ -7212,8 +7214,8 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     if (!EMO_RETIRED && request.method === "GET") { const ua = request.headers.get("user-agent") || "", g = EMO_GREET_BOTS.find(([, re]) => re.test(ua)); if (g) ctx.waitUntil(emoGreetBot(env, g[0], new URL(request.url).pathname, g[2]).catch(() => null)); }
     { const court = await courtGate(request, env, ctx).catch(() => null); if (court) return withSecurityHeaders(court); }
-    { const clips = await clipsGate(request, env).catch(() => null); if (clips) return withSecurityHeaders(clips); }
-    { const iv = await interviewGate(request, env).catch(() => null); if (iv) return withSecurityHeaders(iv); } // проверка интервью: только /api/v1/interview* // эмоциональные тайм-коды: только /api/v1/clips* // суд агентов: только /api/v1/court*, остальное идёт дальше
+    { const iv = await interviewGate(request, env).catch(() => null); if (iv) return withSecurityHeaders(iv); } // проверка интервью и очередь кандидатов /api/v1/clips/queue (раньше clipsGate)
+    { const clips = await clipsGate(request, env).catch(() => null); if (clips) return withSecurityHeaders(clips); } // эмоциональные тайм-коды: /api/v1/clips*
     if (new URL(request.url).pathname === "/api/v1/csp-report" && request.method === "POST") return handleCspReport(request, env, ctx);
     let res = withSecurityHeaders(await handleRequest(request, env, ctx));
     res = await withEtag(request, res).catch(() => res);

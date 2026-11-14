@@ -1873,6 +1873,12 @@ PAGES["tools/interview"] += [  # импульсы: итоги прогнозов
  ('Сколько прогнозов цены каждого человека сбылось, не сбылось или ждёт срока — по всем проверенным интервью.', 'Wie viele Kursprognosen jeder Person eingetroffen sind, nicht eingetroffen sind oder noch auf die Frist warten – über alle geprüften Interviews.', 'How many of each person’s price targets came true, failed or are waiting for the deadline – across all checked interviews.'),
 ]
 
+PAGES["tools/clips"] += [  # очередь кандидатов
+ ('🧪 Кандидаты — нужен ваш глаз', '🧪 Kandidaten – Ihr Blick ist gefragt', '🧪 Candidates – your eye is needed'),
+ ('Эти моменты сайт нашёл сам в проверенных интервью: пауза после сильной фразы. Откройте видео, посмотрите на лицо слушающего в первые секунды — есть реакция или нет?', 'Diese Momente hat die Seite selbst in geprüften Interviews gefunden: eine Pause nach einem starken Satz. Video öffnen, auf das Gesicht des Zuhörers in den ersten Sekunden achten – gibt es eine Reaktion oder nicht?', 'The site found these moments itself in checked interviews: a pause after a strong line. Open the video and watch the listener’s face in the first seconds – is there a reaction or not?'),
+ ('Пока кандидатов нет — они появятся после проверки интервью.', 'Noch keine Kandidaten – sie erscheinen nach einem Interview-Check.', 'No candidates yet – they appear after an interview check.'),
+]
+
 CODE = {
  "archive": [("'ru-RU'", "'de-DE'", "'en-GB'")],
  "followups": [("'ru-RU'", "'de-DE'", "'en-GB'")],
