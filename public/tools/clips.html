@@ -139,6 +139,8 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .hero{border-color:rgba(255,93,122,.35);background:radial-gradient(90% 120% at 100% 0%,rgba(255,93,122,.13),transparent 60%),var(--panel)}
 .holo{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(111,230,255,.35);background:#03060d;aspect-ratio:8/3.4}
 .holo svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.holo.is3d{aspect-ratio:16/9}.holo.is3d>svg{display:none}.holo.is3d canvas{position:absolute;inset:0}
+@media (max-width:700px){.holo.is3d{aspect-ratio:4/5}}
 .holo::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.05) 0 1px,transparent 1px 3px);animation:flick 4s steps(1) infinite}
 @keyframes flick{0%,100%{opacity:1}47%{opacity:.75}48%{opacity:1}83%{opacity:.85}}
 .hcap{position:absolute;left:14px;top:12px;right:14px;display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:#9fdcff;text-transform:uppercase;pointer-events:none}
@@ -194,7 +196,7 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
 .vs span{font-size:12px;color:var(--dim)}
 </style>
 
-<div class="holo" role="img" aria-label="Голограмма: голос говорящего летит к слушающему, на шкале времени вспыхивает момент реакции">
+<div class="holo" id="holo" role="img" aria-label="Голограмма: голос говорящего летит к слушающему, на шкале времени вспыхивает момент реакции">
 <svg viewBox="0 0 800 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
   <defs>
     <radialGradient id="bgG" cx="50%" cy="30%" r="80%"><stop offset="0" stop-color="#0b1a33"/><stop offset="1" stop-color="#03060d"/></radialGradient>
@@ -245,7 +247,7 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
     <g class="play"><line x1="80" y1="284" x2="80" y2="316" stroke="#fff" stroke-width="2" filter="url(#gl)"/></g>
   </g>
 </svg>
-<div class="hcap"><span>Emotional timecode</span><span><b>26:40</b><span class="hd"> · удивление → осмысление</span></span></div>
+<div class="hcap" style="z-index:2"><span>Emotional timecode<span class="hd" id="hcId"></span></span><span><b id="hcT">26:40</b><span class="hd" id="hcE"> · удивление → осмысление</span></span></div>
 </div>
 
 <section class="panel hero">
@@ -302,7 +304,14 @@ function board(lb){
   $('lb').innerHTML='<table class="lb"><tr><th></th><th>Имя</th><th>Попыток</th><th>Попал</th><th>Рядом</th><th>Ошибка, с</th></tr>'+
     lb.map(r=>'<tr><td>'+(r.kind==='human'?'🧑':'🤖')+'</td><td>'+esc(r.agent)+'</td><td>'+r.n+'</td><td>'+r.hits+'</td><td>'+r.close+'</td><td>'+r.avg_abs_delta_s+'</td></tr>').join('')+'</table>';
 }
-function load(){return fetch('/api/v1/clips?reveal=1&t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;board(d.leaderboard);return d})}
+// 3D-голограмма (clips3d.js, Грок): если WebGL нет — остаётся SVG-баннер
+let H3=false;
+document.addEventListener('DOMContentLoaded',()=>{try{H3=!!(window.OrbClips3D&&OrbClips3D.init($('holo')));}catch(e){H3=false}
+  if(!H3)return;$('holo').classList.add('is3d');if(DATA)OrbClips3D.update(DATA);
+  setInterval(()=>{const st=OrbClips3D.stats(),c=DATA&&DATA.clips.find(x=>x.id===st.clip);if(!c||!c.answer||typeof c.answer!=='object')return;
+    $('hcId').textContent=' · '+c.id;$('hcT').textContent=c.answer.emotional_timecode;
+    $('hcE').textContent=' · '+(c.answer.emotion_sequence||[]).map(e=>{const w=e.ru.split(/[:—]/)[0].trim();return w.length>24?'реакция':w}).join(' → ');},500);});
+function load(){return fetch('/api/v1/clips?reveal=1&t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.json()}).then(d=>{DATA=d;board(d.leaderboard);if(H3)OrbClips3D.update(d);return d}).catch(e=>{if(H3)OrbClips3D.update(null);throw e})}
 load().then(d=>{
   $('rules').innerHTML=d.rules.map(r=>'<li>'+esc(r.ru)+'</li>').join('');
   $('clips').innerHTML=d.clips.map(card).join('');
@@ -326,5 +335,6 @@ document.addEventListener('click',e=>{
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_clips')==='1'}catch(e){}
 if(!seen)fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"clips"}'}).then(r=>{if(r.ok)try{sessionStorage.setItem('orbCounted_clips','1')}catch(e){}}).catch(()=>{});
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/clips3d.js" defer></script>
 </body>
 </html>
