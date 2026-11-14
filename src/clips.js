@@ -57,8 +57,12 @@ async function loadClips(env, origin) {
   return r.json();
 }
 
+let ensured = false;
 async function ensure(env) {
-  await env.DB.prepare("CREATE TABLE IF NOT EXISTS clip_predictions (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, clip TEXT NOT NULL, agent TEXT NOT NULL, model TEXT, predicted_s INTEGER NOT NULL, delta_s INTEGER NOT NULL, verdict TEXT NOT NULL, reason TEXT)").run();
+  if (ensured) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS clip_predictions (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, clip TEXT NOT NULL, agent TEXT NOT NULL, model TEXT, predicted_s INTEGER NOT NULL, delta_s INTEGER NOT NULL, verdict TEXT NOT NULL, reason TEXT, kind TEXT NOT NULL DEFAULT 'agent')").run();
+  try { await env.DB.prepare("ALTER TABLE clip_predictions ADD COLUMN kind TEXT NOT NULL DEFAULT 'agent'").run(); } catch (e) {} // старые таблицы без колонки
+  ensured = true;
 }
 
 const clean = (s, n) => String(s || "").replace(/[\u0000-\u001f<>]/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
@@ -67,7 +71,7 @@ async function leaderboard(env) {
   if (!env.DB) return [];
   await ensure(env);
   const { results } = await env.DB.prepare(
-    "SELECT agent, COUNT(*) n, SUM(verdict='hit') hits, SUM(verdict='close') close, ROUND(AVG(ABS(delta_s)),1) avg_abs_delta_s FROM clip_predictions GROUP BY agent ORDER BY hits DESC, avg_abs_delta_s ASC LIMIT 20"
+    "SELECT agent, kind, COUNT(*) n, SUM(verdict='hit') hits, SUM(verdict='close') close, ROUND(AVG(ABS(delta_s)),1) avg_abs_delta_s FROM clip_predictions GROUP BY agent, kind ORDER BY hits DESC, avg_abs_delta_s ASC LIMIT 30"
   ).all();
   return results || [];
 }
@@ -94,7 +98,8 @@ export async function predictClip(request, env, origin, args = {}) {
   if (!c) return { error: "no such clip", ids: d.clips.map((x) => x.id) };
   const p = parseTimecode(args.timecode);
   if (p === null) return { error: "timecode must be MM:SS, H:MM:SS or seconds" };
-  const agent = clean(args.agent || args.name || request.headers.get("x-agent-name"), 40) || "anonymous";
+  const kind = args.kind === "human" ? "human" : "agent"; // люди отвечают со страницы /tools/clips, агенты — через API/MCP
+  const agent = clean(args.agent || args.name || request.headers.get("x-agent-name"), 40) || (kind === "human" ? "гость" : "anonymous");
   const model = clean(args.model, 40) || null;
   const reason = clean(args.reason, 300) || null;
   const sc = scorePrediction(p, c.emotional_timecode_s);
@@ -102,15 +107,15 @@ export async function predictClip(request, env, origin, args = {}) {
   if (env.DB) {
     await ensure(env);
     const day = new Date().toISOString().slice(0, 10);
-    const cnt = await env.DB.prepare("SELECT COUNT(*) n FROM clip_predictions WHERE day=?1 AND agent=?2").bind(day, agent).first();
-    if ((cnt && cnt.n) < MAX_PER_AGENT_DAY) {
-      await env.DB.prepare("INSERT INTO clip_predictions (ts, day, clip, agent, model, predicted_s, delta_s, verdict, reason) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9)")
-        .bind(Date.now(), day, c.id, agent, model, p, sc.delta_s, sc.verdict, reason).run();
+    const cnt = await env.DB.prepare("SELECT COUNT(*) n FROM clip_predictions WHERE day=?1 AND agent=?2 AND kind=?3").bind(day, agent, kind).first();
+    if ((cnt && cnt.n) < (kind === "human" ? 300 : MAX_PER_AGENT_DAY)) {
+      await env.DB.prepare("INSERT INTO clip_predictions (ts, day, clip, agent, model, predicted_s, delta_s, verdict, reason, kind) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)")
+        .bind(Date.now(), day, c.id, agent, model, p, sc.delta_s, sc.verdict, reason, kind).run();
       recorded = true;
     }
   }
   return {
-    clip: c.id, your_timecode: fmtTimecode(p), ...sc, recorded,
+    clip: c.id, kind, your_timecode: fmtTimecode(p), ...sc, recorded,
     answer: publicClip(c, true).answer,
     lesson: sc.verdict === "hit" ? "You felt it. Compare your reason with why_it_hits." : sc.delta_s < 0 ? "Too early: the reaction comes 1–3 s after the strong line, on the listener's face." : "Too late: look right after the camera cuts to the listener.",
   };

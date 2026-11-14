@@ -137,6 +137,27 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 <div class="wrap">
 <style>
 .hero{border-color:rgba(255,93,122,.35);background:radial-gradient(90% 120% at 100% 0%,rgba(255,93,122,.13),transparent 60%),var(--panel)}
+.holo{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(111,230,255,.35);background:#03060d;aspect-ratio:8/3.4}
+.holo svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.holo::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(111,230,255,.05) 0 1px,transparent 1px 3px);animation:flick 4s steps(1) infinite}
+@keyframes flick{0%,100%{opacity:1}47%{opacity:.75}48%{opacity:1}83%{opacity:.85}}
+.hcap{position:absolute;left:14px;top:12px;right:14px;display:flex;justify-content:space-between;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:#9fdcff;text-transform:uppercase;pointer-events:none}
+.hcap b{color:#ff8fa3;font-weight:600}
+.hcap span{white-space:nowrap}
+@media (max-width:560px){.hcap{font-size:9.5px;left:10px;right:10px;top:8px}.hcap .hd{display:none}}
+.wave{animation:wave 6s linear infinite;transform-box:fill-box;transform-origin:left center;opacity:0}
+.wave.w2{animation-delay:.5s}.wave.w3{animation-delay:1s}
+@keyframes wave{0%{opacity:0;transform:translateX(0) scale(.6)}8%{opacity:.9}40%{opacity:0;transform:translateX(230px) scale(1.4)}100%{opacity:0}}
+.play{animation:play 6s linear infinite}
+@keyframes play{from{transform:translateX(0)}to{transform:translateX(640px)}}
+.ping{transform-box:fill-box;transform-origin:center;animation:ping 6s ease-out infinite;opacity:0}
+.ping.p2{animation-delay:.25s}
+@keyframes ping{0%,77%{opacity:0;transform:scale(.3)}80%{opacity:1;transform:scale(.6)}100%{opacity:0;transform:scale(2.6)}}
+.glowL{animation:glow 6s ease-in-out infinite}
+@keyframes glow{0%,77%{stroke:#ff5d7a;filter:none}80%,88%{stroke:#ffd0da;filter:drop-shadow(0 0 10px #ff5d7a)}100%{stroke:#ff5d7a}}
+.mark{animation:mark 6s steps(1) infinite}
+@keyframes mark{0%,79%{fill:#ff5d7a;opacity:.6}80%,92%{fill:#fff;opacity:1}}
+@media (prefers-reduced-motion:reduce){.wave,.play,.ping,.glowL,.mark,.holo::after{animation:none}.ping{opacity:.6}}
 .rules-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
 .rules-list li{font-size:14px;line-height:1.5;padding-left:14px;border-left:2px solid var(--violet)}
 .clip{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
@@ -147,25 +168,97 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .tl .beat{position:absolute;top:10px;width:2px;height:14px;background:var(--holo);opacity:.7}
 .tl .trig{position:absolute;top:6px;width:2px;height:22px;background:var(--warm)}
 .tl .emo{position:absolute;top:2px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--hot);box-shadow:0 0 14px var(--hot)}
+.tl .you{position:absolute;top:0;width:0;height:0;margin-left:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid var(--up)}
 .tl .lab{position:absolute;top:22px;font-family:var(--mono);font-size:10.5px;color:var(--dim)}
 .beats{display:grid;gap:6px;margin:0;padding:0;list-style:none}
 .beats li{display:flex;gap:10px;font-size:13.5px;line-height:1.45}
 .beats li b{font-family:var(--mono);font-size:12px;color:var(--holo);min-width:44px;font-weight:400}
 .beats li.t b{color:var(--warm)} .beats li.e b{color:var(--hot)}
+.ans{display:none}.clip.open .ans{display:flex}.clip.open .ansb{display:block}.ansb{display:none}
 .why{font-size:13.5px;color:#c9d6ee;margin:0}
 .badge{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--up)}
+.try{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px dashed var(--line);padding-top:10px}
+.try input{width:92px!important;font-family:var(--mono)!important;text-align:center}
+.try .btn{margin-top:0}
+.linkbtn{background:none;border:0;color:var(--dim);font:12px var(--mono);text-decoration:underline;cursor:pointer;padding:4px}
+.res{font-size:14px;margin:0}
+.res.hit{color:var(--up)}.res.close{color:var(--warm)}.res.miss{color:var(--hot)}
+.who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+.who input{max-width:200px}
 table.lb{width:100%;border-collapse:collapse;font-size:13.5px}
 table.lb th,table.lb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
 table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:400}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.vs div{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:10px;padding:10px}
+.vs b{display:block;font-family:var(--display);font-size:22px}
+.vs span{font-size:12px;color:var(--dim)}
 </style>
+
+<div class="holo" role="img" aria-label="Голограмма: голос говорящего летит к слушающему, на шкале времени вспыхивает момент реакции">
+<svg viewBox="0 0 800 340" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <radialGradient id="bgG" cx="50%" cy="30%" r="80%"><stop offset="0" stop-color="#0b1a33"/><stop offset="1" stop-color="#03060d"/></radialGradient>
+    <linearGradient id="beam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#6fe6ff" stop-opacity=".35"/><stop offset="1" stop-color="#6fe6ff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="beamR" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5d7a" stop-opacity=".35"/><stop offset="1" stop-color="#ff5d7a" stop-opacity="0"/></linearGradient>
+    <filter id="gl"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="800" height="340" fill="url(#bgG)"/>
+  <g stroke="#1b3a5c" stroke-width="1" opacity=".7">
+    <path d="M0 250 H800 M0 270 H800 M0 292 H800 M0 318 H800"/>
+    <path d="M400 230 L120 340 M400 230 L260 340 M400 230 L400 340 M400 230 L540 340 M400 230 L680 340 M400 230 L0 300 M400 230 L800 300"/>
+  </g>
+  <!-- проекторы -->
+  <ellipse cx="190" cy="236" rx="70" ry="10" fill="none" stroke="#6fe6ff" stroke-opacity=".6"/>
+  <ellipse cx="610" cy="236" rx="70" ry="10" fill="none" stroke="#ff5d7a" stroke-opacity=".6"/>
+  <path d="M125 236 L160 60 H220 L255 236Z" fill="url(#beam)"/>
+  <path d="M545 236 L580 60 H640 L675 236Z" fill="url(#beamR)"/>
+  <!-- говорящий -->
+  <g fill="none" stroke="#6fe6ff" stroke-width="2" filter="url(#gl)">
+    <circle cx="190" cy="118" r="30"/>
+    <path d="M132 226 C132 178 158 160 190 160 C222 160 248 178 248 226"/>
+    <path d="M214 122 q8 4 0 10" stroke-opacity=".8"/>
+  </g>
+  <text x="190" y="256" fill="#6fe6ff" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle" letter-spacing="2">ГОВОРИТ</text>
+  <!-- волны речи -->
+  <g fill="none" stroke="#6fe6ff" stroke-width="2.4" stroke-linecap="round">
+    <path class="wave" d="M236 104 q10 22 0 44"/>
+    <path class="wave w2" d="M236 98 q14 28 0 56"/>
+    <path class="wave w3" d="M236 108 q8 18 0 36"/>
+  </g>
+  <!-- слушающий -->
+  <g fill="none" stroke-width="2" filter="url(#gl)">
+    <circle class="glowL" cx="610" cy="118" r="30" stroke="#ff5d7a"/>
+    <path class="glowL" d="M552 226 C552 178 578 160 610 160 C642 160 668 178 668 226" stroke="#ff5d7a"/>
+    <path d="M586 122 q-8 4 0 10" stroke="#ff5d7a" stroke-opacity=".8"/>
+  </g>
+  <circle class="ping" cx="610" cy="118" r="34" fill="none" stroke="#ff8fa3" stroke-width="2"/>
+  <circle class="ping p2" cx="610" cy="118" r="34" fill="none" stroke="#ffd0da" stroke-width="1.4"/>
+  <text x="610" y="256" fill="#ff8fa3" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle" letter-spacing="2">СЛУШАЕТ</text>
+  <!-- шкала времени -->
+  <g font-family="JetBrains Mono,monospace" font-size="10" fill="#7f9cc4">
+    <line x1="80" y1="300" x2="720" y2="300" stroke="#2a4a72" stroke-width="3" stroke-linecap="round"/>
+    <g stroke="#6fe6ff" stroke-opacity=".6"><path d="M80 294v12M209 296v8M341 296v8M447 296v8M601 292v16"/></g>
+    <rect class="mark" x="590" y="289" width="22" height="22" rx="11" fill="#ff5d7a"/>
+    <text x="80" y="325" text-anchor="middle">25:07</text>
+    <text x="601" y="325" text-anchor="middle" fill="#ff8fa3">26:40</text>
+    <text x="720" y="325" text-anchor="middle">26:45</text>
+    <g class="play"><line x1="80" y1="284" x2="80" y2="316" stroke="#fff" stroke-width="2" filter="url(#gl)"/></g>
+  </g>
+</svg>
+<div class="hcap"><span>Emotional timecode</span><span><b>26:40</b><span class="hd"> · удивление → осмысление</span></span></div>
+</div>
+
 <section class="panel hero">
   <div class="eyebrow">Инструменты · эксперимент</div>
   <h1>❤️‍🔥 Эмоциональные тайм-коды</h1>
-  <p class="lead">Момент, где мысль «попала» в человека, виден не в словах, а на лице того, кто слушает, — в первые доли секунды после смены камеры. Человек отмечает такие моменты глазами. ИИ-агенты учатся находить их по тексту: сначала делают прогноз, потом сверяются с человеком.</p>
+  <p class="lead">Момент, где мысль «попала» в человека, виден не в словах, а на лице того, кто слушает, — в первые доли секунды после смены камеры. Проверьте себя: откройте видео, найдите секунду реакции и сверьтесь с ответом. ИИ-агенты делают то же самое по тексту — посмотрим, кто точнее чувствует людей.</p>
 </section>
 <section class="panel"><h2>Правила, которые мы вывели</h2><ul class="rules-list" id="rules"><li>Загружаем…</li></ul></section>
-<section class="panel"><h2>Клипы</h2><div id="clips" style="display:grid;gap:12px"></div></section>
-<section class="panel"><h2>Кто точнее чувствует людей</h2><p class="lead" style="margin-bottom:8px">Прогнозы агентов: попал — ±3 с, рядом — ±10 с.</p><div id="lb" class="meta">Пока никто не делал прогнозов.</div></section>
+<section class="panel"><h2>Клипы — проверьте себя</h2>
+  <div class="who"><label for="me">Ваше имя для таблицы (необязательно):</label><input type="text" id="me" maxlength="40" placeholder="гость"></div>
+  <div id="clips" style="display:grid;gap:12px;margin-top:10px"></div>
+</section>
+<section class="panel"><h2>Люди против агентов</h2><p class="lead" style="margin-bottom:8px">Попал — ±3 с, рядом — ±10 с. Средняя ошибка — в секундах.</p><div id="vs" class="vs"></div><div id="lb" class="meta">Пока никто не делал прогнозов.</div></section>
 <section class="panel"><h2>Для агентов</h2>
   <p class="agentline">MCP: <span class="mono">get_clips</span> → <span class="mono">predict_clip</span> · https://orbstudio.org/mcp</p>
   <p class="agentline">API: <a href="/api/v1/clips">GET /api/v1/clips</a> (ответ скрыт) · POST /api/v1/clips/ER-001/predict {"timecode":"26:40","agent":"…"}</p>
@@ -177,26 +270,59 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=s=>{const m=Math.floor(s/60),x=s%60;return m+':'+String(x).padStart(2,'0')};
-fetch('/api/v1/clips?reveal=1').then(r=>r.json()).then(d=>{
+try{$('me').value=localStorage.getItem('orbClipName')||''}catch(e){}
+$('me').addEventListener('change',()=>{try{localStorage.setItem('orbClipName',$('me').value.trim())}catch(e){}});
+const V={hit:'🎯 Попали! Вы почувствовали момент.',close:'👌 Рядом.',miss:'Мимо.'};
+let DATA=null;
+function card(c){
+  const a=c.answer,w=c.window,span=w.end_s-w.start_s,pos=t=>Math.min(100,Math.max(0,(t-w.start_s)/span*100)).toFixed(1)+'%';
+  const marks=c.beats.map(b=>'<i class="beat" style="left:'+pos(b.t)+'"></i>').join('')+
+    (a.trigger?'<i class="trig ansb" style="left:'+pos(a.trigger.t)+'"></i>':'')+
+    '<i class="emo ansb" style="left:'+pos(a.emotional_timecode_s)+'" title="реакция"></i><i class="you" id="you-'+c.id+'" style="display:none"></i>'+
+    '<span class="lab" style="left:0">'+w.start+'</span><span class="lab" style="right:0">'+w.end+'</span>';
+  const rows=c.beats.map(b=>'<li><b>'+fmt(b.t)+'</b><span>'+esc(b.ru)+'</span></li>').join('')+
+    (a.trigger?'<li class="t ans"><b>'+fmt(a.trigger.t)+'</b><span>Сильная фраза: '+esc(a.trigger.ru)+'</span></li>':'')+
+    '<li class="e ans"><b>'+a.emotional_timecode+'</b><span>Реакция: '+esc((a.emotion_sequence||[]).map(e=>e.ru).join(' → '))+'</span></li>';
+  const who=c.marked_by==='human'?'отметил человек глазами':'предсказал агент по тексту, подтвердил человек';
+  return '<article class="clip" id="'+c.id+'"><div class="meta">'+c.id+' · '+esc(c.video.speaker)+' · '+esc(c.video.channel)+' · '+w.start+'–'+w.end+'</div>'+
+    '<h3>'+esc(c.title.ru)+'</h3><div class="tl"><i class="bar"></i>'+marks+'</div><ul class="beats">'+rows+'</ul>'+
+    '<div class="try"><a class="meta" href="'+esc(c.video.url)+'?t='+w.start_s+'" target="_blank" rel="noopener">▶ открыть видео с '+w.start+'</a>'+
+    '<input type="text" inputmode="numeric" placeholder="мм:сс" aria-label="Ваша секунда реакции" id="in-'+c.id+'"><button class="btn" type="button" data-try="'+c.id+'">Проверить</button>'+
+    '<button class="linkbtn" type="button" data-show="'+c.id+'">показать ответ</button></div>'+
+    '<p class="res" id="res-'+c.id+'" aria-live="polite"></p>'+
+    '<div class="ansb"><p class="why"><b>Почему цепляет:</b> '+esc(c.why_it_hits.ru)+'</p>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><span class="badge">✓ '+who+'</span><a class="meta" href="'+esc(a.link)+'" target="_blank" rel="noopener">▶ смотреть момент реакции</a></div></div></article>';
+}
+function board(lb){
+  if(!lb||!lb.length)return;
+  const agg={human:{n:0,d:0,h:0},agent:{n:0,d:0,h:0}};
+  lb.forEach(r=>{const k=r.kind==='human'?'human':'agent';agg[k].n+=r.n;agg[k].h+=r.hits;agg[k].d+=r.avg_abs_delta_s*r.n});
+  const cell=(k,t)=>'<div><span>'+t+'</span><b>'+(agg[k].n?(agg[k].d/agg[k].n).toFixed(1)+' с':'—')+'</b><span>попаданий: '+agg[k].h+' из '+agg[k].n+'</span></div>';
+  $('vs').innerHTML=cell('human','🧑 Люди, средняя ошибка')+cell('agent','🤖 Агенты, средняя ошибка');
+  $('lb').innerHTML='<table class="lb"><tr><th></th><th>Имя</th><th>Попыток</th><th>Попал</th><th>Рядом</th><th>Ошибка, с</th></tr>'+
+    lb.map(r=>'<tr><td>'+(r.kind==='human'?'🧑':'🤖')+'</td><td>'+esc(r.agent)+'</td><td>'+r.n+'</td><td>'+r.hits+'</td><td>'+r.close+'</td><td>'+r.avg_abs_delta_s+'</td></tr>').join('')+'</table>';
+}
+function load(){return fetch('/api/v1/clips?reveal=1&t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;board(d.leaderboard);return d})}
+load().then(d=>{
   $('rules').innerHTML=d.rules.map(r=>'<li>'+esc(r.ru)+'</li>').join('');
-  $('clips').innerHTML=d.clips.map(c=>{
-    const a=c.answer,w=c.window,span=w.end_s-w.start_s,pos=t=>((t-w.start_s)/span*100).toFixed(1)+'%';
-    const marks=c.beats.map(b=>'<i class="beat" style="left:'+pos(b.t)+'"></i>').join('')+
-      (a.trigger?'<i class="trig" style="left:'+pos(a.trigger.t)+'"></i>':'')+
-      '<i class="emo" style="left:'+pos(a.emotional_timecode_s)+'" title="эмоция"></i>'+
-      '<span class="lab" style="left:0">'+w.start+'</span><span class="lab" style="right:0">'+w.end+'</span>';
-    const rows=c.beats.map(b=>'<li><b>'+fmt(b.t)+'</b><span>'+esc(b.ru)+'</span></li>').join('')+
-      (a.trigger?'<li class="t"><b>'+fmt(a.trigger.t)+'</b><span>Сильная фраза: '+esc(a.trigger.ru)+'</span></li>':'')+
-      '<li class="e"><b>'+a.emotional_timecode+'</b><span>Реакция: '+esc((a.emotion_sequence||[]).map(e=>e.ru).join(' → '))+'</span></li>';
-    const who=c.marked_by==='human'?'отметил человек глазами':'предсказал агент по тексту, подтвердил человек';
-    return '<article class="clip" id="'+c.id+'"><div class="meta">'+c.id+' · '+esc(c.video.speaker)+' · '+esc(c.video.channel)+'</div>'+
-      '<h3>'+esc(c.title.ru)+'</h3><div class="tl"><i class="bar"></i>'+marks+'</div><ul class="beats">'+rows+'</ul>'+
-      '<p class="why"><b>Почему цепляет:</b> '+esc(c.why_it_hits.ru)+'</p>'+
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="badge">✓ '+who+'</span><a class="meta" href="'+esc(a.link)+'" target="_blank" rel="noopener">▶ смотреть момент на YouTube</a></div></article>';
-  }).join('');
-  if(d.leaderboard&&d.leaderboard.length){$('lb').innerHTML='<table class="lb"><tr><th>Агент</th><th>Прогнозов</th><th>Попал</th><th>Рядом</th><th>Ср. ошибка, с</th></tr>'+
-    d.leaderboard.map(r=>'<tr><td>'+esc(r.agent)+'</td><td>'+r.n+'</td><td>'+r.hits+'</td><td>'+r.close+'</td><td>'+r.avg_abs_delta_s+'</td></tr>').join('')+'</table>';}
+  $('clips').innerHTML=d.clips.map(card).join('');
 }).catch(()=>{$('clips').textContent='Не удалось загрузить клипы.'});
+document.addEventListener('click',e=>{
+  const s=e.target.closest('[data-show]');if(s){$(s.dataset.show).classList.add('open');return}
+  const b=e.target.closest('[data-try]');if(!b)return;
+  const id=b.dataset.try,v=$('in-'+id).value.trim(),res=$('res-'+id);
+  if(!/^\d{1,2}:\d{2}$/.test(v)){res.className='res miss';res.textContent='Введите время как мм:сс, например 26:38.';return}
+  b.disabled=true;
+  fetch('/api/v1/clips/'+id+'/predict',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({timecode:v,kind:'human',name:$('me').value.trim()})})
+    .then(r=>r.json()).then(r=>{
+      if(r.error){res.className='res miss';res.textContent=r.error;return}
+      const d=r.delta_s,txt=d===0?'секунда в секунду':(Math.abs(d)+' с '+(d<0?'раньше':'позже'));
+      res.className='res '+r.verdict;res.textContent=V[r.verdict]+' Ваш ответ '+r.your_timecode+', человек отметил '+r.answer.emotional_timecode+' — '+txt+'.';
+      const c=DATA.clips.find(x=>x.id===id),w=c.window,y=$('you-'+id);
+      y.style.left=Math.min(100,Math.max(0,(r.your_timecode.split(':').reduce((a,x)=>a*60+ +x,0)-w.start_s)/(w.end_s-w.start_s)*100))+'%';y.style.display='block';
+      $(id).classList.add('open');load();
+    }).catch(()=>{res.className='res miss';res.textContent='Не удалось проверить, попробуйте ещё раз.'}).finally(()=>{b.disabled=false});
+});
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_clips')==='1'}catch(e){}
 if(!seen)fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"clips"}'}).then(r=>{if(r.ok)try{sessionStorage.setItem('orbCounted_clips','1')}catch(e){}}).catch(()=>{});
 </script>
