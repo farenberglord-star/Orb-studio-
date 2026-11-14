@@ -28,8 +28,9 @@ export function youtubeId(u) {
 }
 const fmt = (s) => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
 
-async function supadata(env, path) {
+async function supadata(env, path, retry = 2) {
   const r = await fetch("https://api.supadata.ai/v1/" + path, { headers: { "x-api-key": env.SUPADATA_API_KEY }, signal: AbortSignal.timeout(45000) });
+  if (r.status === 429 && retry > 0) { await new Promise((ok) => setTimeout(ok, 2500)); return supadata(env, path, retry - 1); } // бесплатный тариф: ~1 запрос в секунду
   const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
   if (!r.ok && r.status !== 202) throw new Error("Supadata " + r.status + ": " + (j && (j.message || j.error) || t).toString().slice(0, 160));
   return j;
@@ -133,16 +134,17 @@ export async function checkInterview(request, env, url) {
   const cap = Number(env.INTERVIEW_DAILY) || NEW_PER_DAY;
   if ((all && all.n) >= cap) return { error: "daily limit of new videos reached — try tomorrow; already checked videos stay available", limit: cap };
   if ((me && me.n) >= NEW_PER_VISITOR) return { error: "your daily limit of new videos is reached — try tomorrow", limit: NEW_PER_VISITOR };
-  await Promise.all([bump(env, today, "all"), bump(env, today, vk)]);
   const m = await supadata(env, "metadata?url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + vid)).catch(() => ({}));
   const video = { id: vid, url: "https://www.youtube.com/watch?v=" + vid, title: String(m.title || "").slice(0, 200), channel: String(m.author && m.author.displayName || "").slice(0, 100),
     date: typeof m.createdAt === "string" ? m.createdAt.slice(0, 10) : null, duration_s: m.media && m.media.duration || null };
+  await new Promise((ok) => setTimeout(ok, 1200)); // не чаще запроса в секунду
   const tr = await transcript(env, vid);
   const ex = await extract(env, video, tr);
   const card = { id: vid, video, speaker: ex.speaker, model: ex.model, created_at: today,
     claims: ex.claims.sort((a, b) => a.t_s - b.t_s).map((c) => ({ ...c, timecode: fmt(c.t_s), link: `https://youtu.be/${vid}?t=${Math.max(0, c.t_s - 3)}` })),
     note: "Claims are paraphrased by AI from the captions — approximate, check the timecode yourself. A missed price target is not proof of lying." };
   await verify(card, today);
+  await Promise.all([bump(env, today, "all"), bump(env, today, vk)]); // лимит считаем только за удачные проверки
   await env.DB.prepare("INSERT OR REPLACE INTO interview_checks (id, ts, data) VALUES (?1, ?2, ?3)").bind(vid, Date.now(), JSON.stringify(card)).run();
   return { ...card, cached: false };
 }
