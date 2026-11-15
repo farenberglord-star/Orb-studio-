@@ -2551,7 +2551,7 @@ const AGENT_UA = [
   ["Perplexity", /perplexity/i], ["Google-AI", /google-extended|googleother|gemini/i], ["Googlebot", /googlebot/i],
   ["Bingbot", /bingbot/i], ["Meta-AI", /meta-externalagent|meta-webindexer|facebookbot/i], ["Apple", /applebot/i], ["Bytespider", /bytespider/i],
   ["CommonCrawl", /ccbot/i], ["Amazonbot", /amazonbot/i], ["DuckAssist", /duckassistbot/i], ["Mistral", /mistralai/i],
-  ["You.com", /youbot/i], ["Cohere", /cohere-ai/i],
+  ["You.com", /youbot/i], ["Cohere", /cohere-ai/i], ["Agent402", /agent402/i],
 ];
 function classifyAgent(ua) {
   ua = ua || "";
