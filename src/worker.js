@@ -654,6 +654,19 @@ async function voiceBroadcast(env, ctx, origin, items) {
   }
 }
 
+// Заранее пишем живой текст выпуска для текущих заголовков (тик раз в 6 минут), чтобы первый посетитель после смены
+// заголовков не ждал до 8 секунд шаблон. Тот же ключ voice4-<хеш>, что читает voiceBroadcast; Claude зовём один раз на набор.
+async function voiceWarm(env, ctx) {
+  if (!env.ANTHROPIC_API_KEY) return;
+  const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
+  const items = broadcastItems(await allRadars(env, ctx, origin));
+  if (!items.length) return;
+  const h = await sha(items.map((i) => i.headline).join("|"));
+  if (await sharedGet(env, "voice4-" + h, 60 * 60e3)) return;
+  const data = await askClaudeSplit(env, items);
+  data.generated_at = new Date().toISOString();
+  await sharedPut(env, "voice4-" + h, data);
+}
 // Собирает входные данные выпуска из радаров: по 2 главных заголовка с каждого.
 // Арбитр для агентов: сколько независимых изданий в наших лентах пишут ту же новость
 const VERIFY_METHOD = "sources_confirming = how many different outlets carry the same story: Orb Studio's radar feeds (72 h) plus a Bing News search for the headline (2 days), matched by shared key words, same language. confirmed = 3+, two_sources = 2, single_source = 1 (not yet confirmed by other outlets in our feeds — say so if you repeat it). It measures spread across outlets, not truth. tone = alarmist / charged / neutral from shouting words, exclamation marks and capitals in the headline; the news itself is never rewritten.";
@@ -7198,7 +7211,7 @@ export default {
   async scheduled(event, env, ctx) {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       if (!EMO_RETIRED) ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
