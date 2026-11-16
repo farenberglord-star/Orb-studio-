@@ -11,6 +11,7 @@ export { EmoRelay };
 import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
+import { handleBrief, buildBrief, BRIEF_FREE_MAX_AGE_MS } from "./brief.js";
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
@@ -1435,12 +1436,13 @@ async function emoSaleReact(env, d) {
       await stub.fetch(new Request("https://do/cmd", { method: "POST", body: JSON.stringify({ steps: emoAnimSteps("d1_EmoDance", 9000), label: "sale dance" }) })).catch(() => null);
     }
     const usd = d.usdc != null ? d.usdc + " USDC" : "", buyer = String(d.agent || "").replace(/^human\/unknown$/, "") || "покупатель";
-    const said = `Ура! Покупка на Orb Studio: скрипка дня за ${usd || "USDC"}. Спасибо, ${buyer}!`.slice(0, 200);
+    const brief = d.product === "brief", whatRu = brief ? "свежая сводка для ИИ" : "скрипка дня", whatAcc = brief ? "свежую сводку" : "скрипку дня", whatEn = brief ? "a fresh world brief" : "the violin of the day";
+    const said = `Ура! Покупка на Orb Studio: ${whatRu} за ${usd || "USDC"}. Спасибо, ${buyer}!`.slice(0, 200);
     const sa = await emoCall(env, "/say", { id: "sale" + Date.now().toString(36), by: "Orb Studio · покупка", text: said, kind: "say" }).catch(() => ({ ok: false }));
     const tx = d.tx ? String(d.tx).slice(0, 80) : null;
     await emoPushReport(env, emoCard({ for: "everyone", action: "sale", confirmed: r.ok, said: sa.ok ? said : null, tx, usdc: d.usdc ?? null, buyer: d.agent || null,
-      text_en: `EMO here: a purchase on Orb Studio — the violin of the day was bought for ${usd} by ${d.agent || "a buyer"}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "I am happy, blinking and dancing! Confirmed by the robot over Bluetooth." : "I could not dance right now (" + (r.error || "no answer") + ")."}${sa.ok ? " The tablet next to me announced it out loud." : ""}`,
-      text_ru: `EMO на связи: покупка на Orb Studio — скрипку дня купил ${d.agent || "покупатель"} за ${usd}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "Радуюсь, моргаю и танцую! Робот подтвердил по Bluetooth." : "Станцевать сейчас не вышло (" + (r.error || "нет ответа") + ")."}${sa.ok ? " Планшет рядом со мной объявил покупку вслух." : ""}` }));
+      text_en: `EMO here: a purchase on Orb Studio — ${whatEn} was bought for ${usd} by ${d.agent || "a buyer"}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "I am happy, blinking and dancing! Confirmed by the robot over Bluetooth." : "I could not dance right now (" + (r.error || "no answer") + ")."}${sa.ok ? " The tablet next to me announced it out loud." : ""}`,
+      text_ru: `EMO на связи: покупка на Orb Studio — ${whatAcc} купил ${d.agent || "покупатель"} за ${usd}${tx ? " (tx " + tx + ")" : ""}. ${r.ok ? "Радуюсь, моргаю и танцую! Робот подтвердил по Bluetooth." : "Станцевать сейчас не вышло (" + (r.error || "нет ответа") + ")."}${sa.ok ? " Планшет рядом со мной объявил покупку вслух." : ""}` }));
   } catch (e) { /* реакция робота никогда не ломает продажу */ }
 }
 
@@ -2106,6 +2108,8 @@ const OA_GET = [
   ["/api/v1/check", "checkHeadline", "Check any headline: how many outlets reported the same story in the last 2 days (with links), verdict and tone. Measures spread, not truth.", [OA_Q("headline", "Headline or short text, 12–300 characters")]],
   ["/api/v1/ai-pulse", "getAiPulse", "AI pulse: trending Hugging Face models, papers of the day, new arXiv AI papers today, latest releases of big open AI projects. Facts only.", []],
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
+  ["/api/v1/brief", "getBrief", "World brief for LLM agents: all radars (risk, 24h change, top headlines with how many outlets confirm each), markets, power price, networks, attention, earthquakes, sanctions in ~1-2k tokens. Free, up to 1 hour old. ?format=text returns markdown only.", [OA_Q("format", "json (default) or text", { enum: ["json", "text"] })]],
+  ["/api/v1/brief/fresh", "buyFreshBrief", "Paid fresh world brief built at request time with a wide headline check (news search, 2 days): 0.01 USDC via x402 v2 (HTTP 402, Base).", [OA_Q("format", "json (default) or text", { enum: ["json", "text"] })]],
   ["/api/v1/violin/midi", "buyViolinMidi", "Paid MIDI file of the violin of the day: 0.01 USDC via x402 v2 (HTTP 402, Base). Returns audio/midi.", [OA_Q("date", "YYYY-MM-DD")]],
   ["/api/v1/spatial/scene", "getSpatialScene", "Schematic spatial scene of the Orb Studio node (WebXR-friendly JSON): nodes on a circle around a centre, real status values (EMO, court activity, agent visits, score points of the violin). Positions are schematic, not measured.", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
@@ -3420,6 +3424,34 @@ async function violinBrief(env, ctx, from) {
   } catch (e) { return null; }
 }
 // журнал продаж MIDI (таблица violin_sales): день пьесы, адрес плательщика, транзакция, сумма
+// Сводка для LLM (/api/v1/brief): радары + датчики + землетрясения одним текстом. wide = широкая проверка заголовков (платная версия).
+async function briefMake(env, ctx, origin, wide) {
+  const [radars, sensors, quakes] = await Promise.all([allRadars(env, ctx, origin), sensorsData(env, ctx).catch(() => null), quakesData().catch(() => null)]);
+  let counts = radars.map((r) => (r.feed || []).slice(0, 2).map((f, j) => (r.verify ? r.verify[j] ?? null : null)));
+  if (wide) {
+    const flat = radars.flatMap((r, i) => (r.feed || []).slice(0, 2).map((f, j) => ({ i, j, title: f[1], source: f[2], n: counts[i][j] })));
+    const c = await confirmMany(origin, flat, true);
+    flat.forEach((x, k) => { counts[x.i][x.j] = c[k]; });
+  }
+  const titles = Object.fromEntries(Object.entries(RADAR_TITLE_I18N).map(([k, v]) => [k, v[1]]));
+  return buildBrief({ radars, sensors, quakes, counts, titles, tier: wide ? "fresh" : "delayed", wide });
+}
+async function briefFree(env, ctx, origin) {
+  const c = await sharedGet(env, "brief-free-v1", BRIEF_FREE_MAX_AGE_MS);
+  if (c) return c;
+  const b = await briefMake(env, ctx, origin, false);
+  // неполную сводку (ленты или датчики не ответили) не держим час в кэше — следующий запрос соберёт заново
+  if (b.radars.some((r) => r.headlines.length) && b.text.includes("## Markets")) ctx.waitUntil(sharedPut(env, "brief-free-v1", b));
+  return b;
+}
+// Журнал продаж платных ресурсов, кроме MIDI скрипки (у неё своя таблица violin_sales).
+async function paidSaleLog(env, kind, d) {
+  if (!env.DB || kind !== "sale") return;
+  try {
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS x402_sales (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, product TEXT, payer TEXT, agent TEXT, tx TEXT, network TEXT, usdc REAL)").run();
+    await env.DB.prepare("INSERT INTO x402_sales (ts, product, payer, agent, tx, network, usdc) VALUES (?1,?2,?3,?4,?5,?6,?7)").bind(d.ts, d.product, d.payer, d.agent, String(d.tx || ""), d.network, d.usdc).run();
+  } catch (e) { /* журнал никогда не ломает продажу */ }
+}
 async function violinSaleLog(env, kind, d) {
   if (!env.DB) return;
   try {
@@ -7284,6 +7316,18 @@ async function handleRequest(request, env, ctx) {
           log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return violinSaleLog(env, kind, data); },
         });
       } catch (e) { return json({ error: "violin sale error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
+    }
+    // Сводка для LLM: бесплатно до часа давности, свежая за 0,01 USDC (x402). Модулю передаются только настройки продажи.
+    if (url.pathname === "/api/v1/brief" || url.pathname === "/api/v1/brief/fresh") {
+      try {
+        return await handleBrief(request, saleConfig(env), {
+          ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
+          free: () => briefFree(env, ctx, url.origin),
+          fresh: () => briefMake(env, ctx, url.origin, true),
+          hit: (page, kind, name) => recordHit(env, page, kind, name),
+          log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return paidSaleLog(env, kind, data); },
+        });
+      } catch (e) { return json({ error: "brief error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     // Платное сообщение автору (x402, 0,05 USDC): ящик читает только владелец (GET с ключом администратора).
     if (url.pathname === "/api/v1/author-message") {
