@@ -24,6 +24,14 @@ test("source error keeps previous state and emits nothing; recovery with same da
   const a = diff({}, ALL()).state, bad = diff(a, { ...ALL(), gas: snapshot("gas", { ok: false }), bafin: null }); assert.equal(bad.events.length, 0); assert.deepEqual(bad.state.gas, a.gas); assert.deepEqual(bad.state.bafin, a.bafin);
   assert.equal(diff(bad.state, ALL()).events.length, 0);
 });
+test("gas: an older gas day or a revised value for the same day is not an event; the state never goes back (no duplicates)", () => {
+  let st = diff({}, ALL({ gas: gas("2026-11-14", 57.3) })).state;
+  const back = diff(st, ALL({ gas: gas("2026-11-13", 57.45) })); assert.equal(back.events.length, 0); assert.equal(back.state.gas.sig, "2026-11-14");
+  const rev = diff(back.state, ALL({ gas: gas("2026-11-14", 57.33) })); assert.equal(rev.events.length, 0);
+  const next = diff(rev.state, ALL({ gas: gas("2026-11-15", 57.16) })); assert.equal(next.events.length, 1); assert.equal(next.events[0].source_time, "2026-11-15");
+  const flip = diff(next.state, ALL({ gas: gas("2026-11-14", 57.3) })); assert.equal(flip.events.length, 0);
+  assert.equal(diff(flip.state, ALL({ gas: gas("2026-11-15", 57.17) })).events.length, 0);
+});
 test("snapshot rejects broken or empty answers", () => {
   for (const [k, d] of [["gas", {}], ["gas", null], ["bafin", { ok: true }], ["flood", { ok: false }], ["quakes", {}], ["space", { noaa_scales: { ok: false } }]]) assert.equal(snapshot(k, d), null);
 });

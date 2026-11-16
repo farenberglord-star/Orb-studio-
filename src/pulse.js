@@ -57,6 +57,9 @@ export function diff(prev, snaps, now = Date.now()) {
       }
       continue;
     }
+    // Gas: only a LATER gas day counts. The source sometimes answers with the previous day for a moment and then the new one again
+    // (revised value); that used to make a second event for the same day. The state never moves backwards.
+    if (sensor === "gas" && old && typeof old.sig === "string" && sn.sig <= old.sig) continue;
     state[sensor] = { sig: sn.sig };
     if (!old || typeof old.sig !== "string" || old.sig === sn.sig) continue; // baseline or no change
     if (sensor === "gas") push(sensor, "new_gas_day", "Gas storage " + sn.info.gas_day + ": " + sn.info.full_percent + "% full, " + sn.info.net_flow, sn.info.gas_day, sn.info);
