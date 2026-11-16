@@ -7,7 +7,8 @@
 //
 // Безопасность как у MIDI скрипки: модуль получает только cfg продажи (публичный адрес кошелька, фасилитатор),
 // сводка собирается ДО settle, деньги списываются только если есть что отдать, повтор той же подписи не списывает дважды.
-import { CORS, b64, unb64, matches, facilitatorCall } from "./violin-sale.js";
+import { CORS } from "./violin-sale.js";
+import { paidFlow, paymentRequiredFor } from "./x402-flow.js";
 
 export const BRIEF_PRICE_ATOMIC = "10000"; // 0,01 USDC
 export const BRIEF_PRICE_USD = 0.01;
@@ -127,25 +128,18 @@ export function buildBrief({ radars = [], sensors = null, quakes = null, counts 
 }
 
 // ---------- x402 ----------
-function requirements(cfg) {
-  return { scheme: "exact", network: cfg.network, amount: BRIEF_PRICE_ATOMIC, asset: cfg.net.asset, payTo: cfg.payTo, maxTimeoutSeconds: 120, extra: { name: cfg.net.name, version: cfg.net.version } };
-}
-export function briefPaymentRequired(cfg, error) {
-  return {
-    x402Version: 2, error: error || "Payment required",
-    resource: { url: BRIEF_RESOURCE, description: DESCRIPTION, mimeType: "application/json" },
-    accepts: [requirements(cfg)],
-    extensions: { bazaar: {
-      info: { input: { type: "http", method: "GET", queryParams: { format: "json" } },
-        output: { type: "json", example: { tier: "fresh", approx_tokens: 1400, text: "# Orb Studio world brief · … UTC · fresh\n## News radars (risk 0–100, change 24h)\n- Geo radar [geo]: 70 (±0)\n  · \"…\" — bbc.co.uk, confirmed (7)\n## Markets\n- BTC 58,637 EUR (24h −1.8 %) …", radars: [{ id: "geo", risk_index: 70, delta_24h: 0, headlines: [{ title: "…", source: "bbc.co.uk", sources_confirming: 7, verdict: "confirmed" }] }] } } },
-      schema: { $schema: "https://json-schema.org/draft/2020-12/schema", type: "object",
-        properties: { input: { type: "object", properties: { type: { type: "string", const: "http" }, method: { type: "string", enum: ["GET"] },
-          queryParams: { type: "object", properties: { format: { type: "string", enum: ["json", "text"], description: "json (default) or text: plain markdown only" } } } }, required: ["type", "method"], additionalProperties: false },
-          output: { type: "object", properties: { type: { type: "string" }, example: { type: "object" } }, required: ["type"] } },
-        required: ["input"] },
-    } },
-  };
-}
+const BAZAAR = {
+  info: { input: { type: "http", method: "GET", queryParams: { format: "json" } },
+    output: { type: "json", example: { tier: "fresh", approx_tokens: 1400, text: "# Orb Studio world brief · … UTC · fresh\n## News radars (risk 0–100, change 24h)\n- Geo radar [geo]: 70 (±0)\n  · \"…\" — bbc.co.uk, confirmed (7)\n## Markets\n- BTC 58,637 EUR (24h −1.8 %) …", radars: [{ id: "geo", risk_index: 70, delta_24h: 0, headlines: [{ title: "…", source: "bbc.co.uk", sources_confirming: 7, verdict: "confirmed" }] }] } } },
+  schema: { $schema: "https://json-schema.org/draft/2020-12/schema", type: "object",
+    properties: { input: { type: "object", properties: { type: { type: "string", const: "http" }, method: { type: "string", enum: ["GET"] },
+      queryParams: { type: "object", properties: { format: { type: "string", enum: ["json", "text"], description: "json (default) or text: plain markdown only" } } } }, required: ["type", "method"], additionalProperties: false },
+      output: { type: "object", properties: { type: { type: "string" }, example: { type: "object" } }, required: ["type"] } },
+    required: ["input"] },
+};
+const OFFER = { atomic: BRIEF_PRICE_ATOMIC, usd: BRIEF_PRICE_USD, resource: BRIEF_RESOURCE, description: DESCRIPTION, mimeType: "application/json", bazaar: BAZAAR,
+  page: "/api/v1/brief/fresh", product: "brief", freeHint: ORIGIN + "/api/v1/brief (up to 1 hour old)" };
+export const briefPaymentRequired = (cfg, error) => paymentRequiredFor(cfg, OFFER, error);
 
 const wantText = (url) => url.searchParams.get("format") === "text";
 function render(url, brief, extra = {}, headers = {}) {
@@ -156,76 +150,13 @@ function render(url, brief, extra = {}, headers = {}) {
 // deps: { ctx, agent, free() → brief (до часа), fresh() → brief (сейчас), hit(page, kind, name), log(kind, data) }
 export async function handleBrief(request, cfg, deps) {
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-  const out = (data, status, extra = {}) => new Response(JSON.stringify(data, null, 2), { status, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...extra } });
-  if (request.method !== "GET" && request.method !== "HEAD") return out({ error: "Use GET" }, 405);
+  if (request.method !== "GET" && request.method !== "HEAD") return new Response(JSON.stringify({ error: "Use GET" }), { status: 405, headers: { ...CORS, "Content-Type": "application/json; charset=utf-8" } });
   const url = new URL(request.url);
-  const who = String(deps.agent || "unknown").slice(0, 40);
-  const fresh = url.pathname.replace(/\/+$/, "").endsWith("/fresh");
-
-  if (!fresh) {
+  if (!url.pathname.replace(/\/+$/, "").endsWith("/fresh")) {
     const b = await deps.free();
     const age = Math.max(0, Math.round((Date.now() - Date.parse(b.generated_at)) / 60000));
     return render(url, b, { age_minutes: age, fresh_version: cfg.open ? { url: BRIEF_RESOURCE, price_usdc: BRIEF_PRICE_USD, network: cfg.network, protocol: "x402 v2 (HTTP 402, USDC)", what: "built at request time, headlines checked against news search" } : undefined },
       { "Cache-Control": "public, max-age=300" });
   }
-
-  if (!cfg.open) {
-    deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/brief/fresh", "x402", "closed · " + who)).catch(() => {}));
-    return out({ status: "sale_not_open_yet", free: ORIGIN + "/api/v1/brief" }, 503, { "Retry-After": "86400" });
-  }
-  const challenge = (error) => {
-    const body = briefPaymentRequired(cfg, error);
-    return out({ ...body, how_to_pay: "x402 v2: sign accepts[0] with an EVM wallet holding USDC on " + cfg.net.label + " and repeat the request with the PAYMENT-SIGNATURE header (base64 JSON). Price: " + BRIEF_PRICE_USD + " USDC. Free version, up to 1 hour old: " + ORIGIN + "/api/v1/brief" },
-      402, { "PAYMENT-REQUIRED": b64(JSON.stringify(body)) });
-  };
-  const header = request.headers.get("PAYMENT-SIGNATURE") || request.headers.get("X-PAYMENT");
-  if (!header) {
-    deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/brief/fresh", "x402", "challenge · " + who)).catch(() => {}));
-    return challenge();
-  }
-  let payload;
-  try { if (header.length > 12000) throw new Error("long"); payload = JSON.parse(unb64(header.trim())); }
-  catch (e) { return challenge("Invalid PAYMENT-SIGNATURE header (expected base64 JSON)"); }
-  const req = requirements(cfg);
-  if (payload.x402Version !== 2 || !matches(req, payload.accepted)) return challenge("Payment does not match the requirements (x402Version 2, scheme, network, amount, asset, payTo)");
-  const body = { x402Version: 2, paymentPayload: payload, paymentRequirements: req };
-  const pendingNote = "Do not sign a new payment: repeat the same request with the same PAYMENT-SIGNATURE. The authorization can be used only once, so you cannot be charged twice.";
-
-  let v;
-  try { v = await facilitatorCall(cfg, "verify", body); } catch (e) { return out({ error: "Payment facilitator unavailable, nothing was charged. Try again later." }, 503, { "Retry-After": "60" }); }
-  const vReason = String((v.data && (v.data.invalidReason || v.data.errorMessage)) || "");
-  const reused = /nonce_already_used|authorization_already_used/i.test(vReason);
-  if (!reused && (!v.data || v.data.isValid !== true)) {
-    deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/brief/fresh", "x402", "invalid · " + who)).catch(() => {}));
-    return challenge("Payment not valid: " + (vReason || "facilitator status " + v.status));
-  }
-  const payerHint = String((v.data && v.data.payer) || "").slice(0, 42);
-
-  // сначала собираем товар: если сборка упала, деньги не списываются
-  let brief;
-  try { brief = await deps.fresh(); } catch (e) { return out({ error: "Could not build the brief right now, nothing was charged. Try again later.", free: ORIGIN + "/api/v1/brief" }, 503, { "Retry-After": "30" }); }
-
-  let s;
-  try { s = await facilitatorCall(cfg, "settle", body); } catch (e) {
-    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { product: "brief", payer: payerHint, agent: who, reason: "settle timeout", ts: Date.now() })).catch(() => {}));
-    return out({ status: "pending", error: "Settlement did not answer in time, nothing was delivered. " + pendingNote, transaction: null }, 202, { "Retry-After": "10" });
-  }
-  const reason = String((s.data && (s.data.errorReason || s.data.errorMessage)) || "");
-  const tx = s.data && s.data.transaction;
-  if (s.data && s.data.success === true) {
-    const payer = String(s.data.payer || payerHint || "").slice(0, 42);
-    deps.ctx.waitUntil(Promise.all([
-      deps.hit("/api/v1/brief/fresh", "x402-sale", who + " · " + payer),
-      deps.log("sale", { product: "brief", payer, agent: who, tx, network: s.data.network || cfg.network, usdc: BRIEF_PRICE_USD, ts: Date.now() }),
-    ]).catch(() => {}));
-    const receipt = { success: true, transaction: tx, network: s.data.network || cfg.network, payer };
-    if (request.method === "HEAD") return new Response(null, { status: 200, headers: { ...CORS, "PAYMENT-RESPONSE": b64(JSON.stringify(receipt)) } });
-    return render(url, brief, { receipt }, { "Cache-Control": "no-store", "PAYMENT-RESPONSE": b64(JSON.stringify(receipt)) });
-  }
-  if (/^0x[0-9a-fA-F]{64}$/.test(tx || "") || s.status === 503 || s.status === 504 || /settlement_pending|pending|timeout/i.test(reason)) {
-    deps.ctx.waitUntil(Promise.resolve(deps.log("sale-pending", { product: "brief", payer: payerHint, agent: who, reason: reason || "status " + s.status, tx: tx || null, ts: Date.now() })).catch(() => {}));
-    return out({ status: "pending", message: "Payment is being settled, nothing has been delivered yet. " + pendingNote, transaction: tx || null }, 202, { "Retry-After": "5" });
-  }
-  deps.ctx.waitUntil(Promise.resolve(deps.hit("/api/v1/brief/fresh", "x402", "settle-failed · " + who)).catch(() => {}));
-  return challenge("Settlement failed: " + (reason || "facilitator status " + s.status));
+  return paidFlow(request, cfg, { ...OFFER, build: () => deps.fresh(), deliver: (b, receipt) => render(url, b, { receipt }) }, deps);
 }
