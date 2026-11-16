@@ -1,6 +1,6 @@
 {
  "schema": "orbstudio.tariffs.v1",
- "updated_at": "2026-11-09",
+ "updated_at": "2026-11-16",
  "method": "Read automatically from banks' own official pages and fee documents (Germany: Entgeltinformation under the Payment Accounts Act ZKG, Preis- und Leistungsverzeichnis; USA: fee schedules and rate pages). US baseline from FDIC National Rates and Rate Caps via FRED. Every card carries source_url and checked_at. If a source cannot be read, the card keeps the last verified values and gets status 'stale' or 'blocked' instead of a guessed number.",
  "disclaimer": "Information only, not financial advice. Conditions change; check with the bank before opening an account.",
  "baseline": {
@@ -25,7 +25,7 @@
      "date": "2026-10-01"
     }
    },
-   "checked_at": "2026-11-02"
+   "checked_at": "2026-11-16"
   }
  },
  "cards": [
@@ -60,7 +60,7 @@
    "doc_date": "2026-06-01",
    "source_type": "html",
    "source_url": "https://www.ing.de/girokonto/konditionen/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -91,13 +91,14 @@
    "overdraft_rate": null,
    "notes": [
     "Overdraft rate not stated in the fee schedule",
-    "Fee schedule also mentions ECB reference rate + 0.35% for EEA currency conversion"
+    "Fee schedule also mentions ECB reference rate + 0.35% for EEA currency conversion",
+    "Fee schedule PDF (comdirect.de/cms/docs/cori7105.pdf) is closed to automated readers (robots.txt) as of 2026-11-16; values from the last successful check"
    ],
    "doc_date": "2026-04-13",
    "source_type": "html",
    "source_url": "https://www.comdirect.de/formulare/preis-leistungsverzeichnis",
    "checked_at": "2026-11-02",
-   "status": "stale"
+   "status": "blocked"
   },
   {
    "id": "de-haspa-joker",
@@ -120,7 +121,7 @@
    "doc_date": null,
    "source_type": "html",
    "source_url": "https://www.haspa.de/de/home/privatkunden/girokonto/haspajoker.html",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -136,7 +137,7 @@
    ],
    "source_type": "pdf",
    "source_url": "https://dok.dkb.de/pdf/plv_pk_konten.pdf",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "blocked"
   },
   {
@@ -161,7 +162,7 @@
    "deposit_insurance": "DE statutory, 100,000 EUR",
    "source_type": "html",
    "source_url": "https://www.ing.de/sparen-anlegen/sparen/tagesgeld/konditionen/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -181,7 +182,7 @@
    ],
    "source_type": "html",
    "source_url": "https://traderepublic.com/de-de/zinsen",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "check"
   },
   {
@@ -203,7 +204,7 @@
    ],
    "source_type": "html",
    "source_url": "https://www.chase.com/personal/checking/total-checking",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -227,10 +228,10 @@
    "notes": [
     "Overdraft item fee $10, max 2 per day"
    ],
-   "doc_date": "2026-08",
+   "doc_date": "2023-05",
    "source_type": "pdf",
    "source_url": "https://www.bankofamerica.com/content/documents/deposits/service/pdf/docrepo/BofA_CoreChecking_en_ADA.pdf",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -248,10 +249,10 @@
     "No minimum balance to open or earn APY"
    ],
    "deposit_insurance": "FDIC, $250,000",
-   "doc_date": "2026-11-05",
+   "doc_date": "2026-11-12",
    "source_type": "html",
    "source_url": "https://www.ally.com/bank/savings-account-rates/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -286,7 +287,7 @@
    "doc_date": "2025-10-01",
    "source_type": "pdf",
    "source_url": "https://www.spkhb.de/content/dam/myif/sk-harburg-buxtehude/work/dokumente/pdf/preise-leistungen/entgeltinformation-girokonto-online.pdf",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -315,7 +316,7 @@
     "Girocard with Visa function free; 2nd card 10 EUR/year",
     "Credit card (Mastercard/Visa Classic) 39.90 EUR/year, FX 1.75%",
     "Tolerated overdraft 14.40% p.a.",
-    "Not re-verified on 2026-11-09: document could not be fetched, values from 2026-11-02"
+    "Not re-verified on 2026-11-16: document could not be fetched, values from 2026-11-02"
    ],
    "doc_date": "2025-12-01",
    "source_type": "pdf",
@@ -348,7 +349,7 @@
    "doc_date": "2026-05-05",
    "source_type": "pdf",
    "source_url": "https://api.c24.de/api/documents/c24giro_fees/download/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -364,12 +365,13 @@
     "Free account with a virtual card; a physical debit card costs 10 EUR once",
     "ATM withdrawals in foreign currency: 1.7%",
     "Paid plans: Smart 4.90, Go 9.90, Metal 16.90 EUR/month",
-    "Pages give no date for these terms"
+    "Pages give no date for these terms",
+    "Not re-verified on 2026-11-16: the German page could not be fetched; values from 2026-11-09"
    ],
    "source_type": "html",
    "source_url": "https://n26.com/de-de/auslandsgebuhren",
    "checked_at": "2026-11-09",
-   "status": "check"
+   "status": "stale"
   },
   {
    "id": "de-hhvb-grossefreiheit",
@@ -392,7 +394,7 @@
     "girocard 12 EUR/year",
     "FutureKonto for pupils, trainees and students up to 27: max 2.00 EUR/month",
     "Overdraft rates only in the separate Preisaushang",
-    "Not re-verified on 2026-11-09: price list URL redirects to a third-party CDN, values from 2026-11-02"
+    "Not re-verified on 2026-11-16: price list URL redirects to a third-party CDN, values from 2026-11-02"
    ],
    "doc_date": "2026-10-01",
    "source_type": "pdf",
@@ -419,7 +421,7 @@
    ],
    "source_type": "html",
    "source_url": "https://www.wellsfargo.com/checking/everyday/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "ok"
   },
   {
@@ -434,16 +436,26 @@
    "fee_monthly": 0,
    "conditions": [
     "No minimum balance",
-    "Rates effective 2026-11-06 per the page, but the APY figure loads by script and could not be read"
+    "Rates effective 2026-11-13 per the page, but the APY figure loads by script and could not be read"
    ],
    "deposit_insurance": "FDIC, $250,000",
    "source_type": "html",
    "source_url": "https://www.capitalone.com/bank/savings-accounts/online-performance-savings-account/",
-   "checked_at": "2026-11-09",
+   "checked_at": "2026-11-16",
    "status": "check"
   }
  ],
  "changes": [
+  {
+   "date": "2026-11-16",
+   "bank": "Bank of America",
+   "card": "us-bofa-advantage-plus",
+   "field": "doc_date",
+   "old": "2026-08",
+   "new": "2023-05",
+   "text": "Document date corrected: the Clarity Statement says it is current as of 05/2023; fees unchanged",
+   "text_ru": "Исправлена дата документа: Clarity Statement актуален на 05/2023; комиссии без изменений"
+  },
   {
    "date": "2026-11-09",
    "bank": "ING",
