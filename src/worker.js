@@ -477,7 +477,7 @@ async function safeworldNoiseRefresh(env, force = false) {
 // У воркера ограничено число внешних запросов на один вызов, поэтому карта не будит все датчики разом:
 // хранит последние наблюдения (метка времени источника, а не сами данные) в D1 и за один заход обновляет не больше FR_PER_CALL источников, самые давние первыми.
 // Если источник не ответил, остаётся прежняя метка — возраст растёт, и статус честно уходит в «запаздывает»/«устарело».
-const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 4;
+const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 6;
 const FR_LOADERS = {
   radars: (env, ctx, origin) => allRadars(env, ctx, origin),
   sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
@@ -495,7 +495,7 @@ async function freshnessData(env, ctx, origin) {
   for (const n of due) {
     const d = await Promise.race([Promise.resolve().then(() => FR_LOADERS[n](env, ctx, origin)), new Promise((r) => setTimeout(() => r(null), 8000))]).catch(() => null);
     const obs = {};
-    for (const x of FR_CATALOG.filter((x) => x.src === n)) { const o = frObserve(x, d), old = st[n] && st[n].obs && st[n].obs[x.id]; obs[x.id] = !o.responded && old && old.responded ? old : o; }
+    for (const x of FR_CATALOG.filter((x) => x.src === n)) { const o = frObserve(x, d), old = st[n] && st[n].obs && st[n].obs[x.id]; obs[x.id] = { ...(!o.responded && old && old.responded ? old : o), checked: now }; }
     st[n] = { checked: now, obs };
   }
   if (due.length) ctx.waitUntil(sharedPut(env, FR_KEY, st));
@@ -7502,7 +7502,8 @@ export default {
   async scheduled(event, env, ctx) {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
-    if (event.cron === AVI_CRON) { ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+    if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       if (!EMO_RETIRED) ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));

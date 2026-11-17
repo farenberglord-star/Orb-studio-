@@ -64,3 +64,8 @@ test("stored observations rebuild the same rows; a silent source keeps aging", a
   assert.equal(later.sensors.find((r) => r.id === "gas_storage").status, "no_data");
   assert.deepEqual(observe(c("radiation_de"), null), { responded: false, raw: null });
 });
+test("age is measured at the moment of the check, not at page view", async () => {
+  const { rowFrom } = await import("../src/freshness.js");
+  const o = { responded: true, raw: "2026-11-17T08:00:00Z", checked: Date.parse("2026-11-17T08:30:00Z") };
+  const r = rowFrom(c("radiation_de"), o, NOW + 10 * 3600e3); assert.equal(r.age_h, 0.5); assert.equal(r.status, "on_time"); assert.equal(r.checked_at, "2026-11-17T08:30:00.000Z");
+});
