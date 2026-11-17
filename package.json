@@ -28,7 +28,9 @@
     "test:safeworld": "node --test test/safeworld.test.mjs",
     "test:freshness": "node --test test/freshness.test.mjs",
     "test:gdacs": "node --test test/gdacs.test.mjs",
-    "test:fao": "node --test test/fao.test.mjs"
+    "test:fao": "node --test test/fao.test.mjs",
+    "test:who": "node --test test/who.test.mjs",
+    "test:unhcr": "node --test test/unhcr.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

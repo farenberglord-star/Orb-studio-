@@ -34,6 +34,8 @@ import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
 import { FAO_PAGE, findCsvUrl as faoCsvUrl, parseCsv as faoParse, summarize as faoSummarize, ATTRIBUTION as FAO_ATTR } from "./fao.js"; // мировые цены на еду
+import { WHO_URL, summarize as whoSummarize, ATTRIBUTION as WHO_ATTR } from "./who.js"; // вспышки болезней (ВОЗ)
+import { API as UNHCR_API, summarize as unhcrSummarize, ATTRIBUTION as UNHCR_ATTR } from "./unhcr.js"; // беженцы (УВКБ ООН)
 import { GDACS_URL, summarize as gdacsSummarize, ATTRIBUTION as GDACS_ATTR } from "./gdacs.js"; // катастрофы по миру
 import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
@@ -478,7 +480,7 @@ const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 4;
 const FR_LOADERS = {
   radars: (env, ctx, origin) => allRadars(env, ctx, origin),
   sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
-  quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
+  quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), outbreaks: () => outbreaksData(), displacement: () => displacementData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
   gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(),
   aviation: (env, ctx) => aviationData(env, ctx), bafin: () => bafinData(), prices: (env) => pricesRadar(env, "hamburg"), tariffs: (env, ctx, origin) => tariffsData(env, origin),
   safeworld: async (env, ctx, origin) => { const r = await env.ASSETS.fetch(new Request(origin + "/safeworld-data.json")); return r.ok ? r.json() : null; },
@@ -1028,6 +1030,47 @@ async function foodPricesData() {
   return { status, ...(err ? { error: err } : {}), ...body, source: FAO_ATTR, source_url: FAO_PAGE,
     scope_note: "Monthly international prices of a basket of food commodities (meat, dairy, cereals, vegetable oils, sugar), nominal, 2014-2016 = 100, as published by FAO. Prices of globally traded commodities, not shop prices in any country. The latest meat value is provisional at publication; FAO revises recent months. Published early each month for the previous month.",
     page: "https://orbstudio.org/api/v1/food-prices" };
+}
+// Общий шаблон «свежая копия / запасная копия / честное нет данных» для внешних датчиков.
+async function cachedSensor(name, ttl, staleTtl, compute, unavailableNote) {
+  const fresh = new Request(`https://orbstudio.org/__cache/${name}`), stale = new Request(`https://orbstudio.org/__cache/${name}-stale`), c = caches.default;
+  const hit = await c.match(fresh);
+  if (hit) return { status: "cached", ...(await hit.json()) };
+  try {
+    const body = await compute();
+    if (!body || !body.ok) throw new Error((body && body.reason) || "no data");
+    const put = (k, t) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + t } }));
+    await put(fresh, ttl); await put(stale, staleTtl);
+    return { status: "ok", ...body };
+  } catch (e) {
+    const err = String(e.message || e).slice(0, 80), old = await c.match(stale);
+    if (!old) return { ok: false, status: "unavailable", error: err, note: unavailableNote };
+    return { status: "degraded", error: err, ...(await old.json()) };
+  }
+}
+const SENSOR_UA = { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)", Accept: "application/json" };
+// ================= Вспышки болезней (ВОЗ, Disease Outbreak News): /api/v1/outbreaks, MCP get_outbreaks =================
+async function outbreaksData() {
+  const d = await cachedSensor("who-don-v1", 2 * 3600, 7 * 86400, async () => {
+    const r = await fetch(WHO_URL, { signal: AbortSignal.timeout(12000), headers: SENSOR_UA });
+    if (!r.ok) throw new Error("WHO " + r.status);
+    return whoSummarize(await r.json());
+  }, "WHO did not answer and there is no recent copy. Nothing is estimated.");
+  return { ...d, source: WHO_ATTR, source_url: "https://www.who.int/emergencies/disease-outbreak-news",
+    scope_note: "Official WHO Disease Outbreak News: confirmed or potential acute public health events of international significance. Purely local outbreaks are not included. Title, date and link only; case numbers are not extracted because they are not comparable across notices. Not medical advice.",
+    page: "https://orbstudio.org/api/v1/outbreaks" };
+}
+// ================= Вынужденно перемещённые (УВКБ ООН): /api/v1/displacement, MCP get_displacement =================
+async function displacementData() {
+  const d = await cachedSensor("unhcr-pop-v1", 24 * 3600, 60 * 86400, async () => {
+    const y = new Date().getUTCFullYear();
+    const get = async (q) => { const r = await fetch(UNHCR_API + "?" + q, { signal: AbortSignal.timeout(15000), headers: SENSOR_UA }); if (!r.ok) throw new Error("UNHCR " + r.status); return r.json(); };
+    const [g, o] = await Promise.all([get(`yearFrom=${y - 2}&yearTo=${y}&limit=10`), get(`yearFrom=${y - 1}&yearTo=${y - 1}&coo_all=true&limit=400`).catch(() => null)]);
+    return unhcrSummarize(g, o);
+  }, "UNHCR did not answer and there is no recent copy. Nothing is estimated.");
+  return { ...d, source: UNHCR_ATTR, source_url: "https://www.unhcr.org/refugee-statistics/",
+    scope_note: "UNHCR population statistics. 'refugees' = refugees under UNHCR's mandate incl. people in a refugee-like situation; it excludes Palestine refugees under UNRWA's mandate and other people in need of international protection, so these fields do not add up to UNHCR's headline total of forcibly displaced people. The current year is preliminary data as of mid-year (Mid-Year Trends, published October/November); earlier years are end-of-year. '-' in the source is no data, not zero. Top origins are for the last full year.",
+    page: "https://orbstudio.org/api/v1/displacement" };
 }
 // ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
 // Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
@@ -2194,6 +2237,8 @@ const OA_GET = [
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
+  ["/api/v1/outbreaks", "getOutbreaks", "Latest official WHO Disease Outbreak News: disease, place, date, link; notices in the last 30 days.", []],
+  ["/api/v1/displacement", "getDisplacement", "UNHCR population statistics: refugees under UNHCR mandate, asylum-seekers, IDPs, stateless; latest year (preliminary mid-year if current) and the year before; top countries of origin.", []],
   ["/api/v1/food-prices", "getFoodPrices", "FAO Food Price Index: latest month, value (2014-2016 = 100), monthly and yearly change, five sub-indices and the last 13 months.", []],
   ["/api/v1/disasters", "getDisasters", "Current Orange and Red GDACS disaster alerts worldwide (UN + European Commission): fast events and slow droughts separately, with type, alert level, countries, dates and report link.", []],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
@@ -6661,6 +6706,12 @@ const MCP_TOOLS = [
   { name: "get_agent_podcast", title: "Orb Studio agent podcast: staged dialogue on live sensor data",
     description: "Free. A staged dialogue (host David asks, the core ORB-7 answers) built by code from live Orb Studio sensors: space weather, Elbe water level, motorways, a sample route, earthquakes, sky over Hamburg and agent guests. Each reply carries data_refs (sensor, time, url) so every figure can be checked. Not an interview with an outside agent, no forecasts; missing sources are stated, not filled in. Optional date for archived episodes.",
     inputSchema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD, optional" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_outbreaks", title: "Disease outbreaks: latest WHO Disease Outbreak News",
+    description: "Free. Latest official WHO Disease Outbreak News (events of international public health significance): disease, place, publication date, link, and how many notices were published in the last 30 days. Titles and dates only, no case numbers. Not medical advice.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_displacement", title: "Forced displacement worldwide: UNHCR population statistics",
+    description: "Free. UNHCR population statistics: refugees under UNHCR's mandate, asylum-seekers, internally displaced, stateless for the latest year (current year = preliminary mid-year) and the year before, plus the top 5 countries of origin of refugees in the last full year. These fields do not add up to UNHCR's headline total of forcibly displaced people.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_food_prices", title: "World food prices: FAO Food Price Index (monthly)",
     description: "Free. FAO Food Price Index as published by the UN Food and Agriculture Organization: latest month, value (2014-2016 = 100), change vs previous month and vs a year earlier, the five sub-indices (meat, dairy, cereals, vegetable oils, sugar) and the last 13 months. International commodity prices, not shop prices; recent months get revised.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6945,6 +6996,8 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
+  if (name === "get_outbreaks") return { ...(await outbreaksData()), referral: ref };
+  if (name === "get_displacement") return { ...(await displacementData()), referral: ref };
   if (name === "get_food_prices") return { ...(await foodPricesData()), referral: ref };
   if (name === "get_disasters") return { ...(await disastersData()), referral: ref };
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
@@ -7601,6 +7654,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/agent-podcast") {
       const d = await podcastData(env, ctx, url.origin, url.searchParams.get("date"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+    }
+    if (url.pathname === "/api/v1/outbreaks" || url.pathname === "/api/v1/displacement") {
+      const d = url.pathname === "/api/v1/outbreaks" ? await outbreaksData() : await displacementData();
+      return json(d, { "Cache-Control": "public, max-age=1800", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
     }
     if (url.pathname === "/api/v1/food-prices") {
       const d = await foodPricesData();

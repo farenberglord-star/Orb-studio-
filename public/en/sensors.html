@@ -210,6 +210,8 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="sn" data-s="sky"><div class="nm"><i></i>✈ Sky over Hamburg</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="quakes"><div class="nm"><i></i>🌋 Earthquakes worldwide</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="disasters"><div class="nm"><i></i>🌀 Disasters worldwide</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="outbreaks"><div class="nm"><i></i>🦠 Disease outbreaks</div><div class="vl">loading…</div><div class="ag"></div></div>
+      <div class="sn" data-s="displaced"><div class="nm"><i></i>🧳 Forcibly displaced</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="food"><div class="nm"><i></i>🌾 World food prices</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="elbe"><div class="nm"><i></i>🌊 Elbe: water level</div><div class="vl">loading…</div><div class="ag"></div></div>
       <div class="sn" data-s="gas"><div class="nm"><i></i>🔥 German gas storage</div><div class="vl">loading…</div><div class="ag"></div></div>
@@ -283,6 +285,8 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="space"><div class="k">Space weather · NOAA SWPC (observations)</div><div class="v" id="oSpace">—</div></div>
       <div class="row" data-o="route"><div class="k">Route · OSM + motorways (free)</div><div class="v" id="oRoute">—</div></div>
       <div class="row" data-o="quakes"><div class="k">Earthquakes worldwide · USGS (M4.5+)</div><div class="v" id="oQuake">—</div></div>
+      <div class="row" data-o="outbreaks"><div class="k">Disease outbreaks · WHO (Disease Outbreak News)</div><div class="v" id="oOut">—</div></div>
+      <div class="row" data-o="displaced"><div class="k">Forcibly displaced · UNHCR</div><div class="v" id="oDisp">—</div></div>
       <div class="row" data-o="food"><div class="k">World food prices · FAO Food Price Index (monthly)</div><div class="v" id="oFood">—</div></div>
       <div class="row" data-o="disasters"><div class="k">Disasters worldwide · GDACS (UN and EU), orange and red alerts</div><div class="v" id="oDis">—</div></div>
       <div class="row" data-o="predict"><div class="k">Forecast of the day</div><div class="v" id="oPred">—</div></div>
@@ -366,7 +370,7 @@ function ago(t){if(!t)return'';const m=Math.round((Date.now()-t)/60000);return m
 function setSensor(id,val,at,sig,label){
   const s=S[id];if(!s)return;
   s.el.querySelector('.vl').innerHTML=val;s.at=at||Date.now();s.label=label||null;s.el.querySelector('.ag').textContent=s.label||'updated '+ago(s.at);
-  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3,gas:3,bafin:10,flood:0.1,parking:0.1,wxat:0.1,changes:0.1,food:70,disasters:30}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
+  s.el.classList.toggle('stale',Date.now()-s.at>({macro:5,ground:14,stables:3,attn:2,s_david:30,s_music:30,s_canvas:0.3,s_promises:2,s_pulse:0.5,s_robot:30,s_tariffs:14,s_quality:60,s_places:14,s_follow:3,gas:3,bafin:10,flood:0.1,parking:0.1,wxat:0.1,changes:0.1,food:70,disasters:30,outbreaks:60,displaced:400}[id]||1.5)*864e5); // у курса ЕЦБ и ценников свой нормальный ритм обновления
   if(s.sig!==null&&s.sig!==sig){burst(id,8);flash(id)}
   else if(s.sig===null){setTimeout(()=>burst(id,5),300+Object.keys(S).indexOf(id)*350)}
   s.sig=sig;
@@ -610,6 +614,24 @@ async function loadRoute(){
   setSensor('route',`airport → station: ${(d.distance_m/1000).toFixed(1).replace('.',',')} km · ${Math.round(d.duration_min)} min · motorway reports nearby: ${n}`,Date.now(),d.distance_m+'/'+n);
   $('oRoute').innerHTML=`<div>Airport → central station: <b>${(d.distance_m/1000).toFixed(1).replace('.',',')} km</b>, about ${Math.round(d.duration_min)} min without traffic · motorway reports along the route: ${n}</div><div style="margin-top:4px"><a href="/route">Plan your own route →</a> · for AI agents: <a href="/api/v1/route?from=airport&to=hauptbahnhof&mode=car">/api/v1/route</a>, MCP get_route_context</div>`;
 }
+async function loadOutbreaks(){
+  const d=await fetch('/api/v1/outbreaks').then(r=>r.json());
+  if(!Array.isArray(d.items)){setSensor('outbreaks','source did not answer',Date.now(),'x');$('oOut').textContent='WHO did not answer – I do not make up numbers.';return}
+  const lg=(document.documentElement.lang||'ru').slice(0,2),day=t=>new Date(t).toLocaleDateString(lg==='en'?'en-GB':'de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
+  setSensor('outbreaks',d.count_30d+' '+'in 30 days',Date.parse(d.latest_published||'')||Date.now(),d.latest_published||'0',d.items[0]?day(d.items[0].published):null);
+  $('oOut').innerHTML='<div>'+'WHO notices in 30 days'+': <b>'+d.count_30d+'</b></div>'+d.items.slice(0,5).map(e=>'<div style="margin-top:2px;font-size:12px">'+day(e.published)+' · '+esc(e.disease||e.title)+(e.place?' · <b>'+esc(e.place)+'</b>':'')+(e.url?' · <a href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">WHO</a>':'')+'</div>').join('')+
+    '<div style="margin-top:4px;color:var(--dim);font-size:12px">'+'Only outbreaks of international significance reported by WHO. Not medical advice.'+'</div>';
+}
+async function loadDisplaced(){
+  const d=await fetch('/api/v1/displacement').then(r=>r.json());
+  if(!d.latest){setSensor('displaced','source did not answer',Date.now(),'x');$('oDisp').textContent='UNHCR did not answer – I do not make up numbers.';return}
+  const lg=(document.documentElement.lang||'ru').slice(0,2),loc=lg==='en'?'en-GB':lg==='de'?'de-DE':'en-GB',mln=v=>typeof v==='number'?(v/1e6).toLocaleString(loc,{maximumFractionDigits:1})+' '+'m':'—';
+  const L=d.latest,yl=d.year+(d.preliminary?' ('+'preliminary, mid-year'+')':'');
+  setSensor('displaced',mln(L.refugees)+' · '+mln(L.idps),Date.parse(d.as_of+'T00:00:00Z'),d.year+'/'+L.refugees,'UNHCR · '+d.year);
+  $('oDisp').innerHTML='<div>'+yl+': '+'refugees under UNHCR mandate'+' <b>'+mln(L.refugees)+'</b> · '+'internally displaced'+' <b>'+mln(L.idps)+'</b> · '+'asylum-seekers'+' <b>'+mln(L.asylum_seekers)+'</b></div>'+
+    (d.top_origins&&d.top_origins.length?'<div style="margin-top:2px;font-size:12px">'+'Most refugees from'+' ('+d.top_origins_year+'): '+d.top_origins.map(x=>esc(x.country)+' '+mln(x.refugees)).join(' · ')+'</div>':'')+
+    '<div style="margin-top:4px;color:var(--dim);font-size:12px">'+'This is not everyone forcibly displaced: Palestine refugees under UNRWA mandate and some other groups are not included. Yearly data, with a delay.'+'</div>';
+}
 async function loadFood(){
   const d=await fetch('/api/v1/food-prices').then(r=>r.json());
   if(!d.ok&&!d.month||typeof d.value!=='number'){setSensor('food','source did not answer',Date.now(),'x');$('oFood').textContent='FAO did not answer – I do not make up numbers.';return}
@@ -723,7 +745,7 @@ async function loadExperiment(){
   h+=`<div style="margin-top:6px;color:var(--dim);font-size:12px">${d.brain==='claude'?'Claude chooses the mode from all of the site’s sensors, safeguards of rules v'+d.rules.version+' remain.':'Rules v'+d.rules.version+' recorded in advance.'} One decision a day at 08:10, the account balance updates when the page opens; compared with the Kraken app the total may differ by a couple of euros because of the conversion price. Every decision is in the log: <a href="/api/v1/experiment" target="_blank" rel="noopener">/api/v1/experiment</a>.</div>`;
   $('oExp').innerHTML=h;
 }
-const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],disasters:[loadDisasters,900e3],food:[loadFood,3600e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],gas:[loadGas,1800e3],bafin:[loadBafin,3600e3],flood:[loadFlood,600e3],parking:[loadParking,300e3],wxat:[loadWxat,300e3],changes:[loadChanges,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
+const LOADERS={site:[loadSite,300e3],exp:[loadExperiment,300e3],roads:[loadRoads,300e3],sky:[loadSky,300e3],quakes:[loadQuakes,300e3],disasters:[loadDisasters,900e3],food:[loadFood,3600e3],outbreaks:[loadOutbreaks,3600e3],displaced:[loadDisplaced,6*3600e3],route:[loadRoute,600e3],space:[loadSpace,300e3],radiation:[loadRadiation,600e3],polls:[loadPolls,1800e3],elbe:[loadElbe,300e3],gas:[loadGas,1800e3],bafin:[loadBafin,3600e3],flood:[loadFlood,600e3],parking:[loadParking,300e3],wxat:[loadWxat,300e3],changes:[loadChanges,300e3],sensors:[loadMarket,300e3],radars:[loadRadars,60e3],kraken:[loadKraken,60e3],predict:[loadPredict,120e3],live:[loadLive,300e3],world:[loadWorld,300e3],ground:[loadGround,600e3]};
 for(const [id,[fn,ms]] of Object.entries(LOADERS)){const run=()=>{if(!document.hidden)fn().catch(()=>{(S[id]?[S[id]]:['deriv','chain','macro','stables','power','sanctions','internet'].map(x=>S[x])).forEach(z=>z.el.classList.add('stale'))})};run();setInterval(run,ms)}
 
 // ---------- ядро ----------

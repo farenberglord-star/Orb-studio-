@@ -427,6 +427,17 @@ PAGES["guests"] = [
 
 # --- этап 1: /sensors (индексы фрагментов взяты из выгрузки; русский текст — точная копия исходника) ---
 PAGES["sensors"] = [
+ ('🦠 Вспышки болезней', '🦠 Krankheitsausbrüche', '🦠 Disease outbreaks'), ('🧳 Вынужденно перемещённые', '🧳 Vertriebene', '🧳 Forcibly displaced'),
+ ('Вспышки болезней · ВОЗ (Disease Outbreak News)', 'Krankheitsausbrüche · WHO (Disease Outbreak News)', 'Disease outbreaks · WHO (Disease Outbreak News)'),
+ ('Вынужденно перемещённые · УВКБ ООН', 'Vertriebene · UNHCR', 'Forcibly displaced · UNHCR'),
+ ('ВОЗ не ответила — цифры не выдумываю.', 'Die WHO hat nicht geantwortet – ich erfinde keine Zahlen.', 'WHO did not answer – I do not make up numbers.'),
+ ('УВКБ не ответило — цифры не выдумываю.', 'UNHCR hat nicht geantwortet – ich erfinde keine Zahlen.', 'UNHCR did not answer – I do not make up numbers.'),
+ ('за 30 дней', 'in 30 Tagen', 'in 30 days'), ('Сообщений ВОЗ за 30 дней', 'WHO-Meldungen in 30 Tagen', 'WHO notices in 30 days'),
+ ('Только вспышки международного значения, о которых сообщила ВОЗ. Это не медицинский совет.', 'Nur Ausbrüche von internationaler Bedeutung, die die WHO gemeldet hat. Keine medizinische Beratung.', 'Only outbreaks of international significance reported by WHO. Not medical advice.'),
+ ('млн', 'Mio.', 'm'), ('предварительно, середина года', 'vorläufig, Jahresmitte', 'preliminary, mid-year'),
+ ('беженцы под мандатом УВКБ', 'Flüchtlinge unter UNHCR-Mandat', 'refugees under UNHCR mandate'), ('внутренне перемещённые', 'Binnenvertriebene', 'internally displaced'), ('просители убежища', 'Asylsuchende', 'asylum-seekers'),
+ ('Больше всего беженцев из', 'Die meisten Flüchtlinge aus', 'Most refugees from'),
+ ('Это не все вынужденно перемещённые: без беженцев Палестины под мандатом БАПОР и части других групп. Данные годовые, с задержкой.', 'Das sind nicht alle Vertriebenen: ohne Palästina-Flüchtlinge unter UNRWA-Mandat und einige andere Gruppen. Jahresdaten, mit Verzögerung.', 'This is not everyone forcibly displaced: Palestine refugees under UNRWA mandate and some other groups are not included. Yearly data, with a delay.'),
  ('быстрых', 'schnelle', 'fast'), ('засух', 'Dürren', 'droughts'),
  ('🌾 Мировые цены на еду', '🌾 Weltweite Lebensmittelpreise', '🌾 World food prices'),
  ('Мировые цены на еду · FAO Food Price Index (раз в месяц)', 'Weltweite Lebensmittelpreise · FAO Food Price Index (monatlich)', 'World food prices · FAO Food Price Index (monthly)'),

@@ -183,6 +183,8 @@
       "get_freshness",
       "get_disasters",
       "get_food_prices",
+      "get_outbreaks",
+      "get_displacement",
       "get_party_attention",
       "get_agent_podcast",
       "get_changes_since",
