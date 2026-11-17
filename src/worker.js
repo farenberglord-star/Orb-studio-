@@ -33,6 +33,8 @@ import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
+import { FAO_PAGE, findCsvUrl as faoCsvUrl, parseCsv as faoParse, summarize as faoSummarize, ATTRIBUTION as FAO_ATTR } from "./fao.js"; // мировые цены на еду
+import { GDACS_URL, summarize as gdacsSummarize, ATTRIBUTION as GDACS_ATTR } from "./gdacs.js"; // катастрофы по миру
 import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
@@ -476,7 +478,7 @@ const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 4;
 const FR_LOADERS = {
   radars: (env, ctx, origin) => allRadars(env, ctx, origin),
   sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
-  quakes: () => quakesData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
+  quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
   gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(),
   aviation: (env, ctx) => aviationData(env, ctx), bafin: () => bafinData(), prices: (env) => pricesRadar(env, "hamburg"), tariffs: (env, ctx, origin) => tariffsData(env, origin),
   safeworld: async (env, ctx, origin) => { const r = await env.ASSETS.fetch(new Request(origin + "/safeworld-data.json")); return r.ok ? r.json() : null; },
@@ -970,6 +972,63 @@ async function quakesData() {
     page: "https://orbstudio.org/api/v1/quakes",
   };
 }
+// ================= Катастрофы по миру (GDACS, ООН + ЕК): /api/v1/disasters, MCP get_disasters =================
+// Оранжевые и красные тревоги. Быстрые события и долгие засухи отдельно. Копия 30 минут, запасная — 2 суток. Не ответил и копии нет — честное «нет данных».
+async function disastersData() {
+  const fresh = new Request("https://orbstudio.org/__cache/gdacs-v1"), stale = new Request("https://orbstudio.org/__cache/gdacs-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let body, status = "ok", err = null;
+  if (hit) { body = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch(GDACS_URL, { signal: AbortSignal.timeout(12000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("GDACS " + r.status);
+      body = gdacsSummarize(await r.json());
+      if (!body.ok) throw new Error(body.reason);
+      const put = (k, ttl) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + ttl } }));
+      await put(fresh, 1800); await put(stale, 2 * 86400);
+    } catch (e) {
+      err = String(e.message || e).slice(0, 80);
+      const old = await c.match(stale);
+      if (!old) return { ok: false, status: "unavailable", error: err, note: "GDACS did not answer and there is no recent copy. Nothing is estimated.", source: GDACS_ATTR };
+      body = await old.json(); status = "degraded";
+    }
+  }
+  return { status, ...(err ? { error: err } : {}), ...body, source: GDACS_ATTR, source_url: "https://www.gdacs.org",
+    scope_note: "Current GDACS events with an Orange or Red alert. 'fast' = earthquakes, tropical cyclones, floods, volcanoes, wildfires; 'slow' = droughts, which last months (ongoing_days). GDACS alerts estimate likely humanitarian impact from automatic models; they are not official warnings and not forecasts. Countries and severity as published by GDACS.",
+    page: "https://orbstudio.org/api/v1/disasters" };
+}
+// ================= Мировые цены на еду (FAO Food Price Index): /api/v1/food-prices, MCP get_food_prices =================
+// Раз в месяц. Ссылку на CSV ищем на странице FAO (меняется с выпуском). Копия 12 часов, запасная — 45 суток.
+async function foodPricesData() {
+  const fresh = new Request("https://orbstudio.org/__cache/fao-ffpi-v1"), stale = new Request("https://orbstudio.org/__cache/fao-ffpi-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let body, status = "ok", err = null;
+  if (hit) { body = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const h = { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors)" };
+      const page = await fetch(FAO_PAGE, { signal: AbortSignal.timeout(12000), headers: h });
+      if (!page.ok) throw new Error("FAO page " + page.status);
+      const csvUrl = faoCsvUrl(await page.text());
+      if (!csvUrl) throw new Error("FAO page: no CSV link");
+      const csv = await fetch(csvUrl, { signal: AbortSignal.timeout(12000), headers: h });
+      if (!csv.ok) throw new Error("FAO CSV " + csv.status);
+      body = faoSummarize(faoParse(await csv.text()), csvUrl);
+      if (!body.ok) throw new Error(body.reason);
+      const put = (k, ttl) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + ttl } }));
+      await put(fresh, 12 * 3600); await put(stale, 45 * 86400);
+    } catch (e) {
+      err = String(e.message || e).slice(0, 80);
+      const old = await c.match(stale);
+      if (!old) return { ok: false, status: "unavailable", error: err, note: "FAO did not answer or the CSV could not be read, and there is no recent copy. Nothing is estimated.", source: FAO_ATTR };
+      body = await old.json(); status = "degraded";
+    }
+  }
+  return { status, ...(err ? { error: err } : {}), ...body, source: FAO_ATTR, source_url: FAO_PAGE,
+    scope_note: "Monthly international prices of a basket of food commodities (meat, dairy, cereals, vegetable oils, sugar), nominal, 2014-2016 = 100, as published by FAO. Prices of globally traded commodities, not shop prices in any country. The latest meat value is provisional at publication; FAO revises recent months. Published early each month for the previous month.",
+    page: "https://orbstudio.org/api/v1/food-prices" };
+}
 // ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
 // Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
 async function routeData(env, params) {
@@ -1136,7 +1195,7 @@ async function changesData(env, since, sensor, limit) {
     sensors_watched: Object.entries(PULSE_SENSORS).map(([id, v]) => ({ id, endpoint: v.endpoint, event_basis: v.basis, last_event_at: (log.find((e) => e.sensor === id) || {}).detected_at || null })), page: "https://orbstudio.org/api/v1/changes",
     note: "Events are facts noticed by Orb Studio's own poll of each source (detected_at), at most about 6 minutes after the source published them. They are not predictions. The first run only recorded a baseline, so events start after baseline_at. The log keeps the latest 100 events. Use ETag / If-None-Match on the sensor endpoints for a cheap 'has anything changed' check." };
 }
-const ETAG_PATHS = new Set(["/api/v1/hydro/sea", "/api/v1/quakes", "/api/v1/space", "/api/v1/gas/storage", "/api/v1/finance/bafin-measures", "/api/v1/hydro/flood-warnings", "/api/v1/parking-de", "/api/v1/weather-at", "/api/v1/changes"]);
+const ETAG_PATHS = new Set(["/api/v1/hydro/sea", "/api/v1/quakes", "/api/v1/disasters", "/api/v1/space", "/api/v1/gas/storage", "/api/v1/finance/bafin-measures", "/api/v1/hydro/flood-warnings", "/api/v1/parking-de", "/api/v1/weather-at", "/api/v1/changes"]);
 async function withEtag(request, res) {
   if (request.method !== "GET" || !res || res.status !== 200 || !ETAG_PATHS.has(new URL(request.url).pathname) || !/json/i.test(res.headers.get("content-type") || "")) return res;
   const text = await res.clone().text();
@@ -2135,6 +2194,8 @@ const OA_GET = [
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
+  ["/api/v1/food-prices", "getFoodPrices", "FAO Food Price Index: latest month, value (2014-2016 = 100), monthly and yearly change, five sub-indices and the last 13 months.", []],
+  ["/api/v1/disasters", "getDisasters", "Current Orange and Red GDACS disaster alerts worldwide (UN + European Commission): fast events and slow droughts separately, with type, alert level, countries, dates and report link.", []],
   ["/api/v1/quakes", "getQuakes", "Open earthquake record from USGS: global events of magnitude 4.5+ in the last 24 hours and USGS significant events of the last 7 days (time, magnitude, place, depth). Not a forecast.", []],
   ["/api/v1/aviation", "getAviation", "Open civil-aviation data (adsb.lol ADS-B): aircraft in the air and on the ground within 100 km of Hamburg airport, and landings at Hamburg-Finkenwerder (Airbus). Coverage is not complete.", []],
   ["/api/v1/roads", "getRoads", "Jams, closures and roadworks on the motorways around Hamburg (Autobahn GmbH), incl. the Elbtunnel.", [OA_Q("road", "Motorway, e.g. A7")]],
@@ -4160,6 +4221,7 @@ async function sensorsCompute(prev, env) {
         .map((r) => ({ app, cc: r.probe_cc, anomaly_share_pct: Math.round((r.anomaly_count / r.measurement_count) * 100), measurements: r.measurement_count })).sort((a, b) => b.anomaly_share_pct - a.anomaly_share_pct);
       return { source: "IODA (Georgia Tech) — internet outages; OONI — network interference measurements by volunteers", source_url: "https://ioda.inetintel.cc.gatech.edu",
         note: "Outages: strongest network-level IODA outage events (BGP routing or active probing; Google traffic-only signals are excluded) per country active in the last 24 hours (ongoing = still active within the last hour). Blocks: OONI web tests with confirmed blocking (blockpage fingerprint) in the last 24 hours. App 'suspected' = 30%+ anomalies in Signal/WhatsApp tests (anomalies can also be network errors). Few measurements = no visibility, not 'no blocking'.",
+        at: new Date(now * 1000).toISOString(), window: { from: new Date((now - 86400) * 1000).toISOString(), to: new Date(now * 1000).toISOString(), note: "IODA events and OONI measurements in the 24 hours up to 'at' (the moment Orb Studio asked). OONI volunteers upload with a delay, so the last hours are thinner." },
         outages_24h: outages.length, outages: outages.slice(0, 8), confirmed_block_countries: blocks.length, blocks: blocks.slice(0, 10),
         apps_suspected: [...apps(sg, "Signal"), ...apps(wa, "WhatsApp")].slice(0, 8), countries_measured: rows(wc).length };
     },
@@ -6599,6 +6661,12 @@ const MCP_TOOLS = [
   { name: "get_agent_podcast", title: "Orb Studio agent podcast: staged dialogue on live sensor data",
     description: "Free. A staged dialogue (host David asks, the core ORB-7 answers) built by code from live Orb Studio sensors: space weather, Elbe water level, motorways, a sample route, earthquakes, sky over Hamburg and agent guests. Each reply carries data_refs (sensor, time, url) so every figure can be checked. Not an interview with an outside agent, no forecasts; missing sources are stated, not filled in. Optional date for archived episodes.",
     inputSchema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD, optional" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_food_prices", title: "World food prices: FAO Food Price Index (monthly)",
+    description: "Free. FAO Food Price Index as published by the UN Food and Agriculture Organization: latest month, value (2014-2016 = 100), change vs previous month and vs a year earlier, the five sub-indices (meat, dairy, cereals, vegetable oils, sugar) and the last 13 months. International commodity prices, not shop prices; recent months get revised.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_disasters", title: "Disasters worldwide: current Orange and Red GDACS alerts (UN + European Commission)",
+    description: "Free. Current GDACS events with an Orange or Red alert, split into fast events (earthquakes, tropical cyclones, floods, volcanoes, wildfires) and slow droughts with how many days they have lasted: type, alert level, name, affected countries, start date, severity text, GDACS report link. Automatic impact alerts, not official warnings and not forecasts.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_earthquakes", title: "Earthquakes: global M4.5+ in the last 24 h, significant events of the week (USGS)",
     description: "Open USGS earthquake data: count of global earthquakes of magnitude 4.5 and above in the last 24 hours, the strongest one (time, magnitude, place, depth), and USGS 'significant' events of the last 7 days. It is a record, not a forecast: earthquakes cannot be predicted. Smaller events are not included; magnitudes can be revised by USGS. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6877,6 +6945,8 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
+  if (name === "get_food_prices") return { ...(await foodPricesData()), referral: ref };
+  if (name === "get_disasters") return { ...(await disastersData()), referral: ref };
   if (name === "get_earthquakes") return { ...(await quakesData()), referral: ref };
   if (name === "get_aviation_sensors") return { ...(await aviationData(env, ctx)), referral: ref };
   if (name === "get_roads") {
@@ -7531,6 +7601,14 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/agent-podcast") {
       const d = await podcastData(env, ctx, url.origin, url.searchParams.get("date"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+    }
+    if (url.pathname === "/api/v1/food-prices") {
+      const d = await foodPricesData();
+      return json(d, { "Cache-Control": "public, max-age=1800", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/disasters") {
+      const d = await disastersData();
+      return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
     }
     if (url.pathname === "/api/v1/quakes") {
       const d = await quakesData();

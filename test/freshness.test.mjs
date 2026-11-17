@@ -16,7 +16,8 @@ test("statuses", () => {
   const s = row(c("radiation_de"), { latest_measurement_at: "2026-11-16T20:00:00Z" }, NOW); assert.equal(s.status, "stale"); assert.equal(s.age_h, 12.7);
   assert.equal(row(c("radiation_de"), null, NOW).status, "no_data");
   assert.equal(row(c("radiation_de"), { ok: false }, NOW).status, "no_data");
-  assert.equal(row(c("internet"), { internet: {} }, NOW).status, "unknown");
+  assert.equal(row(c("internet"), { internet: {} }, NOW).status, "unknown"); // старая копия без поля at
+  assert.equal(row(c("internet"), { internet: { at: "2026-11-17T08:30:00Z" } }, NOW).status, "on_time");
   const e = row(c("bafin"), { ok: true, latest_published: "2026-11-12T05:00:00.000Z" }, NOW); assert.equal(e.status, "event"); assert.equal(e.age_h, 123.7);
 });
 test("real shapes from the live site", () => {
@@ -39,7 +40,7 @@ test("future timestamps never give a negative age; summary adds up; sorted by ag
   assert.equal(cadenceClass(1), "minutes"); assert.equal(cadenceClass(72), "days"); assert.equal(cadenceClass(1200), "months"); assert.equal(cadenceClass(null), "irregular");
 });
 test("every catalog entry has three names and a known source key", () => {
-  const keys = new Set(["radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"]);
+  const keys = new Set(["food", "disasters", "radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"]);
   for (const x of CATALOG) { assert.ok(x.name.ru && x.name.de && x.name.en, x.id); assert.ok(keys.has(x.src), x.id); }
   assert.equal(new Set(CATALOG.map((x) => x.id)).size, CATALOG.length);
 });

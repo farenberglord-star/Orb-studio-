@@ -26,7 +26,9 @@
     "test:interview": "node --test test/interview.test.mjs",
     "test:clipstats": "node --test test/clipstats.test.mjs",
     "test:safeworld": "node --test test/safeworld.test.mjs",
-    "test:freshness": "node --test test/freshness.test.mjs"
+    "test:freshness": "node --test test/freshness.test.mjs",
+    "test:gdacs": "node --test test/gdacs.test.mjs",
+    "test:fao": "node --test test/fao.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

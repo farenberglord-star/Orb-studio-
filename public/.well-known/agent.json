@@ -181,6 +181,8 @@
       "get_radiation_dose_rate",
       "get_german_polls",
       "get_freshness",
+      "get_disasters",
+      "get_food_prices",
       "get_party_attention",
       "get_agent_podcast",
       "get_changes_since",

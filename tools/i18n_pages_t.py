@@ -427,6 +427,20 @@ PAGES["guests"] = [
 
 # --- этап 1: /sensors (индексы фрагментов взяты из выгрузки; русский текст — точная копия исходника) ---
 PAGES["sensors"] = [
+ ('быстрых', 'schnelle', 'fast'), ('засух', 'Dürren', 'droughts'),
+ ('🌾 Мировые цены на еду', '🌾 Weltweite Lebensmittelpreise', '🌾 World food prices'),
+ ('Мировые цены на еду · FAO Food Price Index (раз в месяц)', 'Weltweite Lebensmittelpreise · FAO Food Price Index (monatlich)', 'World food prices · FAO Food Price Index (monthly)'),
+ ('FAO не ответил — цифры не выдумываю.', 'FAO hat nicht geantwortet – ich erfinde keine Zahlen.', 'FAO did not answer – I do not make up numbers.'),
+ ('к прошлому месяцу', 'ggü. Vormonat', 'vs previous month'), ('к прошлому году', 'ggü. Vorjahr', 'vs a year ago'),
+ ('мясо', 'Fleisch', 'meat'), ('молочные', 'Milchprodukte', 'dairy'), ('зерновые', 'Getreide', 'cereals'), ('растительные масла', 'Pflanzenöle', 'vegetable oils'), ('сахар', 'Zucker', 'sugar'),
+ ('Это мировые биржевые цены на продовольствие, а не цены в магазинах. Последние месяцы FAO пересматривает.', 'Das sind internationale Rohstoffpreise für Lebensmittel, keine Ladenpreise. FAO revidiert die letzten Monate.', 'These are international commodity prices for food, not shop prices. FAO revises recent months.'),
+ ('🌀 Катастрофы мира', '🌀 Katastrophen weltweit', '🌀 Disasters worldwide'),
+ ('Катастрофы мира · GDACS (ООН и ЕС), оранжевые и красные тревоги', 'Katastrophen weltweit · GDACS (UN und EU), orange und rote Alarme', 'Disasters worldwide · GDACS (UN and EU), orange and red alerts'),
+ ('GDACS не ответил — цифры не выдумываю.', 'GDACS hat nicht geantwortet – ich erfinde keine Zahlen.', 'GDACS did not answer – I do not make up numbers.'),
+ ('красная', 'rot', 'red'), ('оранжевая', 'orange', 'orange'),
+ ('Быстрые события', 'Schnelle Ereignisse', 'Fast events'), ('Долгие засухи', 'Lange Dürren', 'Long droughts'), ('красных', 'rote', 'red'), ('дн.', 'Tg.', 'd'),
+ ('сейчас нет оранжевых и красных быстрых событий', 'derzeit keine orangen oder roten schnellen Ereignisse', 'no orange or red fast events right now'),
+ ('Это автоматические оценки GDACS (ООН и ЕС) о вероятных последствиях, а не официальные предупреждения и не прогноз.', 'Das sind automatische GDACS-Einschätzungen (UN und EU) zu wahrscheinlichen Folgen, keine amtlichen Warnungen und keine Prognose.', 'These are automatic GDACS estimates (UN and EU) of likely impact, not official warnings and not a forecast.'),
  ('КАРТА ЗАДЕРЖЕК РЕАЛЬНОСТИ', 'KARTE DER VERZÖGERUNG DER REALITÄT', 'REALITY LAG MAP'),
  ('Насколько свежа каждая цифра сайта. Точка показывает возраст данных источника, зелёная полоса — обычный для него возраст, когда всё идёт по расписанию. Курс крипты, газовый день и годовая статистика описывают разные моменты: читайте числа вместе с их возрастом. Это отметка своевременности, а не точности.', 'Wie frisch jede Zahl der Seite ist. Der Punkt zeigt das Alter der Quelldaten, der grüne Balken das für die Quelle übliche Alter, wenn alles nach Plan läuft. Ein Kryptokurs, ein Gastag und eine Jahresstatistik beschreiben verschiedene Momente: Lesen Sie Zahlen zusammen mit ihrem Alter. Das bewertet die Aktualität, nicht die Genauigkeit.', 'How fresh every number on the site is. The dot shows the age of the source data, the green band the age that is normal for that source when it runs on schedule. A crypto price, a gas day and a yearly statistic describe different moments: read numbers together with their age. This judges timeliness, not accuracy.'),
  ('возраст данных →', 'Alter der Daten →', 'age of the data →'),
