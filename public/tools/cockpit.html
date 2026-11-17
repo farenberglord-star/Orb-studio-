@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Приборная панель Orb Studio · состояние датчиков и ядра</title>
+<meta name="description" content="Живая панель состояния Orb Studio: каждый датчик и служба с отметкой «в норме / устарел / сбой», временем ответа и возрастом данных. Проверка идёт в вашем браузере, по открытым адресам сайта.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://orbstudio.org/tools/cockpit">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:900px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+h1{font-family:var(--display);font-size:clamp(20px,4vw,26px);letter-spacing:.08em;margin:4px 0 0}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:64ch;line-height:1.5}
+.top{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.lamp{width:46px;height:46px;border-radius:50%;flex:none;background:#142038;border:2px solid var(--line)}
+.lamp.ok{background:var(--up);border-color:#9af0cd;box-shadow:0 0 22px rgba(79,216,164,.55)}
+.lamp.warn{background:var(--warm);border-color:#ffd791;box-shadow:0 0 22px rgba(255,181,71,.5)}
+.lamp.bad{background:var(--hot);border-color:#ff9db0;box-shadow:0 0 22px rgba(255,93,122,.55)}
+.topt{flex:1;min-width:200px}
+.topt b{font-family:var(--display);font-size:20px;letter-spacing:.06em;display:block}
+.topt span{color:var(--dim);font-size:13px}
+.cnt{display:flex;gap:8px;flex-wrap:wrap}
+.cnt span{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--dim);white-space:nowrap}
+.cnt .ok{color:var(--up);border-color:rgba(79,216,164,.4)}.cnt .warn{color:var(--warm);border-color:rgba(255,181,71,.4)}.cnt .bad{color:var(--hot);border-color:rgba(255,93,122,.45)}
+button.re{font-family:var(--mono);font-size:12px;color:var(--holo);background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+button.re:hover,button.re:focus-visible{border-color:var(--holo);outline:none}
+.panel{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.panel::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0 1px,transparent 1px 4px)}
+.panel>*{position:relative}
+.ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.ph h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0;color:var(--holo);text-transform:uppercase}
+.ph small{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.pd{color:var(--dim);font-size:12.5px;line-height:1.45;margin:0 0 8px}
+.row{display:grid;grid-template-columns:14px minmax(0,1.5fr) minmax(0,1.1fr) 64px 76px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(27,41,68,.7);font-size:13.5px}
+.row:first-of-type{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;background:#26354f}
+.row.ok .dot{background:var(--up);box-shadow:0 0 8px var(--up)}.row.warn .dot{background:var(--warm);box-shadow:0 0 8px var(--warm)}.row.bad .dot{background:var(--hot);box-shadow:0 0 8px var(--hot)}
+.nm a{color:var(--fg);text-decoration:none}.nm a:hover{color:var(--holo)}
+.nm small{display:block;color:var(--dim);font-size:11.5px;margin-top:1px}
+.val{font-family:var(--mono);font-size:12.5px;color:var(--fg);overflow-wrap:anywhere}
+.ms,.age{font-family:var(--mono);font-size:12px;color:var(--dim);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.warn .age,.row.warn .ms{color:var(--warm)}.row.bad .age,.row.bad .ms{color:var(--hot)}
+.colh{display:grid;grid-template-columns:14px minmax(0,1.5fr) minmax(0,1.1fr) 64px 76px;gap:10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;padding:2px 0 4px}
+.colh span:nth-child(n+4){text-align:right}
+@media (max-width:620px){
+  .colh{display:none}
+  .row{grid-template-columns:14px 1fr auto;grid-template-areas:"d n a" ". v m"}
+  .row .dot{grid-area:d}.row .nm{grid-area:n}.row .age{grid-area:a}.row .val{grid-area:v}.row .ms{grid-area:m}
+}
+.how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13px;color:var(--dim);line-height:1.55}
+.how p{margin:0 0 8px}.how p:last-child{margin:0}.how b{color:var(--fg);font-weight:500}
+.errs{margin:6px 0 0;padding:0;list-style:none;font-family:var(--mono);font-size:12px;color:var(--hot)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1 id="h1"></h1>
+    <p class="lead" id="lead"></p>
+  </div>
+
+  <div class="top" role="status" aria-live="polite">
+    <div class="lamp" id="lamp"></div>
+    <div class="topt"><b id="topState">…</b><span id="topSub"></span></div>
+    <div class="cnt"><span class="ok" id="cOk">0</span><span class="warn" id="cWarn">0</span><span class="bad" id="cBad">0</span></div>
+    <button class="re" id="re" type="button"></button>
+  </div>
+
+  <div id="panels"></div>
+
+  <div class="how" id="how"></div>
+</div>
+
+<script>
+(()=>{
+const LANG=(()=>{const q=new URLSearchParams(location.search).get('lang');const p=location.pathname.match(/^\/(ru|de|en)\//);const n=(navigator.language||'ru').slice(0,2);const l=q||(p&&p[1])||n;return ['ru','de','en'].includes(l)?l:'en'})();
+document.documentElement.lang=LANG;
+const T={
+ ru:{eyebrow:'Orb Studio · ядро',h1:'Приборная панель',lead:'Каждый датчик и служба в одном месте: в норме, устарел или сбой, за сколько ответил и сколько лет данным. Проверка идёт прямо в вашем браузере, по тем же открытым адресам, которые используют агенты.',
+  ok:'Всё в норме',warn:'Есть замечания',bad:'Есть сбои',allok:n=>`${n} из ${n} проверок в норме`,part:(a,b)=>`${a} из ${b} проверок в норме`,checking:'Проверяю…',recheck:'Проверить снова',checked:t=>`Проверено ${t}`,
+  cols:['','Источник','Показание','Ответ','Данные'],
+  pOk:'в норме',pWarn:'замечание',pBad:'сбой',
+  g_main:['Главные показатели','Цифры, которые выходят в выпусках Давида.'],g_geo:['Карта и окружающий мир','Датчики на карте: погода, вода, радиация, небо, дороги, парковки.'],g_news:['Новости и радары','Радары, импульсы и журнал изменений.'],g_core:['Ядро','Службы, на которых держится всё остальное.'],g_media:['Выпуски и контент','Давид, музыка, картина.'],
+  how:['<p><b>Как читать.</b> Зелёная точка: адрес ответил 200, быстрее 5 секунд, данные свежие для своего источника. Жёлтая: ответил, но данные старше нормы или ответ медленный. Красная: адрес не ответил или вернул ошибку.</p>','<p><b>Что здесь не показано.</b> Состояние самого Cloudflare и журналы воркера снаружи не видны, поэтому панель судит по ответам. «Нет отметки времени» значит, что у адреса нет поля с временем, и проверяются только ответ и скорость.</p>','<p>Журнал событий: <a href="/api/v1/changes">/api/v1/changes</a> · карта датчиков: <a href="/sensors">/sensors</a></p>'],
+  noTs:'нет отметки времени',min:'мин',h:'ч',d:'дн',s:'с',err:'ответ',tmo:'нет ответа',
+  n:{gas:'Газохранилища Германии',power:'Цена электричества (биржа)',space:'Космическая погода',quakes:'Землетрясения M4.5+',flood:'Предупреждения о паводках',sea:'Уровень воды, Гамбург',rad:'Радиация',roads:'Дороги',parking:'Парковки',avia:'Самолёты над Гамбургом',wx:'Погода в точке',bafin:'BaFin: меры надзора',sensors:'Сводка датчиков',changes:'Журнал изменений',impulses:'Импульсы',radars:'Радары новостей',indices:'Индексы агентов',live:'Официальные события',broadcast:'Выпуск новостей',predict:'Прогнозы-прозрачность',mcp:'MCP-сервер',canvas:'Картина (Painter)',eps:'Выпуски Давида',music:'Музыка',agentcard:'Карточка агента',llms:'llms.txt',tariffs:'Тарифы'}},
+ de:{eyebrow:'Orb Studio · Kern',h1:'Instrumententafel',lead:'Jeder Sensor und Dienst an einer Stelle: in Ordnung, veraltet oder Ausfall, wie schnell er antwortet und wie alt die Daten sind. Die Prüfung läuft direkt in Ihrem Browser über dieselben offenen Adressen, die auch Agenten nutzen.',
+  ok:'Alles in Ordnung',warn:'Auffälligkeiten',bad:'Ausfälle',allok:n=>`${n} von ${n} Prüfungen in Ordnung`,part:(a,b)=>`${a} von ${b} Prüfungen in Ordnung`,checking:'Prüfe…',recheck:'Erneut prüfen',checked:t=>`Geprüft ${t}`,
+  cols:['','Quelle','Messwert','Antwort','Daten'],
+  pOk:'in Ordnung',pWarn:'Auffälligkeit',pBad:'Ausfall',
+  g_main:['Kennzahlen','Die Zahlen, die in Davids Ausgaben vorkommen.'],g_geo:['Karte und Umwelt','Sensoren auf der Karte: Wetter, Wasser, Strahlung, Himmel, Straßen, Parkplätze.'],g_news:['Nachrichten und Radare','Radare, Impulse und Änderungsprotokoll.'],g_core:['Kern','Dienste, auf denen alles andere aufbaut.'],g_media:['Ausgaben und Inhalte','David, Musik, Bild.'],
+  how:['<p><b>So lesen.</b> Grüner Punkt: Adresse antwortet mit 200, schneller als 5 Sekunden, Daten für ihre Quelle frisch. Gelb: antwortet, aber Daten älter als üblich oder langsam. Rot: keine Antwort oder Fehler.</p>','<p><b>Was hier fehlt.</b> Zustand von Cloudflare und Worker-Protokolle sind von außen nicht sichtbar, die Tafel urteilt daher nach den Antworten. „Kein Zeitstempel“ heißt: die Adresse hat kein Zeitfeld, geprüft werden nur Antwort und Tempo.</p>','<p>Ereignisprotokoll: <a href="/api/v1/changes">/api/v1/changes</a> · Sensorkarte: <a href="/sensors">/sensors</a></p>'],
+  noTs:'kein Zeitstempel',min:'Min',h:'Std',d:'Tg',s:'s',err:'Antwort',tmo:'keine Antwort',
+  n:{gas:'Gasspeicher Deutschland',power:'Strompreis (Börse)',space:'Weltraumwetter',quakes:'Erdbeben M4.5+',flood:'Hochwasserwarnungen',sea:'Wasserstand Hamburg',rad:'Strahlung',roads:'Straßen',parking:'Parkplätze',avia:'Flugzeuge über Hamburg',wx:'Wetter am Punkt',bafin:'BaFin: Aufsichtsmaßnahmen',sensors:'Sensorübersicht',changes:'Änderungsprotokoll',impulses:'Impulse',radars:'Nachrichtenradare',indices:'Agenten-Indizes',live:'Offizielle Termine',broadcast:'Nachrichtenausgabe',predict:'Prognosen-Transparenz',mcp:'MCP-Server',canvas:'Bild (Painter)',eps:'Davids Ausgaben',music:'Musik',agentcard:'Agentenkarte',llms:'llms.txt',tariffs:'Tarife'}},
+ en:{eyebrow:'Orb Studio · core',h1:'Instrument panel',lead:'Every sensor and service in one place: OK, stale or failing, how fast it answered and how old the data is. The check runs in your own browser against the same open addresses that agents use.',
+  ok:'All good',warn:'Some warnings',bad:'Failures',allok:n=>`${n} of ${n} checks OK`,part:(a,b)=>`${a} of ${b} checks OK`,checking:'Checking…',recheck:'Check again',checked:t=>`Checked ${t}`,
+  cols:['','Source','Reading','Reply','Data'],
+  pOk:'OK',pWarn:'warning',pBad:'failure',
+  g_main:['Headline readings','The numbers David reads out in his episodes.'],g_geo:['Map and environment','Map sensors: weather, water, radiation, sky, roads, parking.'],g_news:['News and radars','Radars, impulses and the change log.'],g_core:['Core','Services everything else stands on.'],g_media:['Episodes and content','David, music, the picture.'],
+  how:['<p><b>How to read.</b> Green dot: the address answered 200, faster than 5 seconds, data fresh for its source. Amber: it answered, but the data is older than normal or the reply is slow. Red: no answer or an error.</p>','<p><b>What is not shown.</b> Cloudflare itself and worker logs are not visible from outside, so the panel judges by replies. “No timestamp” means the address has no time field, so only reply and speed are checked.</p>','<p>Event log: <a href="/api/v1/changes">/api/v1/changes</a> · sensor map: <a href="/sensors">/sensors</a></p>'],
+  noTs:'no timestamp',min:'min',h:'h',d:'d',s:'s',err:'reply',tmo:'no reply',
+  n:{gas:'German gas storage',power:'Electricity price (exchange)',space:'Space weather',quakes:'Earthquakes M4.5+',flood:'Flood warnings',sea:'Water level, Hamburg',rad:'Radiation',roads:'Roads',parking:'Parking',avia:'Aircraft over Hamburg',wx:'Weather at a point',bafin:'BaFin: supervisory measures',sensors:'Sensor digest',changes:'Change log',impulses:'Impulses',radars:'News radars',indices:'Agent indices',live:'Official events',broadcast:'News broadcast',predict:'Forecast transparency',mcp:'MCP server',canvas:'Picture (Painter)',eps:'David episodes',music:'Music',agentcard:'Agent card',llms:'llms.txt',tariffs:'Tariffs'}}
+}[LANG];
+const $=id=>document.getElementById(id);
+$('eyebrow').textContent=T.eyebrow;$('h1').textContent=T.h1;$('lead').textContent=T.lead;$('re').textContent=T.recheck;$('how').innerHTML=T.how.join('');
+document.title=T.h1+' · Orb Studio';
+
+// поле времени: ищем в ответе известные имена, глубина 1
+const TS_KEYS=['computed_at','generated_at','updated_at','updated','stand','fetched_at','last_check_at','latest_measurement_at','at','now'];
+function findTs(j){if(!j||typeof j!=='object')return null;for(const k of TS_KEYS){const v=j[k];if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}/.test(v)){const t=Date.parse(v.length===10?v+'T12:00:00Z':v);if(isFinite(t))return t}}
+  for(const v of Object.values(j)){if(v&&typeof v==='object'&&!Array.isArray(v)){const t=findTs1(v);if(t)return t}}return null}
+function findTs1(j){for(const k of TS_KEYS){const v=j[k];if(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(v)){const t=Date.parse(v);if(isFinite(t))return t}}return null}
+const ISO=s=>{const t=Date.parse(s);return isFinite(t)?t:null};
+const pct=x=>typeof x==='number'?x:null;
+
+// maxMin: насколько старыми данные считаются нормой для своего источника
+const P=[
+ {g:'main',id:'gas',u:'/api/v1/gas/storage',max:72*60,ts:j=>ISO(j.gas_day+'T12:00:00Z'),v:j=>pct(j.full_percent)!=null?j.full_percent+' %':null},
+ {g:'main',id:'power',u:'/api/v1/sensors',max:180,ts:j=>j.power&&findTs1(j.power)||ISO(j.updated),v:j=>j.power&&j.power.now_eur_mwh!=null?(j.power.now_eur_mwh/10).toFixed(1)+' ct/kWh':null},
+ {g:'main',id:'space',u:'/api/v1/space',max:30,ts:j=>ISO(j.computed_at),v:j=>j.noaa_scales&&j.noaa_scales.current?['geomagnetic','radio_blackout','radiation'].map(k=>j.noaa_scales.current[k].scale).join(' '):null},
+ {g:'main',id:'quakes',u:'/api/v1/quakes',max:null,v:j=>j.last_24h_m45?j.last_24h_m45.count+' / 24h, max M'+(j.last_24h_m45.strongest&&j.last_24h_m45.strongest.mag):null},
+ {g:'main',id:'flood',u:'/api/v1/hydro/flood-warnings',max:60,ts:j=>ISO(j.stand),v:j=>j.active_count!=null?j.active_count+' active':null},
+ {g:'geo',id:'sea',u:'/api/v1/hydro/sea',max:60,ts:j=>j.stations&&j.stations[0]?ISO(j.stations[0].measured_at):null,v:j=>j.stations&&j.stations[0]&&j.stations[0].water_level_cm!=null?j.stations[0].water_level_cm+' cm':null},
+ {g:'geo',id:'rad',u:'/api/v1/radiation',max:240,ts:j=>ISO(j.latest_measurement_at),v:j=>j.germany?j.germany.median+' µSv/h':null},
+ {g:'geo',id:'roads',u:'/api/v1/roads',max:30},
+ {g:'geo',id:'parking',u:'/api/v1/parking-de',max:30},
+ {g:'geo',id:'avia',u:'/api/v1/aviation',max:20,ts:j=>ISO(j.generated_at),v:j=>j.hamburg_sector?j.hamburg_sector.airborne+' ▲ / '+j.hamburg_sector.on_ground+' ▼':null},
+ {g:'geo',id:'wx',u:'/api/v1/weather-at?lat=53.46&lon=9.98',max:null},
+ {g:'geo',id:'bafin',u:'/api/v1/finance/bafin-measures',max:null},
+ {g:'news',id:'sensors',u:'/api/v1/sensors',max:15,ts:j=>ISO(j.updated)},
+ {g:'news',id:'changes',u:'/api/v1/changes',max:20,ts:j=>ISO(j.last_check_at),v:j=>j.count!=null?j.count+' events':null},
+ {g:'news',id:'impulses',u:'/api/v1/impulses',max:20},
+ {g:'news',id:'radars',u:'/api/v1/radars',max:30},
+ {g:'news',id:'indices',u:'/api/v1/indices',max:30},
+ {g:'news',id:'live',u:'/api/v1/live',max:null},
+ {g:'news',id:'predict',u:'/api/v1/predict',max:null},
+ {g:'core',id:'mcp',u:'/mcp',post:{jsonrpc:'2.0',id:1,method:'tools/list'},max:null,sse:true,v:j=>j&&j.result&&j.result.tools?j.result.tools.length+' tools':null},
+ {g:'core',id:'broadcast',u:'/api/v1/broadcast/latest',max:30,slow:12000,ts:j=>ISO(j.generated_at),v:j=>j.voice?'voice: '+j.voice:null},
+ {g:'core',id:'agentcard',u:'/.well-known/agent.json',max:null},
+ {g:'core',id:'llms',u:'/llms.txt',max:null,text:true},
+ {g:'media',id:'eps',u:'/api/v1/david/episodes',max:null,v:j=>j.episodes&&j.episodes[0]?j.episodes[0].date:null},
+ {g:'media',id:'music',u:'/api/v1/music',max:null},
+ {g:'media',id:'canvas',u:'/api/v1/canvas',max:null,ts:j=>ISO(j.slot)},
+ {g:'media',id:'tariffs',u:'/api/v1/tariffs',max:null}
+];
+const GROUPS=['main','geo','news','core','media'];
+function ago(ms){const m=Math.round(ms/60000);if(m<1)return '<1 '+T.min;if(m<120)return m+' '+T.min;const h=m/60;if(h<48)return Math.round(h)+' '+T.h;return Math.round(h/24)+' '+T.d}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function build(){
+  $('panels').innerHTML=GROUPS.map(g=>{const d=T['g_'+g];return `<section class="panel" aria-labelledby="h_${g}"><div class="ph"><h2 id="h_${g}">${esc(d[0])}</h2><small id="s_${g}"></small></div><p class="pd">${esc(d[1])}</p><div class="colh">${T.cols.map(c=>`<span>${esc(c)}</span>`).join('')}</div>${P.filter(p=>p.g===g).map(p=>`<div class="row" id="r_${p.id}_${g}"><span class="dot"></span><div class="nm"><a href="${esc(p.u.split('?')[0])}" target="_blank" rel="noopener">${esc(T.n[p.id])}</a><small>${esc(p.u.split('?')[0])}</small></div><div class="val">…</div><div class="ms"></div><div class="age"></div></div>`).join('')}</section>`}).join('');
+}
+const RAW=new Map();
+function getRaw(p){
+  const key=p.u+(p.post?'#post':'');
+  if(!RAW.has(key))RAW.set(key,(async()=>{
+    const t0=performance.now();
+    try{
+      const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),20000);
+      const r=await fetch(p.u,{signal:ctl.signal,cache:'no-store',...(p.post?{method:'POST',headers:{'content-type':'application/json',accept:'application/json, text/event-stream'},body:JSON.stringify(p.post)}:{})});
+      const body=await r.text();clearTimeout(to);
+      return {ms:Math.round(performance.now()-t0),code:r.status,body};
+    }catch(e){return {ms:null,code:null,body:''}}
+  })());
+  return RAW.get(key);
+}
+async function probe(p){
+  const raw=await getRaw(p);const res={state:'bad',ms:raw.ms,val:T.tmo,age:'',code:raw.code};
+  if(raw.code==null)return res;
+  if(raw.code!==200){res.val=T.err+' '+raw.code;return res}
+  let j=null;
+  if(!p.text){try{const m=p.sse?raw.body.match(/\{[\s\S]*\}/):null;j=JSON.parse(m?m[0]:raw.body)}catch(e){res.val='JSON ✗';return res}}
+  let state='ok';
+  if(raw.ms>(p.slow||5000))state='warn';
+  let ts=null;try{if(j&&!p.text)ts=p.ts?p.ts(j):findTs(j)}catch(e){}
+  if(ts){const age=Date.now()-ts;res.age=ago(Math.max(0,age));if(p.max&&age>p.max*60000&&state==='ok')state='warn'}else res.age=p.text?'':'—';
+  let v=null;try{v=p.v&&j?p.v(j):null}catch(e){}
+  res.val=v||(ts||p.text?'OK':T.noTs);res.state=state;
+  return res;
+}
+let busy=false;
+async function run(){
+  if(busy)return;busy=true;RAW.clear();$('re').disabled=true;$('topState').textContent=T.checking;
+  const out=await Promise.all(P.map(async p=>({p,r:await probe(p)})));
+  const cnt={ok:0,warn:0,bad:0},per={};
+  for(const {p,r} of out){
+    cnt[r.state]++;per[p.g]=per[p.g]||{ok:0,warn:0,bad:0};per[p.g][r.state]++;
+    const el=$(`r_${p.id}_${p.g}`);if(!el)continue;
+    el.className='row '+r.state;
+    el.querySelector('.val').textContent=r.val;el.querySelector('.ms').textContent=r.ms!=null?(r.ms>=1000?(r.ms/1000).toFixed(1)+' '+T.s:r.ms+' ms'):'';el.querySelector('.age').textContent=r.age||'';
+  }
+  for(const g of GROUPS){const c=per[g]||{ok:0,warn:0,bad:0};const tot=c.ok+c.warn+c.bad;$('s_'+g).textContent=`${c.ok}/${tot}`}
+  const tot=out.length,level=cnt.bad?'bad':cnt.warn?'warn':'ok';
+  $('lamp').className='lamp '+level;$('topState').textContent=T[level];
+  $('topSub').textContent=(cnt.ok===tot?T.allok(tot):T.part(cnt.ok,tot))+' · '+T.checked(new Date().toLocaleTimeString(LANG==='ru'?'ru-RU':LANG==='de'?'de-DE':'en-GB',{hour:'2-digit',minute:'2-digit'}));
+  $('cOk').textContent='● '+cnt.ok+' '+T.pOk;$('cWarn').textContent='● '+cnt.warn+' '+T.pWarn;$('cBad').textContent='● '+cnt.bad+' '+T.pBad;
+  $('re').disabled=false;busy=false;
+}
+build();$('re').addEventListener('click',run);run();setInterval(()=>{if(!document.hidden)run()},120000);
+})();
+</script>
+</body>
+</html>
