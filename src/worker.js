@@ -995,7 +995,7 @@ async function disastersData() {
     }
   }
   return { status, ...(err ? { error: err } : {}), ...body, source: GDACS_ATTR, source_url: "https://www.gdacs.org",
-    scope_note: "Current GDACS events with an Orange or Red alert. 'fast' = earthquakes, tropical cyclones, floods, volcanoes, wildfires; 'slow' = droughts, which last months (ongoing_days). GDACS alerts estimate likely humanitarian impact from automatic models; they are not official warnings and not forecasts. Countries and severity as published by GDACS.",
+    scope_note: "Current GDACS events with an Orange or Red alert. 'fast' = earthquakes, tropical cyclones, floods, volcanoes, wildfires; 'slow' = droughts, which last months (ongoing_days). GDACS alerts estimate likely humanitarian impact from automatic models; they are not official warnings and not forecasts. Countries and severity as published by GDACS. GDACS gives times without a time zone; they are read as UTC.",
     page: "https://orbstudio.org/api/v1/disasters" };
 }
 // ================= Мировые цены на еду (FAO Food Price Index): /api/v1/food-prices, MCP get_food_prices =================

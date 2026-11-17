@@ -33,3 +33,15 @@ test("other header layouts and broken input", () => {
   assert.equal(parseCsv("hello,world\n1,2"), null); assert.equal(parseCsv(""), null);
   assert.equal(summarize(null).ok, false); assert.equal(summarize([{ month: "2026-09", food: 1 }]).ok, false);
 });
+test("real FAO page link and CSV layout from 17.11.2026 (sent by Grok): BOM, CRLF, trailing commas", () => {
+  const html = '<a href="https://www.fao.org/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv?sfvrsn=523ebd2a_85&amp;download=true">CSV: Nominal indices\n from 1990 onwards (monthly)</a>';
+  assert.equal(findCsvUrl(html), "https://www.fao.org/media/docs/worldfoodsituationlibraries/wfs-library/food_price_indices_data.csv?sfvrsn=523ebd2a_85&download=true");
+  const tail = ",".repeat(60);
+  const csv = "﻿" + ["FAO Food Price Index", "2014-2016=100", "Date,Food Price Index,Meat,Dairy,Cereals,Oils,Sugar", "1990-01,64.4,74.3,53.5,64.1,44.59,87.9", "1990-02,64.7,76.8,52.2,62.2,44.50,90.7",
+    "2026-08,133.9,129.0,119.2,116.8,196.9,107.4", "2026-09,135.6,127.1,119.1,122.3,198.6,113.7", "2026-10,133.9,125.5,117.8,116.8,199.2,121.3"].map((l) => l + tail).join("\r\n") + "\r\n";
+  const rows = parseCsv(csv); assert.equal(rows.length, 5);
+  const s = summarize(rows);
+  assert.deepEqual([s.month, s.value, s.change_mm_points, s.change_mm_pct], ["2026-10", 133.9, -1.7, -1.3]);
+  assert.deepEqual(s.subindices.sugar, { value: 121.3, change_mm_pct: 6.7 }); assert.deepEqual(s.subindices.oils, { value: 199.2, change_mm_pct: 0.3 });
+  assert.equal(s.change_yy_pct, null); // в этом отрывке нет октября 2025
+});
