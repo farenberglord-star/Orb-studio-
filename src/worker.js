@@ -2810,6 +2810,7 @@ async function anomalyDetect(env) {
   const per = {}, site = {}, names = {};
   for (const r of rows) {
     if (ANOM_SCANNER.test(r.name)) continue;
+    if (r.name === "Other bot" && r.day < "2026-11-15") continue; // до 15.11 под этим именем шёл сканер Agent402
     const pg = r.page.replace(/^\/mcp\/get_/, "/api/v1/").replace(/_/g, "/");
     (per[pg] = per[pg] || {})[r.day] = (per[pg][r.day] || 0) + r.n; site[r.day] = (site[r.day] || 0) + r.n;
     if (r.day === d) (names[r.name] = names[r.name] || {})[pg] = ((names[r.name] || {})[pg] || 0) + r.n;
