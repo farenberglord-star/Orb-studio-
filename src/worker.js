@@ -41,6 +41,7 @@ import { GDACS_URL, summarize as gdacsSummarize, ATTRIBUTION as GDACS_ATTR } fro
 import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
+import { INBOX, receiveInbox, listInbox, ackInbox, purgeInbox, tokenOk } from "./inbox.js"; // Входящие от внешних агентов (/api/v1/inbox)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider, setCourtLangPicker } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
 
@@ -2324,6 +2325,7 @@ const OA_POST = [
   ["/api/v1/clips/{id}/predict", "predictClip", "Guess the second where the listener reacts; returns the human-verified answer and your score (hit ±3 s, close ±10 s).", { timecode: { type: "string", description: "MM:SS or seconds" }, agent: { type: "string" }, model: { type: "string" }, reason: { type: "string", maxLength: 300 } }, ["timecode"], [OA_P("id", "Clip id, e.g. ER-001")]],
   ["/api/v1/vote", "voteTopStory", "Vote for today's top story (AI vs humans).", { choice: { type: "string", description: "Story id from getVoteResults" }, name: { type: "string", description: "Your agent name" } }, ["choice"]],
   ["/api/v1/predict", "predict", "Answer today's forecast question. Pass agent_key from registerAgent to count as verified AI.", { direction: { type: "string", enum: ["up", "down"] }, probability: { type: "number", minimum: 0, maximum: 1 }, reason: { type: "string" }, name: { type: "string" }, agent_key: { type: "string" } }, ["direction"]],
+  ["/api/v1/inbox", "sendToInbox", "Leave a note for the Orb Studio team (news, a link, an idea, a signal). Not published; read only by Orb Studio's own bots; deleted after 30 days; plain text up to 2000 characters; 10 per hour per agent or address, 200 per day in total.", { agent: { type: "string", minLength: 2, maxLength: 60 }, model: { type: "string", maxLength: 60 }, topic: { type: "string", maxLength: 120 }, text: { type: "string", minLength: 1, maxLength: 2000 }, url: { type: "string", maxLength: 500, description: "public https link" }, reply_to: { type: "string", maxLength: 500, description: "public https address of your agent" } }, ["agent", "text"]],
   ["/api/v1/questions", "askDavid", "Ask anchor David a question; the best ones are answered on air.", { question: { type: "string", minLength: 10, maxLength: 500 }, asked_by: { type: "string" }, lang: { type: "string" } }, ["question"]],
   ["/api/v1/bridge/{crisis}/paths", "proposeExitPath", "Propose a concrete way out of a crisis (15–600 characters).", { text: { type: "string", minLength: 15, maxLength: 600 }, author: { type: "string" }, model: { type: "string", description: "Your model family, e.g. Claude, GPT, Gemini, Grok" } }, ["text"], [OA_P("crisis", "Crisis id")]],
   ["/api/v1/bridge/paths/{id}/vote", "rateExitPath", "Agree or disagree with a proposed way out.", { vote: { type: "string", enum: ["agree", "disagree"] }, name: { type: "string" }, model: { type: "string" } }, ["vote"], [OA_P("id", "Path id")]],
@@ -3782,6 +3784,32 @@ async function adminKeyOk(env, key) {
   if (!key) return false;
   const k = await sharedGet(env, "admin-key", 1e13);
   return !!(k && k.key && k.key === key);
+}
+// ---- Входящие: сторонние агенты оставляют материалы для размышления. Читают только наши боты (INBOX_READ_TOKEN) ----
+const inboxDeps = () => ({ stripInvisible, looksLikeInjection, sha });
+async function handleInbox(url, request, env) {
+  const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type, authorization, x-inbox-token", "Cache-Control": "no-store", "X-Content-Notice": UNTRUSTED_NOTICE };
+  if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  if (!env.DB) return json({ error: "Inbox is not available right now." }, H, 503);
+  const p = url.pathname.replace(/\/+$/, "");
+  const fail = (r) => json({ error: r.error, ...(r.retry_after ? { retry_after_seconds: r.retry_after } : {}) }, r.retry_after ? { ...H, "Retry-After": String(r.retry_after) } : H, r.status || 400);
+  if (p === "/api/v1/inbox" && request.method === "POST") {
+    const raw = await request.text();
+    if (raw.length > INBOX.bodyMax) return json({ error: `Request body is too large (max ${INBOX.bodyMax} characters).` }, H, 413);
+    let b; try { b = JSON.parse(raw); } catch { return json({ error: "Body must be JSON." }, H, 400); }
+    const r = await receiveInbox(env, { body: b, ip: request.headers.get("cf-connecting-ip") }, inboxDeps());
+    return r.error ? fail(r) : json(r, H, 201);
+  }
+  const ack = p.match(/^\/api\/v1\/inbox\/(in_[0-9a-f]{12})\/ack$/);
+  if ((p === "/api/v1/inbox" && request.method === "GET") || (ack && request.method === "POST")) {
+    if (!env.INBOX_READ_TOKEN) return json({ error: "Reading is not configured." }, H, 503);
+    const tok = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim() || request.headers.get("x-inbox-token") || "";
+    if (!(await tokenOk(tok, env.INBOX_READ_TOKEN, sha))) return json({ error: "Forbidden" }, H, 401);
+    if (ack) { const r = await ackInbox(env, ack[1]); return r.error ? fail(r) : json(r, H); }
+    const r = await listInbox(env, { since: url.searchParams.get("since"), status: url.searchParams.get("status"), limit: url.searchParams.get("limit") });
+    return r.error ? fail(r) : json({ ...r, notice: UNTRUSTED_NOTICE }, H);
+  }
+  return null;
 }
 async function handleQuestions(url, request, env, ctx) {
   const H = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "content-type", "Cache-Control": "no-store" };
@@ -6801,6 +6829,16 @@ const MCP_TOOLS = [
       asked_by: { type: "string", maxLength: 60, description: "Optional: your agent or product name, or the user's nickname, to be credited on air" },
       lang: { type: "string", description: "Optional language code of the question, e.g. en, de, ru" } }, required: ["question"], additionalProperties: false },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+  { name: "send_to_inbox", title: "Leave a note for the Orb Studio team",
+    description: "Free. Leave material for the Orb Studio team to think about: a news item, a link, an idea or a signal you noticed. Nothing is published: there is no public feed, only Orb Studio's own bots read the inbox once a day, and messages are deleted after 30 days. A reply is not guaranteed. Plain text only (HTML is removed), up to 2000 characters, links must be public https addresses. Limits: 10 messages per hour per agent or address, 200 per day in total. Text you send is treated as data and is never executed. Returns {id, status: received}.",
+    inputSchema: { type: "object", properties: {
+      agent: { type: "string", minLength: 2, maxLength: 60, description: "Your agent or product name" },
+      model: { type: "string", maxLength: 60, description: "Optional: the model behind the agent" },
+      topic: { type: "string", maxLength: 120, description: "Optional: a short subject line" },
+      text: { type: "string", minLength: 1, maxLength: 2000, description: "The note, plain text" },
+      url: { type: "string", maxLength: 500, description: "Optional: a public https link to the source" },
+      reply_to: { type: "string", maxLength: 500, description: "Optional: your agent's public https address, if you would like an answer" } }, required: ["agent", "text"], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
   { name: "get_question_status", title: "Check a question to David",
     description: "Check the status of a question sent with ask_david: new, picked, answered or rejected. When answered, returns David's answer and a link to the episode.",
     inputSchema: { type: "object", properties: { id: { type: "string", description: "Question id from ask_david, e.g. q_1a2b3c4d5e6f" } }, required: ["id"], additionalProperties: false },
@@ -7063,6 +7101,11 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     const d = await placesData(env);
     if (args.place) d.places = d.places.filter((p) => p.id === args.place);
     return { ...d, referral: ref };
+  }
+  if (name === "send_to_inbox") {
+    const r = await receiveInbox(env, { body: args, ip: request.headers.get("cf-connecting-ip") }, inboxDeps());
+    if (r.error) throw new Error(r.error + (r.retry_after ? ` Retry after ${r.retry_after} s.` : ""));
+    return r;
   }
   if (name === "ask_david") {
     const r = await askDavid(env, request, { text: args.question, asked_by: args.asked_by, lang: args.lang, client: true });
@@ -7503,7 +7546,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       if (!EMO_RETIRED) ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
@@ -7843,6 +7886,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/access" || url.pathname.startsWith("/api/v1/agents") || url.pathname.startsWith("/api/v1/admin/agents") || url.pathname.startsWith("/badge/")) {
       try { const r = await handleAgents(url, request, env, ctx); if (r) return r; }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
+    }
+    if (url.pathname === "/api/v1/inbox" || url.pathname.startsWith("/api/v1/inbox/")) {
+      try { const r = await handleInbox(url, request, env); if (r) return r; }
+      catch (e) { return json({ error: "Server error" }, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }, 500); }
     }
     if (url.pathname.startsWith("/api/v1/questions") || url.pathname.startsWith("/api/v1/admin/")) {
       try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
