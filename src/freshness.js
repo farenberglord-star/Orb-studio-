@@ -100,12 +100,19 @@ export function cadenceClass(expect_h) {
   return expect_h <= 2 ? "minutes" : expect_h <= 96 ? "days" : expect_h <= 60 * 24 ? "months" : "years";
 }
 
-// d — ответ источника (null — источник не ответил). Статусы: on_time, late (до 2× нормы), stale, unknown (источник не сообщает время), no_data, event.
-export function row(c, d, now = Date.now()) {
-  const base = { id: c.id, name: c.name, source: c.source, endpoint: c.endpoint, kind: c.kind, expect_h: c.expect_h, cadence: cadenceClass(c.expect_h) };
-  if (!d || (typeof d === "object" && d.ok === false && c.id !== "safeworld_noise")) return { ...base, data_time: null, age_h: null, status: "no_data" };
+// Наблюдение: ответил ли источник и какую метку времени дал. Хранится между запросами (маленькое), из него строится строка карты.
+export function observe(c, d) {
+  if (!d || (typeof d === "object" && d.ok === false && c.id !== "safeworld_noise")) return { responded: false, raw: null };
   let raw = null;
   try { raw = c.get(d); } catch (e) { raw = null; }
+  return { responded: true, raw: raw == null ? null : String(raw).slice(0, 40) };
+}
+// d — ответ источника (null — источник не ответил). Статусы: on_time, late (до 2× нормы), stale, unknown (источник не сообщает время), no_data, event.
+export function row(c, d, now = Date.now()) { return rowFrom(c, observe(c, d), now); }
+export function rowFrom(c, o, now = Date.now()) {
+  const base = { id: c.id, name: c.name, source: c.source, endpoint: c.endpoint, kind: c.kind, expect_h: c.expect_h, cadence: cadenceClass(c.expect_h) };
+  if (!o || !o.responded) return { ...base, data_time: null, age_h: null, status: "no_data" };
+  const raw = o.raw;
   const t = toMs(raw);
   if (t == null) return { ...base, data_time: null, age_h: null, status: c.id === "safeworld_noise" ? "no_data" : "unknown" };
   const age_h = Math.max(0, Math.round(((now - t) / H) * 10) / 10);
@@ -114,14 +121,16 @@ export function row(c, d, now = Date.now()) {
 }
 
 export const STATUSES = ["on_time", "late", "stale", "unknown", "no_data", "event"];
-export function build(sources, now = Date.now()) {
-  const rows = CATALOG.map((c) => row(c, sources ? sources[c.src] : null, now));
+export function build(sources, now = Date.now()) { return buildFromObs(Object.fromEntries(CATALOG.map((c) => [c.id, observe(c, sources ? sources[c.src] : null)])), now); }
+// obs: { id: {responded, raw} } — например, сохранённые наблюдения, обновляемые по очереди.
+export function buildFromObs(obs, now = Date.now()) {
+  const rows = CATALOG.map((c) => rowFrom(c, obs ? obs[c.id] : null, now));
   const summary = Object.fromEntries(STATUSES.map((s) => [s, rows.filter((r) => r.status === s).length]));
   const byCad = Object.fromEntries(["minutes", "days", "months", "years", "irregular"].map((k) => [k, rows.filter((r) => r.cadence === k).length]));
   rows.sort((a, b) => (a.age_h == null) - (b.age_h == null) || (a.age_h || 0) - (b.age_h || 0));
   return {
     schema: "orb.freshness.v1", checked_at: new Date(now).toISOString(), summary, by_cadence: byCad, sensors: rows,
-    rule: "data_precision says what the source gave (time, day, month or year); source_value is that label as published. data_time is the time the source's data refers to (a date alone = end of that day UTC, a month = end of month, a year = end of year). age_h = hours since data_time. expect_h = the age that is normal for this source when it runs on schedule (update interval plus usual publication delay). on_time: age <= expect_h; late: up to 2x; stale: more; unknown: the source does not say when its data was measured; no_data: the source did not answer; event: event feed or manual input, age only, no lateness.",
+    rule: "Sources are re-checked in turns (a few per call, each about every 10 minutes); checked_sources says when each was last asked. If a source does not answer, its last time stamp stays and the age keeps growing. data_precision says what the source gave (time, day, month or year); source_value is that label as published. data_time is the time the source's data refers to (a date alone = end of that day UTC, a month = end of month, a year = end of year). age_h = hours since data_time. expect_h = the age that is normal for this source when it runs on schedule (update interval plus usual publication delay). on_time: age <= expect_h; late: up to 2x; stale: more; unknown: the source does not say when its data was measured; no_data: the source did not answer; event: event feed or manual input, age only, no lateness.",
     note: "Read every Orb Studio number together with its age: a live price, a daily gas day and a yearly crime statistic describe different moments. This map judges timeliness only, not accuracy.",
     page: "https://orbstudio.org/sensors#freshness",
   };

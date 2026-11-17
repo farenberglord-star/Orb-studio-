@@ -54,3 +54,12 @@ test("radars: internal array and public object both work", () => {
   assert.equal(row(c("radars"), arr, NOW).status, "on_time");
   assert.equal(row(c("radars"), { radars: arr }, NOW).data_time, "2026-11-17T08:20:00.000Z");
 });
+test("stored observations rebuild the same rows; a silent source keeps aging", async () => {
+  const { observe, buildFromObs } = await import("../src/freshness.js");
+  const o = observe(c("radiation_de"), { latest_measurement_at: "2026-11-17T08:00:00Z" });
+  assert.deepEqual(o, { responded: true, raw: "2026-11-17T08:00:00Z" });
+  const later = buildFromObs({ radiation_de: o }, NOW + 10 * 3600e3);
+  assert.equal(later.sensors.find((r) => r.id === "radiation_de").status, "stale");
+  assert.equal(later.sensors.find((r) => r.id === "gas_storage").status, "no_data");
+  assert.deepEqual(observe(c("radiation_de"), null), { responded: false, raw: null });
+});

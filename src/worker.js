@@ -33,7 +33,7 @@ import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
-import { build as freshnessBuild } from "./freshness.js"; // «Карта задержек реальности»
+import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
@@ -469,22 +469,35 @@ async function safeworldNoiseRefresh(env, force = false) {
   return out;
 }
 // ================= «Карта задержек реальности»: свежесть каждого датчика, /api/v1/freshness, MCP get_freshness =================
-// Берём данные из тех же функций, что отдают датчики (они кэшированы), и смотрим, к какому времени относятся данные источника. Копия на 10 минут.
+// У воркера ограничено число внешних запросов на один вызов, поэтому карта не будит все датчики разом:
+// хранит последние наблюдения (метка времени источника, а не сами данные) в D1 и за один заход обновляет не больше FR_PER_CALL источников, самые давние первыми.
+// Если источник не ответил, остаётся прежняя метка — возраст растёт, и статус честно уходит в «запаздывает»/«устарело».
+const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 4;
+const FR_LOADERS = {
+  radars: (env, ctx, origin) => allRadars(env, ctx, origin),
+  sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
+  quakes: () => quakesData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
+  gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(),
+  aviation: (env, ctx) => aviationData(env, ctx), bafin: () => bafinData(), prices: (env) => pricesRadar(env, "hamburg"), tariffs: (env, ctx, origin) => tariffsData(env, origin),
+  safeworld: async (env, ctx, origin) => { const r = await env.ASSETS.fetch(new Request(origin + "/safeworld-data.json")); return r.ok ? r.json() : null; },
+  noise: async (env) => (await sharedGet(env, SW_KEY, SW_MAX_AGE + 2 * 864e5)) || { ok: false },
+};
 async function freshnessData(env, ctx, origin) {
-  const key = new Request("https://orbstudio.org/__cache/freshness-v1"), c = caches.default;
+  const key = new Request("https://orbstudio.org/__cache/freshness-v2"), c = caches.default;
   const hit = await c.match(key); if (hit) return hit.json();
-  const run = (f) => Promise.race([Promise.resolve().then(f), new Promise((r) => setTimeout(() => r(null), 9000))]).catch(() => null);
-  const asset = async (path) => { const r = await env.ASSETS.fetch(new Request(origin + path)); return r.ok ? r.json() : null; };
-  const names = ["radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"];
-  const vals = await Promise.all([
-    run(() => allRadars(env, ctx, origin)), run(() => sensorsData(env, ctx)).then((d) => d || sharedGet(env, "sensors-v8", 2 * 86400e3)), // не успел пересчёт — последняя копия, её возраст карта и покажет run(() => quakesData()), run(() => spaceData()), run(() => radiationData()), run(() => lhpData()),
-    run(() => hydroData()), run(() => weatherAtData()), run(() => gasData(env)), run(() => pollsData()), run(() => partyAttentionData()), run(() => roadsData(env)), run(() => parkingData()),
-    run(() => aviationData(env, ctx)), run(() => bafinData()), run(() => pricesRadar(env, "hamburg")), run(() => tariffsData(env, origin)), run(() => asset("/safeworld-data.json")),
-    run(() => sharedGet(env, SW_KEY, SW_MAX_AGE + 2 * 864e5)).then((d) => d || { ok: false }),
-  ]);
-  const out = freshnessBuild(Object.fromEntries(names.map((n, i) => [n, vals[i]])));
-  const holes = out.sensors.filter((r) => r.status === "no_data" && r.id !== "safeworld_noise").length; // много дыр — вероятно, медленный холодный кэш: держим копию минуту, а не десять
-  ctx.waitUntil(c.put(key, new Response(JSON.stringify(out), { headers: { "Cache-Control": holes > 2 ? "max-age=60" : "max-age=600" } })));
+  const st = (await sharedGet(env, FR_KEY, 1e13)) || {}, now = Date.now();
+  const due = Object.keys(FR_LOADERS).filter((n) => !st[n] || now - st[n].checked > FR_RECHECK_MS).sort((a, b) => ((st[a] && st[a].checked) || 0) - ((st[b] && st[b].checked) || 0)).slice(0, FR_PER_CALL);
+  for (const n of due) {
+    const d = await Promise.race([Promise.resolve().then(() => FR_LOADERS[n](env, ctx, origin)), new Promise((r) => setTimeout(() => r(null), 8000))]).catch(() => null);
+    const obs = {};
+    for (const x of FR_CATALOG.filter((x) => x.src === n)) { const o = frObserve(x, d), old = st[n] && st[n].obs && st[n].obs[x.id]; obs[x.id] = !o.responded && old && old.responded ? old : o; }
+    st[n] = { checked: now, obs };
+  }
+  if (due.length) ctx.waitUntil(sharedPut(env, FR_KEY, st));
+  const all = {}; for (const n of Object.keys(st)) Object.assign(all, st[n].obs || {});
+  const out = freshnessBuild(all, now);
+  out.checked_sources = Object.fromEntries(Object.keys(FR_LOADERS).map((n) => [n, st[n] ? new Date(st[n].checked).toISOString() : null]));
+  ctx.waitUntil(c.put(key, new Response(JSON.stringify(out), { headers: { "Cache-Control": "max-age=120" } })));
   return out;
 }
 async function sharedPut(env, key, value) {
