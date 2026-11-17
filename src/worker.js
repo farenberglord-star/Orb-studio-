@@ -975,7 +975,7 @@ async function quakesData() {
 // ================= Катастрофы по миру (GDACS, ООН + ЕК): /api/v1/disasters, MCP get_disasters =================
 // Оранжевые и красные тревоги. Быстрые события и долгие засухи отдельно. Копия 30 минут, запасная — 2 суток. Не ответил и копии нет — честное «нет данных».
 async function disastersData() {
-  const fresh = new Request("https://orbstudio.org/__cache/gdacs-v1"), stale = new Request("https://orbstudio.org/__cache/gdacs-v1-stale"), c = caches.default;
+  const fresh = new Request("https://orbstudio.org/__cache/gdacs-v2"), stale = new Request("https://orbstudio.org/__cache/gdacs-v2-stale"), c = caches.default;
   const hit = await c.match(fresh);
   let body, status = "ok", err = null;
   if (hit) { body = await hit.json(); status = "cached"; }
