@@ -448,6 +448,141 @@
      "label": "Sonnblick (3109 m)"
     }
    ]
+  },
+  {
+   "id": "disasters",
+   "ico": "🌀",
+   "scope": "world",
+   "api": "/api/v1/disasters",
+   "mcp": "get_disasters",
+   "time_key": "latest_update",
+   "time_kind": "published",
+   "name": {
+    "ru": "Катастрофы мира (GDACS)",
+    "de": "Katastrophen weltweit (GDACS)",
+    "en": "Disasters worldwide (GDACS)"
+   },
+   "what": {
+    "ru": "Оранжевые и красные тревоги GDACS (ООН и ЕС): циклоны, землетрясения, наводнения, вулканы, пожары и отдельно долгие засухи. Метка — где сидит источник.",
+    "de": "Orange und rote GDACS-Alarme (UN und EU): Wirbelstürme, Erdbeben, Überschwemmungen, Vulkane, Brände und getrennt lange Dürren. Der Pin zeigt den Sitz der Quelle.",
+    "en": "Orange and red GDACS alerts (UN and EU): cyclones, earthquakes, floods, volcanoes, wildfires, and long droughts separately. The pin marks the seat of the source."
+   },
+   "wpins": [
+    {
+     "lat": 45.8126,
+     "lon": 8.6106,
+     "kind": "source",
+     "label": "EC Joint Research Centre, Ispra (Italy) — GDACS"
+    }
+   ]
+  },
+  {
+   "id": "food",
+   "ico": "🌾",
+   "scope": "world",
+   "api": "/api/v1/food-prices",
+   "mcp": "get_food_prices",
+   "time_key": null,
+   "time_kind": null,
+   "name": {
+    "ru": "Мировые цены на еду (FAO)",
+    "de": "Weltweite Lebensmittelpreise (FAO)",
+    "en": "World food prices (FAO)"
+   },
+   "what": {
+    "ru": "Индекс цен на продовольствие FAO раз в месяц: мясо, молочные, зерновые, масла, сахар. Метка — где сидит источник.",
+    "de": "FAO-Lebensmittelpreisindex, monatlich: Fleisch, Milchprodukte, Getreide, Öle, Zucker. Der Pin zeigt den Sitz der Quelle.",
+    "en": "FAO Food Price Index, monthly: meat, dairy, cereals, oils, sugar. The pin marks the seat of the source."
+   },
+   "wpins": [
+    {
+     "lat": 41.8828,
+     "lon": 12.4894,
+     "kind": "source",
+     "label": "FAO, Rome (Italy)"
+    }
+   ]
+  },
+  {
+   "id": "outbreaks",
+   "ico": "🦠",
+   "scope": "world",
+   "api": "/api/v1/outbreaks",
+   "mcp": "get_outbreaks",
+   "time_key": "latest_published",
+   "time_kind": "published",
+   "name": {
+    "ru": "Вспышки болезней (ВОЗ)",
+    "de": "Krankheitsausbrüche (WHO)",
+    "en": "Disease outbreaks (WHO)"
+   },
+   "what": {
+    "ru": "Официальные сообщения ВОЗ о вспышках международного значения: болезнь, место, дата. Метка — где сидит источник.",
+    "de": "Offizielle WHO-Meldungen zu Ausbrüchen von internationaler Bedeutung: Krankheit, Ort, Datum. Der Pin zeigt den Sitz der Quelle.",
+    "en": "Official WHO notices on outbreaks of international significance: disease, place, date. The pin marks the seat of the source."
+   },
+   "wpins": [
+    {
+     "lat": 46.2327,
+     "lon": 6.1342,
+     "kind": "source",
+     "label": "WHO, Geneva (Switzerland)"
+    }
+   ]
+  },
+  {
+   "id": "displacement",
+   "ico": "🧳",
+   "scope": "world",
+   "api": "/api/v1/displacement",
+   "mcp": "get_displacement",
+   "time_key": null,
+   "time_kind": null,
+   "name": {
+    "ru": "Вынужденно перемещённые (УВКБ)",
+    "de": "Vertriebene (UNHCR)",
+    "en": "Forcibly displaced (UNHCR)"
+   },
+   "what": {
+    "ru": "Статистика УВКБ ООН: беженцы под мандатом УВКБ, внутренне перемещённые, просители убежища; данные годовые. Метка — где сидит источник.",
+    "de": "UNHCR-Statistik: Flüchtlinge unter UNHCR-Mandat, Binnenvertriebene, Asylsuchende; Jahresdaten. Der Pin zeigt den Sitz der Quelle.",
+    "en": "UNHCR statistics: refugees under UNHCR mandate, internally displaced, asylum-seekers; yearly data. The pin marks the seat of the source."
+   },
+   "wpins": [
+    {
+     "lat": 46.2266,
+     "lon": 6.1426,
+     "kind": "source",
+     "label": "UNHCR, Geneva (Switzerland)"
+    }
+   ]
+  },
+  {
+   "id": "chokepoints",
+   "ico": "🚢",
+   "scope": "world",
+   "api": "/api/v1/chokepoints",
+   "mcp": "get_chokepoints",
+   "time_key": null,
+   "time_kind": null,
+   "name": {
+    "ru": "Ормуз и морские узкие места",
+    "de": "Hormus und Meerengen",
+    "en": "Hormuz and maritime chokepoints"
+   },
+   "what": {
+    "ru": "Суда и танкеры в сутки через Ормуз, Баб-эль-Мандеб, Суэц и другие узкие места: оценка IMF PortWatch по спутниковому AIS, раз в неделю. Метка — где сидит источник.",
+    "de": "Schiffe und Tanker pro Tag durch Hormus, Bab el-Mandeb, Suez und andere Meerengen: Schätzung von IMF PortWatch aus Satelliten-AIS, wöchentlich. Der Pin zeigt den Sitz der Quelle.",
+    "en": "Ships and tankers per day through Hormuz, Bab el-Mandeb, Suez and other chokepoints: IMF PortWatch estimate from satellite AIS, weekly. The pin marks the seat of the source."
+   },
+   "wpins": [
+    {
+     "lat": 38.899,
+     "lon": -77.0425,
+     "kind": "source",
+     "label": "IMF, Washington D.C. (USA) — PortWatch"
+    }
+   ]
   }
  ]
 }

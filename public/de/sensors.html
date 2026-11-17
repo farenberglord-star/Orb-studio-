@@ -82,6 +82,10 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
 .fr-row[data-s=on_time]{--c:var(--up)}.fr-row[data-s=late]{--c:var(--warm)}.fr-row[data-s=stale]{--c:var(--hot)}
 .fr-row[data-s=unknown],.fr-row[data-s=no_data]{--c:var(--dim)}.fr-row[data-s=event]{--c:var(--violet)}
 @media (max-width:600px){.fr-axis,.fr-row{grid-template-columns:1fr 64px}.fr-axis .lbl{display:none}.fr-row .n{grid-column:1/3}.fr-axis .ticks{grid-column:1/2}}
+.rig>aside.krb,.rig>aside.slb{grid-column:1/-1;z-index:1}
+@media (max-width:900px){.rig>.sens{order:1}.rig>.core{order:2}.rig>aside.krb{order:3}.rig>aside.slb{order:4}.rig>.out{order:5}}
+#freshness details.fr-all{margin-top:8px}#freshness details.fr-all>summary{cursor:pointer;font:12px var(--mono);color:var(--holo);margin:4px 0 8px}
+#frAlert .fr-ok{color:var(--up);font-size:13.5px;margin:2px 0 6px}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -306,14 +310,7 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
       <div class="row" data-o="site"><div class="k">Orb Studio Seite · was neu ist</div><div class="v" id="oSite">—</div></div>
       <div class="row" data-o="exp"><div class="k">Experiment · KI handelt nach dem Radar</div><div class="v" id="oExp">—</div></div>
     </div>
-  </div>
-
-  <details class="dbg"><summary>Impuls-Debug</summary>
-    <label>Hintergrundstrom, Impulse pro Sekunde und Quelle: <input type="range" id="rate" min="0" max="5" step="0.1"> <b id="rateV"></b></label>
-    <button type="button" id="testBurst">Testimpuls von allen Quellen</button>
-    <p>Derselbe Parameter in der Adresse: <code>/sensors?rate=2</code>. Der Testimpuls dient nur der Ansicht – an den Daten ändert er nichts.</p>
-  </details>
-
+    <!-- баннеры внутри .rig: на телефоне встают сразу после ядра, перед длинным списком «Картина сейчас»; на компьютере — под всей сеткой -->
   <aside class="krb" aria-label="Kraken – Empfehlungslink von Orb Studio">
     <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
     <h3>Sensoren fangen Nachrichten. Kurse – live auf <b>Kraken</b></h3>
@@ -339,13 +336,25 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
     <a class="slb-go" href="/go/starlink?from=sensors" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
     <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
   </aside>
+  </div>
+
+  <details class="dbg"><summary>Impuls-Debug</summary>
+    <label>Hintergrundstrom, Impulse pro Sekunde und Quelle: <input type="range" id="rate" min="0" max="5" step="0.1"> <b id="rateV"></b></label>
+    <button type="button" id="testBurst">Testimpuls von allen Quellen</button>
+    <p>Derselbe Parameter in der Adresse: <code>/sensors?rate=2</code>. Der Testimpuls dient nur der Ansicht – an den Daten ändert er nichts.</p>
+  </details>
+
+
 
   <section id="freshness" aria-live="polite">
     <h2>KARTE DER VERZÖGERUNG DER REALITÄT</h2>
     <p class="lead">Wie frisch jede Zahl der Seite ist. Der Punkt zeigt das Alter der Quelldaten, der grüne Balken das für die Quelle übliche Alter, wenn alles nach Plan läuft. Ein Kryptokurs, ein Gastag und eine Jahresstatistik beschreiben verschiedene Momente: Lesen Sie Zahlen zusammen mit ihrem Alter. Das bewertet die Aktualität, nicht die Genauigkeit.</p>
     <div class="fr-sum" id="frSum"></div>
+    <div id="frAlert"><p class="lead">Sensoren werden geprüft…</p></div>
+    <details class="fr-all"><summary>Alle Sensoren als Liste</summary>
     <div class="fr-axis"><span class="lbl">Alter der Daten →</span><div class="ticks" id="frTicks"></div><span></span></div>
-    <div id="frRows"><p class="lead">Sensoren werden geprüft…</p></div>
+    <div id="frRows"></div>
+    </details>
     <p class="lead">Maschinenlesbare Daten: <a href="/api/v1/freshness">/api/v1/freshness</a> · MCP get_freshness</p>
   </section>
 
@@ -836,17 +845,17 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_sensors')==='1'}catch
 // ---- «Карта задержек реальности»: /api/v1/freshness ----
 (function(){
   const lg=(document.documentElement.lang||'ru').slice(0,2),T={
-    ru:{st:{on_time:'вовремя',late:'запаздывает',stale:'устарело',unknown:'время не сообщается',no_data:'нет ответа',event:'события и ручной ввод'},m:'Min.',h:'Std.',d:'дн',mo:'мес',y:'г',norm:'норма до',ev:'последнее',nt:'—',loc:'de-DE',err:'Не удалось проверить датчики.'},
-    de:{st:{on_time:'pünktlich',late:'verspätet',stale:'veraltet',unknown:'Zeit nicht angegeben',no_data:'keine Antwort',event:'Ereignisse und manuelle Eingabe'},m:'Min',h:'Std',d:'Tg',mo:'Mon',y:'J',norm:'normal bis',ev:'zuletzt',nt:'—',loc:'de-DE',err:'Die Sensoren konnten nicht geprüft werden.'},
-    en:{st:{on_time:'on time',late:'late',stale:'stale',unknown:'time not reported',no_data:'no answer',event:'events and manual input'},m:'min',h:'h',d:'d',mo:'mo',y:'y',norm:'normal up to',ev:'last',nt:'—',loc:'en-GB',err:'Could not check the sensors.'}}[lg]||null;
+    ru:{st:{on_time:'вовремя',late:'запаздывает',stale:'устарело',unknown:'время не сообщается',no_data:'нет ответа',event:'события и ручной ввод'},m:'Min.',h:'Std.',d:'дн',mo:'мес',y:'г',norm:'норма до',ev:'последнее',nt:'—',loc:'de-DE',err:'Не удалось проверить датчики.',ok:'Опоздавших и молчащих датчиков сейчас нет.'},
+    de:{st:{on_time:'pünktlich',late:'verspätet',stale:'veraltet',unknown:'Zeit nicht angegeben',no_data:'keine Antwort',event:'Ereignisse und manuelle Eingabe'},m:'Min',h:'Std',d:'Tg',mo:'Mon',y:'J',norm:'normal bis',ev:'zuletzt',nt:'—',loc:'de-DE',err:'Die Sensoren konnten nicht geprüft werden.',ok:'Derzeit keine verspäteten oder stummen Sensoren.'},
+    en:{st:{on_time:'on time',late:'late',stale:'stale',unknown:'time not reported',no_data:'no answer',event:'events and manual input'},m:'min',h:'h',d:'d',mo:'mo',y:'y',norm:'normal up to',ev:'last',nt:'—',loc:'en-GB',err:'Could not check the sensors.',ok:'No late or silent sensors right now.'}}[lg]||null;
   if(!T)return;
   const LO=Math.log10(0.05),HI=Math.log10(24*365*2.5),pos=h=>Math.max(0,Math.min(100,(Math.log10(Math.max(0.05,h))-LO)/(HI-LO)*100));
   const age=h=>h==null?T.nt:h<1?Math.max(1,Math.round(h*60))+' '+T.m:h<48?Math.round(h)+' '+T.h:h<24*60?Math.round(h/24)+' '+T.d:h<24*730?Math.round(h/24/30.4)+' '+T.mo:(h/24/365).toLocaleString(T.loc,{maximumFractionDigits:1})+' '+T.y;
   const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
   const ticks=document.getElementById('frTicks');[[1/6,'10 '+T.m],[1,'1 '+T.h],[24,'1 '+T.d],[24*30,'1 '+T.mo],[24*365,'1 '+T.y]].forEach(([h,l])=>{const i=el('i',null,l);i.style.left=pos(h)+'%';ticks.appendChild(i)});
   fetch('/api/v1/freshness').then(r=>r.ok?r.json():null).then(d=>{
-    const rows=document.getElementById('frRows'),sum=document.getElementById('frSum');rows.textContent='';
-    if(!d||!Array.isArray(d.sensors)){rows.appendChild(el('p','lead',T.err));return}
+    const rows=document.getElementById('frRows'),sum=document.getElementById('frSum'),al=document.getElementById('frAlert');rows.textContent='';al.textContent='';
+    if(!d||!Array.isArray(d.sensors)){al.appendChild(el('p','lead',T.err));return}
     ['on_time','late','stale','unknown','no_data','event'].forEach(k=>{if(!d.summary[k])return;const s=el('span');s.append(el('b',null,String(d.summary[k])),' '+T.st[k]);sum.appendChild(s)});
     d.sensors.forEach(r=>{const row=el('div','fr-row');row.dataset.s=r.status;
       const n=el('div','n',(r.name&&(r.name[lg]||r.name.ru))||r.id);
@@ -854,8 +863,10 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_sensors')==='1'}catch
       n.appendChild(el('small',null,r.source+' · '+T.st[r.status]+(when?' · '+when:'')+(r.expect_h?' · '+T.norm+' '+age(r.expect_h):'')));
       const bar=el('div','fr-bar');if(r.expect_h){const ok=el('i','ok');ok.style.width=pos(r.expect_h)+'%';bar.appendChild(ok)}
       if(r.age_h!=null){const dot=el('i','dot');dot.style.left=pos(r.age_h)+'%';bar.appendChild(dot)}
-      row.append(n,bar,el('div','a',age(r.age_h)));rows.appendChild(row)});
-  }).catch(()=>{const rows=document.getElementById('frRows');rows.textContent='';rows.appendChild(el('p','lead',T.err))});
+      row.append(n,bar,el('div','a',age(r.age_h)));rows.appendChild(row);
+      if(['late','stale','unknown','no_data'].includes(r.status))al.appendChild(row.cloneNode(true))});
+    if(!al.children.length)al.appendChild(el('p','fr-ok',T.ok));
+  }).catch(()=>{const al=document.getElementById('frAlert');al.textContent='';al.appendChild(el('p','lead',T.err))});
 })();
 </script>
 <script src="/banners.js" defer></script>

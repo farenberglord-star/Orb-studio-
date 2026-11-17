@@ -427,6 +427,7 @@ PAGES["guests"] = [
 
 # --- этап 1: /sensors (индексы фрагментов взяты из выгрузки; русский текст — точная копия исходника) ---
 PAGES["sensors"] = [
+ ('Все датчики списком', 'Alle Sensoren als Liste', 'All sensors as a list'),
  ('🚢 Ормуз и узкие места', '🚢 Hormus und Meerengen', '🚢 Hormuz and chokepoints'),
  ('Морские узкие места · IMF PortWatch (спутниковый AIS, раз в неделю)', 'Meerengen · IMF PortWatch (Satelliten-AIS, wöchentlich)', 'Maritime chokepoints · IMF PortWatch (satellite AIS, weekly)'),
  ('данные ещё не загружены', 'Daten noch nicht geladen', 'data not loaded yet'),
