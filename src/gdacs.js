@@ -46,8 +46,11 @@ export function parseEvent(f) {
 export function summarize(json, now = Date.now()) {
   const feats = json && Array.isArray(json.features) ? json.features : null;
   if (!feats) return { ok: false, reason: "GDACS answer has no event list" };
-  const seen = new Set(), ev = [];
-  for (const f of feats) { const e = parseEvent(f); if (e && e.current && !seen.has(e.id)) { seen.add(e.id); ev.push(e); } }
+  const seen = new Set(), ev = [], dropped = { green_or_unknown: 0, not_current: 0, duplicate: 0 };
+  for (const f of feats) {
+    const e = parseEvent(f);
+    if (!e) dropped.green_or_unknown++; else if (!e.current) dropped.not_current++; else if (seen.has(e.id)) dropped.duplicate++; else { seen.add(e.id); ev.push(e); }
+  }
   const byTime = (a, b) => String(b.from || "").localeCompare(String(a.from || ""));
   const fast = ev.filter((e) => e.kind === "fast").sort((a, b) => (a.alert === b.alert ? byTime(a, b) : a.alert === "Red" ? -1 : 1));
   const slow = ev.filter((e) => e.kind === "slow").sort(byTime);
@@ -55,7 +58,7 @@ export function summarize(json, now = Date.now()) {
   const count = (a, f) => a.filter(f).length;
   const stamps = ev.map((e) => e.modified || e.from).filter(Boolean).sort();
   return {
-    ok: true, latest_update: stamps.length ? stamps[stamps.length - 1] : null,
+    ok: true, received: feats.length, dropped, latest_update: stamps.length ? stamps[stamps.length - 1] : null,
     counts: { fast: fast.length, slow: slow.length, red: count(ev, (e) => e.alert === "Red"), orange: count(ev, (e) => e.alert === "Orange"),
       by_type: Object.fromEntries(Object.keys(TYPES).map((t) => [t, count(ev, (e) => e.type === t)])) },
     fast: fast.slice(0, 20), slow: slow.slice(0, 20).map((e) => ({ ...e, ongoing_days: days(e) })),
