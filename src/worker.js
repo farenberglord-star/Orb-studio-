@@ -33,6 +33,7 @@ import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
 import { buildScene } from "./spatial.js";
+import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider, setCourtLangPicker } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
@@ -447,6 +448,24 @@ async function sharedGet(env, key, maxAgeMs) {
     if (!row || Date.now() - row.ts > maxAgeMs) return null;
     return JSON.parse(row.v);
   } catch (e) { return null; }
+}
+// ================= «Безопасный мир»: шум за неделю (GDELT DOC 2.0 + Wikimedia Pageviews), /api/v1/safeworld/noise =================
+// Раз в неделю из ежедневного крона. GDELT: строго по одному запросу, пауза 6 с. Пустой или сломанный ответ → null («нет данных»), Worker не падает.
+async function safeworldNoiseRefresh(env, force = false) {
+  if (!force && await sharedGet(env, SW_KEY, SW_MAX_AGE - 6 * 3600e3)) return null;
+  const w = swWeeks(), sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const get = async (u, ms = 20000) => { try { const r = await fetch(u, { signal: AbortSignal.timeout(ms), headers: { "User-Agent": SW_UA, Accept: "application/json" } }); if (!r.ok) return null; const t = await r.text(); try { return JSON.parse(t); } catch (e) { return null; } } catch (e) { return null; } };
+  const gdelt = [];
+  let first = true;
+  for (const t of SW_TOPICS) for (const sc of SW_SCOPES) {
+    const res = {};
+    for (const mode of ["TimelineVolRaw", "TimelineTone"]) { if (!first) await sleep(SW_PAUSE); first = false; res[mode] = await get(swGdeltUrl(t, sc, mode, w)); }
+    gdelt.push(swGdeltRow(t, sc, res.TimelineVolRaw, res.TimelineTone, w));
+  }
+  const wiki = await Promise.all(SW_WIKI.map(async (a) => swWikiRow(a, await get(swWikiUrl(a, w), 10000), w)));
+  const out = swBuildNoise(gdelt, wiki, w);
+  if (out.ok) await sharedPut(env, SW_KEY, out);   // пустую неделю не сохраняем: остаётся прошлая копия или «нет данных»
+  return out;
 }
 async function sharedPut(env, key, value) {
   if (!env || !env.DB) return;
@@ -7293,6 +7312,7 @@ export default {
       return;
     }
     ctx.waitUntil(saveSensorsDigest(env, ctx));
+    ctx.waitUntil(safeworldNoiseRefresh(env).catch(() => null)); // раз в неделю: внутри проверка возраста копии
     ctx.waitUntil(violinDaily(env, ctx).catch(() => null));
     ctx.waitUntil(interviewDaily(env).catch(() => null)); // проверка интервью: у прогнозов наступил срок → события
     ctx.waitUntil(waysOutCompute(env, ctx).catch(() => null));
@@ -7421,6 +7441,11 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/space") {
       const d = await spaceData();
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, d.status === "unavailable" ? 503 : 200);
+    }
+    if (url.pathname === "/api/v1/safeworld/noise") {
+      const d = await sharedGet(env, SW_KEY, SW_MAX_AGE + 2 * 864e5);
+      if (!d) return json({ schema: "orb.safeworld.noise.v1", ok: false, status: "no_data", note: "Weekly media and Wikipedia attention has not been collected yet (it refreshes with the daily 07:10 UTC job, at most once a week). Nothing is estimated.", page: "https://orbstudio.org/tools/court#safeworld" }, { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
+      return json(d, { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
     }
     if (url.pathname === "/api/v1/polls/attention") {
       const { http, ...d } = await partyAttentionData();

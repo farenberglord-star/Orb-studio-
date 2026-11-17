@@ -1,10 +1,12 @@
-/* safeworld3d.js v1.1 - «Безопасный мир» / Sichere Welt / Safe World banner for orbstudio.org (court section)
+/* safeworld3d.js v1.2 - «Безопасный мир» / Sichere Welt / Safe World banner for orbstudio.org (court section)
    Calm protective hologram: translucent shield-dome over a wireframe Earth, one light pillar per verified figure
    (height = log10(value), conditional scale), clearance-rate arcs (AQ) at pillar bases, gentle pulses.
    three.js r128 (cdnjs) only. No textures, models, fonts, logos, images, people. No 3D text: captions are HTML overlays (textContent only).
    window.OrbSafe3D = { init(el, opts)->bool, update(data), stats(), show(i), seek(s), destroy() }
    opts: { caption:true, lang:"ru"|"de"|"en", reduced:bool, onFigure(fn) }. data = safeworld-data.json shape (later GET /api/v1/safeworld).
    Text fields: <name>_de / <name>_en are used when present, else <name>_ru (label, unit, year, definition, note, extra.label).
+   update(data, noise): noise = /api/v1/safeworld/noise (weekly media + Wikipedia attention); no noise -> no ring, no noise slide.
+   prev:{value,year} -> change in % with an arrow, no judgement. Media attention is never compared with crime numbers.
    Missing value -> «нет данных». The module never fills in numbers by itself. Fires el event "orbsafe:figure" (detail = figure). */
 (function () {
   "use strict";
@@ -12,9 +14,12 @@
   var C = { bg: 0x03070f, holo: 0x6fe6ff, dome: 0x8fd8ff, earth: 0x0a2236, de: 0x6fe6ff, missing: 0xf1cf8a, world: 0xb39dff, signals: 0x7fb2ff, none: 0x5a6b78 };
   var CY = 7.0, BASE_Y = -1.9, DOME_R = 4.0, EARTH_R = 1.45, EARTH_Y = 0.15, RING_R = 2.85, LOG_MIN = 3, LOG_MAX = 7.5;
   var L = {
-    ru: { nd: "нет данных", nodata: "НЕТ ДАННЫХ", upd: "обновлено", tz: "Берлин", aq: "раскрываемость (AQ)", aqm: "закрыто (AQ)", src: "Источник", per: "период", approx: "около ", mln: " млн" },
-    de: { nd: "keine Daten", nodata: "KEINE DATEN", upd: "aktualisiert", tz: "Berlin", aq: "Aufklärungsquote", aqm: "erledigt (AQ)", src: "Quelle", per: "Zeitraum", approx: "ca. ", mln: " Mio." },
-    en: { nd: "no data", nodata: "NO DATA", upd: "updated", tz: "Berlin", aq: "clearance rate (AQ)", aqm: "closed (AQ)", src: "Source", per: "period", approx: "approx. ", mln: " million" }
+    ru: { nd: "нет данных", nodata: "НЕТ ДАННЫХ", upd: "обновлено", tz: "Берлин", aq: "раскрываемость (AQ)", aqm: "закрыто (AQ)", src: "Источник", per: "период", approx: "около ", mln: " млн", vs: "к", nz_lab: "Внимание к теме за неделю", nz_art: "статей", nz_views: "просмотров Википедии", nz_prev: "к прошлой неделе", nz_tone: "средняя тональность статей (GDELT, ниже 0 — негативнее)", nz_tone_s: "тональность статей (GDELT)", nz_note_s: "Внимание СМИ ≠ число преступлений.",
+      nz_def: "GDELT: статьи в СМИ мира по запросам Menschenhandel, «human trafficking», Kindesmissbrauch. Википедия: просмотры 5 статей о теме (de, en, ru) людьми.", nz_note: "Внимание СМИ ≠ число преступлений. Эти числа не сравниваются с официальной статистикой.", art_s: "статьи", views_s: "просмотры" },
+    de: { nd: "keine Daten", nodata: "KEINE DATEN", upd: "aktualisiert", tz: "Berlin", aq: "Aufklärungsquote", aqm: "erledigt (AQ)", src: "Quelle", per: "Zeitraum", approx: "ca. ", mln: " Mio.", vs: "ggü.", nz_lab: "Aufmerksamkeit für das Thema in einer Woche", nz_art: "Artikel", nz_views: "Wikipedia-Aufrufe", nz_prev: "ggü. Vorwoche", nz_tone: "mittlerer Ton der Artikel (GDELT, unter 0 = negativer)", nz_tone_s: "Ton der Artikel (GDELT)", nz_note_s: "Medienaufmerksamkeit ≠ Zahl der Straftaten.",
+      nz_def: "GDELT: Medienartikel weltweit zu den Suchbegriffen Menschenhandel, „human trafficking“, Kindesmissbrauch. Wikipedia: Aufrufe von 5 Artikeln zum Thema (de, en, ru) durch Menschen.", nz_note: "Medienaufmerksamkeit ≠ Zahl der Straftaten. Diese Zahlen werden nicht mit der amtlichen Statistik verglichen.", art_s: "Artikel", views_s: "Aufrufe" },
+    en: { nd: "no data", nodata: "NO DATA", upd: "updated", tz: "Berlin", aq: "clearance rate (AQ)", aqm: "closed (AQ)", src: "Source", per: "period", approx: "approx. ", mln: " million", vs: "vs", nz_lab: "Attention to the topic in one week", nz_art: "articles", nz_views: "Wikipedia views", nz_prev: "vs previous week", nz_tone: "average tone of the articles (GDELT, below 0 = more negative)", nz_tone_s: "tone of the articles (GDELT)", nz_note_s: "Media attention ≠ number of crimes.",
+      nz_def: "GDELT: news articles worldwide for the queries Menschenhandel, “human trafficking”, Kindesmissbrauch. Wikipedia: views of 5 articles on the topic (de, en, ru) by people.", nz_note: "Media attention ≠ number of crimes. These numbers are not compared with the official statistics.", art_s: "articles", views_s: "views" }
   };
   function h(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
   function cl(x, a, b) { return x < a ? a : x > b ? b : x; }
@@ -39,6 +44,17 @@
         aq: num(f.aq), extra: ex, definition_ru: str(f.definition_ru), source: str(f.source), url: str(f.url), license: str(f.license), note_ru: str(f.note_ru), raw: f });
     });
     D.figs = D.figs.slice(0, 12); D.ok = D.figs.length > 0; return D;
+  }
+  function parseNoise(n) {
+    if (!n || typeof n !== "object" || n.ok !== true || !n.totals) return null;
+    var t = n.totals, A = num(t.articles_world), V = num(t.wiki_views); if (A === null && V === null) return null;
+    var tw = 0, ts = 0; (Array.isArray(n.gdelt) ? n.gdelt : []).forEach(function (r) { if (r && r.country === null && num(r.tone) !== null && num(r.articles)) { ts += r.tone * r.articles; tw += r.articles; } });
+    var wk = n.week && str(n.week.from) && str(n.week.to) ? n.week : null;
+    return { A: A, pA: num(t.prev_articles_world), V: V, pV: num(t.prev_wiki_views), tone: tw ? Math.round(ts / tw * 10) / 10 : null, week: wk, raw: n };
+  }
+  function pct(v, p, lg) { /* change in % with an arrow; no wording about good or bad */
+    if (v === null || p === null || !p) return null; var d = Math.round((v - p) / p * 1000) / 10, loc = lg === "en" ? "en-US" : lg === "de" ? "de-DE" : "ru-RU";
+    return (d > 0 ? "▲\u00a0+" : d < 0 ? "▼\u00a0−" : "=\u00a0") + Math.abs(d).toLocaleString(loc) + "\u00a0%";
   }
   function fmt(v, approx, lg) {
     var l = L[lg] || L.ru; if (v === null) return l.nd;
@@ -102,7 +118,16 @@
     var ag = new T.BufferGeometry(); ag.setAttribute("position", new T.Float32BufferAttribute(new Float32Array(33 * 3), 3));
     g.arc = new T.Line(ag, lineMat(C.holo, 0)); sc.add(g.arc);
     g.pillars = new T.Group(); sc.add(g.pillars);
+    /* noise ring: particle belt around the dome; how many particles are drawn = log10(articles a week) */
+    var rp = []; for (var q = 0; q < 700; q++) { var ra = h(q * 2.3 + 9) * Math.PI * 2, rr2 = DOME_R + 0.45 + h(q * 4.1 + 1) * 0.7, ry = h(q * 6.7 + 3) * 1.1; rp.push(Math.cos(ra) * rr2, ry, Math.sin(ra) * rr2); }
+    var rg = new T.BufferGeometry(); rg.setAttribute("position", new T.Float32BufferAttribute(rp, 3));
+    g.ring = new T.Points(rg, new T.PointsMaterial(addM({ color: 0xd9c8ff, size: 0.055, opacity: 0.4, sizeAttenuation: true }))); g.ring.position.y = BASE_Y; g.ring.visible = false; sc.add(g.ring);
   }
+  function applyNoise() {
+    var g = S.g, N = S.N; g.ring.visible = !!N; if (!N) return;
+    var base = N.A !== null ? N.A : N.V; g.ring.geometry.setDrawRange(0, Math.round(700 * cl(Math.log(Math.max(10, base)) / Math.LN10 / 5, 0.12, 1)));
+  }
+  function slides() { return S.pil.length + (S.N && S.pil.length ? 1 : 0); }
   function clearPillars() {
     var g = S.g; while (g.pillars.children.length) { var o = g.pillars.children.pop(); o.traverse(function (x) { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); }
     S.pil = [];
@@ -151,13 +176,15 @@
     topText();
     var b = berlin(D.updated, lg); S.cap.t2.textContent = l.upd + ": " + (b ? b + " (" + l.tz + ")" : l.nd);
     var d = S.cap.dots; while (d.firstChild) d.removeChild(d.firstChild);
+    var ns = S.N && D.figs.length;
     S.dotEls = D.figs.map(function (f) { return mk("span", "width:6px;height:6px;border-radius:50%;background:#" + (f.value === null ? C.none : (C[f.group] || C.holo)).toString(16).padStart(6, "0") + ";opacity:.35;transition:opacity .4s", d); });
+    if (ns) S.dotEls.push(mk("span", "width:6px;height:6px;border-radius:50%;box-sizing:border-box;border:1.5px solid #d9c8ff;opacity:.35;transition:opacity .4s", d));
     topText();
   }
   function topText() { /* narrow screens: one title only, and the title never runs under the dots */
     if (!S.cap) return; var lg = S.lang, D = S.D;
     S.cap.t1.textContent = (D.title[lg] || D.title.ru || "Безопасный мир") + (lg === "ru" && D.title.de && S.w >= 700 ? " · " + D.title.de : "");
-    S.cap.top.style.right = (22 + S.cap.dots.offsetWidth) + "px";
+    S.cap.t1.style.paddingRight = (10 + S.cap.dots.offsetWidth) + "px"; /* only the title line shares the row with the dots */
   }
   function tx(o, key) { return o && typeof o === "object" ? (str(o[key + "_" + S.lang]) || str(o[key + "_ru"])) : null; }
   function fill(i) {
@@ -167,7 +194,8 @@
     c.val.textContent = fmt(f.value, f.approx, lg) + (f.value !== null && unit ? " " + unit : "");
     c.val.style.fontSize = nar ? "21px" : "26px";
     var aqL = f.group === "missing" ? l.aqm : l.aq;
-    c.meta.textContent = l.per + ": " + (tx(f.raw, "year") || f.year || nd) + (f.aq !== null ? " · " + aqL + ": " + f.aq.toLocaleString(loc) + " %" : "");
+    var pv = f.raw.prev && typeof f.raw.prev === "object" ? f.raw.prev : null, ch = pv ? pct(f.value, num(pv.value), lg) : null;
+    c.meta.textContent = l.per + ": " + (tx(f.raw, "year") || f.year || nd) + (f.aq !== null ? " · " + aqL + ": " + f.aq.toLocaleString(loc) + " %" : "") + (ch ? " · " + ch + " " + l.vs + " " + (str(pv.year) || "") : "");
     c.ext.textContent = f.extra ? (tx(f.raw.extra, "label") || nd) + ": " + fmt(f.extra.value, f.extra.approx, lg) : "";
     c.def.textContent = tx(f.raw, "definition") || nd; c.note.textContent = tx(f.raw, "note") || "";
     var ok = !!f.url && /^https:\/\//.test(f.url), bare = ok ? f.url.replace(/^https:\/\//, "") : "";
@@ -175,17 +203,31 @@
     if (ok) { c.a.textContent = nar ? bare.split(/[\/?#]/)[0] : bare.split(/[?#]/)[0].slice(0, 60) + (f.url.length > 68 ? "…" : ""); c.a.href = f.url; c.a.style.display = ""; }
     else { c.a.textContent = ""; c.a.removeAttribute("href"); c.a.style.display = "none"; }
   }
+  function fillNoise() {
+    var N = S.N; if (!N || !S.cap) return; var lg = S.lang, l = L[lg], nd = l.nd, c = S.cap, nar = S.w < 700, loc = lg === "en" ? "en-US" : lg === "de" ? "de-DE" : "ru-RU";
+    var d = function (x) { return x.slice(8, 10) + "." + x.slice(5, 7) + "." + x.slice(0, 4); };
+    c.lab.textContent = l.nz_lab;
+    c.val.textContent = fmt(N.A, false, lg) + " " + l.nz_art + " · " + fmt(N.V, false, lg) + " " + l.nz_views; c.val.style.fontSize = nar ? "19px" : "23px";
+    var a = pct(N.A, N.pA, lg), v = pct(N.V, N.pV, lg);
+    c.meta.textContent = l.per + ": " + (N.week ? d(N.week.from) + "–" + d(N.week.to) : nd) + (a || v ? " · " + l.nz_prev + ": " + [a ? l.art_s + " " + a : "", v ? l.views_s + " " + v : ""].filter(Boolean).join(", ") : "");
+    c.ext.textContent = N.tone !== null ? (nar ? l.nz_tone_s : l.nz_tone) + ": " + (N.tone < 0 ? "−" : "") + Math.abs(N.tone).toLocaleString(loc) : "";
+    c.def.textContent = nar ? "" : l.nz_def; c.note.textContent = nar ? l.nz_note_s : l.nz_note;
+    c.srcT.textContent = l.src + ": GDELT Project; Wikimedia Pageviews (CC0) · ";
+    c.a.textContent = nar ? "gdeltproject.org" : "www.gdeltproject.org"; c.a.href = "https://www.gdeltproject.org/"; c.a.style.display = "";
+  }
   function measureCap() { /* tallest caption over all figures: the scene is lifted by that much, so the active pillar stays visible */
     S.capMax = 0; if (!S.cap) return;
     for (var i = 0; i < S.D.figs.length; i++) { fill(i); S.capMax = Math.max(S.capMax, S.cap.box.offsetHeight); }
-    if (S.act >= 0) fill(S.act);
+    if (S.N) { fillNoise(); S.capMax = Math.max(S.capMax, S.cap.box.offsetHeight); }
+    if (S.act >= 0) { if (S.act === S.D.figs.length) fillNoise(); else fill(S.act); }
   }
   function caption(i) {
-    var f = S.D.figs[i]; if (!f) return;
-    if (S.opts.onFigure) try { S.opts.onFigure(f.raw); } catch (e) {}
-    try { S.el.dispatchEvent(new CustomEvent("orbsafe:figure", { detail: f.raw })); } catch (e) {}
+    var noise = i === S.D.figs.length && S.N, f = S.D.figs[i]; if (!f && !noise) return;
+    var det = noise ? { id: "noise", noise: S.N.raw } : f.raw;
+    if (S.opts.onFigure) try { S.opts.onFigure(det); } catch (e) {}
+    try { S.el.dispatchEvent(new CustomEvent("orbsafe:figure", { detail: det })); } catch (e) {}
     if (S.dotEls) S.dotEls.forEach(function (d, k) { d.style.opacity = k === i ? "1" : ".35"; });
-    if (!S.cap) return; fill(i); S.cap.box.style.opacity = "1";
+    if (!S.cap) return; if (noise) fillNoise(); else fill(i); S.cap.box.style.opacity = "1";
   }
   function overlay(on) {
     if (on && !S.ov) { var o = mk("div", "position:absolute;left:0;right:0;top:44%;text-align:center;color:#bfefff;opacity:.85;font:600 14px/1 system-ui,sans-serif;letter-spacing:.3em;pointer-events:none;text-shadow:0 0 8px #000", S.el); o.textContent = L[S.lang].nodata; S.ov = o; if (S.cap) S.cap.box.style.opacity = "0"; }
@@ -194,9 +236,10 @@
 
   /* ---------- animation (deterministic from time t) ---------- */
   function frame(t) {
-    var g = S.g, n = S.pil.length, act = n ? Math.floor(t / CY) % n : -1, lt = t - Math.floor(t / CY) * CY;
+    var g = S.g, n = slides(), act = n ? Math.floor(t / CY) % n : -1, lt = t - Math.floor(t / CY) * CY;
     if (act !== S.act) { S.act = act; if (act >= 0) caption(act); }
     g.earth.rotation.y = t * 0.06;
+    if (g.ring.visible) { var kn = act === S.pil.length ? sm(lt / 0.8) * (1 - sm((lt - CY + 0.8) / 0.8)) : 0; g.ring.rotation.y = -t * 0.025; g.ring.material.opacity = 0.28 + 0.06 * Math.sin(t * 0.7) + 0.5 * kn; g.ring.material.size = 0.055 + 0.03 * kn; }
     var br = 0.5 + 0.5 * Math.sin(t * 0.55);
     g.domeShell.material.opacity = 0.04 + 0.025 * br; g.domeWire.material.opacity = 0.1 + 0.06 * br;
     g.bands.forEach(function (b, i) { var p = ((t * 0.07 + i / 3) % 1), y = p * DOME_R * 0.97, r = Math.sqrt(Math.max(0, DOME_R * DOME_R - y * y)); b.position.y = y; b.scale.set(r, 1, r); b.material.opacity = 0.32 * Math.sin(p * Math.PI) * (1 - p * 0.5); });
@@ -241,7 +284,7 @@
     if (S.reduced) reducedStep();
   }
     function reducedStep() {
-    clearTimeout(S.redTimer); var n = Math.max(1, S.pil.length); S.redT = S.redIdx * CY + CY * 0.5; drawOnce();
+    clearTimeout(S.redTimer); var n = Math.max(1, slides()); S.redT = S.redIdx * CY + CY * 0.5; drawOnce();
     if (!S.hidden && S.inView && S.pil.length) S.redTimer = setTimeout(function () { S.redIdx = (S.redIdx + 1) % n; reducedStep(); }, CY * 1000);
   }
   function resize() {
@@ -277,12 +320,12 @@
       if (window.ResizeObserver) { S.ro = new ResizeObserver(resize); S.ro.observe(el); } else { S.onRs = resize; window.addEventListener("resize", resize); }
       overlay(true); resize(); sched(); return true;
     },
-    update: function (data) { if (!S) return; S.D = parse(data); S.act = -2; S.redIdx = 0; buildPillars(); setTop(); overlay(!S.D.ok); resize(); sched(); },
-    show: function (i) { if (!S || !S.pil.length) return; var n = S.pil.length; i = (((i | 0) % n) + n) % n; S.wt = i * CY + 0.01; S.redIdx = i; if (S.reduced) reducedStep(); else drawOnce(); },
+    update: function (data, noise) { if (!S) return; S.D = parse(data); S.N = parseNoise(noise !== undefined ? noise : data && data.noise); S.act = -2; S.redIdx = 0; buildPillars(); applyNoise(); setTop(); overlay(!S.D.ok); resize(); sched(); },
+    show: function (i) { if (!S || !S.pil.length) return; var n = slides(); i = (((i | 0) % n) + n) % n; S.wt = i * CY + 0.01; S.redIdx = i; if (S.reduced) reducedStep(); else drawOnce(); },
     seek: function (sec) { if (!S) return; S.wt = Math.max(0, +sec || 0); var rd = S.reduced; S.reduced = false; drawOnce(); S.reduced = rd; },
     stats: function () {
       if (!S) return null; var f = S.D.figs[S.act];
-      return { figures: S.D.figs.length, active: f ? f.id : null, cycle_s: CY, ok: S.D.ok, missing_values: S.D.figs.filter(function (x) { return x.value === null; }).length,
+      return { figures: S.D.figs.length, noise: !!S.N, slides: slides(), active: f ? f.id : S.N && S.act === S.D.figs.length ? "noise" : null, cycle_s: CY, ok: S.D.ok, missing_values: S.D.figs.filter(function (x) { return x.value === null; }).length,
         triangles: S.tri, calls: S.calls, fps: S.fps, running: S.running, reduced: S.reduced, pixelRatio: S.pr, lang: S.lang };
     },
     destroy: function () {

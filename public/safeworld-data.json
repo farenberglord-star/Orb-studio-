@@ -1,6 +1,6 @@
 {
   "schema": "orb.safeworld.v1",
-  "updated": "2026-11-17T06:55:00+01:00",
+  "updated": "2026-11-17T08:45:00+01:00",
   "title_ru": "Безопасный мир",
   "title_de": "Sichere Welt",
   "title_en": "Safe World",
@@ -27,7 +27,12 @@
       "definition_de": "Von der Polizei in Deutschland registrierte Fälle (PKS). AQ = Aufklärungsquote, Anteil der aufgeklärten Fälle.",
       "definition_en": "Cases recorded by the police in Germany (PKS). AQ = clearance rate, the share of cases cleared.",
       "note_de": "Das sind bei der Polizei angezeigte Fälle, nicht die gesamte Kriminalität (Hellfeld).",
-      "note_en": "These are cases reported to the police, not all crime (the recorded part only)."
+      "note_en": "These are cases reported to the police, not all crime (the recorded part only).",
+      "prev": {
+        "value": 16354,
+        "year": "2024",
+        "aq": 86.1
+      }
     },
     {
       "id": "de_pks_184b",
@@ -50,7 +55,12 @@
       "definition_de": "Verbreitung, Erwerb und Besitz solcher Inhalte; von der Polizei registrierte Fälle (PKS).",
       "definition_en": "Distribution, acquisition and possession of such material; cases recorded by the police (PKS).",
       "note_de": "Das sind bei der Polizei angezeigte Fälle, nicht die gesamte Kriminalität (Hellfeld).",
-      "note_en": "These are cases reported to the police, not all crime (the recorded part only)."
+      "note_en": "These are cases reported to the police, not all crime (the recorded part only).",
+      "prev": {
+        "value": 42854,
+        "year": "2024",
+        "aq": 86.4
+      }
     },
     {
       "id": "de_pks_184c",
@@ -73,7 +83,12 @@
       "definition_de": "Verbreitung, Erwerb und Besitz von Inhalten mit Jugendlichen von 14 bis 17 Jahren; von der Polizei registrierte Fälle (PKS).",
       "definition_en": "Distribution, acquisition and possession of material involving young people aged 14–17; cases recorded by the police (PKS).",
       "note_de": "Das sind bei der Polizei angezeigte Fälle, nicht die gesamte Kriminalität (Hellfeld).",
-      "note_en": "These are cases reported to the police, not all crime (the recorded part only)."
+      "note_en": "These are cases reported to the police, not all crime (the recorded part only).",
+      "prev": {
+        "value": 9601,
+        "year": "2024",
+        "aq": null
+      }
     },
     {
       "id": "de_missing_children",
@@ -103,7 +118,9 @@
       "definition_de": "Vermisstenmeldungen zu Kindern in der Datei INPOL im Jahr; AQ = Anteil der erledigten Fälle.",
       "definition_en": "Reports of missing children in the INPOL database during the year; AQ = share of closed cases.",
       "note_de": "„Erledigt“ heißt nicht immer „gefunden“. Das BKA nennt gerundete Werte.",
-      "note_en": "“Closed” does not always mean “found”. The BKA gives rounded figures."
+      "note_en": "“Closed” does not always mean “found”. The BKA gives rounded figures.",
+      "prev": null,
+      "prev_note_ru": "Сопоставимое значение за 2024 год в открытых источниках не найдено."
     },
     {
       "id": "eu_thb_victims",
@@ -116,7 +133,7 @@
       "unit_ru": "человек",
       "year": "2024",
       "definition_ru": "Eurostat crim_thb_sex: leg_stat=PER_VICT, sex=T, unit=NR, geo=EU_V; все формы эксплуатации.",
-      "source": "Eurostat, crim_thb_sex (API, обновлено 09.09.2026)",
+      "source": "Eurostat, crim_thb_sex (API, 09.09.2026)",
       "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/crim_thb_sex?time=2024&sex=T&leg_stat=PER_VICT&unit=NR&geo=EU_V",
       "license": "Eurostat: повторное использование с указанием источника",
       "note_ru": "Значение из API. В статье Eurostat Statistics Explained (январь 2026) приведено 9 678, расхождение не объяснено.",
@@ -125,7 +142,12 @@
       "definition_de": "Eurostat crim_thb_sex: leg_stat=PER_VICT, sex=T, unit=NR, geo=EU_V; alle Formen der Ausbeutung.",
       "definition_en": "Eurostat crim_thb_sex: leg_stat=PER_VICT, sex=T, unit=NR, geo=EU_V; all forms of exploitation.",
       "note_de": "Wert aus der API. Der Eurostat-Artikel Statistics Explained (Januar 2026) nennt 9 678; die Abweichung ist nicht geklärt.",
-      "note_en": "Value from the API. The Eurostat Statistics Explained article (January 2026) gives 9,678; the difference is unexplained."
+      "note_en": "Value from the API. The Eurostat Statistics Explained article (January 2026) gives 9,678; the difference is unexplained.",
+      "prev": {
+        "value": 10556,
+        "year": "2023",
+        "aq": null
+      }
     },
     {
       "id": "un_glotip_victims",
@@ -149,7 +171,9 @@
       "definition_de": "Opfer, die von den Behörden der an UNODC berichtenden Staaten erkannt wurden (Global Report on Trafficking in Persons 2024).",
       "definition_en": "Victims detected by the authorities of countries reporting to UNODC (Global Report on Trafficking in Persons 2024).",
       "note_de": "Das sind nur erkannte Fälle; die tatsächliche Zahl ist unbekannt.",
-      "note_en": "These are detected cases only; the real number is unknown."
+      "note_en": "These are detected cases only; the real number is unknown.",
+      "prev": null,
+      "prev_note_ru": "Отчёт выходит раз в два года и сравнивает с 2019 годом, а не с прошлым годом."
     },
     {
       "id": "us_ncmec_reports",
@@ -171,7 +195,9 @@
       "definition_de": "Meldungen über mögliche Ausbeutung von Kindern im Internet, die bei der CyberTipline eingegangen sind.",
       "definition_en": "Reports of suspected online child exploitation received by the CyberTipline.",
       "note_de": "Das sind Meldungen, keine Straftaten. Nach dem REPORT Act sind die Jahre schlecht vergleichbar. Wert gerundet (21,3 Mio.).",
-      "note_en": "These are reports, not crimes. After the REPORT Act, years are hard to compare. Rounded value (21.3 million)."
+      "note_en": "These are reports, not crimes. After the REPORT Act, years are hard to compare. Rounded value (21.3 million).",
+      "prev": null,
+      "prev_note_ru": "Год к году не показываем: с 2024 года крупные платформы объединяют сообщения в пакеты, а REPORT Act расширил категории."
     }
   ],
   "scale_note_de": "Säulenhöhe: dekadischer Logarithmus der Zahl, der Maßstab ist frei gewählt. Zahlen aus verschiedenen Quellen und Jahren werden nicht direkt verglichen.",
