@@ -2831,15 +2831,41 @@ async function anomalyDetect(env) {
   let sales = [];
   try { sales = (await env.DB.prepare("SELECT ts, agent, network, usdc FROM violin_sales WHERE day=?1").bind(d).all()).results || []; } catch (e) {}
   for (const x of sales) signals.push({ type: "x402_payment", product: "violin of the day", agent: String(x.agent || "").slice(0, 80), usdc: x.usdc, network: x.network });
+  const vals = await anomalySensors(env).catch(() => []);
+  for (const v of vals) { const agent = signals.find((x) => x.type === "sensor_spike" && x.sensor === v.sensor); if (agent) v.agents_also_interested = true; signals.push(v); }
   return { enabled: true, day: d, checked_at: new Date(now).toISOString(), site_ratio_vs_normal: +siteRatio.toFixed(1), anomaly: signals.length > 0, signals,
-    rules: "Scanners and search crawlers are excluded. sensor_spike: today's projected requests to one sensor >= 3x its 7-day median and >= 2x the site-wide ratio, at least 25 requests. new_agent: a name not seen in 30 days with >= 5 requests to <= 6 sensors. x402_payment: a settled payment today.",
+    rules: "Agent interest (scanners and search crawlers excluded) and sensor readings. value_*: sharp change in a reading by the rule given in each signal; agents_also_interested=true when agents spiked on the same sensor. sensor_spike: today's projected requests to one sensor >= 3x its 7-day median and >= 2x the site-wide ratio, at least 25 requests. new_agent: a name not seen in 30 days with >= 5 requests to <= 6 sensors. x402_payment: a settled payment today.",
     note: "Observed interest of automated clients in Orb Studio sensors. Not a forecast, not a statement about the world." };
+}
+// показания датчиков: резкие изменения по правилам, которые уже есть у самих датчиков, плюс пороги Orb Studio
+async function anomalySensors(env) {
+  const out = [], now = Date.now(), ctx = { waitUntil() {} };
+  const [sens, gas, hist] = await Promise.all([sensorsData(env, ctx).catch(() => null), gasData(env).catch(() => null), historyIndex(env).catch(() => null)]);
+  if (sens) {
+    const v = sens.volatility || {};
+    for (const sp of (v.spikes_24h || [])) if (now - Date.parse(sp.hour_end) < 6 * 36e5) out.push({ type: "value_crypto_spike", sensor: "/api/v1/sensors", coin: sp.coin, hour_end: sp.hour_end, move_pct: sp.move_pct, z: sp.z, volume_vs_week_median: sp.volume_vs_week_median, rule: "Kraken hourly spike rule of the volatility sensor, last 6 hours" });
+    const at = sens.attention || {};
+    for (const a of (at.surges || [])) out.push({ type: "value_attention_surge", sensor: "/api/v1/sensors", article: a.article, radar: a.radar, ratio: a.ratio, views: a.views, usual: a.usual, day: a.day, rule: "Wikipedia article views far above the 4-week median" });
+    const pw = sens.power || {};
+    if (!pw.stale && pw.today) {
+      if (pw.today.max_eur_mwh >= 300) out.push({ type: "value_power_peak", sensor: "/api/v1/sensors", max_eur_mwh: pw.today.max_eur_mwh, max_at: pw.today.max_at, rule: "German day-ahead price peak >= 300 EUR/MWh" });
+      if (pw.today.negative_quarter_hours >= 8) out.push({ type: "value_power_negative", sensor: "/api/v1/sensors", negative_quarter_hours: pw.today.negative_quarter_hours, rule: ">= 8 quarter hours with a negative price today" });
+      if (pw.tomorrow_published && pw.tomorrow && pw.today.avg_eur_mwh > 0) { const ch = (pw.tomorrow.avg_eur_mwh / pw.today.avg_eur_mwh - 1) * 100;
+        if (Math.abs(ch) >= 40) out.push({ type: "value_power_swing", sensor: "/api/v1/sensors", today_avg: pw.today.avg_eur_mwh, tomorrow_avg: pw.tomorrow.avg_eur_mwh, change_pct: +ch.toFixed(0), rule: "tomorrow's average price differs from today's by >= 40%" }); }
+    }
+  }
+  if (gas && gas.ok && typeof gas.trend_pp_day === "number" && gas.trend_pp_day <= -0.45) out.push({ type: "value_gas_withdrawal", sensor: "/api/v1/gas/storage", gas_day: gas.gas_day, full_percent: gas.full_percent, trend_pp_day: gas.trend_pp_day, change_7d_pp: (gas.observed_change_7d || {}).change_pp, rule: "German storage falling >= 0.45 percentage points in one gas day (AGSI+)" });
+  if (hist && hist.risk_index_history) for (const [id, ser] of Object.entries(hist.risk_index_history)) {
+    if (!ser || ser.length < 2) continue; const a = ser[ser.length - 2], b = ser[ser.length - 1];
+    if (a && b && a.risk_index != null && b.risk_index != null && Math.abs(b.risk_index - a.risk_index) >= 10) out.push({ type: "value_radar_jump", sensor: `/api/v1/radar/${id}`, radar: id, from: a.risk_index, to: b.risk_index, from_day: a.day, to_day: b.day, rule: "radar risk index moved >= 10 points between two daily snapshots" });
+  }
+  return out;
 }
 async function anomalyRecord(env) {
   const r = await anomalyDetect(env); if (!r.enabled || !r.anomaly) return r;
   const log = (await sharedGet(env, ANOM_KEY, 1e15)) || { items: [] }, have = new Set(log.items.map((x) => x.id));
   for (const s of r.signals) {
-    const id = `${r.day}:${s.type}:${s.sensor || s.agent || ""}`.slice(0, 160);
+    const id = `${r.day}:${s.type}:${s.coin || s.article || s.radar || s.sensor || s.agent || ""}`.slice(0, 160);
     if (have.has(id)) continue;
     log.items.unshift({ id, day: r.day, ts: Date.now(), ...s }); have.add(id);
   }
