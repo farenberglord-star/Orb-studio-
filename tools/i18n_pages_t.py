@@ -427,6 +427,13 @@ PAGES["guests"] = [
 
 # --- этап 1: /sensors (индексы фрагментов взяты из выгрузки; русский текст — точная копия исходника) ---
 PAGES["sensors"] = [
+ ('🚢 Ормуз и узкие места', '🚢 Hormus und Meerengen', '🚢 Hormuz and chokepoints'),
+ ('Морские узкие места · IMF PortWatch (спутниковый AIS, раз в неделю)', 'Meerengen · IMF PortWatch (Satelliten-AIS, wöchentlich)', 'Maritime chokepoints · IMF PortWatch (satellite AIS, weekly)'),
+ ('данные ещё не загружены', 'Daten noch nicht geladen', 'data not loaded yet'),
+ ('Недельный файл PortWatch ещё не прочитан — цифры не выдумываю.', 'Die Wochendatei von PortWatch wurde noch nicht gelesen – ich erfinde keine Zahlen.', 'The weekly PortWatch file has not been read yet – I do not make up numbers.'),
+ ('к году назад', 'ggü. Vorjahr', 'vs a year ago'), ('Ормуз', 'Hormus', 'Hormuz'), ('судов/сутки', 'Schiffe/Tag', 'ships/day'),
+ ('Данные по', 'Daten bis', 'Data through'), ('судов в сутки, среднее за 7 дней', 'Schiffe pro Tag, Mittel über 7 Tage', 'ships per day, 7-day average'), ('танкеров', 'Tanker', 'tankers'),
+ ('Оценка IMF PortWatch по спутниковым сигналам AIS (UN Global Platform), через портал HDX. Суда с выключенным AIS не видны. Данные обновляются раз в неделю и отстают на несколько дней.', 'Schätzung von IMF PortWatch aus Satelliten-AIS-Signalen (UN Global Platform), über das HDX-Portal. Schiffe mit ausgeschaltetem AIS sind nicht sichtbar. Die Daten werden wöchentlich aktualisiert und hinken einige Tage hinterher.', 'IMF PortWatch estimate from satellite AIS signals (UN Global Platform), via the HDX portal. Ships with AIS switched off are not visible. The data are updated weekly and lag a few days.'),
  ('🦠 Вспышки болезней', '🦠 Krankheitsausbrüche', '🦠 Disease outbreaks'), ('🧳 Вынужденно перемещённые', '🧳 Vertriebene', '🧳 Forcibly displaced'),
  ('Вспышки болезней · ВОЗ (Disease Outbreak News)', 'Krankheitsausbrüche · WHO (Disease Outbreak News)', 'Disease outbreaks · WHO (Disease Outbreak News)'),
  ('Вынужденно перемещённые · УВКБ ООН', 'Vertriebene · UNHCR', 'Forcibly displaced · UNHCR'),

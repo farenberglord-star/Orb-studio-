@@ -183,6 +183,7 @@
       "get_freshness",
       "get_disasters",
       "get_food_prices",
+      "get_chokepoints",
       "get_outbreaks",
       "get_displacement",
       "get_party_attention",

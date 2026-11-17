@@ -30,7 +30,8 @@
     "test:gdacs": "node --test test/gdacs.test.mjs",
     "test:fao": "node --test test/fao.test.mjs",
     "test:who": "node --test test/who.test.mjs",
-    "test:unhcr": "node --test test/unhcr.test.mjs"
+    "test:unhcr": "node --test test/unhcr.test.mjs",
+    "test:chokepoints": "node --test test/chokepoints.test.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

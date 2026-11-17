@@ -40,7 +40,7 @@ test("future timestamps never give a negative age; summary adds up; sorted by ag
   assert.equal(cadenceClass(1), "minutes"); assert.equal(cadenceClass(72), "days"); assert.equal(cadenceClass(1200), "months"); assert.equal(cadenceClass(null), "irregular");
 });
 test("every catalog entry has three names and a known source key", () => {
-  const keys = new Set(["outbreaks", "displacement", "food", "disasters", "radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"]);
+  const keys = new Set(["chokepoints", "outbreaks", "displacement", "food", "disasters", "radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"]);
   for (const x of CATALOG) { assert.ok(x.name.ru && x.name.de && x.name.en, x.id); assert.ok(keys.has(x.src), x.id); }
   assert.equal(new Set(CATALOG.map((x) => x.id)).size, CATALOG.length);
 });

@@ -36,6 +36,7 @@ import { buildScene } from "./spatial.js";
 import { FAO_PAGE, findCsvUrl as faoCsvUrl, parseCsv as faoParse, summarize as faoSummarize, ATTRIBUTION as FAO_ATTR } from "./fao.js"; // мировые цены на еду
 import { WHO_URL, summarize as whoSummarize, ATTRIBUTION as WHO_ATTR } from "./who.js"; // вспышки болезней (ВОЗ)
 import { API as UNHCR_API, summarize as unhcrSummarize, ATTRIBUTION as UNHCR_ATTR } from "./unhcr.js"; // беженцы (УВКБ ООН)
+import { HDX_CSV as CP_CSV, collect as cpCollect, summarize as cpSummarize, ATTRIBUTION as CP_ATTR } from "./chokepoints.js"; // морские узкие места (IMF PortWatch через HDX)
 import { GDACS_URL, summarize as gdacsSummarize, ATTRIBUTION as GDACS_ATTR } from "./gdacs.js"; // катастрофы по миру
 import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
@@ -480,7 +481,7 @@ const FR_KEY = "freshness-obs-v1", FR_RECHECK_MS = 10 * 60e3, FR_PER_CALL = 4;
 const FR_LOADERS = {
   radars: (env, ctx, origin) => allRadars(env, ctx, origin),
   sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
-  quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), outbreaks: () => outbreaksData(), displacement: () => displacementData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
+  quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), chokepoints: (env, ctx) => chokepointsData(env, null), outbreaks: () => outbreaksData(), displacement: () => displacementData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
   gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(),
   aviation: (env, ctx) => aviationData(env, ctx), bafin: () => bafinData(), prices: (env) => pricesRadar(env, "hamburg"), tariffs: (env, ctx, origin) => tariffsData(env, origin),
   safeworld: async (env, ctx, origin) => { const r = await env.ASSETS.fetch(new Request(origin + "/safeworld-data.json")); return r.ok ? r.json() : null; },
@@ -1071,6 +1072,38 @@ async function displacementData() {
   return { ...d, source: UNHCR_ATTR, source_url: "https://www.unhcr.org/refugee-statistics/",
     scope_note: "UNHCR population statistics. 'refugees' = refugees under UNHCR's mandate incl. people in a refugee-like situation; it excludes Palestine refugees under UNRWA's mandate and other people in need of international protection, so these fields do not add up to UNHCR's headline total of forcibly displaced people. The current year is preliminary data as of mid-year (Mid-Year Trends, published October/November); earlier years are end-of-year. '-' in the source is no data, not zero. Top origins are for the last full year.",
     page: "https://orbstudio.org/api/v1/displacement" };
+}
+// ================= Морские узкие места (IMF PortWatch через HDX): /api/v1/chokepoints, MCP get_chokepoints =================
+// Файл обновляется раз в неделю. Скачиваем не чаще раза в 7 дней из ежедневной задачи (одна загрузка, не в каждом дата-центре), читаем только начало файла
+// (он идёт от новых дат к старым), храним сводку в D1. Сайт и агенты читают только сохранённую сводку.
+const CP_KEY = "chokepoints-v1", CP_EVERY_MS = 7 * 864e5;
+async function chokepointsRefresh(env, force = false) {
+  const old = await sharedGet(env, CP_KEY, 1e13);
+  if (!force && old && Date.now() - old.fetched_ms < CP_EVERY_MS) return old;
+  const r = await fetch(CP_CSV, { signal: AbortSignal.timeout(25000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors; weekly)" } });
+  if (!r.ok || !r.body) throw new Error("HDX " + r.status);
+  const reader = r.body.pipeThrough(new TextDecoderStream()).getReader();
+  const lines = []; let buf = "";
+  while (lines.length < 12500) { const { value, done } = await reader.read(); if (done) { if (buf) lines.push(buf); break; } buf += value; const parts = buf.split(/\r?\n/); buf = parts.pop(); for (const p of parts) lines.push(p); }
+  reader.cancel().catch(() => {});
+  const c = cpCollect(lines), sum = cpSummarize(c.by, c.newest);
+  if (!sum.ok) throw new Error(sum.reason);
+  const out = { ...sum, fetched_at: new Date().toISOString(), fetched_ms: Date.now() };
+  await sharedPut(env, CP_KEY, out);
+  return out;
+}
+async function chokepointsData(env, ctx) {
+  const d = await sharedGet(env, CP_KEY, 1e13);
+  if (!d) { // ещё ни разу не скачивали: одна попытка в фоне не чаще раза в 6 часов
+    const tried = await sharedGet(env, CP_KEY + ":try", 6 * 3600e3);
+    if (!tried && ctx) { await sharedPut(env, CP_KEY + ":try", { at: Date.now() }); ctx.waitUntil(chokepointsRefresh(env, true).catch(() => null)); }
+  }
+  const note = { source: CP_ATTR, source_url: "https://data.humdata.org/organization/portwatch",
+    scope_note: "Daily transit counts of vessels through maritime chokepoints, estimated by IMF PortWatch from satellite AIS (UN Global Platform). The file is updated weekly and the data lag a few days; Orb Studio downloads it at most once a week and shows only aggregates: average ships and tankers per day over the last 7 days of data vs the same 7 days one year earlier. Ships that switch off AIS are not counted; tonnage is not shown. Not an official traffic count and not a forecast.",
+    page: "https://orbstudio.org/api/v1/chokepoints" };
+  if (!d) return { ok: false, status: "no_data", note: "The weekly PortWatch file has not been read yet. Nothing is estimated.", ...note };
+  const { fetched_ms, ...rest } = d;
+  return { status: "ok", ...rest, ...note };
 }
 // ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
 // Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
@@ -2237,6 +2270,7 @@ const OA_GET = [
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
+  ["/api/v1/chokepoints", "getChokepoints", "Ships and tankers per day through maritime chokepoints (Hormuz, Bab el-Mandeb, Suez, Cape of Good Hope, Malacca, Panama, Bosporus...): last 7 days of data vs a year earlier. IMF PortWatch via HDX, weekly.", []],
   ["/api/v1/outbreaks", "getOutbreaks", "Latest official WHO Disease Outbreak News: disease, place, date, link; notices in the last 30 days.", []],
   ["/api/v1/displacement", "getDisplacement", "UNHCR population statistics: refugees under UNHCR mandate, asylum-seekers, IDPs, stateless; latest year (preliminary mid-year if current) and the year before; top countries of origin.", []],
   ["/api/v1/food-prices", "getFoodPrices", "FAO Food Price Index: latest month, value (2014-2016 = 100), monthly and yearly change, five sub-indices and the last 13 months.", []],
@@ -6706,6 +6740,9 @@ const MCP_TOOLS = [
   { name: "get_agent_podcast", title: "Orb Studio agent podcast: staged dialogue on live sensor data",
     description: "Free. A staged dialogue (host David asks, the core ORB-7 answers) built by code from live Orb Studio sensors: space weather, Elbe water level, motorways, a sample route, earthquakes, sky over Hamburg and agent guests. Each reply carries data_refs (sensor, time, url) so every figure can be checked. Not an interview with an outside agent, no forecasts; missing sources are stated, not filled in. Optional date for archived episodes.",
     inputSchema: { type: "object", properties: { date: { type: "string", description: "YYYY-MM-DD, optional" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_chokepoints", title: "Maritime chokepoints: ships per day (IMF PortWatch, weekly)",
+    description: "Free. Ships and tankers per day through maritime chokepoints (Strait of Hormuz, Bab el-Mandeb, Suez, Cape of Good Hope, Malacca, Panama, Bosporus and others): average of the last 7 days of data vs the same 7 days a year earlier, plus the last daily counts. IMF PortWatch AIS-based estimates via HDX, updated weekly with a few days' lag.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_outbreaks", title: "Disease outbreaks: latest WHO Disease Outbreak News",
     description: "Free. Latest official WHO Disease Outbreak News (events of international public health significance): disease, place, publication date, link, and how many notices were published in the last 30 days. Titles and dates only, no case numbers. Not medical advice.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -6996,6 +7033,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
+  if (name === "get_chokepoints") return { ...(await chokepointsData(env, ctx)), referral: ref };
   if (name === "get_outbreaks") return { ...(await outbreaksData()), referral: ref };
   if (name === "get_displacement") return { ...(await displacementData()), referral: ref };
   if (name === "get_food_prices") return { ...(await foodPricesData()), referral: ref };
@@ -7474,6 +7512,7 @@ export default {
     }
     ctx.waitUntil(saveSensorsDigest(env, ctx));
     ctx.waitUntil(safeworldNoiseRefresh(env).catch(() => null)); // раз в неделю: внутри проверка возраста копии
+    ctx.waitUntil(chokepointsRefresh(env).catch(() => null)); // узкие места: не чаще раза в 7 дней
     ctx.waitUntil(violinDaily(env, ctx).catch(() => null));
     ctx.waitUntil(interviewDaily(env).catch(() => null)); // проверка интервью: у прогнозов наступил срок → события
     ctx.waitUntil(waysOutCompute(env, ctx).catch(() => null));
@@ -7654,6 +7693,9 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/agent-podcast") {
       const d = await podcastData(env, ctx, url.origin, url.searchParams.get("date"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+    }
+    if (url.pathname === "/api/v1/chokepoints") {
+      return json(await chokepointsData(env, ctx), { "Cache-Control": "public, max-age=1800", "Access-Control-Allow-Origin": "*" });
     }
     if (url.pathname === "/api/v1/outbreaks" || url.pathname === "/api/v1/displacement") {
       const d = url.pathname === "/api/v1/outbreaks" ? await outbreaksData() : await displacementData();
