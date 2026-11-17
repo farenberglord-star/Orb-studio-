@@ -64,6 +64,24 @@ details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;co
 details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 .sn .vl i.tn{display:inline-block;width:10px;height:10px;border-radius:50%;margin-left:3px;vertical-align:middle}
+
+#freshness{max-width:1040px;margin:18px auto;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#freshness .lead{color:var(--dim);font-size:14px;line-height:1.5;margin:6px 0 10px;max-width:72ch}
+.fr-sum{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.fr-sum span{font:12px var(--mono);border:1px solid var(--line);border-radius:999px;padding:3px 9px;color:var(--dim)}
+.fr-sum b{color:var(--fg)}
+.fr-axis,.fr-row{display:grid;grid-template-columns:minmax(120px,30%) 1fr 74px;gap:8px;align-items:center}
+.fr-axis{font:10.5px var(--mono);color:var(--dim);margin-bottom:4px}
+.fr-axis .ticks{position:relative;height:14px}.fr-axis .ticks i{position:absolute;transform:translateX(-50%);font-style:normal;white-space:nowrap}
+.fr-row{padding:5px 0;border-top:1px solid rgba(27,41,68,.6);font-size:13px}
+.fr-row .n{color:var(--fg);line-height:1.3}.fr-row .n small{display:block;color:var(--dim);font-size:11px}
+.fr-bar{position:relative;height:12px;border-radius:6px;background:rgba(5,8,16,.7);overflow:hidden}
+.fr-bar .ok{position:absolute;left:0;top:0;bottom:0;background:rgba(79,216,164,.13);border-right:1px dashed rgba(79,216,164,.5)}
+.fr-bar .dot{position:absolute;top:1px;width:10px;height:10px;border-radius:50%;transform:translateX(-50%);background:var(--c);box-shadow:0 0 8px var(--c)}
+.fr-row .a{font:12px var(--mono);text-align:right;color:var(--c)}
+.fr-row[data-s=on_time]{--c:var(--up)}.fr-row[data-s=late]{--c:var(--warm)}.fr-row[data-s=stale]{--c:var(--hot)}
+.fr-row[data-s=unknown],.fr-row[data-s=no_data]{--c:var(--dim)}.fr-row[data-s=event]{--c:var(--violet)}
+@media (max-width:600px){.fr-axis,.fr-row{grid-template-columns:1fr 64px}.fr-axis .lbl{display:none}.fr-row .n{grid-column:1/3}.fr-axis .ticks{grid-column:1/2}}
 </style><style>
 .slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
   background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
@@ -311,6 +329,15 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
     <a class="slb-go" href="/go/starlink?from=sensors" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
     <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
   </aside>
+
+  <section id="freshness" aria-live="polite">
+    <h2>KARTE DER VERZÖGERUNG DER REALITÄT</h2>
+    <p class="lead">Wie frisch jede Zahl der Seite ist. Der Punkt zeigt das Alter der Quelldaten, der grüne Balken das für die Quelle übliche Alter, wenn alles nach Plan läuft. Ein Kryptokurs, ein Gastag und eine Jahresstatistik beschreiben verschiedene Momente: Lesen Sie Zahlen zusammen mit ihrem Alter. Das bewertet die Aktualität, nicht die Genauigkeit.</p>
+    <div class="fr-sum" id="frSum"></div>
+    <div class="fr-axis"><span class="lbl">Alter der Daten →</span><div class="ticks" id="frTicks"></div><span></span></div>
+    <div id="frRows"><p class="lead">Sensoren werden geprüft…</p></div>
+    <p class="lead">Maschinenlesbare Daten: <a href="/api/v1/freshness">/api/v1/freshness</a> · MCP get_freshness</p>
+  </section>
 
   <details class="machine" id="machineBox"><summary>Textversion · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Live-Daten setzt der Server ein. Maschinendaten: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>.</p></section></details>
   <p class="agentline">🤖 Für Agenten: dieselben Daten als Text → <a href="/api/v1/radars">/api/v1/radars</a> · <a href="/api/v1/live">/api/v1/live</a> · <a href="/api/v1/world-radio">/api/v1/world-radio</a> · <a href="/api/v1/prices">/api/v1/prices</a> · <a href="/api/v1/predict">/api/v1/predict</a> · MCP auf <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
@@ -742,6 +769,32 @@ document.addEventListener('click',e=>{
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_sensors')==='1'}catch(e){}
 (seen?fetch('/api/v1/stats?page=sensors'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"sensors"}'}))
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_sensors','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
+</script>
+<script>
+// ---- «Карта задержек реальности»: /api/v1/freshness ----
+(function(){
+  const lg=(document.documentElement.lang||'ru').slice(0,2),T={
+    ru:{st:{on_time:'вовремя',late:'запаздывает',stale:'устарело',unknown:'время не сообщается',no_data:'нет ответа',event:'события и ручной ввод'},m:'Min.',h:'Std.',d:'дн',mo:'мес',y:'г',norm:'норма до',ev:'последнее',nt:'—',loc:'de-DE',err:'Не удалось проверить датчики.'},
+    de:{st:{on_time:'pünktlich',late:'verspätet',stale:'veraltet',unknown:'Zeit nicht angegeben',no_data:'keine Antwort',event:'Ereignisse und manuelle Eingabe'},m:'Min',h:'Std',d:'Tg',mo:'Mon',y:'J',norm:'normal bis',ev:'zuletzt',nt:'—',loc:'de-DE',err:'Die Sensoren konnten nicht geprüft werden.'},
+    en:{st:{on_time:'on time',late:'late',stale:'stale',unknown:'time not reported',no_data:'no answer',event:'events and manual input'},m:'min',h:'h',d:'d',mo:'mo',y:'y',norm:'normal up to',ev:'last',nt:'—',loc:'en-GB',err:'Could not check the sensors.'}}[lg]||null;
+  if(!T)return;
+  const LO=Math.log10(0.05),HI=Math.log10(24*365*2.5),pos=h=>Math.max(0,Math.min(100,(Math.log10(Math.max(0.05,h))-LO)/(HI-LO)*100));
+  const age=h=>h==null?T.nt:h<1?Math.max(1,Math.round(h*60))+' '+T.m:h<48?Math.round(h)+' '+T.h:h<24*60?Math.round(h/24)+' '+T.d:h<24*730?Math.round(h/24/30.4)+' '+T.mo:(h/24/365).toLocaleString(T.loc,{maximumFractionDigits:1})+' '+T.y;
+  const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+  const ticks=document.getElementById('frTicks');[[1/6,'10 '+T.m],[1,'1 '+T.h],[24,'1 '+T.d],[24*30,'1 '+T.mo],[24*365,'1 '+T.y]].forEach(([h,l])=>{const i=el('i',null,l);i.style.left=pos(h)+'%';ticks.appendChild(i)});
+  fetch('/api/v1/freshness').then(r=>r.ok?r.json():null).then(d=>{
+    const rows=document.getElementById('frRows'),sum=document.getElementById('frSum');rows.textContent='';
+    if(!d||!Array.isArray(d.sensors)){rows.appendChild(el('p','lead',T.err));return}
+    ['on_time','late','stale','unknown','no_data','event'].forEach(k=>{if(!d.summary[k])return;const s=el('span');s.append(el('b',null,String(d.summary[k])),' '+T.st[k]);sum.appendChild(s)});
+    d.sensors.forEach(r=>{const row=el('div','fr-row');row.dataset.s=r.status;
+      const n=el('div','n',(r.name&&(r.name[lg]||r.name.ru))||r.id);
+      const p=r.data_precision,dt=r.data_time?new Date(r.data_time):null,when=!dt?'':p==='year'?String(dt.getUTCFullYear()):p==='month'?String(dt.getUTCMonth()+1).padStart(2,'0')+'.'+dt.getUTCFullYear():p==='day'?dt.toLocaleDateString(T.loc,{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'}):dt.toLocaleString(T.loc,{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      n.appendChild(el('small',null,r.source+' · '+T.st[r.status]+(when?' · '+when:'')+(r.expect_h?' · '+T.norm+' '+age(r.expect_h):'')));
+      const bar=el('div','fr-bar');if(r.expect_h){const ok=el('i','ok');ok.style.width=pos(r.expect_h)+'%';bar.appendChild(ok)}
+      if(r.age_h!=null){const dot=el('i','dot');dot.style.left=pos(r.age_h)+'%';bar.appendChild(dot)}
+      row.append(n,bar,el('div','a',age(r.age_h)));rows.appendChild(row)});
+  }).catch(()=>{const rows=document.getElementById('frRows');rows.textContent='';rows.appendChild(el('p','lead',T.err))});
+})();
 </script>
 <script src="/banners.js" defer></script>
 <section class="orb-geo" style="max-width:860px;margin:32px auto;padding:0 16px;color:#8b9bb8;font:14px/1.55 system-ui,sans-serif"><h2 style="font-size:15px;color:#c8d6ee;margin:0 0 8px">Kurz zur Seite · aktualisiert 2026-11-08</h2><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Welche Quellen sind mit Orb Studio verbunden?</h3><p style="margin:0">Nachrichtenradare, Live-Sendung, Weltsendung, Hamburger Preise, die Prognose „Menschen gegen KI“ und Kurse. Das Schema zeigt nur echte Daten.</p><h3 style="font-size:14px;color:#c8d6ee;margin:12px 0 2px">Gibt Orb Studio Handelssignale?</h3><p style="margin:0">Nein. Die Seite zeigt Daten und Impulse, gibt aber keine Kauf- oder Verkaufssignale.</p><p style="margin:12px 0 0"><a href="/about" style="color:#5fe3ff">Über Orb Studio: was es gibt und was nicht</a> · <a href="/llms.txt" style="color:#5fe3ff">llms.txt</a></p></section>

@@ -427,6 +427,11 @@ PAGES["guests"] = [
 
 # --- этап 1: /sensors (индексы фрагментов взяты из выгрузки; русский текст — точная копия исходника) ---
 PAGES["sensors"] = [
+ ('КАРТА ЗАДЕРЖЕК РЕАЛЬНОСТИ', 'KARTE DER VERZÖGERUNG DER REALITÄT', 'REALITY LAG MAP'),
+ ('Насколько свежа каждая цифра сайта. Точка показывает возраст данных источника, зелёная полоса — обычный для него возраст, когда всё идёт по расписанию. Курс крипты, газовый день и годовая статистика описывают разные моменты: читайте числа вместе с их возрастом. Это отметка своевременности, а не точности.', 'Wie frisch jede Zahl der Seite ist. Der Punkt zeigt das Alter der Quelldaten, der grüne Balken das für die Quelle übliche Alter, wenn alles nach Plan läuft. Ein Kryptokurs, ein Gastag und eine Jahresstatistik beschreiben verschiedene Momente: Lesen Sie Zahlen zusammen mit ihrem Alter. Das bewertet die Aktualität, nicht die Genauigkeit.', 'How fresh every number on the site is. The dot shows the age of the source data, the green band the age that is normal for that source when it runs on schedule. A crypto price, a gas day and a yearly statistic describe different moments: read numbers together with their age. This judges timeliness, not accuracy.'),
+ ('возраст данных →', 'Alter der Daten →', 'age of the data →'),
+ ('Проверяю датчики…', 'Sensoren werden geprüft…', 'Checking the sensors…'),
+ ('Машинные данные:', 'Maschinenlesbare Daten:', 'Machine-readable data:'),
  ('$ (отклонение от 1 $:', '$ (Abweichung von 1 $:', '$ (deviation from $1:'),
  ('${L.length} посадок за сутки', '${L.length} Landungen in 24 h', '${L.length} landings in 24 h'),
  ('${Math.round(w.speed_kms)} км/с', '${Math.round(w.speed_kms)} km/s', '${Math.round(w.speed_kms)} km/s'),
