@@ -2796,6 +2796,54 @@ async function recordHit(env, page, kind, name) {
       .bind(today(), page, kind, name || "").run();
   } catch (e) { /* счётчик никогда не ломает сайт */ }
 }
+// ================= Детектор аномалий интереса агентов =================
+// Сканеры каталогов (Agent402 и т. п.) обходят все адреса подряд — их не считаем.
+// Аномалия: (1) один датчик вырос к своей норме за 7 дней, а сайт в целом нет; (2) новый агент берёт конкретные данные; (3) оплата x402.
+const ANOM_SCANNER = /agent402|payai|lychee|x402-|x402lens|probe|indexer|collector|observer|mcpbeat|uptime|monitor|googlebot|bingbot|applebot|yandex|baidu|ahrefs|semrush|petal|duckduck|^script · curl$/i;
+const ANOM_KEY = "anomaly-log";
+async function anomalyDetect(env) {
+  if (!env.DB) return { enabled: false };
+  await ensureTable(env);
+  const now = Date.now(), d = today(), from = new Date(now - 7 * 864e5).toISOString().slice(0, 10), from30 = new Date(now - 30 * 864e5).toISOString().slice(0, 10);
+  const rows = (await env.DB.prepare("SELECT day, page, name, n FROM hits WHERE kind='agent' AND day>=?1 AND (page LIKE '/api/v1/%' OR page LIKE '/mcp/%')").bind(from).all()).results || [];
+  const utcH = new Date(now).getUTCHours() + new Date(now).getUTCMinutes() / 60, frac = Math.max(0.25, utcH / 24); // доля прошедших суток
+  const per = {}, site = {}, names = {};
+  for (const r of rows) {
+    if (ANOM_SCANNER.test(r.name)) continue;
+    const pg = r.page.replace(/^\/mcp\/get_/, "/api/v1/").replace(/_/g, "/");
+    (per[pg] = per[pg] || {})[r.day] = (per[pg][r.day] || 0) + r.n; site[r.day] = (site[r.day] || 0) + r.n;
+    if (r.day === d) (names[r.name] = names[r.name] || {})[pg] = ((names[r.name] || {})[pg] || 0) + r.n;
+  }
+  const med = (o) => { const v = []; for (let i = 1; i <= 7; i++) { const k = new Date(now - i * 864e5).toISOString().slice(0, 10); v.push(o[k] || 0); } v.sort((a, b) => a - b); return v[3]; };
+  const siteRatio = ((site[d] || 0) / frac) / Math.max(1, med(site));
+  const signals = [];
+  for (const [pg, o] of Object.entries(per)) {
+    const t = o[d] || 0, base = med(o), proj = t / frac, ratio = proj / Math.max(3, base);
+    if (t >= 25 && ratio >= 3 && ratio >= siteRatio * 2) signals.push({ type: "sensor_spike", sensor: pg, today_so_far: t, normal_per_day: base, ratio: +ratio.toFixed(1), site_ratio: +siteRatio.toFixed(1) });
+  }
+  const seen = new Set(((await env.DB.prepare("SELECT DISTINCT name FROM hits WHERE kind='agent' AND day>=?1 AND day<?2").bind(from30, d).all()).results || []).map((r) => r.name));
+  for (const [nm, pages] of Object.entries(names)) {
+    if (seen.has(nm) || nm === "Other bot") continue;
+    const tot = Object.values(pages).reduce((a, b) => a + b, 0), top = Object.entries(pages).sort((a, b) => b[1] - a[1]);
+    if (tot >= 5 && top.length <= 6) signals.push({ type: "new_agent", agent: nm.slice(0, 80), requests: tot, sensors: top.slice(0, 4).map(([p, n]) => ({ sensor: p, n })) });
+  }
+  let sales = [];
+  try { sales = (await env.DB.prepare("SELECT ts, agent, network, usdc FROM violin_sales WHERE day=?1").bind(d).all()).results || []; } catch (e) {}
+  for (const x of sales) signals.push({ type: "x402_payment", product: "violin of the day", agent: String(x.agent || "").slice(0, 80), usdc: x.usdc, network: x.network });
+  return { enabled: true, day: d, checked_at: new Date(now).toISOString(), site_ratio_vs_normal: +siteRatio.toFixed(1), anomaly: signals.length > 0, signals,
+    rules: "Scanners and search crawlers are excluded. sensor_spike: today's projected requests to one sensor >= 3x its 7-day median and >= 2x the site-wide ratio, at least 25 requests. new_agent: a name not seen in 30 days with >= 5 requests to <= 6 sensors. x402_payment: a settled payment today.",
+    note: "Observed interest of automated clients in Orb Studio sensors. Not a forecast, not a statement about the world." };
+}
+async function anomalyRecord(env) {
+  const r = await anomalyDetect(env); if (!r.enabled || !r.anomaly) return r;
+  const log = (await sharedGet(env, ANOM_KEY, 1e15)) || { items: [] }, have = new Set(log.items.map((x) => x.id));
+  for (const s of r.signals) {
+    const id = `${r.day}:${s.type}:${s.sensor || s.agent || ""}`.slice(0, 160);
+    if (have.has(id)) continue;
+    log.items.unshift({ id, day: r.day, ts: Date.now(), ...s }); have.add(id);
+  }
+  log.items = log.items.slice(0, 60); await sharedPut(env, ANOM_KEY, log); return r;
+}
 async function readStats(env, page) {
   if (!env.DB) return { enabled: false };
   await ensureTable(env);
@@ -7506,6 +7554,7 @@ export default {
       ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
+      ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
       if (!EMO_RETIRED) ctx.waitUntil((EMO_ONLY_USDC ? Promise.resolve() : emoRadarMood(env, ctx).catch(() => null)).then(() => emoMusicCheck(env, ctx)).catch(() => null));
       const hb = +new Date().toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false });
       if (hb >= 21 && !EMO_RETIRED) ctx.waitUntil(emoWriteDiary(env, berlinDay()).catch(() => null));   // вечерняя запись дневника EMO
@@ -7854,6 +7903,11 @@ async function handleRequest(request, env, ctx) {
       if (!PAGES.has(page)) page = "home";
       if (!classifyAgent(request.headers.get("user-agent")) && !isOwner(request)) await recordHit(env, page, "view", "");
       return json(await readStats(env, page), { "Cache-Control": "no-store" });
+    }
+    if (url.pathname === "/api/v1/anomalies") {
+      const live = await anomalyDetect(env).catch((e) => ({ enabled: false, error: String(e).slice(0, 120) }));
+      const log = (await sharedGet(env, ANOM_KEY, 1e15).catch(() => null)) || { items: [] };
+      return json({ free: true, page: "https://orbstudio.org/api/v1/anomalies", now: live, log: log.items.slice(0, 30) }, { "Cache-Control": "no-store" });
     }
     if (url.pathname === "/api/v1/stats") {
       const page = (url.searchParams.get("page") || "home").slice(0, 20);
