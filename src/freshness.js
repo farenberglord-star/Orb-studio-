@@ -8,7 +8,7 @@ const H = 3600e3;
 // kind: measure — регулярный замер; event — лента событий (возраст = время последнего события, «опоздания» нет); manual — ручной ввод.
 export const CATALOG = [
   { id: "radars", src: "radars", endpoint: "/api/v1/radars", expect_h: 1, kind: "measure", source: "Orb Studio news radars (RSS of news outlets)",
-    name: { ru: "Новостные радары", de: "Nachrichten-Radare", en: "News radars" }, get: (d) => oldest((d && d.radars || []).map((r) => r && r.updated_at)) },
+    name: { ru: "Новостные радары", de: "Nachrichten-Radare", en: "News radars" }, get: (d) => oldest((Array.isArray(d) ? d : d && d.radars || []).map((r) => r && r.updated_at)) }, // внутри воркера — массив, в /api/v1/radars — {radars}
   { id: "crypto_derivatives", src: "sensors", endpoint: "/api/v1/sensors", expect_h: 1, kind: "measure", source: "Kraken Futures",
     name: { ru: "Крипто-деривативы", de: "Krypto-Derivate", en: "Crypto derivatives" }, get: (d) => blk(d, "derivatives", "at") },
   { id: "crypto_volatility", src: "sensors", endpoint: "/api/v1/sensors", expect_h: 1, kind: "measure", source: "Kraken",

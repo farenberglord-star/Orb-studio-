@@ -49,3 +49,8 @@ test("precision keeps what the source gave", async () => {
   const r = row(c("safeworld_official"), { figures: [{ year: "2025" }, { year: "2024" }] }, NOW); assert.equal(r.data_precision, "year"); assert.equal(r.source_value, "2025");
   assert.equal(row(c("radars"), { radars: [{ updated_at: "2026-11-17T08:31:29Z" }] }, NOW).data_precision, "time");
 });
+test("radars: internal array and public object both work", () => {
+  const arr = [{ updated_at: "2026-11-17T08:31:29Z" }, { updated_at: "2026-11-17T08:20:00Z" }];
+  assert.equal(row(c("radars"), arr, NOW).status, "on_time");
+  assert.equal(row(c("radars"), { radars: arr }, NOW).data_time, "2026-11-17T08:20:00.000Z");
+});
