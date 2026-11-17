@@ -192,6 +192,11 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
 .empty{color:var(--dim);font-size:13.5px}
 #court3d{position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(212,168,90,.35);border-radius:14px;overflow:hidden;margin:14px 0 4px;background:#050507}
 @media (max-width:700px){#court3d{aspect-ratio:4/5}}
+#safe3d{position:relative;width:100%;aspect-ratio:16/9;border:1px solid rgba(111,230,255,.3);border-radius:14px;overflow:hidden;margin:12px 0 8px;background:#03070f}
+@media (max-width:700px){#safe3d{aspect-ratio:9/16;max-height:88vh}}
+.sw-list{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:13.5px;line-height:1.45}
+.sw-list li{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(5,8,16,.6)}
+.sw-list b{color:var(--holo)}.sw-list span{color:var(--dim);font-size:12.5px;display:block}
 .c3cap{position:absolute;left:12px;right:12px;bottom:12px;pointer-events:none;font:13px/1.35 var(--body);color:#f3ead8;text-shadow:0 0 6px #000,0 0 2px #000;opacity:0;transition:opacity .5s}
 .c3cap.on{opacity:1}.c3cap .id{font:600 12px var(--mono);color:#d4a85a;letter-spacing:.06em}.c3cap .ch{color:#ff8fa3;font-weight:600}
 .c3cap .ev{font-family:var(--mono);color:#ffb547;word-break:break-all}.c3cap .vd{color:#f1cf8a;font-weight:700;opacity:0;transition:opacity .4s}.c3cap .vd.on{opacity:1}.c3cap .df{opacity:.8;font-size:12px}
@@ -208,6 +213,14 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
       <div class="stat"><b id="sApp">—</b><span>appeals</span></div>
     </div>
     <div id="court3d" hidden role="img" aria-label="Hall of justice: hologram of the current case, the evidence and the verdict"><div class="c3cap" id="c3cap" aria-live="polite"><div class="id" id="c3id"></div><div class="df" id="c3df"></div><div class="ch" id="c3ch"></div><div class="ev" id="c3ev"></div><div class="vd" id="c3vd"></div></div></div>
+  </section>
+
+  <section class="panel" id="safeworld">
+    <h2>SAFE WORLD</h2>
+    <p class="lead">Open official statistics on crimes against children and on human trafficking. Aggregate figures only: each one comes with its source, period and definition. Figures from different sources and years are not compared directly.</p>
+    <div id="safe3d" hidden role="img" aria-label="Safe World: hologram of official aggregate figures, each with source and period"></div>
+    <details class="machine"><summary>All figures as a list</summary><ul class="sw-list" id="swList"></ul>
+    <p class="lead">Machine-readable data: <a href="/safeworld-data.json">/safeworld-data.json</a></p></details>
   </section>
 
   <section class="panel" id="insights">
@@ -423,8 +436,20 @@ function start3d(){
     H3=true;el.classList.add('on');if(COURT)OrbCourt3D.update(COURT,FEED);
     el.addEventListener('orbcourt:case',()=>{if(OrbCourt3D.stats().reduced)$('c3vd').classList.add('on')});};
   const add=(src,cb)=>{const s=document.createElement('script');s.src=src;s.onload=cb;s.onerror=()=>{};document.head.appendChild(s)};
-  add('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',()=>add('/court3d.js',go));
+  add('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',()=>{add('/court3d.js',go);add('/safeworld3d.js',safe3d)});
 }
+// ---- «Безопасный мир» (safeworld3d.js от Грок-бота): только открытые суммарные цифры из /safeworld-data.json; нет WebGL — остаётся список ----
+let SWD=null,SW3=false;
+function swList(d){const ul=$('swList');if(!ul||!d||!Array.isArray(d.figures))return;ul.textContent='';
+  const tx=(o,k)=>(o&&(o[k+'_'+L]||o[k+'_ru']))||'',nf=v=>typeof v==='number'?v.toLocaleString(LOC):'—';
+  d.figures.forEach(f=>{const li=document.createElement('li'),b=document.createElement('b'),sp=document.createElement('span');
+    b.textContent=tx(f,'label')+': '+(f.approx?'≈ ':'')+nf(f.value)+' '+tx(f,'unit');
+    sp.textContent=(tx(f,'year')||f.year||'')+(typeof f.aq==='number'?' · AQ '+f.aq.toLocaleString(LOC)+' %':'')+' · '+(f.source||'')+'. '+tx(f,'note');
+    li.append(b,sp);ul.appendChild(li)})}
+function safe3d(){const el=$('safe3d');if(!el||!window.THREE||!window.OrbSafe3D)return;
+  el.hidden=false;if(!OrbSafe3D.init(el,{lang:L})){el.hidden=true;return}
+  SW3=true;if(SWD!==null)OrbSafe3D.update(SWD||null)}
+fetch('/safeworld-data.json').then(r=>r.ok?r.json():null).catch(()=>null).then(d=>{SWD=d||false;swList(d);if(SW3)OrbSafe3D.update(d)});
 start3d();
 try{const b=document.getElementById('courtBoot');if(b)drawInsights(JSON.parse(b.textContent))}catch(e){}
 fetch('/api/v1/court?limit=30').then(r=>r.ok?r.json():null).then(d=>{
