@@ -477,13 +477,14 @@ async function freshnessData(env, ctx, origin) {
   const asset = async (path) => { const r = await env.ASSETS.fetch(new Request(origin + path)); return r.ok ? r.json() : null; };
   const names = ["radars", "sensors", "quakes", "space", "radiation", "flood", "elbe", "weather_at", "gas", "polls", "party", "roads", "parking", "aviation", "bafin", "prices", "tariffs", "safeworld", "noise"];
   const vals = await Promise.all([
-    run(() => allRadars(env, ctx, origin)), run(() => sensorsData(env, ctx)), run(() => quakesData()), run(() => spaceData()), run(() => radiationData()), run(() => lhpData()),
+    run(() => allRadars(env, ctx, origin)), run(() => sensorsData(env, ctx)).then((d) => d || sharedGet(env, "sensors-v8", 2 * 86400e3)), // не успел пересчёт — последняя копия, её возраст карта и покажет run(() => quakesData()), run(() => spaceData()), run(() => radiationData()), run(() => lhpData()),
     run(() => hydroData()), run(() => weatherAtData()), run(() => gasData(env)), run(() => pollsData()), run(() => partyAttentionData()), run(() => roadsData(env)), run(() => parkingData()),
     run(() => aviationData(env, ctx)), run(() => bafinData()), run(() => pricesRadar(env, "hamburg")), run(() => tariffsData(env, origin)), run(() => asset("/safeworld-data.json")),
     run(() => sharedGet(env, SW_KEY, SW_MAX_AGE + 2 * 864e5)).then((d) => d || { ok: false }),
   ]);
   const out = freshnessBuild(Object.fromEntries(names.map((n, i) => [n, vals[i]])));
-  ctx.waitUntil(c.put(key, new Response(JSON.stringify(out), { headers: { "Cache-Control": "max-age=600" } })));
+  const holes = out.sensors.filter((r) => r.status === "no_data" && r.id !== "safeworld_noise").length; // много дыр — вероятно, медленный холодный кэш: держим копию минуту, а не десять
+  ctx.waitUntil(c.put(key, new Response(JSON.stringify(out), { headers: { "Cache-Control": holes > 2 ? "max-age=60" : "max-age=600" } })));
   return out;
 }
 async function sharedPut(env, key, value) {
