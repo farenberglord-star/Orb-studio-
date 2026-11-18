@@ -124,6 +124,7 @@ function start() {
     const tx = $("text");
     tx.textContent = line.kind === "label" ? t[line.label] : line.text;
     tx.classList.toggle("label", line.kind === "label");
+    tx.classList.toggle("long", String(line.text || "").length > 240);
     $("src").textContent = line.source || "";
     const a = $("link");
     if (line.link) { a.href = line.link; a.textContent = t.story; a.hidden = false; } else { a.hidden = true; a.removeAttribute("href"); }
