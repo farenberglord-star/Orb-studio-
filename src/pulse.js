@@ -6,6 +6,7 @@ export const PULSE_SENSORS = {
   flood: { endpoint: "/api/v1/hydro/flood-warnings", basis: "change in the set of active flood warnings" },
   quakes: { endpoint: "/api/v1/quakes", basis: "a new significant earthquake (USGS significant feed, last 7 days)" },
   space: { endpoint: "/api/v1/space", basis: "change of a NOAA space-weather scale (G, R or S)" },
+  agentsec: { endpoint: "/api/v1/agent-security", basis: "a new advisory in the GitHub Advisory Database for a watched MCP or agent-framework package" },
 };
 const MAX_PER_SENSOR = 5, KEEP_IDS = 40;
 const s = (x, n = 140) => (typeof x === "string" ? x.slice(0, n) : "");
@@ -28,6 +29,12 @@ export function snapshot(sensor, d) {
     if (!ev) return null;
     const ids = [], info = {};
     for (const e of ev) { const id = s(e && (e.url || (e.time + "|" + e.place)), 200); if (id && !info[id]) { ids.push(id); info[id] = { mag: typeof e.mag === "number" ? e.mag : null, place: s(e.place), time: s(e.time, 30), tsunami_flag: !!e.tsunami_flag }; } }
+    return { ids: ids.slice(0, KEEP_IDS), info };
+  }
+  if (sensor === "agentsec") {
+    if (!Array.isArray(d.latest) || d.status === "unavailable") return null;
+    const ids = [], info = {};
+    for (const a of d.latest) { const id = s(a && a.id, 40); if (id && !info[id]) { ids.push(id); info[id] = { id, severity: s(a.severity, 10) || null, summary: s(a.summary), time: s(a.published_at, 30), packages: Array.isArray(a.packages) ? a.packages.slice(0, 4).map((p) => s(p.name, 60)) : [] }; } }
     return { ids: ids.slice(0, KEEP_IDS), info };
   }
   if (sensor === "space") {
@@ -53,6 +60,7 @@ export function diff(prev, snaps, now = Date.now()) {
       for (const id of fresh.reverse()) {
         const i = sn.info[id];
         if (sensor === "bafin") push(sensor, "new_measure", "BaFin: " + i.title, i.date || null, { title: i.title, sector: i.sector });
+        else if (sensor === "agentsec") push(sensor, "new_advisory", "Advisory " + i.id + (i.severity ? " (" + i.severity + ")" : "") + ": " + i.summary, i.time || null, { id: i.id, severity: i.severity, packages: i.packages });
         else push(sensor, "new_significant_quake", "M" + i.mag + " " + i.place, i.time || null, { mag: i.mag, place: i.place, tsunami_flag: i.tsunami_flag });
       }
       continue;
