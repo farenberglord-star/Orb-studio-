@@ -1012,6 +1012,8 @@ async function duoBuild(env, ctx, origin, items, lines, ms) {
   return assembleDuo(segs, { model });
 }
 // Фоновая подготовка (cron): у крона времени больше, чем у ответа на запрос, поэтому Grok получает 70 с на реплику
+// Неудачный выпуск (Grok ни разу не ответил) не запоминаем, иначе ошибка висела бы 30 минут
+function duoAnswered(d) { return !!(d && d.segments && d.segments.some((x) => x.guest && x.guest.status !== "offline")); }
 async function duoWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
@@ -1020,7 +1022,8 @@ async function duoWarm(env, ctx) {
   const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
   if (await sharedGet(env, key, 25 * 60e3)) return;
   const v = await voiceBroadcast(env, ctx, origin, items);
-  await sharedPut(env, key, await duoBuild(env, ctx, origin, items, v.lines, 70000));
+  const d = await duoBuild(env, ctx, origin, items, v.lines, 70000);
+  if (duoAnswered(d)) await sharedPut(env, key, d);
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -1031,7 +1034,7 @@ async function duoData(env, ctx, origin) {
   const kept = await sharedGet(env, key, 30 * 60e3);
   if (kept) return kept;
   const v = await voiceBroadcast(env, ctx, origin, items);
-  const job = duoBuild(env, ctx, origin, items, v.lines).then(async (d) => { await sharedPut(env, key, d); return d; });
+  const job = duoBuild(env, ctx, origin, items, v.lines).then(async (d) => { if (duoAnswered(d)) await sharedPut(env, key, d); return d; });
   ctx.waitUntil(job.catch(() => null));
   const d = await Promise.race([job, new Promise((r) => setTimeout(() => r(null), 9000))]).catch(() => null);
   if (d) return d;
