@@ -1023,7 +1023,7 @@ async function duoWarm(env, ctx) {
   if (await sharedGet(env, key, 25 * 60e3)) return;
   const v = await voiceBroadcast(env, ctx, origin, items);
   const d = await duoBuild(env, ctx, origin, items, v.lines, 70000);
-  if (duoAnswered(d)) await sharedPut(env, key, d);
+  if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -1033,6 +1033,9 @@ async function duoData(env, ctx, origin) {
   const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
   const kept = await sharedGet(env, key, 30 * 60e3);
   if (kept) return kept;
+  // Заголовки сменились, а новый разговор ещё пишется: отдаём последний готовый выпуск (не старше часа), время указано в generated_at
+  const latest = await sharedGet(env, "duo-latest", 60 * 60e3);
+  if (latest) return latest;
   // Grok не вызывается из запроса: его готовит только cron (duoWarm, 70 с на реплику). Иначе каждый запрос запускал бы свои вызовы к xAI
   const last = await sharedGet(env, "duo-last-error", 30 * 60e3);
   return { status: "preparing", note: "The conversation is being prepared in the background (refreshed every few minutes); ask again in a few minutes." + (last ? " Last error: " + last.at + " — " + last.error : "") };
