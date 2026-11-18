@@ -2,6 +2,7 @@
 // Деплой: npx wrangler deploy (Workers Builds делает это сам при каждом push в main).
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
+import { asLines } from "./voicelines.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { radarI18n, headlinesDe, HL_DE_NOTE } from "./radar-i18n.js";
 import qrcodeGen from "qrcode-generator";
@@ -658,7 +659,7 @@ async function askClaude(env, items) {
     if (!m) throw new Error("No broadcast in model reply");
     out = JSON.parse(m[0]);
   }
-  const byI = new Map((out.lines || []).map((l) => [l.i, l]));
+  const byI = new Map(asLines(out.lines).map((l) => [l.i, l]));
   return {
     voice: "claude",
     model: j.model,
