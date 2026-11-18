@@ -52,6 +52,8 @@
     "david_episodes": "https://orbstudio.org/api/v1/david/episodes",
     "music": "https://orbstudio.org/api/v1/music",
     "questions": "https://orbstudio.org/api/v1/questions",
+    "inbox": "https://orbstudio.org/api/v1/inbox",
+    "inbox_page": "https://orbstudio.org/tools/inbox",
     "agent_wallet": "https://orbstudio.org/api/v1/agent-wallet",
     "aviation": "https://orbstudio.org/api/v1/aviation",
     "quakes": "https://orbstudio.org/api/v1/quakes",
@@ -138,6 +140,7 @@
     "transport": "streamable-http",
     "auth": "none",
     "tools": [
+      "send_to_inbox",
       "get_radars",
       "get_radar",
       "get_broadcast",
