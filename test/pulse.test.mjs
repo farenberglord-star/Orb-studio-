@@ -5,8 +5,9 @@ const bafin = (...u) => ({ ok: true, items: u.map((x, i) => ({ url: "https://b/"
 const flood = (n, hc, items = []) => ({ ok: true, active_count: n, highest_class: hc, highest_class_name: hc ? "Hochwasser" : null, items });
 const q = (...ids) => ({ significant_week: { events: ids.map((i) => ({ url: "https://u/" + i, mag: 6.4, place: "P" + i, time: "2026-11-09T03:34:59.466Z" })) } });
 const sp = (g, r = "R0", sr = "S0") => ({ noaa_scales: { ok: true, current: { geomagnetic: { scale: g }, radio_blackout: { scale: r }, radiation: { scale: sr } } } });
+const as = (...ids) => ({ status: "ok", latest: ids.map((id) => ({ id, severity: "high", summary: "S", published_at: "2026-11-10T00:00:00Z", packages: [{ name: "mcp" }] })) });
 const snaps = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, snapshot(k, v)]));
-const ALL = (o = {}) => snaps({ gas: gas("2026-11-09"), bafin: bafin("a", "b"), flood: flood(0, null), quakes: q("1"), space: sp("G0"), ...o });
+const ALL = (o = {}) => snaps({ gas: gas("2026-11-09"), bafin: bafin("a", "b"), flood: flood(0, null), quakes: q("1"), space: sp("G0"), agentsec: as("GHSA-a"), ...o });
 test("first run records a baseline and emits no events", () => {
   const r = diff({}, ALL(), 1e12); assert.equal(r.events.length, 0); assert.deepEqual(Object.keys(r.state).sort(), Object.keys(PULSE_SENSORS).sort());
 });
@@ -50,4 +51,14 @@ test("etag basis ignores per-request timing fields at any depth, but not data", 
   const a = { checked_at: "t1", live_count: 3, items: [{ facility: "x", free: 4, age_min: 3 }], referral: { a: 1 } }, b = { checked_at: "t2", live_count: 3, items: [{ facility: "x", free: 4, age_min: 9 }], referral: { a: 2 } };
   assert.equal(JSON.stringify(etagBasis(a)), JSON.stringify(etagBasis(b)));
   assert.notEqual(JSON.stringify(etagBasis(a)), JSON.stringify(etagBasis({ ...b, live_count: 4 })));
+});
+
+test("agentsec: первый запуск — только основа; новая запись даёт событие, источник упал — без событий", () => {
+  const d = (ids) => ({ status: "ok", latest: ids.map((id, i) => ({ id, severity: "high", summary: "S " + id, published_at: "2026-11-1" + i + "T00:00:00Z", packages: [{ name: "mcp" }] })) });
+  const a = diff({}, { agentsec: snapshot("agentsec", d(["GHSA-a"])) }, 1.8e12);
+  assert.equal(a.events.length, 0);
+  const b = diff(a.state, { agentsec: snapshot("agentsec", d(["GHSA-b", "GHSA-a"])) }, 1.8e12 + 1);
+  assert.equal(b.events.length, 1); assert.equal(b.events[0].type, "new_advisory"); assert.equal(b.events[0].data.id, "GHSA-b"); assert.deepEqual(b.events[0].data.packages, ["mcp"]);
+  assert.equal(snapshot("agentsec", { status: "unavailable" }), null);
+  assert.equal(diff(b.state, { agentsec: null }, 1.8e12 + 2).events.length, 0);
 });
