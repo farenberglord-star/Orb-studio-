@@ -62,3 +62,13 @@ test("agentsec: первый запуск — только основа; нов�
   assert.equal(snapshot("agentsec", { status: "unavailable" }), null);
   assert.equal(diff(b.state, { agentsec: null }, 1.8e12 + 2).events.length, 0);
 });
+
+test("gas: в событии видно, оценка это или подтверждённое значение", () => {
+  const g = (day, st) => snapshot("gas", { ok: true, gas_day: day, full_percent: 57.1, net_flow: "WITHDRAWING", data_status: st });
+  const a = diff({}, { gas: g("2026-11-16", "C") }, 1.8e12);
+  const e = diff(a.state, { gas: g("2026-11-17", "E") }, 1.8e12 + 1).events[0];
+  assert.match(e.summary, /\(estimate, AGSI revises it when confirmed\)$/); assert.equal(e.data.data_status, "E");
+  const c = diff(a.state, { gas: g("2026-11-17", "C") }, 1.8e12 + 1).events[0];
+  assert.match(c.summary, /\(confirmed\)$/);
+  assert.doesNotMatch(diff(a.state, { gas: g("2026-11-17", null) }, 1.8e12 + 1).events[0].summary, /\(/);
+});

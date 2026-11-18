@@ -12,7 +12,7 @@ const MAX_PER_SENSOR = 5, KEEP_IDS = 40;
 const s = (x, n = 140) => (typeof x === "string" ? x.slice(0, n) : "");
 export function snapshot(sensor, d) {
   if (!d || typeof d !== "object") return null;
-  if (sensor === "gas") return d.ok && typeof d.gas_day === "string" ? { sig: d.gas_day, info: { gas_day: d.gas_day, full_percent: d.full_percent, net_flow: s(d.net_flow, 20) } } : null;
+  if (sensor === "gas") return d.ok && typeof d.gas_day === "string" ? { sig: d.gas_day, info: { gas_day: d.gas_day, full_percent: d.full_percent, net_flow: s(d.net_flow, 20), data_status: s(d.data_status, 2) || null } } : null;
   if (sensor === "bafin") {
     if (!d.ok || !Array.isArray(d.items)) return null;
     const ids = [], info = {};
@@ -70,7 +70,7 @@ export function diff(prev, snaps, now = Date.now()) {
     if (sensor === "gas" && old && typeof old.sig === "string" && sn.sig <= old.sig) continue;
     state[sensor] = { sig: sn.sig };
     if (!old || typeof old.sig !== "string" || old.sig === sn.sig) continue; // baseline or no change
-    if (sensor === "gas") push(sensor, "new_gas_day", "Gas storage " + sn.info.gas_day + ": " + sn.info.full_percent + "% full, " + sn.info.net_flow, sn.info.gas_day, sn.info);
+    if (sensor === "gas") push(sensor, "new_gas_day", "Gas storage " + sn.info.gas_day + ": " + sn.info.full_percent + "% full, " + sn.info.net_flow + (sn.info.data_status === "E" ? " (estimate, AGSI revises it when confirmed)" : sn.info.data_status === "C" ? " (confirmed)" : ""), sn.info.gas_day, sn.info);
     else if (sensor === "flood") push(sensor, "warnings_changed", "Flood warnings: " + sn.info.active_count + " active" + (sn.info.highest_class_name ? ", highest: " + sn.info.highest_class_name : ""), null, sn.info);
     else if (sensor === "space") push(sensor, "noaa_scales_changed", "NOAA scales G/R/S: " + old.sig.replace(/\|/g, "/") + " -> " + sn.sig.replace(/\|/g, "/"), null, { from: old.sig, to: sn.sig, ...sn.info });
   }

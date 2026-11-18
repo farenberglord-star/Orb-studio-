@@ -1613,16 +1613,22 @@ async function aviationData(env, ctx) {
   let body, status = "ok", cachedAt = null, err = null;
   if (hit) { body = await hit.json(); status = "cached"; cachedAt = body.generated_at; }
   else {
+    // After a 429 the source is left alone for 5 minutes (the cache is per data center, the source limit is per address).
+    const backoff = new Request("https://orbstudio.org/__cache/avi-backoff");
     try {
+      if (await c.match(backoff)) throw new Error("adsb.lol http 429 (waiting)");
       const states = await fetchAdsbLol(HAMBURG.lat, HAMBURG.lon, 100 * NM_PER_KM, 9000);
       body = { generated_at: new Date().toISOString(), hamburg_sector: summarizeSector(states, 100) };
       const put = (k, ttl) => c.put(k, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=" + ttl } }));
       await put(fresh, 600); await put(stale, 3 * 3600);
+      await sharedPut(env, "avi-sector", body); // last good reading survives cache eviction and other data centers
     } catch (e) {
       err = String(e.message || e).slice(0, 80);
+      if (/429/.test(err)) await c.put(backoff, new Response("1", { headers: { "Cache-Control": "max-age=300" } }));
       const old = await c.match(stale);
-      if (!old) return { status: "unavailable", error: err, note: "adsb.lol did not answer and there is no recent copy. Nothing is estimated.", source: "adsb.lol" };
-      body = await old.json(); status = "degraded"; cachedAt = body.generated_at;
+      const kept = old ? await old.json() : await sharedGet(env, "avi-sector", 864e5);
+      if (!kept) return { status: "unavailable", error: err, note: "adsb.lol did not answer and there is no recent copy. Nothing is estimated.", source: "adsb.lol" };
+      body = kept; status = "degraded"; cachedAt = body.generated_at;
     }
   }
   const landings = await aviationLandings(env);
