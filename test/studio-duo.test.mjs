@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { buildQueue, boardFor, lineMs, safeLink, pickLang, ZONES, T } from "../public/studio-duo.js";
+import { buildQueue, boardFor, lineMs, safeLink, pickLang, krakenCells, ZONES, T } from "../public/studio-duo.js";
 import { assembleDuo } from "../src/duo.js";
 
 const seg = (over = {}) => ({
@@ -77,4 +77,18 @@ test("language, zones and page weight", () => {
   assert.ok(!/https?:\/\/(?!orbstudio\.org)[^"' ]+\.js/.test(html), "no external scripts");
   assert.match(html, /prefers-reduced-motion/);
   assert.ok(statSync(new URL("../public/media/studio-duo.webp", import.meta.url)).size < 150_000);
+});
+
+test("banners: referral links, labels and Kraken prices only from the API", () => {
+  const html = readFileSync(new URL("../public/studio.html", import.meta.url), "utf8");
+  assert.match(html, /href="\/go\/kraken\?from=studio"[^>]*rel="sponsored noopener"/);
+  assert.match(html, /href="\/go\/starlink\?from=studio"[^>]*rel="sponsored noopener"/);
+  assert.match(html, /src="\/banners\.js"/);
+  for (const l of ["ru", "de", "en"]) for (const k of ["partner", "krNote", "slNote"]) assert.ok(T[l][k].length > 10);
+  assert.deepEqual(krakenCells(null), []); assert.deepEqual(krakenCells({}), []);
+  const c = krakenCells({ XXBTZEUR: { last: 61234.5, change_pct: -1.234 }, XETHZEUR: { last: "x" }, XXRPZEUR: { last: 0.5123, change_pct: 2 } }, "en");
+  assert.deepEqual(c.map((x) => x.pair), ["BTC/EUR", "XRP/EUR"]);
+  assert.equal(c[0].up, false); assert.equal(c[0].change, "▼1.23%"); assert.equal(c[1].price, "0.5123");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /"interview", "studio"\]\)/);
 });

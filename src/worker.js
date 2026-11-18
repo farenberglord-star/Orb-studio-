@@ -1020,7 +1020,8 @@ async function duoWarm(env, ctx) {
   const items = broadcastItems(await allRadars(env, ctx, origin)).slice(0, DUO.maxItems);
   if (!items.length) return;
   const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
-  if (await sharedGet(env, key, 25 * 60e3)) return;
+  const ready = await sharedGet(env, key, 25 * 60e3);
+  if (ready) { await sharedPut(env, "duo-latest", ready); return; } // заголовки те же: выпуск остаётся «последним готовым»
   const v = await voiceBroadcast(env, ctx, origin, items);
   const d = await duoBuild(env, ctx, origin, items, v.lines, 70000);
   if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
@@ -2960,7 +2961,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
