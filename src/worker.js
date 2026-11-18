@@ -32,7 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
-import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo } from "./duo.js";
+import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
 import { fetchFrequency, summarizeFrequency, ATTRIBUTION as GRIDFREQ_ATTRIBUTION } from "./gridfreq.js";
 import { fetchAdvisories, summarizeAdvisories, ATTRIBUTION as AGENTSEC_ATTRIBUTION } from "./agentsec.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
@@ -983,8 +983,8 @@ async function quakesData() {
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
 // Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
-async function askGrok(env, headline, source, facts, retry, ms) {
-  const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts) }];
+async function askGrok(env, headline, source, facts, retry, ms, question) {
+  const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question) }];
   if (retry) msgs.push({ role: "user", content: FORECAST_REMINDER });
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(ms || 20000),
@@ -1003,34 +1003,53 @@ async function duoBuild(env, ctx, origin, items, lines, ms) {
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
     try {
-      let a = await askGrok(env, it.headline, it.source, facts, false, ms); model = a.model;
+      let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question); model = a.model;
       reply = duoCheck(a.text, stripInvisible);
-      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms); reply = duoCheck(a.text, stripInvisible); }
+      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question); reply = duoCheck(a.text, stripInvisible); }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
-    return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, facts, reply };
+    return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, facts, reply };
   }));
   return assembleDuo(segs, { model });
 }
 // Фоновая подготовка (cron): у крона времени больше, чем у ответа на запрос, поэтому Grok получает 70 с на реплику
 // Неудачный выпуск (Grok ни разу не ответил) не запоминаем, иначе ошибка висела бы 30 минут
 function duoAnswered(d) { return !!(d && d.segments && d.segments.some((x) => x.guest && x.guest.status !== "offline")); }
+// Ведущий (Claude) выбирает новости из первых заголовков и пишет вопросы; при сбое — первые три и запасные вопросы
+async function duoPick(env, cands) {
+  let out = null;
+  if (env.ANTHROPIC_API_KEY) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST", signal: AbortSignal.timeout(25000),
+        headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 900, system: HOST_PICK_SYSTEM, messages: [{ role: "user", content: pickUser(cands) }], tools: [HOST_PICK_TOOL], tool_choice: { type: "tool", name: HOST_PICK_TOOL.name } }),
+      });
+      if (!res.ok) throw new Error("Claude API " + res.status + ": " + (await res.text()).slice(0, 120));
+      const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use");
+      out = tool && tool.input;
+    } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host pick: " + String(e && e.message || e).slice(0, 180) }); }
+  }
+  const picks = checkPicks(out, cands.length, stripInvisible);
+  return { items: picks.map((p) => ({ ...cands[p.i], question: p.question })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
+}
 async function duoWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
-  const items = broadcastItems(await allRadars(env, ctx, origin)).slice(0, DUO.maxItems);
-  if (!items.length) return;
-  const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
-  if (await sharedGet(env, key, 25 * 60e3)) return;
-  const v = await voiceBroadcast(env, ctx, origin, items);
-  const d = await duoBuild(env, ctx, origin, items, v.lines, 70000);
+  const cands = broadcastItems(await allRadars(env, ctx, origin)).slice(0, PICK_CANDIDATES);
+  if (!cands.length) return;
+  const key = "duo-v2-" + await sha(cands.map((i) => i.headline).join("|"));
+  const ready = await sharedGet(env, key, 25 * 60e3);
+  if (ready) { await sharedPut(env, "duo-latest", ready); return; } // заголовки те же: выпуск остаётся «последним готовым»
+  const { items, lines } = await duoPick(env, cands);
+  const d = await duoBuild(env, ctx, origin, items, lines, 70000);
   if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
   const radars = await allRadars(env, ctx, origin);
-  const items = broadcastItems(radars).slice(0, DUO.maxItems);
+  const items = broadcastItems(radars).slice(0, PICK_CANDIDATES);
   if (!items.length) return { status: "no_headlines", note: "No headlines right now.", segments: [] };
-  const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
+  const key = "duo-v2-" + await sha(items.map((i) => i.headline).join("|"));
   const kept = await sharedGet(env, key, 30 * 60e3);
   if (kept) return kept;
   // Заголовки сменились, а новый разговор ещё пишется: отдаём последний готовый выпуск (не старше часа), время указано в generated_at
@@ -2960,7 +2979,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview"]);
+const PAGES = new Set(["home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
