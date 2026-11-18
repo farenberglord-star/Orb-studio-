@@ -983,33 +983,44 @@ async function quakesData() {
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
 // Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
-async function askGrok(env, headline, source, facts, retry) {
+async function askGrok(env, headline, source, facts, retry, ms) {
   const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts) }];
   if (retry) msgs.push({ role: "user", content: FORECAST_REMINDER });
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST", signal: AbortSignal.timeout(20000),
+    method: "POST", signal: AbortSignal.timeout(ms || 20000),
     headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
-    body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", messages: msgs, max_tokens: 260, temperature: 0.3 }),
+    body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", messages: msgs, max_tokens: 700, temperature: 0.3 }),
   });
   if (!res.ok) throw new Error("xAI API " + res.status + ": " + (await res.text()).slice(0, 120));
   const j = await res.json();
   const text = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
   return { text: typeof text === "string" ? text : "", model: j.model || env.XAI_MODEL || "grok-4.7" };
 }
-async function duoBuild(env, ctx, origin, items, lines) {
+async function duoBuild(env, ctx, origin, items, lines, ms) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const facts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
     try {
-      let a = await askGrok(env, it.headline, it.source, facts, false); model = a.model;
+      let a = await askGrok(env, it.headline, it.source, facts, false, ms); model = a.model;
       reply = duoCheck(a.text, stripInvisible);
-      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true); reply = duoCheck(a.text, stripInvisible); }
+      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms); reply = duoCheck(a.text, stripInvisible); }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
     return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, facts, reply };
   }));
   return assembleDuo(segs, { model });
+}
+// Фоновая подготовка (cron): у крона времени больше, чем у ответа на запрос, поэтому Grok получает 70 с на реплику
+async function duoWarm(env, ctx) {
+  if (!env.XAI_API_KEY) return;
+  const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
+  const items = broadcastItems(await allRadars(env, ctx, origin)).slice(0, DUO.maxItems);
+  if (!items.length) return;
+  const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
+  if (await sharedGet(env, key, 25 * 60e3)) return;
+  const v = await voiceBroadcast(env, ctx, origin, items);
+  await sharedPut(env, key, await duoBuild(env, ctx, origin, items, v.lines, 70000));
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -7803,7 +7814,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
