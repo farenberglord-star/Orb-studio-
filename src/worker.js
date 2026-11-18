@@ -981,7 +981,7 @@ async function quakesData() {
   };
 }
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
-// Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4).
+// Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
 async function askGrok(env, headline, source, facts, retry) {
   const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts) }];
@@ -989,12 +989,12 @@ async function askGrok(env, headline, source, facts, retry) {
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(20000),
     headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
-    body: JSON.stringify({ model: env.XAI_MODEL || "grok-4", messages: msgs, max_tokens: 260, temperature: 0.3 }),
+    body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", messages: msgs, max_tokens: 260, temperature: 0.3 }),
   });
   if (!res.ok) throw new Error("xAI API " + res.status + ": " + (await res.text()).slice(0, 120));
   const j = await res.json();
   const text = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-  return { text: typeof text === "string" ? text : "", model: j.model || env.XAI_MODEL || "grok-4" };
+  return { text: typeof text === "string" ? text : "", model: j.model || env.XAI_MODEL || "grok-4.7" };
 }
 async function duoBuild(env, ctx, origin, items, lines) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
