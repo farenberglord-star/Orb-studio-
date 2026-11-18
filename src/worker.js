@@ -1033,13 +1033,9 @@ async function duoData(env, ctx, origin) {
   const key = "duo-v1-" + await sha(items.map((i) => i.headline).join("|"));
   const kept = await sharedGet(env, key, 30 * 60e3);
   if (kept) return kept;
-  const v = await voiceBroadcast(env, ctx, origin, items);
-  const job = duoBuild(env, ctx, origin, items, v.lines).then(async (d) => { if (duoAnswered(d)) await sharedPut(env, key, d); return d; });
-  ctx.waitUntil(job.catch(() => null));
-  const d = await Promise.race([job, new Promise((r) => setTimeout(() => r(null), 9000))]).catch(() => null);
-  if (d) return d;
+  // Grok не вызывается из запроса: его готовит только cron (duoWarm, 70 с на реплику). Иначе каждый запрос запускал бы свои вызовы к xAI
   const last = await sharedGet(env, "duo-last-error", 30 * 60e3);
-  return { status: "preparing", note: "The conversation is being written; ask again in about 20 seconds." + (last ? " Last error: " + last.at + " — " + last.error : "") };
+  return { status: "preparing", note: "The conversation is being prepared in the background (refreshed every few minutes); ask again in a few minutes." + (last ? " Last error: " + last.at + " — " + last.error : "") };
 }
 // ================= Частота сети (Energy-Charts, Fraunhofer ISE): /api/v1/grid/frequency, MCP get_grid_frequency =================
 // Лимит источника: 2 запроса в минуту на адрес. Копия 2 минуты, запасная 6 часов, последняя сводка ещё и в базе на сутки; после 429 источник не трогаем 3 минуты.
