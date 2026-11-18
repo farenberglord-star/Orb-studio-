@@ -9,20 +9,19 @@
 <meta name="theme-color" content="#05060c">
 <link rel="preload" as="image" href="/media/studio-duo.webp" type="image/webp">
 <style>
-:root{--david:#6fe6ff;--grok:#b58cff;color-scheme:dark}
+:root{--david:#6fe6ff;--grok:#b58cff;--col:min(100vw,56.25svh);color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;background:#05060c;color:#e9eefb;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-body{overflow-x:hidden}
+html,body{margin:0;max-width:100%;overflow-x:clip;background:#05060c;color:#e9eefb;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* ПК: размытый фон по краям, сцена 9:16 по центру */
-.back{position:fixed;inset:-40px;z-index:-1;background:url(/media/studio-duo-blur.webp) center/cover;filter:blur(28px) brightness(.55);transform:scale(1.1)}
-.frame{position:relative;height:100dvh;display:grid;place-items:center}
-.stage{position:relative;height:100dvh;aspect-ratio:9/16;max-width:100vw;overflow:hidden;background:#05060c;container-type:inline-size}
-@media (max-aspect-ratio:9/16){.stage{width:100vw;height:100dvh;aspect-ratio:auto}}
+.back{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.back:before{content:"";position:absolute;inset:-40px;background:url(/media/studio-duo-blur.webp) center/cover;filter:blur(28px) brightness(.5)}
+/* одна колонка на все блоки: сцена 9:16 целиком, под ней баннеры той же ширины */
+.frame{display:grid;justify-items:center}
+.stage{position:relative;width:var(--col);aspect-ratio:9/16;overflow:hidden;background:#05060c;container-type:inline-size}
 .cam{position:absolute;inset:0;transform-origin:50% 40%;animation:cam 46s ease-in-out infinite alternate;will-change:transform}
-.cam img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 38%;display:block}
-/* слой зон: совпадает с картинкой 9:16 при object-fit:cover */
-.zones{position:absolute;left:50%;top:0;height:100%;aspect-ratio:9/16;transform:translateX(-50%)}
-@media (max-aspect-ratio:9/16){.zones{height:100%;min-width:100%}}
+.cam img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.zones{position:absolute;inset:0}
 #fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .glow{position:absolute;border-radius:50%;pointer-events:none;opacity:.0;transition:opacity .6s ease;mix-blend-mode:screen}
 #glow-david{background:radial-gradient(closest-side,rgba(111,230,255,.42),rgba(111,230,255,.12) 55%,transparent 72%)}
@@ -46,7 +45,9 @@ body{overflow-x:hidden}
 .head{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
 #who{font-weight:700;color:var(--c);letter-spacing:.03em}
 #role{font-size:11px;color:#8f9bb8;text-transform:uppercase;letter-spacing:.1em}
-#text{margin:0;font-size:clamp(15px,4.3cqw,19px);line-height:1.38;text-wrap:pretty}
+#text{margin:0;font-size:clamp(14px,4cqw,18px);line-height:1.36;text-wrap:pretty}
+#text.long{font-size:clamp(13px,3.45cqw,16px)}
+.sub{max-height:47%;overflow-y:auto}
 #text.label{color:#aeb9d2;font-style:italic}
 .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;font-size:12px;color:#8f9bb8}
 .meta a{color:var(--c);text-decoration:none;border-bottom:1px solid currentColor;white-space:nowrap}
@@ -59,20 +60,21 @@ body{overflow-x:hidden}
 .board p:empty{display:none}
 .cnt{display:block;margin-top:3px;font-weight:400;letter-spacing:.04em;text-transform:none;color:#9aa6c2;font-variant-numeric:tabular-nums}
 /* под сценой: партнёры и счётчик */
-.below{position:relative;max-width:760px;margin:0 auto;padding:22px max(14px,env(safe-area-inset-left,0px)) calc(34px + env(safe-area-inset-bottom,0px));display:grid;gap:14px}
-.below:before{content:"";position:absolute;inset:0 -100vw;background:rgba(5,6,12,.88);z-index:-1}
-.krb,.slb{position:relative;overflow:hidden;border-radius:16px;padding:18px}
+.belowbg{background:rgba(5,6,12,.88)}
+.below{width:var(--col);margin:0 auto;padding:14px 10px calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
+.below>*{min-width:0}
+.krb,.slb{position:relative;overflow:hidden;border-radius:14px;padding:16px}
 .krb{border:1px solid rgba(155,140,255,.45);background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28),transparent 55%),linear-gradient(160deg,#120f2e,#0b1226 60%,#070b16);color:#e6e9fb}
 .slb{border:1px solid rgba(220,228,240,.4);background:radial-gradient(110% 90% at 100% 0%,rgba(220,228,240,.16),transparent 55%),linear-gradient(160deg,#0d1119,#070a10);color:#e6ebf5}
 .eye{font:10.5px ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#b9aeff}.slb .eye{color:#c9d4e6}
 .krb h3,.slb h3{font-size:clamp(18px,3.4vw,23px);line-height:1.22;margin:6px 0 4px;max-width:30ch;text-wrap:balance;color:#fff;min-height:2.44em}
 .krb h3 b{color:#b9aeff}.slb h3 b{letter-spacing:.06em}
 .bsub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
-.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
-.krb-px span{font:12px ui-monospace,monospace;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px{display:grid;grid-template-columns:1fr;gap:6px;margin:14px 0 12px}
+.krb-px span{font:12px ui-monospace,monospace;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:10px;padding:7px 10px;font-variant-numeric:tabular-nums;white-space:nowrap;display:flex;justify-content:space-between;gap:6px}
 .krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:#4fd8a4}.krb-px .dn{color:#ff5d7a}
-.cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}.krb .cta{margin-top:0}
-.go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;letter-spacing:.03em;font-size:15px;border-radius:10px;padding:11px 16px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff)}
+.cta{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:stretch;margin-top:14px}.slb .cta{grid-template-columns:1fr}.krb .cta{margin-top:0}
+.go{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;text-decoration:none;font-weight:700;letter-spacing:.03em;font-size:15px;border-radius:10px;padding:11px 16px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff)}
 .slb .go{color:#05070c;background:linear-gradient(90deg,#fff,#c9d4e6)}
 .go:focus-visible,.krb-code:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .krb-code{display:inline-flex;align-items:center;gap:8px;font:13px ui-monospace,monospace;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
@@ -107,7 +109,7 @@ body{overflow-x:hidden}
   </section>
 </main>
 </div>
-<div class="below">
+<div class="belowbg"><div class="below">
   <aside class="krb" id="krb">
     <div class="eye" data-t="partner"></div>
     <h3 data-h="krH"></h3>
@@ -127,7 +129,7 @@ body{overflow-x:hidden}
     <p class="bnote" data-t="slNote"></p>
   </aside>
   <p class="foot"><span data-t="agents"></span> <a href="/api/v1/broadcast/duo">/api/v1/broadcast/duo</a> · MCP get_broadcast_duo · <a href="/sensors" data-t="sensors"></a></p>
-</div>
+</div></div>
 <script type="module" src="/studio-duo.js"></script>
 <script src="/banners.js" defer></script>
 </body>
