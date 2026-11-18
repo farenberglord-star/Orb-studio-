@@ -87,5 +87,6 @@
   <url><loc>https://orbstudio.org/tools/agent-wallet</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/tools/agent-wallet</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/agent-wallet</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/studio</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/tools/inbox</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
 </urlset>
