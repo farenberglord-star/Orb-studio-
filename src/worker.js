@@ -18,7 +18,7 @@ import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./
 import { agentWallet } from "./agent-wallet.js";
 import { buildGuests } from "./guests.js";
 import { buildSegment, nextTopics, newEpisode, withStats, isMiss, SENSOR_KEY, MAX_PER_DAY } from "./podcast.js";
-import { parseStations, STATIONS } from "./hydro.js";
+import { parseStations, STATIONS, RHINE_STATIONS } from "./hydro.js";
 import { parseGas } from "./gas.js";
 import { snapshot as pulseSnapshot, diff as pulseDiff, mergeEvents, sinceMs, etagBasis, PULSE_SENSORS } from "./pulse.js";
 import { parseTawes, TAWES_URL, ATTRIBUTION as TAWES_ATTR, STALE_MIN as TAWES_STALE_MIN } from "./weather_at.js";
@@ -1247,6 +1247,48 @@ async function hydroData(station) {
     scope_note: "Current water level at the gauge (cm, relative to the gauge zero), the trend and level class as published by WSV, and water temperature where the station measures it. Not a tide forecast and not a flood warning; for warnings see the official WSV and Hamburg Port Authority services. A station with ok=false means the feed had no reading, nothing is filled in.",
     page: "https://orbstudio.org/api/v1/hydro/sea" };
 }
+async function rhineData(station) {
+  const which = station && RHINE_STATIONS[station] ? station : (!station || station === "auto" || station === "all" ? "all" : null);
+  if (which === null) return { status: "bad_request", http: 400, error: "station must be maxau, kaub, koeln, duisburg_ruhrort, emmerich or all (default)." };
+  const fresh = new Request("https://orbstudio.org/__cache/rhine-v1"), stale = new Request("https://orbstudio.org/__cache/rhine-v1-stale"), c = caches.default;
+  const hit = await c.match(fresh);
+  let feed, status = "ok";
+  if (hit) { feed = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const r = await fetch("https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations.json?waters=RHEIN&includeTimeseries=true&includeCurrentMeasurement=true", { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/rhine)", Accept: "application/json" } });
+      if (!r.ok) throw new Error("pegelonline http " + r.status);
+      const all = await r.json();
+      feed = (Array.isArray(all) ? all : []).filter((x) => Object.values(RHINE_STATIONS).some((re) => re.test(String(x.shortname || x.longname || "")))).map((x) => ({ uuid: x.uuid, shortname: x.shortname, longname: x.longname, water: x.water, timeseries: (x.timeseries || []).filter((t) => t.shortname === "W" || t.shortname === "WT").map((t) => ({ shortname: t.shortname, unit: t.unit, currentMeasurement: t.currentMeasurement })) }));
+      if (!feed.length) throw new Error("stations not in feed");
+      // The station list may omit the trend; the single-timeseries call carries it (as published by WSV).
+      await Promise.all(feed.map(async (st) => {
+        const W = (st.timeseries || []).find((t) => t.shortname === "W");
+        if (!st.uuid || !W || !W.currentMeasurement) return;
+        try {
+          const h = await fetch(`https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/${encodeURIComponent(st.uuid)}/W/measurements.json?start=PT65M`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/rhine)", Accept: "application/json" } });
+          if (h.ok) { const arr = await h.json(); if (Array.isArray(arr)) W.history = arr.slice(-80).map((m) => ({ timestamp: m.timestamp, value: m.value })); }
+        } catch (e) {}
+        if (W.currentMeasurement.trend != null) return;
+        try {
+          const r2 = await fetch(`https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations/${encodeURIComponent(st.uuid)}/W/currentmeasurement.json`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/hydro/rhine)", Accept: "application/json" } });
+          if (r2.ok) { const m = await r2.json(); if (m && m.trend != null) W.currentMeasurement.trend = m.trend; }
+        } catch (e) {}
+      }));
+      await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=300" } }));
+      await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=21600" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return { status: "unavailable", http: 503, ok: false, error: String(e.message || e).slice(0, 80), note: "PEGELONLINE did not answer and there is no recent copy. Nothing is estimated.", source: "PEGELONLINE (WSV)" };
+      feed = await old.json(); status = "degraded";
+    }
+  }
+  const p = parseStations(feed, which, RHINE_STATIONS);
+  return { status, ok: p.ok, stations: p.stations || [], area: "Rhine: Maxau, Kaub, Köln, Duisburg-Ruhrort, Emmerich", free: true,
+    source: "PEGELONLINE, Wasserstraßen- und Schifffahrtsverwaltung des Bundes (WSV), open data (https://www.pegelonline.wsv.de)",
+    scope_note: "Current water level at the gauge (cm, relative to the gauge zero), the trend and level class as published by WSV, and water temperature where the station measures it. Kaub is the usual low-water reference for shipping on the Rhine. Not a forecast and not a flood warning; for warnings see the official WSV and Hamburg Port Authority services. A station with ok=false means the feed had no reading, nothing is filled in.",
+    page: "https://orbstudio.org/api/v1/hydro/rhine" };
+}
 // ================= Газовые хранилища Германии (GIE AGSI+): /api/v1/gas/storage, MCP get_gas_storage =================
 async function gasData(env) {
   const base = { free: true, source: "GIE AGSI+ (Gas Infrastructure Europe, https://agsi.gie.eu), transparency data under EU Regulation 1227/2011", page: "https://orbstudio.org/api/v1/gas/storage",
@@ -1301,7 +1343,7 @@ async function changesData(env, since, sensor, limit) {
     sensors_watched: Object.entries(PULSE_SENSORS).map(([id, v]) => ({ id, endpoint: v.endpoint, event_basis: v.basis, last_event_at: (log.find((e) => e.sensor === id) || {}).detected_at || null })), page: "https://orbstudio.org/api/v1/changes",
     note: "Events are facts noticed by Orb Studio's own poll of each source (detected_at), at most about 6 minutes after the source published them. They are not predictions. The first run only recorded a baseline, so events start after baseline_at. The log keeps the latest 100 events. Use ETag / If-None-Match on the sensor endpoints for a cheap 'has anything changed' check." };
 }
-const ETAG_PATHS = new Set(["/api/v1/hydro/sea", "/api/v1/quakes", "/api/v1/agent-security", "/api/v1/disasters", "/api/v1/space", "/api/v1/gas/storage", "/api/v1/finance/bafin-measures", "/api/v1/hydro/flood-warnings", "/api/v1/parking-de", "/api/v1/weather-at", "/api/v1/changes"]);
+const ETAG_PATHS = new Set(["/api/v1/hydro/sea", "/api/v1/hydro/rhine", "/api/v1/quakes", "/api/v1/agent-security", "/api/v1/disasters", "/api/v1/space", "/api/v1/gas/storage", "/api/v1/finance/bafin-measures", "/api/v1/hydro/flood-warnings", "/api/v1/parking-de", "/api/v1/weather-at", "/api/v1/changes"]);
 async function withEtag(request, res) {
   if (request.method !== "GET" || !res || res.status !== 200 || !ETAG_PATHS.has(new URL(request.url).pathname) || !/json/i.test(res.headers.get("content-type") || "")) return res;
   const text = await res.clone().text();
@@ -2298,6 +2340,7 @@ const OA_GET = [
   ["/api/v1/changes", "getChanges", "Free impulse log: what changed in the sensors since a given time (new gas day, new BaFin measure, new significant earthquake, change of flood warnings, change of a NOAA space-weather scale). Facts noticed by our own poll, not predictions. Sensor endpoints also support ETag / If-None-Match (304) for a cheap change check.", [OA_Q("since", "ISO time or epoch seconds/milliseconds; omit for the latest events"), OA_Q("sensor", "gas, bafin, flood, quakes or space"), OA_Q("limit", "1-100")]],
   ["/api/v1/weather-at", "getWeatherAt", "Free live 10-minute weather observations from 12 GeoSphere Austria TAWES stations (Austria only, CC BY 4.0): temperature, precipitation, wind, gust, pressure, humidity, sunshine, snow depth. Values unchanged, empty readings stay null, a station without a reading is live=false. Not a forecast.", [OA_Q("station", "filter by station id, name or state, e.g. 11035, Wien, Tirol")]],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
+  ["/api/v1/hydro/rhine", "getRhineWaterLevel", "Free Rhine water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Maxau, Kaub, Köln, Duisburg-Ruhrort and Emmerich. Not a forecast or flood warning.", [OA_Q("station", "maxau, kaub, koeln, duisburg_ruhrort, emmerich or all (default)", { enum: ["maxau", "kaub", "koeln", "duisburg_ruhrort", "emmerich", "all"] })]],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
   ["/api/v1/chokepoints", "getChokepoints", "Ships and tankers per day through maritime chokepoints (Hormuz, Bab el-Mandeb, Suez, Cape of Good Hope, Malacca, Panama, Bosporus...): last 7 days of data vs a year earlier. IMF PortWatch via HDX, weekly.", []],
@@ -6858,6 +6901,9 @@ const MCP_TOOLS = [
   { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
     description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
     inputSchema: { type: "object", properties: { station: { type: "string", enum: ["st_pauli", "cuxhaven", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_rhine_water_level", title: "Rhine water level: Maxau, Kaub, Köln, Duisburg-Ruhrort, Emmerich (PEGELONLINE)",
+    description: "Free. Current Rhine water level in cm at the gauges Maxau, Kaub, Köln, Duisburg-Ruhrort and Emmerich from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Kaub is the usual low-water reference for shipping. Not a forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
+    inputSchema: { type: "object", properties: { station: { type: "string", enum: ["maxau", "kaub", "koeln", "duisburg_ruhrort", "emmerich", "all"] } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_freshness", title: "Reality lag map: how fresh every Orb Studio sensor is",
     description: "Free. For every Orb Studio sensor: the time the source's data refers to, its age in hours, the age that is normal for that source (update interval plus usual publication delay) and a status: on_time, late, stale, unknown (the source does not say when it measured), no_data, or event (event feeds and manual input). Read numbers together with their age: a live price, a daily gas day and a yearly crime statistic describe different moments. Timeliness only, not accuracy.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -7177,6 +7223,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_changes") { const { http, ...d } = await changesData(env, args && args.since, args && args.sensor, args && args.limit); return { ...d, referral: ref }; }
   if (name === "get_weather_at") { const { http, ...d } = await weatherAtData(args && args.station); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
+  if (name === "get_rhine_water_level") { const { http, ...d } = await rhineData(args.station); return { ...d, referral: ref }; }
   if (name === "get_marine_hydro_context") { const { http, ...d } = await hydroData(args.station); return { ...d, referral: ref }; }
   if (name === "get_agent_podcast") return { ...(await podcastData(env, ctx, origin, args.date)), referral: ref };
   if (name === "get_chokepoints") return { ...(await chokepointsData(env, ctx)), referral: ref };
@@ -7842,6 +7889,10 @@ async function handleRequest(request, env, ctx) {
     }
     if (url.pathname === "/api/v1/hydro/sea") {
       const { http, ...d } = await hydroData(url.searchParams.get("station"));
+      return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/hydro/rhine") {
+      const { http, ...d } = await rhineData(url.searchParams.get("station"));
       return json(d, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/agent-podcast") {

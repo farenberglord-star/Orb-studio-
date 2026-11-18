@@ -1,5 +1,5 @@
 import test from "node:test"; import assert from "node:assert/strict";
-import { parseStations, levelChange } from "../src/hydro.js";
+import { parseStations, levelChange, RHINE_STATIONS } from "../src/hydro.js";
 const feed = [
   { shortname: "HAMBURG ST. PAULI", longname: "HAMBURG ST. PAULI", water: { longname: "ELBE" }, timeseries: [{ shortname: "W", unit: "cm", currentMeasurement: { timestamp: "2026-11-09T13:20:00+01:00", value: 612, trend: 1, stateMnwMhw: "normal", stateNswHsw: "unknown" } }] },
   { shortname: "CUXHAVEN STEUBENHÖFT", water: { shortname: "ELBE" }, timeseries: [{ shortname: "W", currentMeasurement: { value: 540, trend: -1 } }, { shortname: "WT", currentMeasurement: { value: 11.2 } }] },
@@ -26,4 +26,20 @@ test("observed change", () => {
   assert.equal(levelChange([h[0], { timestamp: "2026-11-09T13:10:00+01:00", value: 561 }]), null);
   const r = parseStations([{ shortname: "HAMBURG ST. PAULI", timeseries: [{ shortname: "W", currentMeasurement: { value: 601 }, history: h }] }], "st_pauli");
   assert.equal(r.stations[0].observed_change.direction, "UP");
+});
+
+const rhine = [
+  { shortname: "KAUB", water: { longname: "RHEIN" }, timeseries: [{ shortname: "W", unit: "cm", currentMeasurement: { timestamp: "2026-11-18T14:00:00+01:00", value: 87, trend: -1, stateMnwMhw: "low" } }] },
+  { shortname: "KÖLN", water: { longname: "RHEIN" }, timeseries: [{ shortname: "W", currentMeasurement: { value: 154, trend: 0 } }, { shortname: "WT", currentMeasurement: { value: 11.8 } }] },
+  { shortname: "DUISBURG-RUHRORT", timeseries: [] },
+  { shortname: "MAXAU-BRÜCKE", timeseries: [{ shortname: "W", currentMeasurement: { value: 310, trend: 1 } }] }];
+test("Rhine: stations found by name, a missing station is reported, not guessed", () => {
+  const r = parseStations(rhine, "all", RHINE_STATIONS);
+  assert.equal(r.ok, true); assert.equal(r.stations.length, 5);
+  const by = Object.fromEntries(r.stations.map((s) => [s.station, s]));
+  assert.equal(by.kaub.water_level_cm, 87); assert.equal(by.kaub.trend, "FALLING"); assert.equal(by.kaub.level_state, "low");
+  assert.equal(by.koeln.water_temp_c, 11.8); assert.equal(by.maxau.water_level_cm, 310);
+  assert.equal(by.duisburg_ruhrort.ok, false); assert.equal(by.emmerich.ok, false); assert.equal(by.emmerich.reason, "station not in feed");
+  assert.equal(parseStations(rhine, "kaub", RHINE_STATIONS).stations.length, 1);
+  assert.equal(parseStations(rhine, "st_pauli", RHINE_STATIONS).ok, false, "Elbe station names are not Rhine stations");
 });

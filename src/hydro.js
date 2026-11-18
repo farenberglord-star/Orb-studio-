@@ -1,5 +1,7 @@
 // Elbe water level from PEGELONLINE (WSV, open data). Values and trend are passed through as published; nothing is computed or forecast.
 export const STATIONS = { st_pauli: /ST\.?\s*PAULI/i, cuxhaven: /CUXHAVEN/i };
+// Rhine gauges (PEGELONLINE shortnames; a station missing from the feed is reported as missing, never guessed). Kaub is the shipping low-water reference on the Middle Rhine.
+export const RHINE_STATIONS = { maxau: /\bMAXAU\b/i, kaub: /\bKAUB\b/i, koeln: /\bK(Ö|OE)LN\b/i, duisburg_ruhrort: /DUISBURG.?RUHRORT/i, emmerich: /\bEMMERICH\b/i };
 const num = (x) => { const v = x == null || x === "" ? NaN : +x; return Number.isFinite(v) ? v : null; };
 const TREND = { "-1": "FALLING", "0": "STABLE", "1": "RISING" };
 // Observed change over the last readings (our difference of WSV measurements, not a WSV trend and not a forecast).
@@ -11,12 +13,12 @@ export function levelChange(history) {
   return { change_cm: Math.round((b.v - a.v) * 10) / 10, window_min: min, direction: b.v - a.v > 1 ? "UP" : b.v - a.v < -1 ? "DOWN" : "FLAT",
     note: "Difference between the oldest and newest WSV reading in the window. Computed by Orb Studio from published measurements; not a WSV trend and not a forecast." };
 }
-export function parseStations(j, which = "all") {
+export function parseStations(j, which = "all", table = STATIONS) {
   if (!Array.isArray(j)) return { ok: false };
-  const keys = which === "all" ? Object.keys(STATIONS) : STATIONS[which] ? [which] : [];
+  const keys = which === "all" ? Object.keys(table) : table[which] ? [which] : [];
   const out = [];
   for (const key of keys) {
-    const st = j.find((s) => s && STATIONS[key].test(String(s.shortname || s.longname || "")));
+    const st = j.find((s) => s && table[key].test(String(s.shortname || s.longname || "")));
     if (!st) { out.push({ station: key, ok: false, reason: "station not in feed" }); continue; }
     const ts = (n) => (Array.isArray(st.timeseries) ? st.timeseries.find((t) => t && t.shortname === n) : null);
     const W = ts("W"), cm = W && W.currentMeasurement;
