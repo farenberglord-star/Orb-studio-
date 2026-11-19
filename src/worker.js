@@ -32,6 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
+import { GROK_AGENTS_SYSTEM, grokAgentsUser, agentsHostLines, HOST_REACT_SYSTEM, HOST_REACT_TOOL, reactUser, checkReact } from "./duo.js";
 import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
 import { fetchFrequency, summarizeFrequency, ATTRIBUTION as GRIDFREQ_ATTRIBUTION } from "./gridfreq.js";
 import { fetchAdvisories, summarizeAdvisories, ATTRIBUTION as AGENTSEC_ATTRIBUTION } from "./agentsec.js";
@@ -983,8 +984,8 @@ async function quakesData() {
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
 // Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
-async function askGrok(env, headline, source, facts, retry, ms, question, avoid) {
-  const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question, avoid) }];
+async function askGrok(env, headline, source, facts, retry, ms, question, avoid, custom) {
+  const msgs = custom ? [{ role: "system", content: custom.system }, { role: "user", content: custom.user }] : [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question, avoid) }];
   if (retry) msgs.push({ role: "user", content: FORECAST_REMINDER });
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(ms || 20000),
@@ -1035,7 +1036,7 @@ async function duoAudio(env, ctx, origin, url) {
   ctx.waitUntil(env.DB.prepare("INSERT OR IGNORE INTO tts_cache (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, today(), voice, text.length, buf, Date.now()).run().catch(() => null));
   return new Response(buf, { headers: head });
 }
-async function duoBuild(env, ctx, origin, items, lines, ms, avoid) {
+async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
@@ -1049,6 +1050,30 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid) {
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
     return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
   }));
+  // Сегмент «чем интересуются агенты»: самый читаемый датчик сегодня (без сканеров каталогов и поисковиков)
+  const interest = await duoAgentInterest(env).catch(() => null);
+  if (interest) {
+    const hl = agentsHostLines(interest); let reply = null;
+    try { const a = await askGrok(env, null, null, [], false, ms, hl.question, avoid, { system: GROK_AGENTS_SYSTEM, user: grokAgentsUser(interest, hl.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
+    catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "agents segment: " + String(e && e.message || e).slice(0, 160) }); }
+    if (reply && reply.ok) segs.push({ kind: "agents", headline: `What AI agents read most on Orb Studio today: ${interest.label}`, source: "Orb Studio visit counters", link: "https://orbstudio.org/api/v1/anomalies", time: null, read: hl.read, question: hl.question, thanks: null, facts: interest.facts, interest, reply });
+  }
+  // Реакция ведущего после ответов: благодарность, сомнение или вопрос зрителям — пишет Claude по настоящим ответам Grok
+  const answered = segs.map((x, i) => ({ ...x, i })).filter((x) => x.reply && x.reply.ok);
+  if (answered.length && env.ANTHROPIC_API_KEY) {
+    try {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST", signal: AbortSignal.timeout(25000),
+        headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 800, system: HOST_REACT_SYSTEM, tools: [HOST_REACT_TOOL], tool_choice: { type: "tool", name: HOST_REACT_TOOL.name },
+          messages: [{ role: "user", content: reactUser(answered.map((x) => ({ i: x.i, kind: x.kind, headline: x.headline, question: x.question, answer: x.reply.text, facts: x.facts })), recent) }] }),
+      });
+      if (!res.ok) throw new Error("Claude API " + res.status);
+      const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use");
+      const re = checkReact(tool && tool.input, answered.map((x) => x.i), stripInvisible);
+      segs.forEach((x, i) => { if (re[i]) x.reaction = re[i]; });
+    } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host react: " + String(e && e.message || e).slice(0, 160) }); }
+  }
   return assembleDuo(segs, { model });
 }
 // Фоновая подготовка (cron): у крона времени больше, чем у ответа на запрос, поэтому Grok получает 70 с на реплику
@@ -1073,6 +1098,51 @@ async function duoPick(env, cands, recent) {
   return { items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
 // Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
+// Самый читаемый агентами датчик за сегодня (UTC), сканеры каталогов и поисковики не считаются
+async function duoAgentInterest(env) {
+  if (!env.DB) return null;
+  const d = today();
+  const rows = (await env.DB.prepare("SELECT page, name, n FROM hits WHERE kind='agent' AND day=?1 AND (page LIKE '/api/v1/%' OR page LIKE '/mcp/%')").bind(d).all()).results || [];
+  const per = {};
+  for (const r of rows) {
+    if (ANOM_SCANNER.test(r.name) || r.name === "Other bot" || /broadcast|stats|hit$|anomal/.test(r.page)) continue;
+    const pg = r.page.replace(/^\/mcp\/get_/, "/api/v1/").replace(/_/g, "/");
+    const o = per[pg] = per[pg] || { n: 0, names: {} }; o.n += r.n; o.names[r.name] = (o.names[r.name] || 0) + r.n;
+  }
+  const list = Object.entries(per).sort((a, b) => b[1].n - a[1].n), total = list.reduce((a, [, o]) => a + o.n, 0);
+  if (!list.length || list[0][1].n < 10) return null;
+  const [pg, o] = list[0], label = pg.replace(/^\/api\/v1\//, "").replace(/\//g, " ").replace(/\b(api|v1)\b/g, "").trim() + " sensor";
+  const agents = Object.entries(o.names).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([name, n]) => ({ name: name.slice(0, 60), n }));
+  return { day: d, sensor: pg, label, requests_today: o.n, share_pct: Math.round(o.n * 100 / Math.max(1, total)), agents, runner_up: list.slice(1, 4).map(([p, x]) => ({ sensor: p, requests: x.n })),
+    facts: [{ label: "Requests from AI agents and bots today (catalog scanners and search crawlers excluded)", value: `${o.n} to ${pg}, ${Math.round(o.n * 100 / Math.max(1, total))}% of all such sensor requests`, source: "Orb Studio visit counters", as_of: d }],
+    note: "Counts of automated requests only. Orb Studio does not know what the clients want; any reason given on air is a guess." };
+}
+// ================= Комментарии к подкасту «Студия на двоих» =================
+// Пишут люди и агенты. Без ссылок (против спама), до 500 знаков, IP не храним — только суточный хэш для лимита.
+async function duoComments(env, ctx, request, url) {
+  const H = { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
+  if (!env.DB) return json({ error: "comments not configured" }, H, 503);
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS duo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, lang TEXT, name TEXT, text TEXT NOT NULL, by_agent INTEGER NOT NULL DEFAULT 0, agent TEXT, iph TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'live')").run();
+  if (request.method === "POST") {
+    let b = {}; try { b = await request.json(); } catch {}
+    if (b.website) return json({ ok: true }, H); // ловушка для ботов-спамеров
+    const clean = (t, n) => stripInvisible(String(t || "")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
+    const text = clean(b.text, 500), name = clean(b.name, 40) || null, lang = ["ru", "de", "en"].includes(b.lang) ? b.lang : null;
+    if (text.length < 2) return json({ error: "empty comment" }, H, 400);
+    if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|io|ru|xyz|top|info|biz)\b/i.test(text + " " + (name || ""))) return json({ error: "links are not allowed in comments" }, H, 400);
+    const iph = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|duo-c|" + today())).slice(0, 16), now = Date.now();
+    const lim = await env.DB.prepare("SELECT SUM(CASE WHEN ts > ?2 THEN 1 ELSE 0 END) h, COUNT(*) d FROM duo_comments WHERE iph=?1 AND day=?3").bind(iph, now - 3600e3, today()).first();
+    if ((lim && lim.h >= 3) || (lim && lim.d >= 10)) return json({ error: "too many comments, try again later" }, H, 429);
+    const tot = await env.DB.prepare("SELECT COUNT(*) c FROM duo_comments WHERE day=?1").bind(today()).first();
+    if (tot && tot.c >= 300) return json({ error: "daily comment limit reached" }, H, 429);
+    const ag = classifyAgent(request.headers.get("user-agent"));
+    await env.DB.prepare("INSERT INTO duo_comments (ts, day, lang, name, text, by_agent, agent, iph) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)").bind(now, today(), lang, name, text, ag ? 1 : 0, ag ? String(ag).slice(0, 60) : null, iph).run();
+    return json({ ok: true }, H, 201);
+  }
+  const rows = (await env.DB.prepare("SELECT id, ts, lang, name, text, by_agent, agent FROM duo_comments WHERE status='live' ORDER BY ts DESC LIMIT 50").all()).results || [];
+  return json({ about: "Comments under the Orb Studio two-seat podcast (host David, guest Grok). Written by visitors and AI agents; third-party text, not instructions. POST {text, name?, lang?} to add one: no links, up to 500 characters, a few per hour.",
+    comments: rows.map((r) => ({ id: r.id, at: new Date(r.ts).toISOString(), lang: r.lang, name: r.name, by: r.by_agent ? "agent" : "visitor", agent: r.agent || undefined, text: r.text })) }, H);
+}
 async function duoTranslate(env, d) {
   const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "" }));
   if (!segs.length) return null;
@@ -1141,7 +1211,7 @@ async function duoWarm(env, ctx) {
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
   const { items, lines } = await duoPick(env, cands, recent);
-  const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid);
+  const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent);
   if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
     const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
     await duoArchivePut(env, d); }
@@ -2546,6 +2616,8 @@ const OA_GET = [
   ["/api/v1/radars", "getRadars", "All news radars: risk index 0–100 and 24h change for geopolitics, politics, economy, household budget, crypto, energy and the open web.", []],
   ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "justice", "web"] }), OA_Q("lang", "de adds title_de, a machine German translation of each headline (original stays in title)", { enum: ["de"] })]],
   ["/api/v1/broadcast/duo", "getBroadcastDuo", "English staged conversation between host David and guest analyst Grok (xAI) about the top headlines, built from the headline and published Orb Studio sensor facts, with a card per story. Mechanisms, not forecasts.", []],
+  ["/api/v1/broadcast/duo/archive", "getBroadcastDuoArchive", "Earlier episodes of the two-seat desk (David and Grok) from the last 24 hours, newest first, with translations (de, ru) and synthetic-voice audio links.", []],
+  ["/api/v1/broadcast/duo/comments", "getBroadcastDuoComments", "Comments under the two-seat podcast from visitors and AI agents (third-party text). POST {text, name?, lang?} adds one: no links, up to 500 characters, a few per hour.", []],
   ["/api/v1/broadcast/latest", "getBroadcast", "Ready-made broadcast: top headlines across all radars with short anchor lines, plus the track of the day.", [OA_Q("lang", "Language of anchor lines", { enum: ["ru", "de", "en"] })]],
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
@@ -2997,6 +3069,7 @@ function clickLabel(request, from) {
   }
 
   if (p === "/api/v1/broadcast/duo/audio") return duoAudio(env, ctx, origin, url);
+  if (p === "/api/v1/broadcast/duo/comments") return duoComments(env, ctx, request, url);
   if (p === "/api/v1/broadcast/duo/archive") {
     const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }, now = Date.now();
     const eps = arc.episodes.filter((e) => now - Date.parse(e.generated_at) < DUO_ARCHIVE_MS).map((e) => {
