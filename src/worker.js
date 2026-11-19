@@ -999,11 +999,12 @@ async function askGrok(env, headline, source, facts, retry, ms, question) {
 // ================= Голоса «Студии на двоих»: xAI Grok TTS, один раз на реплику, кэш в D1 =================
 // Озвучиваются только реплики текущего эфира (по номеру сегмента), произвольный текст сюда не передать.
 const DUO_VOICES = { david: "rex", grok: "sal" };
-const DUO_TTS_DAY_CHARS = 25000; // потолок синтеза в сутки (~0,4 $ по цене xAI 15 $ за 1 млн знаков)
+const DUO_TTS_DAY_CHARS = 60000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
+const DUO_LANGS = ["de", "ru"]; // переводы эфира (оригинал — английский)
 async function duoAudio(env, ctx, origin, url) {
   const bad = (m, st = 404) => json({ error: m }, { "Cache-Control": "no-store" }, st);
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
-  const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part");
+  const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = ["de", "ru"].includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
   if (!Number.isInteger(seg) || !["read", "question", "answer", "thanks"].includes(part)) return bad("bad request", 400);
   const d = await duoData(env, ctx, origin);
   const sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg);
@@ -1011,9 +1012,10 @@ async function duoAudio(env, ctx, origin, url) {
   let text = "", who = "david";
   if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
   else text = (sg.host || {})[part];
+  if (lg !== "en") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
   text = String(text || "").trim().slice(0, 1200); if (!text) return bad("empty line");
   const voice = DUO_VOICES[who];
-  const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + text)));
+  const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
   const key = [...kb].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
   const head = { "content-type": "audio/mpeg", "Cache-Control": "public, max-age=604800, immutable", "Access-Control-Allow-Origin": "*", "x-voice": `${voice} (xAI Grok TTS, synthetic)` };
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS tts_cache (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run();
@@ -1022,7 +1024,7 @@ async function duoAudio(env, ctx, origin, url) {
   const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 };
   if (used.c + text.length > DUO_TTS_DAY_CHARS) return bad("daily voice budget reached — subtitles only", 429);
   let r;
-  try { r = await fetch("https://api.x.ai/v1/tts", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY }, body: JSON.stringify({ text, voice_id: voice, language: "en" }), signal: AbortSignal.timeout(25000) }); }
+  try { r = await fetch("https://api.x.ai/v1/tts", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY }, body: JSON.stringify({ text, voice_id: voice, language: lg }), signal: AbortSignal.timeout(25000) }); }
   catch (e) { return bad("voice service unreachable", 502); }
   if (!r.ok) return bad("voice service error " + r.status, 502);
   const buf = new Uint8Array(await r.arrayBuffer());
@@ -1067,6 +1069,32 @@ async function duoPick(env, cands) {
   const picks = checkPicks(out, cands.length, stripInvisible);
   return { items: picks.map((p) => ({ ...cands[p.i], question: p.question })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
+// Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
+async function duoTranslate(env, d) {
+  const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "" }));
+  if (!segs.length) return null;
+  const NAMES = { de: "German", ru: "Russian" }, out = {};
+  for (const lg of DUO_LANGS) {
+    try {
+      const res = await fetch("https://api.x.ai/v1/chat/completions", {
+        method: "POST", signal: AbortSignal.timeout(60000),
+        headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
+        body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", temperature: 0.2, max_tokens: 3000, response_format: { type: "json_object" },
+          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","thanks":"","answer":""}]}` },
+            { role: "user", content: JSON.stringify({ segments: segs }) }] }),
+      });
+      if (!res.ok) throw new Error("xAI " + res.status);
+      const j = await res.json(); const txt = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+      const parsed = JSON.parse(String(txt || "").replace(/^```(json)?|```$/g, "").trim());
+      const map = {};
+      for (const x of (parsed.segments || [])) { const src = segs.find((y) => y.i === x.i); if (!src) continue;
+        const o = {}; for (const k of ["read", "question", "thanks", "answer"]) { const v = typeof x[k] === "string" ? stripInvisible(x[k]).trim().slice(0, 1400) : ""; o[k] = src[k] ? v : ""; }
+        if (src.answer && !o.answer) continue; map[x.i] = o; }
+      if (Object.keys(map).length === segs.length) out[lg] = { segments: map, model: j.model || env.XAI_MODEL || "grok-4.7" };
+    } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "translate " + lg + ": " + String(e && e.message || e).slice(0, 160) }); }
+  }
+  return Object.keys(out).length ? { by: "Grok (xAI)", original: "en", note: "Translated by Grok (xAI) from the English original; the English text above is the original.", ...out } : null;
+}
 async function duoWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
@@ -1074,10 +1102,14 @@ async function duoWarm(env, ctx) {
   if (!cands.length) return;
   const key = "duo-v2-" + await sha(cands.map((i) => i.headline).join("|"));
   const ready = await sharedGet(env, key, 25 * 60e3);
-  if (ready) { await sharedPut(env, "duo-latest", ready); return; } // заголовки те же: выпуск остаётся «последним готовым»
+  if (ready) {
+    if (!ready.translations || DUO_LANGS.some((l) => !ready.translations[l])) { const tr = await duoTranslate(env, ready); if (tr) { ready.translations = { ...(ready.translations || {}), ...tr }; await sharedPut(env, key, ready); } }
+    await sharedPut(env, "duo-latest", ready); return; // заголовки те же: выпуск остаётся «последним готовым»
+  }
   const { items, lines } = await duoPick(env, cands);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000);
-  if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
+  if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
+    const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); } }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -2936,7 +2968,9 @@ function clickLabel(request, from) {
       d.voices = { synthetic: true, provider: "xAI Grok TTS", host: { name: "David", voice: DUO_VOICES.david }, guest: { name: "Grok", voice: DUO_VOICES.grok },
         note: "Both voices are synthetic AI voices. David and Grok are AI agents, not people. Audio is generated once per line from the text above and cached." };
       for (const sg of d.segments) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") parts.push("answer", "thanks");
-        sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}`])); }
+        sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}`]));
+        for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
+          tr.audio = Object.fromEntries(parts.filter((k) => tr[k]).map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}&lang=${lg}`])); } }
     }
     return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, d.status === "grok_not_configured" ? 503 : 200);
   }
