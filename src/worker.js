@@ -1220,6 +1220,14 @@ const DUO_OUTRO = {
   ro: "Poate că asta e esența: este o problemă comună, nu ceva cu care fiecare parte se descurcă singură. Scrieți-ne părerea în comentarii.",
   tr: "Belki de mesele tam bu: bu ortak bir sorun, her tarafın tek başına üstesinden geleceği bir şey değil. Görüşünüzü yorumlara yazın.",
 };
+// Язык подкаста: первый из поддерживаемых в Accept-Language телефона, иначе по стране, иначе английский
+function duoPickLang(request) {
+  const ok = ["ru", "de", "en", "ro", "tr"];
+  const al = String(request.headers.get("accept-language") || "").split(",").map((x) => { const [t, q] = x.trim().split(";q="); return { t: t.slice(0, 2).toLowerCase(), q: q ? +q : 1 }; }).filter((x) => x.t).sort((a, b) => b.q - a.q);
+  for (const x of al) if (ok.includes(x.t)) return x.t;
+  const c = String((request.cf && request.cf.country) || "").toUpperCase();
+  return { DE: "de", AT: "de", CH: "de", LI: "de", RU: "ru", BY: "ru", KZ: "ru", KG: "ru", RO: "ro", MD: "ro", TR: "tr" }[c] || "en";
+}
 // Финальный призыв в конце свежего выпуска (фиксированный текст)
 const DUO_CTA = {
   en: "That's the desk for now. The live sensors are on orbstudio.org, and your comments are right below this podcast.",
@@ -8495,7 +8503,15 @@ async function handleRequest(request, env, ctx) {
         if (autoLang !== "ru") assetReq = new Request(new URL(`/${autoLang}${bare}`, url.origin), request);
       }
     }
+    // «Студия на двоих»: язык подкаста по языку телефона (Accept-Language), затем по стране; /ru/studio, /ro/studio… — явный язык
+    let studioLang = null;
+    { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr))?\/studio(?:\.html)?$/);
+      if (sm) { assetReq = new Request(new URL("/studio", url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
+    if (studioLang && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
+      asset = new HTMLRewriter().on("html", { element(e) { e.setAttribute("data-al", studioLang); e.setAttribute("lang", studioLang); } }).transform(asset);
+      asset = new Response(asset.body, asset); asset.headers.set("Vary", "Accept-Language"); asset.headers.set("Cache-Control", "private, max-age=60");
+    }
     if (autoLang) {
       asset = new Response(asset.body, asset);
       asset.headers.set("Vary", "Accept-Language");

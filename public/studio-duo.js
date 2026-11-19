@@ -92,7 +92,8 @@ export function krakenCells(market, lang = "en") {
 // ---------- Браузер ----------
 function start() {
   const $ = (id) => document.getElementById(id);
-  const lang = pickLang(location.search, navigator.language), t = T[lang];
+  const hint = document.documentElement.dataset.al || (navigator.languages || []).map((x) => String(x).slice(0, 2).toLowerCase()).find((x) => T[x]) || navigator.language;
+  const lang = pickLang(location.search, hint), t = T[lang];
   const stage = $("stage"), cv = $("fx"), sub = $("sub"), board = $("board");
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.lang = lang;
@@ -101,7 +102,7 @@ function start() {
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t[e.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = t[e.dataset.h]; });
   const xs = $("xshare");
-  if (xs) { const u = ["ro", "tr"].includes(lang) ? "https://orbstudio.org/studio?lang=" + lang : "https://orbstudio.org/" + lang + "/studio"; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent("🎙 " + t.shareTxt) + "&url=" + encodeURIComponent(u) + "&hashtags=OrbStudio,AIagents"; xs.textContent = "𝕏 " + t.share; }
+  if (xs) { const u = "https://orbstudio.org/" + lang + "/studio"; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent("🎙 " + t.shareTxt) + "&url=" + encodeURIComponent(u) + "&hashtags=OrbStudio,AIagents"; xs.textContent = "𝕏 " + t.share; }
   // ---------- Комментарии ----------
   const CAPI = API + "/comments";
   $("cm-h").textContent = t.cmH; $("cm-sub").textContent = t.cmSub; $("cm-name").placeholder = t.cmName; $("cm-text").placeholder = t.cmText; $("cm-go").textContent = t.cmGo;
