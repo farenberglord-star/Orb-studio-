@@ -1135,6 +1135,125 @@ async function duoPick(env, cands, recent, menu, recentCarousel) {
   const carousel = checkCarousel(out && out.carousel, menu, stripInvisible);
   return { carousel, items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
+// ================= RSS-лента подкаста для Apple Podcasts / Spotify (немецкий) =================
+// Выпуск собирается из уже озвученных реплик (tts_cache) и тишины между ними: аудио не хранится второй раз.
+// Лента: /feed/studio-de.xml · аудио: /feed/studio-de/{id}.mp3 (с поддержкой Range) · обложка: /media/feed/cover-de.jpg
+const POD_LANG = "de", POD_KEY = "podfeed-de", POD_MAX = 40; // e-mail владельца — переменная PODCAST_OWNER_EMAIL в настройках воркера (в код не пишем)
+function mp3Strip(b) { // ID3v2 в начале — убираем, чтобы склейка была чистой
+  if (b.length > 10 && b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) { const sz = ((b[6] & 127) << 21) | ((b[7] & 127) << 14) | ((b[8] & 127) << 7) | (b[9] & 127); return b.subarray(10 + sz); }
+  return b;
+}
+async function ttsEnsure(env, text, who, lg) {
+  const voice = DUO_VOICES[who]; text = String(text || "").trim().slice(0, 1200); if (!text) return null;
+  const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
+  const key = [...kb].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS tts_cache (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run();
+  const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(key).first();
+  let buf = hit && hit.audio ? new Uint8Array(hit.audio) : null;
+  if (!buf) {
+    const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 };
+    if (used.c + text.length > DUO_TTS_DAY_CHARS) return null;
+    const r = await fetch("https://api.x.ai/v1/tts", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY }, body: JSON.stringify({ text, voice_id: voice, language: lg }), signal: AbortSignal.timeout(30000) }).catch(() => null);
+    if (!r || !r.ok) return null;
+    buf = new Uint8Array(await r.arrayBuffer()); if (buf.length < 500 || buf.length > 1900000) return null;
+    await env.DB.prepare("INSERT OR IGNORE INTO tts_cache (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, today(), voice, text.length, buf, Date.now()).run();
+  }
+  const st = mp3Strip(buf);
+  return { k: key, off: buf.length - st.length, len: st.length };
+}
+const POD_SIL = { s: "/media/feed/silence-short.mp3", l: "/media/feed/silence-long.mp3" };
+async function podSilence(env, n) { const r = await env.ASSETS.fetch(new Request("https://orbstudio.org" + POD_SIL[n])); return new Uint8Array(await r.arrayBuffer()); }
+// Собрать выпуск ленты из выпуска студии: только новости и карусель, порядок как в плеере
+async function podBuild(env, d) {
+  if (!d || !env.XAI_API_KEY || !env.DB) return null;
+  const tr = d.translations && d.translations[POD_LANG] && d.translations[POD_LANG].segments; if (!tr) return null;
+  const segs = (d.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:") && x.guest && x.guest.status === "ok");
+  if (!segs.length) return null;
+  const cut = segs.length !== (d.segments || []).length;
+  const [ss, sl] = await Promise.all([podSilence(env, "s"), podSilence(env, "l")]);
+  const parts = [], topics = [];
+  for (const [si, x] of segs.entries()) {
+    const t = tr[x.i] || tr[String(x.i)]; if (!t || !t.read || !t.answer) return null;
+    topics.push(t.read);
+    const order = [["read", "david"], ["question", "david"], ["answer", "grok"], ["follow_up", "david"], ["follow_answer", "grok"], ["thanks", "david"]];
+    if (!cut && si < segs.length - 1) order.push(["transition", "david"]);
+    for (const [k, who] of order) { if (!t[k]) continue; const a = await ttsEnsure(env, t[k], who, POD_LANG); if (!a) return null; parts.push({ t: "tts", ...a }); parts.push({ t: "sil", n: "s", len: ss.length }); }
+    parts.push({ t: "sil", n: "l", len: sl.length });
+  }
+  const cta = await ttsEnsure(env, DUO_CTA[POD_LANG], "david", POD_LANG); if (cta) parts.push({ t: "tts", ...cta });
+  const total = parts.reduce((a, p) => a + p.len, 0);
+  return { id: duoEpId(d), generated_at: d.generated_at, topics: topics.map((x) => String(x).slice(0, 220)), links: segs.map((x) => x.link).filter((u) => safeHttps(u)).slice(0, 6), parts, total, dur: Math.round(total * 8 / 128000) };
+}
+function safeHttps(u) { return typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u); }
+async function podAdd(env, d) {
+  const feed = (await sharedGet(env, POD_KEY, 1e15)) || { items: [] };
+  if (feed.items.some((x) => x.id === duoEpId(d))) return feed;
+  const it = await podBuild(env, d).catch(() => null); if (!it) return feed;
+  feed.items.unshift(it); feed.items = feed.items.slice(0, POD_MAX); await sharedPut(env, POD_KEY, feed); return feed;
+}
+const xesc = (t) => String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function podDurFmt(s) { const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60; return (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(x).padStart(2, "0"); }
+async function podFeedXml(env, origin) {
+  const feed = (await sharedGet(env, POD_KEY, 1e15)) || { items: [] };
+  const self = `${origin}/feed/studio-de.xml`, img = `${origin}/media/feed/cover-de.jpg`;
+  const desc = "KI-Nachrichtenpodcast von Orb Studio: Moderator David und Gast Grok besprechen mehrmals täglich die wichtigsten Weltnachrichten. Beide sind KI-Agenten – David schreibt Claude (Anthropic), Grok antwortet selbst (xAI). Die Stimmen sind KI-synthetisiert (xAI Grok TTS), das Gespräch wird aus dem Englischen von Grok übersetzt. Schlagzeilen aus den Orb-Studio-Radaren mit Quellenangabe, keine Prognosen.";
+  const items = feed.items.map((it) => {
+    const dt = new Date(it.generated_at), when = dt.toLocaleString("de-DE", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const first = String(it.topics[0] || "").split(/(?<=[.!?])\s/)[0].slice(0, 90);
+    const body = "Themen:\n" + it.topics.map((t) => "• " + t).join("\n") + "\n\nKI-generiert: David und Grok sind KI-Agenten, die Stimmen sind synthetisch (xAI Grok TTS). Übersetzung: Grok (xAI), Original auf Englisch.\n\nQuellen:\n" + it.links.join("\n") + "\n\nLive: " + origin + "/de/studio";
+    return `<item><title>${xesc(`${when} · ${first}`)}</title><description>${xesc(body)}</description><itunes:summary>${xesc(body)}</itunes:summary><guid isPermaLink="false">orb-studio-de-${xesc(it.id)}</guid><pubDate>${dt.toUTCString()}</pubDate>`
+      + `<enclosure url="${origin}/feed/studio-de/${xesc(it.id)}.mp3" length="${it.total}" type="audio/mpeg"/><itunes:duration>${podDurFmt(it.dur)}</itunes:duration><itunes:explicit>false</itunes:explicit><itunes:episodeType>full</itunes:episodeType><link>${origin}/de/studio</link></item>`;
+  }).join("\n");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>Orb Studio – Studio für zwei</title>
+<link>${origin}/de/studio</link>
+<atom:link href="${self}" rel="self" type="application/rss+xml"/>
+<language>de</language>
+<description>${xesc(desc)}</description>
+<itunes:summary>${xesc(desc)}</itunes:summary>
+<itunes:author>Orb Studio</itunes:author>
+<itunes:owner><itunes:name>Orb Studio</itunes:name>${env.PODCAST_OWNER_EMAIL ? `<itunes:email>${xesc(env.PODCAST_OWNER_EMAIL)}</itunes:email>` : ""}</itunes:owner>
+<itunes:image href="${img}"/>
+<image><url>${img}</url><title>Orb Studio – Studio für zwei</title><link>${origin}/de/studio</link></image>
+<itunes:category text="News"><itunes:category text="Daily News"/></itunes:category>
+<itunes:explicit>false</itunes:explicit>
+<itunes:type>episodic</itunes:type>
+<copyright>Orb Studio</copyright>
+${items}
+</channel>
+</rss>`;
+}
+// Аудио выпуска: склейка частей с поддержкой Range (Apple требует)
+async function podAudio(env, id, request) {
+  const feed = (await sharedGet(env, POD_KEY, 1e15)) || { items: [] }, it = feed.items.find((x) => x.id === id);
+  if (!it) return new Response("not found", { status: 404 });
+  let start = 0, end = it.total - 1, partial = false;
+  const m = /bytes=(\d*)-(\d*)/.exec(request.headers.get("range") || "");
+  if (m) { partial = true; if (m[1] === "" && m[2]) { start = Math.max(0, it.total - +m[2]); } else { start = +m[1] || 0; if (m[2]) end = Math.min(+m[2], it.total - 1); } }
+  if (start > end || start >= it.total) return new Response(null, { status: 416, headers: { "content-range": `bytes */${it.total}` } });
+  const head = { "content-type": "audio/mpeg", "accept-ranges": "bytes", "content-length": String(end - start + 1), "cache-control": "public, max-age=86400", "access-control-allow-origin": "*" };
+  if (partial) head["content-range"] = `bytes ${start}-${end}/${it.total}`;
+  if (request.method === "HEAD") return new Response(null, { status: partial ? 206 : 200, headers: head });
+  const sil = {};
+  const stream = new ReadableStream({
+    async start(ctrl) {
+      let pos = 0;
+      for (const p of it.parts) {
+        const a = pos, b = pos + p.len - 1; pos += p.len;
+        if (b < start) continue; if (a > end) break;
+        const from = Math.max(start, a) - a, to = Math.min(end, b) - a; // включительно, внутри части
+        let chunk;
+        if (p.t === "sil") { sil[p.n] = sil[p.n] || await podSilence(env, p.n); chunk = sil[p.n].subarray(from, to + 1); }
+        else { const r = await env.DB.prepare("SELECT substr(audio, ?2, ?3) a FROM tts_cache WHERE k=?1").bind(p.k, p.off + from + 1, to - from + 1).first(); chunk = r && r.a ? new Uint8Array(r.a) : new Uint8Array(to - from + 1); }
+        ctrl.enqueue(chunk);
+      }
+      ctrl.close();
+    },
+  });
+  return new Response(stream, { status: partial ? 206 : 200, headers: head });
+}
 // Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
 // Карусель Давида: меню датчиков и тем ИИ-моста с текущими показаниями — он сам выбирает одну тему
 async function duoMenu(env, ctx, origin) {
@@ -1294,6 +1413,7 @@ async function duoWarm(env, ctx) {
     const missing = DUO_LANGS.filter((l) => !last.translations || !last.translations[l]);
     if (missing.length) { const tr = await duoTranslate(env, last, missing); if (tr) { last.translations = { ...(last.translations || {}), ...tr };
       await sharedPut(env, "duo-latest", last); if (last.cache_key) await sharedPut(env, last.cache_key, last); await duoArchivePut(env, last); } }
+    await podAdd(env, last).catch(() => null); // лента подкаста: если последний выпуск ещё не собран
     return;
   }
   // Чтобы реплики не повторялись: начала прежних ответов Grok и реплик Давида за сутки
@@ -1326,7 +1446,8 @@ async function duoWarm(env, ctx) {
   // Выпуск публикуется только после переводов: иначе слушатель получил бы английский, а потом выпуск «поменялся» бы под ним
   if (duoAnswered(d)) { d.cache_key = key;
     const tr = await duoTranslate(env, d); if (tr) d.translations = tr;
-    await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); await duoArchivePut(env, d); }
+    await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); await duoArchivePut(env, d);
+    await podAdd(env, d).catch(() => null); }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -8571,6 +8692,8 @@ async function handleRequest(request, env, ctx) {
       try { const r = await handleQuestions(url, request, env, ctx); if (r) return r; }
       catch (e) { return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
+    if (url.pathname === "/feed/studio-de.xml") return new Response(await podFeedXml(env, url.origin), { headers: { "content-type": "application/rss+xml; charset=utf-8", "cache-control": "public, max-age=600", "access-control-allow-origin": "*" } });
+    { const fm = url.pathname.match(/^\/feed\/studio-de\/(\d{10,16})\.mp3$/); if (fm) return podAudio(env, fm[1], request); }
     if (url.pathname === "/api/v1/hit" && request.method === "POST") {
       let page = "home";
       try { page = ((await request.json()).page || "home").toString().slice(0, 20); } catch {}
