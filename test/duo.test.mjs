@@ -5,12 +5,12 @@ import { buildFacts, checkReply, assembleDuo, grokUser, hostLines, DUO } from ".
 const cp = { data_through: "2026-11-08", focus: [{ key: "hormuz", ships_per_day_7d: 3.9, ships_per_day_year_ago: 73.7, change_vs_year_pct: -94.7 }] };
 
 test("факты: только из датчиков, у каждого есть источник и дата; пустые источники пропускаются", () => {
-  const f = buildFacts({ chokepoints: cp, gas: { ok: true, full_percent: 57.2, net_flow: "WITHDRAWING", gas_day: "2026-11-16" },
+  const f = buildFacts({ now: Date.parse("2026-11-12"), chokepoints: cp, gas: { ok: true, full_percent: 57.2, net_flow: "WITHDRAWING", gas_day: "2026-11-16" },
     sensors: { inflation: { hicp_annual_pct: 4, period: "2026-10" }, ecb: { deposit_rate_pct: { value: 2.5, date: "2026-11-18" } }, power: { now_eur_mwh: 217, now_at: "2026-11-18T17:45:00Z" } } });
   assert.equal(f.length, 7); assert.ok(f.every((x) => x.source && x.label && x.value));
   assert.equal(f[2].value, "-94.7"); assert.equal(f[0].source, "IMF PortWatch");
-  assert.deepEqual(buildFacts({}), []);
-  assert.equal(buildFacts({ chokepoints: { focus: [] } }).length, 0);
+  assert.deepEqual(buildFacts({ now: Date.parse("2026-11-12"),}), []);
+  assert.equal(buildFacts({ now: Date.parse("2026-11-12"), chokepoints: { focus: [] } }).length, 0);
 });
 
 test("ответ Grok: нормальный проходит, markdown и HTML чистятся", () => {
@@ -28,7 +28,7 @@ test("ответ Grok: прогнозы, советы и попытки кома
 });
 
 test("выпуск: ответ есть, ответ отклонён, ответа нет; карточка для агентов у каждого сегмента", () => {
-  const facts = buildFacts({ chokepoints: cp });
+  const facts = buildFacts({ now: Date.parse("2026-11-12"), chokepoints: cp });
   const d = assembleDuo([
     { headline: "H1", source: "S1", link: "https://example.org/1", read: "Headline one.", facts, reply: { ok: true, text: "Mechanism." } },
     { headline: "H2", source: "S2", read: "Headline two.", facts: [], reply: { ok: false, reason: "forecast_language" } },
@@ -85,7 +85,7 @@ test("host picks: prompt input holds only headlines; assembled desk marks who wr
 
 import { relevantFacts, GROK_SYSTEM as GS2 } from "../src/duo.js";
 test("facts reach Grok only when they match the story", () => {
-  const all = buildFacts({ chokepoints: { data_through: "2026-11-08", focus: [{ key: "hormuz", ships_per_day_7d: 3.9, ships_per_day_year_ago: 73.7, change_vs_year_pct: -94.7 }] }, gas: { ok: true, full_percent: 57, net_flow: "Withdrawing", gas_day: "2026-11-17" },
+  const all = buildFacts({ now: Date.parse("2026-11-12"), chokepoints: { data_through: "2026-11-08", focus: [{ key: "hormuz", ships_per_day_7d: 3.9, ships_per_day_year_ago: 73.7, change_vs_year_pct: -94.7 }] }, gas: { ok: true, full_percent: 57, net_flow: "Withdrawing", gas_day: "2026-11-17" },
     sensors: { inflation: { hicp_annual_pct: 4, period: "2026-10" }, ecb: { deposit_rate_pct: { value: 2.5, date: "2026-11-18" } }, power: { now_eur_mwh: 200, now_at: "x" } } });
   assert.equal(all.length, 7);
   for (const h of ["Trump Meets Xi and Putin in China With Nuclear Arms and Two Wars on the Table", "Binance says it obtained $6.5B worldwide freezing order after hack", "Israeli military launches rare ground operation in Gaza beyond Yellow Line", "Scattered Spider Hacker Sentenced to 6 Years"])

@@ -211,7 +211,10 @@ function start() {
     return { out, stop() { clearInterval(iv); out.gain.setTargetAtTime(0, actx.currentTime, 0.4); } };
   }
   function duck(on) { if (bed && actx) bed.out.gain.setTargetAtTime(on ? 0.018 : 0.05, actx.currentTime, 0.35); }
+  let listenCounted = false;
   function enableSound() {
+    // счётчик слушателей: одно нажатие «Слушать» за посещение (владелец и боты не считаются)
+    if (!listenCounted) { listenCounted = true; fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: '{"page":"studio-listen"}' }).catch(() => {}); }
     soundOn = true; lb.textContent = t.mute; lb.setAttribute("aria-pressed", "true");
     try {
       if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); analyser = actx.createAnalyser(); analyser.fftSize = 512; src.connect(analyser); analyser.connect(actx.destination); }

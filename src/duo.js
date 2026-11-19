@@ -15,10 +15,12 @@ const HOST_THANKS = [
 ];
 
 // Факты берём только из датчиков сайта; каждому факту — источник и дата.
-export function buildFacts({ chokepoints, gas, sensors } = {}) {
+export function buildFacts({ chokepoints, gas, sensors, now = Date.now() } = {}) {
   const f = [], add = (label, value, as_of, source) => { if (value != null && value !== "") f.push({ label, value: String(value), as_of: as_of || null, source }); };
   const hz = chokepoints && Array.isArray(chokepoints.focus) ? chokepoints.focus.find((x) => x.key === "hormuz") : null;
-  if (hz) {
+  // Данные IMF PortWatch приходят раз в неделю с задержкой: старше 10 дней в эфир не даём
+  const hzAge = chokepoints && chokepoints.data_through ? (now - Date.parse(chokepoints.data_through)) / 864e5 : 99;
+  if (hz && hzAge <= 10) {
     add("Strait of Hormuz, ships per day (7-day average)", hz.ships_per_day_7d, chokepoints.data_through, "IMF PortWatch");
     add("Strait of Hormuz, same week a year earlier", hz.ships_per_day_year_ago, chokepoints.data_through, "IMF PortWatch");
     add("Strait of Hormuz, change versus a year earlier, %", hz.change_vs_year_pct, chokepoints.data_through, "IMF PortWatch");
@@ -34,7 +36,7 @@ export function buildFacts({ chokepoints, gas, sensors } = {}) {
 // Какие показания датчиков относятся к новости: по словам заголовка и вопроса ведущего.
 // Не относится — Grok их не получает вовсе (иначе он вставляет Ормуз в любой ответ).
 const FACT_TOPICS = [
-  [/hormuz/i, /hormuz|persian gulf|gulf of oman|\biran|tanker|strait|adnoc|\bopec|crude|oil (?:price|export|flow|shipment|tanker|market)|red sea|houthi|chokepoint|\bqatar|kuwait|saudi|\buae\b|emirat/i],
+  [/hormuz/i, /hormuz|persian gulf|gulf of oman|\biran|tanker|adnoc|\bopec|crude|oil (?:price|export|flow|shipment|tanker|market)|red sea|houthi|chokepoint|\blng (?:export|flow|shipment|tanker)/i], // страны (ОАЭ, Катар…) сами по себе не повод: из‑за «UAE» Ормуз попадал в новость про Ledger
   [/gas storage/i, /gas storage|gasspeicher|gazprom|nord stream|heating season|energy crisis|(?:europe|\beu\b|german)[^.]{0,60}\b(?:gas|lng)\b|\b(?:gas|lng)\b[^.]{0,60}(?:europe|\beu\b|german)/i],
   [/inflation/i, /inflation|consumer prices?|cost of living|\bhicp\b|\becb\b|\bezb\b|eurozone|euro area|euro-raum|teuerung/i],
   [/ECB deposit rate/i, /\becb\b|\bezb\b|interest rates?|rate (?:cut|hike|decision)|lagarde|central bank|leitzins|eurozone|euro area|inflation/i],
@@ -50,6 +52,7 @@ Rules:
 - 3 to 5 spoken sentences, at most ${DUO.maxWords} words, plain text, no lists, no markdown, no jargon (say "consumer prices", not "HICP").
 - Open in your own way every time, like a real person reacting live: sometimes to David's question ("Interesting one, David.", "David, you caught me off guard there.", "That's a sharp question."), sometimes straight into the story ("Here's the thing,", "Honestly,", "Look,", "So,"), sometimes with a short reaction to the news itself. Never use any opening listed in avoid_openings, and do not start with "Good question" unless it is genuinely fresh. Use contractions. Address David or the viewers now and then. Warm and calm, never dramatic.
 - Answer about the event itself: what is happening, who is involved and why it matters in the world. Then the wider picture that actually belongs to this story (politics, security, technology, finance, energy, trade: whichever really applies). Do not steer the story toward shipping, energy or Europe when it is not about them.
+- Every fact in FACTS has an as_of date; if it is older than three days, say the date ("as of November 8") instead of calling it latest.
 - You may use well-known general background, but never invent specific numbers, names, dates or events. FACTS holds only sensor readings that match this story, and it is often empty. If FACTS is empty, give no sensor numbers at all and do not talk about data, sensors or missing links: just discuss the event. If FACTS has entries, you may name one or two with their source where they fit naturally. Never bring up the Strait of Hormuz, gas storage, inflation, interest rates or power prices unless the headline or the host question is about them.
 - No forecasts and no price targets: never say that something will rise or fall, never give advice to buy or sell.
 - If host_question is given, answer that question directly; if it asks for a forecast or advice, explain the mechanism instead.

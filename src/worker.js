@@ -1223,7 +1223,7 @@ async function duoTranslate(env, d, only) {
 // Архив выпусков за сутки: после свежего эфира страница проигрывает прежние. Новых вызовов Grok не нужно.
 const DUO_NEWS_ONLY = true; // сегмент «датчики» по аномалиям выключен
 const DUO_CAROUSEL = true;   // карусель Давида: по желанию, только если датчик действительно интересен
-const DUO_MIN_GAP_MS = 30 * 60e3; // не чаще одного нового выпуска в 30 минут
+const DUO_MIN_GAP_MS = 4 * 3600e3; // не чаще одного нового выпуска в 4 часа (3–5 выпусков в день)
 const DUO_ARCHIVE_KEY = "duo-archive", DUO_ARCHIVE_MS = 24 * 3600e3, DUO_ARCHIVE_MAX = 16;
 async function duoArchivePut(env, d) {
   if (!d || !d.generated_at || !Array.isArray(d.segments)) return;
@@ -1302,6 +1302,10 @@ async function duoWarm(env, ctx) {
   const segsArc = arc.episodes.slice(0, 6).flatMap((e) => e.segments || []);
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
+  // Не повторять одну новость больше двух раз за сутки
+  const norm = (h) => String(h || "").toLowerCase().replace(/[^a-zа-яäöüß0-9 ]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 70);
+  const used = {}; for (const e of arc.episodes) for (const x of (e.segments || [])) if ((x.kind || "news") === "news") { const k = norm(x.headline); used[k] = (used[k] || 0) + 1; }
+  for (let i = cands.length - 1; i >= 0; i--) if ((used[norm(cands[i].headline)] || 0) >= 2 && cands.length > 4) cands.splice(i, 1);
   const menu = DUO_CAROUSEL ? await duoMenu(env, ctx, origin).catch(() => []) : [];
   // в меню карусели помечаем пункты, где детектор видит аномалию
   try { const an0 = await anomalyDetect(env); for (const sg of (an0.signals || []).filter((x) => describeSignal(x) && x.type !== "sensor_spike")) menu.unshift({ id: "anomaly:" + sg.type + ":" + (sg.radar || sg.coin || sg.article || ""), kind: "anomaly", title: "Anomaly: " + describeSignal(sg), reading: describeSignal(sg) + (sg.rule ? ` (rule: ${sg.rule})` : ""), source: "Orb Studio anomaly detector" }); } catch (e) {}
@@ -3282,7 +3286,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
+const PAGES = new Set(["studio-listen", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
