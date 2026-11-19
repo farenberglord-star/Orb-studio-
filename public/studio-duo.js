@@ -141,7 +141,7 @@ function start() {
     for (const c of cells) { const s = document.createElement("span"), i = document.createElement("i"); s.textContent = c.pair + " " + c.price + " €"; i.textContent = c.change; i.className = c.up ? "up" : "dn"; s.append(i); box.append(s); }
   }).catch(() => {});
   let seen = false; try { seen = sessionStorage.getItem("orbCounted_studio") === "1"; } catch {}
-  (seen ? fetch("/api/v1/stats?page=studio") : fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: '{"page":"studio"}' }))
+  (seen ? fetch("/api/v1/stats?page=studio") : fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page: "studio", lang, auto: !!navigator.webdriver }) }))
     .then((r) => (r.ok ? r.json() : null)).then((st) => {
       if (!st || !st.enabled) return; try { sessionStorage.setItem("orbCounted_studio", "1"); } catch {}
       $("cPage").textContent = Number(st.page_total).toLocaleString(lang); $("cnt").hidden = false;
@@ -211,10 +211,10 @@ function start() {
     return { out, stop() { clearInterval(iv); out.gain.setTargetAtTime(0, actx.currentTime, 0.4); } };
   }
   function duck(on) { if (bed && actx) bed.out.gain.setTargetAtTime(on ? 0.018 : 0.05, actx.currentTime, 0.35); }
-  let listenCounted = false, soundStarted = false;
+  let listenCounted = false, soundStarted = false, doneCounted = null;
   function enableSound() {
     // счётчик слушателей: одно нажатие «Слушать» за посещение (владелец и боты не считаются)
-    if (!listenCounted) { listenCounted = true; fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: '{"page":"studio-listen"}' }).catch(() => {}); }
+    if (!listenCounted) { listenCounted = true; fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page: "studio-listen", lang, auto: !!navigator.webdriver }) }).catch(() => {}); }
     soundOn = true; lb.textContent = t.mute; lb.setAttribute("aria-pressed", "true");
     try {
       if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); analyser = actx.createAnalyser(); analyser.fftSize = 512; src.connect(analyser); analyser.connect(actx.destination); }
@@ -267,6 +267,8 @@ function start() {
     clearTimeout(timer); voice.onended = voice.onerror = null;
     if (pos >= queue.length) return more();
     const line = queue[pos++]; show(line);
+    // счётчик «дослушали»: дошли со звуком до финальной фразы свежего выпуска (раз на выпуск); на эфир не влияет
+    if (line.kind === "cta" && soundOn && curId && doneCounted !== curId) { doneCounted = curId; try { fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page: "studio-done", lang, auto: !!navigator.webdriver }) }).catch(() => {}); } catch {} }
     if (soundOn && line.audio && vfail < 6) {
       let tries = 0;
       voice.src = line.audio; duck(true); stage.dataset.voiced = "1";

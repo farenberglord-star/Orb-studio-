@@ -3420,7 +3420,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["studio-listen", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
+const PAGES = new Set(["studio-listen", "studio-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -8708,16 +8708,30 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/feed/studio-de.xml") return new Response(await podFeedXml(env, url.origin), { headers: { "content-type": "application/rss+xml; charset=utf-8", "cache-control": "public, max-age=600", "access-control-allow-origin": "*" } });
     { const fm = url.pathname.match(/^\/feed\/studio-de\/(\d{10,16})\.mp3$/); if (fm) return podAudio(env, fm[1], request); }
     if (url.pathname === "/api/v1/hit" && request.method === "POST") {
-      let page = "home";
-      try { page = ((await request.json()).page || "home").toString().slice(0, 20); } catch {}
+      let page = "home", body = {};
+      try { body = (await request.json()) || {}; page = (body.page || "home").toString().slice(0, 20); } catch {}
       if (!PAGES.has(page)) page = "home";
-      if (!classifyAgent(request.headers.get("user-agent")) && !isOwner(request)) await recordHit(env, page, "view", "");
+      // студия: язык слушателя в name (ru/de/en/ro/tr); браузеры-роботы (проверки Playwright, Lighthouse) людьми не считаем
+      const hl = page.startsWith("studio") && ["ru", "de", "en", "ro", "tr"].includes(body.lang) ? body.lang : "";
+      const robot = body.auto === true || /HeadlessChrome|Playwright|Puppeteer|PhantomJS|Lighthouse|Selenium|webdriver/i.test(request.headers.get("user-agent") || "");
+      if (!robot && !classifyAgent(request.headers.get("user-agent")) && !isOwner(request)) await recordHit(env, page, "view", hl);
       return json(await readStats(env, page), { "Cache-Control": "no-store" });
     }
     if (url.pathname === "/api/v1/anomalies") {
       const live = await anomalyDetect(env).catch((e) => ({ enabled: false, error: String(e).slice(0, 120) }));
       const log = (await sharedGet(env, ANOM_KEY, 1e15).catch(() => null)) || { items: [] };
       return json({ free: true, page: "https://orbstudio.org/api/v1/anomalies", now: live, log: log.items.slice(0, 30) }, { "Cache-Control": "no-store" });
+    }
+    if (url.pathname === "/api/v1/stats/studio") {
+      // слушатели подкаста по дням и языкам: открыли страницу → нажали «Слушать» → дослушали свежий выпуск до конца
+      if (!env.DB) return json({ enabled: false });
+      await ensureTable(env);
+      const from = new Date(Date.now() - 13 * 864e5).toISOString().slice(0, 10);
+      const rows = (await env.DB.prepare("SELECT day, page, name, SUM(n) n FROM hits WHERE kind='view' AND page IN ('studio','studio-listen','studio-done') AND day>=?1 GROUP BY day, page, name ORDER BY day DESC").bind(from).all()).results || [];
+      const days = {};
+      for (const r of rows) { const d = (days[r.day] = days[r.day] || { opened: 0, listened: 0, finished: 0, by_lang: {} }); const f = { studio: "opened", "studio-listen": "listened", "studio-done": "finished" }[r.page];
+        d[f] += r.n; const L = r.name || "unknown"; (d.by_lang[L] = d.by_lang[L] || { opened: 0, listened: 0, finished: 0 })[f] += r.n; }
+      return json({ note: "People only: AI agents, bots, robot browsers and the owner are not counted. Language is recorded from 2026-11-19 16:30 Berlin; earlier rows are 'unknown'.", days }, { "Cache-Control": "no-store" });
     }
     if (url.pathname === "/api/v1/stats") {
       const page = (url.searchParams.get("page") || "home").slice(0, 20);
