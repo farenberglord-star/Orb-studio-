@@ -1005,14 +1005,17 @@ async function duoAudio(env, ctx, origin, url) {
   const bad = (m, st = 404) => json({ error: m }, { "Cache-Control": "no-store" }, st);
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = ["de", "ru"].includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
-  if (!Number.isInteger(seg) || !["read", "question", "answer", "thanks"].includes(part)) return bad("bad request", 400);
-  const d = await duoData(env, ctx, origin);
-  const sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg);
-  if (!sg) return bad("no such line");
-  let text = "", who = "david";
-  if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
+  const ep = url.searchParams.get("ep");
+  if (!["read", "question", "answer", "thanks", "bridge"].includes(part) || (part !== "bridge" && !Number.isInteger(seg))) return bad("bad request", 400);
+  let d;
+  if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
+  else d = await duoData(env, ctx, origin);
+  let text = "", who = "david", sg = null;
+  if (part === "bridge") { if (!ep) return bad("bridge needs an episode", 400); text = DUO_BRIDGE[lg](hhmm(Date.parse(d.generated_at))); }
+  else { sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg); if (!sg) return bad("no such line"); }
+  if (part === "bridge") {} else if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
   else text = (sg.host || {})[part];
-  if (lg !== "en") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
+  if (lg !== "en" && part !== "bridge") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
   text = String(text || "").trim().slice(0, 1200); if (!text) return bad("empty line");
   const voice = DUO_VOICES[who];
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
@@ -1095,6 +1098,30 @@ async function duoTranslate(env, d) {
   }
   return Object.keys(out).length ? { by: "Grok (xAI)", original: "en", note: "Translated by Grok (xAI) from the English original; the English text above is the original.", ...out } : null;
 }
+// Архив выпусков за сутки: после свежего эфира страница проигрывает прежние. Новых вызовов Grok не нужно.
+const DUO_ARCHIVE_KEY = "duo-archive", DUO_ARCHIVE_MS = 24 * 3600e3, DUO_ARCHIVE_MAX = 16;
+async function duoArchivePut(env, d) {
+  if (!d || !d.generated_at || !Array.isArray(d.segments)) return;
+  const now = Date.now(), arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] };
+  const lean = JSON.parse(JSON.stringify(d)); delete lean.voices;
+  for (const x of lean.segments) delete x.audio;
+  const eps = arc.episodes.filter((e) => e.generated_at !== d.generated_at && now - Date.parse(e.generated_at) < DUO_ARCHIVE_MS);
+  eps.unshift(lean); arc.episodes = eps.slice(0, DUO_ARCHIVE_MAX); await sharedPut(env, DUO_ARCHIVE_KEY, arc);
+}
+const DUO_BRIDGE = {
+  en: (hm) => `That was today's fresh desk. Next, what we talked about earlier, at ${hm}.`,
+  de: (hm) => `Das war die aktuelle Runde. Jetzt das, worüber wir heute früher gesprochen haben, um ${hm} Uhr.`,
+  ru: (hm) => `Это были свежие новости. А теперь — о чём мы говорили сегодня раньше, в ${hm}.`,
+};
+function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
+function duoWithAudio(d, origin, ep) {
+  const q = ep ? `&ep=${ep}` : "";
+  for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") parts.push("answer", "thanks");
+    sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}${q}`]));
+    for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
+      tr.audio = Object.fromEntries(parts.filter((k) => tr[k]).map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}&lang=${lg}${q}`])); } }
+  return d;
+}
 async function duoWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
@@ -1104,12 +1131,14 @@ async function duoWarm(env, ctx) {
   const ready = await sharedGet(env, key, 25 * 60e3);
   if (ready) {
     if (!ready.translations || DUO_LANGS.some((l) => !ready.translations[l])) { const tr = await duoTranslate(env, ready); if (tr) { ready.translations = { ...(ready.translations || {}), ...tr }; await sharedPut(env, key, ready); } }
+    await duoArchivePut(env, ready);
     await sharedPut(env, "duo-latest", ready); return; // заголовки те же: выпуск остаётся «последним готовым»
   }
   const { items, lines } = await duoPick(env, cands);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000);
   if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
-    const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); } }
+    const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
+    await duoArchivePut(env, d); }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
@@ -2962,15 +2991,20 @@ function clickLabel(request, from) {
   }
 
   if (p === "/api/v1/broadcast/duo/audio") return duoAudio(env, ctx, origin, url);
+  if (p === "/api/v1/broadcast/duo/archive") {
+    const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }, now = Date.now();
+    const eps = arc.episodes.filter((e) => now - Date.parse(e.generated_at) < DUO_ARCHIVE_MS).map((e) => {
+      const id = duoEpId(e), hm = hhmm(Date.parse(e.generated_at)); duoWithAudio(e, origin, id);
+      return { episode_id: id, time_berlin: hm, ...e, bridge: Object.fromEntries(Object.entries(DUO_BRIDGE).map(([lg, f]) => [lg, { text: f(hm), audio: env.XAI_API_KEY ? `${origin}/api/v1/broadcast/duo/audio?part=bridge&ep=${id}&lang=${lg}` : null }])) };
+    });
+    return json({ about: "Earlier episodes of the Orb Studio two-seat desk (host David, guest Grok by xAI) from the last 24 hours, newest first. Same content and translations as when they were live; voices are synthetic (xAI Grok TTS).", window_hours: 24, episodes: eps }, { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  }
   if (p === "/api/v1/broadcast/duo") {
     const d = await duoData(env, ctx, origin);
     if (d && Array.isArray(d.segments) && env.XAI_API_KEY) {
       d.voices = { synthetic: true, provider: "xAI Grok TTS", host: { name: "David", voice: DUO_VOICES.david }, guest: { name: "Grok", voice: DUO_VOICES.grok },
         note: "Both voices are synthetic AI voices. David and Grok are AI agents, not people. Audio is generated once per line from the text above and cached." };
-      for (const sg of d.segments) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") parts.push("answer", "thanks");
-        sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}`]));
-        for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
-          tr.audio = Object.fromEntries(parts.filter((k) => tr[k]).map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}&lang=${lg}`])); } }
+      duoWithAudio(d, origin, null); d.episode_id = duoEpId(d);
     }
     return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, d.status === "grok_not_configured" ? 503 : 200);
   }
