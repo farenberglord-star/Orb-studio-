@@ -94,13 +94,22 @@ withhold: list answers that must not air: investment advice, a price prediction 
 
 // ---------- вызовы моделей ----------
 async function claudeTool(env, system, input, tool, maxTokens = 2500) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(90000),
-    headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: env.RT_MODEL || "claude-sonnet-5-5", max_tokens: maxTokens, system, messages: [{ role: "user", content: JSON.stringify(input) }], tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
-  if (!r.ok) throw new Error("Claude " + r.status + " " + (await r.text()).slice(0, 160));
-  const j = await r.json(); const t = (j.content || []).find((c) => c.type === "tool_use");
-  if (!t || !t.input) throw new Error("Claude: no tool answer");
-  return { out: t.input, model: j.model || env.RT_MODEL || "claude-sonnet-5-5" };
+  // Модель модератора может не принимать принудительный вызов инструмента: тогда «auto» с явной просьбой,
+  // а если инструмент так и не вызван — запасная модель (claude-haiku-5-5, как в подкасте) с принудительным вызовом
+  const call = async (model, forced) => {
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(90000),
+      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system: forced ? system : system + "\n\nAnswer only by calling the tool " + tool.name + ".", messages: [{ role: "user", content: JSON.stringify(input) }], tools: [tool], tool_choice: forced ? { type: "tool", name: tool.name } : { type: "auto" } }) });
+    if (!r.ok) return { err: model + " " + r.status + " " + (await r.text()).slice(0, 160) };
+    const j = await r.json(); const t = (j.content || []).find((c) => c.type === "tool_use" && c.name === tool.name);
+    return t && t.input ? { out: t.input, model: j.model || model } : { err: model + ": no tool answer" };
+  };
+  const main = env.RT_MODEL || "claude-sonnet-5-5", spare = env.ANTHROPIC_MODEL || "claude-haiku-5-5";
+  let r = await call(main, false);
+  if (r.out) return r;
+  const r2 = await call(spare, true);
+  if (r2.out) return r2;
+  throw new Error("Claude: " + r.err + " | " + r2.err);
 }
 function parseJson(txt) {
   const s = String(txt || "").replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "").trim();
