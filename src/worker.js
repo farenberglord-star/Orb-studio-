@@ -1081,7 +1081,8 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
       segs.push({ kind: "carousel", carousel_id: carousel.item.id, headline: `David's pick: ${carousel.item.title}`, source: carousel.item.source, link: carousel.item.kind === "ai_bridge" ? "https://orbstudio.org/bridge" : "https://orbstudio.org/sensors", time: null,
         read: carousel.read, question: carousel.question, thanks: null, facts: [{ label: carousel.item.title, value: carousel.item.reading, source: carousel.item.source, as_of: today() }], reply }); }
   }
-  const interest = carouselDone ? null : await duoAgentInterest(env).catch(() => null);
+  // Сегмент о числе визитов агентов убран: к новостям он отношения не имеет (решение владельца 19.11)
+  const interest = null;
   if (interest) {
     const hl = agentsHostLines(interest); let reply = null;
     try { const a = await askGrok(env, null, null, [], false, ms, hl.question, avoid, { system: GROK_AGENTS_SYSTEM, user: grokAgentsUser(interest, hl.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
@@ -1150,7 +1151,6 @@ async function duoMenu(env, ctx, origin) {
     const net = sens.internet || {}; if (net.outages_24h != null) m.push({ id: "internet", kind: "sensor", title: "Internet outages and blocking", reading: `${net.outages_24h} outages in 24 h, confirmed blocking in ${net.confirmed_block_countries} of ${net.countries_measured} measured countries`, source: "IODA / OONI" });
     for (const a of ((sens.attention || {}).surges || []).slice(0, 2)) m.push({ id: "attention:" + String(a.article).slice(0, 40), kind: "sensor", title: `Wikipedia attention: ${a.article}`, reading: `${a.ratio} times the usual daily views`, source: "Wikimedia pageviews" });
   }
-  for (const c of (bridge || []).slice(0, 6)) m.push({ id: "bridge:" + c.crisis, kind: "ai_bridge", title: `AI bridge topic: ${c.title_en}`, reading: `${c.agent_visits_30d} AI-agent visits in 30 days`, source: "Orb Studio AI bridge counters" });
   return m.slice(0, 24);
 }
 // Интерес агентов для эфира: «ИИ-мост» (/bridge) — какие кризисы агенты открывают чаще всего за 30 дней.
@@ -1178,7 +1178,7 @@ async function duoTranslate(env, d, only) {
         method: "POST", signal: AbortSignal.timeout(60000),
         headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
         body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", temperature: 0.2, max_tokens: 3000, response_format: { type: "json_object" },
-          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","follow_up":"","thanks":"","transition":"","answer":"","follow_answer":""}]}` },
+          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Every line must come out in ${NAMES[lg]}, including lines that are not in English in the source (for example a German headline). Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","follow_up":"","thanks":"","transition":"","answer":"","follow_answer":""}]}` },
             { role: "user", content: JSON.stringify({ segments: segs }) }] }),
       });
       if (!res.ok) throw new Error("xAI " + res.status);
