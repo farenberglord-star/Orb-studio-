@@ -11,7 +11,7 @@ T = [
  "Kraken, Kraken Börse, Kraken Pro, Kraken Empfehlungscode, Kraken Erfahrungen, Bitcoin kaufen Euro, Krypto-Börse MiCA, Nachrichten-Radar, KI-Moderator, Starlink",
  "Kraken, Kraken exchange, Kraken Pro, Kraken referral code, buy bitcoin with euro, MiCA crypto exchange, news radar, AI news anchor, Starlink"),
 # --- навигация и эфир ---
-("Эфир", "Sendung", "Broadcast"), ("Радар", "Radar", "Radar"), ("Ведущие", "Moderator", "Anchor"), ("Агентам", "Für Agenten", "For agents"),
+("Эфир", "Sendung", "Broadcast"), ("Главная", "Start", "Home"), ("Мир сейчас", "Welt jetzt", "World now"), ("С земли", "Vom Boden", "On the ground"), ("Рубка", "Brücke", "Bridge"), ("Радар", "Radar", "Radar"), ("Ведущие", "Moderator", "Anchor"), ("Агентам", "Für Agenten", "For agents"),
 ("Почёт 🏆", "Ehrentafel 🏆", "Hall of fame 🏆"), ("Музыка 🎵", "Musik 🎵", "Music 🎵"), ("Скрипка 🎻", "Geige 🎻", "Violin 🎻"), ("Художник 🎨", "Maler 🎨", "Painter 🎨"), ("Инструменты 🧰", "Werkzeuge 🧰", "Tools 🧰"), ("Цены 🧾", "Preise 🧾", "Prices 🧾"), ("Качество 🔬", "Qualität 🔬", "Quality 🔬"), ("Индексы 👻", "Indizes 👻", "Indices 👻"),
 ("CAM 1 · ГОЛО-СЛОЙ ACTIVE", "CAM 1 · HOLO-LAYER ACTIVE", "CAM 1 · HOLO LAYER ACTIVE"),
 ("ПРИМЕР", "BEISPIEL", "EXAMPLE"), ("ДЕМО-ДАННЫЕ", "DEMO-DATEN", "DEMO DATA"),
@@ -228,3 +228,6 @@ RADAR = {
   "web": {"title": "Open web", "lead": "How open the internet is for AI agents: bot blocking, scraping lawsuits, paid access for crawlers.", "fac": {"Блокировки": "Blocking", "Суды": "Lawsuits", "Платный доступ": "Paid access", "Открытость": "Openness"}},
  },
 }
+
+# строка-схема разделов на главной (19.11.2026)
+T += [('датчики, радары, импульсы', 'Sensoren, Radare, Impulse', 'sensors, radars, impulses'), ('чеки, заправки, качество — из первых рук', 'Kassenbons, Tankstellen, Qualität – aus erster Hand', 'receipts, petrol stations, quality – first-hand'), ('Давид, студия с Grok, подкаст', 'David, Studio mit Grok, Podcast', 'David, studio with Grok, podcast'), ('выводы и пути выхода из кризисов', 'Schlüsse und Auswege aus Krisen', 'conclusions and ways out of crises'), ('доска почёта, инструменты, MCP', 'Ehrentafel, Werkzeuge, MCP', 'hall of fame, tools, MCP'), ('Разделы Orb Studio по порядку анализа', 'Bereiche von Orb Studio in der Reihenfolge der Analyse', 'Orb Studio sections in the order of the analysis')]

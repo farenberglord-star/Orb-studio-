@@ -4,6 +4,8 @@
 import os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
 from i18n_pages_t import COMMON, PAGES, CODE
+from hubs import HUB_T, HUB_CODE  # страницы-входы /world /ground /air /deck /for-agents
+PAGES = {**PAGES, **HUB_T}; CODE = {**CODE, **HUB_CODE}
 from i18n_index import T as HOME_T
 from nav import NAV
 # подписи меню берём из перевода главной, чтобы меню везде называлось одинаково

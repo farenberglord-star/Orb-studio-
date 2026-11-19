@@ -4,15 +4,32 @@
 import os, re
 ROOT = os.path.join(os.path.dirname(__file__), "..", "public")
 
-# (адрес, подпись, страница-файл) — порядок как на главной
+# Новое меню с 19.11.2026: главная и пять разделов по порядку анализа (страницы-входы собирает tools/hubs.py).
+# (адрес, подпись, страница-файл)
 NAV = [
-    ("/", "Эфир", None), ("/#radar", "Радар", None), ("/#anchors", "Ведущие", None), ("/#agents", "Агентам", None),
-    ("/orbi", "ORBI 🤖", "orbi"), ("/hall", "Почёт 🏆", "hall"), ("/indices", "Индексы 👻", "indices"), ("/music", "Музыка 🎵", "music"), ("/violin", "Скрипка 🎻", "violin"), ("/canvas", "Художник 🎨", "canvas"),
-    ("/radar", "Импульсы 🌍", "radar"), ("/prices", "Цены 🧾", "prices"), ("/quality", "Качество 🔬", "quality"), ("/tariffs", "Тарифы 🏦", "tariffs"),
-    ("/archive", "Архив 🗄", "archive"), ("/followups", "Потом 🕰", "followups"), ("/places", "Места 📍", "places"), ("/live", "Эфир 🎙", "live"),
-    ("/sensors", "Датчики ⚡", "sensors"), ("/map", "Карта 🗺", "map"), ("/tools", "Инструменты 🧰", "tools"), ("/bridge", "Рубка 🧭", "bridge"),
+    ("/", "Главная", "home"), ("/world", "Мир сейчас", "world"), ("/ground", "С земли", "ground"),
+    ("/air", "Эфир", "air"), ("/deck", "Рубка", "deck"), ("/for-agents", "Агентам", "for-agents"),
 ]
-PAGES = [p for _, _, p in NAV if p] + ["orb7"]
+# в каком разделе меню подсвечивать страницу
+SECTION = {
+    "world": "world", "sensors": "world", "map": "world", "radar": "world", "archive": "world", "indices": "world", "route": "world", "tools/cockpit": "world",
+    "ground": "ground", "prices": "ground", "places": "ground", "quality": "ground", "tariffs": "ground",
+    "air": "air", "studio": "air", "podcast": "air", "live": "air", "interviews": "air", "music": "air", "violin": "air", "canvas": "air", "orbi": "air", "orb7": "air",
+    "deck": "deck", "bridge": "deck", "followups": "deck",
+    "for-agents": "for-agents", "hall": "for-agents", "guests": "for-agents", "tools": "for-agents", "tools/court": "for-agents", "tools/clips": "for-agents",
+    "tools/interview": "for-agents", "tools/agent-wallet": "for-agents", "tools/inbox": "for-agents", "tools/buyer-review": "for-agents",
+}
+import glob as _glob
+def _ru_pages():
+    """все русские страницы, где уже стоит общее меню, плюс страницы-входы"""
+    out = []
+    for f in sorted(_glob.glob(os.path.join(ROOT, "*.html")) + _glob.glob(os.path.join(ROOT, "tools", "*.html"))):
+        name = os.path.relpath(f, ROOT)[:-5].replace(os.sep, "/")
+        if name == "index": continue  # у главной своё меню (одностраничное приложение)
+        if "<!--orb-nav-->" in open(f, encoding="utf-8").read() or name in SECTION and name in ("world", "ground", "air", "deck", "for-agents"):
+            out.append(name)
+    return out
+PAGES = None  # заполняется в main()
 
 # Стили: одна строка вкладок, листается пальцем; текущая вкладка подсвечена и сама прокручивается в центр.
 CSS = """<!--orb-nav-css--><style>
@@ -37,7 +54,8 @@ CSS = """<!--orb-nav-css--><style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css-->"""
 
 def nav_html(cur):
-    tabs = "".join(f'<a href="{h}"{" class=\"on\" aria-current=\"page\"" if p == cur else ""}>{t}</a>' for h, t, p in NAV)
+    sec = SECTION.get(cur)
+    tabs = "".join(f'<a href="{h}"{" class=\"on\" aria-current=\"page\"" if p == sec else ""}>{t}</a>' for h, t, p in NAV)
     return ('<!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a>'
             f'<nav class="onav-tabs" aria-label="Разделы Orb Studio">{tabs}</nav></div></header>'
             '<script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->')
@@ -49,7 +67,7 @@ def put(s, start, end, block, anchor, after=True):
     return s.replace(anchor, anchor + block if after else block + anchor, 1)
 
 def main():
-    for p in PAGES:
+    for p in _ru_pages():
         path = os.path.join(ROOT, p + ".html")
         s = open(path, encoding="utf-8").read()
         s = put(s, "<!--orb-nav-css-->", "<!--/orb-nav-css-->", CSS, "</head>", after=False)

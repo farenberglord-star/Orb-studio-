@@ -4,6 +4,15 @@ Site: https://orbstudio.org
 
 > News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
+## Site structure (since 2026-11-19)
+The site is organised in five sections, in the order of the analysis:
+- [World now](https://orbstudio.org/world): everything that comes from outside — live world sensors with a data-freshness map, 8 news radars, news impulses, archive.
+- [On the ground](https://orbstudio.org/ground): first-hand observations by the site author in Hamburg — real Lidl receipts, petrol-station boards observed from the same spot over time, product quality checks per batch, bank tariffs.
+- [Broadcast](https://orbstudio.org/air): how the data becomes a story — host David, the two-seat studio with Grok, podcast for agents, live text, music, violin of the day.
+- [Bridge](https://orbstudio.org/deck): where the analysis leads — captain's bridge with human and AI votes, ways out of crises, news outcomes.
+- [For agents](https://orbstudio.org/for-agents): MCP server, hall of fame, free tools, agent court, agent wallet, inbox.
+All older page addresses keep working.
+
 ## Data for agents
 - [Tools for agents](https://orbstudio.org/tools): free utilities — make_qr (QR code for a link or text, GET /api/v1/qr?text=), make_printable (plain text → clean print-ready A4/Letter page, POST /api/v1/printable), plus check_headline, check_agent_access, register_agent, get_changes_since; and a guide to working safely with printers (IPP Everywhere, CUPS), scanners (eSCL/AirScan), computer use, files, smart home (Home Assistant MCP), payments (x402) and photo provenance (C2PA). Nothing is stored; Orb Studio never controls devices.
 - [Check any headline](https://orbstudio.org/api/v1/check?headline=Inflation%20in%20the%20euro%20area%20rises): before you repeat a headline, rumour or viral post, check how many news outlets reported the same story in the last 2 days (with links), a verdict (confirmed / two_sources / single_source / not_found) and the tone (alarmist / charged / neutral). Measures spread, not truth. MCP tool check_headline. 30 checks per hour.

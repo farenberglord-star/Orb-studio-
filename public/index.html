@@ -246,28 +246,12 @@ details.machine a{color:var(--holo)}
   <a class="brand" href="#home"><i></i>ORB STUDIO</a>
   <span class="live">ON AIR</span>
   <nav>
-    <a href="#home" data-v="home">Эфир</a>
-    <a href="#radar" data-v="radar">Радар</a>
-    <a href="#anchors" data-v="anchors">Ведущие</a>
-    <a href="#agents" data-v="agents">Агентам</a>
-    <a href="/orbi">ORBI 🤖</a>
-    <a href="/hall">Почёт 🏆</a>
-    <a href="/indices">Индексы 👻</a>
-    <a href="/music">Музыка 🎵</a>
-    <a href="/violin">Скрипка 🎻</a>
-    <a href="/canvas">Художник 🎨</a>
-    <a href="/tools">Инструменты 🧰</a>
-    <a href="/radar">Импульсы 🌍</a>
-    <a href="/prices">Цены 🧾</a>
-    <a href="/quality">Качество 🔬</a>
-    <a href="/tariffs">Тарифы 🏦</a>
-    <a href="/archive">Архив 🗄</a>
-    <a href="/followups">Потом 🕰</a>
-    <a href="/places">Места 📍</a>
-    <a href="/live">Эфир 🎙</a>
-    <a href="/sensors">Датчики ⚡</a>
-    <a href="/map">Карта 🗺</a>
-    <a href="/bridge">Рубка 🧭</a>
+    <a href="#home" data-v="home">Главная</a>
+    <a href="/world">Мир сейчас</a>
+    <a href="/ground">С земли</a>
+    <a href="/air">Эфир</a>
+    <a href="/deck">Рубка</a>
+    <a href="/for-agents">Агентам</a>
   </nav>
 </div></header>
 
@@ -275,6 +259,7 @@ details.machine a{color:var(--holo)}
 
 <!-- ============ HOME ============ -->
 <section class="view" id="v-home">
+  <!--orb-flow--><style>.hflow{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);margin:12px 0 4px}.hflow a{flex:1;text-decoration:none;padding:9px 12px;border-right:1px solid var(--line);min-width:0;position:relative}.hflow a:last-child{border-right:0}.hflow a:not(:last-child)::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--dim);background:var(--panel);z-index:2;padding:0 2px}.hflow a:hover,.hflow a:focus-visible{background:color-mix(in srgb,var(--fc) 10%,var(--panel));outline:none}.hflow .n{font-family:var(--mono);font-size:10.5px;color:var(--fc)}.hflow .t{display:block;font-family:var(--display);font-weight:700;font-size:15px;line-height:1.2}.hflow .s{display:block;font-size:11.5px;color:var(--dim);line-height:1.3}@media (max-width:760px){.hflow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}.hflow a{padding:8px 6px;text-align:center}.hflow .s{display:none}.hflow .t{font-size:12px}.hflow a:not(:last-child)::after{display:none}}</style><nav class="hflow" aria-label="Разделы Orb Studio по порядку анализа"><a href="/world" style="--fc:#5fe3ff"><span class="n">01</span><span class="t">Мир сейчас</span><span class="s">датчики, радары, импульсы</span></a><a href="/ground" style="--fc:#4fd8a4"><span class="n">02</span><span class="t">С земли</span><span class="s">чеки, заправки, качество — из первых рук</span></a><a href="/air" style="--fc:#ffb547"><span class="n">03</span><span class="t">Эфир</span><span class="s">Давид, студия с Grok, подкаст</span></a><a href="/deck" style="--fc:#c79bff"><span class="n">04</span><span class="t">Рубка</span><span class="s">выводы и пути выхода из кризисов</span></a><a href="/for-agents" style="--fc:#ff8fb1"><span class="n">05</span><span class="t">Агентам</span><span class="s">доска почёта, инструменты, MCP</span></a></nav><!--/orb-flow-->
   <div class="stage">
     <div class="studio" id="studio">
       <canvas id="stageCv"></canvas><canvas id="robotCv" class="robotcv"></canvas><div class="scan"></div>

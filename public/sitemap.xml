@@ -89,4 +89,19 @@
   <url><loc>https://orbstudio.org/en/tools/agent-wallet</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/studio</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/tools/inbox</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/world</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/de/world</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/world</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/ground</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/de/ground</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/ground</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/air</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/de/air</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/air</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/deck</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/de/deck</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/deck</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/for-agents</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://orbstudio.org/de/for-agents</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/en/for-agents</loc><lastmod>2026-11-19</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
 </urlset>

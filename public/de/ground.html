@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Vom Boden · Beobachtungen eines echten Menschen in Hamburg · Orb Studio</title>
+<meta name="description" content="Beobachtungen aus erster Hand aus dem Hamburger Süden: echte Lidl-Kassenbons, Tankstellen-Preistafeln vom selben Punkt im Zeitverlauf, Produktprüfung nach Charge, Banktarife.">
+<link rel="canonical" href="https://orbstudio.org/de/ground">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Vom Boden · Beobachtungen eines echten Menschen in Hamburg · Orb Studio">
+<meta property="og:description" content="Beobachtungen aus erster Hand aus dem Hamburger Süden: echte Lidl-Kassenbons, Tankstellen-Preistafeln vom selben Punkt im Zeitverlauf, Produktprüfung nach Charge, Banktarife.">
+<meta property="og:url" content="https://orbstudio.org/de/ground">
+<meta property="og:locale" content="de_DE">
+<meta name="theme-color" content="#070b16">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#070b16;--panel:#0d1424;--line:#1d2a44;--fg:#dfe7f5;--dim:#8494b3;--holo:#5fe3ff;--ok:#4fd8a4;--warm:#ffb547;--hot:#ff5d7a;--display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;padding-bottom:28px}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.htag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--c);text-transform:uppercase;margin:24px 0 4px}
+h1{font-family:var(--display);font-size:clamp(26px,4.4vw,38px);line-height:1.15;margin:0 0 8px;letter-spacing:.02em}
+.lead{color:var(--dim);max-width:780px;margin:0 0 18px}
+.flow{display:flex;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel);margin:0 0 22px}
+.flow a{flex:1;text-decoration:none;padding:12px 14px 11px;position:relative;border-right:1px solid var(--line);min-width:0}
+.flow a:last-child{border-right:0}
+.flow a:not(:last-child)::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--dim);background:var(--panel);z-index:2;padding:0 2px}
+.flow a.on{background:color-mix(in srgb,var(--fc) 12%,var(--panel));box-shadow:inset 0 -2px 0 var(--fc)}
+.flow .n{font-family:var(--mono);font-size:11px;color:var(--fc)}
+.flow .t{font-family:var(--display);font-weight:700;font-size:16px;display:block;margin:1px 0}
+.flow .s{font-size:12px;color:var(--dim);display:block;line-height:1.35}
+.flow .here{font-family:var(--mono);font-size:10px;color:var(--fc);letter-spacing:.1em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.tile{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--c);border-radius:10px;padding:12px 13px;transition:border-color .15s,transform .15s}
+.tile:hover,.tile:focus-visible{border-color:var(--c);transform:translateY(-1px);outline:none}
+.tile b{display:block;font-weight:600;font-size:15px}
+.tile small{display:block;color:var(--dim);font-size:13px;line-height:1.35;margin-top:3px}
+.tile code{display:block;font-family:var(--mono);font-size:11px;color:var(--c);margin-top:7px}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:22px 0 6px;line-height:1.7}
+.agentline a{color:var(--c)}
+.note{color:var(--dim);font-size:12.5px;margin:6px 0 0}
+.machine{margin-top:14px;font-size:12.5px;color:var(--dim)}
+.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px}
+@media (max-width:760px){
+  .flow{flex-direction:column}
+  .flow a{border-right:0;border-bottom:1px solid var(--line)}
+  .flow a:last-child{border-bottom:0}
+  .flow a:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-10px;transform:translateX(-50%)}
+  .flow a:not(.on) .s{display:none}
+}
+</style>
+<style>
+.krb,.slb{--mono:"JetBrains Mono",ui-monospace,monospace;--display:"Chakra Petch",system-ui,sans-serif;--up:#4fd8a4;--hot:#ff5d7a;display:block;margin-block:18px}
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/ground">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/ground">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/ground">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/ground">
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Start</a><a href="/world">Welt jetzt</a><a href="/ground" class="on" aria-current="page">Vom Boden</a><a href="/air">Sendung</a><a href="/deck">Brücke</a><a href="/for-agents">Für Agenten</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/ground" hreflang="ru" lang="ru">RU</a><a href="/de/ground" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/ground" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<main class="wrap" style="--c:#4fd8a4">
+  <div class="htag">02 · Orb Studio</div>
+  <h1>Vom Boden</h1>
+  <p class="lead">Der Realitätsanker von Orb Studio. Diese Daten sammelt der Autor der Seite, Serghei Farima, selbst: Er fotografiert Kassenbons, Tankstellentafeln und die Produkte, die er kauft.</p>
+  <nav class="flow" aria-label="Bereiche von Orb Studio in der Reihenfolge der Analyse"><a href="/world" style="--fc:#5fe3ff"><span class="n">01</span><span class="t">Welt jetzt</span><span class="s">Sensoren, Radare, Impulse</span></a><a href="/ground" style="--fc:#4fd8a4" class="on" aria-current="page"><span class="n">02</span> <span class="here">Sie sind hier</span><span class="t">Vom Boden</span><span class="s">Kassenbons, Tankstellen, Qualität – aus erster Hand</span></a><a href="/air" style="--fc:#ffb547"><span class="n">03</span><span class="t">Sendung</span><span class="s">David, Studio mit Grok, Podcast</span></a><a href="/deck" style="--fc:#c79bff"><span class="n">04</span><span class="t">Brücke</span><span class="s">Schlüsse und Auswege aus Krisen</span></a><a href="/for-agents" style="--fc:#ff8fb1"><span class="n">05</span><span class="t">Für Agenten</span><span class="s">Ehrentafel, Werkzeuge, MCP</span></a></nav>
+  <div class="grid">
+    <a class="tile" href="/prices"><b>Bon des Tages und Preise 🧾</b><small>echte Lidl-Kassenbons und Preisverlauf</small><code>/prices</code></a>
+    <a class="tile" href="/places"><b>Orte 📍</b><small>Tankstellen, vom selben Punkt im Zeitverlauf fotografiert</small><code>/places</code></a>
+    <a class="tile" href="/quality"><b>Qualität 🔬</b><small>Produkte des Warenkorbs nach Charge: Schnitt, Geschmack, Zutaten</small><code>/quality</code></a>
+    <a class="tile" href="/tariffs"><b>Banktarife 🏦</b><small>Deutschland und USA, maschinenlesbar</small><code>/tariffs</code></a>
+  </div>
+
+<aside class="krb" aria-label="Kraken – Empfehlungslink von Orb Studio">
+    <div class="krb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Das Radar schläft nicht – der Kryptomarkt auch nicht. Handeln kann man auf <b>Kraken</b></h3>
+    <p class="krb-sub">Kryptobörse Kraken: Bitcoin für Euro kaufen, Kraken Pro für aktiven Handel, Staking. Die Kurse des Krypto-Radars von Orb Studio kommen aus der Kraken-API.</p>
+    <div class="krb-px" data-krpx><span>BTC/EUR <i>—</i></span><span>ETH/EUR <i>—</i></span><span>XRP/EUR <i>—</i></span></div>
+    <div class="krb-cta">
+      <a class="krb-go" href="/go/kraken?from=ground" target="_blank" rel="sponsored noopener">Konto bei Kraken eröffnen ↗</a>
+      <button class="krb-code" type="button" data-code="ghqspfzq" aria-label="Empfehlungscode ghqspfzq kopieren">Code <b>ghqspfzq</b> ⧉</button>
+    </div>
+    <p class="krb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Kraken kann Neukunden einen Bonus gewähren, wenn die Bedingungen der Börse erfüllt sind; der Bonus ist nicht garantiert, Bedingungen auf kraken.com. Keine Anlageberatung. Kryptowerte sind volatil, Verluste sind möglich.</p>
+  </aside>
+  <aside class="slb" aria-label="Starlink – Empfehlungslink von Orb Studio">
+    <svg class="slb-orbit" viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="34" fill="#c9d4e6" fill-opacity=".10" stroke="#c9d4e6" stroke-opacity=".5"/><ellipse cx="120" cy="120" rx="100" ry="38" fill="none" stroke="#c9d4e6" stroke-opacity=".3" transform="rotate(-20 120 120)"/><ellipse cx="120" cy="120" rx="80" ry="80" fill="none" stroke="#c9d4e6" stroke-opacity=".15" stroke-dasharray="3 6"/><g class="sat"><circle cx="200" cy="120" r="4" fill="#fff"/><rect x="192" y="117" width="5" height="6" fill="#c9d4e6"/><rect x="203" y="117" width="5" height="6" fill="#c9d4e6"/></g></svg>
+    <div class="slb-eye">Partner von Orb Studio · Empfehlungslink</div>
+    <h3>Hör „Radar schläft nie“ sogar im Wald – mit Internet <b>STARLINK</b></h3>
+    <p class="slb-sub">Satelliteninternet von SpaceX für Zuhause, Gartenhaus, Camping und Reisen. Funktioniert dort, wo es kein Kabel und kein stabiles Mobilfunknetz gibt.</p>
+    <ul class="slb-facts">
+      <li><b>LEO</b><span>Satelliten im niedrigen Orbit</span></li>
+      <li><b>ohne Kabel</b><span>Antenne und Steckdose</span></li>
+      <li><b>Zuhause und unterwegs</b><span>Tarife zur Wahl</span></li>
+      <li><b>DE · EU</b><span>in Deutschland verfügbar</span></li>
+    </ul>
+    <a class="slb-go" href="/go/starlink?from=ground" target="_blank" rel="sponsored noopener">Starlink bestellen ↗</a>
+    <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
+  </aside>
+  <p class="agentline">🤖 Für Agenten: Daten des Bereichs → <a href="/api/v1/receipts">/api/v1/receipts</a> (MCP <b>get_receipts</b>) · <a href="/api/v1/places">/api/v1/places</a> (MCP <b>get_places</b>) · <a href="/api/v1/quality">/api/v1/quality</a> (MCP <b>get_quality</b>) · <a href="/api/v1/tariffs">/api/v1/tariffs</a> (MCP <b>get_tariffs</b>) · MCP → <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
+  <p class="note">Alle alten Adressen funktionieren wie bisher.</p>
+  <details class="machine"><summary>Text des Bereichs · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Bon des Tages und Preise 🧾 — echte Lidl-Kassenbons und Preisverlauf — https://orbstudio.org/prices. Orte 📍 — Tankstellen, vom selben Punkt im Zeitverlauf fotografiert — https://orbstudio.org/places. Qualität 🔬 — Produkte des Warenkorbs nach Charge: Schnitt, Geschmack, Zutaten — https://orbstudio.org/quality. Banktarife 🏦 — Deutschland und USA, maschinenlesbar — https://orbstudio.org/tariffs.</p></section></details>
+</main>
+<script>
+let seen=false;try{seen=sessionStorage.getItem('orbCounted_ground')==='1'}catch(e){}
+(seen?fetch('/api/v1/stats?page=ground'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"ground"}'}))
+  .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_ground','1')}catch(e){}document.getElementById('cPage').textContent=Number(st.page_total).toLocaleString(document.documentElement.lang||'ru');}).catch(()=>{});
+</script>
+<script>
+(function(){
+function krFill(market){if(!market)return;const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
+ document.querySelectorAll('[data-krpx]').forEach(box=>{box.innerHTML=Object.entries(map).map(([n,re])=>{const k=Object.keys(market).find(x=>re.test(x));if(!k)return'';
+  const m=market[k],ch=m.change_pct;return `<span>${n}/EUR ${Number(m.last).toLocaleString('de-DE',{maximumFractionDigits:m.last<10?4:0})} € <i class="${ch>=0?'up':'dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch).toFixed(2).replace(".",",")}%</i></span>`;}).join('')||box.innerHTML;});}
+fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
+const L=(document.documentElement.lang||'ru').slice(0,2),OK={ru:'kopiert ✓',de:'kopiert ✓',en:'copied ✓'}[L]||'copied ✓';
+document.addEventListener('click',e=>{const b=e.target.closest('.krb-code');if(!b)return;const t=b.innerHTML;
+ try{navigator.clipboard.writeText(b.dataset.code).then(()=>{b.innerHTML=OK;setTimeout(()=>b.innerHTML=t,1600)})}catch(err){}});
+})();
+</script>
+<script src="/banners.js" defer></script>
+</body>
+</html>

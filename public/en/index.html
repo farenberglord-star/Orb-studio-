@@ -235,15 +235,15 @@ details.machine a{color:var(--holo)}
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 <style>.studio video.davidvid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%;z-index:1;pointer-events:none}.studio .davidtalk{position:absolute;right:10px;top:34px;z-index:4;font-size:12px;padding:6px 10px;border-color:var(--holo);color:var(--holo);background:rgba(6,9,18,.7)}</style>
 <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+<style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
+<style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
+<style>/* голограмма HOLO-MAP на странице радара убрана: место под новую голограмму факторов */#v-radar .rhero>.studio{display:none}#v-radar .rhero.no3d{grid-template-columns:1fr}.f3d-box{position:relative;border:1px solid rgba(80,230,150,.25);border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;align-self:start}@media (max-width:860px){.f3d-box{aspect-ratio:4/5}}</style>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/">
 <link rel="alternate" hreflang="de" href="https://orbstudio.org/de/">
 <link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 <script>window.I18N_RADAR={"geo": {"title": "Geo radar", "lead": "Russia, China, USA: military, diplomatic and sanctions signals from open feeds.", "fac": {"Военные": "Military", "Санкции": "Sanctions", "Дипломатия": "Diplomacy", "Выборы": "Elections"}}, "budget": {"title": "Household budget", "lead": "Food prices, rent, utilities and interest rates in Germany and the EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energy", "Аренда": "Rent", "Ставки": "Rates"}}, "politics": {"title": "Politics", "lead": "Governments, elections and laws: Germany, EU, USA.", "fac": {"Кризисы": "Crises", "Выборы": "Elections", "Правительство": "Government", "Законы": "Laws"}}, "economy": {"title": "Economy", "lead": "Growth, recession, rates, jobs: Germany, euro area, USA.", "fac": {"Рецессия": "Recession", "Ставки": "Rates", "Работа": "Jobs", "Рост": "Growth"}}, "crypto": {"title": "Crypto radar", "lead": "BTC, ETH, XRP: news and Kraken market data.", "fac": {"Регуляторы": "Regulators", "Взломы": "Hacks", "Волатильность": "Volatility", "Институции": "Institutions"}}, "energy": {"title": "Energy radar", "lead": "Brent, gas, tankers and OPEC+ decisions.", "fac": {"Нефть": "Oil", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routes"}}, "web": {"title": "Open web", "lead": "How open the internet is for AI agents: bot blocking, scraping lawsuits, paid access for crawlers.", "fac": {"Блокировки": "Blocking", "Суды": "Lawsuits", "Платный доступ": "Paid access", "Открытость": "Openness"}}};</script>
-<style>.studio .orbcore{position:absolute;inset:0;z-index:3}.studio.has-core .davidvid,.studio.has-core #robotCv,.studio.has-core #stageCv,.studio.has-core .scan,.studio.has-core .hud,.studio.has-core .lower{display:none!important}.studio.has-core .davidtalk{z-index:5;top:auto;bottom:118px}@media (max-width:640px){.studio.has-core{aspect-ratio:4/5}}</style>
-<style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
-<style>/* голограмма HOLO-MAP на странице радара убрана: место под новую голограмму факторов */#v-radar .rhero>.studio{display:none}#v-radar .rhero.no3d{grid-template-columns:1fr}.f3d-box{position:relative;border:1px solid rgba(80,230,150,.25);border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;align-self:start}@media (max-width:860px){.f3d-box{aspect-ratio:4/5}}</style>
-<link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
 
@@ -251,28 +251,12 @@ details.machine a{color:var(--holo)}
   <a class="brand" href="#home"><i></i>ORB STUDIO</a>
   <span class="live">ON AIR</span>
   <nav>
-    <a href="#home" data-v="home">Broadcast</a>
-    <a href="#radar" data-v="radar">Radar</a>
-    <a href="#anchors" data-v="anchors">Anchor</a>
-    <a href="#agents" data-v="agents">For agents</a>
-    <a href="/orbi">ORBI 🤖</a>
-    <a href="/hall">Hall of fame 🏆</a>
-    <a href="/indices">Indices 👻</a>
-    <a href="/music">Music 🎵</a>
-    <a href="/violin">Violin 🎻</a>
-    <a href="/canvas">Painter 🎨</a>
-    <a href="/tools">Tools 🧰</a>
-    <a href="/radar">Impulses 🌍</a>
-    <a href="/prices">Prices 🧾</a>
-    <a href="/quality">Quality 🔬</a>
-    <a href="/tariffs">Tariffs 🏦</a>
-    <a href="/archive">Archive 🗄</a>
-    <a href="/followups">What happened next 🕰</a>
-    <a href="/places">Places 📍</a>
-    <a href="/live">Live text 🎙</a>
-    <a href="/sensors">Sensors ⚡</a>
-    <a href="/map">Map 🗺</a>
-    <a href="/bridge">Bridge 🧭</a>
+    <a href="#home" data-v="home">Home</a>
+    <a href="/world">World now</a>
+    <a href="/ground">On the ground</a>
+    <a href="/air">Broadcast</a>
+    <a href="/deck">Bridge</a>
+    <a href="/for-agents">For agents</a>
   </nav>
 </div></header>
 
@@ -280,6 +264,7 @@ details.machine a{color:var(--holo)}
 
 <!-- ============ HOME ============ -->
 <section class="view" id="v-home">
+  <!--orb-flow--><style>.hflow{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);margin:12px 0 4px}.hflow a{flex:1;text-decoration:none;padding:9px 12px;border-right:1px solid var(--line);min-width:0;position:relative}.hflow a:last-child{border-right:0}.hflow a:not(:last-child)::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);font-family:var(--mono);color:var(--dim);background:var(--panel);z-index:2;padding:0 2px}.hflow a:hover,.hflow a:focus-visible{background:color-mix(in srgb,var(--fc) 10%,var(--panel));outline:none}.hflow .n{font-family:var(--mono);font-size:10.5px;color:var(--fc)}.hflow .t{display:block;font-family:var(--display);font-weight:700;font-size:15px;line-height:1.2}.hflow .s{display:block;font-size:11.5px;color:var(--dim);line-height:1.3}@media (max-width:760px){.hflow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}.hflow a{padding:8px 6px;text-align:center}.hflow .s{display:none}.hflow .t{font-size:12px}.hflow a:not(:last-child)::after{display:none}}</style><nav class="hflow" aria-label="Orb Studio sections in the order of the analysis"><a href="/world" style="--fc:#5fe3ff"><span class="n">01</span><span class="t">World now</span><span class="s">sensors, radars, impulses</span></a><a href="/ground" style="--fc:#4fd8a4"><span class="n">02</span><span class="t">On the ground</span><span class="s">receipts, petrol stations, quality – first-hand</span></a><a href="/air" style="--fc:#ffb547"><span class="n">03</span><span class="t">Broadcast</span><span class="s">David, studio with Grok, podcast</span></a><a href="/deck" style="--fc:#c79bff"><span class="n">04</span><span class="t">Bridge</span><span class="s">conclusions and ways out of crises</span></a><a href="/for-agents" style="--fc:#ff8fb1"><span class="n">05</span><span class="t">For agents</span><span class="s">hall of fame, tools, MCP</span></a></nav><!--/orb-flow-->
   <div class="stage">
     <div class="studio" id="studio">
       <canvas id="stageCv"></canvas><canvas id="robotCv" class="robotcv"></canvas><div class="scan"></div>
