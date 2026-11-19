@@ -2143,3 +2143,7 @@ PAGES["sensors"] += [x for x in PAGES["indices"] if x[0] not in _have]
 
 # 19.11.2026: приборная панель (бывшая /tools/cockpit) — внутри карты задержек на /sensors#cockpit
 PAGES["sensors"].append(("Приборная панель · проверить каждый адрес из своего браузера", "Instrumententafel · jede Adresse im eigenen Browser prüfen", "Instrument panel · check every address from your own browser"))
+
+# 19.11.2026: «Гости-агенты» (бывшая /guests) — на доске почёта /hall#guest-cards
+_have = {x[0] for x in PAGES["hall"]}
+PAGES["hall"] += [x for x in PAGES["guests"] if x[0] not in _have]

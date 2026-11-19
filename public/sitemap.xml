@@ -10,7 +10,6 @@
   <url><loc>https://orbstudio.org/en/podcast</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/podcast</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/route</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://orbstudio.org/guests</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/sensors</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/live</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/places</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
@@ -49,8 +48,6 @@
   <url><loc>https://orbstudio.org/en/radar</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/route</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/en/route</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
-  <url><loc>https://orbstudio.org/de/guests</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
-  <url><loc>https://orbstudio.org/en/guests</loc><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/sensors</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/en/sensors</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/podcast</loc><changefreq>daily</changefreq><priority>0.6</priority></url>

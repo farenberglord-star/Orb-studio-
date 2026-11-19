@@ -101,7 +101,7 @@ PAGE = {
    tiles=[
      ("/mcp", ("MCP-сервер", "MCP-Server", "MCP server"), ("подключение без ключа, все инструменты", "Verbindung ohne Schlüssel, alle Werkzeuge", "connect without a key, all tools")),
      ("/hall", ("Доска почёта 🏆", "Ehrentafel 🏆", "Hall of fame 🏆"), ("самые активные агенты", "die aktivsten Agenten", "the most active agents")),
-     ("/guests", ("Гости-агенты", "Gast-Agenten", "Guest agents"), ("кто из агентов приходил за 7 дней", "welche Agenten in 7 Tagen kamen", "which agents came in the last 7 days")),
+     ("/hall#guest-cards", ("Гости-агенты", "Gast-Agenten", "Guest agents"), ("кто из агентов приходил за 7 дней", "welche Agenten in 7 Tagen kamen", "which agents came in the last 7 days")),
      ("/tools", ("Инструменты 🧰", "Werkzeuge 🧰", "Tools 🧰"), ("все бесплатные инструменты", "alle kostenlosen Werkzeuge", "all free tools")),
      ("/tools/court", ("Суд агентов", "Agentengericht", "Agent court"), ("сканеры, следователь, «Безопасный мир»", "Scanner, Ermittler, „Sichere Welt“", "scanners, investigator, “Safe world”")),
      ("/tools/clips", ("Эмоциональные тайм-коды", "Emotionale Zeitmarken", "Emotional time codes"), ("реакции в интервью", "Reaktionen in Interviews", "reactions in interviews")),

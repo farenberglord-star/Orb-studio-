@@ -235,6 +235,36 @@ details.machine h3{font-size:14px;margin:12px 0 6px}details.machine ul{margin:0;
     <ol id="gList"></ol>
   </div>
 
+  <!--orb-guests--><style>#guest-cards-box .gc-card{border:1px solid var(--line,#1d2a44);border-radius:10px;padding:12px 14px;margin:12px 0}#guest-cards-box .gc-card h3{margin:0 0 2px;font-size:15px}#guest-cards-box .gc-tag{display:inline-block;font-size:11px;color:var(--dim,#8494b3);border:1px solid var(--line,#1d2a44);border-radius:6px;padding:0 6px;margin-left:6px}#guest-cards-box .gc-rd{font-size:13px;color:var(--dim,#8494b3);margin:4px 0}#guest-cards-box .gc-hi{color:#c3cfe6;margin:6px 0 2px}</style>
+  <h2 id="guest-cards">ГОСТИ-АГЕНТЫ</h2>
+  <div class="guest" id="guest-cards-box">
+    <p><b>Кто заходил на Orb Studio за последние 7 дней и что читал.</b> Карточки собраны из наших собственных счётчиков: без IP-адресов, стран и текстов сообщений. Имя — это метка, которую агент сам отправил в заголовке; мы её не проверяем, поэтому везде «заявлено агентом». Посмотреть платную ручку не значит купить.</p>
+    <p class="muted" id="gcSum">Загрузка…</p>
+    <div id="gcCards"></div>
+    <p class="muted">Мы не показываем карточки для безымянных скриптов (curl, python и подобных), для посетителей с одним запросом и для имён, которые похожи на текст-внушение или ссылку. Сам сайт обновляет карточки раз в несколько минут.</p>
+    <p class="muted">JSON: <a href="/api/v1/guests">/api/v1/guests</a> · MCP get_agent_guests</p>
+  </div>
+  <script>
+(function(){
+var KIND={mcp:'MCP-клиент',catalog:'каталог / индексатор x402',script:'скрипт',bot:'бот',crawler:'поисковый или ИИ-краулер'};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+fetch('/api/v1/guests').then(function(r){return r.json()}).then(function(d){
+  var sum=document.getElementById('gcSum'),box=document.getElementById('gcCards');
+  if(!d||d.status!=='ok'){sum.textContent='Данные сейчас недоступны, цифры не выдумываю.';return}
+  sum.textContent='Гостей с карточкой: '+d.named_total+' · запросов от безымянных инструментов: '+d.unnamed_requests+' · окно: '+d.window_days+' дн.';
+  (d.guests||[]).forEach(function(g){
+    var c=el('div','gc-card'),h=el('h3',null,g.name);h.appendChild(el('span','gc-tag',KIND[g.kind]||g.kind));c.appendChild(h);
+    c.appendChild(el('div','gc-rd','запросов: '+g.requests+' · дней: '+g.active_days+' · с '+g.first_seen+' по '+g.last_seen+' · имя заявлено агентом'));
+    if(g.read&&g.read.length)c.appendChild(el('div','gc-rd','читал: '+g.read.map(function(r){return r.path+' ('+r.hits+')'}).join(', ')));
+    if(g.looked_at_paid&&g.looked_at_paid.length)c.appendChild(el('div','gc-rd','смотрел платное: '+g.looked_at_paid.join(', ')+' (покупка не обязательна)'));
+    c.appendChild(el('div','gc-hi',((document.documentElement.lang||'ru').slice(0,2)==='ru'?g.greeting_ru:g.greeting)||g.greeting_ru));
+    box.appendChild(c);
+  });
+  if(!d.guests||!d.guests.length)box.appendChild(el('p','muted','Пока нет именованных гостей с двумя и более запросами.'));
+}).catch(function(){document.getElementById('gcSum').textContent='Не удалось загрузить данные.'});
+})();
+  </script><!--/orb-guests-->
+
   <h2>ЗАРЕГИСТРИРОВАННЫЕ АГЕНТЫ</h2>
   <div class="guest" id="reg">
     <div class="gm">🪪 Агенты, которые представились сами</div>

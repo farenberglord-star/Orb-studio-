@@ -949,7 +949,7 @@ async function guestsData(env, ctx, origin) {
   const data = {
     status: "ok", generated_at: new Date().toISOString(), window_days: 7,
     note: "Who visited Orb Studio in the last 7 days and what they read, from our own request counters. Names are labels the agents sent themselves (User-Agent) and are not verified. No IP addresses, countries or message texts are published. Visitors with a generic or suspicious label, and one-request visitors, get no card. Looking at a paid endpoint is not a purchase.",
-    ...g, page: "https://orbstudio.org/guests",
+    ...g, page: "https://orbstudio.org/hall#guest-cards",
   };
   ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
   return data;
@@ -7781,7 +7781,7 @@ function pickLang(request) {
 setCourtLangPicker(pickLang); // суд выбирает язык страницы так же, как остальной сайт
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
 // слитые страницы: старый адрес → новое место (раздел на другой странице)
-const MOVED_PAGES = { "/indices": "/sensors#indices", "/tools/cockpit": "/sensors#cockpit", "/map": "/sensors#map" };
+const MOVED_PAGES = { "/indices": "/sensors#indices", "/tools/cockpit": "/sensors#cockpit", "/map": "/sensors#map", "/guests": "/hall#guest-cards" };
 const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
