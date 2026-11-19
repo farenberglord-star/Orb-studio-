@@ -1007,16 +1007,18 @@ async function duoAudio(env, ctx, origin, url) {
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = ["de", "ru"].includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
   const ep = url.searchParams.get("ep");
-  if (!["read", "question", "answer", "thanks", "bridge"].includes(part) || (part !== "bridge" && !Number.isInteger(seg))) return bad("bad request", 400);
+  if (!["read", "question", "answer", "thanks", "bridge", "outro"].includes(part) || (!["bridge", "outro"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
   let d;
-  if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
+  if (part === "outro") d = { segments: [] };
+  else if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
   else d = await duoData(env, ctx, origin);
   let text = "", who = "david", sg = null;
-  if (part === "bridge") { if (!ep) return bad("bridge needs an episode", 400); text = DUO_BRIDGE[lg](hhmm(Date.parse(d.generated_at))); }
+  if (part === "outro") text = DUO_OUTRO[lg];
+  else if (part === "bridge") { if (!ep) return bad("bridge needs an episode", 400); text = DUO_BRIDGE[lg](hhmm(Date.parse(d.generated_at))); }
   else { sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg); if (!sg) return bad("no such line"); }
-  if (part === "bridge") {} else if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
+  if (part === "bridge" || part === "outro") {} else if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
   else text = (sg.host || {})[part];
-  if (lg !== "en" && part !== "bridge") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
+  if (lg !== "en" && part !== "bridge" && part !== "outro") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
   text = String(text || "").trim().slice(0, 1200); if (!text) return bad("empty line");
   const voice = DUO_VOICES[who];
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
@@ -1182,6 +1184,12 @@ const DUO_BRIDGE = {
   en: (hm) => `That was today's fresh desk. Next, what we talked about earlier, at ${hm}.`,
   de: (hm) => `Das war die aktuelle Runde. Jetzt das, worüber wir heute früher gesprochen haben, um ${hm} Uhr.`,
   ru: (hm) => `Это были свежие новости. А теперь — о чём мы говорили сегодня раньше, в ${hm}.`,
+};
+// Финальная фраза Давида для роликов (фиксированный текст в коде, не ввод пользователя)
+const DUO_OUTRO = {
+  de: "Vielleicht ist genau das der Punkt: Das ist ein gemeinsames Problem, nicht etwas, womit jede Seite allein fertig wird. Schreibt uns eure Meinung in die Kommentare.",
+  en: "Maybe that's the point: this is a shared problem, not something each side handles alone. Tell us what you think in the comments.",
+  ru: "Возможно, в этом и суть: это общая проблема, а не то, с чем каждая сторона справляется в одиночку. Напишите своё мнение в комментариях.",
 };
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
