@@ -276,10 +276,72 @@ table.lb th{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:
   <p class="lead">Honest numbers: every vote recalculates them. Until 30 moments are labeled the thresholds are hand-picked; after 30 they are re-fitted from the data.</p>
   <div id="acc" class="vs"></div><div id="accx" class="meta">Calculating…</div>
 </section>
-<section class="panel" style="border-color:rgba(255,181,71,.35)"><h2 style="color:var(--warm)">🔎 Check an interview</h2>
-  <p class="lead">A bold forecast in a crypto interview? Paste a YouTube link – the AI lists claims with timecodes and checks price targets against Kraken.</p>
-  <form class="try" id="ivf" action="/tools/interview" method="get" style="border-top:0;padding-top:6px"><input type="text" name="url" inputmode="url" placeholder="https://youtu.be/…" aria-label="YouTube link" style="flex:1 1 220px;width:auto!important;text-align:left"><button class="btn" type="submit">Check</button></form>
+<!--orb-interview--><style>#interview .hero{border-color:rgba(255,181,71,.35);background:radial-gradient(90% 120% at 100% 0%,rgba(255,181,71,.12),transparent 60%),var(--panel)}#interview .form{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#interview .form input{flex:1 1 260px}#interview .form .btn{margin-top:0}#interview .st{font-family:var(--mono);font-size:12px;color:var(--dim);margin:8px 0 0}#interview .claim{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;padding:10px 0;border-top:1px solid var(--line)}#interview .claim .tc{font-family:var(--mono);font-size:12.5px}#interview .claim p{margin:0;font-size:14px;line-height:1.5}#interview .kind{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}#interview .verdict{font-size:13px;margin-top:4px}#interview .ok{color:var(--up)}#interview .no{color:var(--hot)}#interview .wait{color:var(--warm)}#interview .na{color:var(--dim)}#interview .legend li{font-size:13.5px;line-height:1.5}#interview .recent a{display:block;padding:8px 0;border-top:1px solid var(--line);text-decoration:none;font-size:14px}#interview .recent span{font-family:var(--mono);font-size:11.5px;color:var(--dim)}</style>
+<div id="interview">
+<section class="panel hero">
+  <div class="eyebrow">Tools · fact check</div>
+  <h2>🔎 Interview check</h2>
+  <p class="lead">Paste a YouTube link to an interview. The AI reads the captions and lists checkable claims with timecodes: price targets, deadlines, facts, the speaker’s own interest and pressure on the listener. Crypto price targets whose deadline has passed are checked against Kraken daily prices.</p>
+  <form class="form" id="f"><input type="text" id="u" inputmode="url" placeholder="https://youtu.be/…" aria-label="YouTube link"><button class="btn" type="submit" id="go">Check</button></form>
+  <p class="st" id="st">A new video takes up to a minute. Already checked ones open instantly.</p>
 </section>
+<section class="panel" id="out" hidden></section>
+<section class="panel"><h2>How to read the result</h2>
+  <ul class="legend">
+    <li><b class="ok">Target reached</b> – the price reached the named level before the deadline.</li>
+    <li><b class="no">Target not reached</b> – the deadline has passed and the price did not get there. This is not proof of lying: the person may have honestly been wrong.</li>
+    <li><b class="wait">Too early</b> – the deadline has not come yet, we will check on that day.</li>
+    <li><b class="na">No data</b> – not crypto, no exact target or deadline, or the deadline is older than Kraken’s price history (about 2 years).</li>
+  </ul>
+  <p class="st">The AI retells the claims from the captions – this is approximate. Open the timecode and listen yourself.</p>
+</section>
+<section class="panel"><h2>⏰ Deadline reached – forecast results</h2><p class="lead" style="margin-bottom:6px">Every day the site re-checks forecasts whose deadline has passed against Kraken prices. New results are visible to humans and agents.</p><div class="recent" id="events"><span>No results yet.</span></div></section>
+<section class="panel"><h2>📊 Speaker scoreboard</h2><p class="lead" style="margin-bottom:6px">How many of each person’s price targets came true, failed or are waiting for the deadline – across all checked interviews.</p><div id="speakers" class="st">—</div></section>
+<section class="panel"><h2>Already checked</h2><div class="recent" id="recent"><span>Nothing yet.</span></div></section>
+<section class="panel"><h2>For agents</h2>
+  <p class="agentline">MCP: <span class="mono">check_interview</span> {url} · <span class="mono">get_interview_checks</span> · https://orbstudio.org/mcp</p>
+  <p class="agentline">API: POST /api/v1/interview/check {"url":"https://youtu.be/…"} · <a href="/api/v1/interview/checks">GET /api/v1/interview/checks</a></p>
+  <p class="agentline">Transcripts are not stored – only our retellings of the claims, timecodes and the check result.</p>
+</section>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L=(document.documentElement.lang||'ru').slice(0,2);
+const I=({
+ ru:{wait:'Читаем субтитры и ищем утверждения… до минуты.',bad:'Нужна ссылка на видео YouTube.',fail:'Не получилось: ',claims:'Утверждения',date:'дата видео',speaker:'говорит',none:'Проверяемых утверждений не найдено.',k:{price_prediction:'прогноз цены',forecast:'прогноз',fact:'факт',interest:'интерес говорящего',pressure:'давление на слушателя'},
+  v:{reached:'Target reached',not_reached:'Target not reached',pending:'Рано проверять — срок ',no_data:'No data',not_checkable:'No data'},hi:'максимум за период',close:'цена в срок',target:'цель',cached:'проверено раньше',host:'ведущий',hostn:'ведущий',cands:'❤️‍🔥 Возможные эмоциональные моменты (паузы после сильных фраз)',candsq:'проверить глазами в очереди →',who:'Говорящий',vids:'Видео',emo:'❤️‍🔥 Найти эмоциональный момент в интервью',claimsN:' утв.',nr:' не дост.',pend:' ждут'},
+ de:{wait:'Untertitel werden gelesen und Aussagen gesucht… bis zu einer Minute.',bad:'Bitte einen YouTube-Videolink angeben.',fail:'Fehlgeschlagen: ',claims:'Aussagen',date:'Videodatum',speaker:'spricht',none:'Keine überprüfbaren Aussagen gefunden.',k:{price_prediction:'Kursprognose',forecast:'Prognose',fact:'Fakt',interest:'Eigeninteresse',pressure:'Druck auf Zuhörer'},
+  v:{reached:'Ziel erreicht',not_reached:'Ziel nicht erreicht',pending:'Zu früh – Frist ',no_data:'Keine Daten',not_checkable:'Keine Daten'},hi:'Hoch im Zeitraum',close:'Kurs zur Frist',target:'Ziel',cached:'früher geprüft',host:'Moderator',hostn:'Moderation',cands:'❤️‍🔥 Mögliche emotionale Momente (Pausen nach starken Sätzen)',candsq:'in der Warteschlange mit den Augen prüfen →',who:'Sprecher',vids:'Videos',emo:'❤️‍🔥 Emotionalen Moment im Interview finden',claimsN:' Auss.',nr:' nicht erreicht',pend:' offen'},
+ en:{wait:'Reading captions and looking for claims… up to a minute.',bad:'Please paste a YouTube video link.',fail:'Failed: ',claims:'Claims',date:'video date',speaker:'speaker',none:'No checkable claims found.',k:{price_prediction:'price target',forecast:'forecast',fact:'fact',interest:'speaker’s interest',pressure:'pressure on listener'},
+  v:{reached:'Target reached',not_reached:'Target not reached',pending:'Too early — deadline ',no_data:'No data',not_checkable:'No data'},hi:'period high',close:'price at deadline',target:'target',cached:'checked before',host:'host',hostn:'host',cands:'❤️‍🔥 Possible emotional moments (pauses after strong lines)',candsq:'check by eye in the queue →',who:'Speaker',vids:'Videos',emo:'❤️‍🔥 Find the emotional moment in the interview',claimsN:' claims',nr:' missed',pend:' pending'}})[L]||{};
+const num=n=>Number(n).toLocaleString(L==='en'?'en-GB':'de-DE',{maximumFractionDigits:n<10?4:0});
+function verdict(c){const k=c.check;if(!k)return'';const cls={reached:'ok',not_reached:'no',pending:'wait'}[k.status]||'na';
+  let t=I.v[k.status]||'';if(k.status==='pending')t+=k.check_on;
+  if(k.period_high!=null)t+=' · '+I.target+' '+num(c.target)+' · '+I.hi+' '+num(k.period_high)+' · '+I.close+' '+num(k.close_on_deadline)+' ('+k.pair+', Kraken)';
+  return '<div class="verdict '+cls+'">'+esc(t)+'</div>'}
+function render(d){const o=$('out');o.hidden=false;const v=d.video||{};
+  o.innerHTML='<div class="eyebrow">'+esc(v.channel)+(v.date?' · '+I.date+' '+esc(v.date):'')+(d.cached?' · '+I.cached:'')+'</div><h2 style="color:var(--fg)"><a href="'+esc(v.url)+'" target="_blank" rel="noopener">'+esc(v.title||v.id)+'</a></h2>'+
+   (d.speaker?'<p class="st">'+I.speaker+': '+esc(d.speaker)+(d.host?' · '+I.hostn+': '+esc(d.host):'')+'</p>':'')+
+   ((d.claims||[]).length?d.claims.map(c=>'<div class="claim"><a class="tc" href="'+esc(c.link)+'" target="_blank" rel="noopener">▶ '+esc(c.timecode)+'</a><div><div class="kind">'+esc(I.k[c.kind]||c.kind)+(c.said_by==='host'?' · '+I.host:'')+'</div><p>'+esc((c.summary||{})[L]||(c.summary||{}).en)+'</p>'+verdict(c)+'</div></div>').join(''):'<p>'+I.none+'</p>')+((d.clip_candidates||[]).length?'<h3 style="margin-top:14px;font-size:15px">'+I.cands+'</h3>'+d.clip_candidates.map(c=>'<div class="claim"><a class="tc" href="'+esc(c.link)+'" target="_blank" rel="noopener">▶ '+esc(c.timecode)+'</a><div><p class="st" style="margin:0">'+String(c.pause_s)+' s · '+esc((c.rules||[]).join(', '))+'</p></div></div>').join('')+'<p class="st"><a href="/tools/clips#queue">'+I.candsq+'</a></p>':'')+'<p style="margin-top:12px"><a class="btn" style="display:inline-block;text-decoration:none" href="/tools/clips#rules">'+I.emo+'</a></p>';
+  o.scrollIntoView({behavior:'smooth',block:'start'});}
+function recent(){fetch('/api/v1/interview/checks',{cache:'no-store'}).then(r=>r.json()).then(d=>{if(!d.checks||!d.checks.length)return;
+  $('recent').innerHTML=d.checks.map(c=>'<a href="#" data-id="'+esc(c.id)+'">'+esc(c.title||c.id)+'<br><span>'+esc(c.channel)+' · '+esc(c.date||'')+' · '+c.claims+I.claimsN+(c.not_reached?' · '+c.not_reached+I.nr:'')+(c.pending?' · '+c.pending+I.pend:'')+'</span></a>').join('')}).catch(()=>{})}
+$('recent').addEventListener('click',e=>{const a=e.target.closest('[data-id]');if(!a)return;e.preventDefault();fetch('/api/v1/interview/'+a.dataset.id).then(r=>r.json()).then(render)});
+$('f').addEventListener('submit',e=>{e.preventDefault();const u=$('u').value.trim();if(!/youtu\.?be/.test(u)){$('st').textContent=I.bad;return}
+  $('go').disabled=true;$('st').textContent=I.wait;
+  fetch('/api/v1/interview/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({url:u})}).then(r=>r.json()).then(d=>{if(d.error){$('st').textContent=I.fail+d.error;return}$('st').textContent='';render(d);recent()})
+  .catch(()=>{$('st').textContent=I.fail+'network'}).finally(()=>{$('go').disabled=false})});
+const qu=new URLSearchParams(location.search).get('url');if(qu){$('u').value=qu;setTimeout(()=>$('f').requestSubmit(),50)}
+const q=new URLSearchParams(location.search).get('v');if(q)fetch('/api/v1/interview/'+encodeURIComponent(q)).then(r=>r.json()).then(d=>{if(!d.error)render(d)});
+recent();
+fetch('/api/v1/interview/events?days=365',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+  if(d.events&&d.events.length)$('events').innerHTML=d.events.map(e=>'<a href="'+esc(e.page)+'">'+(e.status==='reached'?'✅ ':'❌ ')+esc(e.speaker||e.channel)+': '+esc((e.summary||{})[L]||(e.summary||{}).en)+'<br><span>'+esc(I.v[e.status]||e.status)+' · '+I.hi+' '+num(e.period_high)+' · '+I.close+' '+num(e.close_on_deadline)+' · '+esc(e.deadline)+'</span></a>').join('');
+  if(d.speakers&&d.speakers.length)$('speakers').innerHTML='<table class="lb" style="width:100%;border-collapse:collapse"><tr><th style="text-align:left">'+I.who+'</th><th>✅</th><th>❌</th><th>⏳</th><th>'+I.vids+'</th></tr>'+d.speakers.map(x=>'<tr><td>'+esc(x.speaker)+'</td><td style="text-align:center">'+x.reached+'</td><td style="text-align:center">'+x.not_reached+'</td><td style="text-align:center">'+x.pending+'</td><td style="text-align:center">'+x.videos+'</td></tr>').join('')+'</table>';
+}).catch(()=>{});
+})();
+</script><!--/orb-interview-->
 <section class="panel"><h2>Humans vs agents</h2><p class="lead" style="margin-bottom:8px">Hit – ±3 s, close – ±10 s. Average error in seconds.</p><div id="vs" class="vs"></div><div id="lb" class="meta">Nobody has made a prediction yet.</div></section>
 <section class="panel"><h2>For agents</h2>
   <p class="agentline">MCP: <span class="mono">get_clips</span> → <span class="mono">predict_clip</span> · https://orbstudio.org/mcp</p>

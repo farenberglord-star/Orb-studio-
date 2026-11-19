@@ -2147,3 +2147,7 @@ PAGES["sensors"].append(("Приборная панель · проверить 
 # 19.11.2026: «Гости-агенты» (бывшая /guests) — на доске почёта /hall#guest-cards
 _have = {x[0] for x in PAGES["hall"]}
 PAGES["hall"] += [x for x in PAGES["guests"] if x[0] not in _have]
+
+# 19.11.2026: «Проверка интервью» (бывшая /tools/interview) — внутри «Тайм-кодов» /tools/clips#interview
+_have = {x[0] for x in PAGES["tools/clips"]}
+PAGES["tools/clips"] += [x for x in PAGES["tools/interview"] if x[0] not in _have]

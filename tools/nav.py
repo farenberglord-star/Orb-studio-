@@ -17,7 +17,7 @@ SECTION = {
     "air": "air", "studio": "air", "podcast": "air", "live": "air", "interviews": "air", "music": "air", "violin": "air", "canvas": "air", "orbi": "air", "orb7": "air",
     "deck": "deck", "bridge": "deck", "followups": "deck",
     "for-agents": "for-agents", "hall": "for-agents", "tools": "for-agents", "tools/court": "for-agents", "tools/clips": "for-agents",
-    "tools/interview": "for-agents", "tools/agent-wallet": "for-agents", "tools/inbox": "for-agents", "tools/buyer-review": "for-agents",
+    "tools/agent-wallet": "for-agents", "tools/inbox": "for-agents", "tools/buyer-review": "for-agents",
 }
 import glob as _glob
 def _ru_pages():

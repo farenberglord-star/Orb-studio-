@@ -130,7 +130,7 @@ async function emitEvents(env, card, before) {
     if (!DECIDED.has(st) || (before && before[i] === st)) continue;
     const ev = { video: card.id, title: card.video.title, channel: card.video.channel, speaker: card.speaker || null, timecode: c.timecode, link: c.link,
       asset: c.asset, target: c.target, deadline: c.deadline, status: st, summary: c.summary, period_high: c.check.period_high, close_on_deadline: c.check.close_on_deadline, pair: c.check.pair,
-      page: "https://orbstudio.org/tools/interview?v=" + card.id };
+      page: "https://orbstudio.org/tools/clips?v=" + card.id + "#interview" };
     const r = await env.DB.prepare("INSERT OR IGNORE INTO interview_events (ts, day, video, claim, speaker, status, data) VALUES (?1,?2,?3,?4,?5,?6,?7)")
       .bind(Date.now(), card.checked_at, card.id, i, (card.speaker || "").toLowerCase().trim() || null, st, JSON.stringify(ev)).run();
     if (r.meta && r.meta.changes) out.push(ev);
