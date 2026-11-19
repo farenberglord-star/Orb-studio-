@@ -278,6 +278,55 @@ export function playable(lines, t) {
   return out;
 }
 
+// ---------- Живая студия: огни города, искры в лучах, голограмма глобуса (canvas 2D, без библиотек) ----------
+export const FX = {
+  window: { x0: 0.215, x1: 0.795, y0: 0.03, y1: 0.335 },               // окно с городом
+  globe: { x: 0.5, y: 0.503, r: 0.118 },                                // глобус на столе (r — доля ширины)
+  beams: { gemini: [0.148, 0.30, 0.148, 0.37, "127,178,255"], deepseek: [0.504, 0.235, 0.50, 0.295, "79,216,230"],
+    grok: [0.86, 0.305, 0.86, 0.37, "181,140,255"], claude: [0.50, 0.545, 0.50, 0.575, "255,178,94"] },
+};
+function startFx(cv, stage, getLevel) {
+  const ctx = cv.getContext("2d"); if (!ctx) return;
+  let W = 0, H = 0, dpr = 1, raf = 0, last = 0;
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const stars = Array.from({ length: 90 }, () => ({ x: rnd(FX.window.x0, FX.window.x1), y: rnd(FX.window.y0, FX.window.y1) * (Math.random() < 0.6 ? 1 : 0.85), p: rnd(0, 6.3), s: rnd(0.6, 2.4), c: Math.random() < 0.18 ? "255,90,110" : Math.random() < 0.4 ? "255,214,150" : "190,225,255" }));
+  const sparks = []; const rings = [];
+  const size = () => { const r = cv.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1); W = Math.max(1, r.width); H = Math.max(1, r.height); cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  size(); addEventListener("resize", size);
+  function frame(ts) {
+    raf = requestAnimationFrame(frame);
+    if (ts - last < 33) return; last = ts; const t = ts / 1000, sp = stage.dataset.speaker || "", lv = getLevel();
+    ctx.clearRect(0, 0, W, H); ctx.globalCompositeOperation = "lighter";
+    // 1) огни города мерцают
+    for (const s of stars) { const a = Math.max(0, Math.sin(t * s.s + s.p)) ** 3 * 0.55; if (a < 0.03) continue; const x = s.x * W, y = s.y * H, r = 0.6 + a * 1.6;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3); g.addColorStop(0, `rgba(${s.c},${a})`); g.addColorStop(1, `rgba(${s.c},0)`); ctx.fillStyle = g; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
+    // 2) искры бегут по лучам от символов к головам; у говорящего — чаще и ярче
+    for (const [who, b] of Object.entries(FX.beams)) { const on = who === sp, rate = on ? 0.55 + lv * 0.4 : 0.07;
+      if (Math.random() < rate) sparks.push({ who, k: 0, v: rnd(0.012, 0.03) * (on ? 1.5 : 1), dx: rnd(-0.012, 0.012), c: b[4], a: on ? rnd(0.6, 1) : rnd(0.25, 0.5) }); }
+    for (let i = sparks.length - 1; i >= 0; i--) { const q = sparks[i], b = FX.beams[q.who]; q.k += q.v; if (q.k >= 1) { sparks.splice(i, 1); continue; }
+      const x = (b[0] + (b[2] - b[0]) * q.k + q.dx * q.k) * W, y = (b[1] + (b[3] - b[1]) * q.k) * H, a = q.a * Math.sin(q.k * Math.PI);
+      ctx.fillStyle = `rgba(${q.c},${a})`; ctx.beginPath(); ctx.arc(x, y, 1.1 + a, 0, 7); ctx.fill(); }
+    // 3) голограмма глобуса: меридианы вращаются, кольцо орбиты, сканирующий луч
+    const gx = FX.globe.x * W, gy = FX.globe.y * H, R = FX.globe.r * W, hot = sp === "claude" ? 0.12 + lv * 0.15 : 0;
+    ctx.lineWidth = 1;
+    for (let m = 0; m < 4; m++) { const ang = t * 0.35 + (m * Math.PI) / 4, rx = Math.abs(Math.cos(ang)) * R; const a = 0.1 + 0.12 * Math.abs(Math.sin(ang)) + hot;
+      ctx.strokeStyle = `rgba(120,215,255,${a})`; ctx.beginPath(); ctx.ellipse(gx, gy, Math.max(0.5, rx), R, 0, 0, 7); ctx.stroke(); }
+    for (const la of [-0.5, 0, 0.5]) { ctx.strokeStyle = `rgba(120,215,255,${0.1 + hot})`; ctx.beginPath(); ctx.ellipse(gx, gy + la * R, R * Math.sqrt(1 - la * la), R * 0.16 * Math.sqrt(1 - la * la), 0, 0, 7); ctx.stroke(); }
+    ctx.setLineDash([R * 0.08, R * 0.06]); ctx.lineDashOffset = -t * R * 0.25; ctx.strokeStyle = `rgba(150,230,255,${0.28 + hot})`; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.ellipse(gx, gy + R * 0.12, R * 1.38, R * 0.3, -0.06, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+    const sy = gy - R + ((t * 0.45) % 1) * 2 * R, half = Math.sqrt(Math.max(0, R * R - (sy - gy) ** 2));
+    const lg = ctx.createLinearGradient(gx - half, sy, gx + half, sy); lg.addColorStop(0, "rgba(140,230,255,0)"); lg.addColorStop(0.5, `rgba(140,230,255,${0.45 + hot})`); lg.addColorStop(1, "rgba(140,230,255,0)");
+    ctx.strokeStyle = lg; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(gx - half, sy); ctx.lineTo(gx + half, sy); ctx.stroke();
+    // волна от глобуса, когда модератор задаёт вопрос
+    if (sp === "claude" && Math.random() < 0.03 + lv * 0.05) rings.push({ r: R * 1.05, a: 0.35 });
+    for (let i = rings.length - 1; i >= 0; i--) { const g = rings[i]; g.r += R * 0.03; g.a *= 0.955; if (g.a < 0.02) { rings.splice(i, 1); continue; }
+      ctx.strokeStyle = `rgba(255,190,120,${g.a})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(gx, gy + R * 0.15, g.r * 1.4, g.r * 0.32, 0, 0, 7); ctx.stroke(); }
+    ctx.globalCompositeOperation = "source-over";
+  }
+  raf = requestAnimationFrame(frame);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) cancelAnimationFrame(raf); else raf = requestAnimationFrame(frame); });
+}
+
 function start() {
   const $ = (id) => document.getElementById(id);
   const hint = document.documentElement.dataset.al || (navigator.languages || []).map((x) => String(x).slice(0, 2).toLowerCase()).find((x) => T[x]) || navigator.language;
@@ -346,10 +395,16 @@ function start() {
     ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);
     queue = playable(d.queue.lines, t); pos = 0; step();
   }
+  // уровень голоса → яркость говорящего (WebAudio; без звука — 0)
+  let actx = null, an = null, lvl = 0; const buf = new Uint8Array(256);
+  const level = () => { if (!an || voice.paused) { lvl *= 0.9; return lvl; } an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128)); lvl = lvl * 0.6 + Math.min(1, m / 70) * 0.4; return lvl; };
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!still) { try { startFx($("fx"), stage, level); } catch {} (function lv() { stage.style.setProperty("--lv", level().toFixed(2)); requestAnimationFrame(lv); })(); }
   const lb = $("listen"); lb.textContent = t.listen;
   lb.addEventListener("click", (e) => { e.stopPropagation();
     if (soundOn) { soundOn = false; lb.textContent = t.listen; lb.setAttribute("aria-pressed", "false"); voice.pause(); stage.dataset.voiced = ""; step(); return; }
     soundOn = true; lb.textContent = t.mute; lb.setAttribute("aria-pressed", "true");
+    try { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); an = actx.createAnalyser(); an.fftSize = 512; src.connect(an); an.connect(actx.destination); } actx.resume(); } catch { an = null; }
     if (!listenCounted) { listenCounted = true; hit("roundtable-listen"); }
     if (!started) { started = true; return load(); } // первое нажатие — с начала, с приветствия модератора
     pos = Math.max(0, pos - 1); step(); });
