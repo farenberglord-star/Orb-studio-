@@ -1188,6 +1188,7 @@ async function duoTranslate(env, d) {
   return Object.keys(out).length ? { by: "Grok (xAI)", original: "en", note: "Translated by Grok (xAI) from the English original; the English text above is the original.", ...out } : null;
 }
 // Архив выпусков за сутки: после свежего эфира страница проигрывает прежние. Новых вызовов Grok не нужно.
+const DUO_MIN_GAP_MS = 30 * 60e3; // не чаще одного нового выпуска в 30 минут
 const DUO_ARCHIVE_KEY = "duo-archive", DUO_ARCHIVE_MS = 24 * 3600e3, DUO_ARCHIVE_MAX = 16;
 async function duoArchivePut(env, d) {
   if (!d || !d.generated_at || !Array.isArray(d.segments)) return;
@@ -1229,6 +1230,9 @@ async function duoWarm(env, ctx) {
     await duoArchivePut(env, ready);
     await sharedPut(env, "duo-latest", ready); return; // заголовки те же: выпуск остаётся «последним готовым»
   }
+  // Ограничение: новый выпуск не чаще раза в 30 минут, даже если заголовки уже сменились
+  const last = await sharedGet(env, "duo-latest", 2 * 3600e3);
+  if (last && Date.now() - Date.parse(last.generated_at) < DUO_MIN_GAP_MS) return;
   // Чтобы реплики не повторялись: начала прежних ответов Grok и реплик Давида за сутки
   const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15).catch(() => null)) || { episodes: [] };
   const opener = (t) => String(t || "").split(/(?<=[.!?,])\s/)[0].split(" ").slice(0, 6).join(" ");
@@ -1250,7 +1254,7 @@ async function duoData(env, ctx, origin) {
   const kept = await sharedGet(env, key, 30 * 60e3);
   if (kept) return kept;
   // Заголовки сменились, а новый разговор ещё пишется: отдаём последний готовый выпуск (не старше часа), время указано в generated_at
-  const latest = await sharedGet(env, "duo-latest", 60 * 60e3);
+  const latest = await sharedGet(env, "duo-latest", 90 * 60e3);
   if (latest) return latest;
   // Grok не вызывается из запроса: его готовит только cron (duoWarm, 70 с на реплику). Иначе каждый запрос запускал бы свои вызовы к xAI
   const last = await sharedGet(env, "duo-last-error", 30 * 60e3);
