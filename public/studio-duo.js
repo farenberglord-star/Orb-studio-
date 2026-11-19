@@ -234,7 +234,7 @@ function start() {
     for (const ep of (arc && Array.isArray(arc.episodes) ? arc.episodes : [])) {
       if (!ep || ep.episode_id === curId) continue;
       // старые сегменты о числе визитов агентов в архиве не проигрываем (убраны из эфира 19.11)
-      const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && x.kind !== "agents" && !(x.kind === "carousel" && String(x.carousel_id || "").startsWith("bridge:"))) };
+      const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && (x.kind || "news") === "news") };
       const lines = buildQueue(ep2, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
       lines.forEach((x) => heard.add(x.headline));
@@ -281,7 +281,9 @@ function start() {
     const id = duo.episode_id || duo.generated_at || null;
     if (id && id === doneId) { showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     if (id !== curId) { curId = id; archived = false; heard.clear(); }
-    queue = buildQueue(duo, lang); pos = 0; queue.forEach((x) => heard.add(x.headline));
+    // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)
+    const newsOnly = (duo.segments || []).filter((x) => x && (x.kind || "news") === "news"), cut = newsOnly.length !== (duo.segments || []).length;
+    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => heard.add(x.headline));
     setTimeout(renderProg, 0);
     const cta = duo.cta && duo.cta[lang];
     if (queue.length && cta && typeof cta.text === "string") queue.push({ who: "david", kind: "cta", text: cta.text, audio: typeof cta.audio === "string" && /^https:\/\//.test(cta.audio) ? cta.audio : null, ms: lineMs(cta.text), source: null, link: null, headline: "" }, { who: null, kind: "pause", text: null, ms: 1500, headline: "" }); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");

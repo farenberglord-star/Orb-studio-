@@ -1057,8 +1057,9 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
   }));
   // Сегмент «чем интересуются агенты»: самый читаемый датчик сегодня (без сканеров каталогов и поисковиков)
   // Сегмент «датчики» после первой новости: резкие изменения показаний по детектору аномалий
-  const an = await anomalyDetect(env).catch(() => null);
-  const sig = (an && an.signals || []).filter((x) => describeSignal(x)).sort((a, b) => (a.type.startsWith("value_") ? 0 : 1) - (b.type.startsWith("value_") ? 0 : 1)).slice(0, 3);
+  const an = DUO_NEWS_ONLY ? null : await anomalyDetect(env).catch(() => null);
+  // Решение владельца 19.11: в подкасте только новости — сегмент датчиков и карусель отключены (DUO_NEWS_ONLY)
+  const sig = DUO_NEWS_ONLY ? [] : (an && an.signals || []).filter((x) => describeSignal(x)).sort((a, b) => (a.type.startsWith("value_") ? 0 : 1) - (b.type.startsWith("value_") ? 0 : 1)).slice(0, 3);
   if (sig.length) {
     const descs = sig.map(describeSignal), hl = sensorsHostLines(descs);
     const readings = sig.map((x) => ({ change: describeSignal(x), detail: x, rule: x.rule || an.rules }));
@@ -1073,7 +1074,7 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
     }
   }
   let carouselDone = false;
-  if (carousel) {
+  if (carousel && !DUO_NEWS_ONLY) {
     let reply = null;
     try { const a = await askGrok(env, null, null, [], false, ms, carousel.question, avoid, { system: GROK_CAROUSEL_SYSTEM, user: grokCarouselUser(carousel.item, carousel.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
     catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "carousel: " + String(e && e.message || e).slice(0, 160) }); }
@@ -1194,6 +1195,7 @@ async function duoTranslate(env, d, only) {
   return Object.keys(out).length ? { by: "Grok (xAI)", original: "en", note: "Translated by Grok (xAI) from the English original; the English text above is the original.", ...out } : null;
 }
 // Архив выпусков за сутки: после свежего эфира страница проигрывает прежние. Новых вызовов Grok не нужно.
+const DUO_NEWS_ONLY = true; // в эфире только новости (без датчиков и карусели)
 const DUO_MIN_GAP_MS = 30 * 60e3; // не чаще одного нового выпуска в 30 минут
 const DUO_ARCHIVE_KEY = "duo-archive", DUO_ARCHIVE_MS = 24 * 3600e3, DUO_ARCHIVE_MAX = 16;
 async function duoArchivePut(env, d) {
@@ -1273,7 +1275,7 @@ async function duoWarm(env, ctx) {
   const segsArc = arc.episodes.slice(0, 6).flatMap((e) => e.segments || []);
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
-  const menu = await duoMenu(env, ctx, origin).catch(() => []);
+  const menu = DUO_NEWS_ONLY ? [] : await duoMenu(env, ctx, origin).catch(() => []);
   // Тренды: о чём сейчас говорит мир. Заголовки радаров, совпадающие с трендами, добавляются в кандидаты и помечаются.
   const tr = await trendsData(env).catch(() => null), terms = tr ? trendTerms(tr) : [];
   if (terms.length) {
@@ -1283,7 +1285,7 @@ async function duoWarm(env, ctx) {
       if (trendMatch(f[1], terms).length) { have.add(f[1]); cands.push({ radar: r.id, radarTitle: r.title, anchor: r.anchor, headline: f[1], source: f[2], time: f[0], link: f[4], weight: f[3], risk_index: r.lvl }); }
     }
     for (const c of cands) { const m = trendMatch(c.headline, terms); if (m.length) c.trending = m.slice(0, 3); }
-    menu.unshift({ id: "trends", kind: "trends", title: "What the world is talking about (trends)", reading: terms.slice(0, 15).map((t) => `${t.term} [${t.src}]`).join("; "), source: "Google Trends, Wikipedia most read" + (tr.x && tr.x.by_location ? ", X trends" : "") });
+    if (!DUO_NEWS_ONLY) menu.unshift({ id: "trends", kind: "trends", title: "What the world is talking about (trends)", reading: terms.slice(0, 15).map((t) => `${t.term} [${t.src}]`).join("; "), source: "Google Trends, Wikipedia most read" + (tr.x && tr.x.by_location ? ", X trends" : "") });
   }
   const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
   const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
