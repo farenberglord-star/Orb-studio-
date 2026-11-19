@@ -234,7 +234,7 @@ function start() {
     for (const ep of (arc && Array.isArray(arc.episodes) ? arc.episodes : [])) {
       if (!ep || ep.episode_id === curId) continue;
       // старые сегменты о числе визитов агентов в архиве не проигрываем (убраны из эфира 19.11)
-      const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && (x.kind || "news") === "news") };
+      const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")) };
       const lines = buildQueue(ep2, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
       lines.forEach((x) => heard.add(x.headline));
@@ -282,7 +282,7 @@ function start() {
     if (id && id === doneId) { showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     if (id !== curId) { curId = id; archived = false; heard.clear(); }
     // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)
-    const newsOnly = (duo.segments || []).filter((x) => x && (x.kind || "news") === "news"), cut = newsOnly.length !== (duo.segments || []).length;
+    const newsOnly = (duo.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")), cut = newsOnly.length !== (duo.segments || []).length;
     queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => heard.add(x.headline));
     setTimeout(renderProg, 0);
     const cta = duo.cta && duo.cta[lang];
