@@ -37,7 +37,7 @@ PAGE = {
      ("/radar", ("Импульсы 🌍", "Impulse 🌍", "Impulses 🌍"), ("откуда давят новости: страны и морские проливы", "woher die Nachrichten drücken: Länder und Meerengen", "where the news pushes from: countries and sea straits")),
      ("/archive", ("Архив радаров 🗄", "Radar-Archiv 🗄", "Radar archive 🗄"), ("история индексов по дням", "Verlauf der Indizes nach Tagen", "index history by day")),
      ("/map", ("Карта датчиков 🗺", "Sensorkarte 🗺", "Sensor map 🗺"), ("где находится каждый источник", "wo jede Quelle sitzt", "where each source is located")),
-     ("/indices", ("Индексы 👻", "Indizes 👻", "Indices 👻"), ("галлюцинации, консенсус, голод по токенам", "Halluzination, Konsens, Token-Hunger", "hallucination, consensus, token hunger")),
+     ("/sensors#indices", ("Индексы 👻", "Indizes 👻", "Indices 👻"), ("галлюцинации, консенсус, голод по токенам", "Halluzination, Konsens, Token-Hunger", "hallucination, consensus, token hunger")),
      ("/tools/cockpit", ("Приборная панель", "Armaturenbrett", "Cockpit"), ("состояние датчиков и ядра", "Zustand der Sensoren und des Kerns", "state of the sensors and the core")),
      ("/route", ("Гамбург 🚗", "Hamburg 🚗", "Hamburg 🚗"), ("дороги, маршрут, Эльба, авиация Финкенвердера", "Straßen, Route, Elbe, Luftfahrt Finkenwerder", "roads, route, Elbe, Finkenwerder aviation")),
    ],

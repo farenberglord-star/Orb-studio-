@@ -39,7 +39,6 @@
   <url><loc>https://orbstudio.org/en/tools/interview</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/canvas</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/music</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://orbstudio.org/indices</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/orb7</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/bridge</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://orbstudio.org/llms.txt</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>
@@ -80,8 +79,6 @@
   <url><loc>https://orbstudio.org/en/canvas</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/de/orbi</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/orbi</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
-  <url><loc>https://orbstudio.org/de/indices</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
-  <url><loc>https://orbstudio.org/en/indices</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/de/orb7</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/orb7</loc><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/tools/agent-wallet</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>

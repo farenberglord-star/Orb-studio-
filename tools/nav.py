@@ -118,6 +118,26 @@ def lang_all():
         open(path, "w", encoding="utf-8").write(s)
         print("lang:", os.path.relpath(path, ROOT))
 
+
+# ---- меню в немецких и английских страницах, которые переводятся не через i18n_pages.py (about, podcast, interviews…) ----
+def _tr_labels():
+    import sys as _s; _s.path.insert(0, os.path.dirname(__file__))
+    from i18n_index import T
+    return {ru: (de, en) for ru, de, en, *_ in [x for x in T if len(x) >= 3]}
+def tabs_all_langs():
+    tr = _tr_labels()
+    for l, col in (("de", 0), ("en", 1)):
+        for path in sorted(glob.glob(os.path.join(ROOT, l, "*.html")) + glob.glob(os.path.join(ROOT, l, "tools", "*.html"))):
+            s = open(path, encoding="utf-8").read()
+            if 'class="onav-tabs"' not in s: continue
+            name = os.path.relpath(path, os.path.join(ROOT, l))[:-5].replace(os.sep, "/")
+            sec = SECTION.get(name)
+            tabs = "".join(f'<a href="{h}"{" class=\"on\" aria-current=\"page\"" if p == sec else ""}>{tr.get(t, (t, t))[col]}</a>' for h, t, p in NAV)
+            s2 = re.sub(r'(<nav class="onav-tabs"[^>]*>).*?(</nav>)', lambda m: m.group(1) + tabs + m.group(2), s, count=1, flags=re.S)
+            if s2 != s:
+                open(path, "w", encoding="utf-8").write(s2); print("tabs:", l, name)
+
 if __name__ == "__main__":
     main()
     lang_all()
+    tabs_all_langs()

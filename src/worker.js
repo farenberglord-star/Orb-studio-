@@ -3197,7 +3197,7 @@ async function agentIndices(env, ctx, origin) {
       { id: "token_hunger", name_ru: "Токеновый голод", name_en: "Token Hunger Index", value: tokens, unit: "tokens", sky: sky.id, sky_ru: sky.ru, scale: "<2000 clear, 2000-5000 cloudy, >5000 storm", text_ru: forecastRu, text_de: forecastDe, text_en: forecastEn, name_de: "Token-Hunger-Index", hot_radars: hot },
     ],
     forecast: { ru: forecastRu, de: forecastDe, en: forecastEn },
-    page: "https://orbstudio.org/indices",
+    page: "https://orbstudio.org/sensors#indices",
   };
   ctx.waitUntil(cache.put(key, new Response(JSON.stringify(data), { headers: { "Cache-Control": "max-age=300" } })));
   return data;
@@ -7780,6 +7780,8 @@ function pickLang(request) {
 }
 setCourtLangPicker(pickLang); // суд выбирает язык страницы так же, как остальной сайт
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
+// слитые страницы: старый адрес → новое место (раздел на другой странице)
+const MOVED_PAGES = { "/indices": "/sensors#indices" };
 const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
@@ -8229,6 +8231,9 @@ async function handleRequest(request, env, ctx) {
         return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, {}, 500);
       }
     }
+    // страницы, слитые в другие при наведении порядка (19.11.2026): старый адрес ведёт на новое место, язык сохраняется
+    { const mv = url.pathname.replace(/\.html$/, "").match(/^(\/(?:ru|de|en))?(\/[a-z0-9/-]+)$/);
+      if (mv && MOVED_PAGES[mv[2]]) return Response.redirect(url.origin + (mv[1] || "") + MOVED_PAGES[mv[2]], 301); }
     // главная: автоматически отдаём версию на языке посетителя; /ru/, /de/, /en/ — постоянные адреса для поисковиков
     let assetReq = request, autoLang = null;
     if (url.pathname === "/" || url.pathname === "/index.html") {

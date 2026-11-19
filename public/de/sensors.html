@@ -358,6 +358,49 @@ details.dbg button{font:inherit;background:transparent;color:var(--holo);border:
     <p class="lead">Maschinenlesbare Daten: <a href="/api/v1/freshness">/api/v1/freshness</a> · MCP get_freshness</p>
   </section>
 
+
+  <!--orb-indices--><style>#indices .ix{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}#indices .ix::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}#indices .ix>*{position:relative}#indices .ix.h{--c:var(--violet)}#indices .ix.c{--c:var(--warm)}#indices .ix.t{--c:var(--holo)}#indices .ixhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}#indices .ixname{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--c);text-transform:uppercase}#indices .ixval{font-family:var(--display);font-size:34px;font-weight:700;color:var(--c);text-shadow:0 0 18px color-mix(in srgb,var(--c) 45%,transparent);font-variant-numeric:tabular-nums;white-space:nowrap}#indices .ixval small{font-size:14px;color:var(--dim);text-shadow:none;margin-left:4px}#indices .bar{height:8px;border-radius:4px;background:#0f1a30;margin:10px 0 12px;overflow:hidden}#indices .bar i{display:block;height:100%;width:0;border-radius:4px;background:var(--c);box-shadow:0 0 12px var(--c);transition:width 1.2s ease}#indices .ixtext{font-size:15px;line-height:1.5;margin:0}#indices .ixsub{font-size:12.5px;color:var(--dim);margin:8px 0 0;line-height:1.5}#indices .sky{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}#indices .sky span{font-family:var(--mono);font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--dim)}#indices .sky span.on{border-color:var(--c);color:var(--c)}#indices .how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;color:var(--dim);line-height:1.55}#indices .how b{color:var(--fg);font-weight:500}#indices .how p{margin:0 0 8px}#indices .how p:last-child{margin:0}#indices .krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}#indices .krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}#indices .krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}#indices .krb h3 b{color:#b9aeff}#indices .krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}#indices .krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}#indices .krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}#indices .krb-px i{font-style:normal;margin-left:6px}#indices .krb-px .up{color:var(--up)}#indices .krb-px .dn{color:var(--hot)}#indices .krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}#indices .krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}#indices .krb-go:hover,#indices .krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}#indices .krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}#indices .krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}#indices .dock{position:fixed;left:0;right:0;bottom:0;background:rgba(5,8,16,.94);border-top:1px solid rgba(155,140,255,.4);padding:9px max(16px,env(safe-area-inset-left,0px)) calc(9px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;font-size:12px;z-index:5}#indices .dock strong{font-family:var(--display);letter-spacing:.06em}#indices .dock a{color:#0b0820;background:#b9aeff;border-radius:8px;padding:6px 11px;text-decoration:none;font-weight:500}#indices .dock span{color:var(--dim);font-family:var(--mono);font-size:11px}#indices .agentline{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0}#indices details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}#indices details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}#indices details.machine h3{font-size:14px;margin:12px 0 6px}#indices details.machine ul{margin:0;padding-left:18px;color:var(--dim);font-size:13px}#indices{--violet:#b38cff;margin-top:28px}#indices .ixg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}@media (max-width:760px){#indices .ixg{grid-template-columns:1fr}}@media (prefers-reduced-motion:reduce){#indices .bar i{transition:none}}</style>
+  <section id="indices" aria-live="polite">
+    <h2>INDIZES FÜR KI-AGENTEN</h2>
+    <p class="lead">Drei Indikatoren, die sich die Welt noch nicht ausgedacht hat. Berechnet alle 5 Minuten aus den Live-Schlagzeilen der Radare von Orb Studio. Ernsthafte Daten, unernste Schlüsse.</p>
+    <div class="ixg">
+  <article class="ix h">
+    <div class="ixhead"><span class="ixname">👻 Welt-Halluzinationsindex</span><span class="ixval" id="hV">—</span></div>
+    <div class="bar"><i id="hB"></i></div>
+    <p class="ixtext" id="hT">Wie sehr die Wirklichkeit heute einer Halluzination eines neuronalen Netzes ähnelt.</p>
+    <p class="ixsub" id="hS">0 – ein langweiliger, logischer Tag · 100 – die Welt fantasiert stärker als jedes Modell</p>
+  </article>
+
+  <article class="ix c">
+    <div class="ixhead"><span class="ixname">👍 Barometer „Du hast völlig recht!“</span><span class="ixval" id="cV">—</span></div>
+    <div class="bar"><i id="cB"></i></div>
+    <p class="ixtext" id="cT">Wie viel Einigkeit und wie viel Streit es in den Weltnachrichten gibt.</p>
+    <p class="ixsub">0 – alle schimpfen · 100 – verdächtige Einmütigkeit, meist vor dem Sturm. Der einzige Indikator, der Ihnen nicht sagt, dass Sie recht haben.</p>
+  </article>
+
+  <article class="ix t">
+    <div class="ixhead"><span class="ixname">☁️ Token-Hunger</span><span class="ixval" id="tV">—<small>Token</small></span></div>
+    <p class="ixtext" id="tT" style="margin-top:10px">Wie viele Token ein Agent braucht, um die heutige Welt zu verstehen.</p>
+    <div class="sky"><span data-sky="clear">klar &lt;2.000</span><span data-sky="cloudy">bewölkt 2–5 Tsd.</span><span data-sky="storm">Gewitter &gt;5.000</span></div>
+  </article>
+
+    </div>
+  <div class="how">
+    <p><b>So rechnen wir.</b> Halluzinationen – der Anteil seltsamer Schlagzeilen in seriösen Feeds plus Kuriositäten, in die Politiker, Märkte oder Polizei verwickelt sind. Einigkeit – der Anteil von „haben sich geeinigt“-Nachrichten unter „geeinigt“ und „gestritten“. Token-Hunger – Umfang und Alarmstärke der Schlagzeilen, in Token umgerechnet.</p>
+    <p>Das sind spielerische Schlüsselwort-Indikatoren, keine Analyse und keine Anlageberatung. Geprüft <b id="nScan">—</b> Schlagzeilen.</p>
+  </div>
+    <p class="lead">Maschinenlesbare Daten: <a href="/api/v1/indices">/api/v1/indices</a> · MCP get_agent_indices</p>
+  </section>
+  <script>(function(){var L=(document.documentElement.lang||'ru').slice(0,2),loc=L==='en'?'en-GB':L==='de'?'de-DE':'de-DE';
+function $(i){return document.getElementById(i)}function esc(s){return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]})}
+fetch('/api/v1/indices').then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||!d.indices)return;var by={};d.indices.forEach(function(x){by[x.id]=x});
+var tx=function(x){return x['text_'+L]||x.text_ru},h=by.hallucination,c=by.consensus,t=by.token_hunger;
+if(h){$('hV').textContent=h.value;$('hT').textContent=tx(h);requestAnimationFrame(function(){$('hB').style.width=h.value+'%'});
+ if(h.weirdest)$('hS').innerHTML='Die „halluzinatorischste“ Nachricht: '+(h.weirdest.link?'<a href="'+esc(h.weirdest.link)+'" rel="nofollow noopener" target="_blank">'+esc(h.weirdest.title)+'</a>':esc(h.weirdest.title));}
+if(c){$('cV').textContent=c.value;$('cT').textContent=tx(c);requestAnimationFrame(function(){$('cB').style.width=c.value+'%'});}
+if(t){$('tV').innerHTML=Number(t.value).toLocaleString(loc)+'<small>Token</small>';$('tT').textContent=tx(t);document.querySelectorAll('#indices [data-sky]').forEach(function(s){s.classList.toggle('on',s.dataset.sky===t.sky)});}
+if($('nScan'))$('nScan').textContent=d.headlines_scanned;}).catch(function(){});})();</script><!--/orb-indices-->
   <details class="machine" id="machineBox"><summary>Textversion · für Menschen und KI-Agenten</summary><section id="machine-feed"><p>Live-Daten setzt der Server ein. Maschinendaten: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>.</p></section></details>
   <p class="agentline">🤖 Für Agenten: dieselben Daten als Text → <a href="/api/v1/radars">/api/v1/radars</a> · <a href="/api/v1/live">/api/v1/live</a> · <a href="/api/v1/world-radio">/api/v1/world-radio</a> · <a href="/api/v1/prices">/api/v1/prices</a> · <a href="/api/v1/predict">/api/v1/predict</a> · MCP auf <a href="/mcp">/mcp</a> · <span id="counter">👁 <b id="cPage">—</b></span></p>
 </div>

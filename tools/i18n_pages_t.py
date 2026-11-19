@@ -2136,3 +2136,7 @@ CODE["tools/agent-wallet"] = [
  ('— bought требует хэш транзакции; pending нельзя закрыть как неудачу и подписать заново', '— bought verlangt einen Transaktions-Hash; pending darf nicht als Fehlschlag geschlossen und neu signiert werden', '— bought requires a transaction hash; pending cannot be closed as a failure and re-signed'),
  ('Лимиты суммы не включены, пока владелец не задаст точные числа USDC. Автопополнения нет.', 'Betragsgrenzen sind nicht aktiv, bis der Inhaber genaue USDC-Werte festlegt. Keine automatische Aufladung.', 'Amount limits are off until the owner sets exact USDC numbers. No auto top-up.'),
 ]
+
+# 19.11.2026: «Индексы для ИИ-агентов» переехали на страницу датчиков (/sensors#indices) — их переводы нужны и там
+_have = {x[0] for x in PAGES["sensors"]}
+PAGES["sensors"] += [x for x in PAGES["indices"] if x[0] not in _have]
