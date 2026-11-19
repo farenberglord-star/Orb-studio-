@@ -1009,19 +1009,20 @@ async function duoAudio(env, ctx, origin, url) {
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = DUO_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
   const ep = url.searchParams.get("ep");
-  if (!["read", "question", "answer", "thanks", "transition", "follow_up", "follow_answer", "bridge", "outro", "cta"].includes(part) || (!["bridge", "outro", "cta"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
+  if (!["read", "question", "answer", "thanks", "transition", "follow_up", "follow_answer", "bridge", "outro", "cta", "intro"].includes(part) || (!["bridge", "outro", "cta", "intro"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
   let d;
-  if (part === "outro" || part === "cta") d = { segments: [] };
+  if (part === "outro" || part === "cta" || part === "intro") d = { segments: [] };
   else if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
   else d = await duoData(env, ctx, origin);
   let text = "", who = "david", sg = null;
   if (part === "outro") text = DUO_OUTRO[lg];
   else if (part === "cta") text = DUO_CTA[lg];
+  else if (part === "intro") text = DUO_INTRO[lg];
   else if (part === "bridge") { if (!ep) return bad("bridge needs an episode", 400); text = DUO_BRIDGE[lg](hhmm(Date.parse(d.generated_at))); }
   else { sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg); if (!sg) return bad("no such line"); }
-  if (part === "bridge" || part === "outro" || part === "cta") {} else if (part === "answer" || part === "follow_answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = part === "answer" ? sg.guest.text : sg.guest.follow_answer; who = "grok"; }
+  if (["bridge", "outro", "cta", "intro"].includes(part)) {} else if (part === "answer" || part === "follow_answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = part === "answer" ? sg.guest.text : sg.guest.follow_answer; who = "grok"; }
   else text = (sg.host || {})[part];
-  if (lg !== "en" && !["bridge", "outro", "cta"].includes(part)) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
+  if (lg !== "en" && !["bridge", "outro", "cta", "intro"].includes(part)) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
   text = String(text || "").trim().slice(0, 1200); if (!text) return bad("empty line");
   const voice = DUO_VOICES[who];
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
@@ -1172,6 +1173,7 @@ async function podBuild(env, d) {
   const cut = segs.length !== (d.segments || []).length;
   const [ss, sl] = await Promise.all([podSilence(env, "s"), podSilence(env, "l")]);
   const parts = [], topics = [];
+  const intro = await ttsEnsure(env, DUO_INTRO[POD_LANG], "david", POD_LANG); if (intro) { parts.push({ t: "tts", ...intro }); parts.push({ t: "sil", n: "l", len: sl.length }); }
   for (const [si, x] of segs.entries()) {
     const t = tr[x.i] || tr[String(x.i)]; if (!t || !t.read || !t.answer) return null;
     topics.push(t.read);
@@ -1375,6 +1377,14 @@ function duoPickLang(request) {
   const c = String((request.cf && request.cf.country) || "").toUpperCase();
   return { DE: "de", AT: "de", CH: "de", LI: "de", RU: "ru", BY: "ru", KZ: "ru", KG: "ru", RO: "ro", MD: "ro", TR: "tr" }[c] || "en";
 }
+// Приветствие в начале свежего выпуска (фиксированный текст)
+const DUO_INTRO = {
+  en: "Welcome to the Orb Studio podcast: online news from our 3D studio, with Grok and artificial intelligence. The news is gathered live on our site, orbstudio.org. Let's start.",
+  de: "Willkommen beim Orb-Studio-Podcast: Online-Nachrichten aus unserem 3D-Studio, mit Grok und künstlicher Intelligenz. Die Nachrichten sammeln wir live auf unserer Seite orbstudio.org. Los geht's.",
+  ru: "Добро пожаловать в подкаст Orb Studio: онлайн-новости из нашей 3D-студии с Grok и искусственным интеллектом. Новости мы собираем онлайн на нашем сайте orbstudio.org. Начинаем.",
+  ro: "Bine ați venit la podcastul Orb Studio: știri online din studioul nostru 3D, cu Grok și inteligență artificială. Știrile le adunăm live pe site-ul nostru, orbstudio.org. Să începem.",
+  tr: "Orb Studio podcast'ine hoş geldiniz: 3D stüdyomuzdan, Grok ve yapay zekâ ile çevrim içi haberler. Haberleri sitemiz orbstudio.org'da canlı olarak topluyoruz. Başlayalım.",
+};
 // Финальный призыв в конце свежего выпуска (фиксированный текст)
 const DUO_CTA = {
   en: "That's the desk for now. The live sensors are on orbstudio.org, and your comments are right below this podcast.",
@@ -1399,15 +1409,9 @@ async function duoWarm(env, ctx) {
   const cands = broadcastItems(radarsNow).slice(0, PICK_CANDIDATES);
   if (!cands.length) return;
   const key = "duo-v2-" + await sha(cands.map((i) => i.headline).join("|"));
-  const ready = await sharedGet(env, key, 25 * 60e3);
-  if (ready) {
-    const missing = DUO_LANGS.filter((l) => !ready.translations || !ready.translations[l]);
-    if (missing.length) { const tr = await duoTranslate(env, ready, missing); if (tr) { ready.translations = { ...(ready.translations || {}), ...tr }; await sharedPut(env, key, ready); } }
-    await duoArchivePut(env, ready);
-    await sharedPut(env, "duo-latest", ready); return; // заголовки те же: выпуск остаётся «последним готовым»
-  }
-  // Ограничение: новый выпуск не чаще раза в 30 минут, даже если заголовки уже сменились
-  const last = await sharedGet(env, "duo-latest", 2 * 3600e3);
+  // Текущий выпуск — всегда самый свежий (duo-latest). Старый выпуск по совпавшим заголовкам больше не возвращается в эфир.
+  // Новый выпуск — не чаще раза в DUO_MIN_GAP_MS
+  const last = await sharedGet(env, "duo-latest", 1e15);
   if (last && Date.now() - Date.parse(last.generated_at) < DUO_MIN_GAP_MS) {
     // новый выпуск ещё рано, но недостающие переводы последнего выпуска доделываем
     const missing = DUO_LANGS.filter((l) => !last.translations || !last.translations[l]);
@@ -1464,10 +1468,8 @@ async function duoData(env, ctx, origin) {
   const items = broadcastItems(radars).slice(0, PICK_CANDIDATES);
   if (!items.length) return { status: "no_headlines", note: "No headlines right now.", segments: [] };
   const key = "duo-v2-" + await sha(items.map((i) => i.headline).join("|"));
-  const kept = await sharedGet(env, key, 30 * 60e3);
-  if (kept) return kept;
-  // Заголовки сменились, а новый разговор ещё пишется: отдаём последний готовый выпуск (не старше часа), время указано в generated_at
-  const latest = await sharedGet(env, "duo-latest", 90 * 60e3);
+  // В эфире всегда последний готовый выпуск (время — в generated_at); новый готовит только cron
+  const latest = await sharedGet(env, "duo-latest", 1e15);
   if (latest) return latest;
   // Grok не вызывается из запроса: его готовит только cron (duoWarm, 70 с на реплику). Иначе каждый запрос запускал бы свои вызовы к xAI
   const last = await sharedGet(env, "duo-last-error", 30 * 60e3);
@@ -3332,6 +3334,7 @@ function clickLabel(request, from) {
         note: "Both voices are synthetic AI voices. David and Grok are AI agents, not people. Audio is generated once per line from the text above and cached." };
       duoWithAudio(d, origin, null); d.episode_id = duoEpId(d);
       d.cta = Object.fromEntries(Object.entries(DUO_CTA).map(([lg, text]) => [lg, { text, audio: `${origin}/api/v1/broadcast/duo/audio?part=cta&lang=${lg}` }]));
+      d.intro = Object.fromEntries(Object.entries(DUO_INTRO).map(([lg, text]) => [lg, { text, audio: `${origin}/api/v1/broadcast/duo/audio?part=intro&lang=${lg}` }]));
     }
     return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, d.status === "grok_not_configured" ? 503 : 200);
   }

@@ -288,6 +288,8 @@ function start() {
     const newsOnly = (duo.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")), cut = newsOnly.length !== (duo.segments || []).length;
     queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => heard.add(x.headline));
     setTimeout(renderProg, 0);
+    const intro = duo.intro && duo.intro[lang];
+    if (queue.length && intro && typeof intro.text === "string") queue.unshift({ who: "david", kind: "intro", text: intro.text, audio: typeof intro.audio === "string" && /^https:\/\//.test(intro.audio) ? intro.audio : null, ms: lineMs(intro.text), source: null, link: null, headline: "" });
     const cta = duo.cta && duo.cta[lang];
     if (queue.length && cta && typeof cta.text === "string") queue.push({ who: "david", kind: "cta", text: cta.text, audio: typeof cta.audio === "string" && /^https:\/\//.test(cta.audio) ? cta.audio : null, ms: lineMs(cta.text), source: null, link: null, headline: "" }, { who: null, kind: "pause", text: null, ms: 1500, headline: "" }); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");
     if (!queue.length) { showBoard("noLink"); retry = setTimeout(load, 90000); return; }
