@@ -211,7 +211,7 @@ function start() {
     return { out, stop() { clearInterval(iv); out.gain.setTargetAtTime(0, actx.currentTime, 0.4); } };
   }
   function duck(on) { if (bed && actx) bed.out.gain.setTargetAtTime(on ? 0.018 : 0.05, actx.currentTime, 0.35); }
-  let listenCounted = false;
+  let listenCounted = false, soundStarted = false;
   function enableSound() {
     // счётчик слушателей: одно нажатие «Слушать» за посещение (владелец и боты не считаются)
     if (!listenCounted) { listenCounted = true; fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: '{"page":"studio-listen"}' }).catch(() => {}); }
@@ -220,6 +220,8 @@ function start() {
       if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); analyser = actx.createAnalyser(); analyser.fftSize = 512; src.connect(analyser); analyser.connect(actx.destination); }
       actx.resume(); if (!still) { bed = makeBed(); duck(false); }
     } catch { actx = null; }
+    // первое нажатие «Слушать»: свежий выпуск с приветствия, даже если субтитры без звука уже ушли в архив
+    if (!soundStarted) { soundStarted = true; curId = null; doneId = null; archived = false; heard.clear(); heardTopics.length = 0; return load(); }
     const cur = queue[pos - 1]; pos = Math.max(0, pos - 1); if (cur && cur.kind !== "read") { while (pos > 0 && queue[pos].kind !== "read") pos--; }
     step();
   }
@@ -228,19 +230,32 @@ function start() {
   function preload() { const n = queue.slice(pos).find((x) => x.audio); if (n && pre.src !== n.audio) pre.src = n.audio; }
   // После свежего эфира — архив за сутки, потом табличка «всё прослушано»
   let curId = null, archived = false, doneId = null;
-  const heard = new Set();
+  const ARCHIVE_SINCE = Date.parse("2026-11-19T13:45:00Z");
+  const heard = new Set(), heardTopics = [];
+  // одна тема (Ормуз/нефть, одна и та же история под другим заголовком) в архиве звучит один раз
+  const TOPIC_STOP = new Set(["about", "after", "with", "from", "that", "this", "their", "will", "news", "says", "über", "nach", "wird", "dass", "eine", "einen", "neue", "tages", "prices"]);
+  const topicKw = (h) => new Set((String(h || "").match(/[A-Za-zÄÖÜäöüßА-Яа-яЁё][\wÄÖÜäöüßА-Яа-яЁё-]{3,}/g) || []).map((w) => w.toLowerCase()).filter((w) => !TOPIC_STOP.has(w)));
+  const OIL_RE = /hormu[sz]|ормуз|brent|tanker|\boil\b|\böl|нефт|opec|опек/i;
+  // сравнение по основам слов (6 букв): Inflation ≈ Inflationsschub, Bundesbank = Bundesbank
+  const stems = (h) => new Set([...topicKw(h)].map((w) => w.slice(0, 6)));
+  const sameTopic = (a, b) => { if (OIL_RE.test(a) && OIL_RE.test(b)) return true; const A = stems(a), B = stems(b); let n = 0; for (const w of A) if (B.has(w)) n++; return n >= 2; };
+  const topicHeard = (h) => !!h && heardTopics.some((x) => sameTopic(h, x));
+  const markTopic = (h) => { if (h) heardTopics.push(h); };
   async function more() {
     if (archived) { doneId = curId; showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     archived = true;
     let arc = null; try { arc = await (await fetch(API + "/archive", { headers: { accept: "application/json" } })).json(); } catch {}
     const q = [];
     for (const ep of (arc && Array.isArray(arc.episodes) ? arc.episodes : [])) {
-      if (!ep || ep.episode_id === curId) continue;
+      // в архиве — только выпуски нового формата (раз в 4 часа, с приветствием и вежливым сомнением), с 19.11 14:49
+      if (!ep || ep.episode_id === curId || !(Date.parse(ep.generated_at) >= ARCHIVE_SINCE)) continue;
       // старые сегменты о числе визитов агентов в архиве не проигрываем (убраны из эфира 19.11)
       const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")) };
-      const lines = buildQueue(ep2, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
+      const all = buildQueue(ep2, lang), skip = new Set();
+      for (const x of all) if (x.headline && !skip.has(x.headline) && (heard.has(x.headline) || topicHeard(x.headline))) skip.add(x.headline);
+      const lines = all.filter((x) => !skip.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
-      lines.forEach((x) => heard.add(x.headline));
+      lines.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
       const br = ep.bridge && ep.bridge[lang];
       if (br && typeof br.text === "string") q.push({ who: "david", kind: "bridge", text: br.text, audio: typeof br.audio === "string" && /^https:\/\//.test(br.audio) ? br.audio : null, ms: lineMs(br.text), source: null, link: null });
       q.push(...lines);
@@ -283,10 +298,10 @@ function start() {
     if (b) { showBoard(b); retry = setTimeout(load, b === "preparing" ? 60000 : 90000); return; }
     const id = duo.episode_id || duo.generated_at || null;
     if (id && id === doneId) { showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
-    if (id !== curId) { curId = id; archived = false; heard.clear(); }
+    if (id !== curId) { curId = id; archived = false; heard.clear(); heardTopics.length = 0; }
     // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)
     const newsOnly = (duo.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")), cut = newsOnly.length !== (duo.segments || []).length;
-    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => heard.add(x.headline));
+    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
     setTimeout(renderProg, 0);
     const intro = duo.intro && duo.intro[lang];
     if (queue.length && intro && typeof intro.text === "string") queue.unshift({ who: "david", kind: "intro", text: intro.text, audio: typeof intro.audio === "string" && /^https:\/\//.test(intro.audio) ? intro.audio : null, ms: lineMs(intro.text), source: null, link: null, headline: "" });
