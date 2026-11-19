@@ -23,6 +23,14 @@
         'Eine der ältesten Krypto-Börsen, seit 2011 — <b>Kraken</b>',
         'Die Welt streitet über Nachrichten. Der Markt entscheidet in Sekunden — auf <b>Kraken</b>'
       ],
+      ja: [
+        'レーダーにシグナル？ 価格は <b>Kraken</b> から',
+        'Orb Studio のレーダーが価格を取得する取引所 — <b>Kraken</b>',
+        '原油、金利、地政学が暗号資産を動かす。市場は <b>Kraken</b> で',
+        'アクティブトレードには Kraken Pro — <b>Kraken</b> で口座開設',
+        '2011年から続く老舗の暗号資産取引所 — <b>Kraken</b>',
+        '世界はニュースで議論する。市場は数秒で動く — <b>Kraken</b>'
+      ],
       en: [
         'See a signal on the radar? Prices from <b>Kraken</b>',
         'Trade on <b>Kraken</b> — the exchange our radar takes its prices from',
@@ -51,6 +59,13 @@
         'Antenne, Steckdose — und du bist online. Internet von <b>STARLINK</b>',
         'Die Welt im Ohr? Internet an jedem Ort der Erde — mit <b>STARLINK</b>'
       ],
+      ja: [
+        '地球のどこからでもニュースを。インターネットは <b>STARLINK</b>',
+        'ケーブルのいらないインターネット：別荘、キャンプ、旅先で — <b>STARLINK</b>',
+        '携帯の電波が届かない場所でも <b>STARLINK</b> はつながる',
+        'アンテナとコンセントだけでオンライン — <b>STARLINK</b>',
+        '世界を追いかける？ 地球のどこでもインターネット — <b>STARLINK</b>'
+      ],
       en: [
         'News from anywhere on the planet. So is <b>STARLINK</b> internet',
         'Internet without cable: cottage, camping, on the road — <b>STARLINK</b>',
@@ -64,7 +79,7 @@
   var reduce = false;
   try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
   function setup(cls) {
-    var list = (POOL[cls] && (POOL[cls][lang] || POOL[cls].ru)) || [];
+    var list = (POOL[cls] && (POOL[cls][lang] || POOL[cls].en || POOL[cls].ru)) || [];
     document.querySelectorAll('aside.' + cls + ' h3').forEach(function (h, i) {
       var own = h.innerHTML.trim();
       var pool = [own].concat(list.filter(function (x) { return x.replace(/<[^>]+>/g, '') !== own.replace(/<[^>]+>/g, ''); }));

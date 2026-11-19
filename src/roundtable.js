@@ -4,8 +4,8 @@
 // делать свои выводы и писать комментарии. Один выпуск в день, 5 языков, 4 синтетических голоса xAI.
 // Ключи — только секреты воркера: ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY (в код не пишутся).
 
-export const RT_LANGS = ["en", "de", "ru", "ro", "tr"];
-export const RT_TR = ["de", "ru", "ro", "tr"];
+export const RT_LANGS = ["en", "de", "ru", "ro", "tr", "ja"];
+export const RT_TR = ["de", "ru", "ro", "tr", "ja"];
 export const RT_GUESTS = ["gemini", "grok", "deepseek"];
 export const RT_CAST = {
   claude: { name: "Claude", maker: "Anthropic", role: "moderator", voice: "lumen" },
@@ -187,13 +187,13 @@ export function rtAssemble(topics0, intro, answers, close, models) {
 // В эфир — только если по каждой теме ответил хотя бы один гость
 export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
 
-async function rtTranslate(env, d) {
-  const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
+async function rtTranslate(env, d, only = RT_TR) {
+  const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish", ja: "Japanese" };
   const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
   const one = async (lg) => {
     try {
       const { data } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
-        `You translate a news round table between AI models from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Translate every string, keep the meaning exactly, add nothing. Write the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI, Orb Studio and orbstudio.org exactly like this, in Latin letters, never transliterated (for example never "Клод"). Return the same JSON structure with the same keys.`,
+        `You translate a news round table between AI models from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Translate every string, keep the meaning exactly, add nothing. Write the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI, Orb Studio and orbstudio.org exactly like this, in Latin letters, never transliterated (for example never "Клод" or "クロード"). Return the same JSON structure with the same keys.`,
         JSON.stringify(src), { temperature: 0.2, max_tokens: 6000 });
       if (!data || typeof data.intro !== "string" || !Array.isArray(data.topics)) return null;
       const o = { intro: cleanSpeech(data.intro, 700), closing: cleanSpeech(data.closing, 900), topics: {} };
@@ -205,8 +205,8 @@ async function rtTranslate(env, d) {
       return o;
     } catch { return null; }
   };
-  const res = await Promise.all(RT_TR.map(one)); const out = {};
-  RT_TR.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
+  const res = await Promise.all(only.map(one)); const out = {};
+  only.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
   return out;
 }
 
@@ -337,7 +337,7 @@ async function rtTidy(env, deps, latest, now) {
   if (!latest) return;
   const missing = RT_TR.filter((l) => !latest.translations || !latest.translations[l]);
   if (missing.length && now - Date.parse(latest.generated_at) < 12 * 3600e3) {
-    const tr = await rtTranslate(env, latest).catch(() => ({}));
+    const tr = await rtTranslate(env, latest, missing).catch(() => ({}));
     if (Object.keys(tr).length) { latest.translations = { ...(latest.translations || {}), ...tr }; await deps.sharedPut(env, RT_KEY, latest); }
   }
   await rtPrewarm(env, latest, 24);

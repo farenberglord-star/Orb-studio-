@@ -1003,8 +1003,8 @@ async function askGrok(env, headline, source, facts, retry, ms, question, avoid,
 // ================= Голоса «Студии на двоих»: xAI Grok TTS, один раз на реплику, кэш в D1 =================
 // Озвучиваются только реплики текущего эфира (по номеру сегмента), произвольный текст сюда не передать.
 const DUO_VOICES = { david: "rex", grok: "sal" };
-const DUO_TTS_DAY_CHARS = 90000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
-const DUO_LANGS = ["de", "ru", "ro", "tr"]; // переводы эфира (оригинал — английский)
+const DUO_TTS_DAY_CHARS = 110000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
+const DUO_LANGS = ["de", "ru", "ro", "tr", "ja"]; // переводы эфира (оригинал — английский)
 async function duoAudio(env, ctx, origin, url) {
   const bad = (m, st = 404) => json({ error: m }, { "Cache-Control": "no-store" }, st);
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
@@ -1312,7 +1312,7 @@ async function duoComments(env, ctx, request, url, show = "duo") {
     let b = {}; try { b = await request.json(); } catch {}
     if (b.website) return json({ ok: true }, H); // ловушка для ботов-спамеров
     const clean = (t, n) => stripInvisible(String(t || "")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
-    const text = clean(b.text, 500), name = clean(b.name, 40) || null, lang = ["ru", "de", "en", "ro", "tr"].includes(b.lang) ? b.lang : null;
+    const text = clean(b.text, 500), name = clean(b.name, 40) || null, lang = ["ru", "de", "en", "ro", "tr", "ja"].includes(b.lang) ? b.lang : null;
     if (text.length < 2) return json({ error: "empty comment" }, H, 400);
     if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|io|ru|xyz|top|info|biz)\b/i.test(text + " " + (name || ""))) return json({ error: "links are not allowed in comments" }, H, 400);
     const iph = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|" + show + "-c|" + today())).slice(0, 16), now = Date.now();
@@ -1331,7 +1331,7 @@ async function duoComments(env, ctx, request, url, show = "duo") {
 async function duoTranslate(env, d, only) {
   const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", transition: x.host && x.host.transition || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));
   if (!segs.length) return null;
-  const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" }, out = {};
+  const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish", ja: "Japanese" }, out = {};
   for (const lg of (only || DUO_LANGS)) {
     try {
       const res = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -1372,6 +1372,7 @@ const DUO_BRIDGE = {
   ru: (hm) => `Это были свежие новости. А теперь — о чём мы говорили сегодня раньше, в ${hm}.`,
   ro: (hm) => `Acestea au fost știrile proaspete. Acum, despre ce am vorbit mai devreme azi, la ${hm}.`,
   tr: (hm) => `Bunlar günün taze haberleriydi. Şimdi bugün daha önce, saat ${hm}'de konuştuklarımız.`,
+  ja: (hm) => `以上が最新のニュースでした。続いて、今日の${hm}にお話しした内容です。`,
 };
 // Финальная фраза Давида для роликов (фиксированный текст в коде, не ввод пользователя)
 const DUO_OUTRO = {
@@ -1380,14 +1381,15 @@ const DUO_OUTRO = {
   ru: "Возможно, в этом и суть: это общая проблема, а не то, с чем каждая сторона справляется в одиночку. Напишите своё мнение в комментариях.",
   ro: "Poate că asta e esența: este o problemă comună, nu ceva cu care fiecare parte se descurcă singură. Scrieți-ne părerea în comentarii.",
   tr: "Belki de mesele tam bu: bu ortak bir sorun, her tarafın tek başına üstesinden geleceği bir şey değil. Görüşünüzü yorumlara yazın.",
+  ja: "もしかすると、それこそが要点かもしれません。これはどちらか一方だけで解決できることではなく、共通の課題です。皆さんの意見をコメントで教えてください。",
 };
 // Язык подкаста: первый из поддерживаемых в Accept-Language телефона, иначе по стране, иначе английский
 function duoPickLang(request) {
-  const ok = ["ru", "de", "en", "ro", "tr"];
+  const ok = ["ru", "de", "en", "ro", "tr", "ja"];
   const al = String(request.headers.get("accept-language") || "").split(",").map((x) => { const [t, q] = x.trim().split(";q="); return { t: t.slice(0, 2).toLowerCase(), q: q ? +q : 1 }; }).filter((x) => x.t).sort((a, b) => b.q - a.q);
   for (const x of al) if (ok.includes(x.t)) return x.t;
   const c = String((request.cf && request.cf.country) || "").toUpperCase();
-  return { DE: "de", AT: "de", CH: "de", LI: "de", RU: "ru", BY: "ru", KZ: "ru", KG: "ru", RO: "ro", MD: "ro", TR: "tr" }[c] || "en";
+  return { DE: "de", AT: "de", CH: "de", LI: "de", RU: "ru", BY: "ru", KZ: "ru", KG: "ru", RO: "ro", MD: "ro", TR: "tr", JP: "ja" }[c] || "en";
 }
 // Приветствие в начале свежего выпуска (фиксированный текст)
 const DUO_INTRO = {
@@ -1396,6 +1398,7 @@ const DUO_INTRO = {
   ru: "Добро пожаловать в подкаст Orb Studio: онлайн-новости из нашей 3D-студии с Grok и искусственным интеллектом. Новости мы собираем онлайн на нашем сайте orbstudio.org. Начинаем.",
   ro: "Bine ați venit la podcastul Orb Studio: știri online din studioul nostru 3D, cu Grok și inteligență artificială. Știrile le adunăm live pe site-ul nostru, orbstudio.org. Să începem.",
   tr: "Orb Studio podcast'ine hoş geldiniz: 3D stüdyomuzdan, Grok ve yapay zekâ ile çevrim içi haberler. Haberleri sitemiz orbstudio.org'da canlı olarak topluyoruz. Başlayalım.",
+  ja: "Orb Studio のポッドキャストへようこそ。Grok と人工知能による、私たちの 3D スタジオからのオンラインニュースです。ニュースは私たちのサイト orbstudio.org でライブで集めています。それでは始めましょう。",
 };
 // Финальный призыв в конце свежего выпуска (фиксированный текст)
 const DUO_CTA = {
@@ -1404,6 +1407,7 @@ const DUO_CTA = {
   ru: "На этом пока всё. Живые датчики — на orbstudio.org, а ваши комментарии — прямо под этим подкастом.",
   ro: "Asta a fost tot deocamdată. Senzorii live sunt pe orbstudio.org, iar comentariile voastre chiar sub acest podcast.",
   tr: "Şimdilik bu kadar. Canlı sensörler orbstudio.org'da, yorumlarınız ise bu podcast'in hemen altında.",
+  ja: "今回はここまでです。ライブセンサーは orbstudio.org で、皆さんのコメントはこのポッドキャストのすぐ下でお待ちしています。",
 };
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
@@ -8732,7 +8736,7 @@ async function handleRequest(request, env, ctx) {
       try { body = (await request.json()) || {}; page = (body.page || "home").toString().slice(0, 20); } catch {}
       if (!PAGES.has(page)) page = "home";
       // студия: язык слушателя в name (ru/de/en/ro/tr); браузеры-роботы (проверки Playwright, Lighthouse) людьми не считаем
-      const hl = /^(studio|roundtable)/.test(page) && ["ru", "de", "en", "ro", "tr"].includes(body.lang) ? body.lang : "";
+      const hl = /^(studio|roundtable)/.test(page) && ["ru", "de", "en", "ro", "tr", "ja"].includes(body.lang) ? body.lang : "";
       const robot = body.auto === true || /HeadlessChrome|Playwright|Puppeteer|PhantomJS|Lighthouse|Selenium|webdriver/i.test(request.headers.get("user-agent") || "");
       if (!robot && !classifyAgent(request.headers.get("user-agent")) && !isOwner(request)) await recordHit(env, page, "view", hl);
       return json(await readStats(env, page), { "Cache-Control": "no-store" });
@@ -8794,7 +8798,7 @@ async function handleRequest(request, env, ctx) {
     }
     // «Студия на двоих»: язык подкаста по языку телефона (Accept-Language), затем по стране; /ru/studio, /ro/studio… — явный язык
     let studioLang = null;
-    { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr))?\/(studio|roundtable)(?:\.html)?$/);
+    { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr|ja))?\/(studio|roundtable)(?:\.html)?$/);
       if (sm) { assetReq = new Request(new URL("/" + sm[2], url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
     if (studioLang && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {

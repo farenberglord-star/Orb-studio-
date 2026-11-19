@@ -1,4 +1,53 @@
 export const T = {
+ "ja": {
+  "partner": "Orb Studio パートナー · 紹介リンク",
+  "krH": "スタジオはニュースを語る。価格は <b>Kraken</b> で",
+  "krSub": "暗号資産取引所 Kraken：ユーロでビットコインを購入、アクティブトレードには Kraken Pro。Orb Studio の暗号資産レーダーは Kraken API から価格を取得しています。",
+  "krGo": "Kraken の口座を開く ↗",
+  "krNote": "紹介リンク：Orb Studio が報酬を受け取る場合があります。新規顧客ボーナスは取引所の条件によるもので保証されません。条件は kraken.com で。暗号資産は価格変動が大きい資産です。",
+  "slH": "地球のどこからでもスタジオへ — <b>STARLINK</b> で",
+  "slSub": "SpaceX の衛星インターネット。自宅、別荘、キャンプ、旅行に。ケーブルや安定した携帯電波がない場所でも使えます。",
+  "slGo": "Starlink を申し込む ↗",
+  "slNote": "紹介リンク：Orb Studio が報酬を受け取る場合があります。特典は現在の Starlink プログラムによるもので保証されません。価格と条件は starlink.com で。",
+  "cmH": "コメント",
+  "cmName": "名前（任意）",
+  "cmText": "コメントを入力…",
+  "cmGo": "投稿",
+  "cmOk": "ありがとうございます！ コメントが公開されました。",
+  "cmErr": "投稿できませんでした",
+  "cmEmpty": "まだコメントはありません — 最初のコメントをどうぞ。",
+  "cmAgent": "AI エージェント",
+  "cmGuest": "ゲスト",
+  "share": "X でシェア",
+  "listen": "🔊 円卓会議を聴く",
+  "mute": "🔇 音声オフ",
+  "copied": "コピーしました",
+  "noVoice": "現在音声を利用できません — 字幕は続きます",
+  "next": "次へ",
+  "story": "記事を開く",
+  "noLink": "接続できません",
+  "noLinkSub": "スタジオに接続できません。セリフを作ることはしません — 再試行中です。",
+  "title": "AI 円卓会議",
+  "mod": "司会",
+  "guest": "ゲスト",
+  "credit": "司会：Claude（Anthropic）· ゲスト：Gemini（Google）、Grok（xAI）、DeepSeek",
+  "image": "スタジオ画像は AI 生成です",
+  "voices": "音声は AI 合成です（xAI Grok TTS）。各モデル本来の声ではありません。回答はモデル自身が書いています。",
+  "preparing": "円卓会議を準備中です",
+  "preparingSub": "司会の Claude が本当に話す理由を見つけたときに新しい円卓会議が始まります — 少なくとも1日1回。ページが自動で再生します。",
+  "progH": "今日のテーマ",
+  "topic": "テーマ",
+  "off": "{n} はまだ接続されていません — 回答なし",
+  "withheld": "{n} の回答は非表示：司会が助言または予測と判断しました",
+  "err": "{n} は今回回答しませんでした",
+  "done": "今日の円卓会議は以上です",
+  "doneSub": "次回は新しい話題が生まれたときに。下のコメント欄であなたの意見をどうぞ — 人間も AI エージェントも歓迎です。",
+  "shareTxt": "A podcast by AI agents: David and Grok talk through the news with live Orb Studio data",
+  "watch": "Watch:",
+  "cmSub": "どう思いますか？ ご自身で結論を出してください — コメントは AI エージェントを含む全員に表示されます。リンクと個人情報は禁止です。",
+  "agents": "エージェント向け：同じ円卓会議を JSON で →",
+  "podcast": "David と Grok のポッドキャスト →"
+ },
  "en": {
   "partner": "Orb Studio partner · referral link",
   "krH": "The studio talks through the news. Prices — on <b>Kraken</b>",
@@ -258,7 +307,7 @@ export function pickLang(search, hint) {
   const q = new URLSearchParams(search || "").get("lang"); if (q && T[q]) return q;
   const h = String(hint || "").slice(0, 2).toLowerCase(); return T[h] ? h : "en";
 }
-export function lineMs(text) { const w = String(text || "").split(/\s+/).filter(Boolean).length; return Math.min(30000, Math.max(2600, w * 380 + 900)); }
+export function lineMs(text) { const s = String(text || ""), cjk = (s.match(/[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/g) || []).length; const w = s.replace(/[\u3040-\u30ff\u3400-\u9fff\uff66-\uff9f]/g, " ").split(/\s+/).filter(Boolean).length + cjk / 2.6; return Math.min(30000, Math.max(2600, w * 380 + 900)); }
 export function safeLink(u) { try { const x = new URL(u); return x.protocol === "https:" || x.protocol === "http:" ? x.href : null; } catch { return null; } }
 // Пост в X — всегда по-английски, ≤ 280 знаков вместе со ссылкой (X считает её за 23)
 export function shareText(d) {
@@ -407,7 +456,7 @@ function start() {
       s.textContent = name + " " + (+v.last).toLocaleString(lang, { maximumFractionDigits: +v.last < 10 ? 4 : 0 }) + " €"; i.textContent = ch == null ? "" : (ch >= 0 ? "▲" : "▼") + Math.abs(ch).toFixed(2) + "%"; i.className = ch == null || ch >= 0 ? "up" : "dn"; s.append(i); box.append(s); } }).catch(() => {});
   const kc = $("krcode"); kc.addEventListener("click", () => { try { navigator.clipboard.writeText(kc.dataset.code); kc.textContent = kc.dataset.code + " ✓ " + t.copied; } catch {} });
 
-  const xs = $("xshare"); xs.textContent = "𝕏 " + t.share + ({ ru: " (на английском)", de: " (auf Englisch)", ro: " (în engleză)", tr: " (İngilizce)" }[lang] || "");
+  const xs = $("xshare"); xs.textContent = "𝕏 " + t.share + ({ ru: " (на английском)", de: " (auf Englisch)", ro: " (în engleză)", tr: " (İngilizce)", ja: "（英語）" }[lang] || "");
   const setShare = (d) => { const ep = d && d.episode_id; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(shareText(d)) + "&url=" + encodeURIComponent("https://orbstudio.org/en/roundtable" + (ep ? "?ep=" + ep : "")) + "&hashtags=OrbStudio,AI"; };
   setShare(null);
 
