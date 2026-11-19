@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<script src="data.js"></script><style>html,body{margin:0;background:#02050c}canvas{display:block}</style></head>
+<body><canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// «Радар дня» — моушн-ролик Orb Studio. 1080×1920, 30 к/с. draw(t) детерминирован: одинаковое t → одинаковый кадр.
+const W = 1080, H = 1920, FPS = 30, DUR = 24;
+const cv = document.getElementById("c"), x = cv.getContext("2d");
+const D = window.DATA;
+const F = "Fira Sans", FB = "Fira Sans Black", FM = "DejaVu Sans Mono";
+
+// ---------- утилиты ----------
+const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lin = (t, a, b) => cl((t - a) / (b - a));
+const eo = (p) => 1 - Math.pow(1 - p, 3);                     // ease-out cubic
+const eio = (p) => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const back = (p) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+const mix = (a, b, p) => a + (b - a) * p;
+function rng(seed) { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); }
+const sevCol = (v) => v >= 70 ? [255, 84, 112] : v >= 55 ? [255, 178, 74] : v >= 40 ? [120, 220, 255] : [110, 240, 170];
+const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+const CY = [90, 220, 255], VI = [150, 110, 255], GO = [255, 196, 120], WH = [235, 245, 255];
+
+function text(s, X, Y, size, opt = {}) {
+  x.save(); x.font = `${opt.w || 400} ${size}px "${opt.f || F}"`; x.textAlign = opt.al || "left"; x.textBaseline = opt.bl || "alphabetic";
+  x.fillStyle = opt.c || "#eaf4ff"; x.globalAlpha *= opt.a == null ? 1 : opt.a;
+  if (opt.glow) { x.shadowColor = opt.glow; x.shadowBlur = opt.gb || 24; }
+  if (opt.ls) { try { x.letterSpacing = opt.ls + "px"; } catch (e) {} }
+  x.fillText(s, X, Y); x.restore();
+}
+function wrap(s, size, maxW, w = 400, f = F) {
+  x.save(); x.font = `${w} ${size}px "${f}"`; const out = []; let line = "";
+  for (const word of s.split(" ")) { const tt = line ? line + " " + word : word; if (x.measureText(tt).width > maxW && line) { out.push(line); line = word; } else line = tt; }
+  if (line) out.push(line); x.restore(); return out;
+}
+function rr(X, Y, w, h, r) { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); }
+
+// ---------- орб из Blender (петля 120 кадров) ----------
+const ORB = []; let orbReady = 0;
+for (let i = 1; i <= 120; i++) { const im = new Image(); im.onload = () => orbReady++; im.src = "orb/orb_" + String(i).padStart(4, "0") + ".png"; ORB.push(im); }
+function orb(t, cx, cy, size, a = 1) {
+  if (a <= 0) return; const im = ORB[Math.floor(t * FPS) % 120]; if (!im.complete || !im.naturalWidth) return;
+  x.save(); x.globalAlpha = a;
+  const g = x.createRadialGradient(cx, cy, 0, cx, cy, size * .7); g.addColorStop(0, "rgba(90,160,255,.28)"); g.addColorStop(1, "rgba(90,160,255,0)");
+  x.fillStyle = g; x.fillRect(cx - size, cy - size, size * 2, size * 2);
+  x.drawImage(im, cx - size / 2, cy - size / 2, size, size); x.restore();
+}
+
+// ---------- фон: глубина, сетка-перспектива, пыль ----------
+const dust = (() => { const r = rng(7); return Array.from({ length: 140 }, () => ({ x: r() * W, y: r() * H, z: .2 + r() * .8, p: r() * 6.3 })); })();
+function bg(t) {
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#040a1a"); g.addColorStop(.55, "#02050d"); g.addColorStop(1, "#050314");
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+  // аврора
+  for (const [cx, cy, r, c, sp] of [[220, 380, 700, VI, .13], [880, 1300, 800, CY, .1], [540, 1900, 700, [255, 90, 140], .08]]) {
+    const ox = Math.sin(t * sp * 3) * 80, oy = Math.cos(t * sp * 2) * 60; const gg = x.createRadialGradient(cx + ox, cy + oy, 0, cx + ox, cy + oy, r);
+    gg.addColorStop(0, rgba(c, .16)); gg.addColorStop(1, rgba(c, 0)); x.fillStyle = gg; x.fillRect(0, 0, W, H);
+  }
+  // перспективная сетка пола
+  x.save(); x.globalAlpha = .55; const hz = 1240, vx = W / 2;
+  for (let i = -14; i <= 14; i++) { x.strokeStyle = rgba(CY, .10); x.lineWidth = 1.2; x.beginPath(); x.moveTo(vx + i * 20, hz); x.lineTo(vx + i * 260, H); x.stroke(); }
+  for (let k = 0; k < 14; k++) { const p = ((k + (t * .6) % 1) / 14); const y = hz + Math.pow(p, 2.2) * (H - hz); x.strokeStyle = rgba(CY, .03 + p * .13); x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
+  x.restore();
+  for (const d of dust) { const y = (d.y - t * 22 * d.z + H) % H, a = (.25 + .5 * Math.sin(t * 1.3 + d.p) ** 2) * d.z; x.fillStyle = rgba(WH, a * .6); x.fillRect(d.x, y, 1.6 * d.z + .6, 1.6 * d.z + .6); }
+}
+function scanline(t) { const y = ((t * 380) % (H + 400)) - 200; const g = x.createLinearGradient(0, y - 120, 0, y); g.addColorStop(0, rgba(CY, 0)); g.addColorStop(1, rgba(CY, .07)); x.fillStyle = g; x.fillRect(0, y - 120, W, 120); x.fillStyle = rgba(CY, .25); x.fillRect(0, y, W, 1.5); }
+function vignette() { const g = x.createRadialGradient(W / 2, H / 2, H * .3, W / 2, H / 2, H * .75); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,.55)"); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+
+// ---------- шапка и бегущая строка (видны после интро) ----------
+function header(t, a) {
+  if (a <= 0) return; x.save(); x.globalAlpha = a;
+  text("ORB STUDIO", 64, 112, 34, { f: FB, w: 900, ls: 6, c: "#eaf4ff" });
+  text("РАДАР ДНЯ", 64, 152, 24, { w: 600, ls: 4, c: rgba(CY, .95) });
+  text(D.date, W - 64, 112, 28, { al: "right", f: FM, c: "#cfe2ff" });
+  const blink = Math.floor(t * 2) % 2 ? 1 : .35; x.fillStyle = `rgba(255,84,112,${blink})`; x.beginPath(); x.arc(W - 64 - 8, 142, 8, 0, 7); x.fill();
+  text("ДАННЫЕ " + D.time + " · БЕРЛИН", W - 92, 152, 20, { al: "right", w: 600, ls: 2, c: "rgba(255,170,185,.9)" });
+  x.fillStyle = rgba(CY, .25); x.fillRect(64, 182, W - 128, 1.5); x.restore();
+}
+function ticker(t, a) {
+  if (a <= 0) return; const y = H - 120; x.save(); x.globalAlpha = a;
+  x.fillStyle = "rgba(6,14,30,.85)"; x.fillRect(0, y - 46, W, 70); x.fillStyle = rgba(CY, .5); x.fillRect(0, y - 46, W, 2);
+  const s = D.ticker.join("   ◆   ") + "   ◆   "; x.font = `500 28px "${F}"`; const w = x.measureText(s).width, off = -((t * 120) % w);
+  x.fillStyle = "#d8ebff"; x.textBaseline = "middle"; for (let k = 0; k < 3; k++) x.fillText(s, off + k * w, y - 11);
+  x.fillStyle = "#ff5470"; x.fillRect(0, y - 46, 150, 70); text("LIVE", 75, y - 11, 30, { al: "center", bl: "middle", f: FB, w: 900, ls: 3, c: "#fff" });
+  x.restore();
+}
+
+// ---------- сцена 1: интро ----------
+function intro(t) {
+  const a = 1 - lin(t, 3.4, 4.2);
+  const p = eo(lin(t, .2, 2.2));
+  // вспышка и лучи
+  const fl = Math.exp(-Math.pow((t - .9) / .35, 2)); if (fl > .01) { const g = x.createRadialGradient(W / 2, 860, 0, W / 2, 860, 900); g.addColorStop(0, `rgba(170,230,255,${.55 * fl})`); g.addColorStop(1, "rgba(170,230,255,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+  x.save(); x.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 18; i++) { const an = i / 18 * Math.PI * 2 + t * .25, len = (300 + 900 * p) * (0.6 + 0.4 * Math.sin(i * 7.3)); const g = x.createLinearGradient(W / 2, 860, W / 2 + Math.cos(an) * len, 860 + Math.sin(an) * len);
+    g.addColorStop(0, rgba(i % 3 ? CY : VI, .22 * a * p)); g.addColorStop(1, rgba(CY, 0)); x.strokeStyle = g; x.lineWidth = 2; x.beginPath(); x.moveTo(W / 2, 860); x.lineTo(W / 2 + Math.cos(an) * len, 860 + Math.sin(an) * len); x.stroke(); }
+  x.restore();
+  // заголовок: буквы влетают по одной
+  const title = "ORB STUDIO"; x.save(); x.font = `900 132px "${FB}"`; const tw = x.measureText(title).width + 9 * 14; x.restore();
+  let X = W / 2 - tw / 2;
+  for (let i = 0; i < title.length; i++) {
+    const ch = title[i]; x.font = `900 132px "${FB}"`; const cw = x.measureText(ch).width;
+    const q = back(lin(t, 1.1 + i * .06, 1.6 + i * .06));
+    text(ch, X + cw / 2, 1400 + (1 - q) * 120, 132, { al: "center", f: FB, w: 900, a: cl(q * 1.4) * a, glow: rgba(CY, .8), gb: 30 });
+    X += cw + 14;
+  }
+  const sub = eo(lin(t, 1.9, 2.6));
+  x.save(); x.fillStyle = rgba(CY, .8 * a); x.fillRect(W / 2 - 300 * sub, 1450, 600 * sub, 3); x.restore();
+  text("РАДАР ДНЯ", W / 2, 1530, 54, { al: "center", w: 700, ls: 16 * sub, a: sub * a, c: rgba(CY, 1) });
+  text(D.date + "  ·  " + D.time + " Берлин", W / 2, 1600, 34, { al: "center", f: FM, a: sub * a * .85, c: "#cfe2ff" });
+}
+
+// ---------- сцена 2: восемь радаров ----------
+function dial(t, cx, cy, R, r, i) {
+  const p = eo(lin(t, 4.4 + i * .12, 5.9 + i * .12)), v = Math.round(r.v * p), c = sevCol(r.v);
+  const a0 = Math.PI * .75, span = Math.PI * 1.5;
+  x.save(); x.globalAlpha = cl(p * 3) * (1 - lin(t, 9.4, 10.1));
+  x.lineCap = "round"; x.lineWidth = 14; x.strokeStyle = "rgba(120,170,255,.12)"; x.beginPath(); x.arc(cx, cy, R, a0, a0 + span); x.stroke();
+  x.shadowColor = rgba(c, .9); x.shadowBlur = 22; x.strokeStyle = rgba(c, 1); x.beginPath(); x.arc(cx, cy, R, a0, a0 + span * (v / 100)); x.stroke(); x.shadowBlur = 0;
+  for (let k = 0; k <= 10; k++) { const an = a0 + span * k / 10; x.strokeStyle = "rgba(200,225,255,.25)"; x.lineWidth = 2; x.beginPath(); x.moveTo(cx + Math.cos(an) * (R - 26), cy + Math.sin(an) * (R - 26)); x.lineTo(cx + Math.cos(an) * (R - 18), cy + Math.sin(an) * (R - 18)); x.stroke(); }
+  text(String(v), cx, cy + 20, 64, { al: "center", f: FB, w: 900, c: "#fff" });
+  text(r.name.toUpperCase(), cx, cy + R + 24, 23, { al: "center", w: 600, ls: 1.5, c: "#cfe2ff" });
+  const dl = r.d, ds = dl > 0 ? "▲ +" + dl : dl < 0 ? "▼ " + Math.abs(dl) : "● 0";
+  text(ds, cx, cy + R + 60, 24, { al: "center", f: FM, c: dl > 0 ? "#ff8a9e" : dl < 0 ? "#7ff0b0" : "#9fb4d8", a: lin(t, 6.2 + i * .1, 6.6 + i * .1) });
+  x.restore();
+}
+function radars(t) {
+  if (t < 4 || t > 10.2) return;
+  const h = eo(lin(t, 4.1, 4.7)) * (1 - lin(t, 9.4, 10));
+  const hp = eo(lin(t, 7.2, 7.8)) * (1 - lin(t, 9.2, 9.8));
+  text("8 РАДАРОВ · ИНДЕКС РИСКА 0–100", W / 2, 690, 30, { al: "center", w: 700, ls: 4, c: rgba(CY, 1), a: h * (1 - hp) });
+  const cols = 2, gx = [300, 780];
+  D.radars.forEach((r, i) => dial(t, gx[i % cols], 830 + Math.floor(i / cols) * 245, 84, r, i));
+  // выделение лидера
+  if (hp > 0) { const cx = gx[0], cy = 830, pul = 1 + .06 * Math.sin(t * 8);
+    x.save(); x.globalAlpha = hp; x.strokeStyle = "rgba(255,84,112,.9)"; x.lineWidth = 3; x.setLineDash([14, 10]); x.lineDashOffset = -t * 40; x.beginPath(); x.arc(cx, cy, 116 * pul, 0, 7); x.stroke(); x.restore();
+    rr(W / 2 - 210, 646, 420, 60, 30); x.save(); x.globalAlpha = hp; x.fillStyle = "rgba(255,84,112,.92)"; x.fill(); x.restore();
+    text("МАКСИМУМ ДНЯ · ГЕО 71", W / 2, 686, 26, { al: "center", f: FB, w: 900, ls: 2, c: "#fff", a: hp }); }
+}
+
+// ---------- сцена 3: главные заголовки ----------
+function cards(t) {
+  if (t < 9.6 || t > 17.4) return;
+  const out = lin(t, 16.6, 17.3);
+  text("ГЛАВНОЕ СЕЙЧАС", 64, 690, 56, { f: FB, w: 900, ls: 3, a: eo(lin(t, 9.7, 10.2)) * (1 - out), glow: rgba(CY, .6) });
+  D.news.forEach((n, i) => {
+    const s = 10.1 + i * 1.6, p = eo(lin(t, s, s + .7)), y0 = 740 + i * 318;
+    if (p <= 0) return; const dx = (1 - p) * 900 + out * -900 * (1 + i * .2), a = p * (1 - out);
+    x.save(); x.globalAlpha = a; x.translate(dx, 0);
+    rr(64, y0, W - 128, 292, 26); const g = x.createLinearGradient(64, y0, W - 64, y0 + 292); g.addColorStop(0, "rgba(16,34,70,.92)"); g.addColorStop(1, "rgba(10,18,40,.92)"); x.fillStyle = g; x.fill();
+    x.strokeStyle = rgba(sevCol(n.w), .55); x.lineWidth = 2; x.stroke();
+    x.fillStyle = rgba(sevCol(n.w), 1); x.fillRect(64, y0 + 24, 6, 244);
+    // ярлык радара и время
+    rr(100, y0 + 26, x.measureText ? 210 : 210, 44, 22); x.fillStyle = rgba(sevCol(n.w), .18); x.fill();
+    text(n.radar.toUpperCase(), 205, y0 + 56, 22, { al: "center", w: 700, ls: 2, c: rgba(sevCol(n.w), 1) });
+    text(n.time + " · " + n.src, W - 100, y0 + 56, 22, { al: "right", f: FM, c: "#9fb4d8" });
+    // заголовок: слова проявляются волной
+    const lines = wrap(n.ru, 40, W - 240, 700); let k = 0;
+    lines.forEach((ln, li) => { const words = ln.split(" "); let X = 100; x.font = `700 40px "${F}"`;
+      words.forEach((wd) => { const q = eo(lin(t, s + .35 + k * .045, s + .75 + k * .045)); text(wd, X, y0 + 124 + li * 50 + (1 - q) * 18, 40, { w: 700, a: q, c: "#f2f8ff" }); X += x.measureText(wd + " ").width; k++; }); });
+    // вес новости
+    const wp = eo(lin(t, s + .8, s + 1.6)); x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(100, y0 + 262, 400, 8); x.fillStyle = rgba(sevCol(n.w), 1); x.fillRect(100, y0 + 262, 400 * n.w / 100 * wp, 8);
+    text("вес " + Math.round(n.w * wp), 516, y0 + 272, 22, { f: FM, c: "#9fb4d8" });
+    x.restore();
+  });
+}
+
+// ---------- сцена 4: крипто ----------
+function crypto(t) {
+  if (t < 16.9 || t > 21.4) return;
+  const out = lin(t, 20.7, 21.3), h = eo(lin(t, 17, 17.5)) * (1 - out);
+  text("КРИПТО · KRAKEN, EUR", 64, 690, 52, { f: FB, w: 900, ls: 3, a: h, glow: rgba(GO, .6) });
+  D.coins.forEach((c, i) => {
+    const s = 17.2 + i * .35, p = eo(lin(t, s, s + .6)), y = 820 + i * 200; if (p <= 0) return;
+    x.save(); x.globalAlpha = p * (1 - out); x.translate(0, (1 - p) * 60);
+    text(c.sym, 64, y + 40, 72, { f: FB, w: 900, c: "#fff" });
+    // число «докручивается» как табло
+    const roll = eo(lin(t, s + .1, s + 1.4)); const val = c.v * roll;
+    text("€ " + c.fmt(val), W - 64, y + 40, 72, { al: "right", f: FM, c: "#eaf4ff" });
+    const up = c.ch >= 0; text((up ? "▲ +" : "▼ ") + Math.abs(c.ch).toFixed(2).replace(".", ",") + " %", W - 64, y + 92, 32, { al: "right", f: FM, c: up ? "#7ff0b0" : "#ff8a9e", a: lin(t, s + 1, s + 1.4) });
+    x.fillStyle = "rgba(160,200,255,.15)"; x.fillRect(64, y + 130, W - 128, 1.5); x.restore();
+  });
+  // факторы крипто-радара
+  const fp = eo(lin(t, 18.6, 19.3)) * (1 - out);
+  text("ФАКТОРЫ КРИПТО-РАДАРА", 64, 1460, 26, { w: 700, ls: 3, c: rgba(GO, 1), a: fp });
+  D.fac.forEach((f, i) => { const y = 1500 + i * 52, q = eo(lin(t, 18.8 + i * .12, 19.6 + i * .12)) * (1 - out);
+    text(f[0], 64, y + 26, 26, { w: 600, c: "#cfe2ff", a: q });
+    x.save(); x.globalAlpha = q; x.fillStyle = "rgba(255,255,255,.08)"; x.fillRect(330, y + 6, 560, 22); const c = sevCol(f[1]); x.fillStyle = rgba(c, 1); x.shadowColor = rgba(c, .8); x.shadowBlur = 14; x.fillRect(330, y + 6, 560 * f[1] / 100 * q, 22); x.restore();
+    text(String(Math.round(f[1] * q)), W - 64, y + 26, 26, { al: "right", f: FM, c: "#fff", a: q }); });
+}
+
+// ---------- сцена 5: финал ----------
+function outro(t) {
+  if (t < 20.8) return; const p = eo(lin(t, 21, 21.8));
+  text("orbstudio.org", W / 2, 1440, 84, { al: "center", f: FB, w: 900, a: p, glow: rgba(CY, .9), gb: 36 });
+  text("Новости · датчики · ИИ-ведущие", W / 2, 1515, 36, { al: "center", w: 500, c: "#cfe2ff", a: eo(lin(t, 21.4, 22)) });
+  text("Индикатор, не финансовый совет. Данные Orb Studio на " + D.date + ", " + D.time + " (Берлин)", W / 2, 1610, 22, { al: "center", c: "#8aa0c4", a: eo(lin(t, 21.8, 22.4)) });
+  const end = lin(t, 23.2, 24); if (end > 0) { x.fillStyle = `rgba(0,0,0,${end})`; x.fillRect(0, 0, W, H); }
+}
+
+// ---------- орб по таймлайну: центр → вверх (сцены) → центр ----------
+function orbTrack(t) {
+  const k1 = eio(lin(t, 3.4, 4.4)), k2 = eio(lin(t, 20.6, 21.6));
+  let cy = mix(860, 420, k1), sz = mix(720 * eo(lin(t, .1, 1.6)), 380, k1);
+  cy = mix(cy, 980, k2); sz = mix(sz, 760, k2);
+  orb(t, W / 2, cy, sz, cl(lin(t, .05, .8)));
+}
+
+function draw(t) {
+  x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.globalCompositeOperation = "source-over";
+  bg(t); orbTrack(t);
+  const hd = eo(lin(t, 3.8, 4.6)) * (1 - lin(t, 20.6, 21.2));
+  intro(t); header(t, hd); radars(t); cards(t); crypto(t); outro(t); ticker(t, hd);
+  scanline(t); vignette();
+}
+window.draw = draw; window.ready = () => orbReady >= 120 && document.fonts.check(`900 40px "${FB}"`);
+document.fonts.load(`900 40px "${FB}"`); document.fonts.load(`700 40px "${F}"`);
+</script></body></html>
