@@ -1110,7 +1110,7 @@ async function duoAgentInterest(env) {
     const o = per[pg] = per[pg] || { n: 0, names: {} }; o.n += r.n; o.names[r.name] = (o.names[r.name] || 0) + r.n;
   }
   const list = Object.entries(per).sort((a, b) => b[1].n - a[1].n), total = list.reduce((a, [, o]) => a + o.n, 0);
-  if (!list.length || list[0][1].n < 10) return null;
+  if (!list.length || list[0][1].n < 5) return null;
   const [pg, o] = list[0], label = pg.replace(/^\/api\/v1\//, "").replace(/\//g, " ").replace(/\b(api|v1)\b/g, "").trim() + " sensor";
   const agents = Object.entries(o.names).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([name, n]) => ({ name: name.slice(0, 60), n }));
   return { day: d, sensor: pg, label, requests_today: o.n, share_pct: Math.round(o.n * 100 / Math.max(1, total)), agents, runner_up: list.slice(1, 4).map(([p, x]) => ({ sensor: p, requests: x.n })),
