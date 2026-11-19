@@ -233,7 +233,9 @@ function start() {
     const q = [];
     for (const ep of (arc && Array.isArray(arc.episodes) ? arc.episodes : [])) {
       if (!ep || ep.episode_id === curId) continue;
-      const lines = buildQueue(ep, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
+      // старые сегменты о числе визитов агентов в архиве не проигрываем (убраны из эфира 19.11)
+      const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && x.kind !== "agents" && !(x.kind === "carousel" && String(x.carousel_id || "").startsWith("bridge:"))) };
+      const lines = buildQueue(ep2, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
       lines.forEach((x) => heard.add(x.headline));
       const br = ep.bridge && ep.bridge[lang];
