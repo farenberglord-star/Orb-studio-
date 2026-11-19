@@ -1,15 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { rtDue, cleanSpeech, rtCandidates, rtTopics, rtAssemble, rtPublishable, rtQueue, rtLineText, RT_GUESTS } from "../src/roundtable.js";
+import { rtWhen, cleanSpeech, rtCandidates, rtTopics, rtAssemble, rtPublishable, rtQueue, rtLineText, RT_GUESTS } from "../src/roundtable.js";
 
 const B = (iso) => Date.parse(iso);
 
-test("один выпуск в день после 17:00 по Берлину, самый первый — сразу", () => {
-  assert.equal(rtDue(null, B("2026-11-19T10:00:00Z")), true);
-  const ep = { generated_at: "2026-11-19T16:30:00Z" }; // 17:30 Берлин
-  assert.equal(rtDue(ep, B("2026-11-19T20:00:00Z")), false);           // тот же день
-  assert.equal(rtDue(ep, B("2026-11-20T10:00:00Z")), false);           // 11:00 следующего дня — рано
-  assert.equal(rtDue(ep, B("2026-11-20T16:05:00Z")), true);            // 17:05 следующего дня
+test("модератор решает сам, но в рамках: от 8 до 22, не чаще 6 ч, 1–2 в день, после 18:00 — обязательно", () => {
+  assert.equal(rtWhen(null, B("2026-11-19T03:00:00Z"), 0, null), "first");
+  const ep = { generated_at: "2026-11-19T07:00:00Z" };                       // 08:00 Берлин
+  assert.equal(rtWhen(ep, B("2026-11-19T10:00:00Z"), 1, null), null);       // 11:00 — меньше 6 ч
+  assert.equal(rtWhen(ep, B("2026-11-19T14:00:00Z"), 1, null), "ask");      // 15:00 — можно спросить
+  assert.equal(rtWhen(ep, B("2026-11-19T14:00:00Z"), 1, B("2026-11-19T13:30:00Z")), null); // спрашивали полчаса назад
+  assert.equal(rtWhen(ep, B("2026-11-19T15:00:00Z"), 2, null), null);       // уже два сегодня
+  assert.equal(rtWhen(ep, B("2026-11-19T21:30:00Z"), 1, null), null);       // 22:30 — ночь
+  const y = { generated_at: "2026-11-18T19:00:00Z" };                        // вчера
+  assert.equal(rtWhen(y, B("2026-11-19T12:00:00Z"), 0, null), "ask");       // 13:00 — спросить, есть ли повод
+  assert.equal(rtWhen(y, B("2026-11-19T17:10:00Z"), 0, B("2026-11-19T17:00:00Z")), "daily"); // 18:10 и ни одного — выходим
 });
 
 test("ответ гостя очищается от разметки и ссылок и обрезается по предложению", () => {

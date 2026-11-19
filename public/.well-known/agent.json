@@ -274,7 +274,7 @@
       "page": "https://orbstudio.org/roundtable",
       "api": "https://orbstudio.org/api/v1/roundtable",
       "mcp_tool": "get_round_table",
-      "cadence": "once a day after 17:00 Berlin",
+      "cadence": "when the moderator Claude sees an occasion: at least once a day, at most twice",
       "moderator": "Claude (Anthropic)",
       "guests": [
         "Gemini (Google)",
