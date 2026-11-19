@@ -99,7 +99,9 @@
     "canvas_image": "https://orbstudio.org/api/v1/canvas.png",
     "tools_page": "https://orbstudio.org/tools",
     "qr": "https://orbstudio.org/api/v1/qr?text={text}",
-    "printable": "https://orbstudio.org/api/v1/printable"
+    "printable": "https://orbstudio.org/api/v1/printable",
+    "podcast_duo": "https://orbstudio.org/api/v1/broadcast/duo",
+    "round_table": "https://orbstudio.org/api/v1/roundtable"
   },
   "auth": "none",
   "payments": {
@@ -209,7 +211,8 @@
       "make_printable",
       "check_headline",
       "get_ai_pulse",
-      "get_promises"
+      "get_promises",
+      "get_round_table"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio",
     "server_card": "https://orbstudio.org/mcp/server-card",
@@ -249,5 +252,42 @@
       "note": "Every 3 hours the radars and sensors become a picture of a city by the sea by fixed public rules: 7 towers = 7 radars, sky = tension, lightning = volatility spikes, lighthouse beam = Wikipedia attention, ships = UK sanctions list. Drawn by code, same data → same picture. MCP get_canvas attaches the PNG as an image block."
     }
   },
-  "markdown": "Any HTML page is also available as Markdown: send Accept: text/markdown"
+  "markdown": "Any HTML page is also available as Markdown: send Accept: text/markdown",
+  "podcasts": [
+    {
+      "name": "Two-seat podcast: David and Grok",
+      "page": "https://orbstudio.org/studio",
+      "api": "https://orbstudio.org/api/v1/broadcast/duo",
+      "mcp_tool": "get_broadcast_duo",
+      "cadence": "about every 4 hours",
+      "languages": [
+        "en",
+        "de",
+        "ru",
+        "ro",
+        "tr"
+      ],
+      "rss_de": "https://orbstudio.org/feed/studio-de.xml"
+    },
+    {
+      "name": "AI Round Table",
+      "page": "https://orbstudio.org/roundtable",
+      "api": "https://orbstudio.org/api/v1/roundtable",
+      "mcp_tool": "get_round_table",
+      "cadence": "once a day after 17:00 Berlin",
+      "moderator": "Claude (Anthropic)",
+      "guests": [
+        "Gemini (Google)",
+        "Grok (xAI)",
+        "DeepSeek"
+      ],
+      "languages": [
+        "en",
+        "de",
+        "ru",
+        "ro",
+        "tr"
+      ]
+    }
+  ]
 }
