@@ -32,6 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
+import { GROK_SENSORS_SYSTEM, grokSensorsUser, describeSignal, sensorsHostLines } from "./duo.js";
 import { GROK_AGENTS_SYSTEM, grokAgentsUser, agentsHostLines, HOST_REACT_SYSTEM, HOST_REACT_TOOL, reactUser, checkReact } from "./duo.js";
 import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
 import { fetchFrequency, summarizeFrequency, ATTRIBUTION as GRIDFREQ_ATTRIBUTION } from "./gridfreq.js";
@@ -1053,6 +1054,22 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
     return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
   }));
   // Сегмент «чем интересуются агенты»: самый читаемый датчик сегодня (без сканеров каталогов и поисковиков)
+  // Сегмент «датчики» после первой новости: резкие изменения показаний по детектору аномалий
+  const an = await anomalyDetect(env).catch(() => null);
+  const sig = (an && an.signals || []).filter((x) => describeSignal(x)).sort((a, b) => (a.type.startsWith("value_") ? 0 : 1) - (b.type.startsWith("value_") ? 0 : 1)).slice(0, 3);
+  if (sig.length) {
+    const descs = sig.map(describeSignal), hl = sensorsHostLines(descs);
+    const readings = sig.map((x) => ({ change: describeSignal(x), detail: x, rule: x.rule || an.rules }));
+    let reply = null;
+    try { const a = await askGrok(env, null, null, [], false, ms, hl.question, avoid, { system: GROK_SENSORS_SYSTEM, user: grokSensorsUser(readings, hl.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible);
+      if (!reply.ok && reply.reason === "forecast_language") { const b = await askGrok(env, null, null, [], true, ms, hl.question, avoid, { system: GROK_SENSORS_SYSTEM + "\n" + FORECAST_REMINDER, user: grokSensorsUser(readings, hl.question, avoid) }); reply = duoCheck(b.text, stripInvisible); } }
+    catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "sensors segment: " + String(e && e.message || e).slice(0, 160) }); }
+    if (reply && reply.ok) {
+      const seg = { kind: "sensors", headline: "Orb Studio sensors today: " + descs.join("; "), source: "Orb Studio sensors (anomaly detector)", link: "https://orbstudio.org/api/v1/anomalies", time: null, read: hl.read, question: hl.question, thanks: null,
+        facts: readings.map((r) => ({ label: r.change, value: JSON.stringify(r.detail).slice(0, 300), source: "Orb Studio anomaly detector", as_of: an.checked_at })), reply };
+      segs.splice(Math.min(1, segs.length), 0, seg); // после первой новости
+    }
+  }
   const interest = await duoAgentInterest(env).catch(() => null);
   if (interest) {
     const hl = agentsHostLines(interest); let reply = null;
