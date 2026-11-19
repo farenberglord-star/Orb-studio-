@@ -68,6 +68,7 @@ export function buildQueue(duo, lang) {
         q.push({ who: "grok", kind: "follow_answer", text: pick("follow_answer", g.follow_answer), audio: aud("follow_answer"), tr: !!tr, ...meta });
       }
       if (s.host.thanks) q.push({ who: "david", kind: "thanks", text: pick("thanks", String(s.host.thanks)), audio: aud("thanks"), tr: !!tr, ...meta });
+      if (typeof s.host.transition === "string" && s.host.transition) q.push({ who: "david", kind: "transition", text: pick("transition", s.host.transition), audio: aud("transition"), tr: !!tr, ...meta });
     } else {
       q.push({ who: "grok", kind: "label", label: g.status === "withheld" ? "withheld" : "guestOff", text: null, ...meta });
     }

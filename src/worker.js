@@ -32,7 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
-import { GROK_FOLLOW_SYSTEM, grokFollowUser } from "./duo.js";
+import { GROK_FOLLOW_SYSTEM, grokFollowUser, checkCarousel, GROK_CAROUSEL_SYSTEM, grokCarouselUser } from "./duo.js";
 import { GROK_SENSORS_SYSTEM, grokSensorsUser, describeSignal, sensorsHostLines } from "./duo.js";
 import { GROK_AGENTS_SYSTEM, grokAgentsUser, agentsHostLines, HOST_REACT_SYSTEM, HOST_REACT_TOOL, reactUser, checkReact } from "./duo.js";
 import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
@@ -1009,7 +1009,7 @@ async function duoAudio(env, ctx, origin, url) {
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = DUO_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
   const ep = url.searchParams.get("ep");
-  if (!["read", "question", "answer", "thanks", "follow_up", "follow_answer", "bridge", "outro", "cta"].includes(part) || (!["bridge", "outro", "cta"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
+  if (!["read", "question", "answer", "thanks", "transition", "follow_up", "follow_answer", "bridge", "outro", "cta"].includes(part) || (!["bridge", "outro", "cta"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
   let d;
   if (part === "outro" || part === "cta") d = { segments: [] };
   else if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
@@ -1041,7 +1041,7 @@ async function duoAudio(env, ctx, origin, url) {
   ctx.waitUntil(env.DB.prepare("INSERT OR IGNORE INTO tts_cache (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, today(), voice, text.length, buf, Date.now()).run().catch(() => null));
   return new Response(buf, { headers: head });
 }
-async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
+async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carousel) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
@@ -1072,7 +1072,16 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
       segs.splice(Math.min(1, segs.length), 0, seg); // после первой новости
     }
   }
-  const interest = await duoAgentInterest(env).catch(() => null);
+  let carouselDone = false;
+  if (carousel) {
+    let reply = null;
+    try { const a = await askGrok(env, null, null, [], false, ms, carousel.question, avoid, { system: GROK_CAROUSEL_SYSTEM, user: grokCarouselUser(carousel.item, carousel.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
+    catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "carousel: " + String(e && e.message || e).slice(0, 160) }); }
+    if (reply && reply.ok) { carouselDone = true;
+      segs.push({ kind: "carousel", carousel_id: carousel.item.id, headline: `David's pick: ${carousel.item.title}`, source: carousel.item.source, link: carousel.item.kind === "ai_bridge" ? "https://orbstudio.org/bridge" : "https://orbstudio.org/sensors", time: null,
+        read: carousel.read, question: carousel.question, thanks: null, facts: [{ label: carousel.item.title, value: carousel.item.reading, source: carousel.item.source, as_of: today() }], reply }); }
+  }
+  const interest = carouselDone ? null : await duoAgentInterest(env).catch(() => null);
   if (interest) {
     const hl = agentsHostLines(interest); let reply = null;
     try { const a = await askGrok(env, null, null, [], false, ms, hl.question, avoid, { system: GROK_AGENTS_SYSTEM, user: grokAgentsUser(interest, hl.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
@@ -1106,14 +1115,14 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
 // Неудачный выпуск (Grok ни разу не ответил) не запоминаем, иначе ошибка висела бы 30 минут
 function duoAnswered(d) { return !!(d && d.segments && d.segments.some((x) => x.guest && x.guest.status !== "offline")); }
 // Ведущий (Claude) выбирает новости из первых заголовков и пишет вопросы; при сбое — первые три и запасные вопросы
-async function duoPick(env, cands, recent) {
+async function duoPick(env, cands, recent, menu, recentCarousel) {
   let out = null;
   if (env.ANTHROPIC_API_KEY) {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", signal: AbortSignal.timeout(25000),
         headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 900, system: HOST_PICK_SYSTEM, messages: [{ role: "user", content: pickUser(cands, recent) }], tools: [HOST_PICK_TOOL], tool_choice: { type: "tool", name: HOST_PICK_TOOL.name } }),
+        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1300, system: HOST_PICK_SYSTEM, messages: [{ role: "user", content: pickUser(cands, recent, menu, recentCarousel) }], tools: [HOST_PICK_TOOL], tool_choice: { type: "tool", name: HOST_PICK_TOOL.name } }),
       });
       if (!res.ok) throw new Error("Claude API " + res.status + ": " + (await res.text()).slice(0, 120));
       const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use");
@@ -1121,9 +1130,29 @@ async function duoPick(env, cands, recent) {
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host pick: " + String(e && e.message || e).slice(0, 180) }); }
   }
   const picks = checkPicks(out, cands.length, stripInvisible);
-  return { items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
+  const carousel = checkCarousel(out && out.carousel, menu, stripInvisible);
+  return { carousel, items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
 // Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
+// Карусель Давида: меню датчиков и тем ИИ-моста с текущими показаниями — он сам выбирает одну тему
+async function duoMenu(env, ctx, origin) {
+  const [radars, gas, sens, bridge] = await Promise.all([allRadars(env, ctx, origin).catch(() => []), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null), agentInterest(env).catch(() => [])]);
+  const m = [];
+  for (const r of radars || []) if (r && r.id && r.lvl != null) { const en = (RADAR_TITLE_I18N[r.id] || [])[1] || r.id, dl = r.prev != null ? r.lvl - r.prev : null;
+    m.push({ id: "radar:" + r.id, kind: "radar", title: `${en.replace(/ radar$/i, "")} radar`, reading: `risk index ${r.lvl} of 100${dl != null ? `, ${dl >= 0 ? "+" : ""}${dl} in 24 h` : ""}${r.feed && r.feed[0] ? `; top headline: ${r.feed[0][1]}` : ""}`, source: "Orb Studio radars" }); }
+  if (gas && gas.ok) m.push({ id: "gas", kind: "sensor", title: "German gas storage", reading: `${gas.full_percent}% full on gas day ${gas.gas_day}, trend ${gas.trend_pp_day} points per day`, source: "AGSI+ (GIE)" });
+  if (sens) {
+    const p = sens.power || {}; if (p.today) m.push({ id: "power", kind: "sensor", title: "German power price", reading: `${p.now_eur_mwh} EUR/MWh now, today min ${p.today.min_eur_mwh}, max ${p.today.max_eur_mwh}, average ${p.today.avg_eur_mwh}`, source: "Energy-Charts day-ahead" });
+    const b = sens.bitcoin || {}; if (b.hashrate_ehs) m.push({ id: "bitcoin", kind: "sensor", title: "Bitcoin network", reading: `${b.mempool_tx} transactions waiting, fast fee ${b.fee_fast_sat_vb} sat/vB, hashrate ${b.hashrate_ehs} EH/s`, source: "mempool.space" });
+    const d = sens.derivatives || {}; if (d.mark_usd) m.push({ id: "btc-futures", kind: "sensor", title: "Bitcoin futures on Kraken", reading: `mark price ${Math.round(d.mark_usd)} USD, open interest ${d.open_interest_btc} BTC, funding ${d.funding_relative_pct}`, source: "Kraken Futures" });
+    const st = sens.stablecoins || {}; if (st.total_usd) m.push({ id: "stablecoins", kind: "sensor", title: "Stablecoin supply", reading: `${Math.round(st.total_usd / 1e9)} billion USD, ${st.change_7d_pct}% in 7 days`, source: "DefiLlama" });
+    const inf = sens.inflation || {}; if (inf.hicp_annual_pct != null) m.push({ id: "inflation", kind: "sensor", title: "Euro area inflation", reading: `${inf.hicp_annual_pct}% a year (${inf.period})`, source: "Eurostat HICP" });
+    const net = sens.internet || {}; if (net.outages_24h != null) m.push({ id: "internet", kind: "sensor", title: "Internet outages and blocking", reading: `${net.outages_24h} outages in 24 h, confirmed blocking in ${net.confirmed_block_countries} of ${net.countries_measured} measured countries`, source: "IODA / OONI" });
+    for (const a of ((sens.attention || {}).surges || []).slice(0, 2)) m.push({ id: "attention:" + String(a.article).slice(0, 40), kind: "sensor", title: `Wikipedia attention: ${a.article}`, reading: `${a.ratio} times the usual daily views`, source: "Wikimedia pageviews" });
+  }
+  for (const c of (bridge || []).slice(0, 6)) m.push({ id: "bridge:" + c.crisis, kind: "ai_bridge", title: `AI bridge topic: ${c.title_en}`, reading: `${c.agent_visits_30d} AI-agent visits in 30 days`, source: "Orb Studio AI bridge counters" });
+  return m.slice(0, 24);
+}
 // Интерес агентов для эфира: «ИИ-мост» (/bridge) — какие кризисы агенты открывают чаще всего за 30 дней.
 // Чтобы не повторяться, берём самую посещаемую тему, которой не было в сегменте агентов последних 6 выпусков.
 async function duoAgentInterest(env) {
@@ -1140,7 +1169,7 @@ async function duoAgentInterest(env) {
     note: "Counts of AI-agent visits to the AI bridge (/bridge), where agents and people look for ways out of crises. Orb Studio does not know why each agent came; any reason given on air is a guess." };
 }
 async function duoTranslate(env, d, only) {
-  const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));
+  const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", transition: x.host && x.host.transition || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));
   if (!segs.length) return null;
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" }, out = {};
   for (const lg of (only || DUO_LANGS)) {
@@ -1149,7 +1178,7 @@ async function duoTranslate(env, d, only) {
         method: "POST", signal: AbortSignal.timeout(60000),
         headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
         body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", temperature: 0.2, max_tokens: 3000, response_format: { type: "json_object" },
-          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","follow_up":"","thanks":"","answer":"","follow_answer":""}]}` },
+          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","follow_up":"","thanks":"","transition":"","answer":"","follow_answer":""}]}` },
             { role: "user", content: JSON.stringify({ segments: segs }) }] }),
       });
       if (!res.ok) throw new Error("xAI " + res.status);
@@ -1157,7 +1186,7 @@ async function duoTranslate(env, d, only) {
       const parsed = JSON.parse(String(txt || "").replace(/^```(json)?|```$/g, "").trim());
       const map = {};
       for (const x of (parsed.segments || [])) { const src = segs.find((y) => y.i === x.i); if (!src) continue;
-        const o = {}; for (const k of ["read", "question", "follow_up", "thanks", "answer", "follow_answer"]) { const v = typeof x[k] === "string" ? stripInvisible(x[k]).trim().slice(0, 1400) : ""; o[k] = src[k] ? v : ""; }
+        const o = {}; for (const k of ["read", "question", "follow_up", "thanks", "transition", "answer", "follow_answer"]) { const v = typeof x[k] === "string" ? stripInvisible(x[k]).trim().slice(0, 1400) : ""; o[k] = src[k] ? v : ""; }
         if (src.answer && !o.answer) continue; map[x.i] = o; }
       if (Object.keys(map).length === segs.length) out[lg] = { segments: map, model: j.model || env.XAI_MODEL || "grok-4.7" };
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "translate " + lg + ": " + String(e && e.message || e).slice(0, 160) }); }
@@ -1209,7 +1238,7 @@ const DUO_CTA = {
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
   const q = ep ? `&ep=${ep}` : "";
-  for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") { parts.push("answer", "thanks"); if (sg.host.follow_up && sg.guest.follow_answer) parts.push("follow_up", "follow_answer"); }
+  for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") { parts.push("answer", "thanks"); if (sg.host.follow_up && sg.guest.follow_answer) parts.push("follow_up", "follow_answer"); if (sg.host.transition) parts.push("transition"); }
     sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}${q}`]));
     for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
       tr.audio = Object.fromEntries(parts.filter((k) => tr[k]).map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}&lang=${lg}${q}`])); } }
@@ -1243,8 +1272,10 @@ async function duoWarm(env, ctx) {
   const segsArc = arc.episodes.slice(0, 6).flatMap((e) => e.segments || []);
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
-  const { items, lines } = await duoPick(env, cands, recent);
-  const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent);
+  const menu = await duoMenu(env, ctx, origin).catch(() => []);
+  const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
+  const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
+  const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent, carousel);
   if (duoAnswered(d)) { d.cache_key = key; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
     const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
     await duoArchivePut(env, d); }
