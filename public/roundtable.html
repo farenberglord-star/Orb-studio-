@@ -129,6 +129,31 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .prog li.on{background:rgba(255,178,94,.10);box-shadow:inset 3px 0 0 #ffb25e}.prog li.on b{color:#ffb25e}
 .links{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
 @media (prefers-reduced-motion:reduce){.cam,.glow{animation:none!important}.cam{transform:none}.sub,.glow,.dim{transition:none}}
+/* «Живая» студия: слои той же картинки с мягкими масками — фигуры дышат и кивают, символы пульсируют; огни и голограмма — на canvas */
+.parts{position:absolute;inset:0;pointer-events:none}
+.pt{position:absolute;inset:0;will-change:transform;-webkit-mask-image:var(--m);mask-image:var(--m)}
+.pt img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.gm-b{--m:radial-gradient(ellipse 15% 13% at 18% 46%,#000 55%,transparent 100%);transform-origin:18% 58%;animation:lean 6.8s ease-in-out infinite}
+.gm-h{--m:radial-gradient(ellipse 6% 4.5% at 14.6% 38.6%,#000 60%,transparent 100%);transform-origin:15.5% 42%;animation:nodA 8.4s ease-in-out -1s infinite}
+.ds-b{--m:radial-gradient(ellipse 11% 9% at 50% 37%,#000 55%,transparent 100%);transform-origin:50% 45%;animation:lean 7.6s ease-in-out -3s infinite reverse}
+.ds-h{--m:radial-gradient(ellipse 4.6% 3.3% at 50% 31.2%,#000 60%,transparent 100%);transform-origin:50% 33.6%;animation:nodB 9.1s ease-in-out -2s infinite}
+.gk-b{--m:radial-gradient(ellipse 15% 13% at 82% 46%,#000 55%,transparent 100%);transform-origin:82% 58%;animation:lean 7.1s ease-in-out -2.4s infinite reverse}
+.gk-h{--m:radial-gradient(ellipse 6% 4.5% at 86% 38.6%,#000 60%,transparent 100%);transform-origin:85% 42%;animation:nodB 7.8s ease-in-out -.5s infinite}
+.cl-b{--m:radial-gradient(ellipse 15% 12% at 50% 67%,#000 55%,transparent 100%);transform-origin:50% 78%;animation:lean 8s ease-in-out -1.2s infinite}
+.cl-h{--m:radial-gradient(ellipse 5% 3.6% at 50% 59%,#000 60%,transparent 100%);transform-origin:50% 62%;animation:nodA 9.6s ease-in-out -4s infinite}
+.sym{transition:filter .5s ease;animation:sym 4.2s ease-in-out infinite}
+.s-gm{--m:radial-gradient(ellipse 8.5% 5.6% at 14.8% 27.8%,#000 50%,transparent 100%);transform-origin:14.8% 27.8%}
+.s-ds{--m:radial-gradient(ellipse 9.5% 4.6% at 50.4% 21.4%,#000 50%,transparent 100%);transform-origin:50.4% 21.4%;animation-delay:-1.4s}
+.s-gk{--m:radial-gradient(ellipse 7.5% 5.6% at 86% 28.4%,#000 50%,transparent 100%);transform-origin:86% 28.4%;animation-delay:-2.6s}
+.s-cl{--m:radial-gradient(ellipse 6.6% 3.9% at 50% 52.6%,#000 50%,transparent 100%);transform-origin:50% 52.6%;animation-delay:-.8s}
+.stage[data-speaker="gemini"] .gm-x,.stage[data-speaker="deepseek"] .ds-x,.stage[data-speaker="grok"] .gk-x,.stage[data-speaker="claude"] .cl-x{filter:brightness(calc(1.22 + var(--lv,0) * .5)) saturate(1.15)}
+.stage[data-speaker="gemini"] .s-gm,.stage[data-speaker="deepseek"] .s-ds,.stage[data-speaker="grok"] .s-gk,.stage[data-speaker="claude"] .s-cl{filter:brightness(calc(1.5 + var(--lv,0) * .9)) drop-shadow(0 0 6px rgba(255,255,255,.35))}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+@keyframes lean{0%,100%{transform:rotate(0) scale(1,1)}50%{transform:rotate(.4deg) scale(1.003,1.007)}}
+@keyframes nodA{0%,100%{transform:rotate(-.8deg)}35%{transform:rotate(1deg)}70%{transform:rotate(-.2deg) translateY(.15%)}}
+@keyframes nodB{0%,100%{transform:rotate(.7deg)}40%{transform:rotate(-1deg)}75%{transform:rotate(.25deg) translateY(.15%)}}
+@keyframes sym{0%,100%{opacity:1;scale:1}50%{opacity:.75;scale:1.025}}
+@media (prefers-reduced-motion:reduce){.pt{animation:none!important;transform:none!important;scale:none!important;rotate:none!important}#fx{display:none}}
 </style>
 </head>
 <body>
@@ -137,6 +162,8 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 <main class="stage" id="stage" data-speaker="">
   <div class="cam">
     <img src="/media/roundtable.webp" width="1080" height="1920" alt="A dark studio above a night city: four holograms sit at a round glass table with a glowing globe, each with a microphone and a light symbol above the head." decoding="async" fetchpriority="high">
+    <div class="parts" aria-hidden="true"><div class="pt ds-b ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt ds-h ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-b gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-h gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-b gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-h gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-b cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-h cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-ds ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gm gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gk gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-cl cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div></div>
+    <canvas id="fx"></canvas>
     <div class="zones" aria-hidden="true">
       <div class="dim"></div>
       <div class="glow" id="glow-claude"></div><div class="glow" id="glow-gemini"></div><div class="glow" id="glow-grok"></div><div class="glow" id="glow-deepseek"></div>
