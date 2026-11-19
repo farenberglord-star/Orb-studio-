@@ -32,7 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
-import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
+import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
 import { fetchFrequency, summarizeFrequency, ATTRIBUTION as GRIDFREQ_ATTRIBUTION } from "./gridfreq.js";
 import { fetchAdvisories, summarizeAdvisories, ATTRIBUTION as AGENTSEC_ATTRIBUTION } from "./agentsec.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
@@ -998,10 +998,11 @@ async function askGrok(env, headline, source, facts, retry, ms, question) {
 }
 async function duoBuild(env, ctx, origin, items, lines, ms) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
-  const facts = buildFacts({ chokepoints: cp, gas, sensors });
+  const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
+    const facts = relevantFacts(allFacts, it.headline, it.question); // только показания по теме новости
     try {
       let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question); model = a.model;
       reply = duoCheck(a.text, stripInvisible);

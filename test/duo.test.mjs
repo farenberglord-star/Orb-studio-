@@ -82,3 +82,20 @@ test("host picks: prompt input holds only headlines; assembled desk marks who wr
   assert.equal(d.segments[1].host.question_by, "stock");
   assert.equal(JSON.parse(grokUser("h", "s", [], "Grok, why now?")).host_question, "Grok, why now?");
 });
+
+import { relevantFacts, GROK_SYSTEM as GS2 } from "../src/duo.js";
+test("facts reach Grok only when they match the story", () => {
+  const all = buildFacts({ chokepoints: { data_through: "2026-11-08", focus: [{ key: "hormuz", ships_per_day_7d: 3.9, ships_per_day_year_ago: 73.7, change_vs_year_pct: -94.7 }] }, gas: { ok: true, full_percent: 57, net_flow: "Withdrawing", gas_day: "2026-11-17" },
+    sensors: { inflation: { hicp_annual_pct: 4, period: "2026-10" }, ecb: { deposit_rate_pct: { value: 2.5, date: "2026-11-18" } }, power: { now_eur_mwh: 200, now_at: "x" } } });
+  assert.equal(all.length, 7);
+  for (const h of ["Trump Meets Xi and Putin in China With Nuclear Arms and Two Wars on the Table", "Binance says it obtained $6.5B worldwide freezing order after hack", "Israeli military launches rare ground operation in Gaza beyond Yellow Line", "Scattered Spider Hacker Sentenced to 6 Years"])
+    assert.deepEqual(relevantFacts(all, h, "Grok, what does this mean for global security?"), [], h);
+  const hz = relevantFacts(all, "ADNOC Ship Attacked in Hormuz as Maritime Security Risks Rise", null);
+  assert.equal(hz.length, 3); assert.ok(hz.every((f) => /Hormuz/.test(f.label)));
+  assert.deepEqual(relevantFacts(all, "Shell Increases Gas Production offshore Malaysia", "Grok, how much does this matter for Asian LNG trade?"), []);
+  assert.deepEqual(relevantFacts(all, "Europe gas prices jump as cold snap hits", "").map((f) => f.source), ["GIE AGSI+"]);
+  const ez = relevantFacts(all, "EZB: Bestätigt – Inflation im Euro-Raum steigt im Oktober auf 4,0 Prozent", "").map((f) => f.source);
+  assert.deepEqual(ez, ["Eurostat", "ECB"]);
+  assert.deepEqual(relevantFacts(null, "x", "y"), []);
+  assert.match(GS2, /If FACTS is empty, give no sensor numbers/); assert.match(GS2, /Never bring up the Strait of Hormuz/);
+});
