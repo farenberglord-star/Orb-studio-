@@ -304,6 +304,9 @@ function startFx(cv, stage, getLevel) {
   const rnd = (a, b) => a + Math.random() * (b - a);
   const stars = Array.from({ length: 90 }, () => ({ x: rnd(FX.window.x0, FX.window.x1), y: rnd(FX.window.y0, FX.window.y1) * (Math.random() < 0.6 ? 1 : 0.85), p: rnd(0, 6.3), s: rnd(0.6, 2.4), c: Math.random() < 0.18 ? "255,90,110" : Math.random() < 0.4 ? "255,214,150" : "190,225,255" }));
   const sparks = []; const rings = [];
+  // окна домов за стеклом: загораются и гаснут в своё время (тёплые и холодные)
+  const wins = Array.from({ length: 70 }, () => ({ x: rnd(0.23, 0.78), y: rnd(0.11, 0.33), w: rnd(0.004, 0.008), h: rnd(0.0025, 0.004), a: 0, on: Math.random() < 0.4, next: rnd(0, 8), c: Math.random() < 0.7 ? "255,206,140" : "200,230,255" }));
+  const grid = []; // след лазерного сканера
   const SUN = { x: 0.5, y: 0.526, r: 0.085 }; let sunSprite = null;
   const img = document.querySelector(".cam > img");
   const mkSun = () => { try { if (!img || !img.naturalWidth) return; const iw = img.naturalWidth, ih = img.naturalHeight, rr = SUN.r * iw, c = document.createElement("canvas"); c.width = c.height = Math.round(rr * 2);
@@ -320,6 +323,25 @@ function startFx(cv, stage, getLevel) {
     // 1) огни города мерцают
     for (const s of stars) { const a = Math.max(0, Math.sin(t * s.s + s.p)) ** 3 * 0.55; if (a < 0.03) continue; const x = s.x * W, y = s.y * H, r = 0.6 + a * 1.6;
       const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3); g.addColorStop(0, `rgba(${s.c},${a})`); g.addColorStop(1, `rgba(${s.c},0)`); ctx.fillStyle = g; ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6); }
+    // 1б) окна: плавно включаются и выключаются
+    for (const w of wins) { if (t > w.next) { w.on = !w.on; w.next = t + (w.on ? rnd(3, 12) : rnd(2, 9)); }
+      w.a += ((w.on ? 0.75 : 0) - w.a) * 0.08; if (w.a < 0.02) continue;
+      ctx.fillStyle = `rgba(${w.c},${w.a * 0.8})`; ctx.fillRect(w.x * W, w.y * H, w.w * W, w.h * H);
+      ctx.fillStyle = `rgba(${w.c},${w.a * 0.18})`; ctx.fillRect(w.x * W - 2, w.y * H - 2, w.w * W + 4, w.h * H + 4); }
+    // 1в) локатор: луч-развёртка от глобуса по всей студии, оборот за 9 с
+    { const cx = FX.globe.x * W, cy = FX.globe.y * H, ang = (t / 9) * Math.PI * 2, far = Math.hypot(W, H);
+      if (ctx.createConicGradient) { const cg = ctx.createConicGradient(ang - 0.9, cx, cy); cg.addColorStop(0, "rgba(90,220,255,0)"); cg.addColorStop(0.14, "rgba(90,220,255,0.1)"); cg.addColorStop(0.1435, "rgba(90,220,255,0)"); cg.addColorStop(1, "rgba(90,220,255,0)");
+        ctx.fillStyle = cg; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, far, ang - 0.9, ang + 0.02); ctx.closePath(); ctx.fill(); }
+      const ex = cx + Math.cos(ang) * far, ey = cy + Math.sin(ang) * far, lg2 = ctx.createLinearGradient(cx, cy, ex, ey);
+      lg2.addColorStop(0, "rgba(140,235,255,.42)"); lg2.addColorStop(0.5, "rgba(140,235,255,.12)"); lg2.addColorStop(1, "rgba(140,235,255,0)");
+      ctx.strokeStyle = lg2; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey); ctx.stroke(); }
+    // 1г) лазерный сканер: каждые 11 с тонкая линия проходит студию сверху вниз и оставляет гаснущую сетку
+    { const ph = (t % 11) / 2.6; if (ph < 1) { const y = ph * H, lg3 = ctx.createLinearGradient(0, y, W, y);
+        lg3.addColorStop(0, "rgba(255,70,110,0)"); lg3.addColorStop(0.5, "rgba(255,110,150,.8)"); lg3.addColorStop(1, "rgba(255,70,110,0)");
+        ctx.fillStyle = lg3; ctx.fillRect(0, y - 1.2, W, 2.4); const tr = ctx.createLinearGradient(0, y - 26, 0, y); tr.addColorStop(0, "rgba(255,90,130,0)"); tr.addColorStop(1, "rgba(255,90,130,.14)"); ctx.fillStyle = tr; ctx.fillRect(0, y - 26, W, 26);
+        if (!grid.length || y - grid[grid.length - 1].y > H / 24) grid.push({ y, a: 0.16 }); }
+      for (let i = grid.length - 1; i >= 0; i--) { const g = grid[i]; g.a *= 0.965; if (g.a < 0.01) { grid.splice(i, 1); continue; }
+        ctx.fillStyle = `rgba(255,110,150,${g.a})`; for (let x = 0; x < W; x += 6) ctx.fillRect(x, g.y, 2, 0.8); } }
     // 2) искры бегут по лучам от символов к головам; у говорящего — чаще и ярче
     for (const [who, b] of Object.entries(FX.beams)) { const on = who === sp, rate = on ? 0.55 + lv * 0.4 : 0.07;
       if (Math.random() < rate) sparks.push({ who, k: 0, v: rnd(0.012, 0.03) * (on ? 1.5 : 1), dx: rnd(-0.012, 0.012), c: b[4], a: on ? rnd(0.6, 1) : rnd(0.25, 0.5) }); }
