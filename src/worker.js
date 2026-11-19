@@ -983,8 +983,8 @@ async function quakesData() {
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
 // Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
-async function askGrok(env, headline, source, facts, retry, ms, question) {
-  const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question) }];
+async function askGrok(env, headline, source, facts, retry, ms, question, avoid) {
+  const msgs = [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question, avoid) }];
   if (retry) msgs.push({ role: "user", content: FORECAST_REMINDER });
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(ms || 20000),
@@ -1035,7 +1035,7 @@ async function duoAudio(env, ctx, origin, url) {
   ctx.waitUntil(env.DB.prepare("INSERT OR IGNORE INTO tts_cache (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, today(), voice, text.length, buf, Date.now()).run().catch(() => null));
   return new Response(buf, { headers: head });
 }
-async function duoBuild(env, ctx, origin, items, lines, ms) {
+async function duoBuild(env, ctx, origin, items, lines, ms, avoid) {
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
@@ -1043,11 +1043,11 @@ async function duoBuild(env, ctx, origin, items, lines, ms) {
     let reply = null;
     const facts = relevantFacts(allFacts, it.headline, it.question); // только показания по теме новости
     try {
-      let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question); model = a.model;
+      let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question, avoid); model = a.model;
       reply = duoCheck(a.text, stripInvisible);
-      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question); reply = duoCheck(a.text, stripInvisible); }
+      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question, avoid); reply = duoCheck(a.text, stripInvisible); }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
-    return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, facts, reply };
+    return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
   }));
   return assembleDuo(segs, { model });
 }
@@ -1055,14 +1055,14 @@ async function duoBuild(env, ctx, origin, items, lines, ms) {
 // Неудачный выпуск (Grok ни разу не ответил) не запоминаем, иначе ошибка висела бы 30 минут
 function duoAnswered(d) { return !!(d && d.segments && d.segments.some((x) => x.guest && x.guest.status !== "offline")); }
 // Ведущий (Claude) выбирает новости из первых заголовков и пишет вопросы; при сбое — первые три и запасные вопросы
-async function duoPick(env, cands) {
+async function duoPick(env, cands, recent) {
   let out = null;
   if (env.ANTHROPIC_API_KEY) {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST", signal: AbortSignal.timeout(25000),
         headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 900, system: HOST_PICK_SYSTEM, messages: [{ role: "user", content: pickUser(cands) }], tools: [HOST_PICK_TOOL], tool_choice: { type: "tool", name: HOST_PICK_TOOL.name } }),
+        body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 900, system: HOST_PICK_SYSTEM, messages: [{ role: "user", content: pickUser(cands, recent) }], tools: [HOST_PICK_TOOL], tool_choice: { type: "tool", name: HOST_PICK_TOOL.name } }),
       });
       if (!res.ok) throw new Error("Claude API " + res.status + ": " + (await res.text()).slice(0, 120));
       const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use");
@@ -1070,7 +1070,7 @@ async function duoPick(env, cands) {
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host pick: " + String(e && e.message || e).slice(0, 180) }); }
   }
   const picks = checkPicks(out, cands.length, stripInvisible);
-  return { items: picks.map((p) => ({ ...cands[p.i], question: p.question })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
+  return { items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
 // Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
 async function duoTranslate(env, d) {
@@ -1134,8 +1134,14 @@ async function duoWarm(env, ctx) {
     await duoArchivePut(env, ready);
     await sharedPut(env, "duo-latest", ready); return; // заголовки те же: выпуск остаётся «последним готовым»
   }
-  const { items, lines } = await duoPick(env, cands);
-  const d = await duoBuild(env, ctx, origin, items, lines, 70000);
+  // Чтобы реплики не повторялись: начала прежних ответов Grok и реплик Давида за сутки
+  const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15).catch(() => null)) || { episodes: [] };
+  const opener = (t) => String(t || "").split(/(?<=[.!?,])\s/)[0].split(" ").slice(0, 6).join(" ");
+  const segsArc = arc.episodes.slice(0, 6).flatMap((e) => e.segments || []);
+  const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
+  const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
+  const { items, lines } = await duoPick(env, cands, recent);
+  const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid);
   if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
     const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
     await duoArchivePut(env, d); }
