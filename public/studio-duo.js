@@ -221,7 +221,7 @@ function start() {
     const q = [];
     for (const ep of (arc && Array.isArray(arc.episodes) ? arc.episodes : [])) {
       if (!ep || ep.episode_id === curId) continue;
-      const lines = buildQueue(ep, lang).filter((x) => !heard.has(x.headline));
+      const lines = buildQueue(ep, lang).filter((x) => !heard.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
       lines.forEach((x) => heard.add(x.headline));
       const br = ep.bridge && ep.bridge[lang];
@@ -235,11 +235,16 @@ function start() {
     clearTimeout(timer); voice.onended = voice.onerror = null;
     if (pos >= queue.length) return more();
     const line = queue[pos++]; show(line);
-    if (soundOn && line.audio && vfail < 3) {
+    if (soundOn && line.audio && vfail < 6) {
+      let tries = 0;
       voice.src = line.audio; duck(true); stage.dataset.voiced = "1";
       const done = () => { voice.onended = voice.onerror = null; duck(false); stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, line.who === "grok" ? 700 : 450); };
       voice.onended = () => { vfail = 0; done(); };
-      voice.onerror = () => { vfail++; if (vfail >= 3) $("src").textContent = t.noVoice; duck(false); stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, line.ms); };
+      // Голос мог ещё синтезироваться: одна повторная попытка через 2 с, потом — субтитры этой реплики, и дальше снова со звуком
+      voice.onerror = () => {
+        if (tries++ < 1) { clearTimeout(timer); timer = setTimeout(() => { voice.src = line.audio + (line.audio.includes("?") ? "&" : "?") + "r=1"; voice.play().catch(() => voice.onerror && voice.onerror()); timer = setTimeout(done, Math.max(line.ms * 2.5, 30000)); }, 2000); return; }
+        vfail++; if (vfail >= 6) $("src").textContent = t.noVoice; duck(false); stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, line.ms);
+      };
       voice.play().catch(() => voice.onerror && voice.onerror());
       timer = setTimeout(done, Math.max(line.ms * 2.5, 30000)); // страховка, если звук завис
       preload();

@@ -1276,9 +1276,10 @@ async function duoWarm(env, ctx) {
   const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
   const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent, carousel);
-  if (duoAnswered(d)) { d.cache_key = key; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
-    const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
-    await duoArchivePut(env, d); }
+  // Выпуск публикуется только после переводов: иначе слушатель получил бы английский, а потом выпуск «поменялся» бы под ним
+  if (duoAnswered(d)) { d.cache_key = key;
+    const tr = await duoTranslate(env, d); if (tr) d.translations = tr;
+    await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); await duoArchivePut(env, d); }
 }
 async function duoData(env, ctx, origin) {
   if (!env.XAI_API_KEY) return { ...assembleDuo([], { grokConfigured: false }), note: "The guest seat is not connected yet: XAI_API_KEY is not configured on this server. Nothing is written in Grok's name." };
