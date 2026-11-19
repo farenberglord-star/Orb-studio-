@@ -1252,7 +1252,13 @@ async function duoWarm(env, ctx) {
   }
   // Ограничение: новый выпуск не чаще раза в 30 минут, даже если заголовки уже сменились
   const last = await sharedGet(env, "duo-latest", 2 * 3600e3);
-  if (last && Date.now() - Date.parse(last.generated_at) < DUO_MIN_GAP_MS) return;
+  if (last && Date.now() - Date.parse(last.generated_at) < DUO_MIN_GAP_MS) {
+    // новый выпуск ещё рано, но недостающие переводы последнего выпуска доделываем
+    const missing = DUO_LANGS.filter((l) => !last.translations || !last.translations[l]);
+    if (missing.length) { const tr = await duoTranslate(env, last, missing); if (tr) { last.translations = { ...(last.translations || {}), ...tr };
+      await sharedPut(env, "duo-latest", last); if (last.cache_key) await sharedPut(env, last.cache_key, last); await duoArchivePut(env, last); } }
+    return;
+  }
   // Чтобы реплики не повторялись: начала прежних ответов Grok и реплик Давида за сутки
   const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15).catch(() => null)) || { episodes: [] };
   const opener = (t) => String(t || "").split(/(?<=[.!?,])\s/)[0].split(" ").slice(0, 6).join(" ");
@@ -1261,7 +1267,7 @@ async function duoWarm(env, ctx) {
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
   const { items, lines } = await duoPick(env, cands, recent);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent);
-  if (duoAnswered(d)) { await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
+  if (duoAnswered(d)) { d.cache_key = key; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d);
     const tr = await duoTranslate(env, d); if (tr) { d.translations = tr; await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); }
     await duoArchivePut(env, d); }
 }
