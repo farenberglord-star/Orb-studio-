@@ -1,0 +1,330 @@
+// ================= «Круглый стол ИИ» (AI Round Table) =================
+// Модератор Claude (Anthropic) берёт 4 самые горячие темы дня, коротко пересказывает и задаёт вопрос;
+// по очереди отвечают Gemini (Google), Grok (xAI) и DeepSeek. В конце Claude благодарит гостей и зовёт зрителей
+// делать свои выводы и писать комментарии. Один выпуск в день, 5 языков, 4 синтетических голоса xAI.
+// Ключи — только секреты воркера: ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY (в код не пишутся).
+
+export const RT_LANGS = ["en", "de", "ru", "ro", "tr"];
+export const RT_TR = ["de", "ru", "ro", "tr"];
+export const RT_GUESTS = ["gemini", "grok", "deepseek"];
+export const RT_CAST = {
+  claude: { name: "Claude", maker: "Anthropic", role: "moderator", voice: "lumen" },
+  gemini: { name: "Gemini", maker: "Google", role: "guest", voice: "ara" },
+  grok: { name: "Grok", maker: "xAI", role: "guest", voice: "sal" },
+  deepseek: { name: "DeepSeek", maker: "DeepSeek", role: "guest", voice: "atlas" },
+};
+export const RT_KEY = "rt-latest", RT_ARCHIVE = "rt-archive", RT_LOCK = "rt-lock", RT_ERR = "rt-last-error";
+export const RT_HOUR = 17;               // после 17:00 по Берлину — выпуск дня
+export const RT_TTS_DAY_CHARS = 60000;   // свой потолок синтеза в сутки (своя таблица, подкаст Дэвида не трогает)
+export const RT_TOPICS = 4;
+const RT_PARTS = ["intro", "closing", "recap", "question", "answer", "thanks"];
+
+export function berlinDay(ms) { return new Date(ms).toLocaleDateString("en-CA", { timeZone: "Europe/Berlin" }); }
+export function berlinHour(ms) { return +new Date(ms).toLocaleString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", hour12: false }); }
+export function rtEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
+
+// Нужно ли собирать новый выпуск: после 17:00 по Берлину и сегодня выпуска ещё не было; самый первый — сразу
+export function rtDue(latest, now) {
+  if (!latest || !latest.generated_at) return true;
+  return berlinHour(now) >= RT_HOUR && berlinDay(Date.parse(latest.generated_at)) !== berlinDay(now);
+}
+
+// Ответ гостя: только речь — без разметки, ссылок и невидимых символов, не длиннее 700 знаков
+export function cleanSpeech(t, max = 700) {
+  let s = String(t || "").replace(/[​-‏‪-‮⁠-⁤﻿]/g, "")
+    .replace(/```[\s\S]*?```/g, " ").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/https?:\/\/\S+/g, "")
+    .replace(/[*_#`>|]+/g, "").replace(/^\s*[-•]\s+/gm, "").replace(/\s+/g, " ").trim();
+  if (s.length > max) { const k = s.slice(0, max); const end = Math.max(k.lastIndexOf(". "), k.lastIndexOf("! "), k.lastIndexOf("? ")); s = end > max * 0.5 ? k.slice(0, end + 1) : k.replace(/\s+\S*$/, "") + "…"; }
+  return s;
+}
+
+// Кандидаты: верхние заголовки всех радаров, по весу; тренды помечены
+export function rtCandidates(radars, terms, trendMatch, recentHeads = []) {
+  const seen = new Set(), out = [];
+  const norm = (h) => String(h || "").toLowerCase().replace(/[^a-z0-9äöüß ]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 60);
+  const recent = new Set(recentHeads.map(norm));
+  for (const r of radars || []) for (const f of (r.feed || []).slice(0, 4)) {
+    const h = f && f[1]; if (!h || seen.has(norm(h)) || recent.has(norm(h))) continue; seen.add(norm(h));
+    const c = { radar: r.id, radarTitle: r.title, headline: String(h).slice(0, 220), source: f[2] || "", time: f[0] || "", link: f[4] || "", weight: +f[3] || 0 };
+    const m = terms && terms.length && trendMatch ? trendMatch(h, terms) : []; if (m.length) c.trending = m.slice(0, 3);
+    out.push(c);
+  }
+  return out.sort((a, b) => (b.trending ? 1 : 0) - (a.trending ? 1 : 0) || b.weight - a.weight).slice(0, 30).map((c, i) => ({ ...c, i }));
+}
+
+export const RT_PICK_TOOL = {
+  name: "round_table_plan",
+  description: "Pick the 4 hottest topics and write the moderator's intro, recaps and questions.",
+  input_schema: { type: "object", additionalProperties: false, required: ["intro", "topics"], properties: {
+    intro: { type: "string", description: "2-3 spoken sentences greeting the viewers" },
+    topics: { type: "array", minItems: 4, maxItems: 4, items: { type: "object", additionalProperties: false, required: ["i", "recap", "question"], properties: {
+      i: { type: "integer", description: "index of the candidate headline" },
+      recap: { type: "string", description: "2 short sentences: only what the headline and source say" },
+      question: { type: "string", description: "one open neutral question to all three guests" } } } } } },
+};
+export const RT_CLOSE_TOOL = {
+  name: "round_table_close",
+  description: "Thank the guests after each topic, write the closing, flag answers that must not air.",
+  input_schema: { type: "object", additionalProperties: false, required: ["thanks", "closing", "withhold"], properties: {
+    thanks: { type: "array", items: { type: "object", additionalProperties: false, required: ["i", "text"], properties: { i: { type: "integer" }, text: { type: "string" } } } },
+    closing: { type: "string" },
+    withhold: { type: "array", items: { type: "object", additionalProperties: false, required: ["i", "guest", "reason"], properties: { i: { type: "integer" }, guest: { type: "string", enum: RT_GUESTS }, reason: { type: "string" } } } } } },
+};
+
+export const RT_MOD_SYSTEM = `You are Claude, made by Anthropic, the moderator of the Orb Studio "AI Round Table": a daily geopolitical news round table broadcast as audio with subtitles on orbstudio.org. Your guests are three other AI models: Gemini (Google), Grok (xAI) and DeepSeek. Write spoken English: short, clear sentences, no markdown.
+From the candidate headlines pick the 4 hottest topics of the day. Big geopolitics and world politics come first: wars and peace talks, summits, sanctions, elections, energy and shipping chokepoints such as Hormuz, trade conflicts. Economy only when it clearly matters to ordinary people. Prefer candidates marked "trending". The four topics must be four different stories, never two items about the same story. Avoid stories listed in recent_topics unless the headline shows a clearly new development.
+For each topic:
+- recap: two short sentences retelling only what the headline and its source say. Never add facts, numbers, names, causes or quotes that are not in the headline. Name the source naturally ("Spiegel reports…").
+- question: one open, neutral question to all three guests, asked the way an ordinary person would ask it, inviting context and different perspectives. Never ask for price predictions or investment advice. No loaded or leading questions.
+intro: greet the viewers in 2-3 sentences: welcome to the Orb Studio AI Round Table; you are Claude from Anthropic, the moderator; introduce Gemini from Google, Grok from xAI and DeepSeek; say that four of the day's hottest topics are on the table. Vary the wording from day to day, no date.
+Stay neutral: never give your own opinion on contested political questions.`;
+
+export function rtGuestSystem(g) {
+  const c = RT_CAST[g];
+  return `You are ${c.name}, an AI model made by ${c.maker}, a guest on the Orb Studio "AI Round Table", a daily news round table broadcast as audio. The moderator Claude (Anthropic) asks all guests the same questions; the other guests are AI models from other companies.
+Answer every question in English in 2-4 spoken sentences, at most 75 words each. No markdown, no lists, no links, no greetings, no thanks, no "great question".
+Speak as yourself, with your own perspective: give context, what is at stake, and what is still unclear. On contested political issues present the main viewpoints fairly instead of taking a side. Do not invent facts, numbers or quotes; if you do not know the latest details, say so briefly. No predictions stated as certain, no financial or investment advice.
+Return only JSON: {"answers":[{"i":<topic index>,"text":"<your answer>"}]} with one answer for every topic.`;
+}
+
+export const RT_CLOSE_SYSTEM = `You are Claude (Anthropic), the moderator of the Orb Studio "AI Round Table". Below are the four topics and the answers of the three guests: Gemini (Google), Grok (xAI) and DeepSeek. Spoken English, no markdown.
+thanks: for every topic one or two short sentences that thank the guests and may neutrally note where their views meet or differ. Never judge who is right, never add new facts.
+closing: 3-4 sentences. Thank Gemini, Grok and DeepSeek by name. Remind the viewers that these were the views of AI models, not verdicts, and invite them to draw their own independent conclusions and to leave a comment below the round table on orbstudio.org.
+withhold: list answers that must not air: investment advice, a price prediction stated as certain, hateful or degrading content, or obviously invented statistics. Usually this list is empty.`;
+
+// ---------- вызовы моделей ----------
+async function claudeTool(env, system, input, tool, maxTokens = 2500) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(90000),
+    headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+    body: JSON.stringify({ model: env.RT_MODEL || "claude-sonnet-5-5", max_tokens: maxTokens, system, messages: [{ role: "user", content: JSON.stringify(input) }], tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
+  if (!r.ok) throw new Error("Claude " + r.status + " " + (await r.text()).slice(0, 160));
+  const j = await r.json(); const t = (j.content || []).find((c) => c.type === "tool_use");
+  if (!t || !t.input) throw new Error("Claude: no tool answer");
+  return { out: t.input, model: j.model || env.RT_MODEL || "claude-sonnet-5-5" };
+}
+function parseJson(txt) {
+  const s = String(txt || "").replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "").trim();
+  try { return JSON.parse(s); } catch { const m = s.match(/\{[\s\S]*\}/); return m ? JSON.parse(m[0]) : null; }
+}
+async function openaiLike(url, key, model, system, user, extra = {}) {
+  const r = await fetch(url, { method: "POST", signal: AbortSignal.timeout(90000), headers: { "content-type": "application/json", authorization: "Bearer " + key },
+    body: JSON.stringify({ model, temperature: 0.6, max_tokens: 1600, response_format: { type: "json_object" }, messages: [{ role: "system", content: system }, { role: "user", content: user }], ...extra }) });
+  if (!r.ok) throw new Error(model + " " + r.status + " " + (await r.text()).slice(0, 160));
+  const j = await r.json(); return { data: parseJson(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content), model: j.model || model };
+}
+async function askGuest(env, g, topics) {
+  const user = JSON.stringify({ moderator: "Claude (Anthropic)", topics: topics.map((t) => ({ i: t.i, headline: t.headline, source: t.source, moderator_recap: t.recap, question: t.question })) });
+  const sys = rtGuestSystem(g);
+  if (g === "grok") { if (!env.XAI_API_KEY) return { status: "off" }; return openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3", sys, user); }
+  if (g === "deepseek") { if (!env.DEEPSEEK_API_KEY) return { status: "off" }; return openaiLike("https://api.deepseek.com/chat/completions", env.DEEPSEEK_API_KEY, env.DEEPSEEK_MODEL || "deepseek-chat", sys, user); }
+  if (g === "gemini") {
+    if (!env.GEMINI_API_KEY) return { status: "off" };
+    const model = env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash";
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", { method: "POST", signal: AbortSignal.timeout(90000),
+      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 2000 } }) });
+    if (!r.ok) throw new Error("Gemini " + r.status + " " + (await r.text()).slice(0, 160));
+    const j = await r.json(); const txt = ((j.candidates || [])[0]?.content?.parts || []).map((p) => p.text || "").join("");
+    return { data: parseJson(txt), model: j.modelVersion || model };
+  }
+  return { status: "off" };
+}
+
+// ---------- сборка выпуска ----------
+// Темы выпуска из плана модератора: по порядку, без повторов, нумерация 0..3 (её же видят гости)
+export function rtTopics(cands, plan) {
+  const topics = [];
+  for (const p of (plan.topics || [])) {
+    if (topics.length >= RT_TOPICS) break;
+    const c = cands.find((x) => x.i === +p.i); if (!c || topics.some((t) => t.headline === c.headline)) continue;
+    topics.push({ i: topics.length, headline: c.headline, source: c.source, link: c.link, radar: c.radar, trending: c.trending || undefined, recap: cleanSpeech(p.recap, 500), question: cleanSpeech(p.question, 300) });
+  }
+  return topics;
+}
+export function rtAssemble(topics0, intro, answers, close, models) {
+  const topics = topics0.map((t) => ({ ...t, answers: {}, thanks: "" }));
+  for (const g of RT_GUESTS) {
+    const a = answers[g] || {};
+    for (const t of topics) {
+      if (a.status === "off") { t.answers[g] = { status: "off" }; continue; }
+      if (a.status === "error" || !a.list) { t.answers[g] = { status: "error" }; continue; }
+      const hit = a.list.find((x) => +x.i === t.i), text = hit ? cleanSpeech(hit.text) : "";
+      t.answers[g] = text.length > 20 ? { status: "ok", text, model: a.model } : { status: "error" };
+    }
+  }
+  if (close) {
+    for (const x of close.thanks || []) { const t = topics.find((y) => y.i === +x.i); if (t) t.thanks = cleanSpeech(x.text, 300); }
+    for (const w of close.withhold || []) { const t = topics.find((y) => y.i === +w.i); if (t && t.answers[w.guest] && t.answers[w.guest].status === "ok") t.answers[w.guest] = { status: "withheld", reason: cleanSpeech(w.reason, 160) }; }
+  }
+  return { status: "ok", show: "AI Round Table", generated_at: new Date().toISOString(),
+    cast: Object.entries(RT_CAST).map(([id, c]) => ({ id, name: c.name, maker: c.maker, role: c.role, model: id === "claude" ? models.claude : (answers[id] && answers[id].model) || null, connected: !(answers[id] && answers[id].status === "off") })),
+    intro: cleanSpeech(intro, 500), topics, closing: close ? cleanSpeech(close.closing, 600) : "" };
+}
+// В эфир — только если по каждой теме ответил хотя бы один гость
+export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
+
+async function rtTranslate(env, d) {
+  const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
+  const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
+  const one = async (lg) => {
+    try {
+      const { data } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
+        `You translate a news round table between AI models from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Translate every string, keep the meaning exactly, add nothing. Keep the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI, Orb Studio and orbstudio.org as they are. Return the same JSON structure with the same keys.`,
+        JSON.stringify(src), { temperature: 0.2, max_tokens: 6000 });
+      if (!data || typeof data.intro !== "string" || !Array.isArray(data.topics)) return null;
+      const o = { intro: cleanSpeech(data.intro, 700), closing: cleanSpeech(data.closing, 900), topics: {} };
+      for (const t of src.topics) {
+        const x = data.topics.find((y) => +y.i === t.i); if (!x) return null;
+        const a = {}; for (const g of Object.keys(t.answers)) { const v = cleanSpeech(x.answers && x.answers[g], 1000); if (!v) return null; a[g] = v; }
+        o.topics[t.i] = { recap: cleanSpeech(x.recap, 700), question: cleanSpeech(x.question, 450), thanks: cleanSpeech(x.thanks, 450), answers: a };
+      }
+      return o;
+    } catch { return null; }
+  };
+  const res = await Promise.all(RT_TR.map(one)); const out = {};
+  RT_TR.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
+  return out;
+}
+
+// deps: { sharedGet, sharedPut, allRadars, trendsData, trendTerms, trendMatch, origin }
+export async function rtBuild(env, ctx, deps) {
+  if (!env.ANTHROPIC_API_KEY || !env.XAI_API_KEY) throw new Error("moderator or translator not configured");
+  const arc = (await deps.sharedGet(env, RT_ARCHIVE, 1e15)) || { episodes: [] };
+  const recentHeads = arc.episodes.slice(0, 3).flatMap((e) => (e.topics || []).map((t) => t.headline));
+  const radars = await deps.allRadars(env, ctx, deps.origin);
+  const tr = await deps.trendsData(env).catch(() => null), terms = tr ? deps.trendTerms(tr) : [];
+  const cands = rtCandidates(radars, terms, deps.trendMatch, recentHeads);
+  if (cands.length < RT_TOPICS) throw new Error("not enough headlines");
+  const plan = await claudeTool(env, RT_MOD_SYSTEM, { candidates: cands.map((c) => ({ i: c.i, headline: c.headline, source: c.source, radar: c.radarTitle, trending: c.trending || undefined })), recent_topics: recentHeads }, RT_PICK_TOOL);
+  const topics0 = rtTopics(cands, plan.out);
+  if (topics0.length < RT_TOPICS) throw new Error("moderator picked fewer than 4 topics");
+  const answers = {};
+  await Promise.all(RT_GUESTS.map(async (g) => {
+    try { const r = await askGuest(env, g, topics0); if (r.status === "off") { answers[g] = { status: "off" }; return; }
+      answers[g] = { list: (r.data && Array.isArray(r.data.answers) ? r.data.answers : []), model: r.model }; }
+    catch (e) { answers[g] = { status: "error" }; await deps.sharedPut(env, RT_ERR, { at: new Date().toISOString(), error: g + ": " + String(e && e.message || e).slice(0, 200) }); }
+  }));
+  let d = rtAssemble(topics0, plan.out.intro, answers, null, { claude: plan.model });
+  const close = await claudeTool(env, RT_CLOSE_SYSTEM, { topics: d.topics.map((t) => ({ i: t.i, headline: t.headline, question: t.question, answers: Object.fromEntries(RT_GUESTS.map((g) => [g, t.answers[g].status === "ok" ? t.answers[g].text : "(" + t.answers[g].status + ")"])) })) }, RT_CLOSE_TOOL, 1800);
+  d = rtAssemble(topics0, plan.out.intro, answers, close.out, { claude: plan.model });
+  if (!rtPublishable(d)) throw new Error("not publishable: guests did not answer");
+  d.translations = await rtTranslate(env, d);
+  d.episode_id = rtEpId(d);
+  await deps.sharedPut(env, RT_KEY, d);
+  const eps = [d, ...arc.episodes.filter((e) => e.episode_id !== d.episode_id)].slice(0, 14);
+  await deps.sharedPut(env, RT_ARCHIVE, { episodes: eps });
+  return d;
+}
+
+// ---------- реплики и голоса ----------
+export function rtLineText(d, part, seg, who, lang) {
+  if (!d) return null;
+  const tr = lang !== "en" && d.translations && d.translations[lang];
+  if (lang !== "en" && !tr) return null;
+  if (part === "intro" || part === "closing") return { who: "claude", text: tr ? tr[part] : d[part] };
+  const t = (d.topics || []).find((x) => x.i === seg); if (!t) return null;
+  const tt = tr ? tr.topics && tr.topics[seg] : null; if (tr && !tt) return null;
+  if (part === "answer") { if (!RT_GUESTS.includes(who) || !t.answers[who] || t.answers[who].status !== "ok") return null; return { who, text: tt ? tt.answers[who] : t.answers[who].text }; }
+  if (["recap", "question", "thanks"].includes(part)) return { who: "claude", text: tt ? tt[part] : t[part] };
+  return null;
+}
+// Порядок эфира: приветствие → по каждой теме пересказ, вопрос, Gemini, Grok, DeepSeek, благодарность → финал
+export function rtQueue(d, lang, origin = "") {
+  const L = RT_LANGS.includes(lang) && (lang === "en" || (d.translations && d.translations[lang])) ? lang : "en";
+  const ep = d.episode_id || rtEpId(d), q = [];
+  const au = (part, seg, who) => `${origin}/api/v1/roundtable/audio?ep=${ep}&part=${part}${seg != null ? "&seg=" + seg : ""}${who ? "&who=" + who : ""}&lang=${L}`;
+  const add = (part, seg, who, topic) => { const x = rtLineText(d, part, seg, who, L); if (x && x.text) q.push({ who: x.who, part, seg, text: x.text, audio: au(part, seg, part === "answer" ? who : null), topic }); };
+  add("intro", null, null, null);
+  for (const t of d.topics || []) {
+    add("recap", t.i, null, t.i); add("question", t.i, null, t.i);
+    for (const g of RT_GUESTS) { if (t.answers[g] && t.answers[g].status === "ok") add("answer", t.i, g, t.i); else q.push({ who: g, part: "absent", seg: t.i, status: (t.answers[g] || {}).status || "off", text: "", audio: null, topic: t.i }); }
+    add("thanks", t.i, null, t.i);
+  }
+  add("closing", null, null, null);
+  return { lang: L, lines: q };
+}
+
+async function rtVoice(env, text, who, lg) {
+  const voice = RT_CAST[who].voice; text = String(text || "").trim().slice(0, 1400); if (!text) return null;
+  const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("rt|" + voice + "|" + lg + "|" + text)));
+  const key = [...kb].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS rt_tts (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run();
+  const hit = await env.DB.prepare("SELECT audio FROM rt_tts WHERE k=?1").bind(key).first();
+  if (hit && hit.audio) return { buf: new Uint8Array(hit.audio), cached: true };
+  const day = new Date().toISOString().slice(0, 10);
+  const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM rt_tts WHERE day=?1").bind(day).first()) || { c: 0 };
+  if (used.c + text.length > RT_TTS_DAY_CHARS) return { budget: true };
+  const r = await fetch("https://api.x.ai/v1/tts", { method: "POST", signal: AbortSignal.timeout(30000), headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY }, body: JSON.stringify({ text, voice_id: voice, language: lg }) });
+  if (!r.ok) return null;
+  const buf = new Uint8Array(await r.arrayBuffer()); if (buf.length < 500 || buf.length > 2500000) return null;
+  await env.DB.prepare("INSERT OR IGNORE INTO rt_tts (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, day, voice, text.length, buf, Date.now()).run();
+  return { buf, cached: false };
+}
+async function rtFind(env, deps, ep) {
+  const latest = await deps.sharedGet(env, RT_KEY, 1e15);
+  if (!ep || (latest && latest.episode_id === ep)) return latest;
+  const arc = (await deps.sharedGet(env, RT_ARCHIVE, 1e15)) || { episodes: [] };
+  return arc.episodes.find((e) => e.episode_id === ep) || null;
+}
+// Заранее озвучить выпуск (по кусочку за тик cron, чтобы первый слушатель не ждал)
+export async function rtPrewarm(env, d, max = 24) {
+  if (!d || !env.XAI_API_KEY || !env.DB) return 0;
+  let n = 0;
+  for (const lg of RT_LANGS) {
+    const { lines, lang } = rtQueue(d, lg); if (lang !== lg) continue;
+    for (const x of lines) { if (!x.text) continue; if (n >= max) return n;
+      const r = await rtVoice(env, x.text, x.who, lg).catch(() => null); if (r && r.budget) return n; if (r && !r.cached) n++; }
+  }
+  return n;
+}
+// cron каждые 6 минут: собрать выпуск дня (с замком), иначе доозвучить
+export async function rtWarm(env, ctx, deps) {
+  if (!env.DB) return;
+  const now = Date.now(), latest = await deps.sharedGet(env, RT_KEY, 1e15);
+  if (rtDue(latest, now)) {
+    const lock = await deps.sharedGet(env, RT_LOCK, 25 * 60e3); if (lock) return;
+    await deps.sharedPut(env, RT_LOCK, { at: new Date(now).toISOString() });
+    try { const d = await rtBuild(env, ctx, deps); await rtPrewarm(env, d, 12); }
+    catch (e) { await deps.sharedPut(env, RT_ERR, { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 240) }); }
+    return;
+  }
+  if (latest) {
+    const missing = RT_TR.filter((l) => !latest.translations || !latest.translations[l]);
+    if (missing.length && now - Date.parse(latest.generated_at) < 12 * 3600e3) {
+      const tr = await rtTranslate(env, latest).catch(() => ({}));
+      if (Object.keys(tr).length) { latest.translations = { ...(latest.translations || {}), ...tr }; await deps.sharedPut(env, RT_KEY, latest); }
+    }
+    await rtPrewarm(env, latest, 24);
+  }
+}
+
+// ---------- HTTP ----------
+// deps: + json(body, headers, status), comments(request, env, ctx, url)
+export async function rtHandle(request, env, ctx, url, deps) {
+  const p = url.pathname, H = { "Access-Control-Allow-Origin": "*" };
+  if (p === "/api/v1/roundtable/comments") return deps.comments(request, env, ctx, url);
+  if (p === "/api/v1/roundtable/audio") {
+    const bad = (m, st = 404) => deps.json({ error: m }, { ...H, "Cache-Control": "no-store" }, st);
+    if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
+    const part = url.searchParams.get("part"), seg = url.searchParams.has("seg") ? Number(url.searchParams.get("seg")) : null, who = url.searchParams.get("who"), lg = RT_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
+    if (!RT_PARTS.includes(part)) return bad("bad request", 400);
+    const d = await rtFind(env, deps, url.searchParams.get("ep")); if (!d) return bad("no such episode");
+    const x = rtLineText(d, part, seg, who, lg); if (!x || !x.text) return bad("no such line");
+    const r = await rtVoice(env, x.text, x.who, lg).catch(() => null);
+    if (r && r.budget) return bad("daily voice budget reached — subtitles only", 429);
+    if (!r || !r.buf) return bad("voice service error", 502);
+    return new Response(r.buf, { headers: { ...H, "content-type": "audio/mpeg", "Cache-Control": "public, max-age=604800, immutable", "x-voice": RT_CAST[x.who].voice + " (xAI Grok TTS, synthetic)" } });
+  }
+  if (p === "/api/v1/roundtable") {
+    const d = await rtFind(env, deps, url.searchParams.get("ep"));
+    const base = { show: "AI Round Table", page: "https://orbstudio.org/roundtable", schedule: "one episode a day, after 17:00 Berlin time",
+      about: "Moderator Claude (Anthropic) picks four of the day's hottest news topics, retells each headline and asks the same question to three AI guests: Gemini (Google), Grok (xAI) and DeepSeek. Answers are generated by those models; voices are synthetic (xAI Grok TTS). Views of AI models, not verdicts or advice.",
+      voices: { synthetic: true, provider: "xAI Grok TTS", by_seat: Object.fromEntries(Object.entries(RT_CAST).map(([k, c]) => [k, c.voice])) } };
+    if (!d) return deps.json({ ...base, status: "preparing" }, { ...H, "Cache-Control": "public, max-age=60" });
+    const lang = RT_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : null;
+    const out = { ...base, ...d };
+    if (lang) out.queue = rtQueue(d, lang, url.origin);
+    return deps.json(out, { ...H, "Cache-Control": "public, max-age=60" });
+  }
+  return null;
+}
