@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Давид в 3D — тест</title>
+<style>
+html,body{margin:0;height:100%;background:#03060d;color:#cfe6ff;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{position:relative;height:100%;min-height:520px;background:radial-gradient(ellipse 70% 55% at 50% 40%,#0b1a33 0%,#03060d 70%)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.bar{position:absolute;left:16px;right:16px;bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{background:#0d2245;color:#cfe6ff;border:1px solid #2c5fa8;border-radius:10px;padding:9px 14px;font:inherit;cursor:pointer}
+.note{opacity:.65;font-size:13px}
+h1{position:absolute;left:16px;top:12px;margin:0;font-size:16px;font-weight:600;letter-spacing:.02em}
+#msg{position:absolute;left:0;right:0;top:45%;text-align:center;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="cv"></canvas>
+  <h1>Давид · 3D-модель из Blender (тест)</h1>
+  <div id="msg">Загружаю модель…</div>
+  <div class="bar">
+    <button id="talk" aria-pressed="true">⏸ Пусть помолчит</button>
+    <span class="note">Потяните, чтобы повернуть. Речь пока имитируется, без звука.</span>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/vendor/GLTFLoader-r128.js"></script>
+<script src="/lab/david3d.js"></script>
+</body>
+</html>
