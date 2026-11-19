@@ -2140,3 +2140,6 @@ CODE["tools/agent-wallet"] = [
 # 19.11.2026: «Индексы для ИИ-агентов» переехали на страницу датчиков (/sensors#indices) — их переводы нужны и там
 _have = {x[0] for x in PAGES["sensors"]}
 PAGES["sensors"] += [x for x in PAGES["indices"] if x[0] not in _have]
+
+# 19.11.2026: приборная панель (бывшая /tools/cockpit) — внутри карты задержек на /sensors#cockpit
+PAGES["sensors"].append(("Приборная панель · проверить каждый адрес из своего браузера", "Instrumententafel · jede Adresse im eigenen Browser prüfen", "Instrument panel · check every address from your own browser"))
