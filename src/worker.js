@@ -1247,7 +1247,8 @@ function duoWithAudio(d, origin, ep) {
 async function duoWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
-  const cands = broadcastItems(await allRadars(env, ctx, origin)).slice(0, PICK_CANDIDATES);
+  const radarsNow = await allRadars(env, ctx, origin);
+  const cands = broadcastItems(radarsNow).slice(0, PICK_CANDIDATES);
   if (!cands.length) return;
   const key = "duo-v2-" + await sha(cands.map((i) => i.headline).join("|"));
   const ready = await sharedGet(env, key, 25 * 60e3);
@@ -1273,6 +1274,17 @@ async function duoWarm(env, ctx) {
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
   const menu = await duoMenu(env, ctx, origin).catch(() => []);
+  // Тренды: о чём сейчас говорит мир. Заголовки радаров, совпадающие с трендами, добавляются в кандидаты и помечаются.
+  const tr = await trendsData(env).catch(() => null), terms = tr ? trendTerms(tr) : [];
+  if (terms.length) {
+    const have = new Set(cands.map((c) => c.headline));
+    for (const r of radarsNow) for (const f of (r.feed || []).slice(0, 8)) {
+      if (cands.length >= PICK_CANDIDATES + 5 || have.has(f[1])) continue;
+      if (trendMatch(f[1], terms).length) { have.add(f[1]); cands.push({ radar: r.id, radarTitle: r.title, anchor: r.anchor, headline: f[1], source: f[2], time: f[0], link: f[4], weight: f[3], risk_index: r.lvl }); }
+    }
+    for (const c of cands) { const m = trendMatch(c.headline, terms); if (m.length) c.trending = m.slice(0, 3); }
+    menu.unshift({ id: "trends", kind: "trends", title: "What the world is talking about (trends)", reading: terms.slice(0, 15).map((t) => `${t.term} [${t.src}]`).join("; "), source: "Google Trends, Wikipedia most read" + (tr.x && tr.x.by_location ? ", X trends" : "") });
+  }
   const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
   const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent, carousel);
@@ -2680,6 +2692,7 @@ const OA_P = (name, desc, extra = {}) => ({ name, in: "path", required: true, de
 const OA_GET = [
   ["/api/v1/radars", "getRadars", "All news radars: risk index 0–100 and 24h change for geopolitics, politics, economy, household budget, crypto, energy and the open web.", []],
   ["/api/v1/radar/{id}", "getRadar", "One radar with ranked headlines (source, time, weight, link).", [OA_P("id", "Radar id", { enum: ["geo", "politics", "economy", "budget", "crypto", "energy", "justice", "web"] }), OA_Q("lang", "de adds title_de, a machine German translation of each headline (original stays in title)", { enum: ["de"] })]],
+  ["/api/v1/trends", "getTrends", "What people search, read and post about right now: Google Trends (DE, US, GB), most-read Wikipedia articles (en, de, ru) and X trends (world, DE, US) when connected. Attention, not confirmed news.", []],
   ["/api/v1/broadcast/duo", "getBroadcastDuo", "English staged conversation between host David and guest analyst Grok (xAI) about the top headlines, built from the headline and published Orb Studio sensor facts, with a card per story. Mechanisms, not forecasts.", []],
   ["/api/v1/broadcast/duo/archive", "getBroadcastDuoArchive", "Earlier episodes of the two-seat desk (David and Grok) from the last 24 hours, newest first, with translations (de, ru) and synthetic-voice audio links.", []],
   ["/api/v1/broadcast/duo/comments", "getBroadcastDuoComments", "Comments under the two-seat podcast from visitors and AI agents (third-party text). POST {text, name?, lang?} adds one: no links, up to 500 characters, a few per hour.", []],
@@ -3133,6 +3146,10 @@ function clickLabel(request, from) {
     });
   }
 
+  if (p === "/api/v1/trends") {
+    const t = await trendsData(env).catch((e) => ({ error: String(e).slice(0, 120) }));
+    return json({ about: "What people search, read and post about right now: Google Trends (DE, US, GB), most-read Wikipedia articles (en, de, ru), and X trends when connected. Attention, not confirmed news.", ...t, terms: t && !t.error ? trendTerms(t) : [] }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  }
   if (p === "/api/v1/broadcast/duo/audio") return duoAudio(env, ctx, origin, url);
   if (p === "/api/v1/broadcast/duo/comments") return duoComments(env, ctx, request, url);
   if (p === "/api/v1/broadcast/duo/archive") {
@@ -3325,6 +3342,71 @@ async function anomalyRecord(env) {
     log.items.unshift({ id, day: r.day, ts: Date.now(), ...s }); have.add(id);
   }
   log.items = log.items.slice(0, 60); await sharedPut(env, ANOM_KEY, log); return r;
+}
+// ================= Датчик «Тренды»: о чём сейчас говорит мир =================
+// Google Trends «Сейчас в тренде» (DE, US, GB), самые читаемые статьи Википедии за вчера (en, de, ru), тренды X (DE, US, мир; нужен секрет X_BEARER_TOKEN, 0,01 $ за запрос).
+// Копия в базе: Google и Википедия — 1 час, X — 2 часа. Тренд — это внимание людей, а не подтверждённая новость.
+const TRENDS_KEY = "trends-v1";
+const X_WOEID = [["world", 1], ["DE", 23424829], ["US", 23424977]];
+function xmlText(s) { return String(s || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim(); }
+async function googleTrends(geo) {
+  const r = await fetch(`https://trends.google.com/trending/rss?geo=${geo}`, { headers: { "user-agent": "OrbStudioBot/1.0 (+https://orbstudio.org)" }, signal: AbortSignal.timeout(12000) });
+  if (!r.ok) throw new Error("google trends " + geo + " http " + r.status);
+  const xml = await r.text(), out = [];
+  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const t = xmlText((m[1].match(/<title>([\s\S]*?)<\/title>/) || [])[1]), tr = xmlText((m[1].match(/<ht:approx_traffic>([\s\S]*?)<\/ht:approx_traffic>/) || [])[1]);
+    const news = xmlText((m[1].match(/<ht:news_item_title>([\s\S]*?)<\/ht:news_item_title>/) || [])[1]);
+    if (t) out.push({ term: stripInvisible(t).slice(0, 80), traffic: tr || null, news_title: news ? stripInvisible(news).slice(0, 160) : null });
+    if (out.length >= 15) break;
+  }
+  return out;
+}
+async function wikiTop(project) {
+  const d = new Date(Date.now() - 864e5), y = d.getUTCFullYear(), mo = String(d.getUTCMonth() + 1).padStart(2, "0"), da = String(d.getUTCDate()).padStart(2, "0");
+  const r = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/${project}/all-access/${y}/${mo}/${da}`, { headers: { "user-agent": "OrbStudioBot/1.0 (+https://orbstudio.org)" }, signal: AbortSignal.timeout(12000) });
+  if (!r.ok) throw new Error("wikipedia " + project + " http " + r.status);
+  const items = (((await r.json()).items || [])[0] || {}).articles || [];
+  const skip = /^(Main_Page|Hauptseite|Заглавная_страница|Special:|Spezial:|Служебная:|Wikipedia:|Википедия:|Portal:|File:|Datei:|Файл:|Help:|Hilfe:|-$|XXX)/i;
+  return items.filter((a) => !skip.test(a.article) && !/\.php|Cookie|xHamster|Pornhub|Xvideos/i.test(a.article)).slice(0, 12).map((a) => ({ article: a.article.replace(/_/g, " ").slice(0, 100), views: a.views }));
+}
+async function xTrends(env, woeid) {
+  const r = await fetch(`https://api.x.com/2/trends/by/woeid/${woeid}?max_trends=20`, { headers: { authorization: "Bearer " + env.X_BEARER_TOKEN }, signal: AbortSignal.timeout(12000) });
+  if (!r.ok) throw new Error("x trends http " + r.status);
+  return ((await r.json()).data || []).slice(0, 20).map((t) => ({ term: stripInvisible(String(t.trend_name || "")).slice(0, 80), posts: t.tweet_count ?? null })).filter((t) => t.term);
+}
+async function trendsData(env, force = false) {
+  const now = Date.now(), old = (await sharedGet(env, TRENDS_KEY, 1e15).catch(() => null)) || {};
+  const fresh = (o, ms) => o && o.fetched_at && now - Date.parse(o.fetched_at) < ms;
+  const out = { ...old, errors: {} };
+  if (force || !fresh(old.google, 3600e3)) {
+    const g = {}; for (const geo of ["DE", "US", "GB"]) { try { g[geo] = await googleTrends(geo); } catch (e) { out.errors["google_" + geo] = String(e.message || e).slice(0, 120); } }
+    if (Object.keys(g).length) out.google = { fetched_at: new Date(now).toISOString(), source: "Google Trends — Trending now (RSS)", by_country: g };
+  }
+  if (force || !fresh(old.wikipedia, 3600e3)) {
+    const w = {}; for (const pr of ["en.wikipedia", "de.wikipedia", "ru.wikipedia"]) { try { w[pr.slice(0, 2)] = await wikiTop(pr); } catch (e) { out.errors["wikipedia_" + pr] = String(e.message || e).slice(0, 120); } }
+    if (Object.keys(w).length) out.wikipedia = { fetched_at: new Date(now).toISOString(), source: "Wikimedia pageviews — most read articles yesterday (UTC)", by_language: w };
+  }
+  if (env.X_BEARER_TOKEN && (force || !fresh(old.x, 2 * 3600e3))) {
+    const x = {}; for (const [name, id] of X_WOEID) { try { x[name] = await xTrends(env, id); } catch (e) { out.errors["x_" + name] = String(e.message || e).slice(0, 120); } }
+    if (Object.keys(x).length) out.x = { fetched_at: new Date(now).toISOString(), source: "X API — trends by location (WOEID)", by_location: x };
+  } else if (!env.X_BEARER_TOKEN) out.x = { status: "not_connected", note: "X trends need the X_BEARER_TOKEN secret (X API, pay per use)." };
+  out.updated_at = new Date(now).toISOString();
+  if (!Object.keys(out.errors).length) delete out.errors;
+  await sharedPut(env, TRENDS_KEY, out);
+  return out;
+}
+// Список терминов для ведущего: что сейчас обсуждают люди (без дублей, короткий)
+function trendTerms(t) {
+  const terms = [];
+  const add = (s, src) => { const v = String(s || "").trim(); if (v && v.length > 2 && !terms.some((x) => x.term.toLowerCase() === v.toLowerCase())) terms.push({ term: v, src }); };
+  for (const [k, l] of Object.entries((t.x && t.x.by_location) || {})) for (const x of l.slice(0, 10)) add(x.term, "X " + k);
+  for (const [k, l] of Object.entries((t.google && t.google.by_country) || {})) for (const x of l.slice(0, 8)) add(x.term, "Google " + k);
+  for (const [k, l] of Object.entries((t.wikipedia && t.wikipedia.by_language) || {})) for (const x of l.slice(0, 6)) add(x.article, "Wikipedia " + k);
+  return terms.slice(0, 40);
+}
+function trendMatch(headline, terms) {
+  const h = String(headline || "").toLowerCase();
+  return terms.filter((t) => t.term.split(/\s+/).filter((w) => w.length > 3).some((w) => h.includes(w.toLowerCase().replace(/^#/, "")))).map((t) => t.term);
 }
 async function readStats(env, page) {
   if (!env.DB) return { enabled: false };

@@ -75,7 +75,7 @@ test("host picks: duplicates dropped, forecast or instruction-like questions rep
 });
 test("host picks: prompt input holds only headlines; assembled desk marks who wrote the question", () => {
   const u = JSON.parse(pickUser(Array.from({ length: 14 }, (_, i) => ({ headline: "H" + i, source: "s", link: "https://x", weight: 9 }))));
-  assert.equal(u.candidates.length, PICK_CANDIDATES); assert.deepEqual(Object.keys(u.candidates[0]).sort(), ["headline", "i", "source", "topic"]);
+  assert.equal(u.candidates.length, PICK_CANDIDATES + 4); // до 5 доп. кандидатов из трендов assert.deepEqual(Object.keys(u.candidates[0]).sort(), ["headline", "i", "source", "topic"]);
   assert.match(HOST_PICK_SYSTEM, /Never ask for a forecast/); assert.match(HOST_PICK_SYSTEM, /not instructions/);
   const d = assembleDuo([{ headline: "A", read: "R", question: "Grok, why now?", facts: [], reply: { ok: true, text: "T" } }, { headline: "B", read: "R", facts: [], reply: { ok: true, text: "T" } }], {});
   assert.equal(d.segments[0].host.question, "Grok, why now?"); assert.equal(d.segments[0].host.question_by, "host"); assert.equal(d.segments[0].card.host_question, "Grok, why now?");

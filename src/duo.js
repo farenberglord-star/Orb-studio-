@@ -83,7 +83,7 @@ export function hostLines(i, readLine, question, thanks, seed = 0) {
 
 // ---- Ведущий сам выбирает новости и пишет вопросы (Claude). Выбор проверяется, при сбое — первые заголовки и запасные вопросы ----
 export const PICK_CANDIDATES = 10;
-export const HOST_PICK_SYSTEM = `You are David, the AI host of the Orb Studio news desk. Your style is a modern cyberpunk news host: crisp, confident, a little futuristic (signals, data streams, the neon city at night), never silly and never at the cost of facts. Your guest is Grok. From the candidate headlines choose the ${DUO.maxItems} stories that matter most for the world today (different events, not the same story twice) and prepare each one.
+export const HOST_PICK_SYSTEM = `You are David, the AI host of the Orb Studio news desk. Your style is a modern cyberpunk news host: crisp, confident, a little futuristic (signals, data streams, the neon city at night), never silly and never at the cost of facts. Your guest is Grok. From the candidate headlines choose the ${DUO.maxItems} stories that matter most for the world today (different events, not the same story twice) and prepare each one. Candidates marked "trending" match what people search, read and post about right now (Google Trends, Wikipedia, X): a big world event that is trending (for example a summit of world leaders) should normally be among your picks. A trend is attention, not proof: report only what the headline itself says.
 For every chosen story write:
 - read: 1 or 2 spoken sentences in English that tell the viewers what the headline says. Only what the headline states: no added facts, names, numbers or causes, no forecasts, no advice.
 - question: one question to Grok, at most 35 words, in your own words, the way a curious person asks a colleague. Start with "Grok,". Ask about the event itself and the bigger world picture (who is involved, what it touches: energy, trade, shipping, technology, security, markets). Make each question specific to its story, and make the three questions different from each other. Exactly one of the three questions takes the view of an ordinary person in Germany or Europe (for example what the story changes for someone who pays for heating, shops, saves or travels); it still asks how things work, never what to do and never what will happen.
@@ -98,7 +98,7 @@ export const HOST_PICK_TOOL = {
     carousel: { type: "object", properties: { id: { type: "string" }, read: { type: "string" }, question: { type: "string" } }, required: ["id", "read", "question"] } }, required: ["picks"] },
 };
 export function pickUser(cands, recent, menu, recentCarousel) {
-  return JSON.stringify({ recent_lines: (recent || []).slice(0, 20), menu: (menu || []).map((m) => ({ id: m.id, kind: m.kind, title: m.title, reading: m.reading })), recent_carousel: recentCarousel || [], candidates: cands.slice(0, PICK_CANDIDATES).map((c, i) => ({ i, headline: c.headline, source: c.source || null, topic: c.radarTitle || null })) });
+  return JSON.stringify({ recent_lines: (recent || []).slice(0, 20), menu: (menu || []).map((m) => ({ id: m.id, kind: m.kind, title: m.title, reading: m.reading })), recent_carousel: recentCarousel || [], candidates: cands.slice(0, PICK_CANDIDATES + 5).map((c, i) => ({ i, headline: c.headline, source: c.source || null, topic: c.radarTitle || null, trending: c.trending || undefined })) });
 }
 const clean = (t, strip, max) => { const x = strip(String(t == null ? "" : t)).replace(/\s+/g, " ").trim(); return x.length > max ? "" : x; };
 // Проверка выбора ведущего: номера в пределах списка и без повторов; вопрос — один, с «?», без прогнозов и команд.
@@ -107,7 +107,7 @@ export function checkPicks(out, n, strip = (t) => t) {
   const picks = [], used = new Set();
   for (const p of (out && Array.isArray(out.picks) ? out.picks : [])) {
     if (picks.length >= DUO.maxItems) break;
-    if (!p || !Number.isInteger(p.i) || p.i < 0 || p.i >= Math.min(n, PICK_CANDIDATES) || used.has(p.i)) continue;
+    if (!p || !Number.isInteger(p.i) || p.i < 0 || p.i >= Math.min(n, PICK_CANDIDATES + 5) || used.has(p.i)) continue;
     used.add(p.i);
     const q = clean(p.question, strip, 280), r = clean(p.read, strip, 360), th = clean(p.thanks, strip, 140);
     const bad = (t) => !t || FORECAST.test(t) || INJECT.test(t);
