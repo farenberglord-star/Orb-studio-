@@ -1395,7 +1395,8 @@ const DUO_CTA = {
 };
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
-  const q = ep ? `&ep=${ep}` : "";
+  // v= — номер выпуска в каждой ссылке: ответ кэшируется как immutable, и без него телефон держал голос старого выпуска
+  const q = ep ? `&ep=${ep}` : `&v=${duoEpId(d)}`;
   for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") { parts.push("answer", "thanks"); if (sg.host.follow_up && sg.guest.follow_answer) parts.push("follow_up", "follow_answer"); if (sg.host.transition) parts.push("transition"); }
     sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}${q}`]));
     for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
