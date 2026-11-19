@@ -214,6 +214,7 @@ function start() {
     const dt = Math.min(0.05, (ms - last) / 1000 || 0); last = ms;
     const s = ms / 1000, speaker = stage.dataset.speaker, lv = window.__orbLevel ? window.__orbLevel() : 0;
     stage.style.setProperty("--lv", lv.toFixed(3));
+    stage.style.setProperty("--lvd", (speaker === "david" ? lv : 0).toFixed(3)); stage.style.setProperty("--lvg", (speaker === "grok" ? lv : 0).toFixed(3));
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = "lighter";
     for (const p of dots) {

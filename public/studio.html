@@ -87,6 +87,25 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .bnote{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
 .foot{color:#8f9bb8;font-size:12.5px;text-align:center;margin:4px 0 0}.foot a{color:#9fdcff}
 [hidden]{display:none!important}
+/* «Живые» фигуры: слои той же картинки с мягкой маской, чуть-чуть дышат, кивают и говорят (без ИИ, только CSS) */
+.parts{position:absolute;inset:0;pointer-events:none}
+.pt{position:absolute;inset:0;will-change:transform}
+.pt img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pt{-webkit-mask-image:var(--m);mask-image:var(--m)}
+.d-body{--m:radial-gradient(ellipse 21% 17% at 24% 41%,#000 55%,transparent 100%);transform-origin:24% 50%;animation:breathe 5.6s ease-in-out infinite}
+.d-hand{--m:radial-gradient(ellipse 9% 4.5% at 35% 48.5%,#000 45%,transparent 100%);transform-origin:30% 47%;animation:handD 7.3s ease-in-out infinite;translate:calc(var(--lvd,0) * .5%) calc(var(--lvd,0) * -.35%)}
+.d-head{--m:radial-gradient(ellipse 9.5% 6.2% at 25% 27.6%,#000 62%,transparent 100%);transform-origin:25.5% 32%;animation:headD 8.2s ease-in-out infinite;translate:0 calc(var(--lvd,0) * .32%)}
+.d-mouth{--m:radial-gradient(ellipse 2.3% .8% at 29.4% 30.7%,#000 35%,transparent 100%);transform-origin:29.4% 30.4%;scale:1 calc(1 + var(--lvd,0) * .55);translate:0 calc(var(--lvd,0) * .12%)}
+.d-mouth img{filter:brightness(calc(1 - var(--lvd,0) * .2))}
+.g-body{--m:radial-gradient(ellipse 18% 17% at 79% 42%,#000 55%,transparent 100%);transform-origin:80% 51.5%;animation:breathe 6.1s ease-in-out -2s infinite}
+.g-hand{--m:radial-gradient(ellipse 8% 4.5% at 67% 48.5%,#000 45%,transparent 100%);transform-origin:72% 47%;animation:handG 6.7s ease-in-out infinite;translate:calc(var(--lvg,0) * -.5%) calc(var(--lvg,0) * -.35%)}
+.g-head{--m:radial-gradient(ellipse 8.8% 6.4% at 75.2% 28.4%,#000 62%,transparent 100%);transform-origin:75.2% 34%;animation:headG 7.4s ease-in-out -1s infinite;translate:0 calc(var(--lvg,0) * .3%)}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.004,1.009) rotate(.25deg)}}
+@keyframes headD{0%,100%{transform:rotate(-.7deg)}35%{transform:rotate(.9deg)}70%{transform:rotate(-.2deg) translateY(.15%)}}
+@keyframes headG{0%,100%{transform:rotate(.6deg)}40%{transform:rotate(-1deg)}75%{transform:rotate(.2deg) translateY(.15%)}}
+@keyframes handD{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(.25%,-.2%) rotate(-.6deg)}}
+@keyframes handG{0%,100%{transform:translate(0,0) rotate(0)}50%{transform:translate(-.25%,-.2%) rotate(.6deg)}}
+@media (prefers-reduced-motion:reduce){.pt{animation:none!important;translate:none!important;scale:none!important;transform:none!important}}
 @media (prefers-reduced-motion:reduce){.cam,.glow{animation:none!important}.cam{transform:none}.sub,.glow,.shade{transition:none}#fx{display:none}}
 </style>
 </head>
@@ -96,6 +115,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 <main class="stage" id="stage" data-speaker="">
   <div class="cam">
     <img src="/media/studio-duo.webp" width="864" height="1536" alt="A dark studio at night: two holograms sit at a desk with microphones, a blue human figure on the left and a violet figure on the right, city lights in the window." decoding="async" fetchpriority="high">
+    <div class="parts" aria-hidden="true"><div class="pt d-body"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt d-hand"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt d-head"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt d-mouth"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt g-body"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt g-hand"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div><div class="pt g-head"><img src="/media/studio-duo.webp" alt="" width="864" height="1536" decoding="async"></div></div>
     <div class="zones" aria-hidden="true">
       <div class="shade l"></div><div class="shade r"></div>
       <div class="glow" id="glow-david"></div><div class="glow" id="glow-grok"></div>
