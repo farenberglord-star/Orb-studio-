@@ -1426,6 +1426,15 @@ async function duoWarm(env, ctx) {
   const norm = (h) => String(h || "").toLowerCase().replace(/[^a-zа-яäöüß0-9 ]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 70);
   const used = {}; for (const e of arc.episodes) for (const x of (e.segments || [])) if ((x.kind || "news") === "news") { const k = norm(x.headline); used[k] = (used[k] || 0) + 1; }
   for (let i = cands.length - 1; i >= 0; i--) if ((used[norm(cands[i].headline)] || 0) >= 2 && cands.length > 4) cands.splice(i, 1);
+  // …и одну тему (Ормуз, Nvidia…) не ставить, если она уже была в двух из трёх последних выпусков, даже под другим заголовком
+  const STOP = new Set(["about", "after", "with", "from", "that", "this", "their", "will", "news", "says", "über", "nach", "wird", "dass", "eine", "einen", "neue", "tages"]);
+  const kw = (h) => new Set((String(h || "").match(/[A-Za-zÄÖÜäöüß][\wÄÖÜäöüß-]{3,}/g) || []).map((w) => w.toLowerCase()).filter((w) => !STOP.has(w)));
+  const hormuzRe = /hormu[sz]|ормуз|brent|tanker|oil|öl\b|нефт/i;
+  const recentEps = arc.episodes.slice(0, 3).map((e) => (e.segments || []).filter((x) => (x.kind || "news") === "news").map((x) => x.headline));
+  const sameTopic = (a, b) => { if (hormuzRe.test(a) && hormuzRe.test(b)) return true; const A = kw(a), B = kw(b); let n = 0; for (const w of A) if (B.has(w)) n++; return n >= 2; };
+  for (let i = cands.length - 1; i >= 0; i--) { if (cands.length <= 4) break;
+    const hits = recentEps.filter((hs) => hs.some((h) => sameTopic(cands[i].headline, h))).length;
+    if (hits >= 2) cands.splice(i, 1); }
   const menu = DUO_CAROUSEL ? await duoMenu(env, ctx, origin).catch(() => []) : [];
   // в меню карусели помечаем пункты, где детектор видит аномалию
   try { const an0 = await anomalyDetect(env); for (const sg of (an0.signals || []).filter((x) => describeSignal(x) && x.type !== "sensor_spike")) menu.unshift({ id: "anomaly:" + sg.type + ":" + (sg.radar || sg.coin || sg.article || ""), kind: "anomaly", title: "Anomaly: " + describeSignal(sg), reading: describeSignal(sg) + (sg.rule ? ` (rule: ${sg.rule})` : ""), source: "Orb Studio anomaly detector" }); } catch (e) {}
