@@ -67,6 +67,21 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cm-list li.ag{border-left-color:#b58cff}
 .cm-list .h{font:12px ui-monospace,Menlo,monospace;color:#8fb0cc;margin-bottom:4px}
 .cm-list .t{font-size:14px;color:#e8f2ff;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
+.prog{padding:14px 16px;border:1px solid rgba(160,200,255,.22);border-radius:16px;background:rgba(10,14,28,.7)}
+.prog h2{margin:0 0 8px;font:700 13px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8fb0cc}
+.prog ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.prog li{display:flex;gap:10px;align-items:baseline;padding:7px 9px;border-radius:10px;color:#c9d6ea;font-size:13.5px;line-height:1.35}
+.prog li b{flex:none;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7f93ad;min-width:74px}
+.prog li.on{background:rgba(111,230,255,.10);color:#fff;box-shadow:inset 3px 0 0 #6fe6ff}
+.prog li.on b{color:#6fe6ff}
+/* Компьютер: студия слева во всю высоту, справа — программа выпуска, комментарии и баннеры */
+@media (min-width:1000px) and (min-aspect-ratio:1/1){
+  body{display:grid;grid-template-columns:var(--col) minmax(360px,520px);justify-content:center;column-gap:28px;height:100svh;overflow:hidden}
+  .frame{grid-column:1;grid-row:1;height:100svh}
+  .belowbg{grid-column:2;grid-row:1;height:100svh;overflow-y:auto;background:transparent;scrollbar-width:thin}
+  .below{width:auto;padding:22px 4px 30px}
+  .stage{border-radius:0;box-shadow:0 0 60px rgba(90,140,255,.18)}
+}
 .xs{display:inline-flex;align-items:center;gap:6px;margin:4px 0 14px;font:600 14px system-ui,sans-serif;color:#fff;background:#000;border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:9px 15px;text-decoration:none}.xs:hover,.xs:focus-visible{border-color:#fff;outline:none}
 .snd{position:absolute;left:50%;transform:translateX(-50%);top:calc(58px + env(safe-area-inset-top,0px));z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(92%,420px);pointer-events:none}
 .snd button{pointer-events:auto;font:700 14px "Chakra Petch",system-ui,sans-serif;letter-spacing:.04em;color:#05080f;background:linear-gradient(90deg,#6fe6ff,#b58cff);border:0;border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:0 0 22px rgba(140,200,255,.35)}
@@ -163,6 +178,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 </main>
 </div>
 <div class="belowbg"><div class="below">
+  <section class="prog" id="prog" aria-labelledby="prog-h" hidden><h2 id="prog-h"></h2><ol id="prog-list"></ol></section>
   <a class="xs" id="xshare" target="_blank" rel="noopener noreferrer"></a>
   <section class="cm" id="cm" aria-labelledby="cm-h">
     <h2 id="cm-h"></h2>
