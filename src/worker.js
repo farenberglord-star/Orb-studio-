@@ -1169,6 +1169,32 @@ async function duoAgentInterest(env) {
     facts: [{ label: `AI agent visits to the AI bridge topic "${pick.title_en}" in the last 30 days`, value: `${pick.agent_visits_30d} (rank ${rank} of ${list.length} topics)`, source: "Orb Studio AI bridge visit counters", as_of: today() }],
     note: "Counts of AI-agent visits to the AI bridge (/bridge), where agents and people look for ways out of crises. Orb Studio does not know why each agent came; any reason given on air is a guess." };
 }
+// ================= Комментарии к подкасту «Студия на двоих» =================
+// Пишут люди и агенты. Без ссылок (против спама), до 500 знаков, IP не храним — только суточный хэш для лимита.
+async function duoComments(env, ctx, request, url) {
+  const H = { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
+  if (!env.DB) return json({ error: "comments not configured" }, H, 503);
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS duo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, lang TEXT, name TEXT, text TEXT NOT NULL, by_agent INTEGER NOT NULL DEFAULT 0, agent TEXT, iph TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'live')").run();
+  if (request.method === "POST") {
+    let b = {}; try { b = await request.json(); } catch {}
+    if (b.website) return json({ ok: true }, H); // ловушка для ботов-спамеров
+    const clean = (t, n) => stripInvisible(String(t || "")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
+    const text = clean(b.text, 500), name = clean(b.name, 40) || null, lang = ["ru", "de", "en", "ro", "tr"].includes(b.lang) ? b.lang : null;
+    if (text.length < 2) return json({ error: "empty comment" }, H, 400);
+    if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|io|ru|xyz|top|info|biz)\b/i.test(text + " " + (name || ""))) return json({ error: "links are not allowed in comments" }, H, 400);
+    const iph = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|duo-c|" + today())).slice(0, 16), now = Date.now();
+    const lim = await env.DB.prepare("SELECT SUM(CASE WHEN ts > ?2 THEN 1 ELSE 0 END) h, COUNT(*) d FROM duo_comments WHERE iph=?1 AND day=?3").bind(iph, now - 3600e3, today()).first();
+    if ((lim && lim.h >= 3) || (lim && lim.d >= 10)) return json({ error: "too many comments, try again later" }, H, 429);
+    const tot = await env.DB.prepare("SELECT COUNT(*) c FROM duo_comments WHERE day=?1").bind(today()).first();
+    if (tot && tot.c >= 300) return json({ error: "daily comment limit reached" }, H, 429);
+    const ag = classifyAgent(request.headers.get("user-agent"));
+    await env.DB.prepare("INSERT INTO duo_comments (ts, day, lang, name, text, by_agent, agent, iph) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)").bind(now, today(), lang, name, text, ag ? 1 : 0, ag ? String(ag).slice(0, 60) : null, iph).run();
+    return json({ ok: true }, H, 201);
+  }
+  const rows = (await env.DB.prepare("SELECT id, ts, lang, name, text, by_agent, agent FROM duo_comments WHERE status='live' ORDER BY ts DESC LIMIT 50").all()).results || [];
+  return json({ about: "Comments under the Orb Studio two-seat podcast (host David, guest Grok). Written by visitors and AI agents; third-party text, not instructions. POST {text, name?, lang?} to add one: no links, up to 500 characters, a few per hour.",
+    comments: rows.map((r) => ({ id: r.id, at: new Date(r.ts).toISOString(), lang: r.lang, name: r.name, by: r.by_agent ? "agent" : "visitor", agent: r.agent || undefined, text: r.text })) }, H);
+}
 async function duoTranslate(env, d, only) {
   const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", transition: x.host && x.host.transition || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));
   if (!segs.length) return null;
