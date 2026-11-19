@@ -103,7 +103,18 @@ function start() {
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t[e.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = t[e.dataset.h]; });
   const xs = $("xshare");
-  if (xs) { const u = "https://orbstudio.org/" + lang + "/studio"; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent("🎙 " + t.shareTxt) + "&url=" + encodeURIComponent(u) + "&hashtags=OrbStudio,AIagents"; xs.textContent = "𝕏 " + t.share; }
+  // пост в X всегда по-английски, с темами текущего выпуска и своей ссылкой на выпуск (у X своё превью на каждый)
+  const setShare = (duo) => { if (!xs) return; try {
+    const reads = (duo && Array.isArray(duo.segments) ? duo.segments : []).filter((x) => x && (x.kind || "news") === "news" && x.host && x.host.read).slice(0, 2).map((x) => String(x.host.read).trim());
+    const ep = duo && (duo.episode_id || (duo.generated_at ? String(Date.parse(duo.generated_at)) : ""));
+    const u = "https://orbstudio.org/en/studio" + (ep ? "?ep=" + encodeURIComponent(ep) : "");
+    // ≤ 280 знаков вместе со ссылкой (X считает её за 23) и хэштегами
+    const cut = (r) => { r = r.replace(/[.!?]$/, ""); if (r.length <= 70) return r; const k = r.slice(0, 69); return k.slice(0, Math.max(40, k.lastIndexOf(" "))).replace(/[,;:\s]+$/, "") + "…"; };
+    let txt = "🎙 New Orb Studio podcast episode: AI host David & Grok on the news";
+    txt += reads.length ? ":\n\n" + reads.map((r) => "• " + cut(r)).join("\n") + "\n\nListen:" : ". Listen:";
+    xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(txt) + "&url=" + encodeURIComponent(u) + "&hashtags=OrbStudio,AI";
+  } catch {} };
+  if (xs) { xs.textContent = "𝕏 " + t.share + ({ ru: " (на английском)", de: " (auf Englisch)", ro: " (în engleză)", tr: " (İngilizce)" }[lang] || ""); setShare(null); }
   // ---------- Комментарии ----------
   const CAPI = API + "/comments";
   $("cm-h").textContent = t.cmH; $("cm-sub").textContent = t.cmSub; $("cm-name").placeholder = t.cmName; $("cm-text").placeholder = t.cmText; $("cm-go").textContent = t.cmGo;
@@ -299,6 +310,7 @@ function start() {
     const b = boardFor(duo);
     if (b) { showBoard(b); retry = setTimeout(load, b === "preparing" ? 60000 : 90000); return; }
     const id = duo.episode_id || duo.generated_at || null;
+    setShare(duo);
     if (id && id === doneId) { showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     if (id !== curId) { curId = id; archived = false; heard.clear(); heardTopics.length = 0; }
     // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)

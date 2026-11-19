@@ -1393,6 +1393,18 @@ const DUO_CTA = {
   ro: "Asta a fost tot deocamdată. Senzorii live sunt pe orbstudio.org, iar comentariile voastre chiar sub acest podcast.",
   tr: "Şimdilik bu kadar. Canlı sensörler orbstudio.org'da, yorumlarınız ise bu podcast'in hemen altında.",
 };
+// Английский текст поста в X и мета-теги превью для выпуска
+function duoShareTopics(d) {
+  return (d && Array.isArray(d.segments) ? d.segments : []).filter((x) => x && (x.kind || "news") === "news" && x.host && x.host.read).slice(0, 3).map((x) => String(x.host.read).replace(/\s+/g, " ").trim());
+}
+function duoShareMeta(d, origin, ep) {
+  const esc = (t) => String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const tp = duoShareTopics(d), when = d && d.generated_at ? new Date(Date.parse(d.generated_at)).toLocaleString("en-GB", { timeZone: "Europe/Berlin", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const title = "Orb Studio Podcast" + (when ? " · " + when + " Berlin" : "") + ": AI host David and Grok on today's news";
+  const desc = (tp.length ? tp.map((x) => x.length > 110 ? x.slice(0, 107) + "…" : x).join(" · ") : "AI host David and Grok (xAI) talk through the news with live Orb Studio data.").slice(0, 300);
+  const u = origin + "/en/studio" + (ep ? "?ep=" + encodeURIComponent(ep) : ""), img = origin + "/media/feed/x-card.jpg";
+  return [`<meta property="og:type" content="website">`, `<meta property="og:site_name" content="Orb Studio">`, `<meta property="og:title" content="${esc(title)}">`, `<meta property="og:description" content="${esc(desc)}">`, `<meta property="og:url" content="${esc(u)}">`, `<meta property="og:image" content="${img}">`, `<meta property="og:image:width" content="1200">`, `<meta property="og:image:height" content="630">`, `<meta name="twitter:card" content="summary_large_image">`, `<meta name="twitter:title" content="${esc(title)}">`, `<meta name="twitter:description" content="${esc(desc)}">`, `<meta name="twitter:image" content="${img}">`].join("\n");
+}
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
   // v= — номер выпуска в каждой ссылке: ответ кэшируется как immutable, и без него телефон держал голос старого выпуска
@@ -8778,7 +8790,16 @@ async function handleRequest(request, env, ctx) {
       if (sm) { assetReq = new Request(new URL("/studio", url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
     if (studioLang && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
-      asset = new HTMLRewriter().on("html", { element(e) { e.setAttribute("data-al", studioLang); e.setAttribute("lang", studioLang); } }).transform(asset);
+      // превью-карточка для X/WhatsApp: темы выпуска по-английски (?ep= — конкретный выпуск, иначе последний)
+      let og = null;
+      try {
+        const epq = url.searchParams.get("ep"); let d = null;
+        if (epq) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === epq) || null; }
+        if (!d) d = await sharedGet(env, "duo-latest", 1e15);
+        og = duoShareMeta(d, url.origin, epq || (d ? duoEpId(d) : ""));
+      } catch { og = null; }
+      asset = new HTMLRewriter().on("html", { element(e) { e.setAttribute("data-al", studioLang); e.setAttribute("lang", studioLang); } })
+        .on("head", { element(e) { if (og) e.append(og, { html: true }); } }).transform(asset);
       asset = new Response(asset.body, asset); asset.headers.set("Vary", "Accept-Language"); asset.headers.set("Cache-Control", "private, max-age=60");
     }
     if (autoLang) {
