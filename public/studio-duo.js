@@ -61,6 +61,10 @@ export function buildQueue(duo, lang) {
     const g = s.guest || {};
     if (g.status === "ok" && typeof g.text === "string" && g.text.trim()) {
       q.push({ who: "grok", kind: "answer", text: pick("answer", g.text.trim()), audio: aud("answer"), tr: !!tr, ...meta });
+      if (typeof s.host.follow_up === "string" && s.host.follow_up && typeof g.follow_answer === "string" && g.follow_answer) {
+        q.push({ who: "david", kind: "follow_up", text: pick("follow_up", s.host.follow_up), audio: aud("follow_up"), tr: !!tr, ...meta });
+        q.push({ who: "grok", kind: "follow_answer", text: pick("follow_answer", g.follow_answer), audio: aud("follow_answer"), tr: !!tr, ...meta });
+      }
       if (s.host.thanks) q.push({ who: "david", kind: "thanks", text: pick("thanks", String(s.host.thanks)), audio: aud("thanks"), tr: !!tr, ...meta });
     } else {
       q.push({ who: "grok", kind: "label", label: g.status === "withheld" ? "withheld" : "guestOff", text: null, ...meta });
@@ -168,11 +172,23 @@ function start() {
   const pre = new Audio(); pre.preload = "auto";
   const lb = $("listen"), vn = $("vnote");
   lb.textContent = t.listen; vn.textContent = t.voices;
+  // Настроение подложки по радарам: спокойно — светлее, тревожно — темнее и с лёгкими «электрическими» помехами
+  let mood = "mid";
+  fetch("/api/v1/radars").then((r) => r.json()).then((d) => { const rs = Array.isArray(d && d.radars) ? d.radars : [];
+    const hi = Math.max(0, ...rs.filter((x) => ["geo", "crypto", "energy"].includes(x.id)).map((x) => +x.risk_index || 0));
+    mood = hi >= 68 ? "tense" : hi < 50 ? "calm" : "mid"; }).catch(() => {});
   function makeBed() {
     const out = actx.createGain(); out.gain.value = 0; out.connect(actx.destination);
-    const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900; lp.connect(out);
+    const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = mood === "tense" ? 620 : mood === "calm" ? 1300 : 900; lp.connect(out);
+    if (mood === "tense") { // редкие тихие треск-помехи из фильтрованного шума
+      const nb = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), ch = nb.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (Math.random() < 0.004 ? 1 : 0.04);
+      const ns = actx.createBufferSource(), bp = actx.createBiquadFilter(), ng = actx.createGain(); ns.buffer = nb; ns.loop = true; bp.type = "bandpass"; bp.frequency.value = 3200; ng.gain.value = 0.05;
+      ns.connect(bp); bp.connect(ng); ng.connect(out); ns.start(); }
     const lfo = actx.createOscillator(), lg = actx.createGain(); lfo.frequency.value = 0.07; lg.gain.value = 380; lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
-    const chords = [[110, 164.81, 220, 261.63], [87.31, 130.81, 174.61, 220], [98, 146.83, 196, 246.94], [82.41, 123.47, 164.81, 207.65]]; // Am · F · G · E — медленная смена
+    const chords = mood === "calm" ? [[130.81, 196, 261.63, 329.63], [110, 164.81, 220, 277.18], [98, 146.83, 196, 246.94], [87.31, 130.81, 174.61, 220]] // C · A · G · F — светлее
+      : mood === "tense" ? [[110, 164.81, 220, 261.63], [103.83, 155.56, 207.65, 261.63], [98, 146.83, 196, 233.08], [82.41, 123.47, 164.81, 207.65]] // Am · Ab · Gm · E — темнее
+      : [[110, 164.81, 220, 261.63], [87.31, 130.81, 174.61, 220], [98, 146.83, 196, 246.94], [82.41, 123.47, 164.81, 207.65]]; // Am · F · G · E
     const vs = chords[0].map((f, i) => { const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain(); o.type = "triangle"; o2.type = "sine"; o.frequency.value = f; o2.frequency.value = f * 1.004; g.gain.value = i ? 0.16 : 0.22; o.connect(g); o2.connect(g); g.connect(lp); o.start(); o2.start(); return [o, o2]; });
     let ci = 0; const swap = () => { ci = (ci + 1) % chords.length; chords[ci].forEach((f, i) => { const tt = actx.currentTime; vs[i][0].frequency.setTargetAtTime(f, tt, 1.2); vs[i][1].frequency.setTargetAtTime(f * 1.004, tt, 1.2); }); };
     const iv = setInterval(swap, 9000);
@@ -242,7 +258,9 @@ function start() {
     const id = duo.episode_id || duo.generated_at || null;
     if (id && id === doneId) { showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     if (id !== curId) { curId = id; archived = false; heard.clear(); }
-    queue = buildQueue(duo, lang); pos = 0; queue.forEach((x) => heard.add(x.headline)); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");
+    queue = buildQueue(duo, lang); pos = 0; queue.forEach((x) => heard.add(x.headline));
+    const cta = duo.cta && duo.cta[lang];
+    if (queue.length && cta && typeof cta.text === "string") queue.push({ who: "david", kind: "cta", text: cta.text, audio: typeof cta.audio === "string" && /^https:\/\//.test(cta.audio) ? cta.audio : null, ms: lineMs(cta.text), source: null, link: null, headline: "" }, { who: null, kind: "pause", text: null, ms: 1500, headline: "" }); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");
     if (!queue.length) { showBoard("noLink"); retry = setTimeout(load, 90000); return; }
     step();
   }

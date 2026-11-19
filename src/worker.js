@@ -32,6 +32,7 @@ import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
 import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
+import { GROK_FOLLOW_SYSTEM, grokFollowUser } from "./duo.js";
 import { GROK_SENSORS_SYSTEM, grokSensorsUser, describeSignal, sensorsHostLines } from "./duo.js";
 import { GROK_AGENTS_SYSTEM, grokAgentsUser, agentsHostLines, HOST_REACT_SYSTEM, HOST_REACT_TOOL, reactUser, checkReact } from "./duo.js";
 import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
@@ -1008,18 +1009,19 @@ async function duoAudio(env, ctx, origin, url) {
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = ["de", "ru"].includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
   const ep = url.searchParams.get("ep");
-  if (!["read", "question", "answer", "thanks", "bridge", "outro"].includes(part) || (!["bridge", "outro"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
+  if (!["read", "question", "answer", "thanks", "follow_up", "follow_answer", "bridge", "outro", "cta"].includes(part) || (!["bridge", "outro", "cta"].includes(part) && !Number.isInteger(seg))) return bad("bad request", 400);
   let d;
-  if (part === "outro") d = { segments: [] };
+  if (part === "outro" || part === "cta") d = { segments: [] };
   else if (ep) { const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15)) || { episodes: [] }; d = arc.episodes.find((e) => duoEpId(e) === ep && Date.now() - Date.parse(e.generated_at) < DUO_ARCHIVE_MS); if (!d) return bad("no such episode"); }
   else d = await duoData(env, ctx, origin);
   let text = "", who = "david", sg = null;
   if (part === "outro") text = DUO_OUTRO[lg];
+  else if (part === "cta") text = DUO_CTA[lg];
   else if (part === "bridge") { if (!ep) return bad("bridge needs an episode", 400); text = DUO_BRIDGE[lg](hhmm(Date.parse(d.generated_at))); }
   else { sg = (d && Array.isArray(d.segments) ? d.segments : []).find((x) => x && x.i === seg); if (!sg) return bad("no such line"); }
-  if (part === "bridge" || part === "outro") {} else if (part === "answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = sg.guest.text; who = "grok"; }
+  if (part === "bridge" || part === "outro" || part === "cta") {} else if (part === "answer" || part === "follow_answer") { if (!sg.guest || sg.guest.status !== "ok") return bad("no answer"); text = part === "answer" ? sg.guest.text : sg.guest.follow_answer; who = "grok"; }
   else text = (sg.host || {})[part];
-  if (lg !== "en" && part !== "bridge" && part !== "outro") { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
+  if (lg !== "en" && !["bridge", "outro", "cta"].includes(part)) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[seg]; if (!tr || !tr[part]) return bad("no translation yet"); text = tr[part]; }
   text = String(text || "").trim().slice(0, 1200); if (!text) return bad("empty line");
   const voice = DUO_VOICES[who];
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
@@ -1091,6 +1093,11 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
       const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use");
       const re = checkReact(tool && tool.input, answered.map((x) => x.i), stripInvisible);
       segs.forEach((x, i) => { if (re[i]) x.reaction = re[i]; });
+      // Короткий уточняющий вопрос Давида в одном сегменте и ответ Grok одной-двумя фразами
+      const fi = segs.findIndex((x) => x.reaction && x.reaction.follow_up && (x.kind || "news") === "news");
+      if (fi >= 0) { const x = segs[fi];
+        try { const a = await askGrok(env, null, null, [], false, ms, null, null, { system: GROK_FOLLOW_SYSTEM, user: grokFollowUser(x.headline, x.reply.text, x.reaction.follow_up, x.facts) });
+          const c = duoCheck(a.text, stripInvisible); if (c.ok && c.text.split(" ").length <= 45) x.followAnswer = c.text; } catch (e) {} }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host react: " + String(e && e.message || e).slice(0, 160) }); }
   }
   return assembleDuo(segs, { model });
@@ -1163,7 +1170,7 @@ async function duoComments(env, ctx, request, url) {
     comments: rows.map((r) => ({ id: r.id, at: new Date(r.ts).toISOString(), lang: r.lang, name: r.name, by: r.by_agent ? "agent" : "visitor", agent: r.agent || undefined, text: r.text })) }, H);
 }
 async function duoTranslate(env, d) {
-  const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "" }));
+  const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));
   if (!segs.length) return null;
   const NAMES = { de: "German", ru: "Russian" }, out = {};
   for (const lg of DUO_LANGS) {
@@ -1172,7 +1179,7 @@ async function duoTranslate(env, d) {
         method: "POST", signal: AbortSignal.timeout(60000),
         headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY },
         body: JSON.stringify({ model: env.XAI_MODEL || "grok-4.7", temperature: 0.2, max_tokens: 3000, response_format: { type: "json_object" },
-          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","thanks":"","answer":""}]}` },
+          messages: [{ role: "system", content: `You translate a short news podcast between host David and guest Grok from English into natural spoken ${NAMES[lg]}, the way people talk on a real podcast. Translate faithfully: add nothing, drop nothing, keep every number, name and source exactly, keep it as cautious as the original (no forecasts or advice that are not in it). Keep the names David and Grok. Empty strings stay empty. Reply with JSON only: {"segments":[{"i":0,"read":"","question":"","follow_up":"","thanks":"","answer":"","follow_answer":""}]}` },
             { role: "user", content: JSON.stringify({ segments: segs }) }] }),
       });
       if (!res.ok) throw new Error("xAI " + res.status);
@@ -1180,7 +1187,7 @@ async function duoTranslate(env, d) {
       const parsed = JSON.parse(String(txt || "").replace(/^```(json)?|```$/g, "").trim());
       const map = {};
       for (const x of (parsed.segments || [])) { const src = segs.find((y) => y.i === x.i); if (!src) continue;
-        const o = {}; for (const k of ["read", "question", "thanks", "answer"]) { const v = typeof x[k] === "string" ? stripInvisible(x[k]).trim().slice(0, 1400) : ""; o[k] = src[k] ? v : ""; }
+        const o = {}; for (const k of ["read", "question", "follow_up", "thanks", "answer", "follow_answer"]) { const v = typeof x[k] === "string" ? stripInvisible(x[k]).trim().slice(0, 1400) : ""; o[k] = src[k] ? v : ""; }
         if (src.answer && !o.answer) continue; map[x.i] = o; }
       if (Object.keys(map).length === segs.length) out[lg] = { segments: map, model: j.model || env.XAI_MODEL || "grok-4.7" };
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "translate " + lg + ": " + String(e && e.message || e).slice(0, 160) }); }
@@ -1209,10 +1216,16 @@ const DUO_OUTRO = {
   en: "Maybe that's the point: this is a shared problem, not something each side handles alone. Tell us what you think in the comments.",
   ru: "Возможно, в этом и суть: это общая проблема, а не то, с чем каждая сторона справляется в одиночку. Напишите своё мнение в комментариях.",
 };
+// Финальный призыв в конце свежего выпуска (фиксированный текст)
+const DUO_CTA = {
+  en: "That's the desk for now. The live sensors are on orbstudio.org, and your comments are right below this podcast.",
+  de: "Das war's für den Moment. Die Live-Sensoren findet ihr auf orbstudio.org, und eure Kommentare direkt unter diesem Podcast.",
+  ru: "На этом пока всё. Живые датчики — на orbstudio.org, а ваши комментарии — прямо под этим подкастом.",
+};
 function duoEpId(d) { return String(Date.parse(d && d.generated_at) || 0); }
 function duoWithAudio(d, origin, ep) {
   const q = ep ? `&ep=${ep}` : "";
-  for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") parts.push("answer", "thanks");
+  for (const sg of d.segments || []) { const parts = ["read", "question"]; if (sg.guest && sg.guest.status === "ok") { parts.push("answer", "thanks"); if (sg.host.follow_up && sg.guest.follow_answer) parts.push("follow_up", "follow_answer"); }
     sg.audio = Object.fromEntries(parts.map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}${q}`]));
     for (const lg of DUO_LANGS) { const tr = d.translations && d.translations[lg] && d.translations[lg].segments && d.translations[lg].segments[sg.i]; if (!tr) continue;
       tr.audio = Object.fromEntries(parts.filter((k) => tr[k]).map((k) => [k, `${origin}/api/v1/broadcast/duo/audio?seg=${sg.i}&part=${k}&lang=${lg}${q}`])); } }
@@ -3113,6 +3126,7 @@ function clickLabel(request, from) {
       d.voices = { synthetic: true, provider: "xAI Grok TTS", host: { name: "David", voice: DUO_VOICES.david }, guest: { name: "Grok", voice: DUO_VOICES.grok },
         note: "Both voices are synthetic AI voices. David and Grok are AI agents, not people. Audio is generated once per line from the text above and cached." };
       duoWithAudio(d, origin, null); d.episode_id = duoEpId(d);
+      d.cta = Object.fromEntries(Object.entries(DUO_CTA).map(([lg, text]) => [lg, { text, audio: `${origin}/api/v1/broadcast/duo/audio?part=cta&lang=${lg}` }]));
     }
     return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, d.status === "grok_not_configured" ? 503 : 200);
   }
