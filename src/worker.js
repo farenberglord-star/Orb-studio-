@@ -3367,7 +3367,7 @@ async function wikiTop(project) {
   if (!r.ok) throw new Error("wikipedia " + project + " http " + r.status);
   const items = (((await r.json()).items || [])[0] || {}).articles || [];
   const skip = /^(Main_Page|Hauptseite|Заглавная_страница|Special:|Spezial:|Служебная:|Wikipedia:|Википедия:|Portal:|File:|Datei:|Файл:|Help:|Hilfe:|-$|XXX)/i;
-  return items.filter((a) => !skip.test(a.article) && !/\.php|Cookie|xHamster|Pornhub|Xvideos/i.test(a.article)).slice(0, 12).map((a) => ({ article: a.article.replace(/_/g, " ").slice(0, 100), views: a.views }));
+  return items.filter((a) => !skip.test(a.article) && !/\.php|Cookie|xHamster|Pornhub|Xvideos|^\.xxx$|Порнограф|Pornograf|Pornography|^XXX|OnlyFans/i.test(a.article)).slice(0, 12).map((a) => ({ article: a.article.replace(/_/g, " ").slice(0, 100), views: a.views }));
 }
 async function xTrends(env, woeid) {
   const r = await fetch(`https://api.x.com/2/trends/by/woeid/${woeid}?max_trends=20`, { headers: { authorization: "Bearer " + env.X_BEARER_TOKEN }, signal: AbortSignal.timeout(12000) });
