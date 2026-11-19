@@ -36,7 +36,7 @@ PAGE = {
      ("/#radar", ("8 радаров", "8 Radare", "8 radars"), ("гео, бюджет, политика, экономика, крипта, энергия, правосудие, открытый веб", "Geo, Haushalt, Politik, Wirtschaft, Krypto, Energie, Justiz, offenes Web", "geo, budget, politics, economy, crypto, energy, justice, open web")),
      ("/radar", ("Импульсы 🌍", "Impulse 🌍", "Impulses 🌍"), ("откуда давят новости: страны и морские проливы", "woher die Nachrichten drücken: Länder und Meerengen", "where the news pushes from: countries and sea straits")),
      ("/archive", ("Архив радаров 🗄", "Radar-Archiv 🗄", "Radar archive 🗄"), ("история индексов по дням", "Verlauf der Indizes nach Tagen", "index history by day")),
-     ("/map", ("Карта датчиков 🗺", "Sensorkarte 🗺", "Sensor map 🗺"), ("где находится каждый источник", "wo jede Quelle sitzt", "where each source is located")),
+     ("/sensors#map", ("Карта датчиков 🗺", "Sensorkarte 🗺", "Sensor map 🗺"), ("где находится каждый источник", "wo jede Quelle sitzt", "where each source is located")),
      ("/sensors#indices", ("Индексы 👻", "Indizes 👻", "Indices 👻"), ("галлюцинации, консенсус, голод по токенам", "Halluzination, Konsens, Token-Hunger", "hallucination, consensus, token hunger")),
      ("/sensors#freshness", ("Свежесть данных", "Aktualität der Daten", "Data freshness"), ("карта задержек и приборная панель: всё ли отвечает", "Verzögerungskarte und Instrumententafel: antwortet alles", "delay map and instrument panel: is everything answering")),
      ("/route", ("Гамбург 🚗", "Hamburg 🚗", "Hamburg 🚗"), ("дороги, маршрут, Эльба, авиация Финкенвердера", "Straßen, Route, Elbe, Luftfahrt Finkenwerder", "roads, route, Elbe, Finkenwerder aviation")),

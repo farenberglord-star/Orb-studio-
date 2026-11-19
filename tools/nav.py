@@ -12,7 +12,7 @@ NAV = [
 ]
 # в каком разделе меню подсвечивать страницу
 SECTION = {
-    "world": "world", "sensors": "world", "map": "world", "radar": "world", "archive": "world", "indices": "world", "route": "world", 
+    "world": "world", "sensors": "world", "radar": "world", "archive": "world", "indices": "world", "route": "world", 
     "ground": "ground", "prices": "ground", "places": "ground", "quality": "ground", "tariffs": "ground",
     "air": "air", "studio": "air", "podcast": "air", "live": "air", "interviews": "air", "music": "air", "violin": "air", "canvas": "air", "orbi": "air", "orb7": "air",
     "deck": "deck", "bridge": "deck", "followups": "deck",
