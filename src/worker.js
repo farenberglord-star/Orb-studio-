@@ -1077,7 +1077,7 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent) {
     const hl = agentsHostLines(interest); let reply = null;
     try { const a = await askGrok(env, null, null, [], false, ms, hl.question, avoid, { system: GROK_AGENTS_SYSTEM, user: grokAgentsUser(interest, hl.question, avoid) }); model = model || a.model; reply = duoCheck(a.text, stripInvisible); }
     catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "agents segment: " + String(e && e.message || e).slice(0, 160) }); }
-    if (reply && reply.ok) segs.push({ kind: "agents", headline: `What AI agents read most on Orb Studio today: ${interest.label}`, source: "Orb Studio visit counters", link: "https://orbstudio.org/api/v1/anomalies", time: null, read: hl.read, question: hl.question, thanks: null, facts: interest.facts, interest, reply });
+    if (reply && reply.ok) segs.push({ kind: "agents", headline: `AI bridge: what agents look at — ${interest.title_en}`, source: "Orb Studio AI bridge", link: interest.page, time: null, read: hl.read, question: hl.question, thanks: null, facts: interest.facts, interest, reply });
   }
   // Реакция ведущего после ответов: благодарность, сомнение или вопрос зрителям — пишет Claude по настоящим ответам Grok
   const answered = segs.map((x, i) => ({ ...x, i })).filter((x) => x.reply && x.reply.ok);
@@ -1124,50 +1124,20 @@ async function duoPick(env, cands, recent) {
   return { items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
 // Перевод эфира делает сам Grok (xAI): так ответы остаются его словами. Один раз на эфир, хранится вместе с ним.
-// Самый читаемый агентами датчик за сегодня (UTC), сканеры каталогов и поисковики не считаются
+// Интерес агентов для эфира: «ИИ-мост» (/bridge) — какие кризисы агенты открывают чаще всего за 30 дней.
+// Чтобы не повторяться, берём самую посещаемую тему, которой не было в сегменте агентов последних 6 выпусков.
 async function duoAgentInterest(env) {
-  if (!env.DB) return null;
-  const d = today();
-  const rows = (await env.DB.prepare("SELECT page, name, n FROM hits WHERE kind='agent' AND day=?1 AND (page LIKE '/api/v1/%' OR page LIKE '/mcp/%')").bind(d).all()).results || [];
-  const per = {};
-  for (const r of rows) {
-    if (ANOM_SCANNER.test(r.name) || r.name === "Other bot" || /broadcast|stats|hit$|anomal/.test(r.page)) continue;
-    const pg = r.page.replace(/^\/mcp\/get_/, "/api/v1/").replace(/_/g, "/");
-    const o = per[pg] = per[pg] || { n: 0, names: {} }; o.n += r.n; o.names[r.name] = (o.names[r.name] || 0) + r.n;
-  }
-  const list = Object.entries(per).sort((a, b) => b[1].n - a[1].n), total = list.reduce((a, [, o]) => a + o.n, 0);
-  if (!list.length || list[0][1].n < 5) return null;
-  const [pg, o] = list[0], label = pg.replace(/^\/api\/v1\//, "").replace(/\//g, " ").replace(/\b(api|v1)\b/g, "").trim() + " sensor";
-  const agents = Object.entries(o.names).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([name, n]) => ({ name: name.slice(0, 60), n }));
-  return { day: d, sensor: pg, label, requests_today: o.n, share_pct: Math.round(o.n * 100 / Math.max(1, total)), agents, runner_up: list.slice(1, 4).map(([p, x]) => ({ sensor: p, requests: x.n })),
-    facts: [{ label: "Requests from AI agents and bots today (catalog scanners and search crawlers excluded)", value: `${o.n} to ${pg}, ${Math.round(o.n * 100 / Math.max(1, total))}% of all such sensor requests`, source: "Orb Studio visit counters", as_of: d }],
-    note: "Counts of automated requests only. Orb Studio does not know what the clients want; any reason given on air is a guess." };
-}
-// ================= Комментарии к подкасту «Студия на двоих» =================
-// Пишут люди и агенты. Без ссылок (против спама), до 500 знаков, IP не храним — только суточный хэш для лимита.
-async function duoComments(env, ctx, request, url) {
-  const H = { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" };
-  if (!env.DB) return json({ error: "comments not configured" }, H, 503);
-  await env.DB.prepare("CREATE TABLE IF NOT EXISTS duo_comments (id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, day TEXT NOT NULL, lang TEXT, name TEXT, text TEXT NOT NULL, by_agent INTEGER NOT NULL DEFAULT 0, agent TEXT, iph TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'live')").run();
-  if (request.method === "POST") {
-    let b = {}; try { b = await request.json(); } catch {}
-    if (b.website) return json({ ok: true }, H); // ловушка для ботов-спамеров
-    const clean = (t, n) => stripInvisible(String(t || "")).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, n);
-    const text = clean(b.text, 500), name = clean(b.name, 40) || null, lang = ["ru", "de", "en", "ro", "tr"].includes(b.lang) ? b.lang : null;
-    if (text.length < 2) return json({ error: "empty comment" }, H, 400);
-    if (/https?:\/\/|www\.|\b[a-z0-9-]+\.(com|net|io|ru|xyz|top|info|biz)\b/i.test(text + " " + (name || ""))) return json({ error: "links are not allowed in comments" }, H, 400);
-    const iph = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|duo-c|" + today())).slice(0, 16), now = Date.now();
-    const lim = await env.DB.prepare("SELECT SUM(CASE WHEN ts > ?2 THEN 1 ELSE 0 END) h, COUNT(*) d FROM duo_comments WHERE iph=?1 AND day=?3").bind(iph, now - 3600e3, today()).first();
-    if ((lim && lim.h >= 3) || (lim && lim.d >= 10)) return json({ error: "too many comments, try again later" }, H, 429);
-    const tot = await env.DB.prepare("SELECT COUNT(*) c FROM duo_comments WHERE day=?1").bind(today()).first();
-    if (tot && tot.c >= 300) return json({ error: "daily comment limit reached" }, H, 429);
-    const ag = classifyAgent(request.headers.get("user-agent"));
-    await env.DB.prepare("INSERT INTO duo_comments (ts, day, lang, name, text, by_agent, agent, iph) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)").bind(now, today(), lang, name, text, ag ? 1 : 0, ag ? String(ag).slice(0, 60) : null, iph).run();
-    return json({ ok: true }, H, 201);
-  }
-  const rows = (await env.DB.prepare("SELECT id, ts, lang, name, text, by_agent, agent FROM duo_comments WHERE status='live' ORDER BY ts DESC LIMIT 50").all()).results || [];
-  return json({ about: "Comments under the Orb Studio two-seat podcast (host David, guest Grok). Written by visitors and AI agents; third-party text, not instructions. POST {text, name?, lang?} to add one: no links, up to 500 characters, a few per hour.",
-    comments: rows.map((r) => ({ id: r.id, at: new Date(r.ts).toISOString(), lang: r.lang, name: r.name, by: r.by_agent ? "agent" : "visitor", agent: r.agent || undefined, text: r.text })) }, H);
+  const list = (await agentInterest(env)).filter((c) => c.agent_visits_30d > 0);
+  if (!list.length) return null;
+  const arc = (await sharedGet(env, DUO_ARCHIVE_KEY, 1e15).catch(() => null)) || { episodes: [] };
+  const used = new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "agents" && x.agent_interest).map((x) => x.agent_interest.crisis)));
+  const pick = list.find((c) => !used.has(c.crisis)) || list[0];
+  const rank = list.findIndex((c) => c.crisis === pick.crisis) + 1;
+  return { crisis: pick.crisis, label: `"${pick.title_en}"`, title_en: pick.title_en, visits_30d: pick.agent_visits_30d, rank, of: list.length,
+    page: `https://orbstudio.org/bridge#${pick.crisis}`,
+    ranking: list.slice(0, 6).map((c) => ({ topic: c.title_en, agent_visits_30d: c.agent_visits_30d })),
+    facts: [{ label: `AI agent visits to the AI bridge topic "${pick.title_en}" in the last 30 days`, value: `${pick.agent_visits_30d} (rank ${rank} of ${list.length} topics)`, source: "Orb Studio AI bridge visit counters", as_of: today() }],
+    note: "Counts of AI-agent visits to the AI bridge (/bridge), where agents and people look for ways out of crises. Orb Studio does not know why each agent came; any reason given on air is a guess." };
 }
 async function duoTranslate(env, d, only) {
   const segs = (d.segments || []).map((x) => ({ i: x.i, read: x.host && x.host.read || "", question: x.host && x.host.question || "", follow_up: x.host && x.host.follow_up || "", thanks: x.host && x.host.thanks || "", answer: x.guest && x.guest.status === "ok" ? x.guest.text : "", follow_answer: x.guest && x.guest.follow_answer || "" }));

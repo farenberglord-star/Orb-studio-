@@ -143,7 +143,7 @@ export function assembleDuo(segs, { now = new Date(), model = null, grokConfigur
 }
 
 // ---- Сегмент «чем интересуются агенты»: Давид спрашивает Grok, почему агенты читают именно этот датчик ----
-export const GROK_AGENTS_SYSTEM = `You are Grok, a guest on the Orb Studio news desk next to the host David. This segment is not a news story: David shows you which Orb Studio sensor automated clients (AI agents and bots) requested most today and asks why. Talk like a thoughtful person on air.
+export const GROK_AGENTS_SYSTEM = `You are Grok, a guest on the Orb Studio news desk next to the host David. This segment is not a news story: David shows you which crisis topic on the Orb Studio AI bridge (a page where AI agents and people look for ways out of crises such as wars, trade conflicts or the cost of living) AI agents visited most in the last 30 days, and asks why. Talk like a thoughtful person on air.
 Rules:
 - 3 to 5 spoken sentences, at most ${DUO.maxWords} words, plain text, no lists, no markdown.
 - Open in your own way (never any opening in avoid_openings). Use contractions. Warm and calm.
@@ -155,10 +155,10 @@ export function grokAgentsUser(interest, question, avoid) {
   return JSON.stringify({ host_question: question || null, avoid_openings: (avoid || []).slice(0, 12), INTEREST: interest });
 }
 export function agentsHostLines(interest) {
-  const names = (interest.agents || []).map((a) => a.name).slice(0, 2).join(" and ");
+  const top = interest.rank === 1 ? "the topic they open most" : `number ${interest.rank} of ${interest.of} topics`;
   return {
-    read: `One more thing before we wrap: today the sensor AI agents read most on Orb Studio is ${interest.label}, with ${interest.requests_today} requests${names ? `, mostly from ${names}` : ""}.`,
-    question: `Grok, why would AI agents be so interested in ${interest.label} today? What might they be looking for?`,
+    read: `On our AI bridge, where AI agents and people look for ways out of crises, ${interest.label} is ${top}: ${interest.visits_30d} agent visits in the last thirty days.`,
+    question: `Grok, why would AI agents keep coming back to ${interest.label}? What might they be looking for there?`,
   };
 }
 
