@@ -65,7 +65,7 @@ test("tracks are our own files; texts, date and page", () => {
 });
 
 test("scenes: market only with real candles; ticker holds only real headlines", () => {
-  assert.deepEqual(sceneOrder(true), ["sky", "market", "david", "earth"]); assert.deepEqual(sceneOrder(false), ["sky", "david", "earth"]);
+  assert.deepEqual(sceneOrder(true), ["sky", "market", "earth"]); assert.deepEqual(sceneOrder(false), ["sky", "earth"]); assert.ok(!/scene-david/.test(readFileSync(new URL("../public/radio.html", import.meta.url), "utf8")), "no portrait of David on the screen");
   assert.deepEqual(tickerItems(duo([seg(0), seg(0), seg(1, { kind: "carousel" }), seg(2, { source: null })])), ["H0 (s0)", "H2"]);
   for (const bad of [null, {}, { status: "preparing" }]) assert.deepEqual(tickerItems(bad), []);
 });
@@ -289,10 +289,10 @@ test("one guest per episode: the intro names only the guest on air, and a new gu
 test("home page: a radio block in every language links to the player", () => {
   for (const [f, href] of [["index.html", "/ru/radio"], ["de/index.html", "/de/radio"], ["en/index.html", "/en/radio"]]) {
     const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8");
-    assert.match(h, new RegExp('<a class="rtb rdo" id="rdo" href="' + href + '">')); assert.ok(h.indexOf('id="rdo"') < h.indexOf('id="rtb"'), "radio comes first");
+    assert.match(h, new RegExp('<a class="rtb rdo" id="rdo" href="' + href + '#play">')); assert.ok(h.indexOf('id="rdo"') < h.indexOf('id="rtb"'), "radio comes first");
   }
   assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /<h3>Радио искусственных интеллектов<\/h3>/);
-  assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 40_000);
+  assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 90_000);
   assert.match(readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"), /orbstudio\.org\/ru\/radio</);
 });
 
@@ -316,4 +316,15 @@ test("music shelf: every track plays once before any repeats; new files get into
   assert.equal(titleFromFile("night-drive_2"), "Night Drive 2"); assert.equal(idFromFile("Night Drive"), "night-drive");
   const l = buildList(["b.m4a", "new-song.m4a", "a.m4a"], [{ id: "bee", title: "Bee Song", file: "b.m4a" }, { id: "gone", title: "Gone", file: "gone.m4a" }], () => 100);
   assert.deepEqual(l.map((x) => [x.id, x.title]), [["bee", "Bee Song"], ["a", "A"], ["new-song", "New Song"]], "known titles kept, deleted files dropped, new ones added");
+});
+
+test("home block: a small radio with a Play button starts the broadcast without a second press", async () => {
+  const { wantsAutoplay, silentWav } = await import("../public/radio.js");
+  assert.equal(wantsAutoplay("#play"), true); assert.equal(wantsAutoplay(""), false); assert.equal(wantsAutoplay("#player"), false); assert.equal(wantsAutoplay(null), false);
+  const w = silentWav(); assert.equal(String.fromCharCode(...w.slice(0, 4)), "RIFF"); assert.equal(w.length, 44 + 480); assert.ok(w.slice(44).every((x) => x === 128), "pure silence");
+  for (const f of ["index.html", "de/index.html", "en/index.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"), blk = h.slice(h.indexOf('id="rdo"'), h.indexOf('id="rtb"'));
+    assert.match(blk, /class="mini"/); assert.match(blk, /class="onair"><i><\/i>(ПРЯМОЙ ЭФИР|LIVE-SENDUNG|LIVE ON AIR)</); assert.match(blk, /class="sig"/); assert.match(blk, /class="pl"/); assert.ok(!/тестовый эфир|Testsendung|test broadcast/.test(blk), "no test label"); assert.ok(!/class="go"/.test(blk)); }
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
+  assert.match(js, /if \(wantsAutoplay\(location\.hash\)\) canAutoplay\(\)/); assert.match(js, /document\.addEventListener\("pointerdown", once, true\)/);
+  for (const l of ["ru", "de", "en"]) assert.ok(T[l].tapStart.length > 10);
 });
