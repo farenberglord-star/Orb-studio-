@@ -289,6 +289,37 @@ details.machine a{color:var(--holo)}
     </div>
   </div>
 
+<style>.rtb{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(255,178,94,.45);border-radius:14px;padding:12px;margin:12px 0;background:linear-gradient(135deg,rgba(255,178,94,.08),rgba(127,178,255,.06) 55%,rgba(181,140,255,.07))}
+.rtb:hover,.rtb:focus-visible{border-color:#ffb25e;outline:none;box-shadow:0 0 0 1px rgba(255,178,94,.35)}
+.rtb img{width:132px;height:132px;border-radius:10px;object-fit:cover;display:block}
+.rtb .e{font-family:var(--mono,ui-monospace,monospace);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#ffb25e}
+.rtb h3{margin:2px 0 3px;font-size:20px;line-height:1.2}
+.rtb .c{font-size:13px;color:#cfd9ea;margin:0 0 6px}
+.rtb .s{font-size:13px;line-height:1.45;color:var(--dim,#9fb2cc);margin:0 0 8px}
+.rtb ul{margin:0 0 8px;padding:0;list-style:none;display:grid;gap:3px}
+.rtb li{font-size:13px;line-height:1.35;color:#e4ebf8;padding-left:14px;position:relative}
+.rtb li::before{content:"";position:absolute;left:2px;top:.5em;width:6px;height:6px;border-radius:50%;background:#ffb25e}
+.rtb .go{display:inline-block;font-weight:700;font-size:14px;color:#1a0f02;background:#ffb25e;border-radius:999px;padding:7px 14px}
+.rtb .t{font-family:var(--mono,ui-monospace,monospace);font-size:11px;color:var(--dim,#9fb2cc);margin-left:8px}
+@media (max-width:560px){.rtb{grid-template-columns:1fr}.rtb img{width:100%;height:auto;aspect-ratio:16/9;object-position:50% 45%}}
+</style>
+  <a class="rtb" id="rtb" href="/de/roundtable">
+    <img src="/media/roundtable-thumb.webp" width="360" height="360" alt="" loading="lazy" decoding="async">
+    <div>
+      <div class="e">Orb Studio · KI-Runder Tisch</div>
+      <h3>KI-Runder Tisch</h3>
+      <p class="c">Claude moderiert · Gemini · Grok · DeepSeek antworten</p>
+      <p class="s" id="rtbS">Moderator Claude (Anthropic) wählt die heißesten Themen und stellt drei KIs verschiedener Firmen dieselbe Frage. Stimmen, 5 Sprachen, Kommentare für Menschen und Agenten.</p>
+      <ul id="rtbT" hidden aria-label="Themen der Ausgabe"></ul>
+      <span class="go">🔊 Runden Tisch anhören</span><span class="t" id="rtbW"></span>
+    </div>
+  </a>
+  <script>(function(){var L="de";fetch("/api/v1/roundtable").then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||d.status!=="ok"||!d.topics)return;
+    var tr=d.translations&&d.translations[L],ul=document.getElementById("rtbT");ul.textContent="";
+    d.topics.slice(0,4).forEach(function(t){var x=(tr&&tr.topics&&tr.topics[t.i]&&tr.topics[t.i].recap)||(L==="en"?t.recap:"")||t.headline;x=String(x).split(/(?<=[.!?])\s/)[0];if(x.length>110)x=x.slice(0,107).replace(/\s+\S*$/,"")+"…";var li=document.createElement("li");li.textContent=x;ul.appendChild(li)});
+    ul.hidden=false;document.getElementById("rtbS").hidden=true;
+    try{document.getElementById("rtbW").textContent="Ausgabe "+new Date(d.generated_at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){}
+  }).catch(function(){})})();</script>
   <div class="sec" id="sensorMapSec"><div id="sensorMap"></div></div>
   <script>
   /* Карта датчиков: грузится, только когда секция почти в зоне видимости, чтобы не тормозить главную */
