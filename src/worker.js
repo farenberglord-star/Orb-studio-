@@ -1566,17 +1566,29 @@ async function radioRegionBuild(env, ctx, origin, region) {
     return { headline: c.headline, source: c.source, link: c.link, time: c.time, radar: c.radar, guest: g, model: got.model, question_by: p.question_by, facts_used: facts, en: { read: p.read, question: q, answer: got.text } };
   }))).filter(Boolean);
   if (!items.length) return null;
-  const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: items.map((x) => x.en) }), TRANSLATE_TOOL, 2600), items.map((x) => x.en), stripInvisible);
-  items.forEach((x, i) => { x.de = tr.de[i]; x.ru = tr.ru[i]; });
+  await radioTranslate(env, items);
   await sharedPut(env, "radio-region-used", [...usedList, ...items.map((x) => normHead(x.headline))].slice(-60));
   return { region, region_name: REGIONS[region].name, generated_at: new Date().toISOString(), items };
+}
+// Перевод: каждое интервью отдельным вызовом (короткий ответ не обрезается), одна повторная попытка; чего нет — остаётся null
+async function radioTranslate(env, items) {
+  await Promise.all(items.map(async (x) => {
+    for (let n = 0; n < 2 && (!x.de || !x.ru); n++) {
+      const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: [x.en] }), TRANSLATE_TOOL, 1800), [x.en], stripInvisible);
+      x.de = x.de || tr.de[0]; x.ru = x.ru || tr.ru[0];
+    }
+  }));
 }
 async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
   for (const region of Object.keys(REGIONS)) {
     const ep = await sharedGet(env, "radio-region-v3-" + region, 1e15);
-    if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) continue;
+    if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) {
+      // выпуск свежий, но часть переводов не удалась: чиним только перевод (до трёх заходов), интервью не переписываем
+      if ((ep.tr_tries || 0) < 3 && ep.items.some((x) => !x.de || !x.ru)) { ep.tr_tries = (ep.tr_tries || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v3-" + region, ep); return; }
+      continue;
+    }
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
     await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
     const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
