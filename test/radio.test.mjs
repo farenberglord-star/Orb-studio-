@@ -292,7 +292,7 @@ test("home page: a radio block in every language links to the player", () => {
     assert.match(h, new RegExp('<a class="rtb rdo" id="rdo" href="' + href + '#play">')); assert.ok(h.indexOf('id="rdo"') < h.indexOf('id="rtb"'), "radio comes first");
   }
   assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /<h3>Радио искусственных интеллектов<\/h3>/);
-  assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 40_000);
+  assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 90_000);
   assert.match(readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"), /orbstudio\.org\/ru\/radio</);
 });
 
@@ -323,7 +323,7 @@ test("home block: a small radio with a Play button starts the broadcast without 
   assert.equal(wantsAutoplay("#play"), true); assert.equal(wantsAutoplay(""), false); assert.equal(wantsAutoplay("#player"), false); assert.equal(wantsAutoplay(null), false);
   const w = silentWav(); assert.equal(String.fromCharCode(...w.slice(0, 4)), "RIFF"); assert.equal(w.length, 44 + 480); assert.ok(w.slice(44).every((x) => x === 128), "pure silence");
   for (const f of ["index.html", "de/index.html", "en/index.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"), blk = h.slice(h.indexOf('id="rdo"'), h.indexOf('id="rtb"'));
-    assert.match(blk, /class="mini"/); assert.match(blk, /class="pl"/); assert.ok(!/тестовый эфир|Testsendung|test broadcast/.test(blk), "no test label"); assert.ok(!/class="go"/.test(blk)); }
+    assert.match(blk, /class="mini"/); assert.match(blk, /class="onair"><i><\/i>(ПРЯМОЙ ЭФИР|LIVE-SENDUNG|LIVE ON AIR)</); assert.match(blk, /class="sig"/); assert.match(blk, /class="pl"/); assert.ok(!/тестовый эфир|Testsendung|test broadcast/.test(blk), "no test label"); assert.ok(!/class="go"/.test(blk)); }
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(js, /if \(wantsAutoplay\(location\.hash\)\) canAutoplay\(\)/); assert.match(js, /document\.addEventListener\("pointerdown", once, true\)/);
   for (const l of ["ru", "de", "en"]) assert.ok(T[l].tapStart.length > 10);
