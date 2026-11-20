@@ -7,7 +7,7 @@
 <meta name="description" content="A daily AI round table on the hottest news: moderator Claude (Anthropic) asks Gemini (Google), Grok (xAI) and DeepSeek the same questions. Subtitles and voices come live from /api/v1/roundtable.">
 <link rel="canonical" href="https://orbstudio.org/roundtable">
 <meta name="theme-color" content="#05060c">
-<link rel="preload" as="image" href="/media/roundtable.webp" type="image/webp">
+<link rel="preload" as="image" href="/media/roundtable-v2.webp" type="image/webp">
 <style>
 :root{--claude:#ffb25e;--gemini:#7fb2ff;--grok:#b58cff;--deepseek:#4fd8e6;--col:min(100vw,56.25svh);color-scheme:dark}
 *{box-sizing:border-box}
@@ -15,7 +15,7 @@ html,body{margin:0;max-width:100%;overflow-x:clip;background:#05060c;color:#e9ee
 body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* ПК: размытый фон по краям, сцена 9:16 по центру */
 .back{position:fixed;inset:0;z-index:-1;overflow:hidden}
-.back:before{content:"";position:absolute;inset:-40px;background:url(/media/roundtable-blur.webp) center/cover;filter:blur(28px) brightness(.5)}
+.back:before{content:"";position:absolute;inset:-40px;background:url(/media/roundtable-v2-blur.webp) center/cover;filter:blur(28px) brightness(.5)}
 /* одна колонка на все блоки: сцена 9:16 целиком, под ней баннеры той же ширины */
 .frame{display:grid;justify-items:center}
 .stage{position:relative;width:var(--col);aspect-ratio:9/16;overflow:hidden;background:#05060c;container-type:inline-size}
@@ -185,8 +185,8 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 <div class="frame">
 <main class="stage" id="stage" data-speaker="">
   <div class="cam">
-    <img src="/media/roundtable.webp" width="1080" height="1920" alt="A dark studio above a night city: four holograms sit at a round glass table with a glowing globe, each with a microphone and a light symbol above the head." decoding="async" fetchpriority="high">
-    <div class="parts" aria-hidden="true"><div class="pt ds-b ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt ds-h ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-b gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-h gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-b gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-h gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-b cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-h cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-ds ds-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gm gm-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gk gk-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-cl cl-x"><img src="/media/roundtable.webp" alt="" width="1080" height="1920" decoding="async"></div></div>
+    <img src="/media/roundtable-v2.webp" width="1080" height="1920" alt="A dark studio above a night city: four holograms sit at a round glass table with a glowing globe, each with a microphone and a light symbol above the head." decoding="async" fetchpriority="high">
+    <div class="parts" aria-hidden="true"><div class="pt ds-b ds-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt ds-h ds-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-b gm-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gm-h gm-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-b gk-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt gk-h gk-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-b cl-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt cl-h cl-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-ds ds-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gm gm-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-gk gk-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div><div class="pt sym s-cl cl-x"><img src="/media/roundtable-v2.webp" alt="" width="1080" height="1920" decoding="async"></div></div>
     <canvas id="fx"></canvas>
     <div class="zones" aria-hidden="true">
       <div class="dim"></div>
