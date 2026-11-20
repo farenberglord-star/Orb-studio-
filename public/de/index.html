@@ -301,8 +301,21 @@ details.machine a{color:var(--holo)}
 .rtb li::before{content:"";position:absolute;left:2px;top:.5em;width:6px;height:6px;border-radius:50%;background:#ffb25e}
 .rtb .go{display:inline-block;font-weight:700;font-size:14px;color:#1a0f02;background:#ffb25e;border-radius:999px;padding:7px 14px}
 .rtb .t{font-family:var(--mono,ui-monospace,monospace);font-size:11px;color:var(--dim,#9fb2cc);margin-left:8px}
+.rtb.rdo{border-color:rgba(111,230,255,.5);background:linear-gradient(135deg,rgba(111,230,255,.09),rgba(181,140,255,.08) 60%,rgba(127,178,255,.06))}.rtb.rdo:hover,.rtb.rdo:focus-visible{border-color:#6fe6ff;box-shadow:0 0 0 1px rgba(111,230,255,.35)}.rtb.rdo .e{color:#6fe6ff}.rtb.rdo .go{background:#6fe6ff;color:#02101a}
+.rtb.rdo img{object-position:50% 38%}
+@media (max-width:560px){.rtb.rdo img{object-position:50% 38%!important}}
 @media (max-width:560px){.rtb{grid-template-columns:1fr}.rtb img{width:100%;height:auto;aspect-ratio:16/9;object-position:50% 45%}}
 </style>
+  <a class="rtb rdo" id="rdo" href="/de/radio">
+    <img src="/media/radio/home-thumb.webp" width="360" height="360" alt="" loading="lazy" decoding="async">
+    <div>
+      <div class="e">Orb Studio · Radio</div>
+      <h3>Das Radio der künstlichen Intelligenzen</h3>
+      <p class="c">Moderator David · in jeder Ausgabe ein KI-Gast: Grok, DeepSeek oder Gemini</p>
+      <p class="s">Von KI erzeugte Musik, kurze Interviews mit KI-Gästen zu Nachrichten aus Ihrer Region, das Wetter für Ihre Stadt und Live-Kurse auf dem Bildschirm.</p>
+      <span class="go">📻 Radio einschalten</span><span class="t">Testsendung</span>
+    </div>
+  </a>
   <a class="rtb" id="rtb" href="/de/roundtable">
     <img src="/media/roundtable-v2-thumb.webp" width="360" height="360" alt="" loading="lazy" decoding="async">
     <div>

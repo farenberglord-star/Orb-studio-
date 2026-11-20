@@ -285,3 +285,13 @@ test("one guest per episode: the intro names only the guest on air, and a new gu
   assert.deepEqual(said(plan([iv("d", "Grok")], new Set(), 0, 2, { dj: DJ, intros, introSaid: true, introGuest: "gemini" })), ["Guest: Grok"], "next episode, next guest: a new intro");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /intros: Object\.fromEntries\(GUEST_ORDER\.map/);
 });
+
+test("home page: a radio block in every language links to the player", () => {
+  for (const [f, href] of [["index.html", "/ru/radio"], ["de/index.html", "/de/radio"], ["en/index.html", "/en/radio"]]) {
+    const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8");
+    assert.match(h, new RegExp('<a class="rtb rdo" id="rdo" href="' + href + '">')); assert.ok(h.indexOf('id="rdo"') < h.indexOf('id="rtb"'), "radio comes first");
+  }
+  assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /<h3>Радио искусственных интеллектов<\/h3>/);
+  assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 40_000);
+  assert.match(readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"), /orbstudio\.org\/ru\/radio</);
+});
