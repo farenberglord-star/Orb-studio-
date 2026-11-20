@@ -154,6 +154,30 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 @keyframes nodB{0%,100%{transform:rotate(.7deg)}40%{transform:rotate(-1deg)}75%{transform:rotate(.25deg) translateY(.15%)}}
 @keyframes sym{0%,100%{opacity:1;scale:1}50%{opacity:.75;scale:1.025}}
 @media (prefers-reduced-motion:reduce){.pt{animation:none!important;transform:none!important;scale:none!important;rotate:none!important}#fx{display:none}}
+/* HUD-строка субтитров: компактная голограмма над лазерным столом (киберпанк), длинные реплики — порциями */
+.sub{left:6%;right:6%;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-height:25%;overflow:hidden;padding:9px 13px 8px;border-radius:3px;
+  background:
+   linear-gradient(var(--c),var(--c)) left top/14px 2px no-repeat,linear-gradient(var(--c),var(--c)) left top/2px 14px no-repeat,
+   linear-gradient(var(--c),var(--c)) right top/14px 2px no-repeat,linear-gradient(var(--c),var(--c)) right top/2px 14px no-repeat,
+   linear-gradient(var(--c),var(--c)) left bottom/14px 2px no-repeat,linear-gradient(var(--c),var(--c)) left bottom/2px 14px no-repeat,
+   linear-gradient(var(--c),var(--c)) right bottom/14px 2px no-repeat,linear-gradient(var(--c),var(--c)) right bottom/2px 14px no-repeat,
+   repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),
+   linear-gradient(180deg,rgba(6,16,30,.5),rgba(4,8,18,.72));
+  border:1px solid color-mix(in srgb,var(--c,#5fe3ff) 38%,transparent);border-left-width:1px;
+  box-shadow:0 0 22px color-mix(in srgb,var(--c,#5fe3ff) 26%,transparent),inset 0 0 26px color-mix(in srgb,var(--c,#5fe3ff) 9%,transparent);
+  transform:perspective(700px) rotateX(7deg);transform-origin:50% 100%}
+.sub::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--c,#5fe3ff),transparent);animation:hudscan 3.4s ease-in-out infinite;pointer-events:none}
+.sub.out{opacity:0;transform:perspective(700px) rotateX(7deg) translateY(6px)}
+.sub .head{gap:7px;margin-bottom:3px;align-items:center}
+.sub .head::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);flex:none}
+#who{font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
+#role{font:500 9.5px ui-monospace,Menlo,monospace;letter-spacing:.12em}
+#text,#text.long{font-size:clamp(12.5px,3.35cqw,15px);line-height:1.4;color:#eaf3ff;text-shadow:0 0 10px color-mix(in srgb,var(--c,#5fe3ff) 32%,transparent);transition:opacity .25s ease}
+#text.sw{opacity:.15}
+.sub .meta{margin-top:5px;font:500 10px ui-monospace,Menlo,monospace;letter-spacing:.06em}
+#chunks{display:inline-flex;gap:3px;margin-left:auto}#chunks i{width:9px;height:2px;background:rgba(255,255,255,.2)}#chunks i.on{background:var(--c)}
+@keyframes hudscan{0%,100%{opacity:.25;transform:scaleX(.35)}50%{opacity:1;transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.sub::after{animation:none}}
 </style>
 </head>
 <body>
@@ -178,7 +202,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   </div>
   <div class="board" id="board" role="status" hidden><h2 id="board-h"></h2><p id="board-p"></p></div>
   <section class="sub out" id="sub" aria-live="polite" hidden>
-    <div class="head"><span id="who"></span><span id="role"></span></div>
+    <div class="head"><span id="who"></span><span id="role"></span><span id="chunks" aria-hidden="true"></span></div>
     <p id="text"></p>
     <div class="meta"><span id="src"></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
   </section>
