@@ -98,7 +98,7 @@ const AND = [[.10,.70],[.28,.58],[.46,.48],[.64,.40],[.84,.30],[.46,.48],[.52,.7
 // ---------- Браузер ----------
 function start() {
   const $ = (id) => document.getElementById(id);
-  const lang = pickLang(location.search, navigator.language), t = T[lang] || T.en, st = ST[lang] || ST.en;
+  const lang = pickLang(location.search, document.documentElement.dataset.al || navigator.language), t = T[lang] || T.en, st = ST[lang] || ST.en; // data-al: язык из адреса /ru/radio или языка телефона
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.lang = lang; document.title = t.title + " · Orb Studio";
   $("ttl").textContent = t.title; $("test").textContent = t.test; $("by").textContent = t.by; $("ai").textContent = t.ai; $("pics").textContent = t.pics; $("rd-h").textContent = t.rundown;

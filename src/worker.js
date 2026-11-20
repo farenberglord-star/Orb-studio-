@@ -3,6 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
+import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL } from "./seo.js";
 import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
@@ -1573,6 +1574,7 @@ async function radioRegionBuild(env, ctx, origin, region) {
 // Перевод: каждое интервью отдельным вызовом (короткий ответ не обрезается), одна повторная попытка; чего нет — остаётся null
 async function radioTranslate(env, items) {
   await Promise.all(items.map(async (x) => {
+    { const keep = checkTranslations({ de: [x.de], ru: [x.ru] }, [x.en], stripInvisible); x.de = keep.de[0]; x.ru = keep.ru[0]; } // старый перевод, не прошедший нынешнюю проверку, выбрасываем
     for (let n = 0; n < 2 && (!x.de || !x.ru); n++) {
       const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: [x.en] }), TRANSLATE_TOOL, 1800), [x.en], stripInvisible);
       x.de = x.de || tr.de[0]; x.ru = x.ru || tr.ru[0];
@@ -1586,7 +1588,8 @@ async function radioRegionWarm(env, ctx) {
     const ep = await sharedGet(env, "radio-region-v3-" + region, 1e15);
     if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) {
       // выпуск свежий, но часть переводов не удалась: чиним только перевод (до трёх заходов), интервью не переписываем
-      if ((ep.tr_tries || 0) < 3 && ep.items.some((x) => !x.de || !x.ru)) { ep.tr_tries = (ep.tr_tries || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v3-" + region, ep); return; }
+      const bad = (x) => { const k = checkTranslations({ de: [x.de], ru: [x.ru] }, [x.en], stripInvisible); return !k.de[0] || !k.ru[0]; };
+      if ((ep.tr_tries || 0) < 4 && ep.items.some(bad)) { ep.tr_tries = (ep.tr_tries || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v3-" + region, ep); return; }
       continue;
     }
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
@@ -6024,7 +6027,7 @@ async function agentActivity(env, names) {
 async function registeredAgents(env, limit = 50) {
   if (!env.DB) return [];
   await ensureAgents(env); await ensureArchive(env); await ensureBridge(env); await ensureQuestions(env);
-  const rows = (await env.DB.prepare("SELECT * FROM agents WHERE status='live' ORDER BY ts ASC LIMIT 500").all()).results || [];
+  const rows = ((await env.DB.prepare("SELECT * FROM agents WHERE status='live' ORDER BY ts ASC LIMIT 500").all()).results || []).filter((r) => !isTestAgentName(r.name)); // тестовые записи в публичные списки не идут
   let act = {};
   try { act = await agentActivity(env, rows.map((r) => r.name_key)); } catch (e) {}
   return rows.map((r) => agentPublic(r, act[r.name_key])).sort((a, b) => b.activity_30d - a.activity_30d || a.registered_at.localeCompare(b.registered_at)).slice(0, limit);
@@ -6100,7 +6103,7 @@ async function handleAgents(url, request, env, ctx) {
     return json(r, H, r.error ? 400 : r.registered ? 201 : 200);
   }
   if (p === "/api/v1/agents") {
-    return json({ agents: await registeredAgents(env), register: "POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude|GPT|Grok|Gemini|...\", \"operator\": \"optional\", \"homepage\": \"https://... optional\", \"description\": \"optional\"} or MCP tool register_agent at https://orbstudio.org/mcp" }, H);
+    return json({ agents: (await registeredAgents(env)).filter((a) => !isTestAgentName(a.name)), register: "POST https://orbstudio.org/api/v1/agents {\"name\": \"Your Agent\", \"model\": \"Claude|GPT|Grok|Gemini|...\", \"operator\": \"optional\", \"homepage\": \"https://... optional\", \"description\": \"optional\"} or MCP tool register_agent at https://orbstudio.org/mcp" }, H);
   }
   const m = p.match(/^\/api\/v1\/agents\/(a_[0-9a-f]{12})$/);
   if (m) { const a = await agentById(env, m[1]); return a ? json(a, H) : json({ error: "Agent not found" }, H, 404); }
@@ -8303,6 +8306,21 @@ async function markdownResponse(resp, pageUrl) {
   return new Response(md, { status: resp.status, headers: h });
 }
 // HTML-страница: добавляем Link; если агент просит Markdown — отдаём Markdown
+function seoRewrite(asset, url) {
+  const el = explicitLang(url.pathname), origin = "https://orbstudio.org", bare = barePath(url.pathname), seen = new Set();
+  const rw = new HTMLRewriter().on('link[rel="alternate"][hreflang]', { element(e) {
+    const hl = e.getAttribute("hreflang"); if (seen.has(hl)) { e.remove(); return; } seen.add(hl); // на главной набор был повторён дважды
+    const fixed = fixAlternate(hl, e.getAttribute("href"), origin); if (fixed) e.setAttribute("href", fixed);
+  } });
+  if (EXTRA_LOCAL.includes(bare.slice(1))) rw.on("head", { element(e) { e.append(alternateTags(origin, bare), { html: true }); } }); // у студии, круглого стола и радио hreflang не было
+  if (el) {
+    const canon = canonicalUrl(origin, url.pathname);
+    rw.on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
+      .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", canon); } })
+      .on("a[href]", { element(e) { const h = localHref(e.getAttribute("href"), el, TRANSLATED_PAGES); if (h) e.setAttribute("href", h); } });
+  }
+  return rw.transform(asset);
+}
 async function finishPage(request, resp, pageUrl) {
   if (!(resp.headers.get("content-type") || "").includes("text/html")) return resp;
   if (resp.ok && wantsMarkdown(request)) return markdownResponse(resp, pageUrl);
@@ -8978,7 +8996,7 @@ async function handleRequest(request, env, ctx) {
     }
     // «Студия на двоих»: язык подкаста по языку телефона (Accept-Language), затем по стране; /ru/studio, /ro/studio… — явный язык
     let studioLang = null;
-    { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr))?\/(studio|roundtable)(?:\.html)?$/);
+    { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr))?\/(studio|roundtable|radio|tools\/inbox)(?:\.html)?$/);
       if (sm) { assetReq = new Request(new URL("/" + sm[2], url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
     if (langCookie && asset.ok) { asset = new Response(asset.body, asset); asset.headers.append("Set-Cookie", `orb_lang=${langCookie}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`); }
@@ -8992,6 +9010,8 @@ async function handleRequest(request, env, ctx) {
       asset.headers.set("Content-Language", autoLang);
       asset.headers.set("Cache-Control", "private, max-age=60");
     }
+    // язык адреса сохраняется в ссылках меню; canonical, og:url и hreflang указывают на эту языковую версию
+    if (asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) { try { asset = seoRewrite(asset, url); } catch (e) {} }
     const pg = HTML_PAGES[url.pathname] || (url.pathname === "/ru" ? "home" : undefined) || HTML_PAGES[url.pathname.replace(/^\/(ru|de|en)(?=\/[a-z])/, "").replace(/\.html$/, "")];
     if (pg && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       // подставляем живые заголовки в HTML, чтобы агенты без JavaScript видели настоящие данные
