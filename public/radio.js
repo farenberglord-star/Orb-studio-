@@ -11,9 +11,9 @@ export const TRACKS = [
   { id: "track-1", title: "Orb Studio · Track 1", src: "/media/radio/track-1.m4a", sec: 184 },
 ];
 export const T = {
-  ru: { title: "Радио Orb Studio", test: "тестовый эфир", start: "▶ Включить радио", pause: "❚❚ Пауза", resume: "▶ Продолжить", skip: "Дальше ▶▶", music: "Музыка", talk: "Интервью", now: "Сейчас в эфире", next: "Далее", tap: "Нажми «Включить радио»: сначала трек, потом Давид с гостем.", noNew: "Новых интервью пока нет — играет музыка. Проверяем каждые несколько минут.", noLink: "Нет связи с эфиром — играет только музыка.", by: "Музыка: Orb Studio (сделана в Suno). Чужих песен в эфире нет.", ai: "Давид и гости — ИИ-агенты, не люди; голоса синтезированы (xAI Grok TTS). Гости по очереди: Grok (xAI), DeepSeek и Gemini (Google), каждый отвечает сам.", story: "Открыть новость", episode: "выпуск от", rundown: "Программа", guestOff: "Гость не ответил", pics: "Картинки магнитолы, Давида и Земли созданы ИИ (Grok). Свечи BTC/EUR — данные Kraken, не прогноз.", scenes: { sky: "НОЧНОЕ НЕБО", market: "РЫНОК", david: "НОВОСТИ · ДАВИД", earth: "ВИД ЗЕМЛИ" } },
-  de: { title: "Radio Orb Studio", test: "Testsendung", start: "▶ Radio einschalten", pause: "❚❚ Pause", resume: "▶ Weiter", skip: "Weiter ▶▶", music: "Musik", talk: "Interview", now: "Jetzt auf Sendung", next: "Danach", tap: "Tippe auf „Radio einschalten“: erst ein Titel, dann David mit Gast.", noNew: "Noch keine neuen Interviews – es läuft Musik. Wir prüfen alle paar Minuten.", noLink: "Keine Verbindung zur Sendung – es läuft nur Musik.", by: "Musik: Orb Studio (mit Suno erstellt). Keine fremden Songs im Programm.", ai: "David und die Gäste sind KI-Agenten, keine Menschen; die Stimmen sind synthetisch (xAI Grok TTS). Gäste im Wechsel: Grok (xAI), DeepSeek und Gemini (Google), jeder antwortet selbst.", story: "Zur Nachricht", episode: "Folge vom", rundown: "Programm", guestOff: "Gast hat nicht geantwortet", pics: "Bilder von Radio, David und Erde sind KI-generiert (Grok). BTC/EUR-Kerzen: Kraken-Daten, keine Prognose.", scenes: { sky: "NACHTHIMMEL", market: "MARKT", david: "NEWS · DAVID", earth: "ERDBLICK" } },
-  en: { title: "Radio Orb Studio", test: "test broadcast", start: "▶ Turn the radio on", pause: "❚❚ Pause", resume: "▶ Resume", skip: "Next ▶▶", music: "Music", talk: "Interview", now: "On air now", next: "Up next", tap: "Tap “Turn the radio on”: a track first, then David with a guest.", noNew: "No new interviews yet — music is playing. We check every few minutes.", noLink: "No connection to the desk — music only.", by: "Music: Orb Studio (made with Suno). No third-party songs on air.", ai: "David and the guests are AI agents, not people; the voices are synthetic (xAI Grok TTS). Guests take turns: Grok (xAI), DeepSeek and Gemini (Google), each answers for itself.", story: "Open the story", episode: "episode of", rundown: "Programme", guestOff: "The guest did not answer", pics: "The radio, David and Earth pictures are AI-generated (Grok). BTC/EUR candles are Kraken data, not a forecast.", scenes: { sky: "NIGHT SKY", market: "MARKETS", david: "NEWS · DAVID", earth: "EARTH VIEW" } },
+  ru: { title: "Радио Orb Studio", mk: { gold: "ЗОЛОТО", fut: "ФЬЮЧЕРС", oil: "НЕФТЬ", win: "за {h} ч", funding: "финансирование за период", oi: "открытый интерес", futName: "BTC · бессрочный фьючерс · Kraken Futures", goldName: "PAXG/EUR · токен золота · Kraken", wait: "загрузка…", none: "Биржа сейчас не отдала данные по этому инструменту.", oilNote: "Биржевых цен на нефть здесь пока нет: открытого бесплатного источника с разрешением на показ мы не нашли. Выдуманные цифры не показываем." }, test: "тестовый эфир", start: "▶ Включить радио", pause: "❚❚ Пауза", resume: "▶ Продолжить", skip: "Дальше ▶▶", music: "Музыка", talk: "Интервью", now: "Сейчас в эфире", next: "Далее", tap: "Нажми «Включить радио»: сначала трек, потом Давид с гостем.", noNew: "Новых интервью пока нет — играет музыка. Проверяем каждые несколько минут.", noLink: "Нет связи с эфиром — играет только музыка.", by: "Музыка: Orb Studio (сделана в Suno). Чужих песен в эфире нет.", ai: "Давид и гости — ИИ-агенты, не люди; голоса синтезированы (xAI Grok TTS). Гости по очереди: Grok (xAI), DeepSeek и Gemini (Google), каждый отвечает сам.", story: "Открыть новость", episode: "выпуск от", rundown: "Программа", guestOff: "Гость не ответил", pics: "Картинки магнитолы, Давида и Земли созданы ИИ (Grok). Свечи BTC/EUR — данные Kraken, не прогноз.", scenes: { sky: "НОЧНОЕ НЕБО", market: "РЫНОК", david: "НОВОСТИ · ДАВИД", earth: "ВИД ЗЕМЛИ" } },
+  de: { title: "Radio Orb Studio", mk: { gold: "GOLD", fut: "FUTURE", oil: "ÖL", win: "in {h} Std.", funding: "Funding je Periode", oi: "Open Interest", futName: "BTC · Perpetual-Future · Kraken Futures", goldName: "PAXG/EUR · Gold-Token · Kraken", wait: "lädt…", none: "Die Börse liefert für dieses Instrument gerade keine Daten.", oilNote: "Börsenpreise für Öl gibt es hier noch nicht: Wir haben keine offene, kostenlose Quelle mit Anzeigeerlaubnis gefunden. Erfundene Zahlen zeigen wir nicht." }, test: "Testsendung", start: "▶ Radio einschalten", pause: "❚❚ Pause", resume: "▶ Weiter", skip: "Weiter ▶▶", music: "Musik", talk: "Interview", now: "Jetzt auf Sendung", next: "Danach", tap: "Tippe auf „Radio einschalten“: erst ein Titel, dann David mit Gast.", noNew: "Noch keine neuen Interviews – es läuft Musik. Wir prüfen alle paar Minuten.", noLink: "Keine Verbindung zur Sendung – es läuft nur Musik.", by: "Musik: Orb Studio (mit Suno erstellt). Keine fremden Songs im Programm.", ai: "David und die Gäste sind KI-Agenten, keine Menschen; die Stimmen sind synthetisch (xAI Grok TTS). Gäste im Wechsel: Grok (xAI), DeepSeek und Gemini (Google), jeder antwortet selbst.", story: "Zur Nachricht", episode: "Folge vom", rundown: "Programm", guestOff: "Gast hat nicht geantwortet", pics: "Bilder von Radio, David und Erde sind KI-generiert (Grok). BTC/EUR-Kerzen: Kraken-Daten, keine Prognose.", scenes: { sky: "NACHTHIMMEL", market: "MARKT", david: "NEWS · DAVID", earth: "ERDBLICK" } },
+  en: { title: "Radio Orb Studio", mk: { gold: "GOLD", fut: "FUTURES", oil: "OIL", win: "over {h} h", funding: "funding per period", oi: "open interest", futName: "BTC · perpetual future · Kraken Futures", goldName: "PAXG/EUR · gold token · Kraken", wait: "loading…", none: "The exchange returned no data for this instrument right now.", oilNote: "No exchange oil prices here yet: we have not found an open, free source that allows display. We do not show invented numbers." }, test: "test broadcast", start: "▶ Turn the radio on", pause: "❚❚ Pause", resume: "▶ Resume", skip: "Next ▶▶", music: "Music", talk: "Interview", now: "On air now", next: "Up next", tap: "Tap “Turn the radio on”: a track first, then David with a guest.", noNew: "No new interviews yet — music is playing. We check every few minutes.", noLink: "No connection to the desk — music only.", by: "Music: Orb Studio (made with Suno). No third-party songs on air.", ai: "David and the guests are AI agents, not people; the voices are synthetic (xAI Grok TTS). Guests take turns: Grok (xAI), DeepSeek and Gemini (Google), each answers for itself.", story: "Open the story", episode: "episode of", rundown: "Programme", guestOff: "The guest did not answer", pics: "The radio, David and Earth pictures are AI-generated (Grok). BTC/EUR candles are Kraken data, not a forecast.", scenes: { sky: "NIGHT SKY", market: "MARKETS", david: "NEWS · DAVID", earth: "EARTH VIEW" } },
 };
 
 // Дата выпуска: ДД.ММ.ГГ по берлинскому времени
@@ -86,6 +86,19 @@ export function tickerItems(duo) {
   for (const s of duo.segments) { const h = s && typeof s.headline === "string" ? s.headline.replace(/\s+/g, " ").trim() : ""; if (!h || seen.has(h) || (s.kind || "news") !== "news") continue; seen.add(h); out.push(s.source ? h + " (" + s.source + ")" : h); }
   return out;
 }
+// Кнопки рыночного экрана. Нефть — честная табличка «источника нет», без цифр.
+export const MARKET_CHIPS = [{ id: "btc", label: "BTC" }, { id: "eth", label: "ETH" }, { id: "eurusd", label: "EUR/USD" }, { id: "eurgbp", label: "EUR/GBP" }, { id: "eurchf", label: "EUR/CHF" }, { id: "usdjpy", label: "USD/JPY" },
+  { id: "gold", key: "gold" }, { id: "fut", key: "fut" }, { id: "oil", key: "oil", nodata: true }];
+export function nextMarket(cur) { const ids = MARKET_CHIPS.filter((c) => !c.nodata).map((c) => c.id); return ids[(ids.indexOf(cur) + 1) % ids.length]; }
+// Годится ли ответ для показа: свечи или цифры фьючерса, иначе null (на экране будет «нет данных»)
+export function marketData(d) {
+  if (!d || typeof d !== "object" || !Number.isFinite(d.last) || d.last <= 0) return null;
+  if (d.kind === "quote") return d;
+  return Array.isArray(d.candles) && d.candles.length >= 8 ? d : null;
+}
+export function fmtPrice(v, digits, lang) { return Number(v).toLocaleString(lang, { minimumFractionDigits: digits, maximumFractionDigits: digits }); }
+export function fmtChange(p, lang) { return !Number.isFinite(p) ? "" : (p > 0 ? "▲ +" : p < 0 ? "▼ −" : "● ") + Math.abs(p).toLocaleString(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " %"; }
+export function wrapWords(text, max) { const out = []; let line = ""; for (const w of String(text || "").split(/\s+/)) { if (line && (line + " " + w).length > max) { out.push(line); line = w; } else line = line ? line + " " + w : w; } if (line) out.push(line); return out; }
 // Раскладка свечей по экрану: чистая геометрия, без сглаживания и дорисовки
 export function candleBoxes(candles, w, h, pad = 0.14) {
   const c = (candles || []).filter((x) => x && Number.isFinite(x.h) && Number.isFinite(x.l)); if (!c.length) return [];
@@ -160,7 +173,7 @@ function start() {
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx, reg] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang)]);
     weather = wx && wx.status === "ok" && wx.text ? { text: wx.text, audio: wx.audio } : null; // погода свежая к каждому кругу; нет данных — Давид её пропускает
-    const p = plan(mergeInterviews(reg, interviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    const p = plan(mergeInterviews(reg, lang === "en" ? interviews(duo, lang) : [] /* мировой выпуск записан по-английски: русскому и немецкому слушателю его не ставим */), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
     greeted = true; if (p.fresh) introSaid = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
@@ -195,12 +208,21 @@ function start() {
     const tx = $("text"), over = tx.scrollHeight - tx.clientHeight; if (over > 2) { const f = d ? c / d : Math.min(1, (Date.now() - lineAt) / (lineMsNow || 1)); tx.scrollTop = over * Math.min(1, Math.max(0, (f - 0.12) / 0.7)); } }, 500);
 
   // ---- сцены верхнего экрана ----
-  let candles = null, scene = "sky", sceneAt = performance.now();
-  const loadCandles = () => fetch("/api/v1/radio/candles").then((r) => (r.ok ? r.json() : null)).then((d) => { candles = d && Array.isArray(d.candles) && d.candles.length >= 8 ? d : null; }).catch(() => { candles = null; });
-  loadCandles(); setInterval(loadCandles, 5 * 60e3);
+  let scene = "sky", sceneAt = performance.now(), cur = "btc", holdUntil = 0;
+  const mk = {}; // id → { d, at }: то, что отдал наш API; d === null значит «биржа не ответила»
+  const SYM = { EUR: "€", USD: "$", GBP: "£", CHF: "CHF", JPY: "¥" };
+  function loadMk(id) { if (id === "oil") return Promise.resolve(); const o = mk[id]; if (o && o.busy) return o.busy; if (o && Date.now() - o.at < 120e3) return Promise.resolve();
+    const busy = fetch("/api/v1/radio/candles?pair=" + id).then((r) => (r.ok ? r.json() : null)).then(marketData).catch(() => null).then((d) => { mk[id] = { d, at: Date.now() }; if (still) draw(performance.now()); });
+    mk[id] = { d: o ? o.d : undefined, at: o ? o.at : 0, busy }; return busy; }
+  loadMk("btc"); setInterval(() => { if (scene === "market" && !document.hidden) loadMk(cur); }, 60e3);
   function setScene(k) { scene = k; sceneAt = performance.now(); if (!speaker) $("scn").textContent = t.scenes[k]; document.querySelector(".air").dataset.scene = k; }
-  setScene("sky");
-  setInterval(() => { const o = sceneOrder(!!candles); setScene(o[(o.indexOf(scene) + 1) % o.length]); if (still) draw(performance.now()); }, SCENE_MS);
+  function pick(id) { cur = id; loadMk(id); for (const b of $("mk").children) b.setAttribute("aria-pressed", b.dataset.id === id ? "true" : "false"); const on = $("mk").querySelector('[aria-pressed="true"]'); if (on && on.scrollIntoView && !still) on.scrollIntoView({ inline: "nearest", block: "nearest" }); if (still) draw(performance.now()); }
+  for (const c of MARKET_CHIPS) { const b = document.createElement("button"); b.type = "button"; b.dataset.id = c.id; b.textContent = c.label || t.mk[c.key]; $("mk").appendChild(b); }
+  $("mk").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; e.stopPropagation(); holdUntil = Date.now() + 90e3; pick(b.dataset.id); });
+  // касание экрана вне интервью открывает рынок и держит его, пока слушатель смотрит
+  document.querySelector(".air").addEventListener("click", (e) => { if (speaker || e.target.closest("a,button")) return; holdUntil = Date.now() + 90e3; if (scene !== "market") { setScene("market"); pick(cur); } });
+  setScene("sky"); pick("btc");
+  setInterval(() => { if (Date.now() < holdUntil) return; const o = sceneOrder(!!(mk.btc && mk.btc.d)), k = o[(o.indexOf(scene) + 1) % o.length]; if (k === "market") pick(nextMarket(cur)); setScene(k); if (still) draw(performance.now()); }, SCENE_MS);
 
   // ---- рисование: небо/свечи (верх), звёзды и Сатурн (низ), эквалайзер (середина) ----
   const cvs = { scene: $("scene"), holo: $("holo"), deck: $("deckfx"), eq: $("eq") }, ctx = {}, dim = {};
@@ -218,13 +240,23 @@ function start() {
   function saturn(g, cx, cy, r, c, lv) { const a = (0.6 + 0.4 * lv).toFixed(2); g.lineWidth = Math.max(1, r / 9); g.strokeStyle = "rgba(255,220,150," + a + ")"; g.beginPath(); g.ellipse(cx, cy, r * 2.3, r * .55, 0, Math.PI, 2 * Math.PI); g.stroke();
     g.fillStyle = "rgba(" + c + ",.2)"; g.strokeStyle = "rgba(" + c + "," + a + ")"; g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.fill(); g.stroke();
     g.strokeStyle = "rgba(255,220,150," + a + ")"; g.beginPath(); g.ellipse(cx, cy, r * 2.3, r * .55, 0, 0, Math.PI); g.stroke(); }
-  function drawCandles(g, w, h) {
+  function drawMarket(g, w, h) {
     g.fillStyle = "#04081a"; g.fillRect(0, 0, w, h); g.strokeStyle = "rgba(80,140,255,.12)"; g.lineWidth = 1; const st = w / 14;
     for (let x = 0; x < w; x += st) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); } for (let y = 0; y < h; y += st) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
-    for (const b of candleBoxes(candles.candles, w, h * 0.72)) { const col = b.up ? "60,255,170" : "255,80,120", oy = h * 0.2; g.strokeStyle = "rgba(" + col + ",.9)"; g.lineWidth = Math.max(1, w / 420); g.beginPath(); g.moveTo(b.mid, oy + b.yh); g.lineTo(b.mid, oy + b.yl); g.stroke();
+    const mono = (k) => "600 " + Math.round(w / k) + "px ui-monospace,monospace", o = mk[cur], d = o && o.d, x0 = w * 0.04;
+    const board = (text) => { g.fillStyle = "rgba(200,220,255,.95)"; g.font = "500 " + Math.round(w / 24) + "px system-ui,sans-serif"; wrapWords(text, 34).forEach((ln, i) => g.fillText(ln, x0, h * 0.42 + i * w / 17)); };
+    g.fillStyle = "rgba(140,200,255,.95)"; g.font = mono(27);
+    if (cur === "oil") { g.fillText(t.mk.oil, x0, h * 0.31); return board(t.mk.oilNote); }
+    if (!d) { g.fillText((MARKET_CHIPS.find((c) => c.id === cur) || {}).label || t.mk[cur] || "", x0, h * 0.31); return board(o && o.d === null ? t.mk.none : t.mk.wait); }
+    g.fillText(cur === "fut" ? t.mk.futName : cur === "gold" ? t.mk.goldName : d.pair + " · Kraken · 15m", x0, h * 0.31);
+    if (d.kind !== "quote") for (const b of candleBoxes(d.candles, w, h * 0.5)) { const col = b.up ? "60,255,170" : "255,80,120", oy = h * 0.4; g.strokeStyle = "rgba(" + col + ",.9)"; g.lineWidth = Math.max(1, w / 420); g.beginPath(); g.moveTo(b.mid, oy + b.yh); g.lineTo(b.mid, oy + b.yl); g.stroke();
       g.fillStyle = "rgba(" + col + ",.7)"; g.fillRect(b.x, oy + b.top, b.w, Math.max(1, b.bot - b.top)); }
-    g.fillStyle = "rgba(140,200,255,.95)"; g.font = "600 " + Math.round(w / 26) + "px ui-monospace,monospace"; g.fillText("BTC/EUR · Kraken · 15m", w * 0.04, h * 0.27);
-    g.fillStyle = "#fff"; g.font = "700 " + Math.round(w / 15) + "px system-ui,sans-serif"; g.fillText(Number(candles.last_price_eur).toLocaleString(lang, { maximumFractionDigits: 0 }) + " €", w * 0.04, h * 0.37);
+    const price = fmtPrice(d.last, d.digits || 0, lang) + " " + (SYM[d.quote] || d.quote || "");
+    g.fillStyle = "#fff"; g.font = "700 " + Math.round(w / 14) + "px system-ui,sans-serif"; g.fillText(price, x0, h * 0.42); const pw = g.measureText(price).width;
+    if (Number.isFinite(d.change_pct)) { g.fillStyle = d.change_pct >= 0 ? "rgb(60,255,170)" : "rgb(255,110,140)"; g.font = mono(28); g.fillText(fmtChange(d.change_pct, lang) + " " + t.mk.win.replace("{h}", Math.round(d.window_hours || 24)), x0 + pw + w * 0.03, h * 0.42); }
+    if (d.kind === "quote") { g.fillStyle = "rgba(200,220,255,.95)"; g.font = "500 " + Math.round(w / 24) + "px system-ui,sans-serif";
+      if (Number.isFinite(d.funding_relative_pct)) g.fillText(t.mk.funding + ": " + (d.funding_relative_pct >= 0 ? "+" : "−") + Math.abs(d.funding_relative_pct).toLocaleString(lang, { maximumFractionDigits: 5 }) + " %", x0, h * 0.56);
+      if (Number.isFinite(d.open_interest_btc)) g.fillText(t.mk.oi + ": " + Math.round(d.open_interest_btc).toLocaleString(lang) + " BTC", x0, h * 0.67); }
   }
   // ---- голограмма говорящего: собственные эмблемы эфира (не логотипы компаний), всё рисуется линиями ----
   const SPARKS = Array.from({ length: 26 }, () => ({ x: rnd() - 0.5, v: 0.25 + rnd() * 0.5, p: rnd() }));
@@ -273,13 +305,13 @@ function start() {
     const s = ms / 1000, c = css();
     if (an && on && !au.paused) { an.getByteFrequencyData(fbuf); let sum = 0; for (let i = 2; i < 40; i++) sum += fbuf[i]; level += ((sum / 38 / 255) - level) * 0.3; } else level *= 0.9;
     { const g = ctx.scene, { w, h } = dim.scene; g.clearRect(0, 0, w, h);
-      if (scene === "market" && candles) drawCandles(g, w, h);
+      if (scene === "market") drawMarket(g, w, h);
       else if (scene === "sky") { g.fillStyle = "#02030a"; g.fillRect(0, 0, w, h); stars(g, w, h, s, level, 110); constel(g, CAP, w, h, 1, 0.5, 0.48, c, level); moon(g, w * 0.82, h * 0.34, w * 0.085, c, level); } }
     { const g = ctx.deck, { w, h } = dim.deck; g.clearRect(0, 0, w, h); stars(g, w, h, s * 0.7, level, 60); g.globalAlpha = 0.55; constel(g, AND, w, h, 0.62, 0.02, 0.42, c, level); g.globalAlpha = 1; saturn(g, w * 0.84, h * 0.2, w * 0.04, c, level); }
     { const g = ctx.eq, { w, h } = dim.eq, n = 9, gap = w * 0.035, bw = (w - gap * (n - 1)) / n; g.clearRect(0, 0, w, h);
       for (let i = 0; i < n; i++) { const v = an && on && !au.paused ? fbuf[2 + i * 4] / 255 : 0, bh = Math.max(h * 0.06, v * h); const gr = g.createLinearGradient(0, h, 0, h - bh); gr.addColorStop(0, "rgba(" + c + ",.95)"); gr.addColorStop(1, "rgba(255,255,255,.9)"); g.fillStyle = gr; g.fillRect(i * (bw + gap), h - bh, bw, bh); } }
     drawHolo(ms);
-    document.querySelector(".unit").style.setProperty("--lv", level.toFixed(3));
+    const unit = document.querySelector(".unit"), live = !!(on && !au.paused); unit.style.setProperty("--lv", level.toFixed(3)); if ((unit.dataset.on === "1") !== live) unit.dataset.on = live ? "1" : "0"; // рамки пульсируют только пока идёт звук
   }
   function loop(ms) { requestAnimationFrame(loop); if (document.hidden || ms - last < 33) return; last = ms; draw(ms); }
   size(); addEventListener("resize", () => { size(); if (still) draw(performance.now()); });

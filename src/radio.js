@@ -1,16 +1,41 @@
-// Радио Orb Studio: свечи BTC/EUR для экрана магнитолы. Только то, что отдал Kraken; без расчётов и прогнозов.
-export const CANDLES_URL = "https://api.kraken.com/0/public/OHLC?pair=XBTEUR&interval=15";
+// Радио Orb Studio: рыночный экран магнитолы. Только то, что отдал Kraken; без прогнозов и сигналов.
+// Белый список инструментов: чужую пару в запрос подставить нельзя. Нефти здесь нет — открытого источника с разрешением на показ пока нет.
+export const MARKETS = [
+  { id: "btc", label: "BTC/EUR", pair: "XBTEUR", group: "crypto", quote: "EUR", digits: 0 },
+  { id: "eth", label: "ETH/EUR", pair: "ETHEUR", group: "crypto", quote: "EUR", digits: 0 },
+  { id: "eurusd", label: "EUR/USD", pair: "EURUSD", group: "fx", quote: "USD", digits: 4 },
+  { id: "eurgbp", label: "EUR/GBP", pair: "EURGBP", group: "fx", quote: "GBP", digits: 4 },
+  { id: "eurchf", label: "EUR/CHF", pair: "EURCHF", group: "fx", quote: "CHF", digits: 4 },
+  { id: "usdjpy", label: "USD/JPY", pair: "USDJPY", group: "fx", quote: "JPY", digits: 2 },
+  { id: "gold", label: "PAXG/EUR", pair: "PAXGEUR", group: "gold", quote: "EUR", digits: 0, note: "PAX Gold is a token backed by one troy ounce of gold. This is the token price on Kraken, not an exchange gold fixing." },
+];
+export const marketById = (id) => MARKETS.find((m) => m.id === String(id || "btc").toLowerCase()) || null;
+export const candlesUrl = (m) => "https://api.kraken.com/0/public/OHLC?pair=" + m.pair + "&interval=15";
+export const CANDLES_URL = candlesUrl(MARKETS[0]);
 export const CANDLES_SOURCE = { source: "Kraken public market data, 15-minute candles (OHLC)", source_url: "https://docs.kraken.com/api/docs/rest-api/get-ohlc-data" };
 
-export function parseCandles(j, n = 48) {
+export function parseCandles(j, n = 48, m = MARKETS[0]) {
   if (!j || typeof j !== "object" || (Array.isArray(j.error) && j.error.length) || !j.result) return null;
   const k = Object.keys(j.result).find((x) => x !== "last"), rows = k && Array.isArray(j.result[k]) ? j.result[k] : [];
   const candles = rows.map((r) => ({ t: +r[0] * 1000, o: +r[1], h: +r[2], l: +r[3], c: +r[4] }))
     .filter((x) => [x.t, x.o, x.h, x.l, x.c].every(Number.isFinite) && x.h >= x.l && x.l > 0).slice(-n);
   if (candles.length < 8) return null;
-  const last = candles[candles.length - 1];
-  return { status: "ok", pair: "BTC/EUR", interval_min: 15, ...CANDLES_SOURCE, candles, last_price_eur: last.c, last_candle_start: new Date(last.t).toISOString(),
+  const last = candles[candles.length - 1], first = candles[0];
+  const d = { status: "ok", id: m.id, kind: "candles", group: m.group, pair: m.label, quote: m.quote, digits: m.digits, interval_min: 15, ...CANDLES_SOURCE, candles, last: last.c,
+    // изменение за показанное окно: от открытия первой свечи до последней цены; простая арифметика по тем же свечам
+    window_hours: +((last.t - first.t) / 3600e3 + 0.25).toFixed(2), change_pct: +(((last.c - first.o) / first.o) * 100).toFixed(2),
+    last_candle_start: new Date(last.t).toISOString(),
     note: "The last candle is still forming. Raw exchange data, not a forecast." };
+  if (m.quote === "EUR") d.last_price_eur = last.c; if (m.note) d.instrument_note = m.note;
+  return d;
+}
+// Бессрочный фьючерс BTC: то, что уже снимают датчики с Kraken Futures. Свечей нет — только цифры как есть.
+export function futuresQuote(v) {
+  if (!v || !Number.isFinite(+v.mark_usd) || +v.mark_usd <= 0) return null;
+  const num = (x) => (Number.isFinite(+x) ? +x : null);
+  return { status: "ok", id: "fut", kind: "quote", group: "futures", pair: "BTC perpetual (PF_XBTUSD)", quote: "USD", digits: 0, source: v.source || "Kraken Futures, BTC perpetual (PF_XBTUSD)", source_url: v.source_url || "https://futures.kraken.com/trade/futures/PF_XBTUSD",
+    last: +v.mark_usd, change_pct: num(v.change_24h_pct) == null ? null : +num(v.change_24h_pct).toFixed(2), window_hours: 24, funding_relative_pct: num(v.funding_relative_pct), open_interest_btc: num(v.open_interest_btc), at: v.at || null,
+    note: "Mark price, funding rate and open interest as reported by Kraken Futures. Not a forecast." };
 }
 
 // ---- Карточка радио для агентов: /api/v1/radio, MCP get_radio. Музыка — наши треки; интервью — готовые сегменты студии на двоих ----
@@ -121,6 +146,8 @@ import { checkReply, GROK_SYSTEM } from "./duo.js";
 // Гости по очереди: Grok → DeepSeek → Gemini. Отвечают сами модели, по тем же правилам, что Grok в студии.
 export const RADIO_GUESTS = { grok: { name: "Grok", maker: "xAI" }, deepseek: { name: "DeepSeek", maker: "DeepSeek" }, gemini: { name: "Gemini", maker: "Google" } };
 export const GUEST_ORDER = ["grok", "deepseek", "gemini"];
+// Один гость на выпуск: в этом выпуске DeepSeek, в следующем Gemini, потом Grok — по одному, по очереди
+export function guestOfEpisode(turn) { return guestTurns(turn, 1)[0]; }
 export function guestTurns(start, n) { const s = ((Math.floor(+start) || 0) % GUEST_ORDER.length + GUEST_ORDER.length) % GUEST_ORDER.length; return Array.from({ length: n }, (_, i) => GUEST_ORDER[(s + i) % GUEST_ORDER.length]); }
 // Правило радио для всех гостей: о самом событии — только то, что в заголовке и в FACTS; никаких домыслов о том, как и почему это произошло
 export const GUEST_STRICT = `
@@ -177,8 +204,10 @@ export function checkTranslations(out, items, strip = (t) => t) {
   const res = {};
   for (const l of ["de", "ru"]) res[l] = (items || []).map((it, i) => { const t = out && Array.isArray(out[l]) ? out[l][i] : null; if (!t) return null; const o = {};
     for (const k of ["read", "question", "answer"]) { const v = clip(t[k], strip, Math.round(String(it[k] || "").length * 2.2) + 120); if (!v || v.length < String(it[k] || "").length * 0.35 || !rightLanguage(l, v, it[k])) return null;
-      const who = k === "question" ? /^([A-Za-z]+),/.exec(String(it[k] || "")) : null; if (who && !v.startsWith(who[1] + ",")) return null; // вопрос обращён к тому же гостю, что и в оригинале
-      o[k] = v; } return o; });
+      // вопрос обращён к тому же гостю, что и в оригинале: если переводчик подставил другое имя («Давид, …»), возвращаем имя гостя
+      const who = k === "question" ? /^([A-Za-z]+),/.exec(String(it[k] || "")) : null; let fixed = v;
+      if (who && !v.startsWith(who[1] + ",")) { if (!/^[^\s,]{2,20},\s/.test(v)) return null; fixed = who[1] + v.slice(v.indexOf(",")); }
+      o[k] = fixed; } return o; });
   return res;
 }
 // Интервью региона в виде, который играет страница: читка → вопрос → ответ
