@@ -359,3 +359,27 @@ test("sensor news: only numbers that the sensors gave, right language, no foreca
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /p === "\/api\/v1\/radio\/sensors"/); assert.match(w, /ctx\.waitUntil\(radioSensorsWarm\(env, ctx\)/);
 });
+
+test("radar news: one top headline per radar, one sentence each, nothing beyond the headline", async () => {
+  const { radarCandidates, checkRadarNews, RADAR_NEWS_SYSTEM, RADAR_INTRO, radarNewsUser } = await import("../src/radio.js");
+  const radars = [{ id: "energy", title: "Энергия", feed: [[1, "Small item about a local grid", "a.com", 10, "https://a.com/1"], [2, "Oil tanker seized near the strait, 3 crew detained", "bbc.co.uk", 90, "https://bbc.co.uk/x"]] },
+    { id: "ai", title: "ИИ", feed: [[3, "Oil tanker seized near the strait, 3 crew detained", "dw.com", 95, "javascript:1"], [4, "Regulator opens probe into AI chip exports", "ft.com", 50, null]] }, { id: "empty", title: "Пусто", feed: [] }, null];
+  const c = radarCandidates(radars, new Set());
+  assert.deepEqual(c.map((x) => [x.radar, x.headline.slice(0, 10)]), [["energy", "Oil tanker"], ["ai", "Regulator "]], "heaviest per radar, the same event is not taken twice");
+  assert.equal(radarCandidates(radars, new Set([c[0].headline.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()]))[0].headline.startsWith("Oil") , false, "a headline already used in an interview is skipped");
+  assert.equal(JSON.parse(radarNewsUser(c)).headlines.length, 2);
+  const ok = { i: 0, en: "An oil tanker has been seized near the strait and 3 crew members were detained.", de: "Ein Öltanker wurde nahe der Meerenge festgesetzt, 3 Besatzungsmitglieder wurden festgenommen.", ru: "Нефтяной танкер задержан недалеко от пролива, 3 члена экипажа под стражей." };
+  const r = checkRadarNews({ picks: [ok, { ...ok }, { i: 1, en: "A regulator has opened a probe into AI chip exports worth 5 billion.", de: "A regulator has opened a probe into AI chip exports today.", ru: "Regulator opens probe into AI chip exports, no translation." }, { i: 9, en: "x".repeat(40), de: "y".repeat(40), ru: "я".repeat(40) }] }, c);
+  assert.equal(r.length, 1); assert.deepEqual(Object.keys(r[0].text), ["en", "de", "ru"]); assert.equal(r[0].source, "bbc.co.uk"); assert.equal(r[0].link, "https://bbc.co.uk/x");
+  const r2 = checkRadarNews({ picks: [{ i: 1, en: "A regulator has opened a probe into exports of AI chips.", de: "A regulator has opened a probe into exports of AI chips.", ru: "Регулятор начал проверку экспорта чипов для ИИ." }] }, c);
+  assert.deepEqual(Object.keys(r2[0].text), ["en", "ru"], "a German line that is a copy of the English one is dropped");
+  assert.deepEqual(checkRadarNews(null, c), []); assert.deepEqual(checkRadarNews({ picks: [{ i: 0, en: "See https://x.io for the seized tanker and the 3 crew.", de: "", ru: "" }] }, c), []);
+  assert.match(RADAR_NEWS_SYSTEM, /only what the headline states/); for (const l of ["en", "de", "ru"]) assert.ok(RADAR_INTRO[l].length > 20);
+  // плеер: блок радаров — одна новость с несколькими репликами, не повторяется
+  const story = { key: "radar:1", title: "Top stories", source: "Radars · bbc.co.uk", lines: [{ text: "Intro." }, { text: "Energy. Tanker seized." }, { text: "AI. Probe opened." }] };
+  const p = plan([], new Set(), 0, 2, { dj: DJ, stories: [story, { key: "sens:1", text: "Sensor story." }] });
+  assert.deepEqual(p.items.map((x) => x.type), ["track", "news", "track", "news"]); assert.deepEqual(p.items[1].iv.lines.map((x) => x.text), ["Intro.", "Energy. Tanker seized.", "AI. Probe opened.", DJ.next_track.text]);
+  assert.equal(p.items[1].key, "radar:1"); assert.equal(p.items[1].iv.source, "Radars · bbc.co.uk"); assert.equal(p.items[1].label, "Top stories");
+  assert.deepEqual(plan([], new Set(["radar:1"]), 0, 2, { dj: DJ, stories: [story] }).items.map((x) => x.type), ["track", "say"]);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /p === "\/api\/v1\/radio\/radar"/); assert.match(w, /ctx\.waitUntil\(radioRadarWarm\(env, ctx\)/);
+});
