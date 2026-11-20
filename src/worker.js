@@ -4,6 +4,7 @@
 
 import { asLines } from "./voicelines.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
+import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { radarI18n, headlinesDe, HL_DE_NOTE } from "./radar-i18n.js";
 import qrcodeGen from "qrcode-generator";
@@ -8775,6 +8776,11 @@ async function handleRequest(request, env, ctx) {
     // страницы, слитые в другие при наведении порядка (19.11.2026): старый адрес ведёт на новое место, язык сохраняется
     { const mv = url.pathname.replace(/\.html$/, "").match(/^(\/(?:ru|de|en))?(\/[a-z0-9/-]+)$/);
       if (mv && MOVED_PAGES[mv[2]]) { const [pth, frag] = MOVED_PAGES[mv[2]].split("#"); return Response.redirect(url.origin + (mv[1] || "") + pth + url.search + (frag ? "#" + frag : ""), 301); } }
+    // ссылка с языком из WhatsApp, X, поиска: если телефон на другом языке и человек ещё не выбирал язык сам — на его язык
+    let langCookie = null;
+    { const ld = langDecision(request, url, { isAgent: (ua) => !!classifyAgent(ua) || /bot|crawl|spider|preview|facebookexternalhit|WhatsApp\/|TelegramBot|Slackbot|Discordbot|HeadlessChrome|Lighthouse/i.test(ua), pickSite: pickLang, pickStudio: duoPickLang, translated: TRANSLATED_PAGES });
+      if (ld && ld.redirect) return new Response(null, { status: 302, headers: { Location: ld.redirect, "Cache-Control": "private, no-store", Vary: "Accept-Language, Cookie" } });
+      if (ld && ld.setCookie) langCookie = ld.setCookie; }
     // главная: автоматически отдаём версию на языке посетителя; /ru/, /de/, /en/ — постоянные адреса для поисковиков
     let assetReq = request, autoLang = null;
     if (url.pathname === "/" || url.pathname === "/index.html") {
@@ -8797,6 +8803,7 @@ async function handleRequest(request, env, ctx) {
     { const sm = url.pathname.match(/^(?:\/(ru|de|en|ro|tr))?\/(studio|roundtable)(?:\.html)?$/);
       if (sm) { assetReq = new Request(new URL("/" + sm[2], url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
+    if (langCookie && asset.ok) { asset = new Response(asset.body, asset); asset.headers.append("Set-Cookie", `orb_lang=${langCookie}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`); }
     if (studioLang && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       asset = new HTMLRewriter().on("html", { element(e) { e.setAttribute("data-al", studioLang); e.setAttribute("lang", studioLang); } }).transform(asset);
       asset = new Response(asset.body, asset); asset.headers.set("Vary", "Accept-Language"); asset.headers.set("Cache-Control", "private, max-age=60");
