@@ -3437,7 +3437,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
+const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;

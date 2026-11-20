@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radio Orb Studio</title>
+<meta name="description" content="Test radio of Orb Studio: our own tracks, and between them the AI host David interviews Grok (xAI) about one headline from the live sensors. Voices are synthetic.">
+<link rel="canonical" href="https://orbstudio.org/radio">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#05060c">
+<style>
+:root{--c:#6fe6ff;--col:min(100vw,520px);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;max-width:100%;overflow-x:clip;background:#05060c;color:#e9eefb;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body[data-mode="guest"]{--c:#b58cff}body[data-mode="music"]{--c:#ffcf96}
+.back{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.back:before{content:"";position:absolute;inset:-40px;background:url(/media/studio-duo-blur.webp) center/cover;filter:blur(28px) brightness(.42)}
+.wrap{width:var(--col);margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
+.wrap>*{min-width:0}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:11px;letter-spacing:.04em;padding-left:74px;min-height:40px}
+.brand{font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#cfd8ee}
+.brand i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff5a6a;margin-right:6px;vertical-align:1px;animation:on 1.6s ease-in-out infinite}
+.brand b{display:block;margin-top:3px;color:#ffcf96;letter-spacing:.08em}
+.tag{display:inline-block;border:1px solid rgba(255,207,150,.5);color:#ffcf96;border-radius:999px;padding:2px 8px;text-transform:uppercase;letter-spacing:.12em;font-size:10px}
+.cnt{display:block;margin-top:4px;color:#9aa6c2;text-align:right;font-variant-numeric:tabular-nums}
+@keyframes on{50%{opacity:.35}}
+.air{position:relative;border-radius:16px;padding:16px;background:rgba(6,9,18,.84);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--c);transition:border-color .4s}
+.air:before{content:"";position:absolute;inset:0;border-radius:16px;background:radial-gradient(90% 70% at 0 0,color-mix(in srgb,var(--c) 16%,transparent),transparent 60%);pointer-events:none}
+.kind{font:600 10.5px ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+.who{font-weight:700;font-size:18px;color:var(--c);margin:6px 0 4px}
+#text{margin:0;font-size:clamp(15px,4.2vw,18px);line-height:1.4;text-wrap:pretty;min-height:4.2em}
+.meta{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:10px;font-size:12px;color:#8f9bb8}
+.meta a{color:var(--c);white-space:nowrap}
+.epdate{font:600 10.5px ui-monospace,monospace;letter-spacing:.16em;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.8)}
+.prog{height:3px;border-radius:2px;background:rgba(255,255,255,.12);margin-top:12px;overflow:hidden}
+#bar{height:100%;width:0;background:var(--c);transition:width .5s linear}
+#time{font:11px ui-monospace,monospace;color:#8f9bb8;margin-top:5px;min-height:1.3em;font-variant-numeric:tabular-nums}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:10px}
+button{font:inherit;cursor:pointer}
+#play{min-height:52px;border:0;border-radius:14px;font-weight:700;font-size:17px;color:#04121a;background:linear-gradient(90deg,#7fe9ff,#b9aeff)}
+#skip{min-height:52px;padding:0 16px;border-radius:14px;border:1px solid rgba(255,255,255,.25);background:rgba(6,9,18,.7);color:#e9eefb}
+#play:focus-visible,#skip:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hint,.note{margin:0;color:#aeb9d2;font-size:13.5px}.note:empty{display:none}
+.rd{border-radius:14px;padding:14px 16px;background:rgba(6,9,18,.78);border:1px solid rgba(255,255,255,.08)}
+.rd h2{margin:0 0 8px;font:600 10.5px ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#8f9bb8}
+.rd ol{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.rd li{display:grid;gap:1px;padding-left:10px;border-left:2px solid rgba(255,255,255,.14);opacity:.75}
+.rd li b{font-size:11px;letter-spacing:.06em;color:#9aa6c2;font-weight:600}
+.rd li span{font-size:13.5px}
+.rd li.cur{opacity:1;border-left-color:var(--c)}.rd li.cur b{color:var(--c)}.rd li.done{opacity:.4}
+.small{margin:0;color:#8a8fae;font-size:11.5px;line-height:1.5}
+.krb,.slb{position:relative;overflow:hidden;border-radius:14px;padding:16px}
+.krb{border:1px solid rgba(155,140,255,.45);background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28),transparent 55%),linear-gradient(160deg,#120f2e,#0b1226 60%,#070b16)}
+.slb{border:1px solid rgba(220,228,240,.4);background:radial-gradient(110% 90% at 100% 0%,rgba(220,228,240,.16),transparent 55%),linear-gradient(160deg,#0d1119,#070a10)}
+.eye{font:10.5px ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#b9aeff}.slb .eye{color:#c9d4e6}
+.krb h3,.slb h3{font-size:clamp(18px,3.4vw,22px);line-height:1.22;margin:6px 0 4px;text-wrap:balance;color:#fff;min-height:2.44em}
+.krb h3 b{color:#b9aeff}.slb h3 b{letter-spacing:.06em}
+.bsub{color:#a3a9c9;font-size:13.5px;margin:0}
+.cta{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:14px}.slb .cta{grid-template-columns:1fr}
+.go{display:flex;align-items:center;justify-content:center;min-height:44px;text-decoration:none;font-weight:700;border-radius:10px;padding:11px 16px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff)}
+.slb .go{color:#05070c;background:linear-gradient(90deg,#fff,#c9d4e6)}
+.krb-code{font:13px ui-monospace,monospace;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px}
+.bnote{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){.brand i{animation:none}#bar,.air{transition:none}}
+</style>
+</head>
+<body data-mode="music">
+<div class="back" aria-hidden="true"></div>
+<main class="wrap">
+  <div class="top">
+    <div class="brand"><i></i>Orb Studio<b id="ttl"></b></div>
+    <div><span class="tag" id="test"></span><span class="cnt" id="cnt" hidden>👁 <b id="cPage"></b></span></div>
+  </div>
+  <section class="air" aria-live="polite">
+    <div class="kind" id="kind"></div>
+    <div class="who" id="who"></div>
+    <p id="text"></p>
+    <div class="meta"><span id="src"></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
+    <div class="meta"><time class="epdate" id="epdate" hidden></time><span></span></div>
+    <div class="prog"><div id="bar"></div></div><div id="time"></div>
+  </section>
+  <div class="ctl"><button id="play" type="button"></button><button id="skip" type="button" hidden></button></div>
+  <p class="hint" id="hint"></p><p class="note" id="note" role="status"></p>
+  <section class="rd"><h2 id="rd-h"></h2><ol id="rd"></ol></section>
+  <p class="small" id="by"></p><p class="small" id="ai"></p>
+  <aside class="krb" id="krb">
+    <div class="eye" data-t="partner"></div><h3 data-h="krH"></h3><p class="bsub" data-t="krSub"></p>
+    <div class="cta"><a class="go" href="/go/kraken?from=radio" target="_blank" rel="sponsored noopener" data-t="krGo"></a><button class="krb-code" type="button" id="krcode" data-code="ghqspfzq">ghqspfzq ⧉</button></div>
+    <p class="bnote" data-t="krNote"></p>
+  </aside>
+  <aside class="slb" id="slb">
+    <div class="eye" data-t="partner"></div><h3 data-h="slH"></h3><p class="bsub" data-t="slSub"></p>
+    <div class="cta"><a class="go" href="/go/starlink?from=radio" target="_blank" rel="sponsored noopener" data-t="slGo"></a></div>
+    <p class="bnote" data-t="slNote"></p>
+  </aside>
+</main>
+<script type="module" src="/radio.js"></script>
+<script src="/banners.js" defer></script>
+<script src="/backnav.js" defer></script>
+</body>
+</html>
