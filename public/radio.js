@@ -83,6 +83,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
+  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9;
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -92,7 +93,7 @@ function start() {
       actx.createMediaElementSource(au).connect(an); an.connect(actx.destination); actx.resume().catch(() => {}); } catch { an = null; } }
 
   const setOn = (v) => { on = v; document.body.dataset.on = v ? "1" : ""; play.textContent = v ? "❚❚" : "▶"; play.setAttribute("aria-label", v ? t.pause : t.resume); };
-  const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); e.hidden = !d; e.textContent = d ? t.episode + " " + d : ""; };
+  const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); e.hidden = !d; e.textContent = d ? "· " + d : ""; e.title = d ? t.episode + " " + d : ""; };
   function rundown() {
     const ol = $("rd"); ol.textContent = "";
     items.forEach((it, i) => { const li2 = document.createElement("li"); li2.className = (i === idx ? "cur " : i < idx ? "done " : "") + it.type;
@@ -101,13 +102,14 @@ function start() {
       li2.append(k, s); ol.append(li2); });
   }
   function showTrack(tr) {
-    document.body.dataset.mode = "music"; $("talk").hidden = true; setDate(null);
+    document.body.dataset.mode = "music"; $("talk").hidden = true; setDate(null); air.dataset.talk = ""; speaker = ""; $("scn").textContent = t.scenes[scene] || "";
     $("np-k").textContent = t.now + " · " + t.music; $("np").textContent = tr.title;
     if (navigator.mediaSession) try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: "Orb Studio", album: t.title }); } catch {}
   }
   function showLine(iv, x) {
-    document.body.dataset.mode = x.who === "grok" ? "guest" : "host"; $("talk").hidden = false;
-    $("who").textContent = x.who === "david" ? "David" : iv.guest; const tx = $("text");
+    document.body.dataset.mode = x.who === "grok" ? "guest" : "host"; $("talk").hidden = false; air.dataset.talk = "1"; $("scn").textContent = t.talk.toUpperCase();
+    if (speaker !== x.who) { speaker = x.who; flashAt = performance.now(); if (still) requestAnimationFrame(() => draw(performance.now())); } // смена говорящего: вспышка и сбой ~0,3 с
+    $("who").textContent = x.who === "david" ? "David · Claude (Anthropic)" : iv.guest + " · xAI"; const tx = $("text");
     tx.textContent = x.kind === "label" ? t.guestOff : x.text; tx.scrollTop = 0; tx.classList.toggle("long", String(x.text || "").length > 220);
     $("src").textContent = iv.source || ""; const a = $("link"); if (iv.link) { a.href = iv.link; a.textContent = t.story; a.hidden = false; } else a.hidden = true;
     setDate(iv.at); $("np-k").textContent = t.now + " · David × " + iv.guest; $("np").textContent = iv.headline;
@@ -153,12 +155,12 @@ function start() {
   let candles = null, scene = "sky", sceneAt = performance.now();
   const loadCandles = () => fetch("/api/v1/radio/candles").then((r) => (r.ok ? r.json() : null)).then((d) => { candles = d && Array.isArray(d.candles) && d.candles.length >= 8 ? d : null; }).catch(() => { candles = null; });
   loadCandles(); setInterval(loadCandles, 5 * 60e3);
-  function setScene(k) { scene = k; sceneAt = performance.now(); $("scn").textContent = t.scenes[k]; document.querySelector(".air").dataset.scene = k; }
+  function setScene(k) { scene = k; sceneAt = performance.now(); if (!speaker) $("scn").textContent = t.scenes[k]; document.querySelector(".air").dataset.scene = k; }
   setScene("sky");
   setInterval(() => { const o = sceneOrder(!!candles); setScene(o[(o.indexOf(scene) + 1) % o.length]); if (still) draw(performance.now()); }, SCENE_MS);
 
   // ---- рисование: небо/свечи (верх), звёзды и Сатурн (низ), эквалайзер (середина) ----
-  const cvs = { scene: $("scene"), deck: $("deckfx"), eq: $("eq") }, ctx = {}, dim = {};
+  const cvs = { scene: $("scene"), holo: $("holo"), deck: $("deckfx"), eq: $("eq") }, ctx = {}, dim = {};
   function size() { const dpr = Math.min(2, window.devicePixelRatio || 1); for (const k in cvs) { const r = cvs[k].getBoundingClientRect(); dim[k] = { w: Math.max(1, Math.round(r.width * dpr)), h: Math.max(1, Math.round(r.height * dpr)) }; cvs[k].width = dim[k].w; cvs[k].height = dim[k].h; ctx[k] = cvs[k].getContext("2d"); } }
   let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   const STARS = Array.from({ length: 110 }, () => ({ x: rnd(), y: rnd(), p: rnd() }));
@@ -181,6 +183,48 @@ function start() {
     g.fillStyle = "rgba(140,200,255,.95)"; g.font = "600 " + Math.round(w / 26) + "px ui-monospace,monospace"; g.fillText("BTC/EUR · Kraken · 15m", w * 0.04, h * 0.27);
     g.fillStyle = "#fff"; g.font = "700 " + Math.round(w / 15) + "px system-ui,sans-serif"; g.fillText(Number(candles.last_price_eur).toLocaleString(lang, { maximumFractionDigits: 0 }) + " €", w * 0.04, h * 0.37);
   }
+  // ---- голограмма говорящего: собственные эмблемы эфира (не логотипы компаний), всё рисуется линиями ----
+  const SPARKS = Array.from({ length: 26 }, () => ({ x: rnd() - 0.5, v: 0.25 + rnd() * 0.5, p: rnd() }));
+  let glitchAt = -1e9, nextGlitch = 4000;
+  function emblemHost(g, cx, cy, R, c, s, lv) { // орб с волнами голоса
+    g.lineWidth = Math.max(1, R / 16); g.strokeStyle = "rgba(" + c + ",.95)"; g.fillStyle = "rgba(" + c + ",.12)"; g.beginPath(); g.arc(cx, cy, R, 0, 6.2832); g.fill(); g.stroke();
+    g.lineWidth = Math.max(1, R / 30); g.strokeStyle = "rgba(" + c + ",.55)";
+    for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(cx, cy, Math.abs(R * Math.cos(s * 0.7 + k * 1.047)), R, 0, 0, 6.2832); g.stroke(); }
+    g.beginPath(); g.ellipse(cx, cy, R, R * 0.32, 0, 0, 6.2832); g.stroke();
+    g.fillStyle = "rgba(255,255,255," + (0.5 + 0.5 * lv).toFixed(2) + ")"; g.beginPath(); g.arc(cx, cy, R * (0.16 + 0.2 * lv), 0, 6.2832); g.fill();
+    g.lineWidth = Math.max(1, R / 14); for (let k = 0; k < 3; k++) { const a = Math.max(0, Math.min(1, lv * 3.2 - k * 0.55)) * 0.9 + 0.08, rr = R * (1.35 + 0.33 * k); g.strokeStyle = "rgba(" + c + "," + a.toFixed(2) + ")";
+      g.beginPath(); g.arc(cx, cy, rr, -0.6, 0.6); g.stroke(); g.beginPath(); g.arc(cx, cy, rr, Math.PI - 0.6, Math.PI + 0.6); g.stroke(); }
+  }
+  function emblemGuest(g, cx, cy, R, c, s, lv) { // вращающийся кристалл-каркас
+    const a = s * 0.8, ring = Array.from({ length: 6 }, (_, i) => { const t2 = a + i * 1.0472; return [Math.cos(t2), 0.22 * Math.sin(t2), Math.sin(t2)]; });
+    const P = ([x, y]) => [cx + x * R, cy - y * R], top = P([0, 1.3]), bot = P([0, -1.3]), pts = ring.map(P);
+    g.lineJoin = "round"; g.fillStyle = "rgba(" + c + ",.1)"; g.beginPath(); g.moveTo(...top); pts.forEach((q) => g.lineTo(...q)); g.closePath(); g.fill();
+    ring.forEach((r, i) => { const q = pts[i], n = pts[(i + 1) % 6], front = r[2] > -0.2; g.strokeStyle = "rgba(" + c + "," + (front ? 0.95 : 0.35) + ")"; g.lineWidth = Math.max(1, R / (front ? 15 : 28));
+      g.beginPath(); g.moveTo(...top); g.lineTo(...q); g.lineTo(...bot); g.stroke(); g.beginPath(); g.moveTo(...q); g.lineTo(...n); g.stroke(); });
+    g.fillStyle = "rgba(255,255,255," + (0.45 + 0.55 * lv).toFixed(2) + ")"; g.beginPath(); g.arc(cx, cy, R * (0.12 + 0.2 * lv), 0, 6.2832); g.fill();
+  }
+  function drawHolo(ms) {
+    const g = ctx.holo, { w, h } = dim.holo; g.clearRect(0, 0, w, h); if (!speaker) return;
+    const s = ms / 1000, c = css(), lv = level, cx = w / 2, cy = h * 0.255, py = h * 0.44, fl = Math.max(0, 1 - (ms - flashAt) / 300);
+    const flick = still ? 1 : 0.86 + 0.14 * Math.sin(s * 37) * Math.sin(s * 11.3), R = h * 0.115 * (1 + 0.28 * lv) * (1 + 0.25 * fl);
+    g.fillStyle = "#02030a"; g.fillRect(0, 0, w, h);
+    // проектор и конус лучей
+    const cone = g.createLinearGradient(0, py, 0, cy - R); cone.addColorStop(0, "rgba(" + c + "," + (0.5 + 0.4 * lv).toFixed(2) + ")"); cone.addColorStop(1, "rgba(" + c + ",0)");
+    g.fillStyle = cone; g.globalAlpha = 0.5 * flick; g.beginPath(); g.moveTo(cx - w * 0.02, py); g.lineTo(cx - R * 1.9, cy - R * 0.4); g.lineTo(cx + R * 1.9, cy - R * 0.4); g.lineTo(cx + w * 0.02, py); g.closePath(); g.fill();
+    g.globalAlpha = flick; g.strokeStyle = "rgba(" + c + ",.5)"; g.lineWidth = 1; for (let k = -3; k <= 3; k++) { g.beginPath(); g.moveTo(cx + k * w * 0.005, py); g.lineTo(cx + k * R * 0.6, cy + R * 0.2); g.stroke(); }
+    g.fillStyle = "rgba(" + c + ",.95)"; g.beginPath(); g.ellipse(cx, py, w * 0.05, h * 0.012, 0, 0, 6.2832); g.fill(); g.fillStyle = "#fff"; g.beginPath(); g.ellipse(cx, py, w * 0.018, h * 0.006, 0, 0, 6.2832); g.fill();
+    // искры поднимаются от проектора
+    if (!still) for (const p of SPARKS) { const u = (s * p.v + p.p) % 1, y = py - u * (py - cy + R), x = cx + p.x * R * 2.6 * (0.3 + u); g.fillStyle = "rgba(255,255,255," + ((1 - u) * (0.35 + 0.6 * lv)).toFixed(2) + ")"; g.fillRect(x, y, Math.max(1, w / 260), Math.max(1, w / 260)); }
+    // вращающееся пунктирное кольцо
+    g.save(); g.strokeStyle = "rgba(" + c + ",.7)"; g.lineWidth = Math.max(1, R / 22); g.setLineDash([R * 0.16, R * 0.12]); g.lineDashOffset = still ? 0 : -s * R * 0.5; g.beginPath(); g.ellipse(cx, cy, R * 1.75, R * 0.5, 0, 0, 6.2832); g.stroke(); g.restore();
+    // эмблема со свечением
+    g.save(); g.shadowColor = "rgb(" + c + ")"; g.shadowBlur = R * (0.35 + 0.9 * lv + fl); (speaker === "grok" ? emblemGuest : emblemHost)(g, cx, cy, R, c, still ? 0.6 : s, lv); g.restore();
+    g.globalAlpha = 1;
+    if (fl > 0) { g.fillStyle = "rgba(255,255,255," + (0.55 * fl).toFixed(2) + ")"; g.fillRect(0, 0, w, h); }
+    // редкие горизонтальные сбои (и при смене говорящего)
+    if (!still) { if (ms > nextGlitch) { glitchAt = ms; nextGlitch = ms + 3500 + rnd() * 6000; }
+      if (ms - glitchAt < 130 || fl > 0) for (let k = 0; k < 3; k++) { const y = Math.floor(rnd() * h * 0.5), bh = Math.max(2, Math.floor(h * (0.02 + rnd() * 0.05))), dx = (rnd() - 0.5) * w * 0.12; g.drawImage(cvs.holo, 0, y, w, bh, dx, y, w, bh); } }
+  }
   let last = 0;
   function draw(ms) {
     const s = ms / 1000, c = css();
@@ -191,6 +235,7 @@ function start() {
     { const g = ctx.deck, { w, h } = dim.deck; g.clearRect(0, 0, w, h); stars(g, w, h, s * 0.7, level, 60); g.globalAlpha = 0.55; constel(g, AND, w, h, 0.62, 0.02, 0.42, c, level); g.globalAlpha = 1; saturn(g, w * 0.84, h * 0.2, w * 0.04, c, level); }
     { const g = ctx.eq, { w, h } = dim.eq, n = 9, gap = w * 0.035, bw = (w - gap * (n - 1)) / n; g.clearRect(0, 0, w, h);
       for (let i = 0; i < n; i++) { const v = an && on && !au.paused ? fbuf[2 + i * 4] / 255 : 0, bh = Math.max(h * 0.06, v * h); const gr = g.createLinearGradient(0, h, 0, h - bh); gr.addColorStop(0, "rgba(" + c + ",.95)"); gr.addColorStop(1, "rgba(255,255,255,.9)"); g.fillStyle = gr; g.fillRect(i * (bw + gap), h - bh, bw, bh); } }
+    drawHolo(ms);
     document.querySelector(".unit").style.setProperty("--lv", level.toFixed(3));
   }
   function loop(ms) { requestAnimationFrame(loop); if (document.hidden || ms - last < 33) return; last = ms; draw(ms); }
