@@ -508,7 +508,7 @@ box.addEventListener('toggle',go);if(location.hash==='#cockpit'){box.open=true;g
   </section>
 
 
-  <!--orb-map--><section id="map" style="margin-top:28px"><div id="sensorMapFull">Загрузка карты…</div></section>
+  <!--orb-map--><section id="map" style="margin-top:28px"><div id="sensorMapFull">Karte wird geladen…</div></section>
   <script>/* карта датчиков (бывшая /map): грузится, только когда секция почти в зоне видимости */
   (function(){var sec=document.getElementById('map'),done=0;function go(){if(done)return;done=1;var s=document.createElement('script');s.src='/sensor-map.js';s.onload=function(){try{OrbSensorMap.mount(document.getElementById('sensorMapFull'),{noLang:true})}catch(e){}};document.head.appendChild(s)}
   if(location.hash==='#map'||!('IntersectionObserver' in window))go();else{var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){io.disconnect();go()}},{rootMargin:'400px'});io.observe(sec)}})();

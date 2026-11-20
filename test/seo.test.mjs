@@ -36,5 +36,37 @@ test("sitemap: Russian pages, round table and localized studios are listed; date
   const urls = sm.match(/<url>.*?<\/url>/gs); assert.equal(new Set(urls.map((x) => /<loc>([^<]+)/.exec(x)[1])).size, urls.length, "no duplicates");
   for (const d of sm.match(/<lastmod>[^<]+/g)) assert.match(d, /^<lastmod>20\d\d-\d\d-\d\d$/);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /\(studio\|roundtable\|radio\|tools\\\/inbox\)/); assert.match(w, /try \{ asset = seoRewrite\(asset, url\); \} catch/);
+  assert.match(w, /\(studio\|roundtable\|radio\|tools\\\/inbox\)/); assert.match(w, /try \{ asset = seoRewrite\(asset, url, studioLang\); \} catch/);
+});
+
+import { PAGE_META, pageMeta, ogTags } from "../src/seo.js";
+import { SENS_W } from "../src/sensors_i18n.js";
+import { assembleDuo } from "../src/duo.js";
+test("studio, round table and radio have a title and description in three languages", () => {
+  for (const pg of ["studio", "roundtable", "radio"]) for (const l of ["ru", "de", "en"]) { const m = pageMeta("/" + pg, l); assert.ok(m.title.includes("Orb Studio") && m.desc.length > 60, pg + l); }
+  assert.equal(pageMeta("/studio", "ru").title, "Студия на двоих · Orb Studio"); assert.equal(pageMeta("/roundtable", "de").title, "KI-Runder Tisch · Orb Studio");
+  assert.equal(pageMeta("/studio", "tr"), PAGE_META.studio.en, "no translation: English"); assert.equal(pageMeta("/about", "ru"), null);
+  const og = ogTags({ title: 'A "quoted" <title>', desc: "D & E" }, "https://orbstudio.org/ru/studio");
+  assert.ok(og.includes('og:title" content="A &quot;quoted&quot; &lt;title>"') && og.includes('content="D &amp; E"') && og.includes('og:url" content="https://orbstudio.org/ru/studio"')); assert.equal(ogTags(null, "x"), "");
+});
+test("sensors text block: same keys in three languages, no Russian in German and English", () => {
+  const keys = Object.keys(SENS_W.ru).sort();
+  for (const l of ["de", "en"]) { assert.deepEqual(Object.keys(SENS_W[l]).sort(), keys);
+    const all = Object.values(SENS_W[l]).map((v) => (typeof v === "function" ? v(1, 2, 3, 4) : v)).join(" "); assert.ok(!/[Ѐ-ӿ]/.test(all), l + " has Cyrillic"); }
+  assert.equal(SENS_W.en.chipRoads(6, 18, 2, 40), "jams 6 (up to 18 min) · closures 2 · roadworks 40"); assert.equal(SENS_W.de.topics(7, 55), "7 Themen · Mittel 55"); assert.equal(SENS_W.ru.chipRoads(6, 0, 2, 40), "пробок 6 · перекрытий 2 · строек 40");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /sensorsMachine\(env, ctx, radars, lang\)/); assert.match(w, /violinMachine\(c, lang\)/);
+});
+test("tariffs and violin pages in German and English carry no Russian text block", () => {
+  const num = (t) => (t.replace(/(?<=\d)[  ,](?=\d{3}\b)/g, "").replace(/,/g, ".").match(/\d+(?:\.\d+)?/g) || []).sort();
+  const get = (f) => /<p id="machineText">(.*?)<\/p>/s.exec(readFileSync(new URL("../public/" + f, import.meta.url), "utf8"))[1];
+  const ru = get("tariffs.html");
+  for (const f of ["en/tariffs.html", "de/tariffs.html"]) { const t = get(f); assert.ok(!/[Ѐ-ӿ]/.test(t), f); assert.deepEqual(num(t), num(ru), f + ": the numbers are the same as in the Russian original"); }
+  for (const f of ["en/violin.html", "de/violin.html"]) assert.match(readFileSync(new URL("../public/" + f, import.meta.url), "utf8"), /d\.about\.en\|\|d\.about\.ru/);
+});
+test("desk segments carry the publication time with a date", () => {
+  const d = assembleDuo([{ headline: "A", source: "s", time: "23:45", published_at: "2026-11-19T22:45:00.000Z", read: "R", facts: [], reply: { ok: true, text: "T" } }, { headline: "B", read: "R", facts: [], reply: { ok: true, text: "T" } }], {});
+  assert.equal(d.segments[0].published_at, "2026-11-19T22:45:00.000Z"); assert.equal(d.segments[0].card.published_at, "2026-11-19T22:45:00.000Z"); assert.equal(d.segments[0].time, "23:45"); assert.equal(d.segments[1].published_at, null);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /published_at: Number\.isFinite\(f\[5\]\)/); assert.match(w, /\|\| 0\) >= 1 && cands\.length > 4/);
 });
