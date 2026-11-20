@@ -65,7 +65,7 @@ test("tracks are our own files; texts, date and page", () => {
 });
 
 test("scenes: market only with real candles; ticker holds only real headlines", () => {
-  assert.deepEqual(sceneOrder(true), ["sky", "market", "david", "earth"]); assert.deepEqual(sceneOrder(false), ["sky", "david", "earth"]);
+  assert.deepEqual(sceneOrder(true), ["sky", "market", "earth"]); assert.deepEqual(sceneOrder(false), ["sky", "earth"]); assert.ok(!/scene-david/.test(readFileSync(new URL("../public/radio.html", import.meta.url), "utf8")), "no portrait of David on the screen");
   assert.deepEqual(tickerItems(duo([seg(0), seg(0), seg(1, { kind: "carousel" }), seg(2, { source: null })])), ["H0 (s0)", "H2"]);
   for (const bad of [null, {}, { status: "preparing" }]) assert.deepEqual(tickerItems(bad), []);
 });

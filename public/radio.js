@@ -96,7 +96,7 @@ export const fmt = (s) => { s = Math.max(0, Math.round(+s || 0)); return Math.fl
 
 // Сцены верхнего экрана по кругу; «рынок» показывается только когда свечи реально пришли
 export const SCENE_MS = 24000;
-export function sceneOrder(hasCandles) { return hasCandles ? ["sky", "market", "david", "earth"] : ["sky", "david", "earth"]; }
+export function sceneOrder(hasCandles) { return hasCandles ? ["sky", "market", "earth"] : ["sky", "earth"]; } // портрета Давида на экране больше нет
 // Бегущая строка: только настоящие заголовки текущего выпуска с источником
 export function tickerItems(duo) {
   if (boardFor(duo)) return [];
