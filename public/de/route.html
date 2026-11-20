@@ -162,5 +162,6 @@ document.addEventListener('click',e=>{
 });
 fetch('/api/v1/radar/crypto').then(r=>r.ok?r.json():null).then(d=>{if(d)krFill(d.market)}).catch(()=>{});
 </script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

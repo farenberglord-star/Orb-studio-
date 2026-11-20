@@ -250,5 +250,6 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_followups')==='1'}cat
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_followups','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('en-GB');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

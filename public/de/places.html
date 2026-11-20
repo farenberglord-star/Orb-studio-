@@ -221,5 +221,6 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_places')==='1'}catch(
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_places','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString('de-DE');}).catch(()=>{});
 </script>
 <script src="/banners.js" defer></script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

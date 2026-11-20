@@ -449,5 +449,6 @@ window.addEventListener('DOMContentLoaded',function(){var s=document.getElementB
 if(!OrbBridge3D.init(el)){s.hidden=true;return}
 function get(){fetch('/api/v1/bridge').then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.instruments)OrbBridge3D.update(d)}).catch(function(){})}
 get();setInterval(function(){if(!document.hidden)get()},300000)});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

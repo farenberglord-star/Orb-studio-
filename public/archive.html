@@ -225,5 +225,6 @@ var tap=0;el.addEventListener('pointerup',function(){tap=Date.now()});
 el.addEventListener('orbarchive:needday',function(e){fetch('/api/v1/history?date='+e.detail.date).then(function(r){return r.ok?r.json():null}).then(function(j){if(j)OrbArchive3D.update({day:j})}).catch(function(){})});
 el.addEventListener('orbarchive:select',function(e){if(Date.now()-tap<800&&typeof showDay==='function')showDay(e.detail.date)});
 fetch('/api/v1/history').then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(h){OrbArchive3D.update({history:h})})});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

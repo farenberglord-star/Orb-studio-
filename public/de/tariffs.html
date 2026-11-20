@@ -370,5 +370,6 @@ window.addEventListener('DOMContentLoaded',function(){var s=document.getElementB
 if(!OrbBank3D.init(el)){s.hidden=true;return}
 var seed=null;try{seed=JSON.parse(document.getElementById('seed').textContent)}catch(e){}if(seed&&seed.cards)OrbBank3D.update(seed);
 fetch('/api/v1/tariffs').then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.cards)OrbBank3D.update(d)}).catch(function(){})});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>
