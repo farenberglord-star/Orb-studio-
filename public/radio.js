@@ -62,7 +62,7 @@ export function sayItem(title, parts) {
 // Нет новых интервью: трек → реакция + погода → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
-  const out = []; let k = trackAt, intro = !o.introSaid;
+  const out = []; let k = trackAt, said = o.introSaid ? (o.introGuest || "*") : null; // кого Давид уже представил: новый гость — новое представление
   // повторяющиеся связки идут по кругу из вариантов; счётчик o.turns живёт между вызовами, чтобы фраза не повторялась подряд
   const turns = o.turns || {}, vars = o.variants || {}, say = (p) => { const a = Array.isArray(vars[p]) && vars[p].length ? vars[p] : [dj[p]]; turns[p] = (turns[p] || 0) + 1; return a[(turns[p] - 1) % a.length]; };
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
@@ -70,10 +70,10 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   for (let i = 0; i < Math.max(1, fresh.length); i++) {
     track(); push(sayItem(title, [say("after_music"), o.weather, say("next_track")])); track();
     const iv = fresh[i]; if (!iv) continue;
-    if (intro) { push(sayItem(title, [dj.intro])); intro = false; }
+    const g = String(iv.guest || "Grok").toLowerCase(); if (said !== g && said !== "*") { push(sayItem(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
     out.push({ type: "talk", iv }); push(sayItem(title, [say("to_music")]));
   }
-  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length };
+  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, introGuest: said };
 }
 
 export const fmt = (s) => { s = Math.max(0, Math.round(+s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
@@ -126,7 +126,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
+  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -175,8 +175,8 @@ function start() {
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx, reg] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang)]);
     weather = wx && wx.status === "ok" && wx.text ? { text: wx.text, audio: wx.audio } : null; // погода свежая к каждому кругу; нет данных — Давид её пропускает
-    const p = plan(mergeInterviews(reg, lang === "en" ? interviews(duo, lang) : [] /* мировой выпуск записан по-английски: русскому и немецкому слушателю его не ставим */), heard, trackAt, 2, { dj: dj && dj.links, variants: dj && dj.variants, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
-    greeted = true; if (p.fresh) introSaid = true;
+    const p = plan(mergeInterviews(reg, lang === "en" ? interviews(duo, lang) : [] /* мировой выпуск записан по-английски: русскому и немецкому слушателю его не ставим */), heard, trackAt, 2, { dj: dj && dj.links, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
     el.style.animationDuration = Math.max(18, Math.round(el.textContent.length / 7)) + "s";
