@@ -5,7 +5,7 @@
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
-import { RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
+import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1573,6 +1573,8 @@ async function radioRegionBuild(env, ctx, origin, region) {
     return { headline: c.headline, source: c.source, link: c.link, time: c.time, radar: c.radar, guest: g, model: got.model, question_by: p.question_by, facts_used: facts, en: { read: p.read, question: q, answer: got.text } };
   }))).filter(Boolean);
   if (!items.length) return null;
+  // после каждого ответа Давид благодарит гостя и говорит своё мнение; реплика, не прошедшая проверку, просто не звучит
+  try { const rem = checkRemarks(await radioClaudeTool(env, REMARK_SYSTEM, remarkUser(items), REMARK_TOOL, 900), items, stripInvisible); items.forEach((x, i) => { if (rem[i]) x.en.remark = rem[i]; }); } catch {}
   await radioTranslate(env, items);
   await sharedPut(env, "radio-region-used", [...usedList, ...items.map((x) => normHead(x.headline))].slice(-60));
   return { region, region_name: REGIONS[region].name, generated_at: new Date().toISOString(), items };
@@ -1582,7 +1584,7 @@ async function radioTranslate(env, items) {
   await Promise.all(items.map(async (x) => {
     { const keep = checkTranslations({ de: [x.de], ru: [x.ru] }, [x.en], stripInvisible); x.de = keep.de[0]; x.ru = keep.ru[0]; } // старый перевод, не прошедший нынешнюю проверку, выбрасываем
     for (let n = 0; n < 2 && (!x.de || !x.ru); n++) {
-      const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: [x.en] }), TRANSLATE_TOOL, 1800), [x.en], stripInvisible);
+      const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: [x.en] }), TRANSLATE_TOOL, 2400), [x.en], stripInvisible);
       x.de = x.de || tr.de[0]; x.ru = x.ru || tr.ru[0];
     }
   }));
@@ -1631,24 +1633,24 @@ async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
   for (const region of Object.keys(REGIONS)) {
-    const ep = await sharedGet(env, "radio-region-v4-" + region, 1e15);
+    const ep = await sharedGet(env, "radio-region-v5-" + region, 1e15);
     if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) {
       // выпуск свежий, но часть переводов не удалась: чиним только перевод (до трёх заходов), интервью не переписываем
       const bad = (x) => { const k = checkTranslations({ de: [x.de], ru: [x.ru] }, [x.en], stripInvisible); return !k.de[0] || !k.ru[0]; };
-      if ((ep.tr2 || 0) < 6 && ep.items.some(bad)) { ep.tr2 = (ep.tr2 || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v4-" + region, ep); return; }
+      if ((ep.tr2 || 0) < 6 && ep.items.some(bad)) { ep.tr2 = (ep.tr2 || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v5-" + region, ep); return; }
       continue;
     }
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
     await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
     const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
-    if (fresh) await sharedPut(env, "radio-region-v4-" + region, fresh);
+    if (fresh) await sharedPut(env, "radio-region-v5-" + region, fresh);
     return; // один регион за проход крона
   }
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
   if (!region) return { status: "none", reason: "no regional desk for this country; the world desk plays", regions: Object.keys(REGIONS) };
-  const ep = await sharedGet(env, "radio-region-v4-" + region, 2 * REGION_MS);
+  const ep = await sharedGet(env, "radio-region-v5-" + region, 2 * REGION_MS);
   if (!ep) return { status: "preparing", region };
   // слушатель слышит гостей только на своём языке: интервью без проверенного перевода в эфир не идёт (английский — только английскому слушателю)
   const ivs = regionalInterviews(ep, lg).filter((iv) => iv.language === lg);
