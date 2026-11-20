@@ -248,3 +248,23 @@ test("guests are heard only in the listener's language", () => {
   assert.match(w, /regionalInterviews\(ep, lg\)\.filter\(\(iv\) => iv\.language === lg\)/);
   assert.match(js, /lang === "en" \? interviews\(duo, lang\) : \[\]/);
 });
+
+test("DJ does not repeat himself: four different variants of every repeated link, played in turn", async () => {
+  const { DJ_VARIED, DJ_STOCK_MORE, DJ_TOOL } = await import("../src/radio.js");
+  assert.deepEqual(DJ_VARIED, ["to_music", "after_music", "next_track"]); assert.match(DJ_SYSTEM, /at most ONE of the four may be a reaction to the track/);
+  assert.ok(DJ_TOOL.input_schema.properties.ru.required.includes("more"));
+  for (const l of ["en", "de", "ru"]) { const r = checkDj(null)[l];
+    for (const p of DJ_VARIED) { assert.equal(r.variants[p].length, 4, l + p); assert.equal(new Set(r.variants[p].map((x) => x.text)).size, 4); assert.equal(r.variants[p][0].text, DJ_FALLBACK[l][p]);
+      assert.equal(checkDj({ [l]: { ...DJ_FALLBACK[l], more: DJ_STOCK_MORE[l] } })[l].variants[p].filter((x) => x.by === "host").length, 4, "stock lines pass the same checks"); } }
+  const more = { to_music: ["Thank you, Grok, lovely talk. Music now.", "Thanks for that talk, and now some AI-made music.", 5], after_music: ["A hello to all of you on the road.", "A hello to all of you on the road.", "buy this track now, it is great"], next_track: [] };
+  const v = checkDj({ en: { ...DJ_FALLBACK.en, more } }).en.variants;
+  assert.deepEqual(v.to_music.map((x) => x.by), ["host", "host", "stock", "stock"], "a variant naming the guest is dropped"); assert.equal(v.after_music.filter((x) => x.text === "A hello to all of you on the road.").length, 1, "no duplicates");
+  assert.ok(!JSON.stringify(v).includes("buy this")); assert.equal(v.next_track.length, 4);
+  // плеер: по кругу, счётчик общий для нескольких вызовов
+  const vars = { after_music: [1, 2, 3].map((i) => ({ text: "After " + i })), next_track: [{ text: "Next 1" }, { text: "Next 2" }], to_music: [{ text: "Music 1" }, { text: "Music 2" }] }, turns = {};
+  const texts = (p) => p.items.filter((x) => x.type === "say").map((x) => x.iv.lines.map((y) => y.text).join(" | "));
+  const iv = (h) => ({ headline: h, lines: [{ who: "david", text: "q" }, { who: "grok", text: "a" }] });
+  const a = texts(plan([iv("a"), iv("b")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), b = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true }));
+  assert.deepEqual([...a, ...b], ["After 1 | Next 1", "Music 1", "After 2 | Next 2", "Music 2", "After 3 | Next 1"]);
+  assert.equal(texts(plan([], new Set(), 0, 2, { dj: DJ }))[0], DJ.after_music.text + " | " + DJ.next_track.text, "without variants the single line still plays");
+});
