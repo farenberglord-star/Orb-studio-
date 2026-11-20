@@ -10,10 +10,10 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#05060c">
 <style>
-:root{--c:#6fe6ff;--rgb:111,230,255;--col:min(100vw,56.25svh,520px);color-scheme:dark}
+:root{--c:#ffb060;--rgb:255,170,90;--col:min(100vw,56.25svh,520px);color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;max-width:100%;overflow-x:clip;background:#05060c;color:#e9eefb;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%}
-body[data-mode="guest"]{--c:#b58cff;--rgb:181,140,255}body[data-mode="music"]{--c:#ffcf96;--rgb:255,200,110}
+body[data-mode="guest"]{--c:#b58cff;--rgb:181,140,255}body[data-mode="music"]{--c:#6fe6ff;--rgb:111,230,255}
 .back{position:fixed;inset:0;z-index:-1;overflow:hidden}
 .back:before{content:"";position:absolute;inset:0;background:radial-gradient(80% 50% at 50% 30%,#0d1030,#05060c 70%)}
 .wrap{width:var(--col);margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
@@ -39,15 +39,22 @@ body[data-mode="guest"]{--c:#b58cff;--rgb:181,140,255}body[data-mode="music"]{--
 .air:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.2) 2px 3px);pointer-events:none;z-index:3}
 .hud{position:absolute;left:0;right:0;top:0;z-index:2;display:flex;justify-content:space-between;gap:2cqw;padding:1.5cqw 2.4cqw;background:rgba(0,0,0,.58);font:600 2.15cqw ui-monospace,monospace;letter-spacing:.03em;white-space:nowrap}
 .onair{color:#ff6a6a;animation:on 1.6s ease-in-out infinite}.hud b{color:rgb(var(--rgb));font-weight:700}
-.say{position:absolute;left:0;right:0;top:6.6cqw;bottom:6.4cqw;z-index:2;display:flex;flex-direction:column;padding:2.2cqw 3cqw 1.6cqw;background:rgba(3,5,14,.8);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-.who{font-weight:700;font-size:4.3cqw;color:rgb(var(--rgb));margin:0 0 .8cqw;text-shadow:0 0 2.4cqw rgba(var(--rgb),.6)}
+/* интервью: сверху голограмма-эмблема говорящего (рисуется в коде, пульс от настоящего голоса), снизу реплика */
+#holo{z-index:1;opacity:0;transition:opacity .25s}
+.air[data-talk="1"] #holo{opacity:1}
+.air[data-talk="1"] #scene,.air[data-talk="1"] .sc{opacity:0!important}
+.who{position:absolute;left:0;right:0;bottom:calc(34% + 6.9cqw);z-index:2;text-align:center;font:600 2.5cqw ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--rgb));text-shadow:0 0 2cqw rgba(var(--rgb),.8);opacity:0;transition:opacity .25s}
+.air[data-talk="1"] .who{opacity:1}
+.say{position:absolute;left:0;right:0;height:34%;bottom:6.4cqw;z-index:2;display:flex;flex-direction:column;padding:1.6cqw 3cqw 1.2cqw;background:rgba(3,5,14,.82);border-top:1px solid rgba(var(--rgb),.35)}
+/* отсвет голограммы на корпусе */
+.spill{position:absolute;left:4%;right:4%;top:3%;height:52%;pointer-events:none;background:radial-gradient(60% 55% at 50% 45%,rgba(var(--rgb),calc(.05 + var(--lv)*.3)),transparent 70%);mix-blend-mode:screen}
 #text{margin:0;flex:1;min-height:0;overflow-y:auto;scroll-behavior:smooth;scrollbar-width:none;font-size:3.5cqw;line-height:1.36;text-wrap:pretty;color:#eaf2ff}
 #text::-webkit-scrollbar{display:none}
 #text.long{font-size:3.15cqw}
 .meta{display:flex;justify-content:space-between;gap:2cqw;align-items:center;margin-top:1cqw;font-size:2.6cqw;color:#8f9bb8}
 .meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta a{color:rgb(var(--rgb));white-space:nowrap;position:relative;z-index:4}
-.epdate{margin-top:.6cqw;font:600 2.3cqw ui-monospace,monospace;letter-spacing:.16em;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.8)}
+.epdate{margin-left:1.2cqw;font:600 2.1cqw ui-monospace,monospace;letter-spacing:.1em;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.8)}
 .tick{position:absolute;left:0;right:0;bottom:0;z-index:2;height:6.4cqw;display:flex;align-items:center;background:rgba(0,0,0,.72);overflow:hidden;white-space:nowrap}
 #tick{display:inline-block;padding-left:100%;font:600 2.8cqw system-ui,sans-serif;color:#ffc850;animation:tick 40s linear infinite}
 @keyframes tick{to{transform:translateX(-100%)}}
@@ -87,7 +94,7 @@ button{font:inherit;cursor:pointer}
 .krb-code{font:13px ui-monospace,monospace;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px}
 .bnote{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.brand i,.onair,#tick,.air .sc{animation:none!important}#tick{padding-left:2cqw}#bar,.air,.air .sc,#scene{transition:none}}
+@media (prefers-reduced-motion:reduce){.brand i,.onair,#tick,.air .sc{animation:none!important}#tick{padding-left:2cqw}#bar,.air,.air .sc,#scene,#holo,.who{transition:none}}
 </style>
 </head>
 <body data-mode="music">
@@ -99,16 +106,17 @@ button{font:inherit;cursor:pointer}
   </div>
   <div class="unit">
     <img class="bg" src="/media/radio/unit.webp" width="864" height="1536" alt="" decoding="async" fetchpriority="high">
+    <div class="spill" aria-hidden="true"></div>
     <section class="scr air" data-scene="sky">
       <canvas id="scene" aria-hidden="true"></canvas>
       <img class="sc david" src="/media/radio/scene-david.webp" alt="" loading="lazy" decoding="async">
       <img class="sc earth" src="/media/radio/scene-earth.webp" alt="" loading="lazy" decoding="async">
       <div class="hud"><span class="onair">● ON AIR · <time id="clock"></time></span><b id="scn"></b></div>
+      <canvas id="holo" aria-hidden="true"></canvas>
+      <div class="who" id="who"></div>
       <div class="say" id="talk" aria-live="polite" hidden>
-        <div class="who" id="who"></div>
         <p id="text"></p>
-        <div class="meta"><span id="src"></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
-        <time class="epdate" id="epdate" hidden></time>
+        <div class="meta"><span><span id="src"></span> <time class="epdate" id="epdate" hidden></time></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
       </div>
       <div class="tick" aria-hidden="true"><span id="tick"></span></div>
     </section>
