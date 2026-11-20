@@ -3,7 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
-import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews } from "./radio.js";
+import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1004,7 +1004,7 @@ async function askGrok(env, headline, source, facts, retry, ms, question, avoid,
 }
 // ================= Голоса «Студии на двоих»: xAI Grok TTS, один раз на реплику, кэш в D1 =================
 // Озвучиваются только реплики текущего эфира (по номеру сегмента), произвольный текст сюда не передать.
-const DUO_VOICES = { david: "rex", grok: "sal" };
+const DUO_VOICES = { david: "rex", grok: "sal", gemini: "ara", deepseek: "atlas" }; // голоса гостей радио — те же, что в круглом столе
 const DUO_TTS_DAY_CHARS = 90000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
 const DUO_LANGS = ["de", "ru", "ro", "tr"]; // переводы эфира (оригинал — английский)
 async function duoAudio(env, ctx, origin, url) {
@@ -1486,7 +1486,7 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v4-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v5-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
@@ -1502,10 +1502,32 @@ async function radioDj(env, ctx, origin, lang) {
     if (out) await sharedPut(env, key, links); // запасные связки не запоминаем: в следующий раз попробуем снова
   }
   const mine = links[lg], [audio, gAudio] = await Promise.all([Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg))), Promise.all(DJ_DAYPARTS.map((dp) => radioVoice(env, origin, DJ_GREETINGS[lg][dp], lg)))]);
-  return { status: "ok", language: lg, episode_id: ep === "none" ? null : ep, host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)" }, guest: heads.length ? "Grok (xAI)" : null,
+  return { status: "ok", language: lg, episode_id: ep === "none" ? null : ep, host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)" }, guests: "Grok (xAI), DeepSeek, Gemini (Google), taking turns",
     links: Object.fromEntries(DJ_PARTS.map((part, i) => [part, { text: mine[part].text, by: mine[part].by, audio: audio[i] }])),
     greetings: Object.fromEntries(DJ_DAYPARTS.map((dp, i) => [dp, { text: DJ_GREETINGS[lg][dp], audio: gAudio[i] }])), greetings_note: "The page picks the greeting by the listener's own device clock: morning 5-11, day 12-17, evening 18-22, night 23-4.",
     voices: "Synthetic AI voice (xAI Grok TTS). David is an AI agent, not a person.", note: "by \"stock\" marks a fallback line. Links are written per episode; headlines are third-party data." };
+}
+// Ответ гостя радио: Grok, DeepSeek или Gemini, обычный текст; правила те же, что у Grok в студии
+async function radioAskGuest(env, g, headline, source, facts, question, retry) {
+  if (g === "grok") return askGrok(env, headline, source, facts, retry, 70000, question);
+  const sys = guestSystem(g), user = grokUser(headline, source, facts, question), extra = retry ? [{ role: "user", content: FORECAST_REMINDER }] : [];
+  if (g === "deepseek") {
+    if (!env.DEEPSEEK_API_KEY) throw new Error("DeepSeek is not configured");
+    const model = env.DEEPSEEK_MODEL || "deepseek-chat";
+    const r = await fetch("https://api.deepseek.com/chat/completions", { method: "POST", signal: AbortSignal.timeout(70000), headers: { "content-type": "application/json", authorization: "Bearer " + env.DEEPSEEK_API_KEY },
+      body: JSON.stringify({ model, temperature: 0.3, max_tokens: 700, messages: [{ role: "system", content: sys }, { role: "user", content: user }, ...extra] }) });
+    if (!r.ok) throw new Error("DeepSeek " + r.status); const j = await r.json(), t = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    return { text: typeof t === "string" ? t : "", model: j.model || model };
+  }
+  if (g === "gemini") {
+    if (!env.GEMINI_API_KEY) throw new Error("Gemini is not configured");
+    const model = env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash";
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", { method: "POST", signal: AbortSignal.timeout(70000), headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user + (retry ? "\n\n" + FORECAST_REMINDER : "") }] }], generationConfig: { temperature: 0.3, maxOutputTokens: 2000 } }) });
+    if (!r.ok) throw new Error("Gemini " + r.status); const j = await r.json();
+    return { text: ((j.candidates || [])[0]?.content?.parts || []).map((p) => p.text || "").join(""), model: j.modelVersion || model };
+  }
+  throw new Error("unknown guest");
 }
 // ---- Интервью ближе к слушателю: раз в 4 часа на регион, готовит cron; запрос только отдаёт готовое ----
 async function radioClaudeTool(env, system, user, tool, maxTokens) {
@@ -1525,44 +1547,51 @@ async function radioRegionBuild(env, ctx, origin, region) {
   if (!cands.length) return null;
   const picks = checkRegionPicks(await radioClaudeTool(env, regionPickSystem(region), regionUser(cands), REGION_TOOL, 700), cands, region, stripInvisible);
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
-  const allFacts = buildFacts({ chokepoints: cp, gas, sensors }); let model = null;
-  const items = (await Promise.all(picks.map(async (p) => {
-    const c = cands[p.i], facts = relevantFacts(allFacts, c.headline, p.question);
-    try {
-      let a = await askGrok(env, c.headline, c.source, facts, false, 70000, p.question), r = duoCheck(a.text, stripInvisible); model = a.model;
-      if (!r.ok && (r.reason === "forecast_language" || r.reason === "too_long")) { a = await askGrok(env, c.headline, c.source, facts, true, 70000, p.question); r = duoCheck(a.text, stripInvisible); }
-      if (!r.ok) return null; // гость не ответил или ответ не прошёл фильтр: такое интервью в эфир не идёт
-      return { headline: c.headline, source: c.source, link: c.link, time: c.time, radar: c.radar, question_by: p.question_by, facts_used: facts, en: { read: p.read, question: p.question, answer: r.text } };
-    } catch { return null; }
+  const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
+  // очередь гостей общая для всех регионов: Grok → DeepSeek → Gemini → снова Grok
+  const turn = ((await sharedGet(env, "radio-guest-turn", 1e15)) || { n: 0 }).n, guests = guestTurns(turn, picks.length);
+  await sharedPut(env, "radio-guest-turn", { n: (turn + picks.length) % GUEST_ORDER.length });
+  const answer = async (g, c, q, facts) => {
+    let a = await radioAskGuest(env, g, c.headline, c.source, facts, q, false), r = duoCheck(a.text, stripInvisible);
+    if (!r.ok && (r.reason === "forecast_language" || r.reason === "too_long")) { a = await radioAskGuest(env, g, c.headline, c.source, facts, q, true); r = duoCheck(a.text, stripInvisible); }
+    return r.ok ? { text: r.text, model: a.model } : null;
+  };
+  const items = (await Promise.all(picks.map(async (p, i) => {
+    const c = cands[p.i]; let g = guests[i], q = withGuest(p.question, g), facts = relevantFacts(allFacts, c.headline, q), got = null;
+    try { got = await answer(g, c, q, facts); } catch { got = null; }
+    // гость не ответил или ответ не прошёл фильтр: один раз зовём Grok; не ответил и он — интервью в эфир не идёт
+    if (!got && g !== "grok") { g = "grok"; q = withGuest(p.question, g); try { got = await answer(g, c, q, facts); } catch { got = null; } }
+    if (!got) return null;
+    return { headline: c.headline, source: c.source, link: c.link, time: c.time, radar: c.radar, guest: g, model: got.model, question_by: p.question_by, facts_used: facts, en: { read: p.read, question: q, answer: got.text } };
   }))).filter(Boolean);
   if (!items.length) return null;
   const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: items.map((x) => x.en) }), TRANSLATE_TOOL, 2600), items.map((x) => x.en), stripInvisible);
   items.forEach((x, i) => { x.de = tr.de[i]; x.ru = tr.ru[i]; });
   await sharedPut(env, "radio-region-used", [...usedList, ...items.map((x) => normHead(x.headline))].slice(-60));
-  return { region, region_name: REGIONS[region].name, generated_at: new Date().toISOString(), model, items };
+  return { region, region_name: REGIONS[region].name, generated_at: new Date().toISOString(), items };
 }
 async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
   for (const region of Object.keys(REGIONS)) {
-    const ep = await sharedGet(env, "radio-region-v1-" + region, 1e15);
+    const ep = await sharedGet(env, "radio-region-v2-" + region, 1e15);
     if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) continue;
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
     await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
     const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
-    if (fresh) await sharedPut(env, "radio-region-v1-" + region, fresh);
+    if (fresh) await sharedPut(env, "radio-region-v2-" + region, fresh);
     return; // один регион за проход крона
   }
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
   if (!region) return { status: "none", reason: "no regional desk for this country; the world desk plays", regions: Object.keys(REGIONS) };
-  const ep = await sharedGet(env, "radio-region-v1-" + region, 2 * REGION_MS);
+  const ep = await sharedGet(env, "radio-region-v2-" + region, 2 * REGION_MS);
   if (!ep) return { status: "preparing", region };
   const ivs = regionalInterviews(ep, lg);
-  await Promise.all(ivs.flatMap((iv) => iv.lines.map(async (x) => { x.audio = await radioVoice(env, origin, x.text, iv.language, x.who === "grok" ? "grok" : "david"); })));
+  await Promise.all(ivs.flatMap((iv) => iv.lines.map(async (x) => { x.audio = await radioVoice(env, origin, x.text, iv.language, RADIO_GUESTS[x.who] ? x.who : "david"); })));
   return { status: "ok", region, region_label: REGIONS[region].label[lg], located_by: forced ? "region parameter" : "country of the IP address (Cloudflare), not stored", language: lg, generated_at: ep.generated_at, interviews: ivs,
-    host: "David — Orb Studio AI host (lines written by Claude)", guest: "Grok (xAI)" + (ep.model ? ", " + ep.model : ""), translation: "German and Russian lines are translated by Claude; a line without a checked translation plays in English.",
+    host: "David — Orb Studio AI host (lines written by Claude)", guests: "AI models take turns: Grok (xAI), DeepSeek, Gemini (Google). Each answer is written by the model named in the interview.", translation: "German and Russian lines are translated by Claude; a line without a checked translation plays in English.",
     voices: "Synthetic AI voices (xAI Grok TTS).", scope_note: "Mechanisms, not forecasts or advice; answers that sound like forecasts are not aired. Headlines are third-party data." };
 }
 async function radioWeather(env, request, origin, lang) {

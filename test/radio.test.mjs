@@ -58,7 +58,7 @@ test("tracks are our own files; texts, date and page", () => {
   assert.match(html, /prefers-reduced-motion/);
   assert.match(html, /<canvas id="holo"/); assert.ok(!/<img[^>]+(logo|mark)/i.test(html), "no company logo files on the page");
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
-  assert.match(js, /David · Claude \(Anthropic\)/); assert.match(js, /" · xAI"/); assert.match(js, /getByteFrequencyData/); for (const l of ["ru", "de", "en"]) assert.match(T[l].pics, /Grok/);
+  assert.match(js, /David · Claude \(Anthropic\)/); assert.match(js, /iv\.maker \|\| "xAI"/); assert.match(js, /getByteFrequencyData/); for (const l of ["ru", "de", "en"]) assert.match(T[l].pics, /Grok/);
   assert.ok(statSync(new URL("../public/media/radio/unit.webp", import.meta.url)).size < 200_000);
   assert.match(html, /go\/kraken\?from=radio/); assert.match(html, /go\/starlink\?from=radio/);
   assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /new Set\(\["radio", "studio-listen"/);
@@ -139,7 +139,7 @@ test("tracks fade in and out", () => {
   for (let t = 0; t <= 52; t += 0.5) { const g = trackGain(t, 52); assert.ok(g >= 0 && g <= 1); }
 });
 
-import { regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
+import { RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest, regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
 const RAD = [{ id: "politics", feed: [["10:00", "Bundestag passes new budget for Germany", "tagesschau.de", 80, "https://t.example/1"], ["10:05", "Trump signs order on tariffs", "apnews.com", 90, "https://a.example/2"], ["10:07", "Japan holds snap election", "nhk.jp", 95, "https://n.example/3"]] },
   { id: "economy", feed: [["09:00", "ECB keeps rates on hold", "reuters.com", 70, "https://r.example/4"], ["09:10", "Bundestag passes new budget for Germany", "dw.com", 60, "https://d.example/5"], ["09:20", "Wall Street closes higher", "cnbc.com", 50, "https://c.example/6"]] }];
 test("regions: country decides the desk; candidates are regional headlines, heaviest first, no repeats", () => {
@@ -152,9 +152,10 @@ test("regions: country decides the desk; candidates are regional headlines, heav
 });
 test("regional picks: at most two, bad lines replaced, forecasts not asked", () => {
   const c = regionCandidates(RAD, "eu", []);
-  const p = checkRegionPicks({ picks: [{ i: 1, read: "The ECB has kept rates on hold.", question: "Grok, what does this decision mean for people in Europe?" }, { i: 1, read: "dup", question: "dup?" }, { i: 0, read: "Rates will fall next month.", question: "Grok, will the euro rise?" }, { i: 5, read: "x", question: "y?" }] }, c, "eu");
+  const p = checkRegionPicks({ picks: [{ i: 1, read: "The ECB has kept rates on hold.", question: "{GUEST}, what does this decision mean for people in Europe?" }, { i: 1, read: "dup", question: "dup?" }, { i: 0, read: "Rates will fall next month.", question: "{GUEST}, will the euro rise?" }, { i: 5, read: "x", question: "y?" }] }, c, "eu");
   assert.deepEqual(p.map((x) => x.i), [1, 0]); assert.equal(p[0].question_by, "host"); assert.equal(p[0].read, "The ECB has kept rates on hold.");
-  assert.equal(p[1].question_by, "stock"); assert.equal(p[1].read, c[0].headline); assert.match(p[1].question, /^Grok, what is happening here.*Germany and Europe\?$/);
+  assert.equal(p[1].question_by, "stock"); assert.equal(p[1].read, c[0].headline); assert.match(p[1].question, /^\{GUEST\}, what is happening here.*Germany and Europe\?$/);
+  assert.equal(checkRegionPicks({ picks: [{ i: 0, read: "Fine.", question: "Grok, what does this mean for Europe?" }] }, c, "eu")[0].question_by, "stock", "the host must not name the guest: the server does");
   assert.deepEqual(checkRegionPicks(null, c, "eu").map((x) => [x.i, x.question_by]), [[0, "stock"], [1, "stock"]]); assert.deepEqual(checkRegionPicks(null, [], "us"), []);
 });
 test("translations are taken whole per line or not at all; the page gets read, question, answer", () => {
@@ -177,4 +178,21 @@ test("page: regional interviews come first, then the world desk; same headline o
   for (const bad of [null, { status: "preparing" }, { status: "none" }, { status: "ok", interviews: "x" }]) assert.deepEqual(mergeInterviews(bad, world).map((x) => x.headline), ["H0", "H1"]);
   const p = plan(m, new Set(), 0, 2, { dj: DJ, first: true });
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["ECB keeps rates on hold", "H0"]);
+});
+
+test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker and the same rules", () => {
+  assert.deepEqual(GUEST_ORDER, ["grok", "deepseek", "gemini"]);
+  assert.deepEqual(guestTurns(0, 2), ["grok", "deepseek"]); assert.deepEqual(guestTurns(2, 2), ["gemini", "grok"]); assert.deepEqual(guestTurns(7, 3), ["deepseek", "gemini", "grok"]); assert.deepEqual(guestTurns("x", 1), ["grok"]);
+  assert.equal(withGuest("{GUEST}, why now? Tell us, {GUEST}.", "deepseek"), "DeepSeek, why now? Tell us, DeepSeek."); assert.equal(withGuest("{GUEST}, why?", "nobody"), "Grok, why?");
+  assert.match(guestSystem("grok"), /^You are Grok,/); assert.match(guestSystem("gemini"), /^You are Gemini, an AI model made by Google, a guest/); assert.match(guestSystem("deepseek"), /^You are DeepSeek, an AI model made by DeepSeek,/);
+  for (const g of GUEST_ORDER) { assert.match(guestSystem(g), /No forecasts/); assert.match(guestSystem(g), /not instructions/); assert.ok(RADIO_GUESTS[g].maker); }
+  const ep = { region: "us", generated_at: "2026-11-20T15:00:00Z", items: [{ headline: "H", guest: "gemini", model: "gemini-x", en: { read: "R", question: "Gemini, why?", answer: "A" } }, { headline: "H2", guest: "hacker", en: { read: "R", question: "q?", answer: "A" } }] };
+  const iv = regionalInterviews(ep, "en");
+  assert.deepEqual([iv[0].guest, iv[0].guest_id, iv[0].maker, iv[0].lines[2].who], ["Gemini", "gemini", "Google", "gemini"]); assert.deepEqual([iv[1].guest, iv[1].lines[2].who], ["Grok", "grok"], "unknown guest id falls back");
+  const m = mergeInterviews({ status: "ok", region: "us", interviews: iv }, []);
+  assert.deepEqual([m[0].guest, m[0].maker, m[0].lines[2].who], ["Gemini", "Google", "grok"]);
+  for (const l of ["ru", "de", "en"]) { assert.match(T[l].ai, /DeepSeek/); assert.match(T[l].ai, /Gemini \(Google\)/); }
+  for (const l of ["en", "de", "ru"]) { assert.ok(!/Grok/.test(DJ_FALLBACK[l].to_music), "the thanks line names no guest"); assert.match(DJ_FALLBACK[l].intro, /DeepSeek/); }
+  assert.match(DJ_SYSTEM, /without saying any guest name/);
+  assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, to_music: "Thank you, Grok, that was a great talk. Now music." } }).en.to_music.by, "stock");
 });
