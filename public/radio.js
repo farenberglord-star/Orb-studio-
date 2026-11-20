@@ -68,7 +68,7 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
   if (o.first) push(sayItem(title, [o.greeting, dj.ident]));
   for (let i = 0; i < Math.max(1, fresh.length); i++) {
-    track(); push(sayItem(title, [say("after_music"), o.weather, say("next_track")])); track();
+    track(); push(sayItem(title, [say("after_music"), i === 0 ? o.weather : null /* погода не чаще раза за план; раз в час её даёт страница */, say("next_track")])); track();
     const iv = fresh[i]; if (!iv) continue;
     const g = String(iv.guest || "Grok").toLowerCase(); if (said !== g && said !== "*") { push(sayItem(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
     out.push({ type: "talk", iv }); push(sayItem(title, [say("to_music")]));
@@ -76,6 +76,9 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, introGuest: said };
 }
 
+// Погода звучит не чаще раза в час
+export const WEATHER_EVERY_MS = 60 * 60e3;
+export function weatherDue(last, now) { return !(last > 0) || now - last >= WEATHER_EVERY_MS || now < last; }
 export const fmt = (s) => { s = Math.max(0, Math.round(+s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
 
 // Сцены верхнего экрана по кругу; «рынок» показывается только когда свечи реально пришли
@@ -123,6 +126,7 @@ function start() {
   play.textContent = "▶"; play.setAttribute("aria-label", t.start); skip.textContent = "▶▶"; skip.setAttribute("aria-label", t.skip); $("hint").textContent = t.tap;
   $("np-k").textContent = t.title; $("np").textContent = t.tap;
 
+  const WX_KEY = "orbRadioWeatherAt", lastWx = () => { try { return +localStorage.getItem(WX_KEY) || 0; } catch { return 0; } };
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
@@ -174,7 +178,8 @@ function start() {
     // связки Давида и погода: если не пришли, эфир идёт без них
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx, reg] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang)]);
-    weather = wx && wx.status === "ok" && wx.text ? { text: wx.text, audio: wx.audio } : null; // погода свежая к каждому кругу; нет данных — Давид её пропускает
+    // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
+    weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
     const p = plan(mergeInterviews(reg, lang === "en" ? interviews(duo, lang) : [] /* мировой выпуск записан по-английски: русскому и немецкому слушателю его не ставим */), heard, trackAt, 2, { dj: dj && dj.links, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;

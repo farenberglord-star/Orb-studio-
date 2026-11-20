@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -25,10 +25,10 @@ test("interviews: silent guest, non-news segments and broken data are left out",
 const DJ = { ident: { text: "You are on Radio Orb Studio. A track for you.", audio: "https://orbstudio.org/api/v1/radio/audio?k=cc" }, intro: { text: "Today's guest is Grok.", audio: "https://orbstudio.org/api/v1/radio/audio?k=aa" }, to_music: { text: "Thanks, Grok. Now music.", audio: null }, after_music: { text: "Nice track." }, next_track: { text: "Next track." } };
 const WX = { text: "And now the weather. In Hamburg it is 7 degrees.", audio: "https://orbstudio.org/api/v1/radio/audio?k=bb" };
 const kinds = (p) => p.items.map((x) => (x.type === "say" ? "say:" + x.iv.lines.map((l) => l.text.split(" ")[0]).join("+") : x.type));
-test("cycle: greeting, track, reaction + weather, track, guest intro, interview, thanks; weather in every round", () => {
+test("cycle: greeting, track, reaction + weather, track, guest intro, interview, thanks; weather once per plan", () => {
   const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en");
   const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true });
-  assert.deepEqual(kinds(p), ["say:You", "track", "say:Nice+And+Next", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:Nice+And+Next", "track", "talk", "say:Thanks,"]);
+  assert.deepEqual(kinds(p), ["say:You", "track", "say:Nice+And+Next", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:Nice+Next", "track", "talk", "say:Thanks,"]); // погода только в первом круге
   assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david");
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1"]);
   assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[0].id, TRACKS[1].id, TRACKS[2].id, TRACKS[0].id]);
@@ -284,4 +284,12 @@ test("one guest per episode: the intro names only the guest on air, and a new gu
   assert.deepEqual(said(plan([iv("c", "Gemini")], new Set(), 0, 2, { dj: DJ, intros, introSaid: true, introGuest: "gemini" })), []);
   assert.deepEqual(said(plan([iv("d", "Grok")], new Set(), 0, 2, { dj: DJ, intros, introSaid: true, introGuest: "gemini" })), ["Guest: Grok"], "next episode, next guest: a new intro");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /intros: Object\.fromEntries\(GUEST_ORDER\.map/);
+});
+
+test("weather is spoken once an hour; a regional episode brings three interviews every two hours", async () => {
+  const now = 1795200000000;
+  assert.equal(WEATHER_EVERY_MS, 3600e3); assert.equal(weatherDue(0, now), true, "never said yet"); assert.equal(weatherDue(now - 10 * 60e3, now), false); assert.equal(weatherDue(now - 59 * 60e3, now), false);
+  assert.equal(weatherDue(now - 60 * 60e3, now), true); assert.equal(weatherDue(now + 5e3, now), true, "a clock set back does not silence the weather for good");
+  assert.match(readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), /weatherDue\(lastWx\(\), Date\.now\(\)\)/);
+  const { REGION_MS, REGION_MAX } = await import("../src/radio.js"); assert.equal(REGION_MS, 2 * 3600e3); assert.equal(REGION_MAX, 3);
 });
