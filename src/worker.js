@@ -5,7 +5,7 @@
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
-import { parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
+import { DJ_VARIED, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1488,7 +1488,7 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v6-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v7-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
@@ -1496,16 +1496,18 @@ async function radioDj(env, ctx, origin, lang) {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(25000),
           headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-          body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1800, system: DJ_SYSTEM, messages: [{ role: "user", content: djUser(heads) }], tools: [DJ_TOOL], tool_choice: { type: "tool", name: DJ_TOOL.name } }) });
+          body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 3600, system: DJ_SYSTEM, messages: [{ role: "user", content: djUser(heads) }], tools: [DJ_TOOL], tool_choice: { type: "tool", name: DJ_TOOL.name } }) });
         if (res.ok) { const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use"); out = tool && tool.input; }
       } catch { out = null; }
     }
     links = checkDj(out, stripInvisible);
     if (out) await sharedPut(env, key, links); // запасные связки не запоминаем: в следующий раз попробуем снова
   }
-  const mine = links[lg], [audio, gAudio] = await Promise.all([Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg))), Promise.all(DJ_DAYPARTS.map((dp) => radioVoice(env, origin, DJ_GREETINGS[lg][dp], lg)))]);
+  const mine = links[lg], vAudio = await Promise.all(DJ_VARIED.map((part) => Promise.all(mine.variants[part].map((x) => radioVoice(env, origin, x.text, lg)))));
+  const [audio, gAudio] = await Promise.all([Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg))), Promise.all(DJ_DAYPARTS.map((dp) => radioVoice(env, origin, DJ_GREETINGS[lg][dp], lg)))]);
   return { status: "ok", language: lg, episode_id: ep === "none" ? null : ep, host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)" }, guests: "Grok (xAI), DeepSeek, Gemini (Google), taking turns",
     links: Object.fromEntries(DJ_PARTS.map((part, i) => [part, { text: mine[part].text, by: mine[part].by, audio: audio[i] }])),
+    variants: Object.fromEntries(DJ_VARIED.map((part, i) => [part, mine.variants[part].map((x, j) => ({ text: x.text, by: x.by, audio: vAudio[i][j] }))])), variants_note: "Lines heard many times have several variants; the page plays them in turn.",
     greetings: Object.fromEntries(DJ_DAYPARTS.map((dp, i) => [dp, { text: DJ_GREETINGS[lg][dp], audio: gAudio[i] }])), greetings_note: "The page picks the greeting by the listener's own device clock: morning 5-11, day 12-17, evening 18-22, night 23-4.",
     voices: "Synthetic AI voice (xAI Grok TTS). David is an AI agent, not a person.", note: "by \"stock\" marks a fallback line. Links are written per episode; headlines are third-party data." };
 }
