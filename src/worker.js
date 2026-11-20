@@ -1486,15 +1486,15 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v1-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v2-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
-    if (env.ANTHROPIC_API_KEY && heads.length) {
+    if (env.ANTHROPIC_API_KEY) {
       try {
         const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(25000),
           headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-          body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1400, system: DJ_SYSTEM, messages: [{ role: "user", content: djUser(heads) }], tools: [DJ_TOOL], tool_choice: { type: "tool", name: DJ_TOOL.name } }) });
+          body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1800, system: DJ_SYSTEM, messages: [{ role: "user", content: djUser(heads) }], tools: [DJ_TOOL], tool_choice: { type: "tool", name: DJ_TOOL.name } }) });
         if (res.ok) { const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use"); out = tool && tool.input; }
       } catch { out = null; }
     }

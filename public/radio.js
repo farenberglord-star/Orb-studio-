@@ -41,17 +41,17 @@ export function sayItem(title, parts) {
   const lines = (parts || []).filter((x) => x && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: "david", kind: "dj", text: x.text.trim(), audio: typeof x.audio === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.audio) ? x.audio : null, ms: lineMs(x.text) }));
   return lines.length ? { type: "say", iv: { headline: title, source: null, link: null, at: null, guest: "Grok", lines } } : null;
 }
-// Сетка эфира. Есть новые интервью: приветствие → интервью → «спасибо, а теперь музыка» → трек → «хороший трек» + погода + «следующий трек» → трек → следующее интервью…
-// Нет новых: трек → реакция (+ погода один раз) → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
+// Сетка эфира. Первое включение: заставка станции → трек. Дальше, если есть новые интервью: представление гостя (один раз) → интервью →
+// «спасибо, а теперь музыка» → трек → «хороший трек» + погода (один раз) + «следующий трек» → трек → следующее интервью…
+// Нет новых интервью: реакция (+ погода) → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
-  const out = []; let k = trackAt, wx = o.weather && !o.weatherSaid ? o.weather : null, usedWeather = false;
+  const out = []; let k = trackAt, wx = o.weather && !o.weatherSaid ? o.weather : null, usedWeather = false, intro = !o.introSaid;
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
   const after = () => { push(sayItem(title, [dj.after_music, wx, dj.next_track])); if (wx) { usedWeather = true; wx = null; } };
-  if (fresh.length) {
-    if (o.first) push(sayItem(title, [dj.intro]));
-    for (const iv of fresh) { out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music])); track(); after(); track(); }
-  } else { track(); after(); track(); }
+  if (o.first) { push(sayItem(title, [dj.ident])); track(); }
+  if (fresh.length) for (const iv of fresh) { if (intro) { push(sayItem(title, [dj.intro])); intro = false; } out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music])); track(); after(); track(); }
+  else { if (!o.first) track(); after(); track(); }
   return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, usedWeather };
 }
 
@@ -92,7 +92,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, weatherSaid = false, greeted = false;
+  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, weatherSaid = false, greeted = false, introSaid = false;
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -139,8 +139,8 @@ function start() {
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), weatherSaid || weather ? null : getJ("/api/v1/radio/weather?lang=" + lang)]);
     if (wx && wx.status === "ok" && wx.text) weather = { text: wx.text, audio: wx.audio };
-    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, weather, weatherSaid, first: !greeted, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
-    if (p.usedWeather) weatherSaid = true; if (p.items.some((x) => x.type === "say") && p.fresh) greeted = true;
+    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, weather, weatherSaid, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    if (p.usedWeather) weatherSaid = true; greeted = true; if (p.fresh) introSaid = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
     el.style.animationDuration = Math.max(18, Math.round(el.textContent.length / 7)) + "s";
