@@ -126,6 +126,14 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .stage[data-speaker="deepseek"] #lb-deepseek{color:var(--deepseek);border-color:var(--deepseek);box-shadow:0 0 14px rgba(79,216,230,.5)}
 .sub[data-who="claude"]{--c:var(--claude)}.sub[data-who="gemini"]{--c:var(--gemini)}.sub[data-who="grok"]{--c:var(--grok)}.sub[data-who="deepseek"]{--c:var(--deepseek)}
 .brand b{display:block;margin-top:3px;font-weight:700;letter-spacing:.08em;color:#ffcf96}
+/* дата выпуска: мелкая «лазерная» голограмма под названием */
+.epdate{display:block;width:max-content;margin-top:5px;padding:1px 0 3px;position:relative;font:600 10.5px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.2em;text-transform:none;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.85),0 0 22px rgba(60,150,255,.45);font-variant-numeric:tabular-nums;animation:epflick 5.5s steps(1,end) infinite}
+.epdate::before{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#7fe9ff 20%,#e9fbff 50%,#7fe9ff 80%,transparent);box-shadow:0 0 6px #5fe0ff;transform-origin:0 50%;animation:eplaser 5.5s ease-out infinite}
+.epdate::after{content:"";position:absolute;inset:-1px 0 2px;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(5,6,12,.38) 2px 3px);pointer-events:none}
+@keyframes eplaser{0%{transform:scaleX(0);opacity:1}14%,100%{transform:scaleX(1);opacity:.85}}
+@keyframes epflick{0%,100%{opacity:1}2%{opacity:.45}4%{opacity:1}6%{opacity:.7}8%{opacity:1}61%{opacity:.82}63%{opacity:1}}
+.honest .epdate{margin-left:auto}
+@media (prefers-reduced-motion:reduce){.epdate,.epdate::before{animation:none}}
 .prog li.on{background:rgba(255,178,94,.10);box-shadow:inset 3px 0 0 #ffb25e}.prog li.on b{color:#ffb25e}
 .links{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center}
 @media (prefers-reduced-motion:reduce){.cam,.glow{animation:none!important}.cam{transform:none}.sub,.glow,.dim{transition:none}}
@@ -198,7 +206,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <div class="snd"><button id="listen" type="button" aria-pressed="false"></button></div>
   <div class="top">
     <div class="brand"><i></i>Orb Studio<b id="ttl"></b></div>
-    <div class="honest"><span id="imgnote"></span></div>
+    <div class="honest"><span id="imgnote"></span><time class="epdate" id="epdate" hidden></time></div>
   </div>
   <div class="board" id="board" role="status" hidden><h2 id="board-h"></h2><p id="board-p"></p></div>
   <section class="sub out" id="sub" aria-live="polite" hidden>

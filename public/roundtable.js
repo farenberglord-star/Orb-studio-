@@ -248,6 +248,14 @@ export const T = {
 
 // ---------- «Круглый стол ИИ»: плеер. Реплики только из GET /api/v1/roundtable?lang=… (ничего не придумывает) ----------
 export const API = "/api/v1/roundtable";
+
+// Дата выпуска для зрителя: ДД.ММ.ГГ по берлинскому времени из generated_at; нет даты — пустая строка (ничего не показываем)
+export function episodeDate(iso) {
+  const ms = typeof iso === "number" ? iso : Date.parse(String(iso || ""));
+  if (!Number.isFinite(ms)) return "";
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", year: "2-digit" }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return p.day + "." + p.month + "." + p.year;
+}
 export const SEATS = { // места на картинке (проценты от 9:16)
   gemini: { x: 14, y: 43, label: [15, 24] }, deepseek: { x: 50, y: 34, label: [50, 16] },
   grok: { x: 87, y: 43, label: [86, 24] }, claude: { x: 50, y: 67, label: [50, 55] },
@@ -470,6 +478,7 @@ function start() {
     if (!d) { showBoard(t.noLink, t.noLinkSub); retry = setTimeout(load, 90000); return; }
     if (d.status !== "ok" || !d.queue) { showBoard(t.preparing, t.preparingSub); retry = setTimeout(load, 120000); return; }
     ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);
+    { const e = $("epdate"), dt = episodeDate(d.generated_at); e.hidden = !dt; e.textContent = dt; if (dt) e.dateTime = d.generated_at; } // дата выпуска на сцене
     queue = playable(d.queue.lines, t); pos = 0; step();
   }
   // уровень голоса → яркость говорящего (WebAudio; без звука — 0)
