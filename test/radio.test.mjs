@@ -25,26 +25,26 @@ test("interviews: silent guest, non-news segments and broken data are left out",
 const DJ = { ident: { text: "You are on Radio Orb Studio. A track for you.", audio: "https://orbstudio.org/api/v1/radio/audio?k=cc" }, intro: { text: "Today's guest is Grok.", audio: "https://orbstudio.org/api/v1/radio/audio?k=aa" }, to_music: { text: "Thanks, Grok. Now music.", audio: null }, after_music: { text: "Nice track." }, next_track: { text: "Next track." } };
 const WX = { text: "And now the weather. In Hamburg it is 7 degrees.", audio: "https://orbstudio.org/api/v1/radio/audio?k=bb" };
 const kinds = (p) => p.items.map((x) => (x.type === "say" ? "say:" + x.iv.lines.map((l) => l.text.split(" ")[0]).join("+") : x.type));
-test("first switch-on: station greeting, then a track, then guest intro and the interview", () => {
+test("cycle: greeting, track, reaction + weather, track, guest intro, interview, thanks; weather in every round", () => {
   const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en");
   const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true });
-  assert.deepEqual(kinds(p), ["say:You", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:Nice+And+Next", "track", "talk", "say:Thanks,", "track", "say:Nice+Next", "track"]);
-  assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david"); assert.equal(p.usedWeather, true);
+  assert.deepEqual(kinds(p), ["say:You", "track", "say:Nice+And+Next", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:Nice+And+Next", "track", "talk", "say:Thanks,"]);
+  assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david");
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1"]);
-  assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[0].id, TRACKS[1].id, TRACKS[2].id, TRACKS[0].id, TRACKS[1].id]);
-  const p2 = plan(iv, new Set(["H0", "H1"]), p.trackAt, 2, { dj: DJ, weather: WX, weatherSaid: true, first: false, introSaid: true });
-  assert.deepEqual(kinds(p2), ["talk", "say:Thanks,", "track", "say:Nice+Next", "track"]); assert.equal(p2.items[0].iv.headline, "H2"); assert.equal(p2.usedWeather, false);
+  assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[0].id, TRACKS[1].id, TRACKS[2].id, TRACKS[0].id]);
+  const p2 = plan(iv, new Set(["H0", "H1"]), p.trackAt, 2, { dj: DJ, weather: null, first: false, introSaid: true });
+  assert.deepEqual(kinds(p2), ["track", "say:Nice+Next", "track", "talk", "say:Thanks,"]); assert.equal(p2.items[3].iv.headline, "H2");
 });
-test("first switch-on with nothing new: the greeting still comes first, then music, weather once", () => {
+test("nothing new: greeting first, then music with weather; no guest intro without an interview", () => {
   const iv = interviews(duo([seg(0)]), "en");
   const m = plan(iv, new Set(["H0"]), 0, 2, { dj: DJ, weather: WX, first: true });
   assert.deepEqual(kinds(m), ["say:You", "track", "say:Nice+And+Next", "track"]); assert.equal(m.fresh, 0);
-  assert.deepEqual(kinds(plan([], new Set(), 0, 2, { dj: DJ, first: false, weatherSaid: true })), ["track", "say:Nice+Next", "track"]);
+  assert.deepEqual(kinds(plan([], new Set(), 0, 2, { dj: DJ, first: false })), ["track", "say:Nice+Next", "track"]);
 });
 test("plan without DJ lines or data: same grid, no invented words", () => {
   const iv = interviews(duo([seg(0)]), "en");
-  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["talk", "track", "track"]);
-  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["track", "talk", "track", "track"]);
+  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["track", "track", "talk"]);
+  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["track", "track", "talk"]);
   for (const p of [plan(iv, new Set(["H0"])), plan([], new Set()), plan(null, null)]) { assert.deepEqual(kinds(p), ["track", "track"]); assert.equal(p.fresh, 0); }
   assert.equal(sayItem("t", [{ text: "x", audio: "javascript:1" }]).iv.lines[0].audio, null); assert.equal(sayItem("t", [null, {}]), null);
 });

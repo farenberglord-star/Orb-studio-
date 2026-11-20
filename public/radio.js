@@ -39,25 +39,28 @@ export function interviews(duo, lang) {
 // Время суток слушателя по часам его устройства: утро 5–11, день 12–17, вечер 18–22, ночь 23–4
 export function daypart(hour) { const h = ((Math.floor(+hour) % 24) + 24) % 24; return h >= 5 && h < 12 ? "morning" : h >= 12 && h < 18 ? "day" : h >= 18 && h < 23 ? "evening" : "night"; }
 // Плавное начало и конец трека: громкость 0→1 за FADE_IN секунд и 1→0 за последние FADE_OUT секунд
-export const FADE_IN = 3.5, FADE_OUT = 3;
+export const FADE_IN = 3.5, FADE_OUT = 3, GAP_MS = 1200;
 export function trackGain(pos, dur) { if (!(pos >= 0)) return 0; const up = Math.min(1, pos / FADE_IN), down = dur > FADE_IN + FADE_OUT ? Math.min(1, Math.max(0, (dur - pos) / FADE_OUT)) : 1; return +Math.max(0, Math.min(up, down)).toFixed(3); }
 // Связка диджея как блок эфира: реплики Давида из /api/v1/radio/dj (и погода), только те, где есть текст
 export function sayItem(title, parts) {
   const lines = (parts || []).filter((x) => x && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: "david", kind: "dj", text: x.text.trim(), audio: typeof x.audio === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.audio) ? x.audio : null, ms: lineMs(x.text) }));
   return lines.length ? { type: "say", iv: { headline: title, source: null, link: null, at: null, guest: "Grok", lines } } : null;
 }
-// Сетка эфира. Первое включение: заставка станции → трек. Дальше, если есть новые интервью: представление гостя (один раз) → интервью →
-// «спасибо, а теперь музыка» → трек → «хороший трек» + погода (один раз) + «следующий трек» → трек → следующее интервью…
-// Нет новых интервью: реакция (+ погода) → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
+// Сетка эфира. Первое включение: приветствие и заставка станции. Дальше по кругу:
+// трек → Давид: реакция + погода + «следующий трек» → трек → (представление гостя один раз) интервью → «спасибо, а теперь музыка» → снова трек…
+// Нет новых интервью: трек → реакция + погода → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
-  const out = []; let k = trackAt, wx = o.weather && !o.weatherSaid ? o.weather : null, usedWeather = false, intro = !o.introSaid;
+  const out = []; let k = trackAt, intro = !o.introSaid;
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
-  const after = () => { push(sayItem(title, [dj.after_music, wx, dj.next_track])); if (wx) { usedWeather = true; wx = null; } };
-  if (o.first) { push(sayItem(title, [o.greeting, dj.ident])); track(); }
-  if (fresh.length) for (const iv of fresh) { if (intro) { push(sayItem(title, [dj.intro])); intro = false; } out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music])); track(); after(); track(); }
-  else { if (!o.first) track(); after(); track(); }
-  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, usedWeather };
+  if (o.first) push(sayItem(title, [o.greeting, dj.ident]));
+  for (let i = 0; i < Math.max(1, fresh.length); i++) {
+    track(); push(sayItem(title, [dj.after_music, o.weather, dj.next_track])); track();
+    const iv = fresh[i]; if (!iv) continue;
+    if (intro) { push(sayItem(title, [dj.intro])); intro = false; }
+    out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music]));
+  }
+  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length };
 }
 
 export const fmt = (s) => { s = Math.max(0, Math.round(+s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
@@ -97,7 +100,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, weatherSaid = false, greeted = false, introSaid = false;
+  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, pending = null;
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -144,10 +147,10 @@ function start() {
     let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" } })).json(); } catch { duo = null; }
     // связки Давида и погода: если не пришли, эфир идёт без них
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), weatherSaid || weather ? null : getJ("/api/v1/radio/weather?lang=" + lang)]);
-    if (wx && wx.status === "ok" && wx.text) weather = { text: wx.text, audio: wx.audio };
-    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, weatherSaid, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
-    if (p.usedWeather) weatherSaid = true; greeted = true; if (p.fresh) introSaid = true;
+    const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang)]);
+    weather = wx && wx.status === "ok" && wx.text ? { text: wx.text, audio: wx.audio } : null; // погода свежая к каждому кругу; нет данных — Давид её пропускает
+    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    greeted = true; if (p.fresh) introSaid = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
     el.style.animationDuration = Math.max(18, Math.round(el.textContent.length / 7)) + "s";
@@ -155,14 +158,20 @@ function start() {
   async function next() {
     clearTimeout(timer); au.onended = au.onerror = null;
     if (idx + 1 >= items.length) await build();
-    idx++; const it = items[idx]; rundown(); if (!it) return;
+    const prev = items[idx]; idx++; const it = items[idx]; rundown(); if (!it) return;
+    // короткая пауза между музыкой и голосом, чтобы Давид не вступал встык
+    if (prev && prev.type === "track" && it.type !== "track" && on) { pending = it; timer = setTimeout(() => begin(it), GAP_MS); return; }
+    begin(it);
+  }
+  function begin(it) {
+    pending = null; if (items[idx] !== it) return;
     if (it.type === "track") { showTrack(it.track); fading = true; setVol(0); au.src = it.track.src; au.onended = next; au.onerror = next; if (on) au.play().catch(() => {}); }
     else { li = 0; nextLine(); }
   }
   play.addEventListener("click", async () => {
     audioGraph();
     if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; await ready; next(); return; } // сетка уже собрана при открытии страницы
-    setOn(!on); if (on) { if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
+    setOn(!on); if (on) { if (pending) begin(pending); else if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
   });
   skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } setOn(true); next(); });
   const ready = build().then(() => { if (!started) rundown(); });
