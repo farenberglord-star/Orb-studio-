@@ -28,10 +28,10 @@ const kinds = (p) => p.items.map((x) => (x.type === "say" || x.type === "news" ?
 test("carousel: after every track David does something — interview, sensor news or weather; never two tracks in a row", () => {
   const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en"), NEWS = [{ key: "sens:money:1", text: "Sensor story one." }, { key: "sens:world:1", text: "Sensor story two." }];
   const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true, stories: NEWS });
-  assert.deepEqual(kinds(p), ["say:You", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:And+Next", "track", "news:Sensor+Next", "track", "talk", "say:Thanks,", "track", "news:Sensor+Next"]);
+  assert.deepEqual(kinds(p), ["say:You", "track", "say:Today's", "talk", "talk", "talk", "say:Thanks,", "track", "say:And+Next", "track", "news:Sensor+Next", "track", "news:Sensor+Next"], "the podcast runs as one block: all questions to the guest in a row");
   for (let i = 1; i < p.items.length; i++) assert.ok(!(p.items[i].type === "track" && p.items[i - 1].type === "track"), "no two tracks in a row");
   assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david");
-  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1"]);
+  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1", "H2"]);
   assert.deepEqual(p.items.filter((x) => x.type === "news").map((x) => x.key), ["sens:money:1", "sens:world:1"]); assert.equal(p.news, 2);
   const p2 = plan(iv, new Set(["H0", "H1", "sens:money:1"]), p.trackAt, 2, { dj: DJ, weather: null, first: false, introSaid: true, stories: NEWS });
   assert.deepEqual(kinds(p2), ["track", "talk", "say:Thanks,", "track", "news:Sensor+Next"]); assert.equal(p2.items[1].iv.headline, "H2"); assert.equal(p2.items[4].key, "sens:world:1");
@@ -179,7 +179,7 @@ test("page: regional interviews come first, then the world desk; same headline o
   assert.equal(m[1].region, "Germany and Europe", "the regional version of a shared headline wins");
   for (const bad of [null, { status: "preparing" }, { status: "none" }, { status: "ok", interviews: "x" }]) assert.deepEqual(mergeInterviews(bad, world).map((x) => x.headline), ["H0", "H1"]);
   const p = plan(m, new Set(), 0, 2, { dj: DJ, first: true });
-  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["ECB keeps rates on hold", "H0"]);
+  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["ECB keeps rates on hold", "H0", "H1"]);
 });
 
 test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker and the same rules", () => {
@@ -267,8 +267,8 @@ test("DJ does not repeat himself: four different variants of every repeated link
   const texts = (p) => p.items.filter((x) => x.type === "say").map((x) => x.iv.lines.map((y) => y.text).join(" | "));
   const iv = (h) => ({ headline: h, lines: [{ who: "david", text: "q" }, { who: "grok", text: "a" }] });
   const a = texts(plan([iv("a"), iv("b")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), b = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true }));
-  assert.deepEqual([...a, ...b], ["Music 1", "Music 2", "After 1 | Next 1"]);
-  const c = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })); assert.deepEqual(c, ["After 2 | Next 2"], "the next round takes the next variant");
+  assert.deepEqual([...a, ...b], ["Music 1", "After 1 | Next 1"]);
+  const c = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })); assert.deepEqual(c, ["After 2 | Next 2"], "the next round takes the next variant"); assert.deepEqual(texts(plan([iv("z")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), ["Music 2"]);
   assert.equal(texts(plan([], new Set(), 0, 2, { dj: DJ }))[0], DJ.after_music.text + " | " + DJ.next_track.text, "without variants the single line still plays");
 });
 
@@ -304,7 +304,7 @@ test("weather is spoken once an hour; a regional episode brings three interviews
   assert.equal(WEATHER_EVERY_MS, 3600e3); assert.equal(weatherDue(0, now), true, "never said yet"); assert.equal(weatherDue(now - 10 * 60e3, now), false); assert.equal(weatherDue(now - 59 * 60e3, now), false);
   assert.equal(weatherDue(now - 60 * 60e3, now), true); assert.equal(weatherDue(now + 5e3, now), true, "a clock set back does not silence the weather for good");
   assert.match(readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), /weatherDue\(lastWx\(\), Date\.now\(\)\)/);
-  const { REGION_MS, REGION_MAX } = await import("../src/radio.js"); assert.equal(REGION_MS, 2 * 3600e3); assert.equal(REGION_MAX, 3);
+  const { REGION_MS, REGION_MAX } = await import("../src/radio.js"); assert.equal(REGION_MS, 3 * 3600e3); assert.equal(REGION_MAX, 4);
 });
 
 test("music shelf: every track plays once before any repeats; new files get into both lists", async () => {
@@ -382,4 +382,30 @@ test("radar news: one top headline per radar, one sentence each, nothing beyond 
   assert.equal(p.items[1].key, "radar:1"); assert.equal(p.items[1].iv.source, "Radars · bbc.co.uk"); assert.equal(p.items[1].label, "Top stories");
   assert.deepEqual(plan([], new Set(["radar:1"]), 0, 2, { dj: DJ, stories: [story] }).items.map((x) => x.type), ["track", "say"]);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /p === "\/api\/v1\/radio\/radar"/); assert.match(w, /ctx\.waitUntil\(radioRadarWarm\(env, ctx\)/);
+});
+
+test("podcast: four questions to one guest over different radars, David thanks and gives his own view after each answer", async () => {
+  const { REMARK_SYSTEM, checkRemarks, remarkUser, regionalInterviews: ri, checkTranslations: ct, regionCandidates: rc, regionUser: ru2, PODCAST } = await import("../src/radio.js");
+  const { PODCAST_MAX } = await import("../public/radio.js"); assert.equal(PODCAST_MAX, 4);
+  // кандидаты: сначала по одной новости с каждого радара
+  const rad = [{ id: "geo", feed: [[1, "Germany sends more aid to Kyiv", "a", 99, null], [2, "Berlin debates EU border rules", "b", 98, null]] }, { id: "economy", feed: [[3, "ECB keeps euro rates on hold", "c", 50, null]] }, { id: "energy", feed: [[4, "Germany gas storage in Europe is filling", "d", 40, null]] }];
+  assert.deepEqual(rc(rad, "eu", []).map((x) => x.radar), ["geo", "economy", "energy", "geo"]); assert.match(ru2(rc(rad, "eu", [])), /"radar":"geo"/);
+  const it = { headline: "ECB keeps rates at 2.5 percent", guest: "gemini", en: { read: "The ECB kept rates.", question: "Gemini, what does this mean?", answer: "It means borrowing costs stay where they are, at 2.5 percent, and banks see no change for now." } };
+  const good = "Thank you, {GUEST}. As I see it, the key point is that nothing changes for borrowers today, and I would add that a steady rate at 2.5 percent is also a signal that the bank is still watching prices closely.";
+  assert.equal(checkRemarks({ remarks: [good] }, [it])[0], good.replace("{GUEST}", "Gemini"));
+  for (const bad of [good.replace("2.5", "3"), good.replace("{GUEST}", "Grok"), good.replace("Thank you, {GUEST}. ", ""), "Thanks, {GUEST}.", good + " Rates will rise next month.", good + " You should buy bonds now.", 5, null])
+    assert.equal(checkRemarks({ remarks: [bad] }, [it])[0], null, String(bad).slice(0, 50));
+  assert.deepEqual(checkRemarks(null, [it]), [null]); assert.equal(JSON.parse(remarkUser([it])).items[0].answer, it.en.answer);
+  assert.match(REMARK_SYSTEM, /do not take sides between countries, parties or politicians/); assert.match(REMARK_SYSTEM, /your own view as an AI/);
+  // перевод и эфир: реплика идёт четвёртой строкой, перевод без неё не принимается
+  const en = { ...it.en, remark: good.replace("{GUEST}", "Gemini") }, ruT = { read: "ЕЦБ сохранил ставки без изменений.", question: "Gemini, что это значит для людей?", answer: "Это значит, что стоимость кредитов остаётся прежней, на уровне 2,5 процента, и банки пока не видят перемен.", remark: "Спасибо, Gemini. Как я это вижу, главное здесь то, что для заёмщиков сегодня ничего не меняется, и я бы добавил, что ставка 2,5 процента говорит о внимании банка к ценам." };
+  assert.ok(ct({ de: [null], ru: [ruT] }, [en]).ru[0].remark.startsWith("Спасибо")); assert.equal(ct({ de: [null], ru: [{ ...ruT, remark: undefined }] }, [en]).ru[0], null, "a translation without the remark is not accepted");
+  const lines = ri({ region: "eu", generated_at: "2026-11-20T19:00:00Z", items: [{ ...it, en, ru: ruT }] }, "ru")[0].lines;
+  assert.deepEqual(lines.map((x) => [x.who, x.kind]), [["david", "read"], ["david", "question"], ["gemini", "answer"], ["david", "remark"]]);
+  assert.equal(ri({ region: "eu", items: [it] }, "en")[0].lines.length, 3, "an old interview without a remark still plays");
+  // плеер: один гость на подкаст
+  const iv = (h, g) => ({ headline: h, guest: g, lines: [{ who: "david", text: "q" }, { who: "grok", text: "a" }] });
+  const p = plan([iv("a", "Gemini"), iv("b", "Gemini"), iv("c", "Grok"), iv("d", "Gemini"), iv("e", "Gemini"), iv("f", "Gemini")], new Set(), 0, 2, { dj: DJ });
+  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["a", "b", "d", "e"], "one guest, at most four questions");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /checkRemarks\(await radioClaudeTool\(env, REMARK_SYSTEM/); assert.match(w, /radio-region-v5-/);
 });

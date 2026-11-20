@@ -75,25 +75,27 @@ export function sayItem(title, parts) {
 // Сетка эфира. Первое включение: приветствие и заставка станции. Дальше карусель: после КАЖДОГО трека Давид что-то делает —
 // интервью с гостем, новость с датчиков или погода; если сказать нечего — короткая связка. Два трека подряд без слова не идут.
 // Услышанные интервью и новости не повторяются; без связок сетка та же, только без слов диджея.
-export const BLOCKS = 5;
+export const BLOCKS = 5, PODCAST_MAX = 4;
 // Длинный трек плавно уводится через две минуты, короткий (до двух с половиной) играет целиком
 export const TRACK_CUT = 120, TRACK_FULL = 150, CUT_FADE = 5;
 export function cutAt(dur) { return dur > TRACK_FULL ? TRACK_CUT : dur; }
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
-  const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
+  // подкаст выпуска: все неуслышанные вопросы одному гостю идут подряд, без музыки между ними (до четырёх)
+  const unheard = (list || []).filter((iv) => !(heard && heard.has(iv.headline))), gOf = (iv) => String(iv.guest || "Grok").toLowerCase();
+  const fresh = unheard.filter((iv) => gOf(iv) === gOf(unheard[0])).slice(0, o.podcastMax || PODCAST_MAX), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
   const news = (o.stories || []).filter((x) => x && x.key && ((typeof x.text === "string" && x.text.trim()) || (Array.isArray(x.lines) && x.lines.length > 1)) && !(heard && heard.has(x.key))).slice(0, talks);
   const out = []; let k = trackAt, said = o.introSaid ? (o.introGuest || "*") : null; // кого Давид уже представил: новый гость — новое представление
   // повторяющиеся связки идут по кругу из вариантов; счётчик o.turns живёт между вызовами, чтобы фраза не повторялась подряд
   const turns = o.turns || {}, vars = o.variants || {}, say = (p) => { const a = Array.isArray(vars[p]) && vars[p].length ? vars[p] : [dj[p]]; turns[p] = (turns[p] || 0) + 1; return a[(turns[p] - 1) % a.length]; };
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: (o.nextTrack && o.nextTrack()) || TRACKS[k++ % TRACKS.length] });
   if (o.first) push(sayItem(title, [o.greeting, dj.ident]));
-  // очередь блоков: интервью и новости датчиков чередуются, погода (когда пришёл её час) идёт вторым блоком
-  const q = []; for (let i = 0; i < Math.max(fresh.length, news.length); i++) { if (fresh[i]) q.push({ talk: fresh[i] }); if (news[i]) q.push({ news: news[i] }); }
+  // очередь блоков: подкаст с гостем, потом новости радаров и датчиков; погода (когда пришёл её час) идёт вторым блоком
+  const q = []; if (fresh.length) q.push({ talks: fresh }); for (const n of news) q.push({ news: n });
   if (o.weather) q.splice(Math.min(1, q.length), 0, { weather: o.weather });
   for (const b of q.length ? q.slice(0, o.blocks || BLOCKS) : [{}]) {
     track();
-    if (b.talk) { const iv = b.talk, g = String(iv.guest || "Grok").toLowerCase(); if (said !== g && said !== "*") { push(sayItem(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
-      out.push({ type: "talk", iv }); push(sayItem(title, [say("to_music")])); }
+    if (b.talks) { const g = gOf(b.talks[0]); if (said !== g && said !== "*") { push(sayItem(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
+      for (const iv of b.talks) out.push({ type: "talk", iv }); push(sayItem(title, [say("to_music")])); }
     else if (b.news) { const n = b.news, it = sayItem(n.title || o.newsTitle || title, [...(Array.isArray(n.lines) ? n.lines : [n]), say("next_track")]); if (it) { it.type = "news"; it.key = n.key; it.label = n.title || o.newsTitle || ""; it.iv.source = n.source || o.newsSource || null; out.push(it); } }
     else if (b.weather) push(sayItem(title, [b.weather, say("next_track")]));
     else push(sayItem(title, [say("after_music"), say("next_track")]));
