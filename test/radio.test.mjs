@@ -64,3 +64,18 @@ test("candles: Kraken rows parsed as given, bad input rejected, boxes stay on sc
   assert.equal(b.length, 48); assert.ok(b.every((x) => x.x >= 0 && x.x + x.w <= 480 && x.yh >= 0 && x.yl <= 300 && x.yh <= x.top && x.bot <= x.yl && x.up));
   assert.deepEqual(candleBoxes([], 10, 10), []); assert.deepEqual(candleBoxes(null, 10, 10), []);
 });
+
+import { radioCard, RADIO_TRACKS } from "../src/radio.js";
+test("agent card: same tracks as the page, interviews only where the guest answered, programme in play order", () => {
+  assert.deepEqual(RADIO_TRACKS.map((x) => [x.id, x.title, x.path, x.sec]), TRACKS.map((x) => [x.id, x.title, x.src, x.sec]));
+  const d = duo([seg(0, { facts_used: [{ label: "L", value: "1", source: "S" }] }), seg(1, { guest: { status: "withheld", text: "Oil will rise" } }), seg(2, { link: "javascript:alert(1)", audio: { answer: "http://x/a" } })]);
+  const c = radioCard(d, "https://orbstudio.org");
+  assert.equal(c.status, "ok"); assert.equal(c.stage, "test broadcast"); assert.deepEqual(c.interviews.map((x) => x.headline), ["H0", "H2"]);
+  assert.equal(c.interviews[0].guest.answer, "Answer 0"); assert.equal(c.interviews[0].audio.answer, "https://orbstudio.org/a/a0"); assert.equal(c.interviews[0].facts_used.length, 1);
+  assert.equal(c.interviews[1].link, null); assert.equal(c.interviews[1].audio.answer, null);
+  assert.ok(!JSON.stringify(c).includes("Oil will rise"));
+  assert.deepEqual(c.programme.map((x) => x.type), ["music", "interview", "music", "interview", "music"]);
+  assert.deepEqual(c.programme[1].play, ["https://orbstudio.org/a/r0", "https://orbstudio.org/a/a0"]);
+  assert.ok(c.music.every((m) => /^https:\/\/orbstudio\.org\/media\/radio\//.test(m.audio) && /No third-party/.test(m.rights)));
+  for (const bad of [null, {}, { status: "preparing" }]) { const m = radioCard(bad); assert.equal(m.status, "music_only"); assert.deepEqual(m.interviews, []); assert.deepEqual(m.programme.map((x) => x.type), ["music"]); }
+});
