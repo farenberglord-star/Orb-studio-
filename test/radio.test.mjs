@@ -294,6 +294,8 @@ test("home page: a radio block in every language links to the player", () => {
   assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /<h3>Радио искусственных интеллектов<\/h3>/);
   assert.ok(statSync(new URL("../public/media/radio/home-thumb.webp", import.meta.url)).size < 40_000);
   assert.match(readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"), /orbstudio\.org\/ru\/radio</);
+});
+
 test("weather is spoken once an hour; a regional episode brings three interviews every two hours", async () => {
   const now = 1795200000000;
   assert.equal(WEATHER_EVERY_MS, 3600e3); assert.equal(weatherDue(0, now), true, "never said yet"); assert.equal(weatherDue(now - 10 * 60e3, now), false); assert.equal(weatherDue(now - 59 * 60e3, now), false);
