@@ -3,7 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
-import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard } from "./radio.js";
+import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1476,6 +1476,49 @@ async function duoWarm(env, ctx) {
     const tr = await duoTranslate(env, d); if (tr) d.translations = tr;
     await sharedPut(env, key, d); await sharedPut(env, "duo-latest", d); await duoArchivePut(env, d);
     await podAdd(env, d).catch(() => null); }
+}
+// ================= Радио: диджей Давид (связки) и погода по городу слушателя =================
+async function radioVoice(env, origin, text, lg) {
+  if (!env.XAI_API_KEY || !env.DB) return null;
+  try { const a = await ttsEnsure(env, text, "david", lg); return a ? `${origin}/api/v1/radio/audio?k=${a.k}` : null; } catch { return null; }
+}
+async function radioDj(env, ctx, origin, lang) {
+  const lg = DJ_LANGS.includes(lang) ? lang : "en";
+  const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
+  const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v1-" + ep;
+  let links = await sharedGet(env, key, 12 * 3600e3);
+  if (!links) {
+    let out = null;
+    if (env.ANTHROPIC_API_KEY && heads.length) {
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(25000),
+          headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: 1400, system: DJ_SYSTEM, messages: [{ role: "user", content: djUser(heads) }], tools: [DJ_TOOL], tool_choice: { type: "tool", name: DJ_TOOL.name } }) });
+        if (res.ok) { const tool = ((await res.json()).content || []).find((c) => c.type === "tool_use"); out = tool && tool.input; }
+      } catch { out = null; }
+    }
+    links = checkDj(out, stripInvisible);
+    if (out) await sharedPut(env, key, links); // запасные связки не запоминаем: в следующий раз попробуем снова
+  }
+  const mine = links[lg], audio = await Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg)));
+  return { status: "ok", language: lg, episode_id: ep === "none" ? null : ep, host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)" }, guest: heads.length ? "Grok (xAI)" : null,
+    links: Object.fromEntries(DJ_PARTS.map((part, i) => [part, { text: mine[part].text, by: mine[part].by, audio: audio[i] }])),
+    voices: "Synthetic AI voice (xAI Grok TTS). David is an AI agent, not a person.", note: "by \"stock\" marks a fallback line. Links are written per episode; headlines are third-party data." };
+}
+async function radioWeather(env, request, origin, lang) {
+  const lg = DJ_LANGS.includes(lang) ? lang : "en", cf = request.cf || {}, city = cleanCity(cf.city), lat = Number(cf.latitude), lon = Number(cf.longitude);
+  const none = (why) => ({ status: "unavailable", reason: why, ...WEATHER_SOURCE });
+  if (!city || !Number.isFinite(lat) || !Number.isFinite(lon)) return none("location unknown");
+  const tz = typeof cf.timezone === "string" && /^[A-Za-z_]+\/[A-Za-z_\/]+$/.test(cf.timezone) ? cf.timezone : "Europe/Berlin";
+  const day = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(new Date()), cell = lat.toFixed(1) + "," + lon.toFixed(1);
+  const key = "radio-wx-v1-" + cell + "-" + day + "-" + Math.floor(Date.now() / (30 * 60e3));
+  let w = await sharedGet(env, key, 40 * 60e3);
+  if (!w) { try { w = summarizeWeather(await sensorsFetchJson(weatherUrl(lat, lon, day, tz))); } catch { w = null; } if (w) await sharedPut(env, key, w); }
+  if (!w) return none("no weather data for this place");
+  const text = weatherText(w, city, lg);
+  return { status: "ok", language: lg, city, located_by: "IP address (Cloudflare); may be inexact, not stored", weather: w, text, audio: await radioVoice(env, origin, text, lg), ...WEATHER_SOURCE,
+    note: "Numbers are DWD values for the nearest station; the rest-of-day maximum and precipitation chance are DWD forecast values." };
 }
 // Выпуск студии на двоих в том виде, как его отдаёт API: с голосами, вступлением и ссылками
 async function duoPublic(env, ctx, origin) {
@@ -3207,6 +3250,16 @@ async function handleApi(url, request, env, ctx) {
   }
 
   if (p === "/api/v1/music" || p === "/music") ctx.waitUntil((async () => { if (await sharedGet(env, "emo-music-poll", 10 * 60e3)) return; await sharedPut(env, "emo-music-poll", { t: Date.now() }); await emoMusicCheck(env, ctx); })().catch(() => null));
+  // связки диджея Давида для текущего выпуска (пишет Claude, голос — тот же синтез, что в студии)
+  if (p === "/api/v1/radio/dj") return json(await radioDj(env, ctx, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  // погода для города слушателя: город по IP даёт Cloudflare, он нигде не сохраняется вместе с посетителем
+  if (p === "/api/v1/radio/weather") return json(await radioWeather(env, request, origin, url.searchParams.get("lang")), { "Cache-Control": "private, max-age=600" });
+  if (p === "/api/v1/radio/audio") {
+    const k = url.searchParams.get("k") || ""; if (!/^[0-9a-f]{40}$/.test(k) || !env.DB) return json({ error: "no such line" }, { "Cache-Control": "no-store" }, 404);
+    const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(k).first().catch(() => null);
+    if (!hit || !hit.audio) return json({ error: "no such line" }, { "Cache-Control": "no-store" }, 404);
+    return new Response(new Uint8Array(hit.audio), { headers: { "content-type": "audio/mpeg", "Cache-Control": "public, max-age=604800, immutable", "x-voice": DUO_VOICES.david + " (xAI Grok TTS, synthetic)" } });
+  }
   // карточка радио для агентов: музыка, интервью и порядок эфира
   if (p === "/api/v1/radio") return json({ ...radioCard(await duoPublic(env, ctx, origin), origin), partners: podPartners("api-radio") }, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" });
   // свечи BTC/EUR для экрана радио: Kraken, 15 минут; свежая копия 2 мин, запасная 2 часа, иначе честное unavailable

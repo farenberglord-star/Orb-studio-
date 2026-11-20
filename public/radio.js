@@ -1,7 +1,7 @@
 // Тестовое «Радио Orb Studio»: наш трек → интервью Давида с гостем по одной новости → наш трек → следующая новость.
 // Интервью не сочиняются на странице: берутся готовые сегменты из GET /api/v1/broadcast/duo (текст и голос).
 // Новость не повторяется: услышанные заголовки запоминаются в браузере. Нет новых — играет только музыка.
-import { buildQueue, boardFor, pickLang, T as ST } from "./studio-duo.js";
+import { buildQueue, boardFor, pickLang, lineMs, T as ST } from "./studio-duo.js";
 
 export const API = "/api/v1/broadcast/duo";
 // Музыка Orb Studio (сделана в Suno, файлы прислал автор сайта). Чужой музыки в эфире нет.
@@ -36,14 +36,23 @@ export function interviews(duo, lang) {
   return [...by.values()].filter((iv) => iv.lines.some((x) => x.kind === "answer") && iv.lines.some((x) => x.kind === "thanks"));
 }
 
-// Сетка эфира: трек → интервью → трек → интервью → трек. Услышанные новости пропускаются; нет новых — один трек.
-export function plan(list, heard, trackAt = 0, talks = 2) {
-  const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks);
-  const out = []; let k = trackAt;
-  const track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
-  track();
-  for (const iv of fresh) { out.push({ type: "talk", iv }); track(); }
-  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length };
+// Связка диджея как блок эфира: реплики Давида из /api/v1/radio/dj (и погода), только те, где есть текст
+export function sayItem(title, parts) {
+  const lines = (parts || []).filter((x) => x && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: "david", kind: "dj", text: x.text.trim(), audio: typeof x.audio === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.audio) ? x.audio : null, ms: lineMs(x.text) }));
+  return lines.length ? { type: "say", iv: { headline: title, source: null, link: null, at: null, guest: "Grok", lines } } : null;
+}
+// Сетка эфира. Есть новые интервью: приветствие → интервью → «спасибо, а теперь музыка» → трек → «хороший трек» + погода + «следующий трек» → трек → следующее интервью…
+// Нет новых: трек → реакция (+ погода один раз) → трек. Услышанные новости не повторяются; без связок сетка та же, только без слов диджея.
+export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
+  const fresh = (list || []).filter((iv) => !(heard && heard.has(iv.headline))).slice(0, talks), dj = o.dj || {}, title = o.title || "Radio Orb Studio";
+  const out = []; let k = trackAt, wx = o.weather && !o.weatherSaid ? o.weather : null, usedWeather = false;
+  const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
+  const after = () => { push(sayItem(title, [dj.after_music, wx, dj.next_track])); if (wx) { usedWeather = true; wx = null; } };
+  if (fresh.length) {
+    if (o.first) push(sayItem(title, [dj.intro]));
+    for (const iv of fresh) { out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music])); track(); after(); track(); }
+  } else { track(); after(); track(); }
+  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, usedWeather };
 }
 
 export const fmt = (s) => { s = Math.max(0, Math.round(+s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
@@ -83,7 +92,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9;
+  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, weatherSaid = false, greeted = false;
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -96,9 +105,9 @@ function start() {
   const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); e.hidden = !d; e.textContent = d ? "· " + d : ""; e.title = d ? t.episode + " " + d : ""; };
   function rundown() {
     const ol = $("rd"); ol.textContent = "";
-    items.forEach((it, i) => { const li2 = document.createElement("li"); li2.className = (i === idx ? "cur " : i < idx ? "done " : "") + it.type;
-      const k = document.createElement("b"); k.textContent = it.type === "track" ? "♪ " + t.music : "🎙 " + t.talk + " · David × " + it.iv.guest;
-      const s = document.createElement("span"); s.textContent = it.type === "track" ? it.track.title + " · " + fmt(it.track.sec) : it.iv.headline;
+    items.forEach((it, i) => { const li2 = document.createElement("li"); li2.className = (i === idx ? "cur " : i < idx ? "done " : "") + "it-" + it.type; // с префиксом: «say» и «talk» заняты экраном
+      const k = document.createElement("b"); k.textContent = it.type === "track" ? "♪ " + t.music : it.type === "say" ? "🎧 David" : "🎙 " + t.talk + " · David × " + it.iv.guest;
+      const s = document.createElement("span"); s.textContent = it.type === "track" ? it.track.title + " · " + fmt(it.track.sec) : it.type === "say" ? it.iv.lines.map((x) => x.text).join(" ").slice(0, 90) + "…" : it.iv.headline;
       li2.append(k, s); ol.append(li2); });
   }
   function showTrack(tr) {
@@ -107,17 +116,18 @@ function start() {
     if (navigator.mediaSession) try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: "Orb Studio", album: t.title }); } catch {}
   }
   function showLine(iv, x) {
-    document.body.dataset.mode = x.who === "grok" ? "guest" : "host"; $("talk").hidden = false; air.dataset.talk = "1"; $("scn").textContent = t.talk.toUpperCase();
+    document.body.dataset.mode = x.who === "grok" ? "guest" : "host"; $("talk").hidden = false; air.dataset.talk = "1"; $("scn").textContent = x.kind === "dj" ? "DJ · DAVID" : t.talk.toUpperCase();
     if (speaker !== x.who) { speaker = x.who; flashAt = performance.now(); if (still) requestAnimationFrame(() => draw(performance.now())); } // смена говорящего: вспышка и сбой ~0,3 с
     $("who").textContent = x.who === "david" ? "David · Claude (Anthropic)" : iv.guest + " · xAI"; const tx = $("text");
     tx.textContent = x.kind === "label" ? t.guestOff : x.text; tx.scrollTop = 0; tx.classList.toggle("long", String(x.text || "").length > 220);
     $("src").textContent = iv.source || ""; const a = $("link"); if (iv.link) { a.href = iv.link; a.textContent = t.story; a.hidden = false; } else a.hidden = true;
-    setDate(iv.at); $("np-k").textContent = t.now + " · David × " + iv.guest; $("np").textContent = iv.headline;
+    setDate(iv.at); $("np-k").textContent = x.kind === "dj" ? t.now + " · David" : t.now + " · David × " + iv.guest; $("np").textContent = iv.headline;
+    air.dataset.dj = x.kind === "dj" ? "1" : "";
     if (navigator.mediaSession) try { navigator.mediaSession.metadata = new MediaMetadata({ title: iv.headline, artist: "David × " + iv.guest, album: t.title }); } catch {}
   }
   function nextLine() {
-    clearTimeout(timer); const it = items[idx]; if (!it || it.type !== "talk") return;
-    if (li >= it.iv.lines.length) { heard.add(it.iv.headline); saveHeard(); return next(); }
+    clearTimeout(timer); const it = items[idx]; if (!it || it.type === "track") return;
+    if (li >= it.iv.lines.length) { if (it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } return next(); }
     const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000;
     au.onended = au.onerror = null;
     if (x.audio) { au.src = x.audio; au.onended = nextLine; au.onerror = () => { timer = setTimeout(nextLine, x.ms || 4000); }; au.play().catch(() => { timer = setTimeout(nextLine, x.ms || 4000); }); }
@@ -125,7 +135,12 @@ function start() {
   }
   async function build() {
     let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" } })).json(); } catch { duo = null; }
-    const p = plan(interviews(duo, lang), heard, trackAt); items = p.items; trackAt = p.trackAt; idx = -1;
+    // связки Давида и погода: если не пришли, эфир идёт без них
+    const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), weatherSaid || weather ? null : getJ("/api/v1/radio/weather?lang=" + lang)]);
+    if (wx && wx.status === "ok" && wx.text) weather = { text: wx.text, audio: wx.audio };
+    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, weather, weatherSaid, first: !greeted, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    if (p.usedWeather) weatherSaid = true; if (p.items.some((x) => x.type === "say") && p.fresh) greeted = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
     el.style.animationDuration = Math.max(18, Math.round(el.textContent.length / 7)) + "s";
@@ -139,11 +154,11 @@ function start() {
   }
   play.addEventListener("click", async () => {
     audioGraph();
-    if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; await build(); next(); return; }
+    if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; await ready; next(); return; } // сетка уже собрана при открытии страницы
     setOn(!on); if (on) { if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
   });
   skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } setOn(true); next(); });
-  build().then(() => { if (!started) rundown(); });
+  const ready = build().then(() => { if (!started) rundown(); });
 
   // ---- часы, полоса времени, прокрутка длинной реплики ----
   const clock = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); $("clock").textContent = p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + p(d.getFullYear() % 100) + " " + p(d.getHours()) + ":" + p(d.getMinutes()); };
