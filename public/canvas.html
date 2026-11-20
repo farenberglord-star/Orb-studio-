@@ -313,5 +313,6 @@ if(!window.Orb3D||!fr||!Orb3D.init(h))return;var on=true;try{on=localStorage.get
 function setv(v){on=v;fr.classList.toggle('is3d',v);btn.textContent=v?"🖼 Картина":"✦ 3D-голограмма";try{localStorage.setItem('orbCanvas3d',v?'1':'0')}catch(e){}}
 btn.hidden=false;btn.onclick=function(){setv(!on)};setv(on);
 var _s=show;show=function(c){_s(c);try{Orb3D.update(c)}catch(e){}};if(cur)Orb3D.update(cur);});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

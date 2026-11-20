@@ -267,5 +267,6 @@ window.addEventListener('DOMContentLoaded',function(){var s=document.getElementB
 if(!OrbLive3D.init(el)){s.hidden=true;return}
 function get(){fetch('/api/v1/live').then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.events)OrbLive3D.update(d)}).catch(function(){})}
 get();setInterval(function(){if(!document.hidden)get()},300000)});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

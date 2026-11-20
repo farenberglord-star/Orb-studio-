@@ -55,5 +55,6 @@ h.textContent=t.h;lead.textContent=t.lead;
 const esc=x=>x.replace(/&/g,'&amp;').replace(/</g,'&lt;');
 body.innerHTML=t.s.map(([a,b,c])=>'<h2>'+a+'</h2>'+(c?'<pre><code>'+esc(b)+'</code></pre>':b)).join('');
 </script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

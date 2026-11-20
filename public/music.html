@@ -232,5 +232,6 @@ window.addEventListener('DOMContentLoaded',function(){var el=document.getElement
 var old=document.getElementById('tracks');if(old)old.style.display='none';
 function load(){fetch('/api/v1/music').then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(d){OrbMusicPlayer.load(d)})}
 load();setInterval(function(){if(!document.hidden)load()},300000)});</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>

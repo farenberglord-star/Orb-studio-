@@ -232,5 +232,6 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_indices')==='1'}catch
 (function(){if(!document.querySelector('.ixk'))return;function set(k,v,d){var b=document.querySelector('[data-v="'+k+'"]');if(b&&v!=null&&String(v)!==b.textContent){b.textContent=v;b.classList.add('flash');setTimeout(function(){b.classList.remove('flash')},900)}var e=document.querySelector('[data-d="'+k+'"]');if(e&&typeof d==='number'){e.className='ixd '+(d>0?'up':d<0?'dn':'');e.textContent=(d>0?'+':d<0?'\u2212':'\u00b1')+Math.abs(d)}}
 function tick(){Promise.all([fetch('/api/v1/indices').then(function(r){return r.ok?r.json():null}),fetch('/api/v1/radars').then(function(r){return r.ok?r.json():null})]).then(function(a){var i=a[0],r=a[1];if(i&&i.indices){var h=i.indices.find(function(x){return x.id==='hallucination'});if(h)set('hallucination',h.value,i.delta_24h&&i.delta_24h.hallucination)}if(r&&r.radars)r.radars.forEach(function(x){if(x.id==='geo'||x.id==='crypto')set(x.id,x.risk_index,x.delta_24h)});var t=new Date().toLocaleTimeString(document.documentElement.lang||'ru',{hour:'2-digit',minute:'2-digit'});document.querySelectorAll('.ixk [data-t]').forEach(function(s){s.textContent=t})}).catch(function(){})}
 setInterval(function(){if(!document.hidden)tick()},60000)})();</script>
+<script src="/backnav.js" defer></script>
 </body>
 </html>
