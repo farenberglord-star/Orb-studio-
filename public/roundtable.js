@@ -259,6 +259,15 @@ export function pickLang(search, hint) {
   const h = String(hint || "").slice(0, 2).toLowerCase(); return T[h] ? h : "en";
 }
 export function lineMs(text) { const w = String(text || "").split(/\s+/).filter(Boolean).length; return Math.min(30000, Math.max(2600, w * 380 + 900)); }
+// Длинная реплика → порции по 1–2 предложения (≤ max знаков); доли — по длине, чтобы идти в такт голосу
+export function splitChunks(text, max = 150) {
+  const ss = String(text || "").match(/[^.!?…。！？]+[.!?…。！？]+["“”»」）)]*\s*|[^.!?…。！？]+$/g) || [String(text || "")];
+  const out = []; let cur = "";
+  for (const s of ss) { if ((cur + s).length > max && cur.trim()) { out.push(cur.trim()); cur = s; } else cur += s; }
+  if (cur.trim()) out.push(cur.trim());
+  return out.length ? out : [String(text || "")];
+}
+export function chunkAt(list, f) { const tot = list.reduce((a, c) => a + c.length, 0) || 1; let acc = 0; for (let k = 0; k < list.length; k++) { acc += list[k].length; if (f < acc / tot) return k; } return list.length - 1; }
 export function safeLink(u) { try { const x = new URL(u); return x.protocol === "https:" || x.protocol === "http:" ? x.href : null; } catch { return null; } }
 // Пост в X — всегда по-английски, ≤ 280 знаков вместе со ссылкой (X считает её за 23)
 export function shareText(d) {
@@ -412,6 +421,7 @@ function start() {
   setShare(null);
 
   function showBoard(h, p) { sub.hidden = true; board.hidden = false; $("board-h").textContent = h; $("board-p").textContent = p || ""; stage.dataset.speaker = ""; }
+  let chunkTick = null;
   let queue = [], pos = 0, timer = null, retry = null, soundOn = false, started = false, listenCounted = false, doneFor = null, ep = null, vfail = 0, topics = [];
   function renderProg(cur) {
     const ol = $("prog-list"); if (!topics.length) { $("prog").hidden = true; return; } $("prog").hidden = false; $("prog-h").textContent = t.progH;
@@ -422,7 +432,15 @@ function start() {
     board.hidden = true; sub.hidden = false; sub.classList.add("out");
     setTimeout(() => {
       sub.dataset.who = x.who; $("who").textContent = NAMES[x.who] || ""; $("role").textContent = (x.who === "claude" ? t.mod : t.guest) + " · " + (MAKERS[x.who] || "");
-      const p = $("text"); p.textContent = x.text; p.classList.toggle("label", !!x.label); p.classList.toggle("long", x.text.length > 330);
+      const p = $("text"); p.classList.toggle("label", !!x.label);
+      // порции текста: со звуком — по позиции голоса, без звука — по времени реплики
+      const list = splitChunks(x.text), dots = $("chunks"); let k = -1; const t0 = performance.now(), ms = x.label ? 2600 : lineMs(x.text);
+      dots.textContent = ""; if (list.length > 1) list.forEach(() => dots.append(document.createElement("i")));
+      const put = (n) => { if (n <= k) return; k = n; if (n === 0) p.textContent = list[0]; else { p.classList.add("sw"); setTimeout(() => { p.textContent = list[n]; p.classList.remove("sw"); }, 160); } [...dots.children].forEach((d, j) => d.classList.toggle("on", j === n)); };
+      put(0); clearInterval(chunkTick);
+      if (list.length > 1) chunkTick = setInterval(() => { let f;
+        if (stage.dataset.voiced === "1") { if (!voice.duration || voice.paused) return; f = voice.currentTime / voice.duration; } else f = (performance.now() - t0) / ms;
+        put(chunkAt(list, f)); if (k >= list.length - 1) clearInterval(chunkTick); }, 200);
       const tp = x.topic != null ? topics[x.topic] : null, lk = tp && safeLink(tp.link);
       $("src").textContent = tp && x.part === "recap" ? tp.source : ""; const a = $("link"); a.hidden = !(lk && x.part === "recap"); if (lk) { a.href = lk; a.textContent = t.story; }
       stage.dataset.speaker = x.label ? "" : x.who; sub.classList.remove("out"); renderProg(x.topic);
