@@ -385,6 +385,7 @@ function start() {
   document.addEventListener("visibilitychange", () => { cancelAnimationFrame(raf); if (!document.hidden) raf = requestAnimationFrame(frame); });
 }
 
-if (typeof document !== "undefined") {
+// страница радио импортирует отсюда только чистые функции: сцену запускаем лишь там, где она есть
+if (typeof document !== "undefined" && document.querySelector('script[src$="/studio-duo.js"]')) {
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 }
