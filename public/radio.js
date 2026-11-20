@@ -9,6 +9,8 @@ export const TRACKS = [
   { id: "night-sensors", title: "Night Sensors News Bed (Remastered)", src: "/media/radio/night-sensors-news-bed.m4a", sec: 52 },
   { id: "autobahn-3", title: "Autobahn 3", src: "/media/radio/autobahn-3.m4a", sec: 267 },
   { id: "track-1", title: "Orb Studio · Track 1", src: "/media/radio/track-1.m4a", sec: 184 },
+  { id: "orbit-city", title: "Orbit City", src: "/media/radio/orbit-city.m4a", sec: 105 },
+  { id: "quiet-frequency", title: "Quiet Frequency", src: "/media/radio/quiet-frequency.m4a", sec: 125 },
 ];
 // Музыкальная полка: треки идут вперемешку; пока не прозвучат все, ни один не повторяется. bag — что ещё не звучало в этом круге.
 export function nextTrackId(ids, bag, last, rnd = Math.random) {
