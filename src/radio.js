@@ -26,7 +26,7 @@ export function radioCard(duo, origin = "https://orbstudio.org") {
   const segs = duo && duo.status === "ok" && Array.isArray(duo.segments) ? duo.segments : [];
   const interviews = segs.filter((s) => s && (s.kind || "news") === "news" && s.host && s.guest && s.guest.status === "ok" && typeof s.guest.text === "string" && s.guest.text.trim() && s.host.thanks)
     .map((s) => { const a = s.audio && typeof s.audio === "object" ? s.audio : {};
-      return { type: "radio_interview", headline: String(s.headline || ""), source: s.source || null, link: https(s.link), episode_generated_at: duo.generated_at || null, language: "en",
+      return { type: "radio_interview", headline: String(s.headline || ""), source: s.source || null, link: https(s.link), published_at: s.published_at || null, episode_generated_at: duo.generated_at || null, language: "en",
         host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)", read: s.host.read, question: s.host.question, thanks: s.host.thanks },
         guest: { name: "Grok", kind: "Grok by xAI", answer: s.guest.text.trim() },
         audio: { read: https(a.read), question: https(a.question), answer: https(a.answer), thanks: https(a.thanks) }, facts_used: Array.isArray(s.facts_used) ? s.facts_used : [] }; });

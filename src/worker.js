@@ -3,7 +3,8 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
-import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL } from "./seo.js";
+import { SENS_W } from "./sensors_i18n.js";
+import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
 import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
@@ -831,7 +832,7 @@ function verifySummary(list) {
 function broadcastItems(radars) {
   return radars.flatMap((r) => r.feed.slice(0, 2).map((f, fi) => ({ confirm: r.verify ? r.verify[fi] : null,
     radar: r.id, radarTitle: r.title, anchor: r.anchor,
-    headline: f[1], source: f[2], time: f[0], link: f[4], weight: f[3],
+    headline: f[1], source: f[2], time: f[0], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, link: f[4], weight: f[3], // время с датой: «23:45» без даты не говорит, вчера это или сегодня
     severity: severity(f[3]), risk_index: r.lvl, delta_24h: r.lvl - r.prev,
     template: anchorLine(r, f), template_de: anchorLineDe(r, f),
   }))).sort((a, b) => b.weight - a.weight);
@@ -1058,7 +1059,7 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
       reply = duoCheck(a.text, stripInvisible);
       if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question, avoid); reply = duoCheck(a.text, stripInvisible); }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
-    return { headline: it.headline, source: it.source, link: it.link, time: it.time, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
+    return { headline: it.headline, source: it.source, link: it.link, time: it.time, published_at: it.published_at || null, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
   }));
   // Сегмент «чем интересуются агенты»: самый читаемый датчик сегодня (без сканеров каталогов и поисковиков)
   // Сегмент «датчики» после первой новости: резкие изменения показаний по детектору аномалий
@@ -1442,10 +1443,10 @@ async function duoWarm(env, ctx) {
   const segsArc = arc.episodes.slice(0, 6).flatMap((e) => e.segments || []);
   const avoid = [...new Set(segsArc.map((x) => x.guest && x.guest.text ? opener(x.guest.text) : "").filter(Boolean))];
   const recent = [...new Set(segsArc.flatMap((x) => [opener(x.host && x.host.question), x.host && x.host.thanks]).filter(Boolean))];
-  // Не повторять одну новость больше двух раз за сутки
+  // Не повторять новость, которая уже звучала в сохранённых выпусках
   const norm = (h) => String(h || "").toLowerCase().replace(/[^a-zа-яäöüß0-9 ]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 70);
   const used = {}; for (const e of arc.episodes) for (const x of (e.segments || [])) if ((x.kind || "news") === "news") { const k = norm(x.headline); used[k] = (used[k] || 0) + 1; }
-  for (let i = cands.length - 1; i >= 0; i--) if ((used[norm(cands[i].headline)] || 0) >= 2 && cands.length > 4) cands.splice(i, 1);
+  for (let i = cands.length - 1; i >= 0; i--) if ((used[norm(cands[i].headline)] || 0) >= 1 && cands.length > 4) cands.splice(i, 1); // новость, уже звучавшая в архиве выпусков, второй раз не берём (пока есть из чего выбирать)
   // …и одну тему (Ормуз, Nvidia…) не ставить, если она уже была в двух из трёх последних выпусков, даже под другим заголовком
   const STOP = new Set(["about", "after", "with", "from", "that", "this", "their", "will", "news", "says", "über", "nach", "wird", "dass", "eine", "einen", "neue", "tages"]);
   const kw = (h) => new Set((String(h || "").match(/[A-Za-zÄÖÜäöüß][\wÄÖÜäöüß-]{3,}/g) || []).map((w) => w.toLowerCase()).filter((w) => !STOP.has(w)));
@@ -4668,10 +4669,10 @@ async function violinSaleLog(env, kind, d) {
     await env.DB.prepare("INSERT INTO violin_sales (ts, day, payer, agent, tx, network, usdc) VALUES (?1,?2,?3,?4,?5,?6,?7)").bind(d.ts, d.day, d.payer, d.agent, String(d.tx || ""), d.network, d.usdc).run();
   } catch (e) { /* журнал никогда не ломает продажу */ }
 }
-function violinMachine(c) {
+function violinMachine(c, lang = "ru") {
   if (!c) return "";
   return `<h3>🎻 ${escH(c.title)} · ${escH(c.day)} · <a href="/api/v1/violin">JSON</a></h3><p>${escH([c.key, c.meter, c.bpm + " BPM", c.mood, c.duration_s + " s", "composer: " + c.composer].filter(Boolean).join(" · "))}</p>` +
-    `<p>${escH(c.about.ru || "")}</p><p>${escH(c.about.en || "")}</p><ul>${c.mapping.map((m) => `<li><b>${escH(m.sensor)}</b> = ${escH(m.value)} → ${escH(m.choice)}</li>`).join("")}</ul>` +
+    `<p>${escH(lang === "ru" ? c.about.ru || c.about.en || "" : c.about.en || "")}</p><ul>${c.mapping.map((m) => `<li><b>${escH(m.sensor)}</b> = ${escH(m.value)} → ${escH(m.choice)}</li>`).join("")}</ul>` +
     `<pre>${escH(c.abc)}</pre><p><a href="${escH(c.listen_url)}">Listen: the artificial violinist plays it</a> · MCP <b>get_violin</b>.</p>`;
 }
 function violinJsonLd(c) {
@@ -8306,13 +8307,18 @@ async function markdownResponse(resp, pageUrl) {
   return new Response(md, { status: resp.status, headers: h });
 }
 // HTML-страница: добавляем Link; если агент просит Markdown — отдаём Markdown
-function seoRewrite(asset, url) {
+function seoRewrite(asset, url, pageLang) {
   const el = explicitLang(url.pathname), origin = "https://orbstudio.org", bare = barePath(url.pathname), seen = new Set();
   const rw = new HTMLRewriter().on('link[rel="alternate"][hreflang]', { element(e) {
     const hl = e.getAttribute("hreflang"); if (seen.has(hl)) { e.remove(); return; } seen.add(hl); // на главной набор был повторён дважды
     const fixed = fixAlternate(hl, e.getAttribute("href"), origin); if (fixed) e.setAttribute("href", fixed);
   } });
-  if (EXTRA_LOCAL.includes(bare.slice(1))) rw.on("head", { element(e) { e.append(alternateTags(origin, bare), { html: true }); } }); // у студии, круглого стола и радио hreflang не было
+  if (EXTRA_LOCAL.includes(bare.slice(1))) {
+    // у студии, круглого стола и радио один файл на все языки: hreflang, заголовок, описание и og-теги ставим по языку показа
+    const meta = pageMeta(bare, el || pageLang), self = origin + (el ? "/" + el : "") + bare;
+    rw.on("head", { element(e) { e.append(alternateTags(origin, bare) + ogTags(meta, self), { html: true }); } });
+    if (meta) rw.on("title", { element(e) { e.setInnerContent(meta.title); } }).on('meta[name="description"]', { element(e) { e.setAttribute("content", meta.desc); } });
+  }
   if (el) {
     const canon = canonicalUrl(origin, url.pathname);
     rw.on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } })
@@ -8403,52 +8409,54 @@ async function handleMcp(request, env, ctx, origin) {
 // ================= Машинный слой страниц: живые данные прямо в HTML =================
 const escH = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 // Текстовая версия страницы «Датчики» прямо в HTML: поисковики и агенты без JavaScript видят настоящие цифры, а не «загрузка…»
-async function sensorsMachine(env, ctx, radars) {
+async function sensorsMachine(env, ctx, radars, lang = "ru") {
+  const W = SENS_W[lang] || SENS_W.ru;
   const to = (p, ms) => Promise.race([p.catch(() => null), new Promise((r) => setTimeout(() => r(null), ms))]);
   // последние сохранённые данные (до 2 суток) — сразу; свежие подтягиваются в фоне и попадут в следующий показ
   ctx.waitUntil(sensorsData(env, ctx).catch(() => null)); ctx.waitUntil(roadsData(env).catch(() => null));
   const [sn, rd, pr] = await Promise.all([to(sharedGet(env, "sensors-v8", 2 * 86400e3), 800), to(sharedGet(env, "roads-hh-v1", 2 * 86400e3), 800), to(pricesRadar(env, "hamburg"), 1200)]);
   const e = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
-  const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString("ru-RU", { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
-  const at = new Date().toLocaleString("ru-RU", { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const nf = (n, d = 0) => (typeof n === "number" ? n.toLocaleString(W.loc, { minimumFractionDigits: d, maximumFractionDigits: d }) : "—");
+  const at = new Date().toLocaleString(W.loc, { timeZone: "Europe/Berlin", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   const avg = radars.length ? Math.round(radars.reduce((a, r) => a + r.lvl, 0) / radars.length) : null;
+  const rTitle = (r) => (lang === "ru" ? r.title : (RADAR_TITLE_I18N[r.id] || [r.title, r.title])[lang === "de" ? 0 : 1]);
   const chips = {}, li = [];
-  li.push(`<p>Обновлено: ${e(at)} (Берлин). Машинные данные: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>, MCP <a href="/mcp">/mcp</a> (get_sensors, get_roads).</p>`);
-  li.push(`<h3>Радары новостей · общий индекс риска ${avg ?? "—"} из 100</h3><ul>${radars.map((r) => `<li>${e(r.title)}: ${r.lvl}/100, за сутки ${r.lvl - r.prev >= 0 ? "+" : ""}${r.lvl - r.prev}</li>`).join("")}</ul>`);
-  chips.radars = `7 тем · среднее ${avg ?? "—"}`;
+  li.push(`<p>${W.upd}: ${e(at)} (${W.berlin}). ${W.machine}: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>, MCP <a href="/mcp">/mcp</a> (get_sensors, get_roads).</p>`);
+  li.push(`<h3>${W.radars} ${avg ?? "—"} ${W.of100}</h3><ul>${radars.map((r) => `<li>${e(rTitle(r))}: ${r.lvl}/100, ${W.day} ${r.lvl - r.prev >= 0 ? "+" : ""}${r.lvl - r.prev}</li>`).join("")}</ul>`);
+  chips.radars = W.topics(radars.length, avg ?? "—");
   if (rd && rd.summary) {
-    const m = rd.summary, line = (i) => `<li>${i.kind === "jam" ? "Пробка" : "Перекрытие"} ${e(i.road)}: ${e(i.title.replace(/^A\d+\s*\|\s*/, ""))}${i.direction ? " (" + e(i.direction) + ")" : ""}${i.delay_min ? `, задержка ${i.delay_min} мин` : ""}</li>`;
-    li.push(`<h3>Автобаны вокруг Гамбурга (Autobahn GmbH)</h3><p>Пробок: ${m.jams}${m.max_delay_min ? `, самая долгая ${m.max_delay_min} мин` : ""} · перекрытий: ${m.closures} · строек: ${m.roadworks}. Эльбтоннель (A7): ${m.elbtunnel && m.elbtunnel.some((x) => x.kind === "jam") ? "пробка" : m.elbtunnel && m.elbtunnel.length ? "стройка, без пробки" : "без сообщений"}.</p><ul>${rd.jams.slice(0, 5).map(line).join("")}${rd.closures.slice(0, 5).map(line).join("")}</ul>`);
-    chips.roads = `пробок ${m.jams}${m.max_delay_min ? ` (до ${m.max_delay_min} мин)` : ""} · перекрытий ${m.closures} · строек ${m.roadworks}`;
+    const m = rd.summary, line = (i) => `<li>${i.kind === "jam" ? W.jam : W.closure} ${e(i.road)}: ${e(i.title.replace(/^A\d+\s*\|\s*/, ""))}${i.direction ? " (" + e(i.direction) + ")" : ""}${i.delay_min ? W.delay(i.delay_min) : ""}</li>`;
+    li.push(`<h3>${W.roadsH}</h3><p>${W.jams}: ${m.jams}${m.max_delay_min ? W.longest(m.max_delay_min) : ""} · ${W.closures}: ${m.closures} · ${W.works}: ${m.roadworks}. ${W.tunnel}: ${m.elbtunnel && m.elbtunnel.some((x) => x.kind === "jam") ? W.tJam : m.elbtunnel && m.elbtunnel.length ? W.tWorks : W.tNone}.</p><ul>${rd.jams.slice(0, 5).map(line).join("")}${rd.closures.slice(0, 5).map(line).join("")}</ul>`);
+    chips.roads = W.chipRoads(m.jams, m.max_delay_min, m.closures, m.roadworks);
   }
   if (pr && pr.entries && pr.entries.length) {
     const x = pr.entries.slice().sort((a, b) => (a.day < b.day ? 1 : -1))[0];
-    li.push(`<h3>Наземная правда · цены Гамбурга, снятые своими глазами</h3><p>Последний ценник: ${e(x.item)} ${nf(x.price, 3)} € · ${e(x.store)}, ${e(x.district || "")}, ${e(x.day)}. Все цены: <a href="/prices">/prices</a>.</p>`);
+    li.push(`<h3>${W.groundH}</h3><p>${W.lastTag}: ${e(x.item)} ${nf(x.price, 3)} € · ${e(x.store)}, ${e(x.district || "")}, ${e(x.day)}. ${W.allPrices}: <a href="/prices">/prices</a>.</p>`);
     chips.ground = `${e(x.item)} ${nf(x.price, 3)} € · ${e(x.store)}`;
   }
   if (sn) {
-    const v = sn.derivatives, b = sn.bitcoin, c = sn.ecb, i = sn.inflation, st = sn.stablecoins, r = [];
-    if (v) { r.push(`<li>Бессрочный BTC на Kraken Futures: ставка финансирования ${v.funding_relative_pct >= 0 ? "+" : ""}${nf(v.funding_relative_pct, 5)} % за период (${v.funding_relative_pct >= 0 ? "лонги платят шортам" : "шорты платят лонгам"}), открытый интерес ${nf(v.open_interest_btc)} BTC</li>`); chips.deriv = `финансирование ${v.funding_relative_pct >= 0 ? "+" : ""}${nf(v.funding_relative_pct, 5)} % · OI ${nf(v.open_interest_btc)} BTC`; }
-    if (b) { r.push(`<li>Сеть биткоина: быстрая комиссия ${b.fee_fast_sat_vb} сат/vB, в очереди ${nf(b.mempool_tx)} транзакций${b.hashrate_ehs ? `, хешрейт около ${nf(b.hashrate_ehs)} EH/s` : ""}</li>`); chips.chain = `комиссия ${b.fee_fast_sat_vb} сат/vB · в очереди ${nf(b.mempool_tx)} тр.`; }
-    if (c) { r.push(`<li>ЕЦБ: депозитная ставка ${nf(c.deposit_rate_pct.value, 2)} %, курс EUR/USD ${nf(c.eurusd.value, 4)} на ${e(c.eurusd.date)}</li>`); chips.macro = `ставка ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
-    if (i) r.push(`<li>Инфляция еврозоны (Eurostat): ${nf(i.hicp_annual_pct, 1)} % за ${e(i.period)}</li>`);
+    const v = sn.derivatives, b = sn.bitcoin, c = sn.ecb, i = sn.inflation, st = sn.stablecoins, r = [], sg = (n) => (n >= 0 ? "+" : "");
+    if (v) { r.push(`<li>${W.perp} ${sg(v.funding_relative_pct)}${nf(v.funding_relative_pct, 5)} % ${W.perPeriod} (${v.funding_relative_pct >= 0 ? W.longsPay : W.shortsPay}), ${W.oi} ${nf(v.open_interest_btc)} BTC</li>`); chips.deriv = `${W.funding} ${sg(v.funding_relative_pct)}${nf(v.funding_relative_pct, 5)} % · OI ${nf(v.open_interest_btc)} BTC`; }
+    if (b) { r.push(`<li>${W.btcNet} ${b.fee_fast_sat_vb} ${W.sat}, ${W.queue} ${nf(b.mempool_tx)} ${W.txs}${b.hashrate_ehs ? `, ${W.hash} ${nf(b.hashrate_ehs)} EH/s` : ""}</li>`); chips.chain = `${W.fee} ${b.fee_fast_sat_vb} ${W.sat} · ${W.queue} ${nf(b.mempool_tx)} ${W.tx}`; }
+    if (c) { r.push(`<li>${W.ecb} ${nf(c.deposit_rate_pct.value, 2)} %, ${W.fx} ${nf(c.eurusd.value, 4)} ${W.on} ${e(c.eurusd.date)}</li>`); chips.macro = `${W.rate} ${nf(c.deposit_rate_pct.value, 2)} % · EUR/USD ${nf(c.eurusd.value, 4)}`; }
+    if (i) r.push(`<li>${W.infl}: ${nf(i.hicp_annual_pct, 1)} % ${W.forP} ${e(i.period)}</li>`);
     const ni = sn.internet;
-    let rn = null; try { rn = new Intl.DisplayNames(["ru"], { type: "region" }); } catch (x) {}
+    let rn = null; try { rn = new Intl.DisplayNames([lang], { type: "region" }); } catch (x) {}
     const cn = (cc, fb) => { try { return (rn && rn.of(cc)) || fb || cc; } catch (x) { return fb || cc; } };
-    if (ni) { r.push(`<li>Интернет за сутки: сбои в ${ni.outages_24h} странах${ni.outages && ni.outages[0] ? ` (сильнее всего: ${ni.outages.slice(0, 3).map((o) => e(cn(o.cc, o.country))).join(", ")})` : ""}; подтверждённые блокировки сайтов в ${ni.confirmed_block_countries} странах${ni.blocks && ni.blocks[0] ? `, больше всего: ${ni.blocks.slice(0, 3).map((b) => e(cn(b.cc))).join(", ")}` : ""} (IODA, OONI)</li>`);
-      chips.internet = `сбоев: ${ni.outages_24h} стран · блокировки: ${ni.confirmed_block_countries} стран`; }
+    if (ni) { r.push(`<li>${W.net} ${ni.outages_24h} ${W.countries}${ni.outages && ni.outages[0] ? ` (${W.worst}: ${ni.outages.slice(0, 3).map((o) => e(cn(o.cc, o.country))).join(", ")})` : ""}; ${W.blocks} ${ni.confirmed_block_countries} ${W.countries}${ni.blocks && ni.blocks[0] ? `, ${W.most}: ${ni.blocks.slice(0, 3).map((b) => e(cn(b.cc))).join(", ")}` : ""} (IODA, OONI)</li>`);
+      chips.internet = W.chipNet(ni.outages_24h, ni.confirmed_block_countries); }
     const sc = sn.sanctions;
     if (sc) { const u = sc.uk_ships, o = sc.us_ofac;
-      r.push(`<li>Санкции против судов: ${u ? `в британском списке ${nf(u.ships_total)} судов, за 30 дней добавлено ${u.added_30d}` : ""}${u && o ? "; " : ""}${o && o.latest[0] ? `последнее решение OFAC ${e(o.latest[0].date)}: ${e(o.latest[0].title)}` : ""}</li>`);
-      chips.sanctions = `${u ? `UK: ${nf(u.ships_total)} судов · +${u.added_30d} за 30 дн.` : ""}${o ? ` · OFAC: решений с санкциями за неделю ${o.designation_actions_7d}` : ""}`; }
+      r.push(`<li>${W.sanc}: ${u ? W.ukList(nf(u.ships_total), u.added_30d) : ""}${u && o ? "; " : ""}${o && o.latest[0] ? `${W.ofac} ${e(o.latest[0].date)}: ${e(o.latest[0].title)}` : ""}</li>`);
+      chips.sanctions = `${u ? W.chipUk(nf(u.ships_total), u.added_30d) : ""}${o ? W.chipOfac(o.designation_actions_7d) : ""}`; }
     const pw = sn.power;
-    if (pw) { const hm = (t) => new Date(t).toLocaleTimeString("ru-RU", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
-      r.push(`<li>Электричество Германии (биржа, DE-LU, без сетей и налогов): сейчас ${nf(pw.now_eur_mwh, 0)} €/MWh = ${nf(pw.now_ct_kwh, 1)} ct/kWh${pw.today ? `, сегодня ${nf(pw.today.min_eur_mwh, 0)}–${nf(pw.today.max_eur_mwh, 0)} €/MWh` : ""}${pw.cheapest_3h ? `, самое дешёвое окно ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${nf(pw.cheapest_3h.avg_eur_mwh, 0)} €/MWh)` : ""}${pw.renewables ? `, ветер и солнце ${pw.renewables.renewable_share_pct} %` : ""}</li>`);
-      chips.power = `${nf(pw.now_ct_kwh, 1)} ct/kWh биржа${pw.renewables ? ` · ВИЭ ${pw.renewables.renewable_share_pct} %` : ""}`; }
-    if (st && st.total_usd) { r.push(`<li>Стейблкоины в обращении (DefiLlama): ${nf(st.total_usd / 1e9, 1)} млрд $, за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %</li>`); chips.stables = `${nf(st.total_usd / 1e9, 1)} млрд $ · за неделю ${st.change_7d_pct >= 0 ? "+" : ""}${nf(st.change_7d_pct, 2)} %`; }
-    if (r.length) li.push(`<h3>Рынок и сеть</h3><ul>${r.join("")}</ul>`);
+    if (pw) { const hm = (t) => new Date(t).toLocaleTimeString("de-DE", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+      r.push(`<li>${W.power} ${nf(pw.now_eur_mwh, 0)} €/MWh = ${nf(pw.now_ct_kwh, 1)} ct/kWh${pw.today ? `, ${W.today} ${nf(pw.today.min_eur_mwh, 0)}–${nf(pw.today.max_eur_mwh, 0)} €/MWh` : ""}${pw.cheapest_3h ? `, ${W.cheapest} ${hm(pw.cheapest_3h.from)}–${hm(pw.cheapest_3h.to)} (${nf(pw.cheapest_3h.avg_eur_mwh, 0)} €/MWh)` : ""}${pw.renewables ? `, ${W.windSun} ${pw.renewables.renewable_share_pct} %` : ""}</li>`);
+      chips.power = `${nf(pw.now_ct_kwh, 1)} ct/kWh ${W.exch}${pw.renewables ? ` · ${W.res} ${pw.renewables.renewable_share_pct} %` : ""}`; }
+    if (st && st.total_usd) { r.push(`<li>${W.stables}: ${nf(st.total_usd / 1e9, 1)} ${W.bn}, ${W.week} ${sg(st.change_7d_pct)}${nf(st.change_7d_pct, 2)} %</li>`); chips.stables = `${nf(st.total_usd / 1e9, 1)} ${W.bn} · ${W.week} ${sg(st.change_7d_pct)}${nf(st.change_7d_pct, 2)} %`; }
+    if (r.length) li.push(`<h3>${W.marketH}</h3><ul>${r.join("")}</ul>`);
   }
-  li.push(`<p>ETF-потоки не подключены: бесплатного открытого источника нет. PDF и официальные тексты ЕЦБ, ФРС и Бундестага — в разделе <a href="/live">Живой эфир</a>.</p>`);
+  li.push(`<p>${W.etf}</p>`);
   return { html: li.join(""), chips };
 }
 const MACHINE_I18N = {
@@ -9011,7 +9019,7 @@ async function handleRequest(request, env, ctx) {
       asset.headers.set("Cache-Control", "private, max-age=60");
     }
     // язык адреса сохраняется в ссылках меню; canonical, og:url и hreflang указывают на эту языковую версию
-    if (asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) { try { asset = seoRewrite(asset, url); } catch (e) {} }
+    if (asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) { try { asset = seoRewrite(asset, url, studioLang); } catch (e) {} }
     const pg = HTML_PAGES[url.pathname] || (url.pathname === "/ru" ? "home" : undefined) || HTML_PAGES[url.pathname.replace(/^\/(ru|de|en)(?=\/[a-z])/, "").replace(/\.html$/, "")];
     if (pg && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       // подставляем живые заголовки в HTML, чтобы агенты без JavaScript видели настоящие данные
@@ -9037,9 +9045,9 @@ async function handleRequest(request, env, ctx) {
         const nf = new Intl.NumberFormat(lang === "de" ? "de-DE" : lang === "en" ? "en-US" : "ru-RU");
         const STAT_IDS = { sSiteToday: "site_today", sSiteTotal: "site_total", sAgentsToday: "agents_today", sAgentsTotal: "agents_total", sKrTotal: "kraken_humans_total", sSlTotal: "starlink_humans_total" };
         let sm = null;
-        if (pg === "sensors") { try { sm = await sensorsMachine(env, ctx, radars); } catch (e) {} }
+        if (pg === "sensors") { try { sm = await sensorsMachine(env, ctx, radars, lang); } catch (e) {} }
         if (pg === "canvas") { try { const { piece, idx } = await canvasPiece(env, ctx, null); if (piece) { const cc = canvasCard(piece, idx, "machine-canvas"); sm = { html: canvasMachine(cc), chips: {} }; vld += canvasJsonLd(cc); } } catch (e) {} }
-        if (pg === "violin") { try { const { piece, idx } = await violinPiece(env, ctx, null); const c = violinCard(piece, idx, "machine-violin"); sm = { html: violinMachine(c), chips: {} }; vld += violinJsonLd(c); } catch (e) {} }
+        if (pg === "violin") { try { const { piece, idx } = await violinPiece(env, ctx, null); const c = violinCard(piece, idx, "machine-violin"); sm = { html: violinMachine(c, lang), chips: {} }; vld += violinJsonLd(c); } catch (e) {} }
         let rw = new HTMLRewriter()
           .on("head", { element(e) { e.append(ld + vld, { html: true }); } })
           .on("#machine-feed", { element(e) { e.setInnerContent(sm ? sm.html : block, { html: true }); } });

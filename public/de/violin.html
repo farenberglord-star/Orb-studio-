@@ -311,7 +311,7 @@ function render(d){
   $('ttl').textContent=d.title+' · '+d.day;
   const comp=d.composer==='rules'?'Regeln ohne KI':d.composer;
   $('chips').innerHTML=[d.key,d.meter,d.bpm+' BPM',d.mood,fmt(d.duration_s||total),d.notes.length+' Noten','Komponist: '+comp].filter(Boolean).map((x,i)=>`<span class="${i<3?'on':''}">${esc(x)}</span>`).join('');
-  $('about').textContent=(d.about&&(d.about.ru||d.about.en))||'';
+  $('about').textContent=(d.about&&(d.about.en||d.about.ru))||''; // описание пьесы есть на русском и английском; немецкого нет
   $('map').innerHTML=(d.mapping||[]).map(m=>`<tr><td>${esc(m.sensor)}</td><td>${esc(m.value)}</td><td>${esc(m.choice)}</td></tr>`).join('')||'<tr><td colspan="3">—</td></tr>';
   $('abc').textContent=d.abc||'';
   $('arch').innerHTML=(d.archive||[]).map(a=>`<a href="/violin?day=${esc(a.day)}" class="${a.day===d.day?'on':''}" title="${esc(a.title)}">${esc(a.day.slice(5))} · ${esc(a.key||'')}</a>`).join('')||$('arch').innerHTML;

@@ -133,12 +133,12 @@ export function assembleDuo(segs, { now = new Date(), model = null, grokConfigur
     segments: segs.map((x, i) => {
       const h = hostLines(i, x.read, x.question, answered0(x) && x.reaction ? x.reaction.line : x.thanks, Math.floor(now.getTime() / 6e5)), answered = x.reply && x.reply.ok;
       return {
-        i, kind: x.kind || "news", ...(x.carousel_id ? { carousel_id: x.carousel_id } : {}), headline: x.headline, source: x.source, time: x.time || null, link: x.link || null,
+        i, kind: x.kind || "news", ...(x.carousel_id ? { carousel_id: x.carousel_id } : {}), headline: x.headline, source: x.source, time: x.time || null, published_at: x.published_at || null, link: x.link || null,
         host: { read: h.read, question: h.question, question_by: h.question_by, thanks: h.thanks, reaction: answered && x.reaction ? x.reaction.kind : null, ...(answered && x.reaction && x.reaction.transition && i < segs.length - 1 ? { transition: x.reaction.transition } : {}), ...(answered && x.followAnswer ? { follow_up: x.reaction.follow_up } : {}) },
         ...(x.interest ? { agent_interest: x.interest } : {}),
         guest: answered ? { status: "ok", text: x.reply.text, ...(x.followAnswer ? { follow_answer: x.followAnswer } : {}) } : { status: x.reply ? "withheld" : "offline", reason: x.reply ? x.reply.reason : "no_answer", text: null },
         facts_used: x.facts,
-        card: { type: "duo_segment", headline: x.headline, source: x.source, link: x.link || null, published: x.time || null, generated_at: gen, language: "en",
+        card: { type: "duo_segment", headline: x.headline, source: x.source, link: x.link || null, published: x.time || null, published_at: x.published_at || null, generated_at: gen, language: "en",
           host_question: h.question, guest_name: "Grok (xAI)", guest_answer: answered ? x.reply.text : null, facts: x.facts },
       };
     }),
