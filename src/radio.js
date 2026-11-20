@@ -43,6 +43,8 @@ export const RADIO_TRACKS = [
   { id: "night-sensors", title: "Night Sensors News Bed (Remastered)", path: "/media/radio/night-sensors-news-bed.m4a", sec: 52 },
   { id: "autobahn-3", title: "Autobahn 3", path: "/media/radio/autobahn-3.m4a", sec: 267 },
   { id: "track-1", title: "Orb Studio · Track 1", path: "/media/radio/track-1.m4a", sec: 184 },
+  { id: "orbit-city", title: "Orbit City", path: "/media/radio/orbit-city.m4a", sec: 105 },
+  { id: "quiet-frequency", title: "Quiet Frequency", path: "/media/radio/quiet-frequency.m4a", sec: 125 },
 ];
 const https = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 export function radioCard(duo, origin = "https://orbstudio.org") {
