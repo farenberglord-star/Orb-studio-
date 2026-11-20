@@ -41,6 +41,17 @@ export function daypart(hour) { const h = ((Math.floor(+hour) % 24) + 24) % 24; 
 // Плавное начало и конец трека: громкость 0→1 за FADE_IN секунд и 1→0 за последние FADE_OUT секунд
 export const FADE_IN = 3.5, FADE_OUT = 3, GAP_MS = 1200;
 export function trackGain(pos, dur) { if (!(pos >= 0)) return 0; const up = Math.min(1, pos / FADE_IN), down = dur > FADE_IN + FADE_OUT ? Math.min(1, Math.max(0, (dur - pos) / FADE_OUT)) : 1; return +Math.max(0, Math.min(up, down)).toFixed(3); }
+// Сначала интервью ближе к слушателю (его регион), потом общий мировой выпуск. Одна и та же новость дважды не ставится.
+export function mergeInterviews(reg, world) {
+  const out = [], seen = new Set(), ok = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
+  for (const iv of (reg && reg.status === "ok" && Array.isArray(reg.interviews) ? reg.interviews : [])) {
+    const lines = (Array.isArray(iv && iv.lines) ? iv.lines : []).filter((x) => x && (x.who === "david" || x.who === "grok") && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: x.who, kind: x.kind, text: x.text.trim(), audio: ok(x.audio), ms: lineMs(x.text) }));
+    if (!iv || !iv.headline || seen.has(iv.headline) || !lines.some((x) => x.who === "grok")) continue;
+    seen.add(iv.headline); out.push({ headline: String(iv.headline), source: iv.source || null, link: ok(iv.link), at: iv.at || null, guest: "Grok", region: reg.region_label || reg.region || null, lines });
+  }
+  for (const iv of world || []) if (iv && !seen.has(iv.headline)) { seen.add(iv.headline); out.push(iv); }
+  return out;
+}
 // Связка диджея как блок эфира: реплики Давида из /api/v1/radio/dj (и погода), только те, где есть текст
 export function sayItem(title, parts) {
   const lines = (parts || []).filter((x) => x && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: "david", kind: "dj", text: x.text.trim(), audio: typeof x.audio === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.audio) ? x.audio : null, ms: lineMs(x.text) }));
@@ -116,7 +127,7 @@ function start() {
   function rundown() {
     const ol = $("rd"); ol.textContent = "";
     items.forEach((it, i) => { const li2 = document.createElement("li"); li2.className = (i === idx ? "cur " : i < idx ? "done " : "") + "it-" + it.type; // с префиксом: «say» и «talk» заняты экраном
-      const k = document.createElement("b"); k.textContent = it.type === "track" ? "♪ " + t.music : it.type === "say" ? "🎧 David" : "🎙 " + t.talk + " · David × " + it.iv.guest;
+      const k = document.createElement("b"); k.textContent = it.type === "track" ? "♪ " + t.music : it.type === "say" ? "🎧 David" : "🎙 " + t.talk + " · David × " + it.iv.guest + (it.iv.region ? " · " + it.iv.region : "");
       const s = document.createElement("span"); s.textContent = it.type === "track" ? it.track.title + " · " + fmt(it.track.sec) : it.type === "say" ? it.iv.lines.map((x) => x.text).join(" ").slice(0, 90) + "…" : it.iv.headline;
       li2.append(k, s); ol.append(li2); });
   }
@@ -147,9 +158,9 @@ function start() {
     let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" } })).json(); } catch { duo = null; }
     // связки Давида и погода: если не пришли, эфир идёт без них
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang)]);
+    const [dj, wx, reg] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang)]);
     weather = wx && wx.status === "ok" && wx.text ? { text: wx.text, audio: wx.audio } : null; // погода свежая к каждому кругу; нет данных — Давид её пропускает
-    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    const p = plan(mergeInterviews(reg, interviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
     greeted = true; if (p.fresh) introSaid = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
