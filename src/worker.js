@@ -5,7 +5,7 @@
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
-import { DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
+import { SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1586,6 +1586,27 @@ async function radioTranslate(env, items) {
       x.de = x.de || tr.de[0]; x.ru = x.ru || tr.ru[0];
     }
   }));
+}
+// Новости с датчиков для радио: раз в четыре часа Claude пересказывает строки датчиков на трёх языках; в эфир идёт только то, что прошло проверку чисел
+async function radioSensorsWarm(env, ctx) {
+  if (!env.ANTHROPIC_API_KEY) return;
+  const cur = await sharedGet(env, "radio-sens-v1", 1e15); if (cur && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return;
+  if (await sharedGet(env, "radio-sens-lock", 20 * 60e3)) return; await sharedPut(env, "radio-sens-lock", { t: Date.now() });
+  const out = { generated_at: new Date().toISOString(), stories: {} };
+  await Promise.all(DJ_LANGS.map(async (lg) => { try {
+    const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
+    out.stories[lg] = checkSensorStories(await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800), facts, lg, stripInvisible);
+  } catch {} }));
+  if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v1", out);
+}
+async function radioSensors(env, origin, lang) {
+  const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v1", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
+  const ids = mine ? Object.keys(SENSOR_TOPICS).filter((k) => mine[k] && mine[k].text) : [];
+  if (!ids.length) return { status: "preparing", language: lg };
+  const audio = await Promise.all(ids.map((k) => radioVoice(env, origin, mine[k].text, lg)));
+  return { status: "ok", language: lg, generated_at: ep.generated_at, stories: ids.map((k, i) => ({ id: k, key: "sens:" + k + ":" + ep.generated_at, text: mine[k].text, audio: audio[i], sensor_lines: mine[k].facts })),
+    host: "David — Orb Studio AI host (lines written by Claude)", source: "Orb Studio sensors: open data listed at /sensors and /api/v1/sensors", source_url: origin + "/sensors",
+    check: "Every number in a story must be present in the sensor lines it was written from; a story that fails is not aired.", voices: "Synthetic AI voice (xAI Grok TTS).", scope_note: "What the sensors show and what the figures mean; no forecasts or advice." };
 }
 async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
@@ -3365,6 +3386,7 @@ async function handleApi(url, request, env, ctx) {
   // связки диджея Давида для текущего выпуска (пишет Claude, голос — тот же синтез, что в студии)
   if (p === "/api/v1/radio/dj") return json(await radioDj(env, ctx, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   // интервью ближе к слушателю (регион по стране IP; ?region=eu|us — для проверки)
+  if (p === "/api/v1/radio/sensors") return json(await radioSensors(env, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/radio/regional") return json(await radioRegional(env, request, origin, url.searchParams.get("lang"), url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
   // погода для города слушателя: город по IP даёт Cloudflare, он нигде не сохраняется вместе с посетителем
   if (p === "/api/v1/radio/weather") return json(await radioWeather(env, request, origin, url.searchParams.get("lang")), { "Cache-Control": "private, max-age=600" });
@@ -8582,7 +8604,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов

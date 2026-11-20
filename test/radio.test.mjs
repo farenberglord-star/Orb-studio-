@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -24,28 +24,30 @@ test("interviews: silent guest, non-news segments and broken data are left out",
 });
 const DJ = { ident: { text: "You are on Radio Orb Studio. A track for you.", audio: "https://orbstudio.org/api/v1/radio/audio?k=cc" }, intro: { text: "Today's guest is Grok.", audio: "https://orbstudio.org/api/v1/radio/audio?k=aa" }, to_music: { text: "Thanks, Grok. Now music.", audio: null }, after_music: { text: "Nice track." }, next_track: { text: "Next track." } };
 const WX = { text: "And now the weather. In Hamburg it is 7 degrees.", audio: "https://orbstudio.org/api/v1/radio/audio?k=bb" };
-const kinds = (p) => p.items.map((x) => (x.type === "say" ? "say:" + x.iv.lines.map((l) => l.text.split(" ")[0]).join("+") : x.type));
-test("cycle: greeting, track, reaction + weather, track, guest intro, interview, thanks; weather once per plan", () => {
-  const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en");
-  const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true });
-  assert.deepEqual(kinds(p), ["say:You", "track", "say:Nice+And+Next", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:Nice+Next", "track", "talk", "say:Thanks,"]); // погода только в первом круге
+const kinds = (p) => p.items.map((x) => (x.type === "say" || x.type === "news" ? x.type + ":" + x.iv.lines.map((l) => l.text.split(" ")[0]).join("+") : x.type));
+test("carousel: after every track David does something — interview, sensor news or weather; never two tracks in a row", () => {
+  const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en"), NEWS = [{ key: "sens:money:1", text: "Sensor story one." }, { key: "sens:world:1", text: "Sensor story two." }];
+  const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true, stories: NEWS });
+  assert.deepEqual(kinds(p), ["say:You", "track", "say:Today's", "talk", "say:Thanks,", "track", "say:And+Next", "track", "news:Sensor+Next", "track", "talk", "say:Thanks,", "track", "news:Sensor+Next"]);
+  for (let i = 1; i < p.items.length; i++) assert.ok(!(p.items[i].type === "track" && p.items[i - 1].type === "track"), "no two tracks in a row");
   assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david");
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1"]);
-  assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[0].id, TRACKS[1].id, TRACKS[2].id, TRACKS[0].id]);
-  const p2 = plan(iv, new Set(["H0", "H1"]), p.trackAt, 2, { dj: DJ, weather: null, first: false, introSaid: true });
-  assert.deepEqual(kinds(p2), ["track", "say:Nice+Next", "track", "talk", "say:Thanks,"]); assert.equal(p2.items[3].iv.headline, "H2");
+  assert.deepEqual(p.items.filter((x) => x.type === "news").map((x) => x.key), ["sens:money:1", "sens:world:1"]); assert.equal(p.news, 2);
+  const p2 = plan(iv, new Set(["H0", "H1", "sens:money:1"]), p.trackAt, 2, { dj: DJ, weather: null, first: false, introSaid: true, stories: NEWS });
+  assert.deepEqual(kinds(p2), ["track", "talk", "say:Thanks,", "track", "news:Sensor+Next"]); assert.equal(p2.items[1].iv.headline, "H2"); assert.equal(p2.items[4].key, "sens:world:1");
 });
-test("nothing new: greeting first, then music with weather; no guest intro without an interview", () => {
+test("nothing new: greeting first, then a track and a short link; weather takes the block when it is due", () => {
   const iv = interviews(duo([seg(0)]), "en");
   const m = plan(iv, new Set(["H0"]), 0, 2, { dj: DJ, weather: WX, first: true });
-  assert.deepEqual(kinds(m), ["say:You", "track", "say:Nice+And+Next", "track"]); assert.equal(m.fresh, 0);
-  assert.deepEqual(kinds(plan([], new Set(), 0, 2, { dj: DJ, first: false })), ["track", "say:Nice+Next", "track"]);
+  assert.deepEqual(kinds(m), ["say:You", "track", "say:And+Next"]); assert.equal(m.fresh, 0);
+  assert.deepEqual(kinds(plan([], new Set(), 0, 2, { dj: DJ, first: false })), ["track", "say:Nice+Next"]);
+  assert.deepEqual(kinds(plan([], new Set(["k"]), 0, 2, { dj: DJ, stories: [{ key: "k", text: "Heard already." }, { text: "no key" }, null] })), ["track", "say:Nice+Next"], "a heard or broken story is not aired");
 });
 test("plan without DJ lines or data: same grid, no invented words", () => {
   const iv = interviews(duo([seg(0)]), "en");
-  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["track", "track", "talk"]);
-  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["track", "track", "talk"]);
-  for (const p of [plan(iv, new Set(["H0"])), plan([], new Set()), plan(null, null)]) { assert.deepEqual(kinds(p), ["track", "track"]); assert.equal(p.fresh, 0); }
+  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["track", "talk"]);
+  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["track", "talk"]);
+  for (const p of [plan(iv, new Set(["H0"])), plan([], new Set()), plan(null, null)]) { assert.deepEqual(kinds(p), ["track"]); assert.equal(p.fresh, 0); }
   assert.equal(sayItem("t", [{ text: "x", audio: "javascript:1" }]).iv.lines[0].audio, null); assert.equal(sayItem("t", [null, {}]), null);
 });
 test("tracks are our own files; texts, date and page", () => {
@@ -265,7 +267,8 @@ test("DJ does not repeat himself: four different variants of every repeated link
   const texts = (p) => p.items.filter((x) => x.type === "say").map((x) => x.iv.lines.map((y) => y.text).join(" | "));
   const iv = (h) => ({ headline: h, lines: [{ who: "david", text: "q" }, { who: "grok", text: "a" }] });
   const a = texts(plan([iv("a"), iv("b")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), b = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true }));
-  assert.deepEqual([...a, ...b], ["After 1 | Next 1", "Music 1", "After 2 | Next 2", "Music 2", "After 3 | Next 1"]);
+  assert.deepEqual([...a, ...b], ["Music 1", "Music 2", "After 1 | Next 1"]);
+  const c = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })); assert.deepEqual(c, ["After 2 | Next 2"], "the next round takes the next variant");
   assert.equal(texts(plan([], new Set(), 0, 2, { dj: DJ }))[0], DJ.after_music.text + " | " + DJ.next_track.text, "without variants the single line still plays");
 });
 
@@ -312,7 +315,7 @@ test("music shelf: every track plays once before any repeats; new files get into
   for (let r = 0; r < 3; r++) assert.deepEqual(played.slice(r * 5, r * 5 + 5).sort(), ids, "round " + r + " has every track once");
   for (let i = 1; i < played.length; i++) assert.notEqual(played[i], played[i - 1], "never the same track twice in a row");
   assert.equal(nextTrackId(ids, ["zzz", "c", "c"], "a").id, "c", "a removed track in the saved order is skipped"); assert.equal(nextTrackId([], [], null).id, null); assert.equal(nextTrackId(["a"], [], "a").id, "a");
-  const p = plan([], new Set(), 0, 2, { dj: DJ, nextTrack: () => TRACKS[2] }); assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[2].id, TRACKS[2].id]);
+  const p = plan([], new Set(), 0, 2, { dj: DJ, nextTrack: () => TRACKS[2] }); assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[2].id]);
   assert.equal(titleFromFile("night-drive_2"), "Night Drive 2"); assert.equal(idFromFile("Night Drive"), "night-drive");
   const l = buildList(["b.m4a", "new-song.m4a", "a.m4a"], [{ id: "bee", title: "Bee Song", file: "b.m4a" }, { id: "gone", title: "Gone", file: "gone.m4a" }], () => 100);
   assert.deepEqual(l.map((x) => [x.id, x.title]), [["bee", "Bee Song"], ["a", "A"], ["new-song", "New Song"]], "known titles kept, deleted files dropped, new ones added");
@@ -327,4 +330,32 @@ test("home block: a small radio with a Play button starts the broadcast without 
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(js, /if \(wantsAutoplay\(location\.hash\)\) canAutoplay\(\)/); assert.match(js, /document\.addEventListener\("pointerdown", once, true\)/);
   for (const l of ["ru", "de", "en"]) assert.ok(T[l].tapStart.length > 10);
+});
+
+test("a long track is faded out after two minutes; a short one plays to the end", () => {
+  assert.equal(TRACK_CUT, 120); assert.equal(cutAt(267), 120); assert.equal(cutAt(184), 120); assert.equal(cutAt(150), 150); assert.equal(cutAt(52), 52); assert.ok(Number.isNaN(cutAt(NaN)));
+  assert.equal(trackGain(60, 120, CUT_FADE), 1); assert.equal(trackGain(117.5, 120, CUT_FADE), 0.5); assert.equal(trackGain(120, 120, CUT_FADE), 0);
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /if \(cut && au\.currentTime >= end && items\[idx\] && items\[idx\]\.type === "track"\)/);
+});
+
+test("sensor news: only numbers that the sensors gave, right language, no forecasts", async () => {
+  const { sensorFacts, numTokens, checkSensorStory, checkSensorStories, SENSOR_TOPICS, sensorSystem } = await import("../src/radio.js"), { SENS_W } = await import("../src/sensors_i18n.js");
+  for (const l of ["ru", "de", "en"]) for (const k of Object.values(SENSOR_TOPICS).flat()) assert.equal(typeof SENS_W[l][k], "string", l + "." + k);
+  const W = SENS_W.en, html = `<p>Updated</p><h3>Roads</h3><ul><li>Jam A7: something, delay 12 min</li></ul><h3>Market</h3><ul><li>${W.power} 87 €/MWh = 8.7 ct/kWh, today 61–142 €/MWh</li><li>${W.ecb} 2.00 %, x 1.0972 on 2026-11-20</li><li>${W.net} 5 countries (worst: A &amp; B)</li><li>${W.btcNet} 3 sat/vB, queue 12,430 tx</li></ul>`;
+  const f = sensorFacts(html, W);
+  assert.deepEqual(Object.keys(f), ["money", "world", "crypto"]); assert.equal(f.money.length, 2); assert.match(f.world[0], /A & B/); assert.ok(!JSON.stringify(f).includes("Jam"), "road lines are not used");
+  assert.deepEqual(numTokens("2 143 BTC, 8,7 ct, 1.0972 and 12,430"), ["2143", "8,7", "1.0972", "12,430"]);
+  const pad = " This is what the exchange charges before grid fees and taxes are added, so the bill at home is higher than this figure. A megawatt-hour is a thousand kilowatt-hours, which is roughly what a small household uses in a few months.";
+  const good = "From the Orb Studio sensors: electricity in Germany costs 87 euros per megawatt-hour on the exchange right now, that is 8.7 cents per kilowatt-hour, and today the price moved between 61 and 142 euros." + pad;
+  assert.equal(checkSensorStory(good, f.money, "en"), good);
+  assert.equal(checkSensorStory(good.replace("87 euros", "90 euros"), f.money, "en"), null, "a rounded number is rejected");
+  assert.equal(checkSensorStory(good + " Over the last 24 hours nothing else changed.", f.money, "en"), null, "an added number is rejected");
+  assert.equal(checkSensorStory(good + " Prices will rise tomorrow.", f.money, "en"), null); assert.equal(checkSensorStory(good + " It is 87 €/MWh.", f.money, "en"), null, "units must be spoken as words");
+  assert.equal(checkSensorStory("Too short, 87 and 8.7.", f.money, "en"), null); assert.equal(checkSensorStory(good, f.money, "ru"), null, "wrong language");
+  assert.equal(checkSensorStory(good.replace(/\d[\d.]*/g, "many"), f.money, "en"), null, "a story without the sensor figures is not a sensor story");
+  const r = checkSensorStories({ money: good, world: "x", crypto: good }, f, "en");
+  assert.deepEqual(Object.keys(r), ["money"], "crypto story used numbers from another topic"); assert.deepEqual(r.money.facts, f.money);
+  assert.match(sensorSystem("ru"), /in Russian/); assert.match(sensorSystem("de"), /Copy every number exactly/);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /p === "\/api\/v1\/radio\/sensors"/); assert.match(w, /ctx\.waitUntil\(radioSensorsWarm\(env, ctx\)/);
 });
