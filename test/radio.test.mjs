@@ -139,7 +139,7 @@ test("tracks fade in and out", () => {
   for (let t = 0; t <= 52; t += 0.5) { const g = trackGain(t, 52); assert.ok(g >= 0 && g <= 1); }
 });
 
-import { RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest, regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
+import { rightLanguage, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest, regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
 const RAD = [{ id: "politics", feed: [["10:00", "Bundestag passes new budget for Germany", "tagesschau.de", 80, "https://t.example/1"], ["10:05", "Trump signs order on tariffs", "apnews.com", 90, "https://a.example/2"], ["10:07", "Japan holds snap election", "nhk.jp", 95, "https://n.example/3"]] },
   { id: "economy", feed: [["09:00", "ECB keeps rates on hold", "reuters.com", 70, "https://r.example/4"], ["09:10", "Bundestag passes new budget for Germany", "dw.com", 60, "https://d.example/5"], ["09:20", "Wall Street closes higher", "cnbc.com", 50, "https://c.example/6"]] }];
 test("regions: country decides the desk; candidates are regional headlines, heaviest first, no repeats", () => {
@@ -198,4 +198,17 @@ test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker a
   assert.match(DJ_SYSTEM, /Do not name any specific story/); assert.ok(!/using only the given headlines/.test(DJ_SYSTEM));
   assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /if \(g === "grok"\) return askGrok\(env, headline, source, facts, retry, 70000, question, null, \{ system: sys, user \}\)/);
   assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, to_music: "Thank you, Grok, that was a great talk. Now music." } }).en.to_music.by, "stock");
+});
+
+test("a translation must really be in the target language, or the whole interview stays English", () => {
+  const en = [{ read: "The U.S. Senate has passed a bill.", question: "Grok, what is happening here?", answer: "The Senate passed a bill that would ban such bets on these markets across the country." }];
+  const ru = { read: "Сенат США принял законопроект.", question: "Grok, что здесь происходит?", answer: "Сенат принял законопроект, который запретил бы такие ставки на этих рынках по всей стране." };
+  const de = { read: "Der US-Senat hat ein Gesetz verabschiedet.", question: "Grok, was passiert hier?", answer: "Der Senat hat ein Gesetz verabschiedet, das solche Wetten auf diesen Märkten im ganzen Land verbieten würde." };
+  assert.deepEqual(checkTranslations({ de: [de], ru: [ru] }, en), { de: [de], ru: [ru] });
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, read: en[0].read }] }, en).ru[0], null, "an English line inside a Russian translation drops it");
+  assert.equal(checkTranslations({ de: [{ ...de, answer: en[0].answer }], ru: [ru] }, en).de[0], null, "a copied English answer is not German");
+  assert.equal(rightLanguage("ru", "Grok, что здесь происходит с DeepSeek и Gemini?", ""), true, "names in Latin letters are fine");
+  assert.equal(rightLanguage("ru", "The measure now moves forward.", ""), false); assert.equal(rightLanguage("de", "Same text.", "same text."), false);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /JSON\.stringify\(\{ lines: \[x\.en\] \}\)/, "one interview per translation call"); assert.match(w, /ep\.tr_tries/);
 });
