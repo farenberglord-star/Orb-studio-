@@ -1486,7 +1486,7 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v5-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v6-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
@@ -1509,8 +1509,9 @@ async function radioDj(env, ctx, origin, lang) {
 }
 // Ответ гостя радио: Grok, DeepSeek или Gemini, обычный текст; правила те же, что у Grok в студии
 async function radioAskGuest(env, g, headline, source, facts, question, retry) {
-  if (g === "grok") return askGrok(env, headline, source, facts, retry, 70000, question);
-  const sys = guestSystem(g), user = grokUser(headline, source, facts, question), extra = retry ? [{ role: "user", content: FORECAST_REMINDER }] : [];
+  const sys = guestSystem(g), user = grokUser(headline, source, facts, question);
+  if (g === "grok") return askGrok(env, headline, source, facts, retry, 70000, question, null, { system: sys, user }); // на радио у Grok то же строгое правило, что у остальных гостей
+  const extra = retry ? [{ role: "user", content: FORECAST_REMINDER }] : [];
   if (g === "deepseek") {
     if (!env.DEEPSEEK_API_KEY) throw new Error("DeepSeek is not configured");
     const model = env.DEEPSEEK_MODEL || "deepseek-chat";
@@ -1574,19 +1575,19 @@ async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
   for (const region of Object.keys(REGIONS)) {
-    const ep = await sharedGet(env, "radio-region-v2-" + region, 1e15);
+    const ep = await sharedGet(env, "radio-region-v3-" + region, 1e15);
     if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) continue;
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
     await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
     const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
-    if (fresh) await sharedPut(env, "radio-region-v2-" + region, fresh);
+    if (fresh) await sharedPut(env, "radio-region-v3-" + region, fresh);
     return; // один регион за проход крона
   }
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
   if (!region) return { status: "none", reason: "no regional desk for this country; the world desk plays", regions: Object.keys(REGIONS) };
-  const ep = await sharedGet(env, "radio-region-v2-" + region, 2 * REGION_MS);
+  const ep = await sharedGet(env, "radio-region-v3-" + region, 2 * REGION_MS);
   if (!ep) return { status: "preparing", region };
   const ivs = regionalInterviews(ep, lg);
   await Promise.all(ivs.flatMap((iv) => iv.lines.map(async (x) => { x.audio = await radioVoice(env, origin, x.text, iv.language, RADIO_GUESTS[x.who] ? x.who : "david"); })));

@@ -194,5 +194,8 @@ test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker a
   for (const l of ["ru", "de", "en"]) { assert.match(T[l].ai, /DeepSeek/); assert.match(T[l].ai, /Gemini \(Google\)/); }
   for (const l of ["en", "de", "ru"]) { assert.ok(!/Grok/.test(DJ_FALLBACK[l].to_music), "the thanks line names no guest"); assert.match(DJ_FALLBACK[l].intro, /DeepSeek/); }
   assert.match(DJ_SYSTEM, /without saying any guest name/);
+  for (const g of GUEST_ORDER) { assert.match(guestSystem(g), /say only what the headline and FACTS state/); assert.match(guestSystem(g), /never as a fact about this event/); }
+  assert.match(DJ_SYSTEM, /Do not name any specific story/); assert.ok(!/using only the given headlines/.test(DJ_SYSTEM));
+  assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /if \(g === "grok"\) return askGrok\(env, headline, source, facts, retry, 70000, question, null, \{ system: sys, user \}\)/);
   assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, to_music: "Thank you, Grok, that was a great talk. Now music." } }).en.to_music.by, "stock");
 });
