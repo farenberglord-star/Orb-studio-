@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
+import { interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -139,7 +139,7 @@ test("tracks fade in and out", () => {
   for (let t = 0; t <= 52; t += 0.5) { const g = trackGain(t, 52); assert.ok(g >= 0 && g <= 1); }
 });
 
-import { rightLanguage, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest, regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
+import { rightLanguage, RADIO_GUESTS, GUEST_ORDER, guestOfEpisode, guestTurns, guestSystem, withGuest, regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
 const RAD = [{ id: "politics", feed: [["10:00", "Bundestag passes new budget for Germany", "tagesschau.de", 80, "https://t.example/1"], ["10:05", "Trump signs order on tariffs", "apnews.com", 90, "https://a.example/2"], ["10:07", "Japan holds snap election", "nhk.jp", 95, "https://n.example/3"]] },
   { id: "economy", feed: [["09:00", "ECB keeps rates on hold", "reuters.com", 70, "https://r.example/4"], ["09:10", "Bundestag passes new budget for Germany", "dw.com", 60, "https://d.example/5"], ["09:20", "Wall Street closes higher", "cnbc.com", 50, "https://c.example/6"]] }];
 test("regions: country decides the desk; candidates are regional headlines, heaviest first, no repeats", () => {
@@ -182,6 +182,8 @@ test("page: regional interviews come first, then the world desk; same headline o
 
 test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker and the same rules", () => {
   assert.deepEqual(GUEST_ORDER, ["grok", "deepseek", "gemini"]);
+  assert.deepEqual([0, 1, 2, 3].map(guestOfEpisode), ["grok", "deepseek", "gemini", "grok"], "one guest per episode, in turn");
+  assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /guests = picks\.map\(\(\) => guestOfEpisode\(turn\)\)/);
   assert.deepEqual(guestTurns(0, 2), ["grok", "deepseek"]); assert.deepEqual(guestTurns(2, 2), ["gemini", "grok"]); assert.deepEqual(guestTurns(7, 3), ["deepseek", "gemini", "grok"]); assert.deepEqual(guestTurns("x", 1), ["grok"]);
   assert.equal(withGuest("{GUEST}, why now? Tell us, {GUEST}.", "deepseek"), "DeepSeek, why now? Tell us, DeepSeek."); assert.equal(withGuest("{GUEST}, why?", "nobody"), "Grok, why?");
   assert.match(guestSystem("grok"), /^You are Grok,/); assert.match(guestSystem("gemini"), /^You are Gemini, an AI model made by Google, a guest/); assert.match(guestSystem("deepseek"), /^You are DeepSeek, an AI model made by DeepSeek,/);
@@ -208,8 +210,41 @@ test("a translation must really be in the target language, or the whole intervie
   assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, read: en[0].read }] }, en).ru[0], null, "an English line inside a Russian translation drops it");
   assert.equal(checkTranslations({ de: [{ ...de, answer: en[0].answer }], ru: [ru] }, en).de[0], null, "a copied English answer is not German");
   assert.equal(rightLanguage("ru", "Grok, что здесь происходит с DeepSeek и Gemini?", ""), true, "names in Latin letters are fine");
-  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Давид, что здесь происходит?" }] }, en).ru[0], null, "the question must still address the same guest");
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Давид, что здесь происходит?" }] }, en).ru[0].question, "Grok, что здесь происходит?", "a wrong addressee is put right, the translation is kept");
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Что здесь происходит без обращения к гостю?" }] }, en).ru[0], null, "no addressee at all: rejected");
   assert.equal(rightLanguage("ru", "The measure now moves forward.", ""), false); assert.equal(rightLanguage("de", "Same text.", "same text."), false);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /JSON\.stringify\(\{ lines: \[x\.en\] \}\)/, "one interview per translation call"); assert.match(w, /ep\.tr_tries/);
+  assert.match(w, /JSON\.stringify\(\{ lines: \[x\.en\] \}\)/, "one interview per translation call"); assert.match(w, /ep\.tr2/);
+});
+
+test("market screen: whitelist of instruments, honest oil board, futures as reported", async () => {
+  const { MARKETS, marketById, candlesUrl, futuresQuote } = await import("../src/radio.js");
+  assert.deepEqual(MARKETS.map((m) => m.id), ["btc", "eth", "eurusd", "eurgbp", "eurchf", "usdjpy", "gold"]);
+  assert.equal(marketById("EURUSD").pair, "EURUSD"); assert.equal(marketById(null).id, "btc"); assert.equal(marketById("oil"), null); assert.equal(marketById("XBTEUR&x=1"), null);
+  assert.equal(candlesUrl(marketById("gold")), "https://api.kraken.com/0/public/OHLC?pair=PAXGEUR&interval=15");
+  const rows = Array.from({ length: 120 }, (_, i) => [1795000000 + i * 900, String(1.1 + i / 1e4), String(1.101 + i / 1e4), String(1.099 + i / 1e4), String(1.1005 + i / 1e4), "0", "1", 5]);
+  const d = parseCandles({ error: [], result: { ZEURZUSD: rows, last: 1 } }, 96, marketById("eurusd"));
+  assert.equal(d.candles.length, 96); assert.equal(d.pair, "EUR/USD"); assert.equal(d.quote, "USD"); assert.equal(d.window_hours, 24); assert.equal(d.last_price_eur, undefined, "a dollar price is not labelled as euros");
+  assert.equal(d.change_pct, +(((d.candles[95].c - d.candles[0].o) / d.candles[0].o) * 100).toFixed(2));
+  assert.match(parseCandles({ error: [], result: { X: rows } }, 96, marketById("gold")).instrument_note, /token/);
+  const f = futuresQuote({ mark_usd: 70123.5, funding_relative_pct: 0.00123, open_interest_btc: 2100.4, change_24h_pct: -1.2345, at: "2026-11-20T10:00:00Z" });
+  assert.equal(f.kind, "quote"); assert.equal(f.last, 70123.5); assert.equal(f.change_pct, -1.23); assert.equal(f.candles, undefined);
+  for (const bad of [null, {}, { mark_usd: "x" }, { mark_usd: 0 }]) assert.equal(futuresQuote(bad), null);
+  // страница
+  assert.deepEqual(MARKET_CHIPS.map((c) => c.id), ["btc", "eth", "eurusd", "eurgbp", "eurchf", "usdjpy", "gold", "fut", "oil"]);
+  assert.equal(nextMarket("fut"), "btc", "auto-rotation never lands on the empty oil board"); assert.equal(nextMarket("btc"), "eth"); assert.equal(nextMarket("oil"), "btc");
+  assert.equal(marketData(d), d); assert.equal(marketData(f), f);
+  for (const bad of [null, {}, { status: "unavailable" }, { last: 5, candles: [] }, { last: -1, kind: "quote" }]) assert.equal(marketData(bad), null);
+  assert.equal(fmtPrice(1.08456, 4, "en"), "1.0846"); assert.equal(fmtChange(1.5, "en"), "▲ +1.50 %"); assert.equal(fmtChange(-0.4, "en"), "▼ −0.40 %"); assert.equal(fmtChange(null, "en"), "");
+  assert.ok(wrapWords(T.ru.mk.oilNote, 34).every((l) => l.length <= 34));
+  for (const l of ["ru", "de", "en"]) { assert.deepEqual(Object.keys(T[l].mk).sort(), Object.keys(T.ru.mk).sort()); assert.ok(!/\d/.test(T[l].mk.oilNote), "no oil number anywhere"); }
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8");
+  assert.match(w, /const m = marketById\(id\); if \(!m\) return json\(\{ status: "unknown_pair"/);
+  assert.match(html, /id="mk"/); assert.match(html, /\.unit\[data-on="1"\] \.ring\{animation:ring/); assert.match(html, /reduce\)\{\.unit \.ring\{animation:none!important\}/);
+});
+
+test("guests are heard only in the listener's language", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
+  assert.match(w, /regionalInterviews\(ep, lg\)\.filter\(\(iv\) => iv\.language === lg\)/);
+  assert.match(js, /lang === "en" \? interviews\(duo, lang\) : \[\]/);
 });

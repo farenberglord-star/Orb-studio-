@@ -5,7 +5,7 @@
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
-import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestSystem, withGuest } from "./radio.js";
+import { parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1551,9 +1551,9 @@ async function radioRegionBuild(env, ctx, origin, region) {
   const picks = checkRegionPicks(await radioClaudeTool(env, regionPickSystem(region), regionUser(cands), REGION_TOOL, 700), cands, region, stripInvisible);
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
-  // очередь гостей общая для всех регионов: Grok → DeepSeek → Gemini → снова Grok
-  const turn = ((await sharedGet(env, "radio-guest-turn", 1e15)) || { n: 0 }).n, guests = guestTurns(turn, picks.length);
-  await sharedPut(env, "radio-guest-turn", { n: (turn + picks.length) % GUEST_ORDER.length });
+  // один гость на выпуск, очередь общая для всех регионов: Grok → DeepSeek → Gemini → снова Grok
+  const turn = ((await sharedGet(env, "radio-guest-turn", 1e15)) || { n: 0 }).n, guests = picks.map(() => guestOfEpisode(turn));
+  await sharedPut(env, "radio-guest-turn", { n: (turn + 1) % GUEST_ORDER.length });
   const answer = async (g, c, q, facts) => {
     let a = await radioAskGuest(env, g, c.headline, c.source, facts, q, false), r = duoCheck(a.text, stripInvisible);
     if (!r.ok && (r.reason === "forecast_language" || r.reason === "too_long")) { a = await radioAskGuest(env, g, c.headline, c.source, facts, q, true); r = duoCheck(a.text, stripInvisible); }
@@ -1586,29 +1586,31 @@ async function radioRegionWarm(env, ctx) {
   if (!env.XAI_API_KEY) return;
   const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
   for (const region of Object.keys(REGIONS)) {
-    const ep = await sharedGet(env, "radio-region-v3-" + region, 1e15);
+    const ep = await sharedGet(env, "radio-region-v4-" + region, 1e15);
     if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) {
       // выпуск свежий, но часть переводов не удалась: чиним только перевод (до трёх заходов), интервью не переписываем
       const bad = (x) => { const k = checkTranslations({ de: [x.de], ru: [x.ru] }, [x.en], stripInvisible); return !k.de[0] || !k.ru[0]; };
-      if ((ep.tr_tries || 0) < 4 && ep.items.some(bad)) { ep.tr_tries = (ep.tr_tries || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v3-" + region, ep); return; }
+      if ((ep.tr2 || 0) < 6 && ep.items.some(bad)) { ep.tr2 = (ep.tr2 || 0) + 1; await radioTranslate(env, ep.items); await sharedPut(env, "radio-region-v4-" + region, ep); return; }
       continue;
     }
     const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
     await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
     const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
-    if (fresh) await sharedPut(env, "radio-region-v3-" + region, fresh);
+    if (fresh) await sharedPut(env, "radio-region-v4-" + region, fresh);
     return; // один регион за проход крона
   }
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
   if (!region) return { status: "none", reason: "no regional desk for this country; the world desk plays", regions: Object.keys(REGIONS) };
-  const ep = await sharedGet(env, "radio-region-v3-" + region, 2 * REGION_MS);
+  const ep = await sharedGet(env, "radio-region-v4-" + region, 2 * REGION_MS);
   if (!ep) return { status: "preparing", region };
-  const ivs = regionalInterviews(ep, lg);
+  // слушатель слышит гостей только на своём языке: интервью без проверенного перевода в эфир не идёт (английский — только английскому слушателю)
+  const ivs = regionalInterviews(ep, lg).filter((iv) => iv.language === lg);
+  if (!ivs.length) return { status: "preparing", region, reason: "no interview with a checked translation into this language yet" };
   await Promise.all(ivs.flatMap((iv) => iv.lines.map(async (x) => { x.audio = await radioVoice(env, origin, x.text, iv.language, RADIO_GUESTS[x.who] ? x.who : "david"); })));
   return { status: "ok", region, region_label: REGIONS[region].label[lg], located_by: forced ? "region parameter" : "country of the IP address (Cloudflare), not stored", language: lg, generated_at: ep.generated_at, interviews: ivs,
-    host: "David — Orb Studio AI host (lines written by Claude)", guests: "AI models take turns: Grok (xAI), DeepSeek, Gemini (Google). Each answer is written by the model named in the interview.", translation: "German and Russian lines are translated by Claude; a line without a checked translation plays in English.",
+    host: "David — Orb Studio AI host (lines written by Claude)", guests: "AI models take turns: Grok (xAI), DeepSeek, Gemini (Google). Each answer is written by the model named in the interview.", translation: "German and Russian lines are translated by Claude; an interview without a checked translation is not aired in that language.",
     voices: "Synthetic AI voices (xAI Grok TTS).", scope_note: "Mechanisms, not forecasts or advice; answers that sound like forecasts are not aired. Headlines are third-party data." };
 }
 async function radioWeather(env, request, origin, lang) {
@@ -3369,11 +3371,18 @@ async function handleApi(url, request, env, ctx) {
   }
   // карточка радио для агентов: музыка, интервью и порядок эфира
   if (p === "/api/v1/radio") return json({ ...radioCard(await duoPublic(env, ctx, origin), origin), partners: podPartners("api-radio") }, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" });
-  // свечи BTC/EUR для экрана радио: Kraken, 15 минут; свежая копия 2 мин, запасная 2 часа, иначе честное unavailable
+  // рыночный экран радио: свечи Kraken по белому списку (?pair=btc|eth|eurusd|…), 15 минут, окно 24 часа; свежая копия 2 мин, запасная 2 часа, иначе честное unavailable
   if (p === "/api/v1/radio/candles") {
-    const c = caches.default, fresh = new Request("https://orbstudio.org/__cache/radio-candles-v1"), stale = new Request("https://orbstudio.org/__cache/radio-candles-v1-stale");
+    const id = String(url.searchParams.get("pair") || "btc").toLowerCase(), instruments = [...MARKETS.map((m) => m.id), "fut"];
+    if (id === "fut") { // бессрочный фьючерс: цифры, которые уже сняли датчики с Kraken Futures
+      const sn = await sharedGet(env, "sensors-v8", 6 * 3600e3).catch(() => null), q = futuresQuote(sn && sn.derivatives);
+      return q ? json({ ...q, instruments }, { "Cache-Control": "public, max-age=60" }) : json({ status: "unavailable", id, instruments }, { "Cache-Control": "no-store" }, 503);
+    }
+    const m = marketById(id); if (!m) return json({ status: "unknown_pair", instruments, oil: "not available: no open source with a display licence yet" }, { "Cache-Control": "public, max-age=300" }, 404);
+    const c = caches.default, fresh = new Request("https://orbstudio.org/__cache/radio-candles-v2-" + m.id), stale = new Request("https://orbstudio.org/__cache/radio-candles-v2-stale-" + m.id);
     const hit = await c.match(fresh); if (hit) return json(await hit.json(), { "Cache-Control": "public, max-age=60" });
-    let d = null; try { d = parseCandles(await sensorsFetchJson(CANDLES_URL)); } catch { d = null; }
+    let d = null; try { d = parseCandles(await sensorsFetchJson(candlesUrl(m)), 96, m); } catch { d = null; }
+    if (d) d.instruments = instruments;
     if (d) { d.at = new Date().toISOString(); const put = (rq, age) => c.put(rq, new Response(JSON.stringify(d), { headers: { "content-type": "application/json", "Cache-Control": "max-age=" + age } })); ctx.waitUntil(Promise.all([put(fresh, 120), put(stale, 7200)])); return json(d, { "Cache-Control": "public, max-age=60" }); }
     const old = await c.match(stale); if (old) return json({ ...(await old.json()), status: "degraded" }, { "Cache-Control": "public, max-age=60" });
     return json({ status: "unavailable", ...CANDLES_SOURCE }, { "Cache-Control": "no-store" }, 503);

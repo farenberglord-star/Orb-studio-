@@ -28,6 +28,18 @@ body[data-mode="guest"]{--c:#b58cff;--rgb:181,140,255}body[data-mode="music"]{--
 /* магнитола: картинка 9:16, экраны заданы в процентах от неё (координаты стекла от Грокбота, кадр 1080×1920) */
 .unit{position:relative;aspect-ratio:9/16;container-type:inline-size;margin:0 -12px;width:calc(100% + 24px);--lv:0}
 .unit .bg{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* живые рамки: неон самой картинки разгорается от громкости, от экранов расходятся импульсы — только пока идёт звук */
+.unit .glow{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;mix-blend-mode:screen;opacity:calc(var(--lv)*1.6);filter:brightness(1.5) saturate(1.7) blur(.35cqw)}
+.ring{position:absolute;pointer-events:none;border:.45cqw solid rgb(var(--rgb));border-radius:1.6cqw;box-shadow:0 0 3cqw rgba(var(--rgb),.7),inset 0 0 2cqw rgba(var(--rgb),.35);opacity:0}
+.ring.a{left:15.93%;top:8.85%;width:69.07%;height:31.77%}.ring.d{left:18.7%;top:64.38%;width:63.33%;height:19.48%}.ring.e{left:38.4%;top:47.6%;width:23.2%;height:11%}
+.unit[data-on="1"] .ring{animation:ring 1.7s ease-out infinite}.unit[data-on="1"] .ring.two{animation-delay:.85s}.unit[data-on="1"] .ring.d{animation-delay:.4s}
+@keyframes ring{0%{transform:scale(1);opacity:calc(.2 + var(--lv)*1.4)}100%{transform:scale(1.1,1.14);opacity:0}}
+/* рынок: кнопки инструментов поверх экрана */
+.mk{position:absolute;left:0;right:0;top:6.2cqw;z-index:2;display:none;gap:1cqw;padding:.8cqw 1.6cqw;overflow-x:auto;scrollbar-width:none;background:rgba(0,0,0,.45)}
+.mk::-webkit-scrollbar{display:none}
+.air[data-scene="market"]:not([data-talk="1"]) .mk{display:flex}
+.mk button{flex:none;appearance:none;border:1px solid rgba(var(--rgb),.45);background:rgba(4,8,26,.8);color:#cfe1ff;font:600 2.5cqw ui-monospace,monospace;letter-spacing:.03em;padding:1.3cqw 1.9cqw;border-radius:1.2cqw;cursor:pointer}
+.mk button[aria-pressed="true"]{background:rgb(var(--rgb));color:#02030a;border-color:rgb(var(--rgb))}
 .scr{position:absolute;overflow:hidden}
 .air{left:15.93%;top:8.85%;width:69.07%;height:31.77%;background:#02030a;outline:.5cqw solid rgba(var(--rgb),calc(.55 + var(--lv)*.45));box-shadow:0 0 calc(3cqw + var(--lv)*6cqw) rgba(var(--rgb),.35);transition:outline-color .5s}
 .air canvas,.air .sc{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -95,7 +107,7 @@ button{font:inherit;cursor:pointer}
 .krb-code{font:13px ui-monospace,monospace;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px}
 .bnote{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.brand i,.onair,#tick,.air .sc{animation:none!important}#tick{padding-left:2cqw}#bar,.air,.air .sc,#scene,#holo,.who{transition:none}}
+@media (prefers-reduced-motion:reduce){.unit .ring{animation:none!important}.unit .glow{opacity:0}.brand i,.onair,#tick,.air .sc{animation:none!important}#tick{padding-left:2cqw}#bar,.air,.air .sc,#scene,#holo,.who{transition:none}}
 </style>
 </head>
 <body data-mode="music">
@@ -107,12 +119,15 @@ button{font:inherit;cursor:pointer}
   </div>
   <div class="unit">
     <img class="bg" src="/media/radio/unit.webp" width="864" height="1536" alt="" decoding="async" fetchpriority="high">
+    <img class="glow" src="/media/radio/unit.webp" alt="" aria-hidden="true" decoding="async">
+    <i class="ring a" aria-hidden="true"></i><i class="ring a two" aria-hidden="true"></i><i class="ring e" aria-hidden="true"></i><i class="ring d" aria-hidden="true"></i>
     <div class="spill" aria-hidden="true"></div>
     <section class="scr air" data-scene="sky">
       <canvas id="scene" aria-hidden="true"></canvas>
       <img class="sc david" src="/media/radio/scene-david.webp" alt="" loading="lazy" decoding="async">
       <img class="sc earth" src="/media/radio/scene-earth.webp" alt="" loading="lazy" decoding="async">
       <div class="hud"><span class="onair">● ON AIR · <time id="clock"></time></span><b id="scn"></b></div>
+      <div class="mk" id="mk"></div>
       <canvas id="holo" aria-hidden="true"></canvas>
       <div class="who" id="who"></div>
       <div class="say" id="talk" aria-live="polite" hidden>
