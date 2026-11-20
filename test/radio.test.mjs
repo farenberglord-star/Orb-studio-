@@ -208,6 +208,7 @@ test("a translation must really be in the target language, or the whole intervie
   assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, read: en[0].read }] }, en).ru[0], null, "an English line inside a Russian translation drops it");
   assert.equal(checkTranslations({ de: [{ ...de, answer: en[0].answer }], ru: [ru] }, en).de[0], null, "a copied English answer is not German");
   assert.equal(rightLanguage("ru", "Grok, что здесь происходит с DeepSeek и Gemini?", ""), true, "names in Latin letters are fine");
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Давид, что здесь происходит?" }] }, en).ru[0], null, "the question must still address the same guest");
   assert.equal(rightLanguage("ru", "The measure now moves forward.", ""), false); assert.equal(rightLanguage("de", "Same text.", "same text."), false);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /JSON\.stringify\(\{ lines: \[x\.en\] \}\)/, "one interview per translation call"); assert.match(w, /ep\.tr_tries/);

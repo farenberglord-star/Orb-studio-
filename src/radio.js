@@ -176,7 +176,9 @@ export function rightLanguage(lang, text, source) { return lang === "ru" ? cyrSh
 export function checkTranslations(out, items, strip = (t) => t) {
   const res = {};
   for (const l of ["de", "ru"]) res[l] = (items || []).map((it, i) => { const t = out && Array.isArray(out[l]) ? out[l][i] : null; if (!t) return null; const o = {};
-    for (const k of ["read", "question", "answer"]) { const v = clip(t[k], strip, Math.round(String(it[k] || "").length * 2.2) + 120); if (!v || v.length < String(it[k] || "").length * 0.35 || !rightLanguage(l, v, it[k])) return null; o[k] = v; } return o; });
+    for (const k of ["read", "question", "answer"]) { const v = clip(t[k], strip, Math.round(String(it[k] || "").length * 2.2) + 120); if (!v || v.length < String(it[k] || "").length * 0.35 || !rightLanguage(l, v, it[k])) return null;
+      const who = k === "question" ? /^([A-Za-z]+),/.exec(String(it[k] || "")) : null; if (who && !v.startsWith(who[1] + ",")) return null; // вопрос обращён к тому же гостю, что и в оригинале
+      o[k] = v; } return o; });
   return res;
 }
 // Интервью региона в виде, который играет страница: читка → вопрос → ответ
