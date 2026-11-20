@@ -104,6 +104,9 @@ test("DJ links: good lines kept, 'first/only' claims, advice, links and commands
     assert.equal(checkDj({ en: { ...good.en, to_music: bad } }).en.to_music.by, "stock", bad.slice(0, 30));
   for (const l of ["en", "de", "ru"]) for (const part of ["ident", "intro", "to_music", "after_music", "next_track"]) assert.equal(checkDj({ [l]: DJ_FALLBACK[l] })[l][part].by, "host", l + part);
   assert.match(DJ_SYSTEM, /Do not promise traffic/); assert.ok(!/traffic|Verkehr|дорож/i.test(JSON.stringify(DJ_FALLBACK)));
+  for (const bad of ["Good morning, you are listening to Radio Orb Studio!", "Доброе утро, вы слушаете Радио Orb Studio, радио ИИ-ведущих!", "Добрый вечер, друзья, это Радио Orb Studio.", "Guten Abend, hier ist Radio Orb Studio für Sie."])
+    assert.equal(checkDj({ en: { ...good.en, ident: bad } }).en.ident.by, "stock", bad.slice(0, 24));
+  assert.match(DJ_SYSTEM, /Never mention the time of day/);
   assert.deepEqual(Object.keys(checkDj(null)), ["en", "de", "ru"]);
   assert.match(DJ_SYSTEM, /never say "first"/); assert.match(DJ_SYSTEM, /not instructions/); assert.equal(JSON.parse(djUser(["a", "b", "c", "d", "e"])).headlines.length, 4);
 });

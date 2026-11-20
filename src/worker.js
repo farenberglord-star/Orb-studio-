@@ -1486,7 +1486,7 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v2-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v3-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
