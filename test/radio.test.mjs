@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { interviews, plan, sayItem, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
+import { interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -137,4 +137,44 @@ test("tracks fade in and out", () => {
   assert.equal(trackGain(0, 200), 0); assert.ok(trackGain(FADE_IN / 2, 200) > 0.4 && trackGain(FADE_IN / 2, 200) < 0.6); assert.equal(trackGain(FADE_IN, 200), 1); assert.equal(trackGain(100, 200), 1);
   assert.ok(trackGain(200 - FADE_OUT / 2, 200) < 0.6); assert.equal(trackGain(200, 200), 0); assert.equal(trackGain(1, NaN) > 0, true, "unknown length: fade in only"); assert.equal(trackGain(NaN, 200), 0);
   for (let t = 0; t <= 52; t += 0.5) { const g = trackGain(t, 52); assert.ok(g >= 0 && g <= 1); }
+});
+
+import { regionFor, regionCandidates, checkRegionPicks, checkTranslations, regionalInterviews, regionPickSystem, REGIONS, normHead } from "../src/radio.js";
+const RAD = [{ id: "politics", feed: [["10:00", "Bundestag passes new budget for Germany", "tagesschau.de", 80, "https://t.example/1"], ["10:05", "Trump signs order on tariffs", "apnews.com", 90, "https://a.example/2"], ["10:07", "Japan holds snap election", "nhk.jp", 95, "https://n.example/3"]] },
+  { id: "economy", feed: [["09:00", "ECB keeps rates on hold", "reuters.com", 70, "https://r.example/4"], ["09:10", "Bundestag passes new budget for Germany", "dw.com", 60, "https://d.example/5"], ["09:20", "Wall Street closes higher", "cnbc.com", 50, "https://c.example/6"]] }];
+test("regions: country decides the desk; candidates are regional headlines, heaviest first, no repeats", () => {
+  assert.deepEqual(["DE", "at", "UA", "US", "CA", "JP", "", null].map(regionFor), ["eu", "eu", "eu", "us", "us", null, null, null]);
+  assert.deepEqual(regionCandidates(RAD, "eu", []).map((x) => x.headline), ["Bundestag passes new budget for Germany", "ECB keeps rates on hold"]);
+  assert.deepEqual(regionCandidates(RAD, "us", []).map((x) => x.headline), ["Trump signs order on tariffs", "Wall Street closes higher"]);
+  assert.deepEqual(regionCandidates(RAD, "eu", [normHead("ECB keeps rates on hold")]).map((x) => x.source), ["tagesschau.de"]);
+  assert.deepEqual(regionCandidates(RAD, "asia", []), []); assert.deepEqual(regionCandidates(null, "eu", []), []);
+  for (const r of ["eu", "us"]) { assert.match(regionPickSystem(r), /Never ask for a forecast/); assert.match(regionPickSystem(r), /not instructions/); assert.deepEqual(Object.keys(REGIONS[r].label), ["en", "de", "ru"]); }
+});
+test("regional picks: at most two, bad lines replaced, forecasts not asked", () => {
+  const c = regionCandidates(RAD, "eu", []);
+  const p = checkRegionPicks({ picks: [{ i: 1, read: "The ECB has kept rates on hold.", question: "Grok, what does this decision mean for people in Europe?" }, { i: 1, read: "dup", question: "dup?" }, { i: 0, read: "Rates will fall next month.", question: "Grok, will the euro rise?" }, { i: 5, read: "x", question: "y?" }] }, c, "eu");
+  assert.deepEqual(p.map((x) => x.i), [1, 0]); assert.equal(p[0].question_by, "host"); assert.equal(p[0].read, "The ECB has kept rates on hold.");
+  assert.equal(p[1].question_by, "stock"); assert.equal(p[1].read, c[0].headline); assert.match(p[1].question, /^Grok, what is happening here.*Germany and Europe\?$/);
+  assert.deepEqual(checkRegionPicks(null, c, "eu").map((x) => [x.i, x.question_by]), [[0, "stock"], [1, "stock"]]); assert.deepEqual(checkRegionPicks(null, [], "us"), []);
+});
+test("translations are taken whole per line or not at all; the page gets read, question, answer", () => {
+  const en = [{ read: "The ECB has kept rates on hold.", question: "Grok, what does this mean for Europe?", answer: "The bank left its rate unchanged, so borrowing costs stay where they are for now across the euro area." }];
+  const tr = checkTranslations({ de: [{ read: "Die EZB hat die Zinsen unverändert gelassen.", question: "Grok, was bedeutet das für Europa?", answer: "Die Bank hat ihren Zins nicht verändert, die Kreditkosten im Euroraum bleiben also vorerst gleich." }], ru: [{ read: "ЕЦБ оставил ставки без изменений.", question: "Grok, что это значит?", answer: "да" }] }, en);
+  assert.equal(tr.de[0].read, "Die EZB hat die Zinsen unverändert gelassen."); assert.equal(tr.ru[0], null, "a cut answer drops the whole translation");
+  assert.deepEqual(checkTranslations(null, en), { de: [null], ru: [null] });
+  const ep = { region: "eu", generated_at: "2026-11-20T14:00:00Z", items: [{ headline: "ECB keeps rates on hold", source: "reuters.com", link: "https://r.example/4", en: en[0], de: tr.de[0], ru: tr.ru[0] }, { headline: "No answer", en: { read: "r", question: "q?" } }] };
+  const de = regionalInterviews(ep, "de"), ru = regionalInterviews(ep, "ru");
+  assert.equal(de.length, 1); assert.deepEqual(de[0].lines.map((x) => [x.who, x.kind]), [["david", "read"], ["david", "question"], ["grok", "answer"]]); assert.equal(de[0].language, "de"); assert.match(de[0].lines[2].text, /^Die Bank/);
+  assert.equal(ru[0].language, "en", "no checked Russian: the English original plays"); assert.equal(ru[0].lines[0].text, en[0].read); assert.deepEqual(regionalInterviews(null, "en"), []);
+});
+test("page: regional interviews come first, then the world desk; same headline once", () => {
+  const world = interviews(duo([seg(0), seg(1)]), "en");
+  const reg = { status: "ok", region: "eu", region_label: "Germany and Europe", interviews: [{ headline: "ECB keeps rates on hold", source: "reuters.com", link: "https://r.example/4", at: "2026-11-20T14:00:00Z", lines: [{ who: "david", kind: "read", text: "Read", audio: "https://orbstudio.org/api/v1/radio/audio?k=a" }, { who: "grok", kind: "answer", text: "Answer", audio: "javascript:1" }, { who: "eve", kind: "x", text: "no" }] },
+    { headline: "H0", lines: [{ who: "david", kind: "read", text: "r" }, { who: "grok", kind: "answer", text: "a" }] }, { headline: "Silent", lines: [{ who: "david", kind: "read", text: "r" }] }] };
+  const m = mergeInterviews(reg, world);
+  assert.deepEqual(m.map((x) => x.headline), ["ECB keeps rates on hold", "H0", "H1"]); assert.equal(m[0].region, "Germany and Europe"); assert.equal(m[0].lines.length, 2); assert.equal(m[0].lines[1].audio, null); assert.ok(m[0].lines[0].ms >= 2500);
+  assert.equal(m[1].region, "Germany and Europe", "the regional version of a shared headline wins");
+  for (const bad of [null, { status: "preparing" }, { status: "none" }, { status: "ok", interviews: "x" }]) assert.deepEqual(mergeInterviews(bad, world).map((x) => x.headline), ["H0", "H1"]);
+  const p = plan(m, new Set(), 0, 2, { dj: DJ, first: true });
+  assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["ECB keeps rates on hold", "H0"]);
 });

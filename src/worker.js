@@ -3,7 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
-import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText } from "./radio.js";
+import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1478,9 +1478,9 @@ async function duoWarm(env, ctx) {
     await podAdd(env, d).catch(() => null); }
 }
 // ================= Радио: диджей Давид (связки) и погода по городу слушателя =================
-async function radioVoice(env, origin, text, lg) {
+async function radioVoice(env, origin, text, lg, who = "david") {
   if (!env.XAI_API_KEY || !env.DB) return null;
-  try { const a = await ttsEnsure(env, text, "david", lg); return a ? `${origin}/api/v1/radio/audio?k=${a.k}` : null; } catch { return null; }
+  try { const a = await ttsEnsure(env, text, who, lg); return a ? `${origin}/api/v1/radio/audio?k=${a.k}` : null; } catch { return null; }
 }
 async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
@@ -1506,6 +1506,64 @@ async function radioDj(env, ctx, origin, lang) {
     links: Object.fromEntries(DJ_PARTS.map((part, i) => [part, { text: mine[part].text, by: mine[part].by, audio: audio[i] }])),
     greetings: Object.fromEntries(DJ_DAYPARTS.map((dp, i) => [dp, { text: DJ_GREETINGS[lg][dp], audio: gAudio[i] }])), greetings_note: "The page picks the greeting by the listener's own device clock: morning 5-11, day 12-17, evening 18-22, night 23-4.",
     voices: "Synthetic AI voice (xAI Grok TTS). David is an AI agent, not a person.", note: "by \"stock\" marks a fallback line. Links are written per episode; headlines are third-party data." };
+}
+// ---- Интервью ближе к слушателю: раз в 4 часа на регион, готовит cron; запрос только отдаёт готовое ----
+async function radioClaudeTool(env, system, user, tool, maxTokens) {
+  if (!env.ANTHROPIC_API_KEY) return null;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(30000),
+      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: maxTokens, system, messages: [{ role: "user", content: user }], tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
+    if (!res.ok) return null; const t = ((await res.json()).content || []).find((c) => c.type === "tool_use"); return t ? t.input : null;
+  } catch { return null; }
+}
+async function radioRegionBuild(env, ctx, origin, region) {
+  const radars = await allRadars(env, ctx, origin);
+  const usedList = (await sharedGet(env, "radio-region-used", 1e15)) || [], latest = await sharedGet(env, "duo-latest", 1e15).catch(() => null);
+  const exclude = new Set([...usedList, ...((latest && latest.segments) || []).map((x) => normHead(x && x.headline))]);
+  const cands = regionCandidates(radars, region, exclude);
+  if (!cands.length) return null;
+  const picks = checkRegionPicks(await radioClaudeTool(env, regionPickSystem(region), regionUser(cands), REGION_TOOL, 700), cands, region, stripInvisible);
+  const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
+  const allFacts = buildFacts({ chokepoints: cp, gas, sensors }); let model = null;
+  const items = (await Promise.all(picks.map(async (p) => {
+    const c = cands[p.i], facts = relevantFacts(allFacts, c.headline, p.question);
+    try {
+      let a = await askGrok(env, c.headline, c.source, facts, false, 70000, p.question), r = duoCheck(a.text, stripInvisible); model = a.model;
+      if (!r.ok && (r.reason === "forecast_language" || r.reason === "too_long")) { a = await askGrok(env, c.headline, c.source, facts, true, 70000, p.question); r = duoCheck(a.text, stripInvisible); }
+      if (!r.ok) return null; // гость не ответил или ответ не прошёл фильтр: такое интервью в эфир не идёт
+      return { headline: c.headline, source: c.source, link: c.link, time: c.time, radar: c.radar, question_by: p.question_by, facts_used: facts, en: { read: p.read, question: p.question, answer: r.text } };
+    } catch { return null; }
+  }))).filter(Boolean);
+  if (!items.length) return null;
+  const tr = checkTranslations(await radioClaudeTool(env, TRANSLATE_SYSTEM, JSON.stringify({ lines: items.map((x) => x.en) }), TRANSLATE_TOOL, 2600), items.map((x) => x.en), stripInvisible);
+  items.forEach((x, i) => { x.de = tr.de[i]; x.ru = tr.ru[i]; });
+  await sharedPut(env, "radio-region-used", [...usedList, ...items.map((x) => normHead(x.headline))].slice(-60));
+  return { region, region_name: REGIONS[region].name, generated_at: new Date().toISOString(), model, items };
+}
+async function radioRegionWarm(env, ctx) {
+  if (!env.XAI_API_KEY) return;
+  const origin = "https://" + (env.MAIN_HOST || "orbstudio.org");
+  for (const region of Object.keys(REGIONS)) {
+    const ep = await sharedGet(env, "radio-region-v1-" + region, 1e15);
+    if (ep && Date.now() - Date.parse(ep.generated_at) < REGION_MS) continue;
+    const lock = await sharedGet(env, "radio-region-lock-" + region, 20 * 60e3); if (lock) continue; // после неудачи не пробуем чаще раза в 20 минут
+    await sharedPut(env, "radio-region-lock-" + region, { t: Date.now() });
+    const fresh = await radioRegionBuild(env, ctx, origin, region).catch(() => null);
+    if (fresh) await sharedPut(env, "radio-region-v1-" + region, fresh);
+    return; // один регион за проход крона
+  }
+}
+async function radioRegional(env, request, origin, lang, forced) {
+  const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
+  if (!region) return { status: "none", reason: "no regional desk for this country; the world desk plays", regions: Object.keys(REGIONS) };
+  const ep = await sharedGet(env, "radio-region-v1-" + region, 2 * REGION_MS);
+  if (!ep) return { status: "preparing", region };
+  const ivs = regionalInterviews(ep, lg);
+  await Promise.all(ivs.flatMap((iv) => iv.lines.map(async (x) => { x.audio = await radioVoice(env, origin, x.text, iv.language, x.who === "grok" ? "grok" : "david"); })));
+  return { status: "ok", region, region_label: REGIONS[region].label[lg], located_by: forced ? "region parameter" : "country of the IP address (Cloudflare), not stored", language: lg, generated_at: ep.generated_at, interviews: ivs,
+    host: "David — Orb Studio AI host (lines written by Claude)", guest: "Grok (xAI)" + (ep.model ? ", " + ep.model : ""), translation: "German and Russian lines are translated by Claude; a line without a checked translation plays in English.",
+    voices: "Synthetic AI voices (xAI Grok TTS).", scope_note: "Mechanisms, not forecasts or advice; answers that sound like forecasts are not aired. Headlines are third-party data." };
 }
 async function radioWeather(env, request, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", cf = request.cf || {}, city = cleanCity(cf.city), lat = Number(cf.latitude), lon = Number(cf.longitude);
@@ -3253,6 +3311,8 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/music" || p === "/music") ctx.waitUntil((async () => { if (await sharedGet(env, "emo-music-poll", 10 * 60e3)) return; await sharedPut(env, "emo-music-poll", { t: Date.now() }); await emoMusicCheck(env, ctx); })().catch(() => null));
   // связки диджея Давида для текущего выпуска (пишет Claude, голос — тот же синтез, что в студии)
   if (p === "/api/v1/radio/dj") return json(await radioDj(env, ctx, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  // интервью ближе к слушателю (регион по стране IP; ?region=eu|us — для проверки)
+  if (p === "/api/v1/radio/regional") return json(await radioRegional(env, request, origin, url.searchParams.get("lang"), url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
   // погода для города слушателя: город по IP даёт Cloudflare, он нигде не сохраняется вместе с посетителем
   if (p === "/api/v1/radio/weather") return json(await radioWeather(env, request, origin, url.searchParams.get("lang")), { "Cache-Control": "private, max-age=600" });
   if (p === "/api/v1/radio/audio") {
@@ -8440,7 +8500,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
