@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Radio Orb Studio</title>
 <meta name="description" content="Test radio of Orb Studio: our own tracks, and between them the AI host David interviews Grok (xAI) about one headline from the live sensors. Voices are synthetic.">
+<link rel="preload" as="image" href="/media/radio/unit.webp" type="image/webp">
 <link rel="canonical" href="https://orbstudio.org/radio">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#05060c">
 <style>
-:root{--c:#6fe6ff;--col:min(100vw,520px);color-scheme:dark}
+:root{--c:#6fe6ff;--col:min(100vw,56.25svh,520px);color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;max-width:100%;overflow-x:clip;background:#05060c;color:#e9eefb;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body[data-mode="guest"]{--c:#b58cff}body[data-mode="music"]{--c:#ffcf96}
 .back{position:fixed;inset:0;z-index:-1;overflow:hidden}
-.back:before{content:"";position:absolute;inset:-40px;background:url(/media/studio-duo-blur.webp) center/cover;filter:blur(28px) brightness(.42)}
+.back:before{content:"";position:absolute;inset:0;background:radial-gradient(80% 50% at 50% 30%,#0d1030,#05060c 70%)}
 .wrap{width:var(--col);margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(30px + env(safe-area-inset-bottom,0px));display:grid;gap:12px}
 .wrap>*{min-width:0}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:11px;letter-spacing:.04em;padding-left:74px;min-height:40px}
@@ -24,21 +25,37 @@ body[data-mode="guest"]{--c:#b58cff}body[data-mode="music"]{--c:#ffcf96}
 .tag{display:inline-block;border:1px solid rgba(255,207,150,.5);color:#ffcf96;border-radius:999px;padding:2px 8px;text-transform:uppercase;letter-spacing:.12em;font-size:10px}
 .cnt{display:block;margin-top:4px;color:#9aa6c2;text-align:right;font-variant-numeric:tabular-nums}
 @keyframes on{50%{opacity:.35}}
-.air{position:relative;border-radius:16px;padding:16px;background:rgba(6,9,18,.84);border:1px solid rgba(255,255,255,.1);border-left:3px solid var(--c);transition:border-color .4s}
-.air:before{content:"";position:absolute;inset:0;border-radius:16px;background:radial-gradient(90% 70% at 0 0,color-mix(in srgb,var(--c) 16%,transparent),transparent 60%);pointer-events:none}
-.kind{font:600 10.5px ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
-.who{font-weight:700;font-size:18px;color:var(--c);margin:6px 0 4px}
-#text{margin:0;font-size:clamp(15px,4.2vw,18px);line-height:1.4;text-wrap:pretty;min-height:4.2em}
-.meta{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:10px;font-size:12px;color:#8f9bb8}
-.meta a{color:var(--c);white-space:nowrap}
-.epdate{font:600 10.5px ui-monospace,monospace;letter-spacing:.16em;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.8)}
-.prog{height:3px;border-radius:2px;background:rgba(255,255,255,.12);margin-top:12px;overflow:hidden}
+/* магнитола: картинка 9:16, экраны заданы в процентах от неё (координаты стекла от Грокбота) */
+.unit{position:relative;width:100%;aspect-ratio:9/16;container-type:inline-size;margin:0 -12px;width:calc(100% + 24px)}
+.unit img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scr{position:absolute;overflow:hidden}
+.air{left:15.93%;top:8.85%;width:69.07%;height:31.77%;padding:3.2cqw 3.6cqw;display:flex;flex-direction:column;background:radial-gradient(120% 90% at 0 0,color-mix(in srgb,var(--c) 15%,transparent),transparent 62%);box-shadow:inset 0 0 6cqw color-mix(in srgb,var(--c) 14%,transparent);transition:box-shadow .5s}
+.air:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.16) 2px 3px);pointer-events:none}
+.kind{font:600 2.5cqw ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+.who{font-weight:700;font-size:4.6cqw;color:var(--c);margin:1.2cqw 0 1cqw;text-shadow:0 0 2.4cqw color-mix(in srgb,var(--c) 60%,transparent)}
+#text{margin:0;flex:1;min-height:0;overflow-y:auto;scroll-behavior:smooth;scrollbar-width:none;font-size:3.5cqw;line-height:1.36;text-wrap:pretty;color:#eaf2ff}
+#text::-webkit-scrollbar{display:none}
+#text.long{font-size:3.15cqw}
+.meta{display:flex;justify-content:space-between;gap:2cqw;align-items:center;margin-top:1.4cqw;font-size:2.7cqw;color:#8f9bb8}
+.meta span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta a{color:var(--c);white-space:nowrap;position:relative;z-index:1}
+.epdate{margin-top:1cqw;font:600 2.5cqw ui-monospace,monospace;letter-spacing:.16em;color:#bff4ff;text-shadow:0 0 4px #5fe0ff,0 0 11px rgba(60,190,255,.8)}
+/* эквалайзер на средней панели: украшение, движется пока идёт звук (не измеряет громкость) */
+.eq{left:37.04%;top:46.61%;width:25.93%;height:13.8%;display:flex;align-items:flex-end;justify-content:center;gap:1.1cqw;padding:2cqw 2.4cqw}
+.eq i{flex:1;height:12%;border-radius:1px;background:linear-gradient(0deg,var(--c),color-mix(in srgb,var(--c) 35%,#fff));opacity:.85;transform-origin:50% 100%}
+body[data-on="1"] .eq i{animation:eq 1s ease-in-out infinite alternate}
+.eq i:nth-child(2){animation-duration:.7s!important}.eq i:nth-child(3){animation-duration:1.3s!important}.eq i:nth-child(4){animation-duration:.55s!important}.eq i:nth-child(5){animation-duration:.9s!important}.eq i:nth-child(6){animation-duration:.65s!important}.eq i:nth-child(7){animation-duration:1.15s!important}.eq i:nth-child(8){animation-duration:.8s!important}.eq i:nth-child(9){animation-duration:1.05s!important}
+@keyframes eq{0%{height:10%}100%{height:96%}}
+.deck{left:18.7%;top:64.38%;width:63.33%;height:19.48%;padding:2.6cqw 3cqw;display:flex;flex-direction:column;justify-content:space-between}
+.np{min-height:0;overflow:hidden}.np b{display:block;font:600 2.4cqw ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--c)}
+.np span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:3.2cqw;line-height:1.3;color:#eaf2ff}
+.prog{height:.8cqw;min-height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
 #bar{height:100%;width:0;background:var(--c);transition:width .5s linear}
-#time{font:11px ui-monospace,monospace;color:#8f9bb8;margin-top:5px;min-height:1.3em;font-variant-numeric:tabular-nums}
-.ctl{display:grid;grid-template-columns:1fr auto;gap:10px}
+#time{font:2.6cqw ui-monospace,monospace;color:#9aa6c2;min-height:1.3em;font-variant-numeric:tabular-nums}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:2cqw}
 button{font:inherit;cursor:pointer}
-#play{min-height:52px;border:0;border-radius:14px;font-weight:700;font-size:17px;color:#04121a;background:linear-gradient(90deg,#7fe9ff,#b9aeff)}
-#skip{min-height:52px;padding:0 16px;border-radius:14px;border:1px solid rgba(255,255,255,.25);background:rgba(6,9,18,.7);color:#e9eefb}
+#play{min-height:max(44px,10.5cqw);border:0;border-radius:2.4cqw;font-weight:700;font-size:max(14px,3.9cqw);color:#04121a;background:linear-gradient(90deg,#7fe9ff,#b9aeff);padding:0 2cqw}
+#skip{min-height:max(44px,10.5cqw);padding:0 3cqw;border-radius:2.4cqw;border:1px solid rgba(255,255,255,.28);background:rgba(6,9,18,.7);color:#e9eefb;font-size:max(13px,3.3cqw);white-space:nowrap}
 #play:focus-visible,#skip:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .hint,.note{margin:0;color:#aeb9d2;font-size:13.5px}.note:empty{display:none}
 .rd{border-radius:14px;padding:14px 16px;background:rgba(6,9,18,.78);border:1px solid rgba(255,255,255,.08)}
@@ -62,7 +79,7 @@ button{font:inherit;cursor:pointer}
 .krb-code{font:13px ui-monospace,monospace;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px}
 .bnote{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0}
 [hidden]{display:none!important}
-@media (prefers-reduced-motion:reduce){.brand i{animation:none}#bar,.air{transition:none}}
+@media (prefers-reduced-motion:reduce){.brand i,.eq i{animation:none!important}#bar,.air{transition:none}}
 </style>
 </head>
 <body data-mode="music">
@@ -72,15 +89,22 @@ button{font:inherit;cursor:pointer}
     <div class="brand"><i></i>Orb Studio<b id="ttl"></b></div>
     <div><span class="tag" id="test"></span><span class="cnt" id="cnt" hidden>👁 <b id="cPage"></b></span></div>
   </div>
-  <section class="air" aria-live="polite">
-    <div class="kind" id="kind"></div>
-    <div class="who" id="who"></div>
-    <p id="text"></p>
-    <div class="meta"><span id="src"></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
-    <div class="meta"><time class="epdate" id="epdate" hidden></time><span></span></div>
-    <div class="prog"><div id="bar"></div></div><div id="time"></div>
-  </section>
-  <div class="ctl"><button id="play" type="button"></button><button id="skip" type="button" hidden></button></div>
+  <div class="unit">
+    <img src="/media/radio/unit.webp" width="864" height="1536" alt="" decoding="async" fetchpriority="high">
+    <section class="scr air" aria-live="polite">
+      <div class="kind" id="kind"></div>
+      <div class="who" id="who"></div>
+      <p id="text"></p>
+      <div class="meta"><span id="src"></span><a id="link" target="_blank" rel="noopener noreferrer" hidden></a></div>
+      <time class="epdate" id="epdate" hidden></time>
+    </section>
+    <div class="scr eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <section class="scr deck">
+      <div class="np"><b id="np-k"></b><span id="np"></span></div>
+      <div class="prog"><div id="bar"></div></div><div id="time"></div>
+      <div class="ctl"><button id="play" type="button"></button><button id="skip" type="button" hidden></button></div>
+    </section>
+  </div>
   <p class="hint" id="hint"></p><p class="note" id="note" role="status"></p>
   <section class="rd"><h2 id="rd-h"></h2><ol id="rd"></ol></section>
   <p class="small" id="by"></p><p class="small" id="ai"></p>

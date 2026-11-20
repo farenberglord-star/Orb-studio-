@@ -58,12 +58,14 @@ function start() {
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = st[e.dataset.h] || ""; });
   const play = $("play"), skip = $("skip"), au = new Audio(); au.preload = "auto";
   play.textContent = t.start; skip.textContent = t.skip; $("hint").textContent = t.tap;
+  $("kind").textContent = t.title; $("text").textContent = t.tap; // экран до включения
 
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  let items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false, tick = 0;
+  let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false, tick = 0;
 
+  const setOn = (v) => { on = v; document.body.dataset.on = v ? "1" : ""; play.textContent = v ? t.pause : t.resume; };
   const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); e.hidden = !d; e.textContent = d ? t.episode + " " + d : ""; };
   function rundown() {
     const ol = $("rd"); ol.textContent = "";
@@ -73,21 +75,22 @@ function start() {
       li2.append(k, s); ol.append(li2); });
   }
   function showTrack(tr) {
-    document.body.dataset.mode = "music"; $("kind").textContent = "♪ " + t.music; $("who").textContent = "Orb Studio"; $("text").textContent = tr.title;
+    document.body.dataset.mode = "music"; $("kind").textContent = "♪ " + t.music; $("who").textContent = "Orb Studio"; $("text").textContent = tr.title; $("text").scrollTop = 0; $("text").classList.remove("long");
     $("src").textContent = ""; $("link").hidden = true; setDate(null);
+    $("np-k").textContent = t.now + " · " + t.music; $("np").textContent = tr.title;
     if (navigator.mediaSession) try { navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title, artist: "Orb Studio", album: t.title }); } catch {}
   }
   function showLine(iv, x) {
     document.body.dataset.mode = x.who === "grok" ? "guest" : "host"; $("kind").textContent = "🎙 " + t.talk;
-    $("who").textContent = x.who === "david" ? "David" : iv.guest; $("text").textContent = x.kind === "label" ? t.guestOff : x.text;
+    $("who").textContent = x.who === "david" ? "David" : iv.guest; $("text").textContent = x.kind === "label" ? t.guestOff : x.text; $("text").scrollTop = 0; $("text").classList.toggle("long", String(x.text || "").length > 220);
     $("src").textContent = iv.source || ""; const a = $("link"); if (iv.link) { a.href = iv.link; a.textContent = t.story; a.hidden = false; } else a.hidden = true;
-    setDate(iv.at);
+    setDate(iv.at); $("np-k").textContent = t.now + " · David × " + iv.guest; $("np").textContent = iv.headline;
     if (navigator.mediaSession) try { navigator.mediaSession.metadata = new MediaMetadata({ title: iv.headline, artist: "David × " + iv.guest, album: t.title }); } catch {}
   }
   function nextLine() {
     clearTimeout(timer); const it = items[idx]; if (!it || it.type !== "talk") return;
     if (li >= it.iv.lines.length) { heard.add(it.iv.headline); saveHeard(); return next(); }
-    const x = it.iv.lines[li++]; showLine(it.iv, x);
+    const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000;
     au.onended = au.onerror = null;
     if (x.audio) { au.src = x.audio; au.onended = nextLine; au.onerror = () => { timer = setTimeout(nextLine, x.ms || 4000); }; au.play().catch(() => { timer = setTimeout(nextLine, x.ms || 4000); }); }
     else timer = setTimeout(nextLine, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
@@ -105,11 +108,13 @@ function start() {
     else { li = 0; nextLine(); }
   }
   play.addEventListener("click", async () => {
-    if (!started) { started = true; on = true; $("hint").hidden = true; skip.hidden = false; play.textContent = t.pause; await build(); next();
-      tick = setInterval(() => { const d = au.duration, c = au.currentTime; $("bar").style.width = d ? (100 * c / d).toFixed(1) + "%" : "0"; $("time").textContent = d ? fmt(c) + " / " + fmt(d) : ""; }, 500); return; }
-    on = !on; play.textContent = on ? t.pause : t.resume; if (on) { if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
+    if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; await build(); next();
+      tick = setInterval(() => { const d = au.duration, c = au.currentTime; $("bar").style.width = d ? (100 * c / d).toFixed(1) + "%" : "0"; $("time").textContent = d ? fmt(c) + " / " + fmt(d) : "";
+        // длинная реплика прокручивается сама, вместе с голосом (или по времени чтения, если голоса нет)
+        const tx = $("text"), over = tx.scrollHeight - tx.clientHeight; if (over > 2) { const f = d ? c / d : Math.min(1, (Date.now() - lineAt) / (lineMsNow || 1)); tx.scrollTop = over * Math.min(1, Math.max(0, (f - 0.12) / 0.7)); } }, 500); return; }
+    setOn(!on); if (on) { if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
   });
-  skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } on = true; play.textContent = t.pause; next(); });
+  skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } setOn(true); next(); });
   // до нажатия показываем программу, чтобы было видно, что будет в эфире
   build().then(() => { if (!started) rundown(); });
 

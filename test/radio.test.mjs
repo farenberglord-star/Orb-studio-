@@ -41,6 +41,8 @@ test("tracks are our own files; texts, date and page", () => {
   assert.equal(episodeDate("2026-11-20T10:19:23Z"), "20.11.26"); assert.equal(episodeDate(null), ""); assert.equal(fmt(267), "4:27");
   const html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8");
   assert.ok(!/<script[^>]+src="https?:/.test(html), "no external scripts"); assert.match(html, /name="robots" content="noindex"/);
+  assert.match(html, /\.air\{left:15\.93%;top:8\.85%;width:69\.07%;height:31\.77%/); assert.match(html, /\.deck\{left:18\.7%;top:64\.38%;width:63\.33%;height:19\.48%/);
+  assert.ok(statSync(new URL("../public/media/radio/unit.webp", import.meta.url)).size < 200_000);
   assert.match(html, /go\/kraken\?from=radio/); assert.match(html, /go\/starlink\?from=radio/);
   assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /new Set\(\["radio", "studio-listen"/);
 });
