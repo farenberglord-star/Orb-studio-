@@ -303,3 +303,17 @@ test("weather is spoken once an hour; a regional episode brings three interviews
   assert.match(readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), /weatherDue\(lastWx\(\), Date\.now\(\)\)/);
   const { REGION_MS, REGION_MAX } = await import("../src/radio.js"); assert.equal(REGION_MS, 2 * 3600e3); assert.equal(REGION_MAX, 3);
 });
+
+test("music shelf: every track plays once before any repeats; new files get into both lists", async () => {
+  const { nextTrackId } = await import("../public/radio.js"), { buildList, titleFromFile, idFromFile } = await import("../tools/radio_tracks.mjs");
+  const ids = ["a", "b", "c", "d", "e"]; let seed = 5; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  let st = { bag: [], last: null }; const played = [];
+  for (let i = 0; i < 15; i++) { const r = nextTrackId(ids, st.bag, st.last, rnd); played.push(r.id); st = { bag: r.bag, last: r.id }; }
+  for (let r = 0; r < 3; r++) assert.deepEqual(played.slice(r * 5, r * 5 + 5).sort(), ids, "round " + r + " has every track once");
+  for (let i = 1; i < played.length; i++) assert.notEqual(played[i], played[i - 1], "never the same track twice in a row");
+  assert.equal(nextTrackId(ids, ["zzz", "c", "c"], "a").id, "c", "a removed track in the saved order is skipped"); assert.equal(nextTrackId([], [], null).id, null); assert.equal(nextTrackId(["a"], [], "a").id, "a");
+  const p = plan([], new Set(), 0, 2, { dj: DJ, nextTrack: () => TRACKS[2] }); assert.deepEqual(p.items.filter((x) => x.type === "track").map((x) => x.track.id), [TRACKS[2].id, TRACKS[2].id]);
+  assert.equal(titleFromFile("night-drive_2"), "Night Drive 2"); assert.equal(idFromFile("Night Drive"), "night-drive");
+  const l = buildList(["b.m4a", "new-song.m4a", "a.m4a"], [{ id: "bee", title: "Bee Song", file: "b.m4a" }, { id: "gone", title: "Gone", file: "gone.m4a" }], () => 100);
+  assert.deepEqual(l.map((x) => [x.id, x.title]), [["bee", "Bee Song"], ["a", "A"], ["new-song", "New Song"]], "known titles kept, deleted files dropped, new ones added");
+});
