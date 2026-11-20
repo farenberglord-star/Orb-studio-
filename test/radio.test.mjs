@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { interviews, plan, TRACKS, T, episodeDate, fmt } from "../public/radio.js";
+import { interviews, plan, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
+import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
   host: { read: "Read " + i, question: "Grok, q" + i + "?", thanks: "Thanks " + i, transition: "And now to the next." },
@@ -42,7 +43,24 @@ test("tracks are our own files; texts, date and page", () => {
   const html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8");
   assert.ok(!/<script[^>]+src="https?:/.test(html), "no external scripts"); assert.match(html, /name="robots" content="noindex"/);
   assert.match(html, /\.air\{left:15\.93%;top:8\.85%;width:69\.07%;height:31\.77%/); assert.match(html, /\.deck\{left:18\.7%;top:64\.38%;width:63\.33%;height:19\.48%/);
+  assert.match(html, /prefers-reduced-motion/); for (const l of ["ru", "de", "en"]) assert.match(T[l].pics, /Grok/);
   assert.ok(statSync(new URL("../public/media/radio/unit.webp", import.meta.url)).size < 200_000);
   assert.match(html, /go\/kraken\?from=radio/); assert.match(html, /go\/starlink\?from=radio/);
   assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /new Set\(\["radio", "studio-listen"/);
+});
+
+test("scenes: market only with real candles; ticker holds only real headlines", () => {
+  assert.deepEqual(sceneOrder(true), ["sky", "market", "david", "earth"]); assert.deepEqual(sceneOrder(false), ["sky", "david", "earth"]);
+  assert.deepEqual(tickerItems(duo([seg(0), seg(0), seg(1, { kind: "carousel" }), seg(2, { source: null })])), ["H0 (s0)", "H2"]);
+  for (const bad of [null, {}, { status: "preparing" }]) assert.deepEqual(tickerItems(bad), []);
+});
+test("candles: Kraken rows parsed as given, bad input rejected, boxes stay on screen", () => {
+  const rows = Array.from({ length: 60 }, (_, i) => [1795000000 + i * 900, String(60000 + i), String(60050 + i), String(59950 + i), String(60010 + i), "0", "1.2", 5]);
+  const d = parseCandles({ error: [], result: { XXBTZEUR: rows, last: 1 } });
+  assert.equal(d.candles.length, 48); assert.equal(d.pair, "BTC/EUR"); assert.equal(d.interval_min, 15); assert.equal(d.last_price_eur, 60069); assert.match(d.source, /Kraken/);
+  assert.deepEqual(d.candles[47], { t: (1795000000 + 59 * 900) * 1000, o: 60059, h: 60109, l: 60009, c: 60069 });
+  for (const bad of [null, {}, { error: ["EGeneral"], result: { X: rows } }, { error: [], result: { X: rows.slice(0, 3) } }, { error: [], result: { X: [["a", "b"]] } }]) assert.equal(parseCandles(bad), null);
+  const b = candleBoxes(d.candles, 480, 300);
+  assert.equal(b.length, 48); assert.ok(b.every((x) => x.x >= 0 && x.x + x.w <= 480 && x.yh >= 0 && x.yl <= 300 && x.yh <= x.top && x.bot <= x.yl && x.up));
+  assert.deepEqual(candleBoxes([], 10, 10), []); assert.deepEqual(candleBoxes(null, 10, 10), []);
 });

@@ -3,6 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
+import { parseCandles, CANDLES_URL, CANDLES_SOURCE } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -3192,6 +3193,15 @@ async function handleApi(url, request, env, ctx) {
   }
 
   if (p === "/api/v1/music" || p === "/music") ctx.waitUntil((async () => { if (await sharedGet(env, "emo-music-poll", 10 * 60e3)) return; await sharedPut(env, "emo-music-poll", { t: Date.now() }); await emoMusicCheck(env, ctx); })().catch(() => null));
+  // свечи BTC/EUR для экрана радио: Kraken, 15 минут; свежая копия 2 мин, запасная 2 часа, иначе честное unavailable
+  if (p === "/api/v1/radio/candles") {
+    const c = caches.default, fresh = new Request("https://orbstudio.org/__cache/radio-candles-v1"), stale = new Request("https://orbstudio.org/__cache/radio-candles-v1-stale");
+    const hit = await c.match(fresh); if (hit) return json(await hit.json(), { "Cache-Control": "public, max-age=60" });
+    let d = null; try { d = parseCandles(await sensorsFetchJson(CANDLES_URL)); } catch { d = null; }
+    if (d) { d.at = new Date().toISOString(); const put = (rq, age) => c.put(rq, new Response(JSON.stringify(d), { headers: { "content-type": "application/json", "Cache-Control": "max-age=" + age } })); ctx.waitUntil(Promise.all([put(fresh, 120), put(stale, 7200)])); return json(d, { "Cache-Control": "public, max-age=60" }); }
+    const old = await c.match(stale); if (old) return json({ ...(await old.json()), status: "degraded" }, { "Cache-Control": "public, max-age=60" });
+    return json({ status: "unavailable", ...CANDLES_SOURCE }, { "Cache-Control": "no-store" }, 503);
+  }
   if (p === "/api/v1/music") {
     const d = await musicTracks(env, ctx, origin);
     return json({ ...d, referral: referral(env, "api-music") }, { "Cache-Control": "public, max-age=300" });
