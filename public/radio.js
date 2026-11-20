@@ -36,6 +36,11 @@ export function interviews(duo, lang) {
   return [...by.values()].filter((iv) => iv.lines.some((x) => x.kind === "answer") && iv.lines.some((x) => x.kind === "thanks"));
 }
 
+// Время суток слушателя по часам его устройства: утро 5–11, день 12–17, вечер 18–22, ночь 23–4
+export function daypart(hour) { const h = ((Math.floor(+hour) % 24) + 24) % 24; return h >= 5 && h < 12 ? "morning" : h >= 12 && h < 18 ? "day" : h >= 18 && h < 23 ? "evening" : "night"; }
+// Плавное начало и конец трека: громкость 0→1 за FADE_IN секунд и 1→0 за последние FADE_OUT секунд
+export const FADE_IN = 3.5, FADE_OUT = 3;
+export function trackGain(pos, dur) { if (!(pos >= 0)) return 0; const up = Math.min(1, pos / FADE_IN), down = dur > FADE_IN + FADE_OUT ? Math.min(1, Math.max(0, (dur - pos) / FADE_OUT)) : 1; return +Math.max(0, Math.min(up, down)).toFixed(3); }
 // Связка диджея как блок эфира: реплики Давида из /api/v1/radio/dj (и погода), только те, где есть текст
 export function sayItem(title, parts) {
   const lines = (parts || []).filter((x) => x && typeof x.text === "string" && x.text.trim()).map((x) => ({ who: "david", kind: "dj", text: x.text.trim(), audio: typeof x.audio === "string" && /^https:\/\/[^\s"'<>]+$/.test(x.audio) ? x.audio : null, ms: lineMs(x.text) }));
@@ -49,7 +54,7 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const out = []; let k = trackAt, wx = o.weather && !o.weatherSaid ? o.weather : null, usedWeather = false, intro = !o.introSaid;
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: TRACKS[k++ % TRACKS.length] });
   const after = () => { push(sayItem(title, [dj.after_music, wx, dj.next_track])); if (wx) { usedWeather = true; wx = null; } };
-  if (o.first) { push(sayItem(title, [dj.ident])); track(); }
+  if (o.first) { push(sayItem(title, [o.greeting, dj.ident])); track(); }
   if (fresh.length) for (const iv of fresh) { if (intro) { push(sayItem(title, [dj.intro])); intro = false; } out.push({ type: "talk", iv }); push(sayItem(title, [dj.to_music])); track(); after(); track(); }
   else { if (!o.first) track(); after(); track(); }
   return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, usedWeather };
@@ -96,10 +101,12 @@ function start() {
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
-  let actx = null, an = null, level = 0; const fbuf = new Uint8Array(64);
+  let actx = null, an = null, gn = null, level = 0, fading = false; const fbuf = new Uint8Array(64);
   function audioGraph() { if (actx) { actx.resume().catch(() => {}); return; }
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); an = actx.createAnalyser(); an.fftSize = 128; an.smoothingTimeConstant = 0.78;
-      actx.createMediaElementSource(au).connect(an); an.connect(actx.destination); actx.resume().catch(() => {}); } catch { an = null; } }
+      gn = actx.createGain(); actx.createMediaElementSource(au).connect(gn); gn.connect(an); an.connect(actx.destination); actx.resume().catch(() => {}); } catch { an = null; gn = null; } }
+  // громкость: через усилитель Web Audio (работает и на iPhone), иначе через громкость плеера
+  const setVol = (v) => { if (gn) { try { gn.gain.setTargetAtTime(v, actx.currentTime, 0.08); } catch {} } else { try { au.volume = v; } catch {} } };
 
   const setOn = (v) => { on = v; document.body.dataset.on = v ? "1" : ""; play.textContent = v ? "❚❚" : "▶"; play.setAttribute("aria-label", v ? t.pause : t.resume); };
   const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); e.hidden = !d; e.textContent = d ? "· " + d : ""; e.title = d ? t.episode + " " + d : ""; };
@@ -128,7 +135,7 @@ function start() {
   function nextLine() {
     clearTimeout(timer); const it = items[idx]; if (!it || it.type === "track") return;
     if (li >= it.iv.lines.length) { if (it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } return next(); }
-    const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000;
+    const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000; fading = false; setVol(1); // голос сразу в полную громкость
     au.onended = au.onerror = null;
     if (x.audio) { au.src = x.audio; au.onended = nextLine; au.onerror = () => { timer = setTimeout(nextLine, x.ms || 4000); }; au.play().catch(() => { timer = setTimeout(nextLine, x.ms || 4000); }); }
     else timer = setTimeout(nextLine, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
@@ -139,7 +146,7 @@ function start() {
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), weatherSaid || weather ? null : getJ("/api/v1/radio/weather?lang=" + lang)]);
     if (wx && wx.status === "ok" && wx.text) weather = { text: wx.text, audio: wx.audio };
-    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, weather, weatherSaid, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    const p = plan(interviews(duo, lang), heard, trackAt, 2, { dj: dj && dj.links, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, weatherSaid, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
     if (p.usedWeather) weatherSaid = true; greeted = true; if (p.fresh) introSaid = true;
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
@@ -149,7 +156,7 @@ function start() {
     clearTimeout(timer); au.onended = au.onerror = null;
     if (idx + 1 >= items.length) await build();
     idx++; const it = items[idx]; rundown(); if (!it) return;
-    if (it.type === "track") { showTrack(it.track); au.src = it.track.src; au.onended = next; au.onerror = next; if (on) au.play().catch(() => {}); }
+    if (it.type === "track") { showTrack(it.track); fading = true; setVol(0); au.src = it.track.src; au.onended = next; au.onerror = next; if (on) au.play().catch(() => {}); }
     else { li = 0; nextLine(); }
   }
   play.addEventListener("click", async () => {
@@ -163,6 +170,7 @@ function start() {
   // ---- часы, полоса времени, прокрутка длинной реплики ----
   const clock = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); $("clock").textContent = p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + p(d.getFullYear() % 100) + " " + p(d.getHours()) + ":" + p(d.getMinutes()); };
   clock();
+  setInterval(() => { if (fading && on && !au.paused) setVol(trackGain(au.currentTime, au.duration)); }, 120); // плавное начало и конец трека
   setInterval(() => { clock(); const d = au.duration, c = au.currentTime; $("bar").style.width = d ? (100 * c / d).toFixed(1) + "%" : "0"; $("time").textContent = d ? fmt(c) : ""; $("dur").textContent = d ? fmt(d) : "";
     const tx = $("text"), over = tx.scrollHeight - tx.clientHeight; if (over > 2) { const f = d ? c / d : Math.min(1, (Date.now() - lineAt) / (lineMsNow || 1)); tx.scrollTop = over * Math.min(1, Math.max(0, (f - 0.12) / 0.7)); } }, 500);
 

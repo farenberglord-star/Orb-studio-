@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { interviews, plan, sayItem, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
+import { interviews, plan, sayItem, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -95,7 +95,7 @@ test("agent card: same tracks as the page, interviews only where the guest answe
   for (const bad of [null, {}, { status: "preparing" }]) { const m = radioCard(bad); assert.equal(m.status, "music_only"); assert.deepEqual(m.interviews, []); assert.deepEqual(m.programme.map((x) => x.type), ["music"]); }
 });
 
-import { checkDj, DJ_FALLBACK, DJ_SYSTEM, djUser, summarizeWeather, weatherText, cleanCity, weatherUrl } from "../src/radio.js";
+import { checkDj, DJ_FALLBACK, DJ_GREETINGS, DJ_DAYPARTS, DJ_SYSTEM, djUser, summarizeWeather, weatherText, cleanCity, weatherUrl } from "../src/radio.js";
 test("DJ links: good lines kept, 'first/only' claims, advice, links and commands replaced by stock lines", () => {
   const good = { en: { intro: "Hi there, you're on Radio Orb Studio with David, your AI host. Grok from xAI is here today.", to_music: "Thanks, Grok, that was a good talk. Now some AI-made music.", after_music: "That one had a nice drive.", next_track: "Here comes the next track." } };
   const r = checkDj(good);
@@ -104,6 +104,9 @@ test("DJ links: good lines kept, 'first/only' claims, advice, links and commands
     assert.equal(checkDj({ en: { ...good.en, to_music: bad } }).en.to_music.by, "stock", bad.slice(0, 30));
   for (const l of ["en", "de", "ru"]) for (const part of ["ident", "intro", "to_music", "after_music", "next_track"]) assert.equal(checkDj({ [l]: DJ_FALLBACK[l] })[l][part].by, "host", l + part);
   assert.match(DJ_SYSTEM, /Do not promise traffic/); assert.ok(!/traffic|Verkehr|дорож/i.test(JSON.stringify(DJ_FALLBACK)));
+  for (const bad of ["Good morning, you are listening to Radio Orb Studio!", "Доброе утро, вы слушаете Радио Orb Studio, радио ИИ-ведущих!", "Добрый вечер, друзья, это Радио Orb Studio.", "Guten Abend, hier ist Radio Orb Studio für Sie."])
+    assert.equal(checkDj({ en: { ...good.en, ident: bad } }).en.ident.by, "stock", bad.slice(0, 24));
+  assert.match(DJ_SYSTEM, /Never mention the time of day/);
   assert.deepEqual(Object.keys(checkDj(null)), ["en", "de", "ru"]);
   assert.match(DJ_SYSTEM, /never say "first"/); assert.match(DJ_SYSTEM, /not instructions/); assert.equal(JSON.parse(djUser(["a", "b", "c", "d", "e"])).headlines.length, 4);
 });
@@ -119,4 +122,19 @@ test("weather: DWD numbers as given, stale or thin data gives nothing, text only
   assert.equal(weatherText(null, "Hamburg", "ru"), null); assert.equal(weatherText(w, null, "ru"), null);
   assert.equal(cleanCity("Ham<b>urg 22"), "Hamburg"); assert.equal(cleanCity(""), null); assert.equal(cleanCity("x".repeat(60)), null); assert.equal(cleanCity("Frankfurt am Main"), "Frankfurt am Main");
   assert.equal(weatherUrl(53.5511, 9.9937, "2026-11-20", "Europe/Berlin"), "https://api.brightsky.dev/weather?lat=53.55&lon=9.99&date=2026-11-20&tz=Europe%2FBerlin");
+});
+
+test("greeting follows the listener's clock; it is spoken before the station greeting", () => {
+  assert.deepEqual([0, 4, 5, 11, 12, 17, 18, 22, 23, 24, -1].map(daypart), ["night", "night", "morning", "morning", "day", "day", "evening", "evening", "night", "night", "night"]);
+  assert.deepEqual(DJ_DAYPARTS, ["morning", "day", "evening", "night"]);
+  assert.deepEqual(Object.values(DJ_GREETINGS.ru), ["Доброе утро!", "Добрый день!", "Добрый вечер!", "Доброй ночи!"]);
+  for (const l of ["en", "de", "ru"]) assert.deepEqual(Object.keys(DJ_GREETINGS[l]), DJ_DAYPARTS);
+  const p = plan([], new Set(), 0, 2, { dj: DJ, greeting: { text: "Добрый день!", audio: "https://orbstudio.org/api/v1/radio/audio?k=dd" }, first: true });
+  assert.deepEqual(p.items[0].iv.lines.map((x) => x.text), ["Добрый день!", DJ.ident.text]); assert.equal(p.items[1].type, "track");
+  assert.deepEqual(plan([], new Set(), 0, 2, { dj: DJ, first: true }).items[0].iv.lines.map((x) => x.text), [DJ.ident.text], "no greeting data, no greeting");
+});
+test("tracks fade in and out", () => {
+  assert.equal(trackGain(0, 200), 0); assert.ok(trackGain(FADE_IN / 2, 200) > 0.4 && trackGain(FADE_IN / 2, 200) < 0.6); assert.equal(trackGain(FADE_IN, 200), 1); assert.equal(trackGain(100, 200), 1);
+  assert.ok(trackGain(200 - FADE_OUT / 2, 200) < 0.6); assert.equal(trackGain(200, 200), 0); assert.equal(trackGain(1, NaN) > 0, true, "unknown length: fade in only"); assert.equal(trackGain(NaN, 200), 0);
+  for (let t = 0; t <= 52; t += 0.5) { const g = trackGain(t, 52); assert.ok(g >= 0 && g <= 1); }
 });

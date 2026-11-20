@@ -3,7 +3,7 @@
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
 import { asLines } from "./voicelines.js";
-import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText } from "./radio.js";
+import { parseCandles, CANDLES_URL, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
@@ -1486,7 +1486,7 @@ async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
   const d = await duoPublic(env, ctx, origin).catch(() => null), ok = d && d.status === "ok" && Array.isArray(d.segments);
   const heads = ok ? d.segments.filter((x) => x && (x.kind || "news") === "news" && x.guest && x.guest.status === "ok").map((x) => x.headline) : [];
-  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v2-" + ep;
+  const ep = ok ? String(d.episode_id || duoEpId(d)) : "none", key = "radio-dj-v4-" + ep;
   let links = await sharedGet(env, key, 12 * 3600e3);
   if (!links) {
     let out = null;
@@ -1501,9 +1501,10 @@ async function radioDj(env, ctx, origin, lang) {
     links = checkDj(out, stripInvisible);
     if (out) await sharedPut(env, key, links); // запасные связки не запоминаем: в следующий раз попробуем снова
   }
-  const mine = links[lg], audio = await Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg)));
+  const mine = links[lg], [audio, gAudio] = await Promise.all([Promise.all(DJ_PARTS.map((part) => radioVoice(env, origin, mine[part].text, lg))), Promise.all(DJ_DAYPARTS.map((dp) => radioVoice(env, origin, DJ_GREETINGS[lg][dp], lg)))]);
   return { status: "ok", language: lg, episode_id: ep === "none" ? null : ep, host: { name: "David", kind: "Orb Studio AI host (lines written by Claude)" }, guest: heads.length ? "Grok (xAI)" : null,
     links: Object.fromEntries(DJ_PARTS.map((part, i) => [part, { text: mine[part].text, by: mine[part].by, audio: audio[i] }])),
+    greetings: Object.fromEntries(DJ_DAYPARTS.map((dp, i) => [dp, { text: DJ_GREETINGS[lg][dp], audio: gAudio[i] }])), greetings_note: "The page picks the greeting by the listener's own device clock: morning 5-11, day 12-17, evening 18-22, night 23-4.",
     voices: "Synthetic AI voice (xAI Grok TTS). David is an AI agent, not a person.", note: "by \"stock\" marks a fallback line. Links are written per episode; headlines are third-party data." };
 }
 async function radioWeather(env, request, origin, lang) {
