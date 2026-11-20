@@ -21,3 +21,14 @@ test("язык: ?lang= главнее, иначе подсказка, иначе
   assert.equal(pickLang("", "fr"), "en");
   for (const l of Object.keys(T)) for (const k of ["listen", "off", "withheld", "done", "krH", "slH", "cmH"]) assert.ok(T[l][k], l + "." + k);
 });
+
+test("episode date for viewers: DD.MM.YY in Berlin time, empty when unknown", async () => {
+  const { episodeDate } = await import("../public/roundtable.js");
+  assert.equal(episodeDate("2026-11-20T10:19:23.247Z"), "20.11.26");
+  assert.equal(episodeDate("2026-11-20T23:30:00Z"), "21.11.26", "after midnight in Berlin it is the next day");
+  assert.equal(episodeDate("2026-07-01T21:59:00Z"), "01.07.26"); assert.equal(episodeDate(1795169963247), "20.11.26");
+  for (const bad of [null, undefined, "", "soon", {}]) assert.equal(episodeDate(bad), "");
+  const { readFileSync } = await import("node:fs");
+  const html = readFileSync(new URL("../public/roundtable.html", import.meta.url), "utf8");
+  assert.match(html, /<time class="epdate" id="epdate" hidden><\/time>/); assert.match(html, /prefers-reduced-motion:reduce\)\{\.epdate/);
+});

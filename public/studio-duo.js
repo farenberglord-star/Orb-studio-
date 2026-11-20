@@ -90,6 +90,14 @@ export function krakenCells(market, lang = "en") {
   return out;
 }
 
+// Дата выпуска для зрителя: ДД.ММ.ГГ по берлинскому времени из generated_at; нет даты — пустая строка (ничего не показываем)
+export function episodeDate(iso) {
+  const ms = typeof iso === "number" ? iso : Date.parse(String(iso || ""));
+  if (!Number.isFinite(ms)) return "";
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Berlin", day: "2-digit", month: "2-digit", year: "2-digit" }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return p.day + "." + p.month + "." + p.year;
+}
+
 // ---------- Браузер ----------
 function start() {
   const $ = (id) => document.getElementById(id);
@@ -177,7 +185,10 @@ function start() {
     const cur = queue[Math.max(0, pos - 1)]; if (cur && cur.headline) markProg(cur.headline);
   }
   function markProg(h) { for (const li of $("prog-list").children) li.classList.toggle("on", li.dataset.h === h); }
+  // дата выпуска на сцене: берётся из generated_at того выпуска, который сейчас звучит
+  const setDate = (iso) => { const e = $("epdate"), d = episodeDate(iso); if (!e) return; e.hidden = !d; e.textContent = d; if (d) e.dateTime = new Date(typeof iso === "number" ? iso : Date.parse(iso)).toISOString(); };
   function show(line) {
+    if (line && line.at) setDate(line.at);
     if (line && line.headline) markProg(line.headline);
     stage.dataset.speaker = line.who || "";
     if (line.kind === "pause") { sub.classList.add("out"); return; }
@@ -269,7 +280,8 @@ function start() {
       lines.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
       const br = ep.bridge && ep.bridge[lang];
       if (br && typeof br.text === "string") q.push({ who: "david", kind: "bridge", text: br.text, audio: typeof br.audio === "string" && /^https:\/\//.test(br.audio) ? br.audio : null, ms: lineMs(br.text), source: null, link: null });
-      q.push(...lines);
+      const from = q.length; q.push(...lines);
+      for (let i = br && typeof br.text === "string" ? from - 1 : from; i < q.length; i++) q[i].at = ep.generated_at; // у архивного выпуска своя дата
     }
     if (!q.length) { doneId = curId; showBoard("allHeard"); retry = setTimeout(load, 120000); return; }
     queue = q; pos = 0; renderProg(); step();
@@ -315,7 +327,7 @@ function start() {
     if (id !== curId) { curId = id; archived = false; heard.clear(); heardTopics.length = 0; }
     // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)
     const newsOnly = (duo.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")), cut = newsOnly.length !== (duo.segments || []).length;
-    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
+    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => { x.at = duo.generated_at; }); setDate(duo.generated_at); queue.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
     setTimeout(renderProg, 0);
     const intro = duo.intro && duo.intro[lang];
     if (queue.length && intro && typeof intro.text === "string") queue.unshift({ who: "david", kind: "intro", text: intro.text, audio: typeof intro.audio === "string" && /^https:\/\//.test(intro.audio) ? intro.audio : null, ms: lineMs(intro.text), source: null, link: null, headline: "" });
