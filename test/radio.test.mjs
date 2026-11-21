@@ -333,7 +333,7 @@ test("home block: a small radio with a Play button starts the broadcast without 
 });
 
 test("a long track is faded out after two minutes; a short one plays to the end", () => {
-  assert.equal(TRACK_CUT, 120); assert.equal(cutAt(267), 120); assert.equal(cutAt(184), 120); assert.equal(cutAt(150), 150); assert.equal(cutAt(52), 52); assert.ok(Number.isNaN(cutAt(NaN)));
+  assert.equal(TRACK_CUT, 120); assert.equal(cutAt(267), 120); assert.equal(cutAt(184), 120); assert.equal(cutAt(150), 150); assert.equal(cutAt(156), 156, "Bright Current plays to the end"); assert.equal(cutAt(160), 160); assert.equal(cutAt(161), 120); assert.equal(cutAt(52), 52); assert.ok(Number.isNaN(cutAt(NaN)));
   assert.equal(trackGain(60, 120, CUT_FADE), 1); assert.equal(trackGain(117.5, 120, CUT_FADE), 0.5); assert.equal(trackGain(120, 120, CUT_FADE), 0);
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /if \(cut && au\.currentTime >= end && items\[idx\] && items\[idx\]\.type === "track"\)/);
 });
