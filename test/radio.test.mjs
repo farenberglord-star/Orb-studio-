@@ -409,3 +409,14 @@ test("podcast: four questions to one guest over different radars, David thanks a
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["a", "b", "d", "e"], "one guest, at most four questions");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /checkRemarks\(await radioClaudeTool\(env, REMARK_SYSTEM/); assert.match(w, /radio-region-v5-/);
 });
+
+test("home page: three compact programme cards — radio, round table, two-seat studio", () => {
+  for (const [f, lg] of [["index.html", "ru"], ["de/index.html", "de"], ["en/index.html", "en"]]) {
+    const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8");
+    const a = h.indexOf('id="rdo"'), b = h.indexOf('id="rtb"'), c = h.indexOf('id="duoc"'), v = h.indexOf('id="voteBox"');
+    assert.ok(a > 0 && a < b && b < c && c < v, f + ": radio, round table, studio, then the vote");
+    assert.match(h, new RegExp('<a class="rtb duo" id="duoc" href="/' + lg + '/studio">')); assert.match(h, /fetch\("\/api\/v1\/broadcast\/duo"\)/);
+    assert.match(h, /\.rtb\{grid-template-columns:104px 1fr/); assert.match(h, /max-width:560px\)\{\.rtb\{grid-template-columns:84px 1fr/); assert.ok(!/aspect-ratio:16\/9;object-position:50% 45%/.test(h), "no tall picture on phones any more");
+  }
+  assert.ok(statSync(new URL("../public/media/studio-duo-thumb.webp", import.meta.url)).size < 40_000);
+});
