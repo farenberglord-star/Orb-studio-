@@ -103,3 +103,9 @@ test("episode date for viewers: DD.MM.YY in Berlin time, empty when unknown", as
   const html = readFileSync(new URL("../public/studio.html", import.meta.url), "utf8");
   assert.match(html, /<time class="epdate" id="epdate" hidden><\/time>/); assert.match(html, /prefers-reduced-motion:reduce\)\{\.epdate/);
 });
+
+test("no music bed under the conversation: only the voices are heard", () => {
+  const js = readFileSync(new URL("../public/studio-duo.js", import.meta.url), "utf8");
+  assert.match(js, /const BED_ON = false;/); assert.match(js, /if \(BED_ON && !still\) \{ bed = makeBed\(\); duck\(false\); \}/);
+  assert.equal((js.match(/makeBed\(\)/g) || []).length, 2, "the bed is created in one guarded place only");
+});
