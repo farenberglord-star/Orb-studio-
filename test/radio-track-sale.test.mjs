@@ -21,7 +21,7 @@ test("track sale: switch off means nothing is sold and nothing is charged", asyn
 
 test("track sale: price, catalogue and the 402 challenge", async () => {
   assert.deepEqual(trackPrice(ENV), { usd: 0.25, atomic: "250000" }); assert.equal(trackPrice({}).usd, 0.25); assert.equal(trackPrice({ RADIO_TRACK_PRICE_USD: "999" }).usd, 5); assert.equal(trackPrice({ RADIO_TRACK_PRICE_USD: "-1" }).usd, 0.01);
-  const cat = trackCatalog(saleConfig(ENV), ENV); assert.equal(cat.tracks.length, Object.keys(SALE_TRACKS).length); assert.equal(cat.tracks[0].buy_url, "https://orbstudio.org/api/v1/radio/track/buy?id=orbit-city"); assert.equal(cat.license_url, TRACK_LICENSE_URL);
+  const cat = trackCatalog(saleConfig(ENV), ENV); assert.equal(cat.tracks.length, Object.keys(SALE_TRACKS).length); assert.equal(cat.tracks.find((x) => x.id === "orbit-city").buy_url, "https://orbstudio.org/api/v1/radio/track/buy?id=orbit-city"); assert.equal(cat.license_url, TRACK_LICENSE_URL);
   assert.ok(!JSON.stringify(cat).includes("/_sale/"), "the catalogue never shows where the paid file lies");
   const calls = { log: [], file: [] }, r = await handleTrackSale(get("orbit-city"), saleConfig(ENV), ENV, deps(calls));
   assert.equal(r.status, 402); const pr = JSON.parse(unb64(r.headers.get("PAYMENT-REQUIRED")));
@@ -58,4 +58,15 @@ test("track sale: the paid file cannot be fetched directly; switch and price are
   assert.match(toml, /"\/_sale", "\/_sale\/\*"\]/); assert.match(toml, /^RADIO_TRACK_SALE = "[01]"$/m, "the switch is always written out in the config"); assert.match(toml, /^RADIO_TRACK_PRICE_USD = "0\.25"$/m);
   for (const t of Object.values(SALE_TRACKS)) { assert.ok(statSync(new URL("../public" + t.file, import.meta.url)).size > 500_000); assert.ok(statSync(new URL("../public" + t.preview, import.meta.url)).size > 100_000); }
   const lic = readFileSync(new URL("../public/radio-track-license.txt", import.meta.url), "utf8"); assert.match(lic, /non-exclusive/); assert.match(lic, /cannot be returned/); assert.ok(!/DRAFT/.test(lic) || /^RADIO_TRACK_SALE = "0"$/m.test(toml), "an open sale does not run on a draft licence");
+});
+
+test("track sale: every track on the radio shelf is on sale by itself; originals are used when they exist", async () => {
+  const { RADIO_TRACKS, SALE_ORIGINALS } = await import("../src/radio.js"), { saleOriginals } = await import("../tools/radio_tracks.mjs");
+  assert.deepEqual(Object.keys(SALE_TRACKS), RADIO_TRACKS.map((t) => t.id), "the sale list is the shelf, nothing is listed by hand");
+  for (const [id, t] of Object.entries(SALE_TRACKS)) { assert.equal(t.original, SALE_ORIGINALS.includes(id)); assert.equal(t.file, t.original ? "/_sale/" + id + ".mp3" : t.preview); assert.equal(t.format, t.original ? "MP3" : "M4A"); }
+  assert.deepEqual(saleOriginals([{ id: "a" }, { id: "b" }, { id: "c" }], ["b.mp3", "zzz.mp3", "c.wav"]), ["b"]);
+  const calls = { log: [], file: [] }, r = await handleTrackSale(get("autobahn-3"), saleConfig(ENV), ENV, deps(calls)), pr = JSON.parse(unb64(r.headers.get("PAYMENT-REQUIRED")));
+  assert.equal(r.status, 402); assert.equal(pr.resource.mimeType, "audio/mp4"); assert.match(pr.resource.description, /the same file that plays on the radio/);
+  assert.match(JSON.parse(unb64((await handleTrackSale(get("quiet-frequency"), saleConfig(ENV), ENV, deps(calls))).headers.get("PAYMENT-REQUIRED"))).resource.description, /the original download/);
+  const g = readFileSync(new URL("../tools/radio_tracks.mjs", import.meta.url), "utf8"); assert.match(g, /re\("SALE_ORIGINALS"\)/);
 });
