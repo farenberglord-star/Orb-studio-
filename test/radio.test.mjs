@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -248,7 +248,7 @@ test("market screen: whitelist of instruments, honest oil board, futures as repo
 test("guests are heard only in the listener's language", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(w, /regionalInterviews\(ep, lg\)\.filter\(\(iv\) => iv\.language === lg\)/);
-  assert.match(js, /lang === "en" \? interviews\(duo, lang\) : \[\]/);
+  assert.match(js, /plan\(mergeInterviews\(reg, worldInterviews\(duo, lang\)\)/);
 });
 
 test("DJ does not repeat himself: four different variants of every repeated link, played in turn", async () => {
@@ -419,4 +419,15 @@ test("home page: three compact programme cards — radio, round table, two-seat 
     assert.match(h, /\.rtb\{grid-template-columns:104px 1fr/); assert.match(h, /max-width:560px\)\{\.rtb\{grid-template-columns:84px 1fr/); assert.ok(!/aspect-ratio:16\/9;object-position:50% 45%/.test(h), "no tall picture on phones any more");
   }
   assert.ok(statSync(new URL("../public/media/studio-duo-thumb.webp", import.meta.url)).size < 40_000);
+});
+
+test("world desk is back on the radio in Russian and German, but only fully translated talks", () => {
+  const d = duo([seg(0), seg(1)]);
+  assert.equal(worldInterviews(d, "en").length, 2, "English listener: the original");
+  assert.deepEqual(worldInterviews(d, "ru"), [], "no translation: nothing in English goes to a Russian listener");
+  const full = (i) => ({ read: "Давид читает новость " + i, question: "Grok, что это значит?", answer: "Ответ гостя на русском языке номер " + i, thanks: "Спасибо, Grok." });
+  const tr = { ...d, translations: { ru: { segments: { [d.segments[0].i]: full(0), [d.segments[1].i]: { read: "Только чтение переведено" } } } } };
+  const ru = worldInterviews(tr, "ru");
+  assert.equal(ru.length, 1, "the half-translated talk is left out"); assert.equal(ru[0].headline, "H0"); assert.ok(ru[0].lines.every((x) => x.tr === true)); assert.match(ru[0].lines.find((x) => x.kind === "answer").text, /на русском/);
+  assert.deepEqual(worldInterviews(tr, "de"), []);
 });
