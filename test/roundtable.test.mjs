@@ -85,12 +85,12 @@ test("перевод: реплика берётся на языке слушат
 
 test("author's archive round: fixed theses, one neutral question, answers cleaned; made once and only on request", async () => {
   const m = await import("../src/roundtable.js");
-  assert.equal(m.RT_AUTHOR_THESES.length, 4); assert.match(m.RT_AUTHOR_QUESTION, /что в нём подтвердилось, что нет и что осталось спорным/);
+  assert.equal(m.RT_AUTHOR_THESES.length, 5); assert.match(m.RT_AUTHOR_THESES[4], /закрепить линию соприкосновения и прекратить огонь/); assert.match(m.RT_AUTHOR_QUESTION, /что в нём подтвердилось, что нет и что осталось спорным/);
   assert.match(m.RT_AUTHOR_CLOSE_SYSTEM, /never say whether the thesis is right or wrong/); assert.match(m.rtGuestSystem("grok", "Russian"), /in Russian in 2-4 spoken sentences/); assert.match(m.rtGuestSystem("grok"), /in English in 2-4 spoken sentences/);
   assert.match(m.rtGuestSystem("gemini", "Russian"), /present the main viewpoints fairly instead of taking a side/);
   const ans = { gemini: { model: "g", data: { answers: [{ i: 0, text: "Это **разумная** мысль, но бюджеты с тех пор только выросли. https://x.io" }, { i: 9, text: "лишний ответ не по теме, он никуда не попадает" }] } }, grok: { error: "timeout" }, deepseek: { data: { answers: [{ i: 0, text: "коротко" }] } } };
   const r = m.rtAuthorAssemble(ans, { notes: [{ i: 0, text: "Спасибо гостям: они сходятся в том, что бюджеты выросли." }, { i: 1, text: "x" }] });
-  assert.equal(r.length, 4); assert.equal(r[0].answers.gemini.text, "Это разумная мысль, но бюджеты с тех пор только выросли."); assert.equal(r[0].answers.grok.status, "offline"); assert.equal(r[0].answers.deepseek.status, "offline", "a too short answer is not shown");
+  assert.equal(r.length, 5); assert.equal(r[0].answers.gemini.text, "Это разумная мысль, но бюджеты с тех пор только выросли."); assert.equal(r[0].answers.grok.status, "offline"); assert.equal(r[0].answers.deepseek.status, "offline", "a too short answer is not shown");
   assert.equal(r[0].moderator_note, "Спасибо гостям: они сходятся в том, что бюджеты выросли."); assert.equal(r[1].moderator_note, null); assert.equal(r[3].thesis, m.RT_AUTHOR_THESES[3]);
   const store = {}, deps = { sharedGet: async (e, k) => store[k] || null, sharedPut: async (e, k, v) => { store[k] = v; } };
   assert.deepEqual(await m.rtAuthorPreview({}, deps, false), { status: "not_made_yet" }); assert.deepEqual(store, {}, "a plain read never starts the models");

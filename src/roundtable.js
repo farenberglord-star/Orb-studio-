@@ -154,10 +154,10 @@ async function askGuest(env, g, topics, lang) {
   return { status: "off" };
 }
 
-// ---------- «Из архива автора»: пробный круг, пока не в эфире ----------
+// ---------- «Из архива автора»: отдельный текстовый круг ----------
 // Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах (в общем виде, как он их подтвердил). Модератор читает тезис и задаёт
 // всем гостям один нейтральный вопрос: как это выглядит сегодня. Гости отвечают по обычным правилам стола: спорное — с разных сторон, без приговоров.
-export const RT_AUTHOR_KEY = "rt-author-preview-v1", RT_AUTHOR_LOCK = "rt-author-lock";
+export const RT_AUTHOR_KEY = "rt-author-round-v2", RT_AUTHOR_LOCK = "rt-author-lock";
 export const RT_AUTHOR_SOURCE = "Архив автора Orb Studio, посты 2018–2019 годов";
 export const RT_AUTHOR_QUESTION = "Этот тезис автор Orb Studio записал в 2018–2019 годах. Как он выглядит сегодня: что в нём подтвердилось, что нет и что осталось спорным?";
 export const RT_AUTHOR_THESES = [
@@ -165,6 +165,8 @@ export const RT_AUTHOR_THESES = [
   "Цветные революции и смена власти извне — инструмент, которым пользуется не одна держава: силовые и гибридные методы не монополия одной стороны.",
   "Санкции и «заборы» конфликтов не решают; лучше работают экономические договорённости, например свободные экономические зоны.",
   "Мировую финансовую систему нужно менять: контроль над деньгами и институтами значит больше, чем военная сила.",
+  // пятый тезис автор сформулировал сам 21.11.2026, повторяя свою мысль тех лет
+  "Когда территориальный спор стал якорем конфликта и ни одна сторона по политическим причинам не может отступить, выходом может быть обмен территориями или экономические договорённости — не обязательно за счёт спорной земли, например пустующие территории в других регионах, — чтобы закрепить линию соприкосновения и прекратить огонь. Любые военные действия сейчас слишком опасны: к мысли о применении ядерного оружия люди начали привыкать.",
 ];
 export const RT_AUTHOR_CLOSE_TOOL = { name: "close_archive_round", description: "Moderator's neutral notes in Russian.", input_schema: { type: "object", properties: {
   notes: { type: "array", items: { type: "object", properties: { i: { type: "integer" }, text: { type: "string" } }, required: ["i", "text"] } } }, required: ["notes"] } };
@@ -187,7 +189,7 @@ export async function rtAuthorPreview(env, deps, make) {
   let rounds = rtAuthorAssemble(answers, null);
   if (!rounds.some((r) => RT_GUESTS.some((g) => r.answers[g].status === "ok"))) return { status: "guests_offline", errors: Object.fromEntries(RT_GUESTS.map((g) => [g, answers[g] && (answers[g].error || answers[g].status) || null])) };
   try { rounds = rtAuthorAssemble(answers, await claudeTool(env, RT_AUTHOR_CLOSE_SYSTEM, { theses: rounds.map((r) => ({ i: r.i, thesis: r.thesis, answers: Object.fromEntries(RT_GUESTS.map((g) => [g, r.answers[g].text])) })) }, RT_AUTHOR_CLOSE_TOOL, 900)); } catch {}
-  const out = { status: "ok", kind: "preview, not on air", generated_at: new Date().toISOString(), language: "ru", moderator: "Claude (Anthropic)", guests: Object.fromEntries(RT_GUESTS.map((g) => [g, RT_CAST[g].name + " (" + RT_CAST[g].maker + ")"])),
+  const out = { status: "ok", kind: "special round, text only", generated_at: new Date().toISOString(), language: "ru", moderator: "Claude (Anthropic)", guests: Object.fromEntries(RT_GUESTS.map((g) => [g, RT_CAST[g].name + " (" + RT_CAST[g].maker + ")"])),
     note: "Theses are the author's own words from 2018–2019 in general form. Answers are views of AI models, not verdicts.", rounds };
   await deps.sharedPut(env, RT_AUTHOR_KEY, out); return out;
 }
@@ -415,7 +417,7 @@ export async function rtHandle(request, env, ctx, url, deps) {
     if (!r || !r.buf) return bad("voice service error", 502);
     return new Response(r.buf, { headers: { ...H, "content-type": "audio/mpeg", "Cache-Control": "public, max-age=604800, immutable", "x-voice": RT_CAST[x.who].voice + " (xAI Grok TTS, synthetic)" } });
   }
-  // пробный круг «Из архива автора»: нигде не показывается, собирается один раз по ?make=1
+  // круг «Из архива автора»: собирается один раз по ?make=1, показывается текстом на русской странице круглого стола
   if (p === "/api/v1/roundtable/author-archive") { const NH = { ...H, "Cache-Control": "no-store", "X-Robots-Tag": "noindex" }, have = await rtAuthorPreview(env, deps, false);
     if (have.status !== "not_made_yet" || url.searchParams.get("make") !== "1") return deps.json(have, NH);
     ctx.waitUntil(rtAuthorPreview(env, deps, true).catch(() => null)); return deps.json({ status: "preparing" }, NH); } // модели отвечают до полутора минут: собираем в фоне

@@ -186,6 +186,12 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 #chunks{display:inline-flex;gap:3px;margin-left:auto}#chunks i{width:9px;height:2px;background:rgba(255,255,255,.2)}#chunks i.on{background:var(--c)}
 @keyframes hudscan{0%,100%{opacity:.25;transform:scaleX(.35)}50%{opacity:1;transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){.sub::after{animation:none}}
+.arch{margin:6px 0 22px}.arch h2{font-size:1.15rem;margin:0 0 .3em;color:#ffcf96;letter-spacing:.03em}
+.arch-sub{margin:0 0 1em;color:#9db0d0;font-size:.9rem;line-height:1.45}.arch-list{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.arch-list>li{border:1px solid rgba(255,178,94,.3);border-radius:14px;padding:14px;background:rgba(10,14,28,.7)}
+.arch-th{margin:0 0 .7em;font-weight:600;line-height:1.4;color:#fff}.arch-a{margin:.55em 0 0;line-height:1.5;font-size:.95rem;color:#dfe8fa}
+.arch-a b{display:block;font:700 .72rem ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.15em}
+.arch-a.gemini b{color:var(--gemini)}.arch-a.grok b{color:var(--grok)}.arch-a.deepseek b{color:var(--deepseek)}.arch-a.claude b{color:var(--claude)}.arch-a.claude{color:#b9c6de;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -220,6 +226,11 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <p class="note" id="credit"></p><p class="note" id="vnote"></p>
   <section class="prog" id="prog" aria-labelledby="prog-h" hidden><h2 id="prog-h"></h2><ol id="prog-list"></ol></section>
   <a class="xs" id="xshare" target="_blank" rel="noopener noreferrer"></a>
+  <section class="arch" id="arch" aria-labelledby="arch-h" hidden>
+    <h2 id="arch-h">Из архива автора</h2>
+    <p class="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
+    <ol class="arch-list" id="arch-list"></ol>
+  </section>
   <section class="cm" id="cm" aria-labelledby="cm-h">
     <h2 id="cm-h"></h2>
     <p class="cm-sub" id="cm-sub"></p>
@@ -252,6 +263,25 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <p class="foot links"><a href="/studio" data-t="podcast"></a><span><span data-t="agents"></span> <a href="/api/v1/roundtable">/api/v1/roundtable</a></span></p>
 </div></div>
 <script type="module" src="/roundtable.js"></script>
+<script>
+// Круг «Из архива автора»: текст на русском, поэтому показывается только русскому читателю
+(function () {
+  var q = new URLSearchParams(location.search).get("lang"), lg = q || document.documentElement.dataset.al || (navigator.language || "").slice(0, 2).toLowerCase();
+  if (lg !== "ru") return;
+  fetch("/api/v1/roundtable/author-archive").then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (d) {
+    if (!d || d.status !== "ok" || !Array.isArray(d.rounds)) return;
+    var list = document.getElementById("arch-list"), names = d.guests || {}, n = 0;
+    d.rounds.forEach(function (r) {
+      var got = ["gemini", "grok", "deepseek"].filter(function (g) { return r.answers && r.answers[g] && r.answers[g].status === "ok" && r.answers[g].text; }); if (!got.length) return;
+      var li = document.createElement("li"), th = document.createElement("p"); th.className = "arch-th"; th.textContent = "«" + r.thesis + "»"; li.appendChild(th);
+      got.forEach(function (g) { var p = document.createElement("p"), b = document.createElement("b"); p.className = "arch-a " + g; b.textContent = names[g] || g; p.appendChild(b); p.appendChild(document.createTextNode(r.answers[g].text)); li.appendChild(p); });
+      if (r.moderator_note) { var m = document.createElement("p"), mb = document.createElement("b"); m.className = "arch-a claude"; mb.textContent = "Claude · модератор"; m.appendChild(mb); m.appendChild(document.createTextNode(r.moderator_note)); li.appendChild(m); }
+      list.appendChild(li); n++;
+    });
+    if (n) document.getElementById("arch").hidden = false;
+  });
+})();
+</script>
 <script src="/banners.js" defer></script>
 <script src="/backnav.js" defer></script>
 </body>
