@@ -7,6 +7,7 @@ import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
 import { handleTrackSale, trackCatalog } from "./radio-track-sale.js";
 import { agentsAtWork } from "./agents-work.js";
+import { radioTextBlock, radioJsonLd, RADIO_TRACKS } from "./radio.js";
 import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
@@ -1648,6 +1649,15 @@ async function radioRegionWarm(env, ctx) {
     if (fresh) await sharedPut(env, "radio-region-v5-" + region, fresh);
     return; // один регион за проход крона
   }
+}
+// Текст эфира для страницы радио: то же, что слышит слушатель этого региона и языка, из сохранённых выпусков
+async function radioPageText(env, request, lang) {
+  const lg = DJ_LANGS.includes(lang) ? lang : "en", region = regionFor(request.cf && request.cf.country) || "eu";
+  const [ep, rad, sens] = await Promise.all([sharedGet(env, "radio-region-v5-" + region, 2 * REGION_MS).catch(() => null), sharedGet(env, "radio-radar-v1", 3 * RADAR_MS).catch(() => null), sharedGet(env, "radio-sens-v1", 3 * SENSOR_MS).catch(() => null)]);
+  const interviews = ep ? regionalInterviews(ep, lg).filter((iv) => iv.language === lg) : [];
+  const radar = rad && Array.isArray(rad.items) ? rad.items.filter((x) => x && x.text && x.text[lg]).map((x) => ((x.titles && x.titles[lg]) || x.title) + ". " + x.text[lg]) : [];
+  const sm = sens && sens.stories && sens.stories[lg] ? Object.values(sens.stories[lg]).map((x) => x && x.text).filter(Boolean) : [];
+  return { html: radioTextBlock(lg, { interviews, generated_at: ep && ep.generated_at, radar, sensors: sm, tracks: RADIO_TRACKS }), ld: radioJsonLd(lg, "https://orbstudio.org") };
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
@@ -9079,15 +9089,18 @@ async function handleRequest(request, env, ctx) {
       }
     }
     // «Студия на двоих»: язык подкаста по языку телефона (Accept-Language), затем по стране; /ru/studio, /ro/studio… — явный язык
-    let studioLang = null;
+    let studioLang = null, radioPage = false;
     // румынская и турецкая версии сняты: старые ссылки ведут на английскую страницу
     { const old = url.pathname.match(/^\/(?:ro|tr)(?:\/(studio|roundtable|radio)?(?:\.html)?)?\/?$/); if (old) return Response.redirect(url.origin + "/en/" + (old[1] || "") + url.search, 301); }
     { const sm = url.pathname.match(/^(?:\/(ru|de|en))?\/(studio|roundtable|radio|tools\/inbox)(?:\.html)?$/);
-      if (sm) { assetReq = new Request(new URL("/" + sm[2], url.origin), request); studioLang = sm[1] || duoPickLang(request); } }
+      if (sm) { assetReq = new Request(new URL("/" + sm[2], url.origin), request); studioLang = sm[1] || duoPickLang(request); radioPage = sm[2] === "radio"; } }
     let asset = await env.ASSETS.fetch(assetReq); // статические файлы из public/
     if (langCookie && asset.ok) { asset = new Response(asset.body, asset); asset.headers.append("Set-Cookie", `orb_lang=${langCookie}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`); }
     if (studioLang && asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
       asset = new HTMLRewriter().on("html", { element(e) { e.setAttribute("data-al", studioLang); e.setAttribute("lang", studioLang); } }).transform(asset);
+      // радио: текст текущего эфира прямо в странице — для поисковиков и агентов без JavaScript (только чтение сохранённых выпусков, без моделей и озвучки)
+      if (radioPage) { try { const tx = await Promise.race([radioPageText(env, request, studioLang), new Promise((r) => setTimeout(() => r(null), 1500))]);
+        if (tx) asset = new HTMLRewriter().on("#radio-text", { element(e) { e.setInnerContent(tx.html, { html: true }); } }).on("head", { element(e) { e.append('<script type="application/ld+json">' + tx.ld + "</script>", { html: true }); } }).transform(asset); } catch {} }
       asset = new Response(asset.body, asset); asset.headers.set("Vary", "Accept-Language"); asset.headers.set("Cache-Control", "private, max-age=60");
     }
     if (autoLang) {

@@ -349,3 +349,39 @@ export function checkRemarks(out, items, strip = (t) => t) {
     const allowed = new Set(numTokens(x.headline + " " + x.en.question + " " + x.en.answer)); if (numTokens(r.text).some((n) => !allowed.has(n))) return null;
     return withGuest(r.text, x.guest); });
 }
+
+// ---- Текст эфира в самой странице: чтобы поисковик и агент без JavaScript видели, что звучит на радио ----
+const RTX = {
+  ru: { h: "Что сейчас в эфире Радио Orb Studio", about: "Радио Orb Studio — интернет-радио, где всё в эфире сделано искусственным интеллектом и так и подписано. Ведущий Давид (его реплики пишет Claude) между треками берёт интервью у ИИ-гостя выпуска — Grok, DeepSeek или Gemini, — читает главные новости радаров и данные датчиков из открытых источников и говорит погоду. Голоса синтетические.",
+    podcast: "Подкаст выпуска: Давид и", guestIs: "ИИ-модель", read: "Давид", q: "Вопрос", a: "Ответ", remark: "Давид", src: "Источник", radar: "Главные новости радаров", sens: "Новости с датчиков", music: "Музыка в эфире (сгенерирована в Suno)", agents: "Для ИИ-агентов", agentsText: "Программа эфира в машинном виде: /api/v1/radio; инструмент MCP get_radio; каталог треков и покупка за USDC (x402): /api/v1/radio/tracks.", none: "Выпуск готовится: сейчас в эфире музыка и короткие связки ведущего.", when: "Выпуск собран" },
+  de: { h: "Was gerade bei Radio Orb Studio läuft", about: "Radio Orb Studio ist ein Internetradio, in dem alles im Programm von künstlicher Intelligenz stammt und so gekennzeichnet ist. Moderator David (seine Texte schreibt Claude) interviewt zwischen den Titeln den KI-Gast der Ausgabe — Grok, DeepSeek oder Gemini —, liest die wichtigsten Meldungen der Radare und Sensordaten aus offenen Quellen und sagt das Wetter an. Die Stimmen sind synthetisch.",
+    podcast: "Podcast der Ausgabe: David und", guestIs: "KI-Modell", read: "David", q: "Frage", a: "Antwort", remark: "David", src: "Quelle", radar: "Top-Meldungen der Radare", sens: "Neues von den Sensoren", music: "Musik im Programm (mit Suno erzeugt)", agents: "Für KI-Agenten", agentsText: "Programm in maschinenlesbarer Form: /api/v1/radio; MCP-Werkzeug get_radio; Titelkatalog und Kauf mit USDC (x402): /api/v1/radio/tracks.", none: "Die Ausgabe wird vorbereitet: gerade laufen Musik und kurze Moderationen.", when: "Ausgabe erstellt" },
+  en: { h: "What is on Radio Orb Studio right now", about: "Radio Orb Studio is an internet radio where everything on air is made by AI and labelled as such. The host David (his lines are written by Claude) interviews the AI guest of the episode — Grok, DeepSeek or Gemini — between tracks, reads the top stories from the radars and sensor data from open sources, and gives the weather. The voices are synthetic.",
+    podcast: "Podcast of the episode: David and", guestIs: "AI model", read: "David", q: "Question", a: "Answer", remark: "David", src: "Source", radar: "Top stories from the radars", sens: "News from the sensors", music: "Music on air (generated with Suno)", agents: "For AI agents", agentsText: "The programme in machine-readable form: /api/v1/radio; MCP tool get_radio; track catalogue and purchase with USDC (x402): /api/v1/radio/tracks.", none: "The episode is being prepared: music and short host links are on air now.", when: "Episode made" },
+};
+const rtxEsc = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
+// data: { interviews (из regionalInterviews, уже на языке страницы), generated_at, radar: [строки], sensors: [тексты], tracks: RADIO_TRACKS }
+export function radioTextBlock(lang, data) {
+  const L = RTX[lang] || RTX.en, e = rtxEsc, d = data || {}, out = ["<h2>" + e(L.h) + "</h2>", "<p>" + e(L.about) + "</p>"];
+  const ivs = Array.isArray(d.interviews) ? d.interviews.filter((iv) => iv && Array.isArray(iv.lines) && iv.lines.length) : [];
+  if (ivs.length) { out.push("<h3>" + e(L.podcast) + " " + e(ivs[0].guest) + (ivs[0].maker ? " (" + e(ivs[0].maker) + ", " + e(L.guestIs) + ")" : "") + "</h3>");
+    if (d.generated_at) out.push("<p>" + e(L.when) + ": <time datetime=\"" + e(d.generated_at) + "\">" + e(String(d.generated_at).slice(0, 16).replace("T", " ")) + " UTC</time></p>");
+    for (const iv of ivs.slice(0, 4)) { const say = (k) => (iv.lines.find((x) => x.kind === k) || {}).text;
+      out.push("<article><h4>" + e(iv.headline) + "</h4>" + (iv.source ? "<p>" + e(L.src) + ": " + e(iv.source) + "</p>" : "") +
+        (say("read") ? "<p><b>" + e(L.read) + ":</b> " + e(say("read")) + "</p>" : "") + (say("question") ? "<p><b>" + e(L.q) + ":</b> " + e(say("question")) + "</p>" : "") +
+        (say("answer") ? "<p><b>" + e(L.a) + " (" + e(iv.guest) + "):</b> " + e(say("answer")) + "</p>" : "") + (say("remark") ? "<p><b>" + e(L.remark) + ":</b> " + e(say("remark")) + "</p>" : "") + "</article>"); } }
+  else out.push("<p>" + e(L.none) + "</p>");
+  const radar = (Array.isArray(d.radar) ? d.radar : []).filter((x) => typeof x === "string" && x.trim());
+  if (radar.length) out.push("<h3>" + e(L.radar) + "</h3><ul>" + radar.slice(0, 5).map((x) => "<li>" + e(x) + "</li>").join("") + "</ul>");
+  const sens = (Array.isArray(d.sensors) ? d.sensors : []).filter((x) => typeof x === "string" && x.trim());
+  if (sens.length) out.push("<h3>" + e(L.sens) + "</h3>" + sens.slice(0, 3).map((x) => "<p>" + e(x) + "</p>").join(""));
+  const tr = Array.isArray(d.tracks) ? d.tracks : [];
+  if (tr.length) out.push("<h3>" + e(L.music) + "</h3><ul>" + tr.map((x) => "<li>" + e(x.title) + "</li>").join("") + "</ul>");
+  out.push("<h3>" + e(L.agents) + "</h3><p>" + e(L.agentsText) + "</p>");
+  return out.join("");
+}
+export function radioJsonLd(lang, origin) {
+  const L = RTX[lang] || RTX.en;
+  return JSON.stringify({ "@context": "https://schema.org", "@type": "RadioBroadcastService", name: "Radio Orb Studio", url: origin + "/" + (RTX[lang] ? lang : "en") + "/radio", description: L.about, inLanguage: ["ru", "de", "en"],
+    broadcaster: { "@type": "Organization", name: "Orb Studio", url: origin }, broadcastDisplayName: "Radio Orb Studio" }).replace(/</g, "\\u003c");
+}
