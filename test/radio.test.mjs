@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { notNow, RETRY_MS, mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -204,16 +204,20 @@ test("guests take turns: Grok, DeepSeek, Gemini; each gets its own name, maker a
   assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, to_music: "Thank you, Grok, that was a great talk. Now music." } }).en.to_music.by, "stock");
 });
 
-test("a translation must really be in the target language, or the whole interview stays English", () => {
+test("translations are checked gently: question and answer must be in the target language, small slips do not cancel the talk", () => {
   const en = [{ read: "The U.S. Senate has passed a bill.", question: "Grok, what is happening here?", answer: "The Senate passed a bill that would ban such bets on these markets across the country." }];
   const ru = { read: "Сенат США принял законопроект.", question: "Grok, что здесь происходит?", answer: "Сенат принял законопроект, который запретил бы такие ставки на этих рынках по всей стране." };
   const de = { read: "Der US-Senat hat ein Gesetz verabschiedet.", question: "Grok, was passiert hier?", answer: "Der Senat hat ein Gesetz verabschiedet, das solche Wetten auf diesen Märkten im ganzen Land verbieten würde." };
   assert.deepEqual(checkTranslations({ de: [de], ru: [ru] }, en), { de: [de], ru: [ru] });
-  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, read: en[0].read }] }, en).ru[0], null, "an English line inside a Russian translation drops it");
+  const noRead = checkTranslations({ de: [de], ru: [{ ...ru, read: en[0].read }] }, en).ru[0];
+  assert.deepEqual(Object.keys(noRead), ["question", "answer"], "an untranslated read line is simply left out, the talk stays");
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, answer: en[0].answer }] }, en).ru[0], null, "an English answer still does not go to a Russian listener");
+  const mixed = { ...ru, answer: "Сенат принял законопроект, это real game changer для prediction markets, и запрет будет действовать по всей стране." };
+  assert.equal(checkTranslations({ de: [de], ru: [mixed] }, en).ru[0].answer, mixed.answer, "English words inside a Russian answer are fine");
   assert.equal(checkTranslations({ de: [{ ...de, answer: en[0].answer }], ru: [ru] }, en).de[0], null, "a copied English answer is not German");
   assert.equal(rightLanguage("ru", "Grok, что здесь происходит с DeepSeek и Gemini?", ""), true, "names in Latin letters are fine");
   assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Давид, что здесь происходит?" }] }, en).ru[0].question, "Grok, что здесь происходит?", "a wrong addressee is put right, the translation is kept");
-  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Что здесь происходит без обращения к гостю?" }] }, en).ru[0], null, "no addressee at all: rejected");
+  assert.equal(checkTranslations({ de: [de], ru: [{ ...ru, question: "Что здесь происходит без обращения к гостю?" }] }, en).ru[0].question, "Grok, что здесь происходит без обращения к гостю?", "a missing addressee is added, not punished");
   assert.equal(rightLanguage("ru", "The measure now moves forward.", ""), false); assert.equal(rightLanguage("de", "Same text.", "same text."), false);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /JSON\.stringify\(\{ lines: \[x\.en\] \}\)/, "one interview per translation call"); assert.match(w, /ep\.tr2/);
@@ -399,7 +403,7 @@ test("podcast: four questions to one guest over different radars, David thanks a
   assert.match(REMARK_SYSTEM, /do not take sides between countries, parties or politicians/); assert.match(REMARK_SYSTEM, /your own view as an AI/);
   // перевод и эфир: реплика идёт четвёртой строкой, перевод без неё не принимается
   const en = { ...it.en, remark: good.replace("{GUEST}", "Gemini") }, ruT = { read: "ЕЦБ сохранил ставки без изменений.", question: "Gemini, что это значит для людей?", answer: "Это значит, что стоимость кредитов остаётся прежней, на уровне 2,5 процента, и банки пока не видят перемен.", remark: "Спасибо, Gemini. Как я это вижу, главное здесь то, что для заёмщиков сегодня ничего не меняется, и я бы добавил, что ставка 2,5 процента говорит о внимании банка к ценам." };
-  assert.ok(ct({ de: [null], ru: [ruT] }, [en]).ru[0].remark.startsWith("Спасибо")); assert.equal(ct({ de: [null], ru: [{ ...ruT, remark: undefined }] }, [en]).ru[0], null, "a translation without the remark is not accepted");
+  assert.ok(ct({ de: [null], ru: [ruT] }, [en]).ru[0].remark.startsWith("Спасибо")); { const nr = ct({ de: [null], ru: [{ ...ruT, remark: undefined }] }, [en]).ru[0]; assert.ok(nr && !("remark" in nr), "a missing remark does not cancel the talk"); assert.equal(ri({ region: "eu", items: [{ ...it, en, ru: nr }] }, "ru")[0].lines.length, 3); }
   const lines = ri({ region: "eu", generated_at: "2026-11-20T19:00:00Z", items: [{ ...it, en, ru: ruT }] }, "ru")[0].lines;
   assert.deepEqual(lines.map((x) => [x.who, x.kind]), [["david", "read"], ["david", "question"], ["gemini", "answer"], ["david", "remark"]]);
   assert.equal(ri({ region: "eu", items: [it] }, "en")[0].lines.length, 3, "an old interview without a remark still plays");
@@ -486,4 +490,46 @@ test("lock screen, headphones and steering wheel: play, pause and next do exactl
   a.play(); a.play(); assert.deepEqual(log, ["on"], "a second play does not pause"); a.nexttrack(); a.pause(); a.pause(); a.stop(); assert.deepEqual(log, ["on", "skip", "off"]);
   assert.equal(ART[0].sizes, "720x720"); for (const l of ["ru", "de", "en"]) assert.ok(T[l].textOfAir);
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /navigator\.mediaSession\.setActionHandler\(name, fn\)/); assert.match(js, /mediaSession\.playbackState = v \? "playing" : "paused"/);
+});
+
+test("tolerant radio: a small slip never cancels a talk or hides why a story was dropped", async () => {
+  const { checkSensorStories, sensorStoryProblem, RU_SHARE } = await import("../src/radio.js"); assert.equal(RU_SHARE, 0.4);
+  const lines = ["Electricity 87 €/MWh = 8.7 ct/kWh, today 61–142 €/MWh"], pad = " This is what the exchange charges before grid fees and taxes are added, so the bill at home is higher than this figure, and a megawatt-hour is a thousand kilowatt-hours, roughly what a small household uses in a few months of ordinary life.";
+  const good = "From the Orb Studio sensors: electricity costs 87 euros per megawatt-hour, that is 8.7 cents per kilowatt-hour, and today it moved between 61 and 142 euros." + pad;
+  assert.equal(sensorStoryProblem(good, lines, "en"), null);
+  assert.match(sensorStoryProblem(good.replace("87 euros", "90 euros"), lines, "en"), /^number_not_in_sensor_lines: 90/); assert.match(sensorStoryProblem(good + " It is 87 €/MWh.", lines, "en"), /^unit_not_in_words/);
+  assert.match(sensorStoryProblem(good + " Prices will rise soon.", lines, "en"), /^forecast_or_advice_word: will rise/); assert.equal(sensorStoryProblem("short", lines, "en"), "too_short"); assert.equal(sensorStoryProblem(good, lines, "ru"), "wrong_language");
+  const r = checkSensorStories({ money: good, world: "x" }, { money: lines, world: ["Outages in 5 countries"], crypto: ["Fee 3 sat/vB"] }, "en");
+  assert.deepEqual(Object.keys(r), ["money"]); assert.deepEqual(r._rejected, { world: "too_short", crypto: "not_written" }); assert.equal(JSON.stringify(r).includes("_rejected"), false, "reasons are kept beside the stories, not inside them");
+  // мировой выпуск: непереведённая благодарность не отменяет разговор
+  const d = duo([seg(0)]), full = { read: "Давид читает новость", question: "Grok, что это значит?", answer: "Ответ гостя на русском языке." };
+  const w1 = worldInterviews({ ...d, translations: { ru: { segments: { [d.segments[0].i]: full } } } }, "ru");
+  assert.equal(w1.length, 1); assert.deepEqual(w1[0].lines.map((x) => x.kind), ["read", "question", "answer"], "the untranslated thanks line is dropped, the talk plays");
+  assert.deepEqual(worldInterviews({ ...d, translations: { ru: { segments: { [d.segments[0].i]: { read: full.read, question: full.question } } } } }, "ru"), [], "no translated answer: no talk");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /not_aired: rejected/); assert.match(w, /"radio-sens-v2"/);
+});
+
+test("voice budget: robots and checks never start speech synthesis; the radio skips unvoiced speech instead of going silent", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
+  assert.match(w, /function quietVoice\(request, url\) \{ return url\.searchParams\.get\("voice"\) === "0" \|\| !!classifyAgent\(request\.headers\.get\("user-agent"\)\); \}/);
+  assert.match(w, /if \(cachedOnly\) return null;/); assert.match(w, /ttsEnsure\(env, text, who, lg, !!env\.__quietVoice\)/);
+  for (const ep of ["dj", "radar", "sensors", "regional", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,'), ep + " uses the quiet-aware env");
+  assert.match(w, /duoAudio\(env, ctx, origin, url, quietVoice\(request, url\)\)/); assert.match(w, /if \(quiet\) return bad\("this line has not been voiced yet/);
+  // плеер: в режиме «только голос» безголосые реплики и блоки не попадают в сетку
+  const A = (n) => "https://orbstudio.org/api/v1/radio/audio?k=" + String(n).padStart(40, "0"), V = (text, n) => ({ text, audio: A(n) });
+  const dj = { ident: V("Ident.", 1), intro: V("Intro.", 2), to_music: V("To music.", 3), after_music: { text: "No voice." }, next_track: V("Next.", 4) };
+  const talk = (h, voiced) => ({ headline: h, guest: "Grok", lines: [{ who: "david", kind: "read", text: "r", audio: voiced ? A(5) : null }, { who: "david", kind: "question", text: "q", audio: voiced ? A(6) : null }, { who: "grok", kind: "answer", text: "a", audio: voiced ? A(7) : null }, { who: "david", kind: "remark", text: "m", audio: null }] });
+  const p = plan([talk("voiced", true), talk("mute", false)], new Set(), 0, 2, { voiceOnly: true, dj, first: true, greeting: { text: "Hello." }, weather: { text: "Weather." }, stories: [{ key: "s1", text: "Sensor.", audio: A(8) }, { key: "s2", text: "Mute sensor." }] });
+  assert.deepEqual(p.items.map((x) => x.type), ["say", "track", "say", "talk", "say", "track", "news"], "the mute talk, the mute story and the unvoiced weather are left out");
+  assert.deepEqual(p.items[0].iv.lines.map((x) => x.text), ["Ident."], "the unvoiced greeting is dropped, the voiced ident stays"); assert.deepEqual(p.items[3].iv.lines.map((x) => x.kind), ["read", "question", "answer"], "the unvoiced remark is dropped from the talk");
+  assert.equal(p.fresh, 1); assert.equal(p.news, 1);
+  assert.deepEqual(plan([], new Set(), 0, 2, { voiceOnly: true, dj }).items.map((x) => x.type + ":" + (x.iv ? x.iv.lines.map((l) => l.text).join("+") : "")), ["track:", "say:Next."], "a link keeps only its voiced part");
+  assert.deepEqual(plan([talk("mute", false)], new Set(), 0, 2, { voiceOnly: true, dj: {} }).items.map((x) => x.type), ["track"], "nothing voiced: music only, no silence");
+  assert.match(js, /\{ voiceOnly: true, dj: dj && dj\.links/); assert.match(js, /au\.onerror = \(\) => \{ timer = setTimeout\(nextLine, VOICE_FAIL_MS\); \}/); assert.match(js, /if \(id && itemHeard\) \{ heard\.add\(id\); saveHeard\(\); \}/);
+});
+
+test("a block whose voice failed to load is left alone for twenty minutes, then tried again", () => {
+  const now = 1795300000000, f = new Map([["talk A", now - 5 * 60e3], ["sens:1", now - RETRY_MS - 1], ["talk B", now - RETRY_MS + 1000]]);
+  assert.deepEqual([...notNow(f, now)].sort(), ["talk A", "talk B"]); assert.deepEqual([...notNow(null, now)], []); assert.equal(RETRY_MS, 1200000);
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /else if \(id\) failed\.set\(id, Date\.now\(\)\)/); assert.match(js, /\.filter\(\(iv\) => !skipNow\.has\(iv\.headline\)\)/);
 });

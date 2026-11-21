@@ -241,14 +241,21 @@ export const TRANSLATE_TOOL = { name: "translations", description: "Translated l
 // (русский — кириллицей, немецкий — не копия английского). Иначе слушатель услышит английский оригинал целиком, а не смесь языков.
 const cyrShare = (t) => { const L = String(t).replace(/\b(?:Grok|DeepSeek|Gemini|Orb Studio|xAI|Google)\b/g, "").match(/\p{L}/gu) || [], // имена моделей остаются латиницей и в счёт не идут
     c = L.filter((ch) => /[\u0400-\u04FF]/.test(ch)).length; return L.length ? c / L.length : 0; };
-export function rightLanguage(lang, text, source) { return lang === "ru" ? cyrShare(text) >= 0.6 : String(text).trim().toLowerCase() !== String(source || "").trim().toLowerCase(); }
+// Язык перевода проверяется мягко: русский текст может содержать английские слова и названия (доля кириллицы от 40 %),
+// немецкий — просто не копия английского. Небольшая шероховатость перевода выпуск не отменяет.
+export const RU_SHARE = 0.4;
+export function rightLanguage(lang, text, source) { return lang === "ru" ? cyrShare(text) >= RU_SHARE : String(text).trim().toLowerCase() !== String(source || "").trim().toLowerCase(); }
+// Перевод интервью. Обязательны только вопрос и ответ на нужном языке; неудачная читка или реплика ведущего просто не звучат,
+// обращение к гостю в вопросе восстанавливается. Отбрасывается только перевод без вопроса или без ответа.
 export function checkTranslations(out, items, strip = (t) => t) {
   const res = {};
   for (const l of ["de", "ru"]) res[l] = (items || []).map((it, i) => { const t = out && Array.isArray(out[l]) ? out[l][i] : null; if (!t) return null; const o = {};
-    for (const k of ["read", "question", "answer", ...(it.remark ? ["remark"] : [])]) { const v = clip(t[k], strip, Math.round(String(it[k] || "").length * 2.2) + 120); if (!v || v.length < String(it[k] || "").length * 0.35 || !rightLanguage(l, v, it[k])) return null;
-      // вопрос обращён к тому же гостю, что и в оригинале: если переводчик подставил другое имя («Давид, …»), возвращаем имя гостя
-      const who = k === "question" ? /^([A-Za-z]+),/.exec(String(it[k] || "")) : null; let fixed = v;
-      if (who && !v.startsWith(who[1] + ",")) { if (!/^[^\s,]{2,20},\s/.test(v)) return null; fixed = who[1] + v.slice(v.indexOf(",")); }
+    for (const k of ["read", "question", "answer", ...(it.remark ? ["remark"] : [])]) { const must = k === "question" || k === "answer", src = String(it[k] || "");
+      const v = clip(t[k], strip, Math.round(src.length * 2.6) + 160), ok = !!v && v.length >= src.length * 0.25 && rightLanguage(l, v, src);
+      if (!ok) { if (must) return null; continue; }
+      // вопрос обращён к тому же гостю, что и в оригинале: другое имя или отсутствие обращения исправляем сами
+      const who = k === "question" ? /^([A-Za-z]+),/.exec(src) : null; let fixed = v;
+      if (who && !v.startsWith(who[1] + ",")) fixed = who[1] + ", " + (/^[^\s,]{2,20},\s/.test(v) ? v.slice(v.indexOf(",") + 1).trim() : v.charAt(0).toLowerCase() + v.slice(1));
       o[k] = fixed; } return o; });
   return res;
 }
@@ -258,7 +265,7 @@ export function regionalInterviews(ep, lang) {
   return ep.items.filter((it) => it && it.en && it.en.answer).map((it) => { const tr = lang !== "en" && it[lang] ? it[lang] : null, t = tr || it.en, lg = tr ? lang : "en";
     const g = RADIO_GUESTS[it.guest] ? it.guest : "grok", G = RADIO_GUESTS[g];
     return { headline: it.headline, source: it.source || null, link: typeof it.link === "string" && /^https:\/\/[^\s"'<>]+$/.test(it.link) ? it.link : null, at: ep.generated_at || null, guest: G.name, guest_id: g, maker: G.maker, model: it.model || null, region: ep.region, language: lg,
-      lines: [{ who: "david", kind: "read", text: t.read }, { who: "david", kind: "question", text: t.question }, { who: g, kind: "answer", text: t.answer }, ...(t.remark ? [{ who: "david", kind: "remark", text: t.remark }] : [])] }; });
+      lines: [{ who: "david", kind: "read", text: t.read }, { who: "david", kind: "question", text: t.question }, { who: g, kind: "answer", text: t.answer }, ...(t.remark ? [{ who: "david", kind: "remark", text: t.remark }] : [])].filter((x) => x.text) }; });
 }
 
 // ---- Новости с датчиков: Давид рассказывает то, что сняли датчики Orb Studio (открытые данные), между треками ----
@@ -288,17 +295,27 @@ export const SENSOR_TOOL = { name: "write_sensor_news", description: "David's sp
   input_schema: { type: "object", properties: Object.fromEntries(Object.keys(SENSOR_TOPICS).map((k) => [k, { type: "string" }])) } };
 const SENSOR_BAD = /\b(?:will (?:rise|fall|drop|grow|climb|increase|decrease|go up|go down)|is expected|are expected|forecast\w*|predict\w*|price target|you should|buy|sell|invest\w*|wird (?:steigen|fallen|sinken)|werden (?:steigen|fallen|sinken)|prognos\w*|voraussichtlich|kaufen|verkaufen|investier\w*|world premiere|exclusive|unique|einzigartig\w*|exklusiv\w*)\b|прогноз|выраст[еу]т|упад[её]т|подорожа[еюю]т|подешеве[еюю]т|ожидается|скорее всего|покупай|продавай|инвестир|впервые|единственн|уникальн|эксклюзив|ignore (?:all |previous )|system prompt|https?:\/\//i;
 // Проверка рассказа: нужный язык и длина, ни одного числа, которого нет в строках датчиков, без прогнозов и советов. Не прошёл — темы в эфире нет.
+// Почему рассказ не прошёл (null — прошёл). Причина сохраняется в выпуске, чтобы отказ можно было разобрать, а не гадать.
+export function sensorStoryProblem(t, lines, lang) {
+  if (t.length < 300) return "too_short"; if (t.length > 1300) return "too_long";
+  const bad = SENSOR_BAD.exec(t); if (bad) return "forecast_or_advice_word: " + bad[0].slice(0, 30);
+  const unit = /[€$%]\s*\/|\/\s*(?:MWh|kWh|vB|s)\b/i.exec(t); if (unit) return "unit_not_in_words: " + unit[0];
+  if (lang === "ru" ? cyrShare(t) < RU_SHARE : cyrShare(t) > 0.1) return "wrong_language";
+  const allowed = new Set(numTokens((lines || []).join(" "))), used = numTokens(t), extra = used.filter((n) => !allowed.has(n));
+  if (extra.length) return "number_not_in_sensor_lines: " + extra.slice(0, 4).join(" ");
+  if (new Set(used).size < Math.min(2, allowed.size)) return "no_sensor_numbers";
+  return null;
+}
+// Проверка рассказа: нужный язык и длина, ни одного числа, которого нет в строках датчиков, без прогнозов и советов. Не прошёл — темы в эфире нет.
 export function checkSensorStory(text, lines, lang, strip = (t) => t) {
   const t = typeof text === "string" ? strip(text).replace(/\s+/g, " ").trim() : "";
-  if (t.length < 300 || t.length > 1300 || SENSOR_BAD.test(t) || /[€$%]\s*\/|\/\s*(?:MWh|kWh|vB|s)\b/i.test(t)) return null;
-  if (lang === "ru" ? cyrShare(t) < 0.6 : cyrShare(t) > 0.1) return null;
-  const allowed = new Set(numTokens((lines || []).join(" "))), used = numTokens(t);
-  if (used.some((n) => !allowed.has(n)) || new Set(used).size < Math.min(2, allowed.size)) return null;
-  return t;
+  return sensorStoryProblem(t, lines, lang) ? null : t;
 }
-export function checkSensorStories(out, facts, lang, strip) {
-  const res = {};
-  for (const k of Object.keys(SENSOR_TOPICS)) { if (!facts || !facts[k]) continue; const t = checkSensorStory(out && out[k], facts[k], lang, strip); if (t) res[k] = { text: t, facts: facts[k] }; }
+export function checkSensorStories(out, facts, lang, strip = (t) => t) {
+  const res = {}, rejected = {};
+  for (const k of Object.keys(SENSOR_TOPICS)) { if (!facts || !facts[k]) continue; const raw = out && out[k], t = typeof raw === "string" ? strip(raw).replace(/\s+/g, " ").trim() : "";
+    const why = typeof raw === "string" ? sensorStoryProblem(t, facts[k], lang) : "not_written"; if (why) rejected[k] = why; else res[k] = { text: t, facts: facts[k] }; }
+  if (Object.keys(rejected).length) Object.defineProperty(res, "_rejected", { value: rejected, enumerable: false });
   return res;
 }
 

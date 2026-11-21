@@ -1012,7 +1012,9 @@ async function askGrok(env, headline, source, facts, retry, ms, question, avoid,
 const DUO_VOICES = { david: "rex", grok: "sal", gemini: "ara", deepseek: "atlas" }; // голоса гостей радио — те же, что в круглом столе
 const DUO_TTS_DAY_CHARS = 90000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
 const DUO_LANGS = ["de", "ru"]; // переводы эфира (оригинал — английский); румынский и турецкий сняты 21.11.2026
-async function duoAudio(env, ctx, origin, url) {
+// Кому голос не синтезируем: роботы и скрипты по подписи, а также любой запрос с ?voice=0
+function quietVoice(request, url) { return url.searchParams.get("voice") === "0" || !!classifyAgent(request.headers.get("user-agent")); }
+async function duoAudio(env, ctx, origin, url, quiet = false) {
   const bad = (m, st = 404) => json({ error: m }, { "Cache-Control": "no-store" }, st);
   if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
   const seg = Number(url.searchParams.get("seg")), part = url.searchParams.get("part"), lg = DUO_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : "en";
@@ -1039,6 +1041,7 @@ async function duoAudio(env, ctx, origin, url) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS tts_cache (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run();
   const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(key).first();
   if (hit && hit.audio) return new Response(new Uint8Array(hit.audio), { headers: head });
+  if (quiet) return bad("this line has not been voiced yet; the voice is made when a listener plays it", 404);
   const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 };
   if (used.c + text.length > DUO_TTS_DAY_CHARS) return bad("daily voice budget reached — subtitles only", 429);
   let r;
@@ -1152,7 +1155,8 @@ function mp3Strip(b) { // ID3v2 в начале — убираем, чтобы �
   if (b.length > 10 && b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) { const sz = ((b[6] & 127) << 21) | ((b[7] & 127) << 14) | ((b[8] & 127) << 7) | (b[9] & 127); return b.subarray(10 + sz); }
   return b;
 }
-async function ttsEnsure(env, text, who, lg) {
+// cachedOnly: только уже озвученное — так роботы и проверки не тратят дневной лимит синтеза
+async function ttsEnsure(env, text, who, lg, cachedOnly = false) {
   const voice = DUO_VOICES[who]; text = String(text || "").trim().slice(0, 1200); if (!text) return null;
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + lg + "|" + text)));
   const key = [...kb].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
@@ -1160,6 +1164,7 @@ async function ttsEnsure(env, text, who, lg) {
   const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(key).first();
   let buf = hit && hit.audio ? new Uint8Array(hit.audio) : null;
   if (!buf) {
+    if (cachedOnly) return null;
     const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 };
     if (used.c + text.length > DUO_TTS_DAY_CHARS) return null;
     const r = await fetch("https://api.x.ai/v1/tts", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + env.XAI_API_KEY }, body: JSON.stringify({ text, voice_id: voice, language: lg }), signal: AbortSignal.timeout(30000) }).catch(() => null);
@@ -1485,7 +1490,7 @@ async function duoWarm(env, ctx) {
 // ================= Радио: диджей Давид (связки) и погода по городу слушателя =================
 async function radioVoice(env, origin, text, lg, who = "david") {
   if (!env.XAI_API_KEY || !env.DB) return null;
-  try { const a = await ttsEnsure(env, text, who, lg); return a ? `${origin}/api/v1/radio/audio?k=${a.k}` : null; } catch { return null; }
+  try { const a = await ttsEnsure(env, text, who, lg, !!env.__quietVoice); return a ? `${origin}/api/v1/radio/audio?k=${a.k}` : null; } catch { return null; }
 }
 async function radioDj(env, ctx, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en";
@@ -1614,21 +1619,23 @@ async function radioRadar(env, origin, lang) {
 // Новости с датчиков для радио: раз в четыре часа Claude пересказывает строки датчиков на трёх языках; в эфир идёт только то, что прошло проверку чисел
 async function radioSensorsWarm(env, ctx) {
   if (!env.ANTHROPIC_API_KEY) return;
-  const cur = await sharedGet(env, "radio-sens-v1", 1e15); if (cur && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return;
+  const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return;
   if (await sharedGet(env, "radio-sens-lock", 20 * 60e3)) return; await sharedPut(env, "radio-sens-lock", { t: Date.now() });
   const out = { generated_at: new Date().toISOString(), stories: {} };
   await Promise.all(DJ_LANGS.map(async (lg) => { try {
     const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
-    out.stories[lg] = checkSensorStories(await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800), facts, lg, stripInvisible);
+    const st = checkSensorStories(await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800), facts, lg, stripInvisible);
+    out.stories[lg] = st; if (st._rejected) (out.rejected = out.rejected || {})[lg] = st._rejected; // причины отказа храним рядом: видно, что и почему не вышло в эфир
   } catch {} }));
-  if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v1", out);
+  if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v2", out);
 }
 async function radioSensors(env, origin, lang) {
-  const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v1", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
+  const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
   const ids = mine ? Object.keys(SENSOR_TOPICS).filter((k) => mine[k] && mine[k].text) : [];
-  if (!ids.length) return { status: "preparing", language: lg };
+  const rejected = (ep && ep.rejected && ep.rejected[lg]) || null;
+  if (!ids.length) return { status: "preparing", language: lg, not_aired: rejected };
   const audio = await Promise.all(ids.map((k) => radioVoice(env, origin, mine[k].text, lg)));
-  return { status: "ok", language: lg, generated_at: ep.generated_at, stories: ids.map((k, i) => ({ id: k, key: "sens:" + k + ":" + ep.generated_at, text: mine[k].text, audio: audio[i], sensor_lines: mine[k].facts })),
+  return { status: "ok", language: lg, generated_at: ep.generated_at, not_aired: rejected, stories: ids.map((k, i) => ({ id: k, key: "sens:" + k + ":" + ep.generated_at, text: mine[k].text, audio: audio[i], sensor_lines: mine[k].facts })),
     host: "David — Orb Studio AI host (lines written by Claude)", source: "Orb Studio sensors: open data listed at /sensors and /api/v1/sensors", source_url: origin + "/sensors",
     check: "Every number in a story must be present in the sensor lines it was written from; a story that fails is not aired.", voices: "Synthetic AI voice (xAI Grok TTS).", scope_note: "What the sensors show and what the figures mean; no forecasts or advice." };
 }
@@ -1653,7 +1660,7 @@ async function radioRegionWarm(env, ctx) {
 // Текст эфира для страницы радио: то же, что слышит слушатель этого региона и языка, из сохранённых выпусков
 async function radioPageText(env, request, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = regionFor(request.cf && request.cf.country) || "eu";
-  const [ep, rad, sens] = await Promise.all([sharedGet(env, "radio-region-v5-" + region, 2 * REGION_MS).catch(() => null), sharedGet(env, "radio-radar-v1", 3 * RADAR_MS).catch(() => null), sharedGet(env, "radio-sens-v1", 3 * SENSOR_MS).catch(() => null)]);
+  const [ep, rad, sens] = await Promise.all([sharedGet(env, "radio-region-v5-" + region, 2 * REGION_MS).catch(() => null), sharedGet(env, "radio-radar-v1", 3 * RADAR_MS).catch(() => null), sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS).catch(() => null)]);
   const interviews = ep ? regionalInterviews(ep, lg).filter((iv) => iv.language === lg) : [];
   const radar = rad && Array.isArray(rad.items) ? rad.items.filter((x) => x && x.text && x.text[lg]).map((x) => ((x.titles && x.titles[lg]) || x.title) + ". " + x.text[lg]) : [];
   const sm = sens && sens.stories && sens.stories[lg] ? Object.values(sens.stories[lg]).map((x) => x && x.text).filter(Boolean) : [];
@@ -3416,14 +3423,17 @@ async function handleApi(url, request, env, ctx) {
   }
 
   if (p === "/api/v1/music" || p === "/music") ctx.waitUntil((async () => { if (await sharedGet(env, "emo-music-poll", 10 * 60e3)) return; await sharedPut(env, "emo-music-poll", { t: Date.now() }); await emoMusicCheck(env, ctx); })().catch(() => null));
+  // Голос синтезируется только для слушателя. Роботам, скриптам и проверкам (или по ?voice=0) отдаём текст и ссылки на уже готовый звук:
+  // иначе обходчики и наши же тесты съедают дневной лимит озвучки, и эфир к вечеру остаётся без голоса.
+  const renv = quietVoice(request, url) ? Object.assign(Object.create(env), { __quietVoice: true }) : env;
   // связки диджея Давида для текущего выпуска (пишет Claude, голос — тот же синтез, что в студии)
-  if (p === "/api/v1/radio/dj") return json(await radioDj(env, ctx, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/dj") return json(await radioDj(renv, ctx, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   // интервью ближе к слушателю (регион по стране IP; ?region=eu|us — для проверки)
-  if (p === "/api/v1/radio/radar") return json(await radioRadar(env, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/radio/sensors") return json(await radioSensors(env, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/radio/regional") return json(await radioRegional(env, request, origin, url.searchParams.get("lang"), url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
+  if (p === "/api/v1/radio/radar") return json(await radioRadar(renv, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/sensors") return json(await radioSensors(renv, origin, url.searchParams.get("lang")), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/regional") return json(await radioRegional(renv, request, origin, url.searchParams.get("lang"), url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
   // погода для города слушателя: город по IP даёт Cloudflare, он нигде не сохраняется вместе с посетителем
-  if (p === "/api/v1/radio/weather") return json(await radioWeather(env, request, origin, url.searchParams.get("lang")), { "Cache-Control": "private, max-age=600" });
+  if (p === "/api/v1/radio/weather") return json(await radioWeather(renv, request, origin, url.searchParams.get("lang")), { "Cache-Control": "private, max-age=600" });
   if (p === "/api/v1/radio/audio") {
     const k = url.searchParams.get("k") || ""; if (!/^[0-9a-f]{40}$/.test(k) || !env.DB) return json({ error: "no such line" }, { "Cache-Control": "no-store" }, 404);
     const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(k).first().catch(() => null);
@@ -3589,7 +3599,7 @@ function clickLabel(request, from) {
     const t = await trendsData(env).catch((e) => ({ error: String(e).slice(0, 120) }));
     return json({ about: "What people search, read and post about right now: Google Trends (DE, US, GB), most-read Wikipedia articles (en, de, ru), and X trends when connected. Attention, not confirmed news.", ...t, terms: t && !t.error ? trendTerms(t) : [] }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   }
-  if (p === "/api/v1/broadcast/duo/audio") return duoAudio(env, ctx, origin, url);
+  if (p === "/api/v1/broadcast/duo/audio") return duoAudio(env, ctx, origin, url, quietVoice(request, url));
   if (p === "/api/v1/broadcast/duo/comments") return duoComments(env, ctx, request, url);
   if (p === "/api/v1/roundtable" || p.startsWith("/api/v1/roundtable/")) { const r = await rtHandle(request, env, ctx, url, rtDeps(origin)); if (r) return r; }
   if (p === "/api/v1/broadcast/duo/archive") {
