@@ -52,10 +52,10 @@ test("track sale: the file is delivered only after verify and settle", async () 
   await withFacilitator({}, async (seen) => { assert.equal((await handleTrackSale(get("orbit-city", { "PAYMENT-SIGNATURE": wrong }), cfg, ENV, deps(c2))).status, 402); assert.deepEqual(seen, [], "a cheaper payment never reaches the facilitator"); });
 });
 
-test("track sale: the paid file cannot be fetched directly; the switch is off in the config", () => {
+test("track sale: the paid file cannot be fetched directly; switch and price are in the config", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
   assert.match(w, /url\.pathname\.startsWith\("\/_sale\/"\)\) return json\(\{ error: "Not found" \}/); assert.ok(w.indexOf('startsWith("/_sale/")') < w.indexOf('"/api/v1/radio/track/buy"'));
-  assert.match(toml, /"\/_sale", "\/_sale\/\*"\]/); assert.match(toml, /^RADIO_TRACK_SALE = "0"$/m);
+  assert.match(toml, /"\/_sale", "\/_sale\/\*"\]/); assert.match(toml, /^RADIO_TRACK_SALE = "[01]"$/m, "the switch is always written out in the config"); assert.match(toml, /^RADIO_TRACK_PRICE_USD = "0\.25"$/m);
   for (const t of Object.values(SALE_TRACKS)) { assert.ok(statSync(new URL("../public" + t.file, import.meta.url)).size > 500_000); assert.ok(statSync(new URL("../public" + t.preview, import.meta.url)).size > 100_000); }
-  assert.match(readFileSync(new URL("../public/radio-track-license.txt", import.meta.url), "utf8"), /DRAFT/);
+  const lic = readFileSync(new URL("../public/radio-track-license.txt", import.meta.url), "utf8"); assert.match(lic, /non-exclusive/); assert.match(lic, /cannot be returned/); assert.ok(!/DRAFT/.test(lic) || /^RADIO_TRACK_SALE = "0"$/m.test(toml), "an open sale does not run on a draft licence");
 });

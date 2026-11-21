@@ -32,8 +32,8 @@ AGENT_DAILY_CAP_USD = "10"
 AGENT_TOTAL_CAP_USD = "10"
 AGENT_EXPIRES_AT = "2026-12-10T08:00:00Z"
 AGENT_AUTONOMOUS = "1"   # агент сам решает, что покупать; выключатель: поставить "0" (или AGENT_LIMITS_ENABLED = "0") и задеплоить
-# Продажа треков радио (src/radio-track-sale.js): выключена, пока RADIO_TRACK_SALE не равен "1". Цена за трек в USDC.
-RADIO_TRACK_SALE = "0"
+# Продажа треков радио (src/radio-track-sale.js): включена автором 21.11.2026. Выключатель: поставить "0". Цена за трек в USDC.
+RADIO_TRACK_SALE = "1"
 RADIO_TRACK_PRICE_USD = "0.25"
 # X402_PRICE_USD = "0.01"
 # X402_NETWORK = "eip155:8453"   # Base; для теста eip155:84532 (Base Sepolia) + X402_FACILITATOR_URL = "https://x402.org/facilitator"
