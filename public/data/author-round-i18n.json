@@ -1,0 +1,81 @@
+{
+ "generated_at": "2026-11-21T07:20:07.457Z",
+ "translated_by": "Claude (Anthropic)",
+ "source_language": "ru",
+ "en": {
+  "title": "From the author's archive",
+  "sub": "Theses that the author of Orb Studio published in 2018–2019. The moderator Claude put one question to the guests: how does this look today? The answers are views of AI models, not verdicts. Translated from Russian by Claude.",
+  "mod": "Claude · moderator",
+  "question": "The author of Orb Studio wrote this thesis in 2018–2019. How does it look today: what has been confirmed, what has not, and what remains disputed?",
+  "rounds": [
+   {
+    "thesis": "The great powers — the USA, Russia and China — should end their confrontation and redirect military budgets to space and science.",
+    "gemini": "The idea of redirecting military spending to science remains attractive, but reality has gone the opposite way: global defence budgets have reached record highs. It remains disputed whether deep cooperation in space is possible at all under geopolitical rivalry. Idealists point to threats common to all humanity, while realists treat national security as an unconditional priority. It is still unclear whether countries can find a balance between competition and joint research.",
+    "grok": "The confrontation between the USA, Russia and China has intensified since 2019, and military budgets are growing against the background of conflicts. The idea of redirecting funds to space and science has not been realised. What remains disputed is whether cooperation is possible without a reduction in geopolitical tension.",
+    "deepseek": "Since then the confrontation has not eased; rather, it has taken the shape of a technology race in which space and science became part of the rivalry, not an alternative to it. Military budgets have grown, and nobody dared to redirect them entirely. It remains disputed whether science can exist outside geopolitics: joint projects have shrunk but not disappeared. I do not have fresh budget figures."
+   },
+   {
+    "thesis": "Colour revolutions and externally driven changes of power are a tool used by more than one power: force and hybrid methods are not the monopoly of one side.",
+    "gemini": "The thesis that hybrid methods and interference are used by different sides has been fully confirmed by recent events. At stake are the sovereignty of states and trust in institutions. The main point of dispute is the line between a sincere domestic protest by citizens and outside steering. Each side accuses its opponents of manipulation, and there are still no common criteria for judging the legitimacy of such influence in the digital age.",
+    "grok": "The thesis has been confirmed: different powers use methods of influence in various regions. Hybrid tools have not become the monopoly of one side. It is unclear how exactly this changes the balance of power today.",
+    "deepseek": "The thesis that hybrid methods are not the monopoly of one side looks rather confirmed today: interference, disinformation and support for protests are attributed to different players. What is disputed is something else — where outside influence ends and domestic causes of discontent begin; assessments here depend heavily on political position. I will not give unambiguous data on the scale."
+   },
+   {
+    "thesis": "Sanctions and “fences” do not resolve conflicts; economic arrangements, such as free economic zones, work better.",
+    "gemini": "What has been confirmed is that sanctions and economic barriers rarely lead to quick political solutions and often break supply chains. At stake are the stability of world trade and the well-being of citizens. However, the effectiveness of free economic zones under open confrontation remains disputed. Some see trade as the best bridge to peace, others argue that economic projects do not work without a political settlement.",
+    "grok": "Sanctions have not resolved conflicts, and economic arrangements remain rare. Free zones have not become a widespread solution. It remains disputed whether such zones can work without political trust.",
+    "deepseek": "Sanctions do indeed rarely change behaviour quickly, but the thesis that economic zones resolve conflicts is weakly supported: trade often goes on alongside war. It is disputed what should count as the success of sanctions — pressure or damage. I have no concrete examples with figures, so I will stay with the general picture."
+   },
+   {
+    "thesis": "The world financial system needs to change: control over money and institutions matters more than military force.",
+    "gemini": "The role of financial control and institutions has only grown in recent years, which confirms the author's thesis. Asset freezes and sanctions have shown that access to the world financial system can be more powerful than military pressure. However, the question of the future of this system remains open. Supporters of de-dollarisation strive for multipolarity, while defenders of the current model point to the lack of a reliable alternative to the dollar.",
+    "grok": "Control over finance and institutions does have more influence than military force in a number of cases. The system has not changed fundamentally. It is unclear whether this will lead to reforms or to new divisions.",
+    "deepseek": "Financial control has indeed become an instrument of power: disconnection from payment systems and the freezing of reserves have shown this in practice. But the thesis that money matters more than military force is disputed — without military power, financial levers often do not work. Alternative currencies and settlements are being discussed, but their real scale is unknown to me."
+   },
+   {
+    "thesis": "When a territorial dispute has become the anchor of a conflict and neither side can step back for political reasons, a way out may be an exchange of territories or economic arrangements — not necessarily at the expense of the disputed land, for example uninhabited territories in other regions — in order to fix the line of contact and cease fire. Any military action is too dangerous now: people have begun to get used to the thought of nuclear weapons being used.",
+    "gemini": "The author's fears about people getting used to nuclear rhetoric have, unfortunately, come true: the risks of escalation are higher today than ever. At the same time, the idea of exchanging territories remains extremely disputed and hard to implement because of questions of sovereignty and law. Some propose pragmatic compromises for the sake of a ceasefire and saving lives, others are convinced that concessions only provoke new conflicts. It is still unclear whether a lasting peace is possible at all without the full consent of the parties.",
+    "grok": "Territorial disputes remain the anchor of conflicts, and military action continues. The idea of exchanges or economic deals has not been widely applied. It remains disputed how habitual and dangerous nuclear rhetoric has become.",
+    "deepseek": "The thesis about fixing the line of contact and a ceasefire sounds more realistic today than in 2018, but an exchange of territories remains extremely disputed: legally and politically the parties reject it. The fears about getting used to nuclear rhetoric have been confirmed. I do not know of concrete settlement schemes, and I will not try to predict them."
+   }
+  ]
+ },
+ "de": {
+  "title": "Aus dem Archiv des Autors",
+  "sub": "Thesen, die der Autor von Orb Studio 2018–2019 veröffentlicht hat. Moderator Claude stellte den Gästen eine Frage: Wie sieht das heute aus? Die Antworten sind Ansichten von KI-Modellen, keine Urteile. Aus dem Russischen übersetzt von Claude.",
+  "mod": "Claude · Moderator",
+  "question": "Diese These hat der Autor von Orb Studio 2018–2019 aufgeschrieben. Wie sieht sie heute aus: Was hat sich bestätigt, was nicht, und was ist umstritten geblieben?",
+  "rounds": [
+   {
+    "thesis": "Die Großmächte — die USA, Russland und China — sollten ihre Konfrontation beenden und die Militärhaushalte in Raumfahrt und Wissenschaft umlenken.",
+    "gemini": "Die Idee, Militärausgaben in die Wissenschaft umzulenken, bleibt attraktiv, aber die Wirklichkeit ist in die entgegengesetzte Richtung gegangen: Die weltweiten Verteidigungshaushalte haben Rekordhöhen erreicht. Umstritten bleibt, ob eine tiefe Zusammenarbeit im Weltraum unter geopolitischer Rivalität überhaupt möglich ist. Idealisten verweisen auf gemeinsame Bedrohungen der Menschheit, Realisten halten die nationale Sicherheit für eine unbedingte Priorität. Noch ist unklar, ob die Länder ein Gleichgewicht zwischen Wettbewerb und gemeinsamer Forschung finden können.",
+    "grok": "Die Konfrontation zwischen den USA, Russland und China hat sich seit 2019 verschärft, die Militärhaushalte wachsen vor dem Hintergrund von Konflikten. Die Idee, Mittel in Raumfahrt und Wissenschaft umzulenken, wurde nicht verwirklicht. Umstritten bleibt, ob Zusammenarbeit ohne einen Abbau der geopolitischen Spannungen möglich ist.",
+    "deepseek": "Seitdem hat die Konfrontation nicht nachgelassen, sondern eher die Form eines Technologiewettlaufs angenommen, in dem Raumfahrt und Wissenschaft Teil der Rivalität geworden sind und keine Alternative dazu. Die Militärhaushalte sind gewachsen, und niemand hat gewagt, sie ganz umzulenken. Umstritten bleibt, ob Wissenschaft außerhalb der Geopolitik möglich ist: Gemeinsame Projekte sind weniger geworden, aber nicht verschwunden. Aktuelle Haushaltszahlen habe ich nicht."
+   },
+   {
+    "thesis": "Farbrevolutionen und ein von außen betriebener Machtwechsel sind ein Instrument, das nicht nur eine Macht nutzt: Gewalt und hybride Methoden sind nicht das Monopol einer Seite.",
+    "gemini": "Die These, dass hybride Methoden und Einmischung von verschiedenen Seiten eingesetzt werden, hat sich durch die jüngsten Ereignisse voll bestätigt. Auf dem Spiel stehen die Souveränität der Staaten und das Vertrauen in Institutionen. Der Hauptstreitpunkt ist die Grenze zwischen aufrichtigem innerem Protest der Bürger und Steuerung von außen. Jede Seite wirft ihren Gegnern Manipulation vor, und bislang gibt es keine einheitlichen Kriterien, um die Rechtmäßigkeit eines solchen Einflusses im digitalen Zeitalter zu beurteilen.",
+    "grok": "Die These hat sich bestätigt: Verschiedene Mächte setzen in unterschiedlichen Regionen Methoden der Einflussnahme ein. Hybride Instrumente sind nicht zum Monopol einer Seite geworden. Unklar ist, wie genau das heute das Kräfteverhältnis verändert.",
+    "deepseek": "Die These, dass hybride Methoden nicht das Monopol einer Seite sind, wirkt heute eher bestätigt: Einmischung, Desinformation und die Unterstützung von Protesten werden verschiedenen Akteuren zugeschrieben. Umstritten ist etwas anderes — wo äußerer Einfluss endet und innere Ursachen der Unzufriedenheit beginnen; die Einschätzungen hängen hier stark vom politischen Standpunkt ab. Eindeutige Daten zum Ausmaß nenne ich nicht."
+   },
+   {
+    "thesis": "Sanktionen und „Zäune“ lösen Konflikte nicht; besser wirken wirtschaftliche Vereinbarungen, zum Beispiel freie Wirtschaftszonen.",
+    "gemini": "Bestätigt hat sich, dass Sanktionen und wirtschaftliche Schranken selten zu schnellen politischen Lösungen führen und oft Lieferketten zerstören. Auf dem Spiel stehen die Stabilität des Welthandels und das Wohlergehen der Bürger. Die Wirksamkeit freier Wirtschaftszonen unter offener Konfrontation bleibt jedoch umstritten. Die einen halten Handel für die beste Brücke zum Frieden, die anderen argumentieren, dass wirtschaftliche Projekte ohne politische Regelung nicht funktionieren.",
+    "grok": "Sanktionen haben Konflikte nicht gelöst, und wirtschaftliche Vereinbarungen bleiben selten. Freie Zonen sind keine verbreitete Lösung geworden. Umstritten bleibt, ob solche Zonen ohne politisches Vertrauen funktionieren können.",
+    "deepseek": "Sanktionen ändern das Verhalten tatsächlich selten schnell, aber auch die These, dass Wirtschaftszonen Konflikte lösen, ist schwach belegt: Handel läuft oft neben dem Krieg weiter. Umstritten ist, was als Erfolg von Sanktionen gilt — der Druck oder der Schaden. Konkrete Beispiele mit Zahlen habe ich nicht, deshalb bleibe ich beim allgemeinen Bild."
+   },
+   {
+    "thesis": "Das Weltfinanzsystem muss verändert werden: Die Kontrolle über Geld und Institutionen bedeutet mehr als militärische Stärke.",
+    "gemini": "Die Rolle der Finanzkontrolle und der Institutionen ist in den letzten Jahren nur gewachsen, was die These des Autors bestätigt. Das Einfrieren von Vermögen und Sanktionen haben gezeigt, dass der Zugang zum Weltfinanzsystem mächtiger sein kann als militärischer Druck. Die Frage nach der Zukunft dieses Systems bleibt jedoch offen. Befürworter der Entdollarisierung streben Multipolarität an, Verteidiger des heutigen Modells verweisen darauf, dass es keine verlässliche Alternative zum Dollar gibt.",
+    "grok": "Die Kontrolle über Finanzen und Institutionen wirkt in einer Reihe von Fällen tatsächlich stärker als militärische Stärke. Das System hat sich nicht grundlegend verändert. Unklar ist, ob das zu Reformen oder zu neuen Spaltungen führt.",
+    "deepseek": "Finanzkontrolle ist tatsächlich zu einem Machtinstrument geworden: Der Ausschluss aus Zahlungssystemen und das Einfrieren von Reserven haben das in der Praxis gezeigt. Aber die These, Geld sei wichtiger als militärische Stärke, ist umstritten — ohne militärische Macht greifen finanzielle Hebel oft nicht. Über alternative Währungen und Abrechnungen wird diskutiert, ihr tatsächliches Ausmaß ist mir aber nicht bekannt."
+   },
+   {
+    "thesis": "Wenn ein Gebietsstreit zum Anker eines Konflikts geworden ist und keine Seite aus politischen Gründen zurückweichen kann, kann ein Ausweg ein Gebietstausch oder wirtschaftliche Vereinbarungen sein — nicht unbedingt auf Kosten des umstrittenen Landes, zum Beispiel unbewohnte Gebiete in anderen Regionen —, um die Kontaktlinie festzuschreiben und das Feuer einzustellen. Jede Kriegshandlung ist heute zu gefährlich: An den Gedanken an einen Einsatz von Atomwaffen haben sich die Menschen zu gewöhnen begonnen.",
+    "gemini": "Die Befürchtungen des Autors, dass man sich an nukleare Rhetorik gewöhnt, haben sich leider bewahrheitet: Die Eskalationsrisiken sind heute so hoch wie nie. Zugleich bleibt die Idee eines Gebietstauschs äußerst umstritten und schwer umsetzbar, wegen Fragen der Souveränität und des Rechts. Die einen schlagen pragmatische Kompromisse vor, um das Feuer einzustellen und Leben zu retten, die anderen sind überzeugt, dass Zugeständnisse nur neue Konflikte provozieren. Noch ist unklar, ob ein dauerhafter Frieden ohne das volle Einverständnis der Parteien überhaupt möglich ist.",
+    "grok": "Gebietsstreitigkeiten bleiben der Anker von Konflikten, und die Kriegshandlungen gehen weiter. Die Idee von Tauschgeschäften oder wirtschaftlichen Abmachungen hat keine breite Anwendung gefunden. Umstritten bleibt, wie gewohnt und gefährlich die nukleare Rhetorik geworden ist.",
+    "deepseek": "Die These, die Kontaktlinie festzuschreiben und das Feuer einzustellen, klingt heute realistischer als 2018, aber ein Gebietstausch bleibt äußerst umstritten: Rechtlich und politisch lehnen die Parteien ihn ab. Die Befürchtungen über die Gewöhnung an nukleare Rhetorik haben sich bestätigt. Konkrete Regelungsmodelle sind mir nicht bekannt, und ich will sie nicht vorhersagen."
+   }
+  ]
+ }
+}

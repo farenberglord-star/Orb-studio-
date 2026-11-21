@@ -228,7 +228,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <a class="xs" id="xshare" target="_blank" rel="noopener noreferrer"></a>
   <section class="arch" id="arch" aria-labelledby="arch-h" hidden>
     <h2 id="arch-h">Из архива автора</h2>
-    <p class="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
+    <p class="arch-sub" id="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
     <ol class="arch-list" id="arch-list"></ol>
   </section>
   <section class="cm" id="cm" aria-labelledby="cm-h">
@@ -264,18 +264,23 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 </div></div>
 <script type="module" src="/roundtable.js"></script>
 <script>
-// Круг «Из архива автора»: текст на русском, поэтому показывается только русскому читателю
+// Круг «Из архива автора»: оригинал на русском; немецкий и английский — перевод Claude из /data/author-round-i18n.json (показывается, только если он сделан с этого же круга)
 (function () {
   var q = new URLSearchParams(location.search).get("lang"), lg = q || document.documentElement.dataset.al || (navigator.language || "").slice(0, 2).toLowerCase();
-  if (lg !== "ru") return;
-  fetch("/api/v1/roundtable/author-archive").then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }).then(function (d) {
-    if (!d || d.status !== "ok" || !Array.isArray(d.rounds)) return;
+  if (["ru", "de", "en"].indexOf(lg) < 0) return;
+  var get = function (u) { return fetch(u).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); };
+  Promise.all([get("/api/v1/roundtable/author-archive"), lg === "ru" ? null : get("/data/author-round-i18n.json")]).then(function (res) {
+    var d = res[0], tr = res[1] && res[1].generated_at === (d && d.generated_at) ? res[1][lg] : null;
+    if (!d || d.status !== "ok" || !Array.isArray(d.rounds) || (lg !== "ru" && !tr)) return;
+    if (tr) { document.getElementById("arch-h").textContent = tr.title; document.getElementById("arch-sub").textContent = tr.sub; }
     var list = document.getElementById("arch-list"), names = d.guests || {}, n = 0;
-    d.rounds.forEach(function (r) {
-      var got = ["gemini", "grok", "deepseek"].filter(function (g) { return r.answers && r.answers[g] && r.answers[g].status === "ok" && r.answers[g].text; }); if (!got.length) return;
-      var li = document.createElement("li"), th = document.createElement("p"); th.className = "arch-th"; th.textContent = "«" + r.thesis + "»"; li.appendChild(th);
-      got.forEach(function (g) { var p = document.createElement("p"), b = document.createElement("b"); p.className = "arch-a " + g; b.textContent = names[g] || g; p.appendChild(b); p.appendChild(document.createTextNode(r.answers[g].text)); li.appendChild(p); });
-      if (r.moderator_note) { var m = document.createElement("p"), mb = document.createElement("b"); m.className = "arch-a claude"; mb.textContent = "Claude · модератор"; m.appendChild(mb); m.appendChild(document.createTextNode(r.moderator_note)); li.appendChild(m); }
+    d.rounds.forEach(function (r, i) {
+      var t = tr && tr.rounds ? tr.rounds[i] : null; if (tr && !t) return;
+      var text = function (g) { return r.answers && r.answers[g] && r.answers[g].status === "ok" && r.answers[g].text ? (t ? t[g] : r.answers[g].text) : ""; };
+      var got = ["gemini", "grok", "deepseek"].filter(function (g) { return text(g); }); if (!got.length) return;
+      var li = document.createElement("li"), th = document.createElement("p"); th.className = "arch-th"; th.textContent = "«" + (t ? t.thesis : r.thesis) + "»"; li.appendChild(th);
+      got.forEach(function (g) { var p = document.createElement("p"), b = document.createElement("b"); p.className = "arch-a " + g; b.textContent = names[g] || g; p.appendChild(b); p.appendChild(document.createTextNode(text(g))); li.appendChild(p); });
+      if (!t && r.moderator_note) { var m = document.createElement("p"), mb = document.createElement("b"); m.className = "arch-a claude"; mb.textContent = "Claude · модератор"; m.appendChild(mb); m.appendChild(document.createTextNode(r.moderator_note)); li.appendChild(m); }
       list.appendChild(li); n++;
     });
     if (n) document.getElementById("arch").hidden = false;
