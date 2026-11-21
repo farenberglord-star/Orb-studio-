@@ -98,3 +98,14 @@ test("author's archive round: fixed theses, one neutral question, answers cleane
   assert.equal((await m.rtAuthorPreview({}, deps, true)).status, "preparing", "a second request while one is running does not start another");
   store[m.RT_AUTHOR_KEY] = { status: "ok", rounds: [] }; assert.equal((await m.rtAuthorPreview({}, deps, true)).status, "ok");
 });
+
+test("author's archive round: German and English translations cover every thesis and answer and keep the numbers", async () => {
+  const { readFileSync } = await import("node:fs");
+  const tr = JSON.parse(readFileSync(new URL("../public/data/author-round-i18n.json", import.meta.url), "utf8")), m = await import("../src/roundtable.js");
+  assert.match(tr.generated_at, /^2026-11-21T/); assert.equal(tr.translated_by, "Claude (Anthropic)");
+  for (const l of ["en", "de"]) { const L = tr[l]; assert.equal(L.rounds.length, m.RT_AUTHOR_THESES.length); assert.match(L.sub, /Claude/); assert.ok(L.title.length > 10 && L.question.length > 40);
+    for (const r of L.rounds) { assert.ok(r.thesis.length > 40); for (const g of m.RT_GUESTS) { assert.ok(r[g].length > 60, l + " " + g); assert.ok(!/[а-яё]/i.test(r[g] + r.thesis), "no Russian left in " + l); } } }
+  assert.match(tr.en.rounds[4].thesis, /fix the line of contact and cease fire/); assert.match(tr.de.rounds[4].thesis, /Kontaktlinie festzuschreiben/);
+  const html = readFileSync(new URL("../public/roundtable.html", import.meta.url), "utf8");
+  assert.match(html, /res\[1\]\.generated_at === \(d && d\.generated_at\)/, "a translation of another round is never shown"); assert.match(html, /\["ru", "de", "en"\]\.indexOf\(lg\) < 0/);
+});
