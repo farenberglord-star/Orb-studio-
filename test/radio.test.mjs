@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -430,4 +430,18 @@ test("world desk is back on the radio in Russian and German, but only fully tran
   const ru = worldInterviews(tr, "ru");
   assert.equal(ru.length, 1, "the half-translated talk is left out"); assert.equal(ru[0].headline, "H0"); assert.ok(ru[0].lines.every((x) => x.tr === true)); assert.match(ru[0].lines.find((x) => x.kind === "answer").text, /на русском/);
   assert.deepEqual(worldInterviews(tr, "de"), []);
+});
+
+test("programme list is compact: one line per item, the questions to one guest fold into a single podcast row", () => {
+  const tr = (title, sec) => ({ type: "track", track: { title, sec } }), talk = (g) => ({ type: "talk", iv: { guest: g, headline: "A very long foreign headline that used to take three lines on a phone" } });
+  const say = (text) => ({ type: "say", iv: { lines: [{ text }] } }), items = [say("Доброе утро! Вы слушаете Радио Orb Studio, радио ИИ-ведущих, и это очень длинное приветствие"), tr("Quiet Frequency", 125), say("Гость выпуска"), talk("Grok"), talk("Grok"), talk("Grok"), talk("Grok"), say("Спасибо"), tr("Autobahn 3", 267), { type: "news", label: "Главные новости радаров", iv: { lines: [] } }, talk("Gemini")];
+  const rows = rundownRows(items, 4, T.ru);
+  assert.deepEqual(rows.map((r) => r.kind), ["say", "track", "say", "talk", "say", "track", "news", "talk"], "eleven items, eight lines");
+  assert.equal(rows[3].label, "🎙 Подкаст · David × Grok"); assert.equal(rows[3].text, "вопросов: 4"); assert.equal(rows[3].cur, true, "the podcast row is current while any of its questions plays"); assert.equal(rows[3].done, false);
+  assert.ok(rows.slice(0, 3).every((r) => r.done && !r.cur)); assert.ok(rows.slice(4).every((r) => !r.done && !r.cur));
+  assert.equal(rows[1].text, "Quiet Frequency · 2:05"); assert.equal(rows[5].text, "Autobahn 3 · 2:00", "a long track shows the time it really plays"); assert.ok(rows[0].text.length <= 60 && rows[0].text.endsWith("…"));
+  assert.equal(rows[7].text, "вопросов: 1", "another guest starts a new row"); assert.equal(rundownRows(items, 8, T.ru)[3].done, true);
+  assert.ok(!JSON.stringify(rows).includes("foreign headline"), "headlines in other languages no longer fill the list");
+  assert.deepEqual(rundownRows(null, 0, T.en), []); for (const l of ["ru", "de", "en"]) assert.ok(T[l].podcast && T[l].questions);
+  const html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8"); assert.match(html, /\.rd ol\{[^}]*max-height:168px;overflow-y:auto/); assert.match(html, /prefers-reduced-motion:reduce\)\{\.rd,\.rd::after,\.rdw::after\{animation:none\}/);
 });
