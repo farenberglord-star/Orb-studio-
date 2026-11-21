@@ -3,7 +3,7 @@
 // Выбор на сайте (переключатель RU/DE/EN, переход внутри сайта) запоминается в cookie orb_lang и дальше уважается.
 // Роботов и агентов не перенаправляем: им нужна каждая языковая версия как есть.
 
-const STUDIO_LANGS = ["ru", "de", "en", "ro", "tr"];
+const STUDIO_LANGS = ["ru", "de", "en"]; // с 21.11.2026 сайт и передачи работают на трёх языках
 const SITE_LANGS = ["ru", "de", "en"];
 
 export function readCookieLang(request) {

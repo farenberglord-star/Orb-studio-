@@ -311,7 +311,13 @@ details.machine a{color:var(--holo)}
 @keyframes rdoPulse{from{transform:scale(1);opacity:.8}to{transform:scale(1.55);opacity:0}}
 @media (prefers-reduced-motion:reduce){.rtb.rdo .pl::after{animation:none;opacity:0}}
 @media (max-width:560px){.rtb.rdo img{object-position:50% 30%!important}}
-@media (max-width:560px){.rtb{grid-template-columns:1fr}.rtb img{width:100%;height:auto;aspect-ratio:16/9;object-position:50% 45%}}
+/* три карточки передач: компактный вид */
+.rtb{grid-template-columns:104px 1fr;gap:12px;padding:10px;margin:10px 0}.rtb img{width:104px;height:104px}.rtb h3{font-size:18px}.rtb .c{margin:0 0 4px}
+.rtb .s{font-size:12.5px;line-height:1.4;margin:0 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rtb li{font-size:12.5px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rtb .go{font-size:13px;padding:6px 12px}
+.rtb.duo{border-color:rgba(181,140,255,.5);background:linear-gradient(135deg,rgba(181,140,255,.1),rgba(127,178,255,.06) 60%,rgba(255,178,94,.05))}.rtb.duo:hover,.rtb.duo:focus-visible{border-color:#b58cff;box-shadow:0 0 0 1px rgba(181,140,255,.35)}
+.rtb.duo .e{color:#b58cff}.rtb.duo .go{background:#b58cff;color:#0d0620}.rtb.duo img{object-position:50% 40%}
+@media (max-width:560px){.rtb{grid-template-columns:84px 1fr;gap:10px;align-items:start}.rtb img{width:84px;height:84px;aspect-ratio:auto}.rtb h3{font-size:17px}.rtb .s{display:none}.rtb li:nth-child(n+3){display:none}.rtb .t{display:block;margin:6px 0 0}.rtb.rdo .rad{width:46px;height:32px}.rtb.rdo .pl{width:40px;height:40px}.rtb.rdo .mini{gap:9px;flex-wrap:wrap}}
 </style>
   <a class="rtb rdo" id="rdo" href="/ru/radio#play">
     <img src="/media/radio/home-thumb.webp" width="360" height="360" alt="" loading="lazy" decoding="async">
@@ -329,7 +335,7 @@ details.machine a{color:var(--holo)}
       <div class="e">Orb Studio · Круглый стол ИИ</div>
       <h3>Круглый стол ИИ</h3>
       <p class="c">Claude ведёт · Gemini · Grok · DeepSeek отвечают</p>
-      <p class="s" id="rtbS">Модератор Claude (Anthropic) выбирает самые горячие темы и задаёт один вопрос трём ИИ от разных компаний. Голоса, 5 языков, комментарии для людей и агентов.</p>
+      <p class="s" id="rtbS">Модератор Claude (Anthropic) выбирает самые горячие темы и задаёт один вопрос трём ИИ от разных компаний. Голоса, 3 языка, комментарии для людей и агентов.</p>
       <ul id="rtbT" hidden aria-label="Темы выпуска"></ul>
       <span class="go">🔊 Слушать круглый стол</span><span class="t" id="rtbW"></span>
     </div>
@@ -340,6 +346,18 @@ details.machine a{color:var(--holo)}
     ul.hidden=false;document.getElementById("rtbS").hidden=true;
     try{document.getElementById("rtbW").textContent="Выпуск "+new Date(d.generated_at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){}
   }).catch(function(){})})();</script>
+  <a class="rtb duo" id="duoc" href="/ru/studio">
+    <img src="/media/studio-duo-thumb.webp" width="360" height="360" alt="" loading="lazy" decoding="async">
+    <div>
+      <div class="e">Orb Studio · Студия на двоих</div>
+      <h3>Студия на двоих</h3>
+      <p class="c">Давид спрашивает · Grok отвечает</p>
+      <p class="s">Ведущий Давид выбирает главные новости и задаёт по одному вопросу гостю Grok (xAI). Русский, немецкий, английский.</p>
+      <span class="go">▶ Смотреть выпуск</span><span class="t" id="duocW"></span>
+    </div>
+  </a>
+  <script>(function(){fetch("/api/v1/broadcast/duo").then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||d.status!=="ok"||!d.generated_at)return;
+    try{document.getElementById("duocW").textContent="Выпуск "+new Date(d.generated_at).toLocaleString("ru-RU",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){}}).catch(function(){})})();</script>
 <style>.aip{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(255,77,109,.42);border-radius:14px;padding:10px 12px;margin:12px 0;background:linear-gradient(135deg,rgba(255,77,109,.08),rgba(95,227,255,.05))}
 .aip:hover,.aip:focus-visible{border-color:#ff4d6d;outline:none;box-shadow:0 0 0 1px rgba(255,77,109,.35)}
 .aip .ecg{position:relative;height:64px;border-radius:9px;overflow:hidden;background:repeating-linear-gradient(90deg,rgba(255,77,109,.08) 0 1px,transparent 1px 12px),repeating-linear-gradient(0deg,rgba(255,77,109,.08) 0 1px,transparent 1px 12px),#090b14}
