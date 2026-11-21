@@ -6,6 +6,7 @@ import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
 import { handleTrackSale, trackCatalog } from "./radio-track-sale.js";
+import { agentsAtWork } from "./agents-work.js";
 import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
@@ -3855,8 +3856,10 @@ async function readStats(env, page) {
   ]);
   const krakenFrom = (await env.DB.prepare("SELECT page AS source, SUM(n) AS n FROM hits WHERE kind='kraken' AND name='human' AND day>=?1 GROUP BY page ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
   const krakenBots = (await env.DB.prepare("SELECT substr(name, 7) AS name, SUM(n) AS n FROM hits WHERE kind='kraken' AND name LIKE 'agent:%' AND day>=?1 GROUP BY name ORDER BY n DESC LIMIT 8").bind(week).all()).results || [];
+  // агенты по делу: кто брал данные или вызывал инструменты, без проверяльщиков и наших проверок (правило — в src/agents-work.js)
+  let atWork = null; try { atWork = agentsAtWork(((await env.DB.prepare("SELECT day, name, page, SUM(n) AS n FROM hits WHERE kind='agent' AND day>=?1 AND (page LIKE '/mcp/%' OR page LIKE '/api/v1/%') GROUP BY day, name, page LIMIT 6000").bind(week).all()).results || []), d); } catch { atWork = null; }
   return { enabled: true, page, page_total: pageTotal, page_today: pageToday, site_total: siteTotal, site_today: siteToday,
-    agents_today: agentsToday, agents_total: agentsTotal, top_agents_7d: top,
+    agents_today: agentsToday, agents_total: agentsTotal, top_agents_7d: top, agents_at_work: atWork,
     // что агенты реально вызывают в MCP (инструменты, сценарии, ресурсы), без наших проверок
     mcp_calls_7d: ((await env.DB.prepare("SELECT substr(page, 6) AS name, SUM(n) AS n FROM hits WHERE kind='agent' AND page LIKE '/mcp/%' AND day>=?1 AND name NOT LIKE '%selftest%' AND name NOT LIKE '%orb-%' GROUP BY page ORDER BY n DESC LIMIT 12").bind(week).all()).results || []),
     kraken_clicks_today: krakenToday, kraken_clicks_total: krakenTotal,
