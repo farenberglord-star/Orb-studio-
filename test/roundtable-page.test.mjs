@@ -16,8 +16,8 @@ test("гость не подключён — табличка один раз, �
   assert.ok(out.some((x) => x.label && /Grok/.test(x.text)));
 });
 test("язык: ?lang= главнее, иначе подсказка, иначе английский", () => {
-  assert.equal(pickLang("?lang=tr", "de"), "tr");
-  assert.equal(pickLang("", "ro-RO"), "ro");
+  assert.equal(pickLang("?lang=tr", "de"), "de", "Turkish is gone: fall back to the browser language");
+  assert.equal(pickLang("", "ro-RO"), "en", "Romanian is gone: English");
   assert.equal(pickLang("", "fr"), "en");
   for (const l of Object.keys(T)) for (const k of ["listen", "off", "withheld", "done", "krH", "slH", "cmH"]) assert.ok(T[l][k], l + "." + k);
 });

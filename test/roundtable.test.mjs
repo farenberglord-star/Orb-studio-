@@ -109,3 +109,15 @@ test("author's archive round: German and English translations cover every thesis
   const html = readFileSync(new URL("../public/roundtable.html", import.meta.url), "utf8");
   assert.match(html, /res\[1\]\.generated_at === \(d && d\.generated_at\)/, "a translation of another round is never shown"); assert.match(html, /\["ru", "de", "en"\]\.indexOf\(lg\) < 0/);
 });
+
+test("three site languages only: Russian, German, English — Romanian and Turkish are retired", async () => {
+  const { readFileSync } = await import("node:fs");
+  const m = await import("../src/roundtable.js"), page = await import("../public/roundtable.js"), duo = await import("../public/studio-duo.js");
+  assert.deepEqual(m.RT_LANGS, ["en", "de", "ru"]); assert.deepEqual(m.RT_TR, ["de", "ru"]);
+  assert.deepEqual(Object.keys(page.T).sort(), ["de", "en", "ru"]); assert.deepEqual(Object.keys(duo.T).sort(), ["de", "en", "ru"]);
+  assert.equal(duo.pickLang("?lang=ro", "ru-RU"), "ru"); assert.equal(duo.pickLang("", "tr-TR"), "en");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /const DUO_LANGS = \["de", "ru"\];/); assert.match(w, /Response\.redirect\(url\.origin \+ "\/en\/" \+ \(old\[1\] \|\| ""\) \+ url\.search, 301\)/);
+  assert.ok(!/RO: "ro"|TR: "tr"/.test(w)); assert.ok(!/5 languages/.test(w + readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8")));
+  const aj = JSON.parse(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8")); assert.ok(!JSON.stringify(aj).includes('"ro"') && !JSON.stringify(aj).includes('"tr"'));
+});

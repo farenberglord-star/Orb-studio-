@@ -265,9 +265,7 @@
       "languages": [
         "en",
         "de",
-        "ru",
-        "ro",
-        "tr"
+        "ru"
       ],
       "rss_de": "https://orbstudio.org/feed/studio-de.xml"
     },
@@ -286,9 +284,7 @@
       "languages": [
         "en",
         "de",
-        "ru",
-        "ro",
-        "tr"
+        "ru"
       ]
     }
   ]

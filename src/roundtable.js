@@ -1,11 +1,11 @@
 // ================= «Круглый стол ИИ» (AI Round Table) =================
 // Модератор Claude (Anthropic) берёт 4 самые горячие темы дня, коротко пересказывает и задаёт вопрос;
 // по очереди отвечают Gemini (Google), Grok (xAI) и DeepSeek. В конце Claude благодарит гостей и зовёт зрителей
-// делать свои выводы и писать комментарии. Один выпуск в день, 5 языков, 4 синтетических голоса xAI.
+// делать свои выводы и писать комментарии. Один выпуск в день, 3 языка, 4 синтетических голоса xAI.
 // Ключи — только секреты воркера: ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY (в код не пишутся).
 
-export const RT_LANGS = ["en", "de", "ru", "ro", "tr"];
-export const RT_TR = ["de", "ru", "ro", "tr"];
+export const RT_LANGS = ["en", "de", "ru"]; // три языка сайта; румынский и турецкий сняты 21.11.2026
+export const RT_TR = ["de", "ru"];
 export const RT_GUESTS = ["gemini", "grok", "deepseek"];
 export const RT_CAST = {
   claude: { name: "Claude", maker: "Anthropic", role: "moderator", voice: "lumen" },
