@@ -345,6 +345,40 @@ details.machine a{color:var(--holo)}
     ul.hidden=false;document.getElementById("rtbS").hidden=true;
     try{document.getElementById("rtbW").textContent="Ausgabe "+new Date(d.generated_at).toLocaleString("de-DE",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}catch(e){}
   }).catch(function(){})})();</script>
+<style>.aip{display:grid;grid-template-columns:118px 1fr;gap:12px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(255,77,109,.42);border-radius:14px;padding:10px 12px;margin:12px 0;background:linear-gradient(135deg,rgba(255,77,109,.08),rgba(95,227,255,.05))}
+.aip:hover,.aip:focus-visible{border-color:#ff4d6d;outline:none;box-shadow:0 0 0 1px rgba(255,77,109,.35)}
+.aip .ecg{position:relative;height:64px;border-radius:9px;overflow:hidden;background:repeating-linear-gradient(90deg,rgba(255,77,109,.08) 0 1px,transparent 1px 12px),repeating-linear-gradient(0deg,rgba(255,77,109,.08) 0 1px,transparent 1px 12px),#090b14}
+.aip .ecg svg{position:absolute;left:0;top:0;height:100%;width:200%;animation:aipRun 4.8s linear infinite}
+.aip .ecg path{fill:none;stroke:#ff4d6d;stroke-width:2;stroke-linejoin:round;filter:drop-shadow(0 0 3px #ff4d6d)}
+.aip .ecg::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#090b14 0,transparent 30%,transparent 70%,#090b14 100%);pointer-events:none}
+.aip .hb{position:absolute;right:7px;top:6px;font-size:15px;line-height:1;z-index:1;animation:aipBeat 1.2s ease-in-out infinite;filter:drop-shadow(0 0 5px #ff4d6d)}
+.aip .e{font-family:var(--mono,ui-monospace,monospace);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#ff8fa3}
+.aip h3{margin:1px 0 4px;font-size:18px;line-height:1.2;display:flex;align-items:center;gap:8px}
+.aip h3 i{width:8px;height:8px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 8px #ff4d6d;animation:aipBeat 1.2s ease-in-out infinite}
+.aip ul{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.aip li{font-size:12.5px;line-height:1.35;color:#cfd9ea;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aip li b{color:#fff;font-weight:600}
+.aip .go{font-size:12.5px;font-weight:700;color:#ff8fa3}
+.aip .src{font-size:11px;color:var(--dim,#9fb2cc)}
+@keyframes aipRun{to{transform:translateX(-50%)}}
+@keyframes aipBeat{0%,100%{transform:scale(1)}12%{transform:scale(1.35)}24%{transform:scale(1)}36%{transform:scale(1.2)}48%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.aip .ecg svg,.aip .hb,.aip h3 i{animation:none}}
+@media (max-width:420px){.aip{grid-template-columns:92px 1fr}.aip .ecg{height:56px}}
+</style>
+  <a class="aip" id="aip" href="/de/sensors">
+    <div class="ecg"><span class="hb" aria-hidden="true">❤</span><svg viewBox="0 0 640 64" preserveAspectRatio="none" aria-hidden="true"><path d="M0 36 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0 l14 0 l4 -6 l4 6 l6 0 l3 4 l4 -30 l4 40 l3 -14 l8 0 l6 -7 l6 7 l18 0"/></svg></div>
+    <div>
+      <div class="e">Sensor · 24 Stunden</div>
+      <h3><i aria-hidden="true"></i>KI-Puls</h3>
+      <ul id="aipL"><li class="src">Fakten aus offenen Quellen: Hugging Face, arXiv, GitHub.</li></ul>
+      <span class="go">Ganzer Puls →</span>
+    </div>
+  </a>
+  <script>(function(){fetch("/api/v1/ai-pulse").then(function(r){return r.ok?r.json():null}).then(function(d){if(!d)return;var ul=document.getElementById("aipL"),rows=[];
+    var m=d.trending_models&&d.trending_models[0],p=d.papers_of_the_day&&d.papers_of_the_day[0],ax=d.arxiv_new_papers&&d.arxiv_new_papers.total_unique;
+    if(m)rows.push(["Im Trend",m.id]);if(ax!=null)rows.push(["Neue arXiv-Arbeiten",String(ax)]);if(p)rows.push(["Paper des Tages",p.title]);if(d.releases_24h!=null)rows.push(["Releases in 24 h",String(d.releases_24h)]);
+    if(!rows.length)return;ul.textContent="";rows.forEach(function(x){var li=document.createElement("li"),b=document.createElement("b");li.textContent=x[0]+": ";b.textContent=x[1];li.appendChild(b);ul.appendChild(li)});
+  }).catch(function(){})})();</script>
   <div class="sec" id="sensorMapSec"><div id="sensorMap"></div></div>
   <script>
   /* Карта датчиков: грузится, только когда секция почти в зоне видимости, чтобы не тормозить главную */
