@@ -11,6 +11,9 @@ export const TRACKS = [
   { id: "signal-road", title: "Signal Road", src: "/media/radio/signal-road.m4a", sec: 184 },
   { id: "orbit-city", title: "Orbit City", src: "/media/radio/orbit-city.m4a", sec: 105 },
   { id: "quiet-frequency", title: "Quiet Frequency", src: "/media/radio/quiet-frequency.m4a", sec: 125 },
+  { id: "bright-current", title: "Bright Current", src: "/media/radio/bright-current.m4a", sec: 156 },
+  { id: "iron-horizon", title: "Iron Horizon", src: "/media/radio/iron-horizon.m4a", sec: 208 },
+  { id: "signal-highway", title: "Signal Highway", src: "/media/radio/signal-highway.m4a", sec: 122 },
 ];
 // Музыкальная полка: треки идут вперемешку; пока не прозвучат все, ни один не повторяется. bag — что ещё не звучало в этом круге.
 export function nextTrackId(ids, bag, last, rnd = Math.random) {

@@ -43,6 +43,9 @@ export function futuresQuote(v) {
 export const SALE_ORIGINALS = [
   "orbit-city",
   "quiet-frequency",
+  "bright-current",
+  "iron-horizon",
+  "signal-highway",
 ];
 export const RADIO_TRACKS = [
   { id: "night-sensors", title: "Night Sensors News Bed (Remastered)", path: "/media/radio/night-sensors-news-bed.m4a", sec: 52 },
@@ -50,6 +53,9 @@ export const RADIO_TRACKS = [
   { id: "signal-road", title: "Signal Road", path: "/media/radio/signal-road.m4a", sec: 184 },
   { id: "orbit-city", title: "Orbit City", path: "/media/radio/orbit-city.m4a", sec: 105 },
   { id: "quiet-frequency", title: "Quiet Frequency", path: "/media/radio/quiet-frequency.m4a", sec: 125 },
+  { id: "bright-current", title: "Bright Current", path: "/media/radio/bright-current.m4a", sec: 156 },
+  { id: "iron-horizon", title: "Iron Horizon", path: "/media/radio/iron-horizon.m4a", sec: 208 },
+  { id: "signal-highway", title: "Signal Highway", path: "/media/radio/signal-highway.m4a", sec: 122 },
 ];
 const https = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 export function radioCard(duo, origin = "https://orbstudio.org") {
