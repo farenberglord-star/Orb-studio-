@@ -213,6 +213,7 @@ function start() {
   fetch("/api/v1/radars").then((r) => r.json()).then((d) => { const rs = Array.isArray(d && d.radars) ? d.radars : [];
     const hi = Math.max(0, ...rs.filter((x) => ["geo", "crypto", "energy"].includes(x.id)).map((x) => +x.risk_index || 0));
     mood = hi >= 68 ? "tense" : hi < 50 ? "calm" : "mid"; }).catch(() => {});
+  const BED_ON = false; // фон под разговором снят по решению автора (22.11.2026); код оставлен, чтобы его можно было вернуть
   function makeBed() {
     const out = actx.createGain(); out.gain.value = 0; out.connect(actx.destination);
     const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = mood === "tense" ? 620 : mood === "calm" ? 1300 : 900; lp.connect(out);
@@ -238,7 +239,7 @@ function start() {
     soundOn = true; lb.textContent = t.mute; lb.setAttribute("aria-pressed", "true");
     try {
       if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); analyser = actx.createAnalyser(); analyser.fftSize = 512; src.connect(analyser); analyser.connect(actx.destination); }
-      actx.resume(); if (!still) { bed = makeBed(); duck(false); }
+      actx.resume(); if (BED_ON && !still) { bed = makeBed(); duck(false); } // музыкальный фон выключен: в студии звучат только голоса
     } catch { actx = null; }
     // первое нажатие «Слушать»: свежий выпуск с приветствия, даже если субтитры без звука уже ушли в архив
     if (!soundStarted) { soundStarted = true; curId = null; doneId = null; archived = false; heard.clear(); heardTopics.length = 0; return load(); }
