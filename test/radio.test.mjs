@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -444,4 +444,22 @@ test("programme list is compact: one line per item, the questions to one guest f
   assert.ok(!JSON.stringify(rows).includes("foreign headline"), "headlines in other languages no longer fill the list");
   assert.deepEqual(rundownRows(null, 0, T.en), []); for (const l of ["ru", "de", "en"]) assert.ok(T[l].podcast && T[l].questions);
   const html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8"); assert.match(html, /\.rd ol\{[^}]*max-height:168px;overflow-y:auto/); assert.match(html, /prefers-reduced-motion:reduce\)\{\.rd,\.rd::after,\.rdw::after\{animation:none\}/);
+});
+
+test("the carousel never stops: a bridge track between rounds, a deadline on loading, a watchdog on stuck audio", () => {
+  const T1 = { type: "track", track: { id: "a" } }, S = { type: "say" }, N = { type: "news" }, shelf = () => ({ id: "shelf" });
+  // круг кончился, следующий ещё не собран: сразу трек с полки и просьба собрать круг
+  assert.deepEqual(afterPlan(null, false, shelf), { items: [{ type: "track", track: { id: "shelf" } }], bridged: true, build: true });
+  assert.equal(afterPlan([], true, shelf).build, true, "an empty round is not a round"); assert.equal(afterPlan(null, true, () => null).items[0].track.id, TRACKS[0].id, "even an empty shelf answer gives music");
+  // круг готов после моста: его первый трек пропускаем, чтобы не было двух треков подряд
+  assert.deepEqual(afterPlan([T1, S, T1, N], true, shelf), { items: [S, T1, N], bridged: false, build: false });
+  assert.deepEqual(afterPlan([T1, S], false, shelf).items, [T1, S], "no bridge was played: the round starts with its own track");
+  assert.deepEqual(afterPlan([T1], true, shelf).items, [T1], "a round of one track is kept");
+  // сторож
+  const st = { sig: "", at: 0 };
+  assert.equal(stalled(st, "3:1:40", 1000), false); assert.equal(stalled(st, "3:1:40", 1000 + STALL_MS - 1), false); assert.equal(stalled(st, "3:1:40", 1000 + STALL_MS), true, "no progress for 12 seconds");
+  assert.equal(stalled(st, "3:1:41", 1000 + STALL_MS + 5), false, "sound moved on: the clock starts again"); assert.equal(STALL_MS, 12000); assert.equal(LOAD_MS, 25000);
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
+  assert.match(js, /signal: sig\(\)/); assert.ok(!/await build\(\)/.test(js), "the player never waits in silence for the next round");
+  assert.match(js, /if \(it\.type === "track"\) next\(\); else \{ au\.onended = au\.onerror = null; nextLine\(\); \}/);
 });

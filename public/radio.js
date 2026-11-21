@@ -35,6 +35,18 @@ export function rundownRows(items, idx, t) {
   });
   return rows;
 }
+// Эфир без остановок. LOAD_MS — срок на загрузку данных круга; STALL_MS — сколько звук может стоять на месте.
+export const LOAD_MS = 25000, STALL_MS = 12000;
+// Сторож звука: st помнит последнюю «отметку» эфира; если она не меняется дольше STALL_MS — застряли
+export function stalled(st, sig, now) { if (st.sig !== sig) { st.sig = sig; st.at = now; return false; } return now - st.at >= STALL_MS; }
+// Что играть, когда круг кончился. Готов следующий круг — берём его (без первого трека, если только что играл «мост»).
+// Не готов — ставим трек с полки и просим собрать круг; так между кругами нет тишины, даже если сеть медленная.
+export function afterPlan(nextPlan, bridged, nextTrack) {
+  if (Array.isArray(nextPlan) && nextPlan.length) { const cut = bridged && nextPlan.length > 1 && nextPlan[0].type === "track";
+    return { items: cut ? nextPlan.slice(1) : nextPlan, bridged: false, build: false }; }
+  const tr = (nextTrack && nextTrack()) || TRACKS[0];
+  return { items: [{ type: "track", track: tr }], bridged: true, build: true };
+}
 // Автозапуск эфира: страница открыта кнопкой Play с главной
 export const wantsAutoplay = (hash) => /^#play\b/.test(String(hash || ""));
 // Разрешает ли браузер звук без касания: пробуем беззвучный отрывок на обычной громкости. Запрет — значит, ждём одного касания.
@@ -184,7 +196,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
+  const air = document.querySelector(".air"); let voiceLine = false, speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -222,29 +234,36 @@ function start() {
     clearTimeout(timer); const it = items[idx]; if (!it || it.type === "track") return;
     if (li >= it.iv.lines.length) { if (it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } if (it.key) { heard.add(it.key); saveHeard(); } return next(); }
     const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000; fading = false; setVol(1); // голос сразу в полную громкость
-    au.onended = au.onerror = null;
+    au.onended = au.onerror = null; voiceLine = !!x.audio;
     if (x.audio) { au.src = x.audio; au.onended = nextLine; au.onerror = () => { timer = setTimeout(nextLine, x.ms || 4000); }; au.play().catch(() => { timer = setTimeout(nextLine, x.ms || 4000); }); }
     else timer = setTimeout(nextLine, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
   }
   async function build() {
-    let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" } })).json(); } catch { duo = null; }
+    // у каждого запроса срок: зависший запрос не должен останавливать эфир
+    const sig = () => { try { return AbortSignal.timeout(LOAD_MS); } catch { return undefined; } };
+    let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" }, signal: sig() })).json(); } catch { duo = null; }
     // связки Давида и погода: если не пришли, эфир идёт без них
-    const getJ = (u) => fetch(u, { headers: { accept: "application/json" } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    const getJ = (u) => fetch(u, { headers: { accept: "application/json" }, signal: sig() }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
     const [dj, wx, reg, sens, rad] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang), getJ("/api/v1/radio/sensors?lang=" + lang), getJ("/api/v1/radio/radar?lang=" + lang)]);
     const stories = sens && sens.status === "ok" && Array.isArray(sens.stories) ? sens.stories.filter((x) => x && typeof x.key === "string" && typeof x.text === "string") : [];
     // главные новости радаров идут первыми среди новостей: один блок на выпуск радаров
     if (rad && rad.status === "ok" && typeof rad.key === "string" && Array.isArray(rad.lines) && rad.lines.length > 1) stories.unshift({ key: rad.key, lines: rad.lines, title: t.radarNews, source: t.radarSrc + (Array.isArray(rad.sources) && rad.sources.length ? " · " + rad.sources.slice(0, 4).join(", ") : "") });
     // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
     weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
-    const p = plan(mergeInterviews(reg, worldInterviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, stories, newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    const p = plan(mergeInterviews(reg, worldInterviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, stories, newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh || p.news ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
     el.style.animationDuration = Math.max(18, Math.round(el.textContent.length / 7)) + "s";
+    return p.items;
   }
-  async function next() {
+  // Карусель не останавливается: когда круг кончился, сразу играет трек с полки («мост»), а следующий круг собирается в это время.
+  let nextPlan = null, building = null, bridged = false;
+  function next() {
     clearTimeout(timer); au.onended = au.onerror = null;
-    if (idx + 1 >= items.length) await build();
+    if (idx + 1 >= items.length) { const r = afterPlan(nextPlan, bridged, nextTrack);
+      if (r.build && !building) building = build().then((its) => { nextPlan = its; }).catch(() => { nextPlan = null; }).finally(() => { building = null; });
+      if (!r.build) nextPlan = null; items = r.items; bridged = r.bridged; idx = -1; }
     const prev = items[idx]; idx++; const it = items[idx]; rundown(); if (!it) return;
     // короткая пауза между музыкой и голосом, чтобы Давид не вступал встык
     if (prev && prev.type === "track" && it.type !== "track" && on) { pending = it; timer = setTimeout(() => begin(it), GAP_MS); return; }
@@ -267,11 +286,17 @@ function start() {
     const once = (e) => { document.removeEventListener("pointerdown", once, true); play.classList.remove("wait"); if (!started && !(e.target.closest && e.target.closest("#play"))) go(); };
     document.addEventListener("pointerdown", once, true); });
   skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } if (it && it.key) { heard.add(it.key); saveHeard(); } setOn(true); next(); });
-  const ready = build().then(() => { if (!started) rundown(); });
+  const ready = build().then((its) => { items = its; idx = -1; if (!started) rundown(); }).catch(() => { items = []; idx = -1; });
 
   // ---- часы, полоса времени, прокрутка длинной реплики ----
   const clock = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); $("clock").textContent = p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + p(d.getFullYear() % 100) + " " + p(d.getHours()) + ":" + p(d.getMinutes()); };
   clock();
+  // сторож: если звук 12 секунд стоит на месте (файл завис в сети, вкладку придержал телефон), эфир идёт дальше — реплика пропускается, трек сменяется
+  const wd = { sig: "", at: Date.now() };
+  setInterval(() => { const it = items[idx]; if (!on || !started || !it || pending || (it.type !== "track" && !voiceLine)) { wd.sig = ""; wd.at = Date.now(); return; }
+    if (!stalled(wd, idx + ":" + li + ":" + Math.round(au.currentTime * 4), Date.now())) return;
+    wd.sig = ""; wd.at = Date.now(); if (actx && actx.state !== "running") actx.resume().catch(() => {});
+    if (it.type === "track") next(); else { au.onended = au.onerror = null; nextLine(); } }, 1000);
   // плавное начало и конец трека; длинный трек через две минуты тихо уходит, и слово берёт Давид
   setInterval(() => { if (!(fading && on && !au.paused)) return; const end = cutAt(au.duration), cut = end < au.duration;
     setVol(trackGain(au.currentTime, end, cut ? CUT_FADE : FADE_OUT));
