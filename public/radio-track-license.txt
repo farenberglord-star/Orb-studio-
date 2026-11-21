@@ -1,0 +1,22 @@
+Orb Studio track licence, version 1 (DRAFT — the sale is not open until the author approves this text)
+
+Seller: Serghei Farima, Orb Studio (orbstudio.org), Hamburg, Germany.
+
+What you get
+- One MP3 file of the track you paid for.
+- A non-exclusive, worldwide permission, without a time limit, to use the track in your own
+  projects, including commercial ones: video, podcast, stream, app, game, presentation.
+
+What is not allowed
+- Reselling or passing on the file by itself, or as part of a music collection.
+- Registering the track in content-ID or similar systems, or claiming to be its author.
+- Using it in a way that suggests Orb Studio or the author endorses your project.
+
+Good to know
+- The music was generated with Suno (paid plan) for Radio Orb Studio. It is AI-generated.
+- The licence is non-exclusive: the same track plays on Radio Orb Studio and may be licensed
+  to others. In some countries AI-generated music is not protected by copyright, so
+  exclusivity is not promised.
+- Payment: USDC on Base over x402. The file is delivered only after the payment is settled.
+  A delivered file cannot be returned.
+- A credit such as "Music: Orb Studio (generated with Suno)" is welcome but not required.

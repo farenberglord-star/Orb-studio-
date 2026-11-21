@@ -5,6 +5,7 @@
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
+import { handleTrackSale, trackCatalog } from "./radio-track-sale.js";
 import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
@@ -8691,6 +8692,20 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
+    }
+    // Закрытая папка с файлами для продажи: напрямую не отдаётся никогда, только после оплаты через модуль продажи
+    if (url.pathname === "/_sale" || url.pathname.startsWith("/_sale/")) return json({ error: "Not found" }, { "Cache-Control": "no-store" }, 404);
+    // Треки радио: бесплатный каталог и покупка файла за USDC (x402). Продажа включается выключателем RADIO_TRACK_SALE=1.
+    if (url.pathname === "/api/v1/radio/tracks") return json(trackCatalog(saleConfig(env), env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+    if (url.pathname === "/api/v1/radio/track/buy") {
+      try {
+        return await handleTrackSale(request, saleConfig(env), env, {
+          ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
+          file: async (path) => { const r = await env.ASSETS.fetch(new Request("https://orbstudio.org" + path)); return r.ok ? r.arrayBuffer() : null; },
+          hit: (page, kind, name) => recordHit(env, page, kind, name),
+          log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return paidSaleLog(env, kind, data); },
+        });
+      } catch (e) { return json({ error: "track sale error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     // Скрипка дня как MIDI за USDC (x402). Модулю передаются только его настройки — секреты Kraken ему не видны.
     if (url.pathname === "/api/v1/violin/midi") {

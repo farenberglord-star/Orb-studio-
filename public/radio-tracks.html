@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radio Orb Studio — tracks for your project</title>
+<meta name="description" content="Music from Radio Orb Studio, generated with AI. Listen for free; buy a track file with USDC over x402 — no account needed.">
+<meta name="robots" content="noindex">
+<style>
+:root{color-scheme:dark;--c:#6fe6ff;--bg:#05070f;--card:#0b1020;--line:rgba(111,230,255,.28);--mut:#9db0d0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#e8f0ff;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 56px}
+a{color:var(--c)}h1{font-size:1.55rem;line-height:1.2;margin:.2em 0 .4em}h2{font-size:1.05rem;margin:1.8em 0 .5em;color:var(--c);letter-spacing:.04em;text-transform:uppercase}
+.e{font:600 .75rem ui-monospace,monospace;letter-spacing:.14em;color:var(--c);text-transform:uppercase}
+.lead{color:var(--mut);margin:0 0 1em}
+.st{display:inline-block;font:700 .75rem ui-monospace,monospace;letter-spacing:.1em;padding:.35em .7em;border-radius:99px;border:1px solid var(--line);color:#ffcf96}
+.st.on{color:#7dffb8;border-color:rgba(125,255,184,.5)}
+.tr{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.tr h3{margin:0 0 .2em;font-size:1.2rem}.tr .m{color:var(--mut);font-size:.9rem;margin:0 0 .8em}
+.tr audio{width:100%;margin:.2em 0 .8em}.pr{font:700 1.15rem ui-monospace,monospace;color:#fff}
+pre{background:#060a16;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font:.82rem/1.45 ui-monospace,monospace;color:#cfe1ff;white-space:pre-wrap;word-break:break-all}
+ol{padding-left:1.2em}li{margin:.35em 0}.note{color:var(--mut);font-size:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <div class="e" id="e"></div>
+  <h1 id="h"></h1>
+  <p class="lead" id="lead"></p>
+  <span class="st" id="st">…</span>
+  <div id="list"></div>
+  <h2 id="h2a"></h2>
+  <ol id="steps"></ol>
+  <pre id="curl"></pre>
+  <h2 id="h2b"></h2>
+  <p id="lic"></p>
+  <p class="note" id="note"></p>
+  <p><a href="/radio" id="back"></a></p>
+</main>
+<script>
+const T = {
+  ru: { e: "Радио Orb Studio · музыка", h: "Треки радио для вашего проекта", lead: "Музыка из нашего эфира, сгенерированная ИИ. Слушать можно бесплатно. Файл трека с разрешением на использование покупается за USDC по протоколу x402 — без регистрации и без аккаунта, это может сделать и ИИ-агент.",
+    on: "ПРОДАЖА ОТКРЫТА", off: "ПРОДАЖА ЕЩЁ НЕ ОТКРЫТА", price: "Цена", per: "USDC за трек", inst: "инструментал", voc: "с вокалом", made: "сгенерировано в Suno", h2a: "Как купить (для агентов и людей с кошельком)",
+    steps: ["Запросите адрес покупки. Ответ — HTTP 402 с ценой и адресом получателя.", "Подпишите требование своим кошельком с USDC в сети Base.", "Повторите тот же запрос с заголовком PAYMENT-SIGNATURE. Файл MP3 придёт сразу после расчёта, вместе с квитанцией."],
+    h2b: "Лицензия", lic: "Неисключительное разрешение использовать трек в своих проектах, включая коммерческие. Нельзя перепродавать сам файл и выдавать себя за автора. Полный текст: ", note: "Музыка создана ИИ; исключительность не обещаем. Прослушивание на радио остаётся бесплатным.", back: "← К радио", none: "Каталог сейчас недоступен." },
+  de: { e: "Radio Orb Studio · Musik", h: "Radio-Titel für Ihr Projekt", lead: "Musik aus unserer Sendung, von KI erzeugt. Anhören ist kostenlos. Die Datei mit Nutzungserlaubnis kaufen Sie mit USDC über das Protokoll x402 — ohne Registrierung und ohne Konto, das kann auch ein KI-Agent.",
+    on: "VERKAUF GEÖFFNET", off: "VERKAUF NOCH NICHT GEÖFFNET", price: "Preis", per: "USDC pro Titel", inst: "instrumental", voc: "mit Gesang", made: "mit Suno erzeugt", h2a: "So kaufen Sie (für Agenten und Menschen mit Wallet)",
+    steps: ["Rufen Sie die Kaufadresse auf. Die Antwort ist HTTP 402 mit Preis und Empfängeradresse.", "Signieren Sie die Anforderung mit Ihrer Wallet mit USDC im Base-Netz.", "Wiederholen Sie dieselbe Anfrage mit dem Header PAYMENT-SIGNATURE. Die MP3-Datei kommt direkt nach der Abrechnung, mit Quittung."],
+    h2b: "Lizenz", lic: "Nicht exklusive Erlaubnis, den Titel in eigenen Projekten zu nutzen, auch kommerziell. Die Datei selbst darf nicht weiterverkauft werden, und niemand darf sich als Urheber ausgeben. Volltext: ", note: "Die Musik ist KI-erzeugt; Exklusivität versprechen wir nicht. Das Hören im Radio bleibt kostenlos.", back: "← Zum Radio", none: "Der Katalog ist gerade nicht erreichbar." },
+  en: { e: "Radio Orb Studio · music", h: "Radio tracks for your project", lead: "Music from our broadcast, generated with AI. Listening is free. The track file with a permission to use it is bought with USDC over the x402 protocol — no registration and no account, an AI agent can do it too.",
+    on: "ON SALE", off: "SALE NOT OPEN YET", price: "Price", per: "USDC per track", inst: "instrumental", voc: "with vocals", made: "generated with Suno", h2a: "How to buy (for agents and people with a wallet)",
+    steps: ["Request the buy address. The answer is HTTP 402 with the price and the receiving address.", "Sign the requirement with your wallet holding USDC on Base.", "Repeat the same request with the PAYMENT-SIGNATURE header. The MP3 file arrives right after settlement, with a receipt."],
+    h2b: "Licence", lic: "A non-exclusive permission to use the track in your own projects, including commercial ones. Reselling the file itself or claiming authorship is not allowed. Full text: ", note: "The music is AI-generated; exclusivity is not promised. Listening on the radio stays free.", back: "← To the radio", none: "The catalogue is not available right now." },
+};
+const lg = (navigator.language || "en").slice(0, 2).toLowerCase(), t = T[lg] || T.en, $ = (i) => document.getElementById(i);
+document.documentElement.lang = T[lg] ? lg : "en";
+for (const k of ["e", "h", "lead", "h2a", "h2b", "note", "back"]) $(k).textContent = t[k];
+for (const s of t.steps) { const li = document.createElement("li"); li.textContent = s; $("steps").appendChild(li); }
+const fmt = (s) => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+fetch("/api/v1/radio/tracks").then((r) => (r.ok ? r.json() : null)).catch(() => null).then((d) => {
+  if (!d || !Array.isArray(d.tracks)) { $("st").textContent = t.none; return; }
+  const on = d.status === "on_sale"; $("st").textContent = on ? t.on : t.off; $("st").classList.toggle("on", on);
+  $("lic").textContent = t.lic; const a = document.createElement("a"); a.href = "/radio-track-license.txt"; a.textContent = "radio-track-license.txt"; $("lic").appendChild(a);
+  for (const x of d.tracks) { const el = document.createElement("div"); el.className = "tr";
+    const h = document.createElement("h3"); h.textContent = x.title; const m = document.createElement("p"); m.className = "m"; m.textContent = fmt(x.seconds) + " · " + (x.kind === "instrumental" ? t.inst : t.voc) + " · " + t.made + " · MP3";
+    const au = document.createElement("audio"); au.controls = true; au.preload = "none"; au.src = new URL(x.listen_free, location.origin).pathname;
+    const p = document.createElement("div"); p.className = "pr"; p.textContent = t.price + ": " + d.price_usdc + " " + t.per;
+    el.append(h, m, au, p); $("list").appendChild(el); }
+  if (d.tracks[0]) $("curl").textContent = "curl -i \"" + d.tracks[0].buy_url + "\"\n# → HTTP 402 + PAYMENT-REQUIRED\n# → sign, then repeat with: -H \"PAYMENT-SIGNATURE: <base64>\"";
+});
+</script>
+</body>
+</html>
