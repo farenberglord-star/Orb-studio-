@@ -8,7 +8,7 @@ export const API = "/api/v1/broadcast/duo";
 export const TRACKS = [
   { id: "night-sensors", title: "Night Sensors News Bed (Remastered)", src: "/media/radio/night-sensors-news-bed.m4a", sec: 52 },
   { id: "autobahn-3", title: "Autobahn 3", src: "/media/radio/autobahn-3.m4a", sec: 267 },
-  { id: "signal-road", title: "Signal Road", src: "/media/radio/signal-road.m4a", sec: 184 },
+  { id: "night-shift", title: "Night Shift", src: "/media/radio/night-shift.m4a", sec: 184 },
   { id: "orbit-city", title: "Orbit City", src: "/media/radio/orbit-city.m4a", sec: 105 },
   { id: "quiet-frequency", title: "Quiet Frequency", src: "/media/radio/quiet-frequency.m4a", sec: 125 },
   { id: "bright-current", title: "Bright Current", src: "/media/radio/bright-current.m4a", sec: 156 },
@@ -87,8 +87,8 @@ export function sayItem(title, parts) {
 // интервью с гостем, новость с датчиков или погода; если сказать нечего — короткая связка. Два трека подряд без слова не идут.
 // Услышанные интервью и новости не повторяются; без связок сетка та же, только без слов диджея.
 export const BLOCKS = 5, PODCAST_MAX = 4;
-// Длинный трек плавно уводится через две минуты, короткий (до двух с половиной) играет целиком
-export const TRACK_CUT = 120, TRACK_FULL = 150, CUT_FADE = 5;
+// Длинный трек плавно уводится через две минуты, короткий (до 2:40) играет целиком
+export const TRACK_CUT = 120, TRACK_FULL = 160, CUT_FADE = 5;
 export function cutAt(dur) { return dur > TRACK_FULL ? TRACK_CUT : dur; }
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   // подкаст выпуска: все неуслышанные вопросы одному гостю идут подряд, без музыки между ними (до четырёх)
