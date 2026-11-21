@@ -40,6 +40,14 @@ export function episodeDate(iso) {
 }
 
 // Интервью из выпуска: по одному на новость, только там, где гость реально ответил. Переходы «а теперь к…» на радио не нужны.
+// Мировой выпуск студии для радио: оригинал английский, у русского и немецкого есть перевод. Слушателю ставим только разговоры,
+// где переведена каждая реплика, — английская речь в русский или немецкий эфир не попадает.
+export function worldInterviews(duo, lang) {
+  const list = interviews(duo, lang); if (lang === "en") return list;
+  // строка без перевода в студии молча остаётся английской; такую находим сравнением с оригиналом
+  const en = new Map(interviews(duo, "en").map((iv) => [iv.headline, iv.lines]));
+  return list.filter((iv) => { const o = en.get(iv.headline) || []; return iv.lines.every((x, i) => x.tr === true && (!o[i] || x.text !== o[i].text)); });
+}
 export function interviews(duo, lang) {
   if (boardFor(duo)) return [];
   const by = new Map();
@@ -213,7 +221,7 @@ function start() {
     if (rad && rad.status === "ok" && typeof rad.key === "string" && Array.isArray(rad.lines) && rad.lines.length > 1) stories.unshift({ key: rad.key, lines: rad.lines, title: t.radarNews, source: t.radarSrc + (Array.isArray(rad.sources) && rad.sources.length ? " · " + rad.sources.slice(0, 4).join(", ") : "") });
     // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
     weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
-    const p = plan(mergeInterviews(reg, lang === "en" ? interviews(duo, lang) : [] /* мировой выпуск записан по-английски: русскому и немецкому слушателю его не ставим */), heard, trackAt, 2, { dj: dj && dj.links, stories, newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
+    const p = plan(mergeInterviews(reg, worldInterviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, stories, newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); items = p.items; trackAt = p.trackAt; idx = -1;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh || p.news ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
