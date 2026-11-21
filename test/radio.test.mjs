@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -462,4 +462,28 @@ test("the carousel never stops: a bridge track between rounds, a deadline on loa
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(js, /signal: sig\(\)/); assert.ok(!/await build\(\)/.test(js), "the player never waits in silence for the next round");
   assert.match(js, /if \(it\.type === "track"\) next\(\); else \{ au\.onended = au\.onerror = null; nextLine\(\); \}/);
+});
+
+test("radio page carries the broadcast as text for search engines and agents without JavaScript", async () => {
+  const { radioTextBlock, radioJsonLd } = await import("../src/radio.js");
+  const iv = { headline: "ECB keeps <rates> on hold", source: "dw.com", guest: "DeepSeek", maker: "DeepSeek", lines: [{ kind: "read", text: "ЕЦБ сохранил ставки." }, { kind: "question", text: "DeepSeek, что это значит?" }, { kind: "answer", text: "Это значит, что кредиты не дорожают & не дешевеют." }, { kind: "remark", text: "Спасибо, DeepSeek. Как я это вижу, главное — стабильность." }] };
+  const h = radioTextBlock("ru", { interviews: [iv], generated_at: "2026-11-21T08:25:17.652Z", radar: ["Гео-радар. Хуситы нанесли удары.", "", 5], sensors: ["Это данные с датчиков Orb Studio."], tracks: [{ title: "Orbit City" }, { title: "Night Shift" }] });
+  assert.match(h, /<h2>Что сейчас в эфире Радио Orb Studio<\/h2>/); assert.match(h, /Подкаст выпуска: Давид и DeepSeek \(DeepSeek, ИИ-модель\)/); assert.match(h, /<h4>ECB keeps &lt;rates&gt; on hold<\/h4>/, "headlines are escaped");
+  assert.match(h, /<b>Ответ \(DeepSeek\):<\/b> Это значит, что кредиты не дорожают &amp; не дешевеют\./); assert.match(h, /<b>Давид:<\/b> Спасибо, DeepSeek/); assert.match(h, /<time datetime="2026-11-21T08:25:17\.652Z">2026-11-21 08:25 UTC<\/time>/);
+  assert.match(h, /<h3>Главные новости радаров<\/h3><ul><li>Гео-радар\. Хуситы нанесли удары\.<\/li><\/ul>/); assert.match(h, /<li>Orbit City<\/li><li>Night Shift<\/li>/); assert.match(h, /get_radio/);
+  assert.ok(!/<script/i.test(radioTextBlock("en", { interviews: [{ ...iv, headline: "<script>alert(1)</script>" }] })), "nothing from a headline can become markup");
+  const empty = radioTextBlock("de", null); assert.match(empty, /Die Ausgabe wird vorbereitet/); assert.match(empty, /synthetisch/); assert.match(radioTextBlock("xx", {}), /What is on Radio Orb Studio right now/);
+  const ld = JSON.parse(radioJsonLd("de", "https://orbstudio.org")); assert.equal(ld["@type"], "RadioBroadcastService"); assert.equal(ld.url, "https://orbstudio.org/de/radio"); assert.equal(ld.broadcaster.name, "Orb Studio");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), html = readFileSync(new URL("../public/radio.html", import.meta.url), "utf8");
+  assert.match(w, /\.on\("#radio-text", \{ element\(e\) \{ e\.setInnerContent\(tx\.html, \{ html: true \}\)/); assert.match(html, /<details class="rtx"><summary id="rtx-s">[^<]+<\/summary><section id="radio-text"><\/section><\/details>/); assert.match(html, /alt="Radio Orb Studio"/);
+  assert.ok(!/radioRegional\(env[^)]*\)[^;]*radioPageText|radioVoice\([^)]*\)[^\n]*radioPageText/.test(w)); assert.ok(!/radioVoice/.test(w.slice(w.indexOf("async function radioPageText"), w.indexOf("async function radioRegional("))), "the page text never starts speech synthesis");
+});
+
+test("lock screen, headphones and steering wheel: play, pause and next do exactly their own job", () => {
+  let on = false, started = false; const log = [], p = { isOn: () => on, isStarted: () => started, toggle: () => { on = !on; started = true; log.push(on ? "on" : "off"); }, skip: () => log.push("skip") };
+  const a = Object.fromEntries(mediaActions(p)); assert.deepEqual(Object.keys(a), ["play", "pause", "nexttrack", "stop"]);
+  a.pause(); a.nexttrack(); assert.deepEqual(log, [], "nothing happens before the radio is started or while it is paused");
+  a.play(); a.play(); assert.deepEqual(log, ["on"], "a second play does not pause"); a.nexttrack(); a.pause(); a.pause(); a.stop(); assert.deepEqual(log, ["on", "skip", "off"]);
+  assert.equal(ART[0].sizes, "720x720"); for (const l of ["ru", "de", "en"]) assert.ok(T[l].textOfAir);
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /navigator\.mediaSession\.setActionHandler\(name, fn\)/); assert.match(js, /mediaSession\.playbackState = v \? "playing" : "paused"/);
 });
