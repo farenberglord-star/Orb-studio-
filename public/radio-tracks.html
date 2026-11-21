@@ -62,7 +62,7 @@ fetch("/api/v1/radio/tracks").then((r) => (r.ok ? r.json() : null)).catch(() => 
   const on = d.status === "on_sale"; $("st").textContent = on ? t.on : t.off; $("st").classList.toggle("on", on);
   $("lic").textContent = t.lic; const a = document.createElement("a"); a.href = "/radio-track-license.txt"; a.textContent = "radio-track-license.txt"; $("lic").appendChild(a);
   for (const x of d.tracks) { const el = document.createElement("div"); el.className = "tr";
-    const h = document.createElement("h3"); h.textContent = x.title; const m = document.createElement("p"); m.className = "m"; m.textContent = fmt(x.seconds) + " · " + (x.kind === "instrumental" ? t.inst : t.voc) + " · " + t.made + " · MP3";
+    const h = document.createElement("h3"); h.textContent = x.title; const m = document.createElement("p"); m.className = "m"; m.textContent = fmt(x.seconds) + " · " + t.made + " · " + (x.file || "MP3");
     const au = document.createElement("audio"); au.controls = true; au.preload = "none"; au.src = new URL(x.listen_free, location.origin).pathname;
     const p = document.createElement("div"); p.className = "pr"; p.textContent = t.price + ": " + d.price_usdc + " " + t.per;
     el.append(h, m, au, p); $("list").appendChild(el); }

@@ -39,6 +39,11 @@ export function futuresQuote(v) {
 }
 
 // ---- Карточка радио для агентов: /api/v1/radio, MCP get_radio. Музыка — наши треки; интервью — готовые сегменты студии на двоих ----
+// Треки, у которых есть исходный MP3 в закрытой папке /_sale (список обновляет tools/radio_tracks.mjs)
+export const SALE_ORIGINALS = [
+  "orbit-city",
+  "quiet-frequency",
+];
 export const RADIO_TRACKS = [
   { id: "night-sensors", title: "Night Sensors News Bed (Remastered)", path: "/media/radio/night-sensors-news-bed.m4a", sec: 52 },
   { id: "autobahn-3", title: "Autobahn 3", path: "/media/radio/autobahn-3.m4a", sec: 267 },
