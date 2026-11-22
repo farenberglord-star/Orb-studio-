@@ -4,7 +4,7 @@
 export const COX = {
   name: "David Cox", years: "1924–2022",
   idea: "The proportional hazards model (1972): how a factor changes the risk that an event happens at any moment, using also the cases where the event has not happened yet.",
-  wiki: { en: "https://en.wikipedia.org/wiki/David_Cox_(statistician)", ru: "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%BA%D1%81,_%D0%94%D1%8D%D0%B2%D0%B8%D0%B4" },
+  wiki: { en: "https://en.wikipedia.org/wiki/David_Cox_(statistician)", ru: "https://en.wikipedia.org/wiki/David_Cox_(statistician)" }, // русской статьи не проверяла — ведём на английскую
   note: "Named in his honour. Orb Studio is not connected with David Cox, his family or the University of Oxford.",
 };
 export const COX_GAP = 2 * 3600e3, COX_STEP = 30 * 60e3; // заголовка нет на радаре 2 часа — история закончилась
