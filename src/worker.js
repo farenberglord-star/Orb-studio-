@@ -1698,12 +1698,14 @@ async function parkWarm(env, ctx) {
   const seen = new Set(), items = [];
   for (const [q, lg, geo] of PARK_QUERIES) for (const x of await fetchFeedNow(gnews(q, lg, geo))) { const k = normHead(x.title); if (!x.title || seen.has(k)) continue; seen.add(k);
     items.push({ headline: x.title, source: x.source || null, link: /^https:\/\/[^\s"'<>]+$/.test(x.url || "") ? x.url : null, published_at: x.ts ? new Date(x.ts).toISOString() : null }); }
-  if (!items.length) return; const list = items.slice(0, PARK_MAX);
-  const out = await radioClaudeTool(env, PARK_SYSTEM, parkUser(list), PARK_TOOL, 1200);
-  if (!out) return; // Claude не ответил: старый выпуск остаётся, датчик покажет его время
+  const fail = (why, n) => sharedPut(env, "park-fail", { at: new Date().toISOString(), why, headlines: n }); // причина видна в /api/v1/park → last_failure
+  if (!items.length) return fail("no_headlines", 0);
+  let list = items.slice(0, PARK_MAX), out = await radioClaudeTool(env, PARK_SYSTEM, parkUser(list), PARK_TOOL, 1500);
+  if (!out) { list = items.slice(0, 20); out = await radioClaudeTool(env, PARK_SYSTEM, parkUser(list), PARK_TOOL, 1500); } // вторая попытка — с половиной заголовков
+  if (!out) return fail("claude_no_answer", items.length); // старый выпуск остаётся, датчик покажет его время
   await sharedPut(env, "park-v1", { generated_at: new Date().toISOString(), items: list, flags: checkPark(out, list) });
 }
-async function parkNow(env) { return parkReport(await sharedGet(env, "park-v1", 1e15).catch(() => null)); }
+async function parkNow(env) { const r = parkReport(await sharedGet(env, "park-v1", 1e15).catch(() => null)), f = await sharedGet(env, "park-fail", 24 * 3600e3).catch(() => null); if (f && (!r.generated_at || Date.parse(f.at) > Date.parse(r.generated_at))) r.last_failure = f; return r; }
 async function radioSensorsWarm(env, ctx) {
   if (!env.ANTHROPIC_API_KEY) return;
   const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && cur.stories && cur.stories[RADIO_AIR] && Object.keys(cur.stories[RADIO_AIR]).length && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return; // свежий выпуск есть, но не на языке эфира — пишем заново

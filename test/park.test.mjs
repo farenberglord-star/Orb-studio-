@@ -28,3 +28,8 @@ test("Park sensor: pages, wiring, discovery", () => {
   const sm = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"); for (const pre of ["", "/de", "/en"]) assert.ok(sm.includes("<loc>https://orbstudio.org" + pre + "/tools/park</loc>"));
   assert.match(readFileSync(new URL("../public/tools/scientists.html", import.meta.url), "utf8"), /<h3>get_park<\/h3>/);
 });
+
+test("Park sensor: a failed check leaves its reason and retries once with fewer headlines", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /fail\("no_headlines", 0\)/); assert.match(w, /fail\("claude_no_answer", items\.length\)/); assert.match(w, /list = items\.slice\(0, 20\)/); assert.match(w, /r\.last_failure = f/);
+});
