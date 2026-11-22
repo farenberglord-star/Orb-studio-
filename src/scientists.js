@@ -14,6 +14,10 @@ import { BAIRD } from "./baird.js";
 import { LYBERG } from "./lyberg.js";
 import { HAGENAUER } from "./hagenauer.js";
 import { FRANKFURT } from "./frankfurt.js";
+import { DUCKWORTH } from "./duckworth.js";
+import { TREVISAN } from "./trevisan.js";
+import { BERTSEKAS } from "./bertsekas.js";
+import { RABIN } from "./rabin.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -71,6 +75,22 @@ export const SCIENTISTS = [
     principle: "On Bullshit: talk that does not care about truth leaves nothing to check.",
     sensor: "Checkable anchors (who, when, how many, where) and vague formulas in every radar headline, with shares per radar; the same verdict in check_headline.",
     analog_check: { date: "2026-11-22", similar: "retext-intensify and SEO vague-language detectors (weasel words in a text), ClaimBuster (check-worthiness of sentences), research on vagueness and fake news", difference: "counts checkable anchors live across a news feed per radar and adds the verdict to every check_headline answer" } },
+  { id: "duckworth", honour: DUCKWORTH, field: "statistics, fair comparison", tool: "get_duckworth", api: "/api/v1/duckworth",
+    principle: "When a match is interrupted, reset the target by the resources actually available, not by the full game.",
+    sensor: "Each index now against the same time of day yesterday and over 7 days, next to the naive 24-hour average; how much of a change is only the daily rhythm.",
+    analog_check: { date: "2026-11-22", similar: "seasonal adjustment (X-13ARIMA-SEATS, STL) and same-period comparisons in analytics dashboards", difference: "a live same-time-of-day comparison for the site's own indices, with the rhythm effect stated" } },
+  { id: "trevisan", honour: TREVISAN, field: "theory of computation, sublinear algorithms", tool: "get_trevisan", api: "/api/v1/trevisan",
+    principle: "A well-chosen random sample can answer without reading all the data.",
+    sensor: "The smallest random sample of radar headlines that reproduces each index within ±5 points, with the tokens an agent saves.",
+    analog_check: { date: "2026-11-22", similar: "sample-size calculators, sublinear and property-testing algorithms", difference: "measured live on the site's own headlines and indices, with the token saving for agents" } },
+  { id: "bertsekas", honour: BERTSEKAS, field: "optimisation, dynamic programming", tool: "get_bertsekas", api: "/api/v1/bertsekas",
+    principle: "Minimise the total cost of the whole chain of decisions, not each step alone.",
+    sensor: "Measured answer size in tokens of every Orb Studio tool and the cheapest call chains for typical agent questions.",
+    analog_check: { date: "2026-11-22", similar: "tool routers and tool search in MCP clients and Composio, LLM token cost calculators", difference: "measured answer sizes of one site's tools and ready cheapest chains for typical questions" } },
+  { id: "rabin", honour: RABIN, field: "theory of computation, randomised algorithms", tool: "get_rabin", api: "/api/v1/rabin",
+    principle: "A few random checks can tell almost as much about a large set as checking everything.",
+    sensor: "Random hourly spot checks of radar headlines against the source pages: matches, partly, differs or unreachable.",
+    analog_check: { date: "2026-11-22", similar: "link checkers and uptime monitors, feed validators, NewsDiffs-style edit trackers", difference: "random sampling of a live news feed comparing its headlines with the source pages" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -78,6 +98,10 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "duckworth") { const g = (r.series || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, rhythm_effect: g ? g.rhythm_effect : null }; }
+  if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
+  if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
+  if (id === "rabin") return { verdict: r.verdict, checks: r.checks, differs_pct: r.shares ? r.shares.differs : null };
   if (id === "frankfurt") return { verdict: r.verdict, nothing_to_check_pct: r.shares ? r.shares.nothing_to_check : null, checkable_pct: r.shares ? r.shares.checkable : null };
   if (id === "hagenauer") return { verdict: r.verdict, on_edge: r.on_edge, total: r.total };
   if (id === "lyberg") return { verdict: r.verdict, main_language: r.coverage ? r.coverage.main_language : null, regions_not_seen: r.coverage ? r.coverage.regions_not_seen.length : null, silent: r.nonresponse ? r.nonresponse.silent : null };

@@ -119,7 +119,11 @@
     "lyberg": "https://orbstudio.org/api/v1/lyberg",
     "hagenauer": "https://orbstudio.org/api/v1/hagenauer",
     "crystals": "https://orbstudio.org/api/v1/crystals",
-    "frankfurt": "https://orbstudio.org/api/v1/frankfurt"
+    "frankfurt": "https://orbstudio.org/api/v1/frankfurt",
+    "duckworth": "https://orbstudio.org/api/v1/duckworth",
+    "trevisan": "https://orbstudio.org/api/v1/trevisan",
+    "bertsekas": "https://orbstudio.org/api/v1/bertsekas",
+    "rabin": "https://orbstudio.org/api/v1/rabin"
   },
   "auth": "none",
   "payments": {

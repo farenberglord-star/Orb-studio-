@@ -182,4 +182,16 @@
   <url><loc>https://orbstudio.org/tools/frankfurt</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/tools/frankfurt</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/frankfurt</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/duckworth</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/duckworth</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/duckworth</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/trevisan</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/trevisan</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/trevisan</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/bertsekas</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/bertsekas</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/bertsekas</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/rabin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/rabin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/rabin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
 </urlset>

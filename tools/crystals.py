@@ -3,7 +3,7 @@ import json, html as H, re, sys
 sys.path.insert(0, "tools")
 from crystals_data import C, ZONES, NEEDS
 import honour_pages as HP
-BUILT_ZONE = {"frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data",
+BUILT_ZONE = {"duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data",
   "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"}
 cards = [dict(id=c[0], name=c[1], name_ru=c[2], years=c[3], wiki="https://en.wikipedia.org/wiki/" + c[4], zone=c[5], idea={"en": c[6], "ru": c[7], "de": c[8]}, rule=c[9]) for c in C if c[1]]
 for c in cards:
