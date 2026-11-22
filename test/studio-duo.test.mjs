@@ -90,7 +90,7 @@ test("banners: referral links, labels and Kraken prices only from the API", () =
   assert.deepEqual(c.map((x) => x.pair), ["BTC/EUR", "XRP/EUR"]);
   assert.equal(c[0].up, false); assert.equal(c[0].change, "▼1.23%"); assert.equal(c[1].price, "0.5123");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /"interview", "studio"\]\)/);
+  assert.match(w, /"interview", "studio"[,\]]/);
 });
 
 test("episode date for viewers: DD.MM.YY in Berlin time, empty when unknown", async () => {

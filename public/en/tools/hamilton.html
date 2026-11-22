@@ -138,6 +138,7 @@ const HM={"upd": "Updated", "comp": {"music": "Music", "voice": "Voice", "dj": "
 const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
 const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
 const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_hamilton")){sessionStorage.setItem("orbCounted_hamilton","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"hamilton",lang:"en",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/hamilton",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.components)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=HM.status_h[d.status]||d.status;
   document.getElementById("hmRows").innerHTML=d.components.map((c)=>{const what=(c.dropped||[]).map((x)=>HM.topic[x]||x).join(", "),why=(c.why||[]).map((x)=>HM.why[x]||x).join("; ");

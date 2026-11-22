@@ -138,6 +138,7 @@ const HM={"comp": {"radar_news": "Новости радаров", "regional": "�
 const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
 const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
 const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_mikrin")){sessionStorage.setItem("orbCounted_mikrin","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"mikrin",lang:"ru",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/mikrin",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.blocks)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const best=d.blocks.find((b)=>b.id===d.shortest_path);document.getElementById("hmStatus").textContent=best?HM.best+": "+(HM.comp[best.id]||best.id)+" — "+dur(best.steps[0].minutes_median):HM.nobest;
   document.getElementById("hmRows").innerHTML=d.blocks.map((b,i)=>{const s1=b.steps[0],s2=b.steps[1];

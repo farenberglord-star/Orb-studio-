@@ -53,6 +53,7 @@ const HM={json.dumps(cfg, ensure_ascii=False)};
 const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}})[m]);
 const tm=(iso)=>{{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}});}};
 const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{{if(!sessionStorage.getItem("orbCounted_{sid}")){{sessionStorage.setItem("orbCounted_{sid}","1");fetch("/api/v1/hit",{{method:"POST",headers:{{"content-type":"application/json"}},body:JSON.stringify({{page:"{sid}",lang:"{lg}",auto:!!navigator.webdriver}})}}).catch(()=>{{}});}}}}catch(e){{}}
 fetch("/api/v1/{sid}",{{headers:{{accept:"application/json"}}}}).then((r)=>r.ok?r.json():null).then((d)=>{{{render_js}}}).catch(()=>{{document.getElementById("hmStatus").textContent=HM.err;}});
 </script>
 <script type="module" src="/share-x.js"></script>
@@ -248,9 +249,12 @@ def portal(lg):
             H.escape(P["similar"]), H.escape(sim), H.escape(P["diff"]), H.escape(diff), H.escape(P["checked"]), sid, pre, sid, H.escape(P["open"]), wiki, H.escape(P["wiki"]), sid))
     st = STRIP[lg]
     body = ('<div class="wrap">\n  <div>\n    <div class="eyebrow">' + H.escape(P["eye"]) + '</div>\n    <h1>' + H.escape(P["h1"]) + '</h1>\n    <p class="lead">' + H.escape(P["lead"]) + '</p>\n    <p><small>' + H.escape(P["rule"]) + '</small></p>\n  </div>\n'
+      '  <section class="panel"><h2>' + H.escape(PORTAL_IMPULSE[lg][0]) + '</h2><p id="impLine">' + H.escape(IMPULSE[lg]["cfg"]["loading"]) + '</p><p><a href="' + pre + '/tools/impulse">' + H.escape(PORTAL_IMPULSE[lg][1]) + ' →</a></p></section>\n'
       '  <section class="panel sci">\n' + "\n".join(cards) + '\n  </section>\n  <section class="panel">\n    <h2>' + H.escape(P["connect_h"]) + '</h2>\n    <p>' + P["connect"] + '</p>\n  </section>\n'
       '  <aside class="pstrip" aria-label="' + H.escape(st[0]) + '"><small>' + H.escape(st[0]) + ' · ' + H.escape(st[3]) + '</small><a href="/go/kraken?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[1]) + ' ↗</a><a href="/go/starlink?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[2]) + ' ↗</a></aside>\n</div>\n'
-      '<script>\nconst P=' + json.dumps({"live": P["live"], "now": P["now"], "min": SENSORS["mikrin"]["L"][lg]["cfg"]["min"], "names": {**SENSORS["hamilton"]["L"][lg]["cfg"]["comp"], **SENSORS["polyak"]["L"][lg]["cfg"]["comp"]}}, ensure_ascii=False) + ';\nfetch("/api/v1/scientists",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{' + PORTAL_RENDER + '}).catch(()=>{});\n</script>\n'
+      '<script>\nconst P=' + json.dumps({"imp_leader": IMPULSE[lg]["cfg"]["leader"], "imp_none": IMPULSE[lg]["cfg"]["none"], "names_s": IMPULSE_COMP[lg], "live": P["live"], "now": P["now"], "min": SENSORS["mikrin"]["L"][lg]["cfg"]["min"], "names": {**SENSORS["hamilton"]["L"][lg]["cfg"]["comp"], **SENSORS["polyak"]["L"][lg]["cfg"]["comp"]}}, ensure_ascii=False) + ';\ntry{if(!sessionStorage.getItem("orbCounted_scientists")){sessionStorage.setItem("orbCounted_scientists","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"scientists",lang:"' + lg + '",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}\n'
+      'fetch("/api/v1/impulse",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{const el=document.getElementById("impLine");if(!el||!d||!Array.isArray(d.sensors))return;const L=d.sensors.find((s)=>s.id===d.leader);el.textContent=L?P.imp_leader.replace("{x}",P.names_s[L.id]||L.id).replace("{n}",L.calls_7d):P.imp_none;}).catch(()=>{});\n'
+      'fetch("/api/v1/scientists",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{' + PORTAL_RENDER + '}).catch(()=>{});\n</script>\n'
       '<script type="module" src="/share-x.js"></script>\n<script src="/backnav.js" defer></script>\n</body>\n</html>\n')
     return head + body
 
@@ -295,6 +299,44 @@ PORTAL_ITEMS["park"] = {"ru": ("Роберт Л. Парк (1931–2020), физ�
   "de": ("Robert L. Park (1931–2020), Physik, Wissenschaft und Pseudowissenschaft", "Sieben Warnzeichen für Pseudowissenschaft.", "Anti-Bullshit MCP (Prüfung einer einzelnen Behauptung), Forschungsdetektoren für Übertreibungen in Wissenschaftsnachrichten, SciLens", "eine regelmäßige Prüfung eines laufenden Nachrichtenstroms auf Parks sieben Zeichen, mit wörtlichem Zitat", "Warnzeichen für Pseudowissenschaft in heutigen Wissenschaftsschlagzeilen, mit wörtlichem Zitat"),
   "en": ("Robert L. Park (1931–2020), physics, science and pseudoscience", "The seven warning signs of bogus science.", "Anti-Bullshit MCP (analysis of a single claim), research detectors of exaggeration in science news, SciLens", "a regular check of a live news stream on Park’s seven signs, with the exact words from the headline", "warning signs of bogus science in today’s science headlines, with the exact quote")}
 
+IMPULSE_RENDER = """if(!d||!Array.isArray(d.sensors)){document.getElementById("hmStatus").textContent=HM.err;return;}
+  const L=d.sensors.find((s)=>s.id===d.leader);document.getElementById("hmStatus").textContent=L?HM.leader.replace("{x}",HM.comp[L.id]||L.id).replace("{n}",L.calls_7d):HM.none;
+  const tr={up:"↑",down:"↓",flat:"→",none:"—"};
+  document.getElementById("hmRows").innerHTML=d.sensors.map((s,i)=>"<li><span class=\\"n\\">"+(i+1)+"</span><b><a href=\\""+HM.pre+"/tools/"+s.id+"\\">"+esc(HM.comp[s.id]||s.id)+"</a></b><span class=\\"s\\">"+s.calls_7d+" "+tr[s.trend]+"</span>"+
+    "<span class=\\"w\\">"+esc(HM.programs)+": "+s.programs_7d+(s.programs.length?" ("+esc(s.programs.join(", "))+")":"")+" · "+esc(HM.days)+": "+s.days_used_7d+" · MCP "+s.via_mcp_7d+" / API "+s.via_api_7d+"<br>"+esc(HM.people)+": "+s.human_views_7d+" · "+esc(HM.watchers)+": "+s.watchers_7d+(s.watcher_names.length?" ("+esc(s.watcher_names.join(", "))+")":"")+"</span>"+
+    "<span class=\\"u\\">"+esc(HM.first)+": "+esc(s.first_external_use||HM.never)+"</span></li>").join("");"""
+IMPULSE_PERSON = {"@type": "Organization", "name": "Orb Studio", "url": "https://orbstudio.org/"}
+IMPULSE_COMP = {"ru": {"hamilton":"Датчик Гамильтон","mikrin":"Датчик Микрин","polyak":"Датчик Поляк","park":"Датчик Парк"},
+  "de": {"hamilton":"Hamilton-Sensor","mikrin":"Mikrin-Sensor","polyak":"Poljak-Sensor","park":"Park-Sensor"},
+  "en": {"hamilton":"Hamilton sensor","mikrin":"Mikrin sensor","polyak":"Polyak sensor","park":"Park sensor"}}
+IMPULSE = {
+ "ru": dict(title="Импульс · Orb Studio", desc="Главный датчик портала учёных: чьи датчики реально используют внешние ИИ-агенты — вызовы за 7 дней, число программ, дни, рост или спад. Наши собственные проверки не считаются.",
+   eye="Orb Studio · инструменты · главный датчик", h1="Импульс",
+   lead="Главный датчик портала учёных. Он показывает, чей труд мир на самом деле берёт в работу: сколько раз внешние программы вызвали каждый датчик за неделю, сколько их было и в какие дни, растёт это или падает. Наши собственные проверки не считаются.",
+   honour_h="Зачем этот датчик",
+   honour="Учёные, ушедшие в 2020–2026 годах, оставили слепок своих знаний. Интернет хранит его, как библиотека: книгу поставили на полку и забыли. Датчики Orb Studio снимают их идеи с полки и дают им работать каждый день. «Импульс» показывает, какая идея оказалась полезной людям и агентам, — туда и стоит вкладывать силы, чтобы технологии и мир шли вперёд.",
+   note="Не считаются: наши проверки и тесты (скрипты Orb Studio, проверка ссылок, браузеры без экрана). Поисковики, каталоги и мониторы считаются отдельно: они видят датчик, но не пользуются им. Кто стоит за программой, мы не знаем — только её название.",
+   now_h="Импульс за 7 дней", agents="Для агентов: <code>GET /api/v1/impulse</code> или MCP-инструмент <code>get_impulse</code>. Бесплатно, без ключа.",
+   cfg=dict(comp=IMPULSE_COMP["ru"], pre="", leader="Лидер недели: {x} — вызовов: {n}", none="Пока ни один внешний агент не пользовался датчиками учёных: им всего несколько дней.", programs="программ", days="дней", people="людей открыли страницу", watchers="поисковики и мониторы", first="Первый внешний вызов", never="ещё не было", loading="Загружаем…", err="Датчик сейчас не ответил.")),
+ "de": dict(title="Impuls · Orb Studio", desc="Hauptsensor des Wissenschaftler-Portals: welche Sensoren externe KI-Agenten wirklich nutzen – Aufrufe in 7 Tagen, Zahl der Programme, Tage, Anstieg oder Rückgang. Unsere eigenen Prüfungen zählen nicht.",
+   eye="Orb Studio · Werkzeuge · Hauptsensor", h1="Impuls",
+   lead="Der Hauptsensor des Wissenschaftler-Portals. Er zeigt, wessen Werk die Welt tatsächlich aufgreift: wie oft externe Programme jeden Sensor in einer Woche aufgerufen haben, wie viele es waren und an welchen Tagen, ob es zu- oder abnimmt. Unsere eigenen Prüfungen zählen nicht.",
+   honour_h="Wozu dieser Sensor",
+   honour="Wissenschaftlerinnen und Wissenschaftler, die zwischen 2020 und 2026 gestorben sind, haben einen Abdruck ihres Wissens hinterlassen. Das Internet bewahrt ihn wie eine Bibliothek: das Buch steht im Regal und wird vergessen. Die Sensoren von Orb Studio holen ihre Ideen aus dem Regal und lassen sie jeden Tag arbeiten. „Impuls“ zeigt, welche Idee Menschen und Agenten wirklich nützt – dort lohnt es sich, Kraft hineinzustecken, damit Technik und Welt vorankommen.",
+   note="Nicht gezählt: unsere eigenen Prüfungen und Tests (Skripte von Orb Studio, Linkprüfung, Browser ohne Bildschirm). Suchmaschinen, Verzeichnisse und Monitore werden getrennt gezählt: sie sehen einen Sensor, nutzen ihn aber nicht. Wer hinter einem Programm steht, wissen wir nicht – nur seinen Namen.",
+   now_h="Impuls der letzten 7 Tage", agents="Für Agenten: <code>GET /api/v1/impulse</code> oder das MCP-Werkzeug <code>get_impulse</code>. Kostenlos, ohne Schlüssel.",
+   cfg=dict(comp=IMPULSE_COMP["de"], pre="/de", leader="Spitzenreiter der Woche: {x} – Aufrufe: {n}", none="Noch hat kein externer Agent die Sensoren genutzt: sie sind erst wenige Tage alt.", programs="Programme", days="Tage", people="Menschen haben die Seite geöffnet", watchers="Suchmaschinen und Monitore", first="Erster externer Aufruf", never="noch keiner", loading="Wird geladen…", err="Der Sensor hat gerade nicht geantwortet.")),
+ "en": dict(title="Impulse · Orb Studio", desc="The main sensor of the scientists portal: which sensors outside AI agents actually use – calls in 7 days, number of programs, days, rise or fall. Our own checks are not counted.",
+   eye="Orb Studio · tools · main sensor", h1="Impulse",
+   lead="The main sensor of the scientists portal. It shows whose work the world actually takes up: how often outside programs called each sensor this week, how many programs there were and on which days, and whether it is rising or falling. Our own checks are not counted.",
+   honour_h="Why this sensor",
+   honour="Scientists who died between 2020 and 2026 left an imprint of their knowledge. The internet keeps it like a library: the book is put on the shelf and forgotten. The Orb Studio sensors take their ideas off the shelf and let them work every day. Impulse shows which idea turned out useful to people and agents – that is where effort should go, so that technology and the world move forward.",
+   note="Not counted: our own checks and tests (Orb Studio scripts, the link checker, headless browsers). Search engines, catalogues and monitors are counted separately: they see a sensor but do not use it. We do not know who stands behind a program, only its name.",
+   now_h="Impulse of the last 7 days", agents="For agents: <code>GET /api/v1/impulse</code> or the MCP tool <code>get_impulse</code>. Free, no key.",
+   cfg=dict(comp=IMPULSE_COMP["en"], pre="/en", leader="Leader of the week: {x} – calls: {n}", none="No outside agent has used the sensors yet: they are only a few days old.", programs="programs", days="days", people="people opened the page", watchers="search engines and monitors", first="First outside call", never="none yet", loading="Loading…", err="The sensor did not answer just now.")),
+}
+PORTAL_IMPULSE = {"ru": ("Импульс — чьи датчики берут в работу", "Открыть «Импульс»"), "de": ("Impuls – wessen Sensoren genutzt werden", "„Impuls“ öffnen"), "en": ("Impulse – whose sensors are taken up", "Open Impulse")}
+
 if __name__ == "__main__":
     for sid, S in SENSORS.items():
         for lg, c in S["L"].items():
@@ -303,3 +345,5 @@ if __name__ == "__main__":
             open(out, "w").write(page(sid, lg, c, wiki, S["render"], cfg, S["person"])); print(out)
     for lg in ("ru", "de", "en"):
         out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/scientists.html"; open(out, "w").write(portal(lg)); print(out)
+        c = IMPULSE[lg]; out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/impulse.html"
+        open(out, "w").write(page("impulse", lg, c, "", IMPULSE_RENDER, dict(c["cfg"], loc=LOC[lg]), IMPULSE_PERSON)); print(out)
