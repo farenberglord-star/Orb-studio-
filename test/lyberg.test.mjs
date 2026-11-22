@@ -24,6 +24,9 @@ test("report: blind regions, caveat, pronoun 'us' is not the USA", () => {
   assert.equal(r.nonresponse.silent, 1); assert.equal(r.verdict, "large_gaps");
   assert.match(r.caveat_for_agents, /6 feeds \(5 answered now\), mostly in en/);
   assert.equal(lybergReport([]).verdict, "no_data");
+  const b = mk("x", ["Putin warns Europe"], 0); b.lyberg.regions_in_feeds = { latin_america: 3 };
+  const rb = lybergReport([b]); assert.deepEqual(rb.coverage.regions_in_feeds_but_not_top, ["latin_america"]); assert.match(rb.caveat_for_agents, /latin_america is in the feeds but not among the top/);
+  assert.equal(lybergRadar(["https://a.example/r"], [[{ title: "Brazil votes" }]], { raw: 1, unique: 1, fresh: 1, on_topic: 1 }, [], [{ title: "Brazil votes" }, { title: "Lula in Mexico" }]).regions_in_feeds.latin_america, 2);
   assert.equal(lybergReport([mk("a", ["Fed holds rates as US jobs grow"], 0)]).coverage.regions_in_top_headlines.north_america, 1);
 });
 test("wiring", () => {

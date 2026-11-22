@@ -419,7 +419,7 @@ async function buildRadar(def, env, fc) {
     lvl, prev, fac, market,
     feed: top8.map((i) => [hhmm(i.ts), i.title, i.source, i.weight, i.url, i.ts]), // 6-е поле — время публикации (мс), для метки «вчера»
     verify,
-    lyberg: lybergRadar(def.feeds, lists, { raw: raw.length, unique: uniq.length, fresh: fresh.length, on_topic: onTopic.length }, items), // «Люберг»: охват, неответ, обработка
+    lyberg: lybergRadar(def.feeds, lists, { raw: raw.length, unique: uniq.length, fresh: fresh.length, on_topic: onTopic.length }, items, onTopic), // «Люберг»: охват, неответ, обработка
     updated_at: new Date().toISOString(),
   };
 }
