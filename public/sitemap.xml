@@ -170,4 +170,7 @@
   <url><loc>https://orbstudio.org/tools/baird</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/tools/baird</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/baird</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/lyberg</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/lyberg</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/lyberg</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
 </urlset>
