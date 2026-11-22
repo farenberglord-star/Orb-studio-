@@ -106,7 +106,8 @@
     "scientists": "https://orbstudio.org/api/v1/scientists",
     "hamilton": "https://orbstudio.org/api/v1/hamilton",
     "mikrin": "https://orbstudio.org/api/v1/mikrin",
-    "polyak": "https://orbstudio.org/api/v1/polyak"
+    "polyak": "https://orbstudio.org/api/v1/polyak",
+    "park": "https://orbstudio.org/api/v1/park"
   },
   "auth": "none",
   "payments": {

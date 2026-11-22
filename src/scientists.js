@@ -3,6 +3,7 @@
 import { HAMILTON } from "./hamilton.js";
 import { MIKRIN } from "./mikrin.js";
 import { POLYAK } from "./polyak.js";
+import { PARK } from "./park.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -16,12 +17,17 @@ export const SCIENTISTS = [
     principle: "Inertia of past steps (heavy ball) and averaging under noise (Polyak–Juditsky).",
     sensor: "Whether a change in the Orb Studio indices is a one-off jump or a sustained shift; past readings only.",
     analog_check: { date: "2026-11-22", similar: "moving averages and anomaly detection in general", difference: "applied to the Orb Studio indices with a one-word verdict: calm, jump or shift" } },
+  { id: "park", honour: PARK, field: "physics, science and pseudoscience", tool: "get_park", api: "/api/v1/park",
+    principle: "The seven warning signs of bogus science.",
+    sensor: "Warning signs of bogus science in today's science headlines, each with the exact quoted words.",
+    analog_check: { date: "2026-11-22", similar: "Anti-Bullshit MCP (analysis of a single claim), research detectors of exaggeration in science news, SciLens (quality of science news articles)", difference: "a regular check of a live news stream on Park's seven signs, with the exact words from the headline" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
   if (!r) return null;
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
+  if (id === "park") return { checked: r.headlines_checked, with_signs: r.headlines_with_signs };
   if (id === "polyak") return { moving: (r.series || []).filter((s) => s.verdict === "jump" || s.verdict === "shift").map((s) => ({ id: s.id, verdict: s.verdict, direction: s.direction })) };
   return null;
 }
