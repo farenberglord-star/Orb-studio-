@@ -131,4 +131,10 @@
   <url><loc>https://orbstudio.org/en/roundtable</loc><lastmod>2026-11-20</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/ru/studio</loc><lastmod>2026-11-20</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/ru/roundtable</loc><lastmod>2026-11-20</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/tools/hamilton</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/hamilton</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/hamilton</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/mikrin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/mikrin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/mikrin</loc><lastmod>2026-11-22</lastmod><changefreq>daily</changefreq><priority>0.5</priority></url>
 </urlset>
