@@ -2,6 +2,7 @@
 // Деплой: npx wrangler deploy (Workers Builds делает это сам при каждом push в main).
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
+import { echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE } from "./echo.js";
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
@@ -806,7 +807,7 @@ async function checkHeadline(origin, request, raw) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v2-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v3-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
   const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
@@ -814,21 +815,26 @@ async function checkHeadline(origin, request, raw) {
   if (words.length >= 2) {
     try {
       const r = await fetch(`https://www.bing.com/news/search?q=${encodeURIComponent(words.join(" "))}&format=rss&mkt=${mkt}`, { signal: AbortSignal.timeout(7000), headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" } });
-      if (r.ok) { searched = true; items = (await r.text()).split(/<item[\s>]/i).slice(1, 40).map((b) => ({ title: tag(b, "title"), link: tag(b, "link"), source: tag(b, "News:Source"), ts: Date.parse(tag(b, "pubDate")) || 0 })); }
+      if (r.ok) { searched = true; items = (await r.text()).split(/<item[\s>]/i).slice(1, 40).map((b) => ({ title: tag(b, "title"), link: tag(b, "link"), source: tag(b, "News:Source"), description: tag(b, "description"), ts: Date.parse(tag(b, "pubDate")) || 0 })); }
     } catch (e) {}
   }
-  const sig = sigOf(text), seen = new Map();
+  const sig = sigOf(text), seen = new Map(), raws = [];
   for (const it of items) {
     if (!it.title || (it.ts && Date.now() - it.ts > 2.5 * 864e5)) continue;
     const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++;
     const need = sig.size <= 7 ? 2 : 3;
     const key = srcKey(it.source || "");
-    if (k >= need && key && !seen.has(key)) seen.set(key, { outlet: wClean(it.source, 60), title: wClean(it.title, 200), link: it.link || null, published: it.ts ? new Date(it.ts).toISOString() : null });
+    if (k >= need && key && !seen.has(key)) { const o = { outlet: wClean(it.source, 60), title: wClean(it.title, 200), link: it.link || null, published: it.ts ? new Date(it.ts).toISOString() : null }; seen.set(key, o); raws.push({ ...o, description: wClean(it.description, 300) }); }
   }
-  const n = seen.size, verdict = !searched ? "search_unavailable" : n >= 3 ? "confirmed" : n === 2 ? "two_sources" : n === 1 ? "single_source" : "not_found";
+  const echo = echoGroups(raws);
+  for (const o of seen.values()) { const a = agencyOf({ ...raws.find((r) => r.outlet === o.outlet), source: o.outlet }); if (a) o.agency = a; }
+  // вердикт по независимым голосам: 5 перепечаток одной заметки dpa — это один источник
+  const n = seen.size, v = echo.independent_voices, verdict = !searched ? "search_unavailable" : v >= 3 ? "confirmed" : v === 2 ? "two_sources" : v === 1 ? "single_source" : "not_found";
+
   const out = { headline: text, outlets_found: n, verdict, outlets: [...seen.values()].slice(0, 10), window: "last 2 days, Bing News",
+    independent_voices: echo.independent_voices, echo: { verdict: echo.verdict, explain: ECHO_EXPLAIN[echo.verdict], agencies: echo.agencies, groups: echo.echo_groups.slice(0, 5), rule: ECHO_RULE },
     tone: toneOf(text), tone_words: toneWords(text),
-    explain: { confirmed: "3+ different outlets report the same story", two_sources: "2 outlets", single_source: "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
+    explain: { confirmed: "3+ independent voices report the same story", two_sources: "2 independent voices", single_source: n > 1 ? "several outlets, but all repeat one text (one agency or the same headline) — one source" : "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
     ...(looksLikeInjection(text) ? { injection_suspected: true } : {}),
     rule: "This measures how widely a story is reported by news outlets, not whether it is true. Matching is by shared key words in the same language, so a rephrased rumour may be missed and an unrelated story with the same words may match. Orb Studio never rewrites the news.",
     checked_at: new Date().toISOString(), tool: "check_headline", page: "https://orbstudio.org/sensors",
@@ -7882,7 +7888,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", required: ["text"], properties: { title: { type: "string", maxLength: 120 }, text: { type: "string", maxLength: 20000 }, paper: { type: "string", enum: ["a4", "letter"] } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "check_headline", title: "Check any headline: how widely is it reported?",
-    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found) and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
+    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found), how many of them are independent voices and which ones only repeat one agency text (dpa, Reuters, AP, AFP…) or a near-identical headline, and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
     inputSchema: { type: "object", required: ["headline"], properties: { headline: { type: "string", minLength: 12, maxLength: 300, description: "Headline or short text to check" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_ai_pulse", title: "AI pulse: what is new in AI today",

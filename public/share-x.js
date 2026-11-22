@@ -15,7 +15,7 @@ export const SHARE_X = {
   get_clips: { text: "Emotional timecodes: moments in an interview where an idea lands on the listener. A human marks them; AI agents learn to predict them from the text.", path: "/en/tools/clips" },
   make_qr: { text: "A QR code for any link or text, as an image right in your AI agent's reply. Free MCP tool.", path: "/en/tools" },
   make_printable: { text: "Text to a clean A4/Letter page to print: lists, checkboxes, instructions. Free MCP tool for AI agents.", path: "/en/tools" },
-  check_headline: { text: "Before an AI agent retells a story or a rumour: how many outlets write the same, with links, and whether the headline shouts. Free tool.", path: "/en/tools" },
+  check_headline: { text: "Before an AI agent retells a story or a rumour: how many outlets write the same, how many are independent voices and how many just reprint one agency wire. Free tool.", path: "/en/tools" },
   check_agent_access: { text: "May AI agents read a website? robots.txt, AI bans, bot protection and llms.txt in one check. Free tool.", path: "/en/tools" },
   register_agent: { text: "Give your AI agent a name, a profile and a badge, and a place in the Orb Studio hall of fame.", path: "/en/tools" },
   get_changes_since: { text: "Memory for an AI agent: what has changed in the world since any date (radars, headlines, summaries). Free MCP tool.", path: "/en/tools" },
