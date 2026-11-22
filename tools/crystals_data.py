@@ -112,9 +112,6 @@ C = [
  "Expectations and equilibria: with the same data, market expectations can settle on different equilibria.", "Ожидания и равновесия: при одних и тех же данных ожидания рынка могут прийти к разным равновесиям.", "Erwartungen und Gleichgewichte: gleiche Daten, verschiedene Gleichgewichte.",
  "The same facts can support several outcomes; do not present one as inevitable."),
 # --- 3. слух вместо факта ---
-("frankfurt", "Harry Frankfurt", "Гарри Франкфурт", "1929–2023", "Harry_Frankfurt", "rumour_vs_fact",
- "'On Bullshit': the bullshitter does not lie — he simply does not care whether it is true.", "«О болтовне»: болтун не лжёт — ему просто всё равно, правда это или нет.", "„On Bullshit“: dem Schwätzer ist gleichgültig, ob es wahr ist.",
- "Check whether a text contains anything checkable (who, when, how many); if not, it is noise, not news."),
 ("goldman", "Alvin Goldman", "Элвин Голдман", "1938–2024", "Alvin_Goldman", "rumour_vs_fact",
  "Social epistemology: how knowledge passes through testimony and the media, and when that chain is reliable.", "Социальная эпистемология: как знание передаётся через свидетельства и СМИ и когда эта цепочка надёжна.", "Soziale Erkenntnistheorie: Wissen durch Zeugnis und Medien.",
  "Ask how many independent witnesses stand behind a claim, not how many repeat it."),
@@ -266,3 +263,30 @@ C = [
  "Optimal control theory.", "Теория оптимального управления.", "Optimale Steuerung.",
  "Define the goal and the cost before choosing the action."),
 ]
+
+# Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
+# ready — данные и мысль есть, осталось проверить аналоги и построить; needs_history — копим записи; needs_source — нет открытого источника;
+# covered — суть уже закрывает наш датчик (указан); blocked_analog — у других есть инструмент с той же сутью; blocked_rule — мешает наше правило (нет прогнозов);
+# needs_idea — пока не придумано, как превратить мысль в живое число.
+NEEDS = {
+  "bertsekas": ("ready", "measure the size in tokens of every Orb Studio tool answer and give the cheapest chain of calls for typical agent questions"),
+  "trevisan": ("ready", "the smallest sample of headlines that reproduces each index within ±5 points"),
+  "rabin": ("ready", "random spot checks of the sensor numbers against their sources"),
+  "minker": ("needs_history", "record headlines with correction/update/denial words and link them to the original story", "2026-12-13"),
+  "dagum": ("needs_history", "3–4 weeks of 30-minute index history to remove the daily and weekly rhythm", "2026-12-20"),
+  "tiao": ("needs_history", "a few weeks of index history to measure how single events changed a series", "2026-12-20"),
+  "latour": ("needs_source", "an open source of citation chains behind news claims"),
+  "kripke": ("blocked_analog", "Wikidata already links names to entities; needs a new angle, e.g. one story naming a place differently across feeds"),
+  "sims": ("blocked_rule", "'one series moves after another' is close to a forecast, which Orb Studio does not publish"),
+  "guesnerie": ("blocked_rule", "multiple equilibria of expectations would need forecasts"),
+}
+for k in ["cleveland", "welch", "lorden", "wonham", "jury", "shumway", "astrom", "ljung"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")
+for k in ["rissanen"]: NEEDS[k] = ("covered", "the Ziv sensor already measures novelty by compression", None, "ziv")
+for k in ["kashyap", "mallows", "athans", "schmeidler", "leonard", "eicker", "morrison"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["goldman", "rescher"]: NEEDS[k] = ("covered", "check_headline already counts independent voices and agency echo", None, "kahneman")
+for k in ["skinner", "bailar", "harding"]: NEEDS[k] = ("covered", "the Lyberg sensor already reports coverage gaps and silent feeds", None, "lyberg")
+for k in ["pless", "zupko", "li_tianchu", "higham"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and cross-checks numbers", None, "baird")
+for k in ["radner", "woodroofe", "chow", "wynn", "herzberg", "whittle"]: NEEDS[k] = ("covered", "the Howard sensor already says when waiting for more information pays off", None, "howard")
+for k in ["bunge", "laudan", "agassi", "frazier"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
+for k in ["hambleton", "mislevy", "woodcock", "mellenbergh", "byrne"]: NEEDS[k] = ("covered", "the Kahneman sensor already audits the noise of AI judgements", None, "kahneman")
+for k in ["belnap", "groenendijk", "bonomi", "roggen", "zdonik", "belady"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")

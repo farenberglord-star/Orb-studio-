@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost"];
-export const CRYSTAL_BUILT_ZONE = {"hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -14,7 +14,12 @@ export const CRYSTALS = [
 "ru": "Временна́я логика: истинность утверждения зависит от момента, когда оно сделано.",
 "de": "Zeitlogik: ob eine Aussage wahr ist, hängt vom Zeitpunkt ab."
 },
-"rule": "Attach a time to every claim you repeat; a true sentence from yesterday may be false today."
+"rule": "Attach a time to every claim you repeat; a true sentence from yesterday may be false today.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "astrom",
@@ -28,7 +33,12 @@ export const CRYSTALS = [
 "ru": "Самонастраивающиеся регуляторы: модель пересчитывается по каждому новому измерению.",
 "de": "Selbsteinstellende Regler: das Modell wird mit jeder neuen Messung neu geschätzt."
 },
-"rule": "Update your estimate with each new data point instead of keeping the first one."
+"rule": "Update your estimate with each new data point instead of keeping the first one.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "minker",
@@ -42,7 +52,12 @@ export const CRYSTALS = [
 "ru": "Немонотонные рассуждения: вывод можно отозвать, когда приходят новые факты.",
 "de": "Nichtmonotones Schließen: ein Schluss kann zurückgenommen werden, wenn neue Fakten kommen."
 },
-"rule": "Mark conclusions as 'holds until new facts arrive' and be ready to retract them."
+"rule": "Mark conclusions as 'holds until new facts arrive' and be ready to retract them.",
+"needs": {
+"code": "needs_history",
+"note": "record headlines with correction/update/denial words and link them to the original story",
+"not_before": "2026-12-13"
+}
 },
 {
 "id": "groenendijk",
@@ -56,7 +71,12 @@ export const CRYSTALS = [
 "ru": "Динамическая семантика: смысл высказывания — это то, как оно меняет состояние информации.",
 "de": "Dynamische Semantik: Bedeutung ist die Änderung des Informationsstands."
 },
-"rule": "Read each new message as an update to what you knew, not as an isolated fact."
+"rule": "Read each new message as an update to what you knew, not as an isolated fact.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "dagum",
@@ -70,7 +90,12 @@ export const CRYSTALS = [
 "ru": "Метод X-11-ARIMA: сезонная корректировка и оценка тренда временного ряда в реальном времени.",
 "de": "X-11-ARIMA: Saisonbereinigung und Echtzeit-Trendschätzung von Zeitreihen."
 },
-"rule": "Before calling a rise news, check whether it is the usual seasonal or daily rhythm."
+"rule": "Before calling a rise news, check whether it is the usual seasonal or daily rhythm.",
+"needs": {
+"code": "needs_history",
+"note": "3–4 weeks of 30-minute index history to remove the daily and weekly rhythm",
+"not_before": "2026-12-20"
+}
 },
 {
 "id": "lorden",
@@ -84,7 +109,12 @@ export const CRYSTALS = [
 "ru": "Быстрое обнаружение изменений: как можно раньше заметить, что данные начали подчиняться другим законам.",
 "de": "Schnellste Änderungserkennung: früh bemerken, dass Daten einem anderen Gesetz folgen."
 },
-"rule": "Watch for a change of regime, not only for single outliers."
+"rule": "Watch for a change of regime, not only for single outliers.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "sims",
@@ -98,7 +128,11 @@ export const CRYSTALS = [
 "ru": "Векторные авторегрессии: модели многих экономических рядов, которые обновляются по свежим данным (Нобелевская премия 2011).",
 "de": "Vektorautoregressionen: Modelle vieler Wirtschaftsreihen, laufend mit frischen Daten aktualisiert (Nobelpreis 2011)."
 },
-"rule": "Look at several related series together; one series alone hides how shocks spread."
+"rule": "Look at several related series together; one series alone hides how shocks spread.",
+"needs": {
+"code": "blocked_rule",
+"note": "'one series moves after another' is close to a forecast, which Orb Studio does not publish"
+}
 },
 {
 "id": "ljung",
@@ -112,7 +146,12 @@ export const CRYSTALS = [
 "ru": "Тест Льюнг–Бокса: остались ли в ошибках модели закономерности, то есть не перестала ли модель описывать данные.",
 "de": "Ljung-Box-Test: zeigen die Restfehler eines Modells noch Muster?"
 },
-"rule": "If your errors repeat in a pattern, your model is out of date."
+"rule": "If your errors repeat in a pattern, your model is out of date.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "tiao",
@@ -126,7 +165,12 @@ export const CRYSTALS = [
 "ru": "Анализ временных рядов и анализ вмешательств: как событие изменило ряд.",
 "de": "Zeitreihen- und Interventionsanalyse: wie ein Ereignis eine Reihe verändert hat."
 },
-"rule": "Separate the effect of a single event from the ongoing trend before you explain a change."
+"rule": "Separate the effect of a single event from the ongoing trend before you explain a change.",
+"needs": {
+"code": "needs_history",
+"note": "a few weeks of index history to measure how single events changed a series",
+"not_before": "2026-12-20"
+}
 },
 {
 "id": "cleveland",
@@ -140,7 +184,12 @@ export const CRYSTALS = [
 "ru": "Сглаживание LOESS и наука о графиках: пусть данные показывают свою форму без жёсткой формулы.",
 "de": "LOESS-Glättung und Grafikforschung: Daten ihre lokale Form zeigen lassen."
 },
-"rule": "Look at the smoothed local trend before drawing a straight line through the data."
+"rule": "Look at the smoothed local trend before drawing a straight line through the data.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "welch",
@@ -154,7 +203,12 @@ export const CRYSTALS = [
 "ru": "Алгоритм Баума–Уэлча: оценка скрытого состояния системы по потоку наблюдений.",
 "de": "Baum-Welch-Algorithmus: verborgenen Zustand aus einer Beobachtungsfolge schätzen."
 },
-"rule": "What you see is a noisy trace of a hidden state; estimate the state, do not just repeat the trace."
+"rule": "What you see is a noisy trace of a hidden state; estimate the state, do not just repeat the trace.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "shumway",
@@ -168,7 +222,12 @@ export const CRYSTALS = [
 "ru": "Анализ временных рядов, в том числе модели пространства состояний и пропуски наблюдений.",
 "de": "Zeitreihenanalyse, Zustandsraummodelle und fehlende Beobachtungen."
 },
-"rule": "A gap in a series is information too: say what is missing instead of filling it silently."
+"rule": "A gap in a series is information too: say what is missing instead of filling it silently.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "zdonik",
@@ -182,7 +241,12 @@ export const CRYSTALS = [
 "ru": "Потоковая обработка данных: данные — непрерывный поток, а не застывший снимок.",
 "de": "Datenstromsysteme: Daten als laufender Strom, nicht als eingefrorener Schnappschuss."
 },
-"rule": "Ask how old your snapshot is; the stream has moved on since."
+"rule": "Ask how old your snapshot is; the stream has moved on since.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "belady",
@@ -196,7 +260,12 @@ export const CRYSTALS = [
 "ru": "Замещение в кэше: выбрасывать стоит то, что понадобится позже всего (алгоритм Белади).",
 "de": "Cache-Ersetzung: verdränge, was am spätesten wieder gebraucht wird."
 },
-"rule": "Keep in your context what you will need next, drop what you will not."
+"rule": "Keep in your context what you will need next, drop what you will not.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "roggen",
@@ -210,7 +279,12 @@ export const CRYSTALS = [
 "ru": "Логика времени в социологии: социальные факты привязаны к моментам и последовательностям.",
 "de": "Zeitlogik in der Soziologie: soziale Tatsachen sind an Zeitpunkte gebunden."
 },
-"rule": "Keep the order of events; a correct fact in the wrong order misleads."
+"rule": "Keep the order of events; a correct fact in the wrong order misleads.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "jury",
@@ -224,7 +298,12 @@ export const CRYSTALS = [
 "ru": "Цифровая обработка сигналов и критерий устойчивости Джури для дискретных систем.",
 "de": "Digitale Signalverarbeitung und das Jury-Stabilitätskriterium."
 },
-"rule": "Check whether a sequence of updates settles down or keeps amplifying itself."
+"rule": "Check whether a sequence of updates settles down or keeps amplifying itself.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "wonham",
@@ -238,7 +317,12 @@ export const CRYSTALS = [
 "ru": "Стохастическая фильтрация (фильтр Уонэма): оценка состояния обновляется по каждому новому шумному наблюдению.",
 "de": "Stochastische Filterung (Wonham-Filter): Zustandsschätzung mit jeder verrauschten Beobachtung."
 },
-"rule": "Weigh each new observation by how noisy it is, then update; do not replace the estimate wholesale."
+"rule": "Weigh each new observation by how noisy it is, then update; do not replace the estimate wholesale.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 },
 {
 "id": "bonomi",
@@ -252,7 +336,12 @@ export const CRYSTALS = [
 "ru": "Время и вид в языке: как высказывания привязаны к моменту.",
 "de": "Tempus und Aspekt: wie Sätze an Zeitpunkte gebunden sind."
 },
-"rule": "'Is', 'was' and 'will be' are different claims; keep the tense of the source."
+"rule": "'Is', 'was' and 'will be' are different claims; keep the tense of the source.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
 },
 {
 "id": "rissanen",
@@ -266,7 +355,12 @@ export const CRYSTALS = [
 "ru": "Принцип минимальной длины описания: лучшая модель описывает данные короче всех.",
 "de": "Minimale Beschreibungslänge: das beste Modell beschreibt die Daten am kürzesten."
 },
-"rule": "Prefer the explanation that needs fewest extra assumptions to cover the facts."
+"rule": "Prefer the explanation that needs fewest extra assumptions to cover the facts.",
+"needs": {
+"code": "covered",
+"note": "the Ziv sensor already measures novelty by compression",
+"covered_by": "ziv"
+}
 },
 {
 "id": "schmeidler",
@@ -280,7 +374,12 @@ export const CRYSTALS = [
 "ru": "Решения в неопределённости: одной «настоящей» вероятностной модели может не быть.",
 "de": "Entscheidungen bei Ambiguität: es gibt nicht immer ein einziges wahres Wahrscheinlichkeitsmodell."
 },
-"rule": "When probabilities are unknown, say so and give a range instead of one number."
+"rule": "When probabilities are unknown, say so and give a range instead of one number.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "mallows",
@@ -294,7 +393,12 @@ export const CRYSTALS = [
 "ru": "Критерий Cp: сравнение регрессионных моделей со штрафом за лишнюю сложность.",
 "de": "Mallows' Cp: Regressionsmodelle vergleichen, unnötige Komplexität bestrafen."
 },
-"rule": "A model that fits everything perfectly may only be memorising noise."
+"rule": "A model that fits everything perfectly may only be memorising noise.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "eicker",
@@ -308,7 +412,12 @@ export const CRYSTALS = [
 "ru": "Робастные стандартные ошибки: верны, даже если модель разброса данных ошибочна.",
 "de": "Robuste Standardfehler: gültig, auch wenn die angenommene Streuung falsch ist."
 },
-"rule": "State uncertainty in a way that survives a wrong assumption about the noise."
+"rule": "State uncertainty in a way that survives a wrong assumption about the noise.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "titterington",
@@ -322,7 +431,11 @@ export const CRYSTALS = [
 "ru": "Модели смесей: одни и те же наблюдения могут происходить из нескольких скрытых групп.",
 "de": "Mischungsmodelle: dieselben Beobachtungen können aus mehreren verborgenen Gruppen stammen."
 },
-"rule": "An average can hide two different groups; check whether the data is mixed."
+"rule": "An average can hide two different groups; check whether the data is mixed.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "morrison",
@@ -336,7 +449,12 @@ export const CRYSTALS = [
 "ru": "Модели как посредники: модель стоит между теорией и миром, а не является самим миром.",
 "de": "Modelle als Vermittler: ein Modell steht zwischen Theorie und Welt."
 },
-"rule": "Say 'according to the model' when you report a model's output."
+"rule": "Say 'according to the model' when you report a model's output.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "leonard",
@@ -350,7 +468,12 @@ export const CRYSTALS = [
 "ru": "Байесовские методы и роль исходных предположений в выводе.",
 "de": "Bayes-Methoden und die Rolle der Vorannahmen."
 },
-"rule": "Name your starting assumptions; another start can lead to another conclusion."
+"rule": "Name your starting assumptions; another start can lead to another conclusion.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "friedman",
@@ -364,7 +487,11 @@ export const CRYSTALS = [
 "ru": "Динамика разума: базовые принципы науки сами меняются со временем.",
 "de": "Dynamik der Vernunft: die Grundprinzipien der Wissenschaft wandeln sich."
 },
-"rule": "Today's framework is not eternal; say which framework your answer assumes."
+"rule": "Today's framework is not eternal; say which framework your answer assumes.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "shapiro",
@@ -378,7 +505,11 @@ export const CRYSTALS = [
 "ru": "Тест Шапиро–Уилка: можно ли вообще считать данные нормально распределёнными.",
 "de": "Shapiro-Wilk-Test: dürfen die Daten als normalverteilt gelten?"
 },
-"rule": "Check the shape of the data before using averages and standard deviations."
+"rule": "Check the shape of the data before using averages and standard deviations.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "deely",
@@ -392,7 +523,11 @@ export const CRYSTALS = [
 "ru": "Эмпирический байесовский подход: оценку строят по набору похожих случаев.",
 "de": "Empirischer Bayes: Schätzungen aus vielen ähnlichen Fällen."
 },
-"rule": "Compare with similar past cases before judging one case."
+"rule": "Compare with similar past cases before judging one case.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "glejser",
@@ -406,7 +541,11 @@ export const CRYSTALS = [
 "ru": "Тест Глейзера: правильно ли модель описывает разброс данных.",
 "de": "Glejser-Test: beschreibt das Modell die Streuung richtig?"
 },
-"rule": "Check whether your uncertainty grows with the size of the numbers."
+"rule": "Check whether your uncertainty grows with the size of the numbers.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "hollander",
@@ -420,7 +559,11 @@ export const CRYSTALS = [
 "ru": "Непараметрическая статистика: выводы без жёсткой модели данных.",
 "de": "Nichtparametrische Statistik: Schlüsse ohne starres Modell."
 },
-"rule": "Use ranks and counts when you do not know the true shape of the data."
+"rule": "Use ranks and counts when you do not know the true shape of the data.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "massam",
@@ -434,7 +577,11 @@ export const CRYSTALS = [
 "ru": "Графические модели: сама структура связей между переменными может быть неопределённой.",
 "de": "Graphische Modelle: auch die Abhängigkeitsstruktur kann unsicher sein."
 },
-"rule": "Do not assume you know which factors are connected; that is part of the question."
+"rule": "Do not assume you know which factors are connected; that is part of the question.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "dudley",
@@ -448,7 +595,11 @@ export const CRYSTALS = [
 "ru": "Эмпирические процессы: насколько выборка может отличаться от настоящего распределения.",
 "de": "Empirische Prozesse: wie weit eine Stichprobe von der wahren Verteilung abweicht."
 },
-"rule": "A sample is not the population; say how large the sample was."
+"rule": "A sample is not the population; say how large the sample was.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "kashyap",
@@ -462,7 +613,12 @@ export const CRYSTALS = [
 "ru": "Критерий Кашьяпа (KIC): выбор лучшей модели из нескольких кандидатов.",
 "de": "Kashyap-Kriterium: Auswahl des besten Modells unter mehreren."
 },
-"rule": "Compare at least two candidate explanations before you settle on one."
+"rule": "Compare at least two candidate explanations before you settle on one.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "athans",
@@ -476,7 +632,12 @@ export const CRYSTALS = [
 "ru": "Робастное управление: регулятор работает, даже когда модель объекта неточна.",
 "de": "Robuste Regelung: funktioniert auch bei ungenauem Modell."
 },
-"rule": "Prefer advice that still holds if your picture of the situation is somewhat wrong."
+"rule": "Prefer advice that still holds if your picture of the situation is somewhat wrong.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
 },
 {
 "id": "guesnerie",
@@ -490,21 +651,11 @@ export const CRYSTALS = [
 "ru": "Ожидания и равновесия: при одних и тех же данных ожидания рынка могут прийти к разным равновесиям.",
 "de": "Erwartungen und Gleichgewichte: gleiche Daten, verschiedene Gleichgewichte."
 },
-"rule": "The same facts can support several outcomes; do not present one as inevitable."
-},
-{
-"id": "frankfurt",
-"name": "Harry Frankfurt",
-"name_ru": "Гарри Франкфурт",
-"years": "1929–2023",
-"wiki": "https://en.wikipedia.org/wiki/Harry_Frankfurt",
-"zone": "rumour_vs_fact",
-"idea": {
-"en": "'On Bullshit': the bullshitter does not lie — he simply does not care whether it is true.",
-"ru": "«О болтовне»: болтун не лжёт — ему просто всё равно, правда это или нет.",
-"de": "„On Bullshit“: dem Schwätzer ist gleichgültig, ob es wahr ist."
-},
-"rule": "Check whether a text contains anything checkable (who, when, how many); if not, it is noise, not news."
+"rule": "The same facts can support several outcomes; do not present one as inevitable.",
+"needs": {
+"code": "blocked_rule",
+"note": "multiple equilibria of expectations would need forecasts"
+}
 },
 {
 "id": "goldman",
@@ -518,7 +669,12 @@ export const CRYSTALS = [
 "ru": "Социальная эпистемология: как знание передаётся через свидетельства и СМИ и когда эта цепочка надёжна.",
 "de": "Soziale Erkenntnistheorie: Wissen durch Zeugnis und Medien."
 },
-"rule": "Ask how many independent witnesses stand behind a claim, not how many repeat it."
+"rule": "Ask how many independent witnesses stand behind a claim, not how many repeat it.",
+"needs": {
+"code": "covered",
+"note": "check_headline already counts independent voices and agency echo",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "gettier",
@@ -532,7 +688,11 @@ export const CRYSTALS = [
 "ru": "Случаи Геттиера: обоснованное и верное мнение ещё не обязательно знание.",
 "de": "Gettier-Fälle: gerechtfertigte wahre Meinung ist nicht unbedingt Wissen."
 },
-"rule": "Check the path to a conclusion, not only the conclusion; a right answer for the wrong reason is fragile."
+"rule": "Check the path to a conclusion, not only the conclusion; a right answer for the wrong reason is fragile.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "woods",
@@ -546,7 +706,11 @@ export const CRYSTALS = [
 "ru": "Логика ошибок: типичные ошибки в рассуждениях реальных агентов.",
 "de": "Logik der Fehlschlüsse bei realen Akteuren."
 },
-"rule": "Before trusting an argument, name the step where it could go wrong."
+"rule": "Before trusting an argument, name the step where it could go wrong.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "rescher",
@@ -560,7 +724,12 @@ export const CRYSTALS = [
 "ru": "Теория когерентности: утверждению можно доверять, если оно согласуется с остальными известными фактами.",
 "de": "Kohärenztheorie: Vertrauen, wenn eine Aussage zum übrigen Wissen passt."
 },
-"rule": "Check a surprising claim against what other independent sources say."
+"rule": "Check a surprising claim against what other independent sources say.",
+"needs": {
+"code": "covered",
+"note": "check_headline already counts independent voices and agency echo",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "harding",
@@ -574,7 +743,12 @@ export const CRYSTALS = [
 "ru": "Эпистемология позиции: кто источник, влияет на то, что он может увидеть.",
 "de": "Standpunkttheorie: die Position der Quelle prägt, was sie sieht."
 },
-"rule": "Note whose viewpoint a source represents and whose is missing."
+"rule": "Note whose viewpoint a source represents and whose is missing.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports coverage gaps and silent feeds",
+"covered_by": "lyberg"
+}
 },
 {
 "id": "bunge",
@@ -588,7 +762,12 @@ export const CRYSTALS = [
 "ru": "Научный реализм и критика псевдонауки.",
 "de": "Wissenschaftlicher Realismus und Kritik der Pseudowissenschaft."
 },
-"rule": "Ask whether a claim could be tested and whether it fits established science."
+"rule": "Ask whether a claim could be tested and whether it fits established science.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
 },
 {
 "id": "laudan",
@@ -602,7 +781,12 @@ export const CRYSTALS = [
 "ru": "Против простого деления на «науку» и «не науку»: оценивать утверждения по их доказательствам.",
 "de": "Gegen eine einfache Grenze zwischen Wissenschaft und Nichtwissenschaft."
 },
-"rule": "Judge each claim on its evidence, not on the label of its source."
+"rule": "Judge each claim on its evidence, not on the label of its source.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
 },
 {
 "id": "agassi",
@@ -616,7 +800,12 @@ export const CRYSTALS = [
 "ru": "Критический рационализм (ученик Поппера): наука растёт через критику и проверку идей.",
 "de": "Kritischer Rationalismus (Popper-Schüler): Wissen wächst durch Kritik."
 },
-"rule": "Look for what would prove a claim wrong, not only for what supports it."
+"rule": "Look for what would prove a claim wrong, not only for what supports it.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
 },
 {
 "id": "corcoran",
@@ -630,7 +819,11 @@ export const CRYSTALS = [
 "ru": "Чем аргумент отличается от доказательства.",
 "de": "Unterschied zwischen Argument und Beweis."
 },
-"rule": "Do not call a persuasive argument a proof."
+"rule": "Do not call a persuasive argument a proof.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "bealer",
@@ -644,7 +837,11 @@ export const CRYSTALS = [
 "ru": "Интуиция как свидетельство: насколько ей можно доверять.",
 "de": "Intuitionen als Evidenz: wie weit man ihnen trauen kann."
 },
-"rule": "Treat 'it seems obvious' as a starting point to check, not as evidence."
+"rule": "Treat 'it seems obvious' as a starting point to check, not as evidence.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "frazier",
@@ -658,7 +855,12 @@ export const CRYSTALS = [
 "ru": "Редактор журнала Skeptical Inquirer: публичный разбор паранормальных и псевдонаучных заявлений.",
 "de": "Herausgeber des Skeptical Inquirer: Prüfung pseudowissenschaftlicher Behauptungen."
 },
-"rule": "Extraordinary claims need extraordinary evidence; ask for it."
+"rule": "Extraordinary claims need extraordinary evidence; ask for it.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
 },
 {
 "id": "kripke",
@@ -672,7 +874,11 @@ export const CRYSTALS = [
 "ru": "Имя указывает на сам объект, а не на случайное описание этого объекта.",
 "de": "Namen bezeichnen das Ding selbst, nicht eine zufällige Beschreibung."
 },
-"rule": "Treat 'Kyiv', 'Kiev' and 'Kiew' as one place, and check which person a title like 'the president' means today."
+"rule": "Treat 'Kyiv', 'Kiev' and 'Kiew' as one place, and check which person a title like 'the president' means today.",
+"needs": {
+"code": "blocked_analog",
+"note": "Wikidata already links names to entities; needs a new angle, e.g. one story naming a place differently across feeds"
+}
 },
 {
 "id": "latour",
@@ -686,7 +892,11 @@ export const CRYSTALS = [
 "ru": "Как в лаборатории рождается научный факт и как вернуть доверие к науке.",
 "de": "Wie eine wissenschaftliche Tatsache entsteht und wie Vertrauen zurückkehrt."
 },
-"rule": "Before calling something a fact, find the chain of sources that made it one."
+"rule": "Before calling something a fact, find the chain of sources that made it one.",
+"needs": {
+"code": "needs_source",
+"note": "an open source of citation chains behind news claims"
+}
 },
 {
 "id": "krausz",
@@ -700,7 +910,11 @@ export const CRYSTALS = [
 "ru": "Толкование: у одного и того же может быть несколько разумных толкований.",
 "de": "Interpretation: mehrere vernünftige Lesarten sind möglich."
 },
-"rule": "When a text is ambiguous, give the main readings instead of picking one silently."
+"rule": "When a text is ambiguous, give the main readings instead of picking one silently.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "passeron",
@@ -714,7 +928,11 @@ export const CRYSTALS = [
 "ru": "Как социальные науки доказывают утверждения, которые всегда зависят от контекста.",
 "de": "Wie Sozialwissenschaften ihre Aussagen belegen."
 },
-"rule": "Name the context (place, time, group) in which a social claim was shown."
+"rule": "Name the context (place, time, group) in which a social claim was shown.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "tuomela",
@@ -728,7 +946,11 @@ export const CRYSTALS = [
 "ru": "Философия науки и социального действия: как из гипотезы и данных получается обоснованный вывод.",
 "de": "Vom Hypothese und Daten zum begründeten Schluss."
 },
-"rule": "Keep hypothesis, data and conclusion apart when you explain."
+"rule": "Keep hypothesis, data and conclusion apart when you explain.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "decruz",
@@ -742,7 +964,11 @@ export const CRYSTALS = [
 "ru": "Экспериментальная философия и когнитивная наука о верованиях.",
 "de": "Experimentelle Philosophie und Kognitionswissenschaft des Glaubens."
 },
-"rule": "People's beliefs follow recognisable mental habits; check yours too."
+"rule": "People's beliefs follow recognisable mental habits; check yours too.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "higham",
@@ -756,7 +982,12 @@ export const CRYSTALS = [
 "ru": "Точность численных алгоритмов: ошибки округления могут нарастать по ходу расчёта.",
 "de": "Genauigkeit numerischer Algorithmen: Rundungsfehler können wachsen."
 },
-"rule": "Do not report more digits than the inputs justify."
+"rule": "Do not report more digits than the inputs justify.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and cross-checks numbers",
+"covered_by": "baird"
+}
 },
 {
 "id": "hambleton",
@@ -770,7 +1001,12 @@ export const CRYSTALS = [
 "ru": "Теория ответа на задания: насколько надёжна оценка по тесту.",
 "de": "Item-Response-Theorie: wie verlässlich ein Testwert ist."
 },
-"rule": "A score comes with a margin of error; quote it."
+"rule": "A score comes with a margin of error; quote it.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "babuska",
@@ -784,7 +1020,11 @@ export const CRYSTALS = [
 "ru": "Адаптивные численные методы и апостериорные оценки погрешности метода конечных элементов.",
 "de": "Adaptive numerische Verfahren und a-posteriori-Fehlerschätzung."
 },
-"rule": "After computing an answer, estimate how wrong it could be."
+"rule": "After computing an answer, estimate how wrong it could be.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "mislevy",
@@ -798,7 +1038,12 @@ export const CRYSTALS = [
 "ru": "Доказательный подход к оценке: оценка — это вывод из свидетельств с учётом неопределённости.",
 "de": "Evidenzbasiertes Design: Bewertung als Argument aus Evidenz."
 },
-"rule": "Say what evidence a judgement rests on and how strong it is."
+"rule": "Say what evidence a judgement rests on and how strong it is.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "mellenbergh",
@@ -812,7 +1057,12 @@ export const CRYSTALS = [
 "ru": "Психометрия, в том числе поиск заданий, которые меряют разные группы по-разному.",
 "de": "Psychometrie, auch verzerrte Testaufgaben."
 },
-"rule": "Check whether your measure treats all groups the same."
+"rule": "Check whether your measure treats all groups the same.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "winkler",
@@ -826,7 +1076,11 @@ export const CRYSTALS = [
 "ru": "Сопоставление записей: ошибки при сопоставлении данных из разных баз (сходство Джаро–Уинклера).",
 "de": "Datensatzverknüpfung: Fehler beim Abgleich von Datenbanken."
 },
-"rule": "Two records with similar names may be different people; say how sure the match is."
+"rule": "Two records with similar names may be different people; say how sure the match is.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "li_tianchu",
@@ -840,7 +1094,12 @@ export const CRYSTALS = [
 "ru": "Метрология в Китае: эталоны измерений.",
 "de": "Metrologie in China: Messnormale."
 },
-"rule": "Every number needs a standard it can be traced to."
+"rule": "Every number needs a standard it can be traced to.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and cross-checks numbers",
+"covered_by": "baird"
+}
 },
 {
 "id": "woodcock",
@@ -854,7 +1113,12 @@ export const CRYSTALS = [
 "ru": "Психометрия, модель Раша и тесты Вудкока–Джонсона.",
 "de": "Psychometrie, Rasch-Modell und Woodcock-Johnson-Tests."
 },
-"rule": "A scale is only meaningful if its steps are equal; check what one point means."
+"rule": "A scale is only meaningful if its steps are equal; check what one point means.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "byrne",
@@ -868,7 +1132,12 @@ export const CRYSTALS = [
 "ru": "Валидность: измеряет ли инструмент то, что обещает.",
 "de": "Validität: misst ein Instrument, was es verspricht?"
 },
-"rule": "Ask whether an index really measures what its name says."
+"rule": "Ask whether an index really measures what its name says.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
 },
 {
 "id": "bailar",
@@ -882,7 +1151,12 @@ export const CRYSTALS = [
 "ru": "Недоучёт при переписи: кого пропускает подсчёт, как в переписи США 1990 года.",
 "de": "Untererfassung bei der Volkszählung: wer fehlt."
 },
-"rule": "Ask who is not in the data before you generalise."
+"rule": "Ask who is not in the data before you generalise.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports coverage gaps and silent feeds",
+"covered_by": "lyberg"
+}
 },
 {
 "id": "bhat",
@@ -896,7 +1170,11 @@ export const CRYSTALS = [
 "ru": "Теория очередей и надёжности.",
 "de": "Warteschlangen- und Zuverlässigkeitstheorie."
 },
-"rule": "Delays add up in a chain; estimate the wait, not only the speed of one step."
+"rule": "Delays add up in a chain; estimate the wait, not only the speed of one step.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "zupko",
@@ -910,7 +1188,12 @@ export const CRYSTALS = [
 "ru": "История мер и весов: единицы меняются от места к месту и от века к веку.",
 "de": "Geschichte der Maße und Gewichte."
 },
-"rule": "Check the unit; the same word can mean different quantities."
+"rule": "Check the unit; the same word can mean different quantities.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and cross-checks numbers",
+"covered_by": "baird"
+}
 },
 {
 "id": "pless",
@@ -924,7 +1207,12 @@ export const CRYSTALS = [
 "ru": "Коды, исправляющие ошибки: избыточность позволяет найти и исправить ошибки передачи.",
 "de": "Fehlerkorrigierende Codes: Redundanz erkennt und behebt Fehler."
 },
-"rule": "Confirm an important fact by a second, independent route."
+"rule": "Confirm an important fact by a second, independent route.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and cross-checks numbers",
+"covered_by": "baird"
+}
 },
 {
 "id": "skinner",
@@ -938,7 +1226,12 @@ export const CRYSTALS = [
 "ru": "Методы опросов: пропуски, ошибки измерения и сложные выборки.",
 "de": "Umfragemethoden: fehlende Antworten und Messfehler."
 },
-"rule": "Say how much is missing and how it could bias the result."
+"rule": "Say how much is missing and how it could bias the result.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports coverage gaps and silent feeds",
+"covered_by": "lyberg"
+}
 },
 {
 "id": "pollak",
@@ -952,7 +1245,11 @@ export const CRYSTALS = [
 "ru": "Пределы точности сигнала одновременно во времени и по частоте (с Слепяном и Ландау).",
 "de": "Grenzen eines Signals in Zeit und Frequenz zugleich."
 },
-"rule": "Some quantities cannot be sharp in two respects at once; say which one you chose."
+"rule": "Some quantities cannot be sharp in two respects at once; say which one you chose.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "radner",
@@ -966,7 +1263,12 @@ export const CRYSTALS = [
 "ru": "Ограниченная рациональность и экономика информации: сбор сведений стоит денег и времени.",
 "de": "Begrenzte Rationalität: Information hat ihren Preis."
 },
-"rule": "Stop gathering when more data would not change the answer."
+"rule": "Stop gathering when more data would not change the answer.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "whittle",
@@ -980,7 +1282,12 @@ export const CRYSTALS = [
 "ru": "Индекс Уиттла: как распределять усилия между вариантами в меняющемся мире.",
 "de": "Whittle-Index: Aufwand zwischen Optionen in einer sich ändernden Welt verteilen."
 },
-"rule": "Spend checks on the sources that change most and matter most."
+"rule": "Spend checks on the sources that change most and matter most.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "rabin",
@@ -994,7 +1301,11 @@ export const CRYSTALS = [
 "ru": "Вычислительная сложность и вероятностные алгоритмы (премия Тьюринга 1976): случайность может сделать трудную проверку дешёвой.",
 "de": "Komplexitätstheorie und randomisierte Algorithmen (Turing-Preis 1976)."
 },
-"rule": "A few random spot checks can tell a lot about a large set."
+"rule": "A few random spot checks can tell a lot about a large set.",
+"needs": {
+"code": "ready",
+"note": "random spot checks of the sensor numbers against their sources"
+}
 },
 {
 "id": "berger",
@@ -1008,7 +1319,11 @@ export const CRYSTALS = [
 "ru": "Теория скорости и искажения: сколько бит нужно, чтобы передать ответ с заданной точностью.",
 "de": "Raten-Verzerrungs-Theorie: Bits für eine gegebene Genauigkeit."
 },
-"rule": "Match the length of the answer to the accuracy the person needs."
+"rule": "Match the length of the answer to the accuracy the person needs.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "woodroofe",
@@ -1022,7 +1337,12 @@ export const CRYSTALS = [
 "ru": "Последовательный анализ: когда наблюдений уже достаточно и можно остановиться.",
 "de": "Sequentialanalyse: wann genug Beobachtungen vorliegen."
 },
-"rule": "Decide in advance how much evidence is enough."
+"rule": "Decide in advance how much evidence is enough.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "neil_jones",
@@ -1036,7 +1356,11 @@ export const CRYSTALS = [
 "ru": "Вычислительная сложность и частичные вычисления: программа подстраивается под свои входные данные.",
 "de": "Komplexität und partielle Auswertung."
 },
-"rule": "Reuse what you already computed instead of starting from scratch."
+"rule": "Reuse what you already computed instead of starting from scratch.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "wynn",
@@ -1050,7 +1374,12 @@ export const CRYSTALS = [
 "ru": "Оптимальное планирование эксперимента: как разумно распределить бюджет измерений.",
 "de": "Optimale Versuchsplanung: Messbudget klug verteilen."
 },
-"rule": "Choose the one question that would reduce your uncertainty most."
+"rule": "Choose the one question that would reduce your uncertainty most.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "dreze",
@@ -1064,7 +1393,11 @@ export const CRYSTALS = [
 "ru": "Экономические решения в условиях неопределённости.",
 "de": "Wirtschaftliche Entscheidungen unter Unsicherheit."
 },
-"rule": "Make the decision robust to what you do not know."
+"rule": "Make the decision robust to what you do not know.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "herzberg",
@@ -1078,7 +1411,12 @@ export const CRYSTALS = [
 "ru": "Оптимальное планирование экспериментов.",
 "de": "Optimale Versuchsplanung."
 },
-"rule": "Plan what to measure before measuring."
+"rule": "Plan what to measure before measuring.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "selman",
@@ -1092,7 +1430,11 @@ export const CRYSTALS = [
 "ru": "Теория вычислительной сложности.",
 "de": "Komplexitätstheorie."
 },
-"rule": "Some questions are expensive to answer exactly; say when an approximation is used."
+"rule": "Some questions are expensive to answer exactly; say when an approximation is used.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "chow",
@@ -1106,7 +1448,12 @@ export const CRYSTALS = [
 "ru": "Оптимальная остановка: когда прекратить поиск и ответить.",
 "de": "Optimales Stoppen: wann man aufhört zu suchen."
 },
-"rule": "Set a stopping rule for your search."
+"rule": "Set a stopping rule for your search.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 },
 {
 "id": "kersten",
@@ -1120,7 +1467,11 @@ export const CRYSTALS = [
 "ru": "Колоночные базы данных и оптимизация запросов (MonetDB).",
 "de": "Spaltenorientierte Datenbanken und Abfrageoptimierung (MonetDB)."
 },
-"rule": "Ask only for the fields you need."
+"rule": "Ask only for the fields you need.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "trevisan",
@@ -1134,7 +1485,11 @@ export const CRYSTALS = [
 "ru": "Псевдослучайность и сублинейные алгоритмы: ответ без просмотра всех данных.",
 "de": "Pseudozufall und sublineare Algorithmen."
 },
-"rule": "A well-chosen sample can answer without reading everything; say that you sampled."
+"rule": "A well-chosen sample can answer without reading everything; say that you sampled.",
+"needs": {
+"code": "ready",
+"note": "the smallest sample of headlines that reproduces each index within ±5 points"
+}
 },
 {
 "id": "wets",
@@ -1148,7 +1503,11 @@ export const CRYSTALS = [
 "ru": "Стохастическое программирование: решения, когда исходные данные ещё случайны.",
 "de": "Stochastische Optimierung: Entscheidungen bei zufälligen Daten."
 },
-"rule": "Plan for several scenarios, not for the single expected one."
+"rule": "Plan for several scenarios, not for the single expected one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "bertsekas",
@@ -1162,7 +1521,11 @@ export const CRYSTALS = [
 "ru": "Динамическое программирование: как свести к минимуму суммарную стоимость цепочки решений.",
 "de": "Dynamische Programmierung: Gesamtkosten einer Entscheidungskette minimieren."
 },
-"rule": "Plan the whole chain of steps; the cheapest first step is not always the cheapest path."
+"rule": "Plan the whole chain of steps; the cheapest first step is not always the cheapest path.",
+"needs": {
+"code": "ready",
+"note": "measure the size in tokens of every Orb Studio tool answer and give the cheapest chain of calls for typical agent questions"
+}
 },
 {
 "id": "davis",
@@ -1176,7 +1539,11 @@ export const CRYSTALS = [
 "ru": "Алгоритм DPLL, на котором построены SAT-солверы, проверяющие выполнимость логических формул.",
 "de": "DPLL-Algorithmus, Grundlage der SAT-Solver."
 },
-"rule": "Check whether a set of claims can all be true together before you combine them."
+"rule": "Check whether a set of claims can all be true together before you combine them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 },
 {
 "id": "kirillova",
@@ -1190,7 +1557,11 @@ export const CRYSTALS = [
 "ru": "Теория оптимального управления.",
 "de": "Optimale Steuerung."
 },
-"rule": "Define the goal and the cost before choosing the action."
+"rule": "Define the goal and the cost before choosing the action.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
@@ -1201,7 +1572,11 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
   let all = [...built, ...wait];
   if (zone && CRYSTAL_ZONES.includes(zone)) all = all.filter((c) => c.zone === zone);
   if (q) { const s = String(q).toLowerCase().slice(0, 80); all = all.filter((c) => [c.name, c.name_ru, c.idea && c.idea.en, c.rule].some((x) => x && String(x).toLowerCase().includes(s))); }
-  return { library: "crystals", count: all.length, with_sensor: all.filter((c) => c.status === "has_sensor").length, zones: CRYSTAL_ZONES, crystals: all,
+  const needs = {}; for (const c of wait) needs[c.needs.code] = (needs[c.needs.code] || 0) + 1;
+  return { library: "crystals", count: all.length, with_sensor: all.filter((c) => c.status === "has_sensor").length, zones: CRYSTAL_ZONES,
+    needs_summary: needs, ready_to_build: wait.filter((c) => c.needs.code === "ready").map((c) => ({ id: c.id, name: c.name, plan: c.needs.note })),
+    history_due: wait.filter((c) => c.needs.code === "needs_history").map((c) => ({ id: c.id, name: c.name, not_before: c.needs.not_before, plan: c.needs.note })),
+    crystals: all,
     about: "Ideas of scientists who died in 2020-2026, crystallised into rules for AI agents. Facts from open sources (English Wikipedia; 2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
