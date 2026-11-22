@@ -1562,6 +1562,284 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "mitter",
+"name": "Sanjoy K. Mitter",
+"name_ru": "Санджой Миттер",
+"years": "1933–2023",
+"wiki": "https://en.wikipedia.org/wiki/Sanjoy_K._Mitter",
+"zone": "stale_data",
+"idea": {
+"en": "Nonlinear filtering: estimating the state of a system from a stream of noisy observations.",
+"ru": "Нелинейная фильтрация: оценка состояния системы по потоку шумных наблюдений.",
+"de": "Nichtlineare Filterung: Zustandsschätzung aus verrauschten Beobachtungen."
+},
+"rule": "Update your picture with each new noisy report, weighted by how reliable it is.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
+},
+{
+"id": "nagao",
+"name": "Makoto Nagao",
+"name_ru": "Макото Нагао",
+"years": "1936–2021",
+"wiki": "https://en.wikipedia.org/wiki/Makoto_Nagao",
+"zone": "stale_data",
+"idea": {
+"en": "Example-based machine translation and digital libraries.",
+"ru": "Машинный перевод по примерам и цифровые библиотеки.",
+"de": "Beispielbasierte maschinelle Übersetzung und digitale Bibliotheken."
+},
+"rule": "When translating a headline, compare with how the same phrase was rendered before.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "duckworth",
+"name": "Frank Duckworth",
+"name_ru": "Фрэнк Дакворт",
+"years": "1939–2024",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Duckworth",
+"zone": "stale_data",
+"idea": {
+"en": "The Duckworth–Lewis method: fairly resetting a cricket target when a match is interrupted.",
+"ru": "Метод Дакворта–Льюиса: честный пересчёт цели матча в крикете, если игру прервали.",
+"de": "Duckworth-Lewis-Methode: faire Neuberechnung des Ziels nach einer Unterbrechung."
+},
+"rule": "When data is interrupted, adjust the comparison fairly instead of comparing a partial day with a full one.",
+"needs": {
+"code": "ready",
+"note": "compare today's partial-day index with the same hour of past days, not with full days"
+}
+},
+{
+"id": "sonnenschein",
+"name": "Hugo F. Sonnenschein",
+"name_ru": "Хьюго Зонненшайн",
+"years": "1940–2021",
+"wiki": "https://en.wikipedia.org/wiki/Hugo_F._Sonnenschein",
+"zone": "one_model",
+"idea": {
+"en": "The Sonnenschein–Mantel–Debreu theorem: a general market model says almost nothing about how the market as a whole behaves.",
+"ru": "Теорема Зонненшайна–Мантеля–Дебрё: общая модель рынка почти ничего не говорит о поведении рынка в целом.",
+"de": "Sonnenschein-Mantel-Debreu-Theorem: das allgemeine Marktmodell sagt wenig über das Gesamtverhalten."
+},
+"rule": "Do not infer how a whole system behaves from how a typical part behaves.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "siljak",
+"name": "Dragoslav D. Šiljak",
+"name_ru": "Драгослав Шиляк",
+"years": "1933–2025",
+"wiki": "https://en.wikipedia.org/wiki/Dragoslav_D._Šiljak",
+"zone": "one_model",
+"idea": {
+"en": "Decentralised control of large complex systems that stays stable when the model is inexact.",
+"ru": "Децентрализованное управление сложными системами, устойчивое при неточной модели.",
+"de": "Dezentrale Regelung großer Systeme, stabil bei ungenauem Modell."
+},
+"rule": "Split a big question into parts that each still hold if one part of your model is wrong.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "fox",
+"name": "John Fox",
+"name_ru": "Джон Фокс",
+"years": "1947–2025",
+"wiki": "https://en.wikipedia.org/wiki/John_Fox_(sociologist)",
+"zone": "one_model",
+"idea": {
+"en": "Regression diagnostics and the R package car: checking whether a fitted model actually fits.",
+"ru": "Диагностика регрессии и пакет car для R: проверка, подходит ли модель к данным на самом деле.",
+"de": "Regressionsdiagnostik und das R-Paket car."
+},
+"rule": "After fitting a model, look at the cases it explains worst.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "burkov",
+"name": "Vladimir Burkov",
+"name_ru": "Владимир Бурков",
+"years": "1939–2025",
+"wiki": "https://en.wikipedia.org/wiki/Vladimir_Burkov",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Theory of active systems and mechanism design: rules under which it pays agents to report the truth.",
+"ru": "Теория активных систем и механизмов: правила, при которых агентам выгодно говорить правду.",
+"de": "Theorie aktiver Systeme: Regeln, unter denen Ehrlichkeit sich lohnt."
+},
+"rule": "Prefer sources whose incentives reward accuracy; ask what a source gains from the claim.",
+"needs": {
+"code": "ready",
+"note": "proper scoring for the Orb Studio forecast game, so that agents gain only by reporting their true confidence"
+}
+},
+{
+"id": "antognazza",
+"name": "Maria Rosa Antognazza",
+"name_ru": "Мария Роза Антоньяцца",
+"years": "1964–2023",
+"wiki": "https://en.wikipedia.org/wiki/Maria_Rosa_Antognazza",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Knowledge and belief are different states, not just stronger and weaker versions of the same thing.",
+"ru": "Знание и убеждение — разные состояния, а не сильная и слабая версии одного и того же.",
+"de": "Wissen und Glauben sind verschiedene Zustände."
+},
+"rule": "Say 'I believe' and 'it is known' in different words.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "antiseri",
+"name": "Dario Antiseri",
+"name_ru": "Дарио Антисери",
+"years": "1940–2026",
+"wiki": "https://en.wikipedia.org/wiki/Dario_Antiseri",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Fallibilism (in the line of Popper): any knowledge may turn out to be wrong.",
+"ru": "Фаллибилизм (вслед за Поппером): любое знание может оказаться ошибочным.",
+"de": "Fallibilismus (nach Popper): jedes Wissen kann sich als falsch erweisen."
+},
+"rule": "Hold every conclusion as revisable and say what would change it.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already shows which labels could flip",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "barlow",
+"name": "Richard E. Barlow",
+"name_ru": "Ричард Барлоу",
+"years": "1931–2024",
+"wiki": "https://en.wikipedia.org/wiki/Richard_E._Barlow",
+"zone": "measurement_error",
+"idea": {
+"en": "Mathematical theory of reliability: how and when systems fail.",
+"ru": "Математическая теория надёжности: как и когда отказывают системы.",
+"de": "Mathematische Zuverlässigkeitstheorie."
+},
+"rule": "A chain is as reliable as its weakest link; find it before trusting the chain.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "borde",
+"name": "Christian Bordé",
+"name_ru": "Кристиан Борде",
+"years": "1943–2023",
+"wiki": "https://en.wikipedia.org/wiki/Christian_Bordé",
+"zone": "measurement_error",
+"idea": {
+"en": "Optical clocks, atom interferometry and ultra-precise measurement; work towards the redefinition of SI units.",
+"ru": "Оптические часы, атомная интерферометрия и сверхточные измерения; работа над переопределением единиц СИ.",
+"de": "Optische Uhren, Atominterferometrie und Präzisionsmessung."
+},
+"rule": "State how precise a number is, and do not mix values measured at different precision.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and cross-checks numbers",
+"covered_by": "baird"
+}
+},
+{
+"id": "griffin",
+"name": "Patrick Griffin",
+"name_ru": "Патрик Гриффин",
+"years": "–2025",
+"wiki": "https://en.wikipedia.org/wiki/Patrick_Griffin_(academic)",
+"zone": "measurement_error",
+"idea": {
+"en": "Assessment models and tests of skills.",
+"ru": "Модели оценивания и тесты навыков.",
+"de": "Bewertungsmodelle und Kompetenztests."
+},
+"rule": "A test result estimates a skill; quote it with its uncertainty.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already audits the noise of AI judgements",
+"covered_by": "kahneman"
+}
+},
+{
+"id": "roberts",
+"name": "John Roberts",
+"name_ru": "Джон Робертс",
+"years": "1945–2026",
+"wiki": "https://en.wikipedia.org/wiki/Donald_John_Roberts",
+"zone": "answer_cost",
+"idea": {
+"en": "Games with incomplete information and the economics of organisations.",
+"ru": "Игры с неполной информацией и экономика организаций.",
+"de": "Spiele mit unvollständiger Information und Organisationsökonomik."
+},
+"rule": "Act knowing that others know things you do not.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "fishburn",
+"name": "Peter C. Fishburn",
+"name_ru": "Питер Фишберн",
+"years": "1936–2021",
+"wiki": "https://en.wikipedia.org/wiki/Peter_C._Fishburn",
+"zone": "answer_cost",
+"idea": {
+"en": "Utility theory and decision making.",
+"ru": "Теория полезности и принятия решений.",
+"de": "Nutzentheorie und Entscheidungsfindung."
+},
+"rule": "Make the trade-offs of a choice explicit.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
+},
+{
+"id": "morita",
+"name": "Kenichi Morita",
+"name_ru": "Кэнъити Морита",
+"years": "1949–2025",
+"wiki": "https://en.wikipedia.org/wiki/Kenichi_Morita",
+"zone": "answer_cost",
+"idea": {
+"en": "Reversible computing: computation that loses no information.",
+"ru": "Обратимые вычисления: вычисления без потери информации.",
+"de": "Reversible Berechnung ohne Informationsverlust."
+},
+"rule": "Keep enough of your steps to retrace how you reached an answer.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

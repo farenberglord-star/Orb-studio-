@@ -262,6 +262,52 @@ C = [
 ("kirillova", "Faina Kirillova", "Фаина Кириллова", "1931–2024", "Faina_Kirillova", "answer_cost",
  "Optimal control theory.", "Теория оптимального управления.", "Optimale Steuerung.",
  "Define the goal and the cost before choosing the action."),
+# --- партия 9 (22.11.2026) ---
+("mitter", "Sanjoy K. Mitter", "Санджой Миттер", "1933–2023", "Sanjoy_K._Mitter", "stale_data",
+ "Nonlinear filtering: estimating the state of a system from a stream of noisy observations.", "Нелинейная фильтрация: оценка состояния системы по потоку шумных наблюдений.", "Nichtlineare Filterung: Zustandsschätzung aus verrauschten Beobachtungen.",
+ "Update your picture with each new noisy report, weighted by how reliable it is."),
+("nagao", "Makoto Nagao", "Макото Нагао", "1936–2021", "Makoto_Nagao", "stale_data",
+ "Example-based machine translation and digital libraries.", "Машинный перевод по примерам и цифровые библиотеки.", "Beispielbasierte maschinelle Übersetzung und digitale Bibliotheken.",
+ "When translating a headline, compare with how the same phrase was rendered before."),
+("duckworth", "Frank Duckworth", "Фрэнк Дакворт", "1939–2024", "Frank_Duckworth", "stale_data",
+ "The Duckworth–Lewis method: fairly resetting a cricket target when a match is interrupted.", "Метод Дакворта–Льюиса: честный пересчёт цели матча в крикете, если игру прервали.", "Duckworth-Lewis-Methode: faire Neuberechnung des Ziels nach einer Unterbrechung.",
+ "When data is interrupted, adjust the comparison fairly instead of comparing a partial day with a full one."),
+("sonnenschein", "Hugo F. Sonnenschein", "Хьюго Зонненшайн", "1940–2021", "Hugo_F._Sonnenschein", "one_model",
+ "The Sonnenschein–Mantel–Debreu theorem: a general market model says almost nothing about how the market as a whole behaves.", "Теорема Зонненшайна–Мантеля–Дебрё: общая модель рынка почти ничего не говорит о поведении рынка в целом.", "Sonnenschein-Mantel-Debreu-Theorem: das allgemeine Marktmodell sagt wenig über das Gesamtverhalten.",
+ "Do not infer how a whole system behaves from how a typical part behaves."),
+("siljak", "Dragoslav D. Šiljak", "Драгослав Шиляк", "1933–2025", "Dragoslav_D._Šiljak", "one_model",
+ "Decentralised control of large complex systems that stays stable when the model is inexact.", "Децентрализованное управление сложными системами, устойчивое при неточной модели.", "Dezentrale Regelung großer Systeme, stabil bei ungenauem Modell.",
+ "Split a big question into parts that each still hold if one part of your model is wrong."),
+("fox", "John Fox", "Джон Фокс", "1947–2025", "John_Fox_(sociologist)", "one_model",
+ "Regression diagnostics and the R package car: checking whether a fitted model actually fits.", "Диагностика регрессии и пакет car для R: проверка, подходит ли модель к данным на самом деле.", "Regressionsdiagnostik und das R-Paket car.",
+ "After fitting a model, look at the cases it explains worst."),
+("burkov", "Vladimir Burkov", "Владимир Бурков", "1939–2025", "Vladimir_Burkov", "rumour_vs_fact",
+ "Theory of active systems and mechanism design: rules under which it pays agents to report the truth.", "Теория активных систем и механизмов: правила, при которых агентам выгодно говорить правду.", "Theorie aktiver Systeme: Regeln, unter denen Ehrlichkeit sich lohnt.",
+ "Prefer sources whose incentives reward accuracy; ask what a source gains from the claim."),
+("antognazza", "Maria Rosa Antognazza", "Мария Роза Антоньяцца", "1964–2023", "Maria_Rosa_Antognazza", "rumour_vs_fact",
+ "Knowledge and belief are different states, not just stronger and weaker versions of the same thing.", "Знание и убеждение — разные состояния, а не сильная и слабая версии одного и того же.", "Wissen und Glauben sind verschiedene Zustände.",
+ "Say 'I believe' and 'it is known' in different words."),
+("antiseri", "Dario Antiseri", "Дарио Антисери", "1940–2026", "Dario_Antiseri", "rumour_vs_fact",
+ "Fallibilism (in the line of Popper): any knowledge may turn out to be wrong.", "Фаллибилизм (вслед за Поппером): любое знание может оказаться ошибочным.", "Fallibilismus (nach Popper): jedes Wissen kann sich als falsch erweisen.",
+ "Hold every conclusion as revisable and say what would change it."),
+("barlow", "Richard E. Barlow", "Ричард Барлоу", "1931–2024", "Richard_E._Barlow", "measurement_error",
+ "Mathematical theory of reliability: how and when systems fail.", "Математическая теория надёжности: как и когда отказывают системы.", "Mathematische Zuverlässigkeitstheorie.",
+ "A chain is as reliable as its weakest link; find it before trusting the chain."),
+("borde", "Christian Bordé", "Кристиан Борде", "1943–2023", "Christian_Bordé", "measurement_error",
+ "Optical clocks, atom interferometry and ultra-precise measurement; work towards the redefinition of SI units.", "Оптические часы, атомная интерферометрия и сверхточные измерения; работа над переопределением единиц СИ.", "Optische Uhren, Atominterferometrie und Präzisionsmessung.",
+ "State how precise a number is, and do not mix values measured at different precision."),
+("griffin", "Patrick Griffin", "Патрик Гриффин", "–2025", "Patrick_Griffin_(academic)", "measurement_error",
+ "Assessment models and tests of skills.", "Модели оценивания и тесты навыков.", "Bewertungsmodelle und Kompetenztests.",
+ "A test result estimates a skill; quote it with its uncertainty."),
+("roberts", "John Roberts", "Джон Робертс", "1945–2026", "Donald_John_Roberts", "answer_cost",
+ "Games with incomplete information and the economics of organisations.", "Игры с неполной информацией и экономика организаций.", "Spiele mit unvollständiger Information und Organisationsökonomik.",
+ "Act knowing that others know things you do not."),
+("fishburn", "Peter C. Fishburn", "Питер Фишберн", "1936–2021", "Peter_C._Fishburn", "answer_cost",
+ "Utility theory and decision making.", "Теория полезности и принятия решений.", "Nutzentheorie und Entscheidungsfindung.",
+ "Make the trade-offs of a choice explicit."),
+("morita", "Kenichi Morita", "Кэнъити Морита", "1949–2025", "Kenichi_Morita", "answer_cost",
+ "Reversible computing: computation that loses no information.", "Обратимые вычисления: вычисления без потери информации.", "Reversible Berechnung ohne Informationsverlust.",
+ "Keep enough of your steps to retrace how you reached an answer."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -290,3 +336,12 @@ for k in ["radner", "woodroofe", "chow", "wynn", "herzberg", "whittle"]: NEEDS[k
 for k in ["bunge", "laudan", "agassi", "frazier"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
 for k in ["hambleton", "mislevy", "woodcock", "mellenbergh", "byrne"]: NEEDS[k] = ("covered", "the Kahneman sensor already audits the noise of AI judgements", None, "kahneman")
 for k in ["belnap", "groenendijk", "bonomi", "roggen", "zdonik", "belady"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")
+
+NEEDS["burkov"] = ("ready", "proper scoring for the Orb Studio forecast game, so that agents gain only by reporting their true confidence")
+NEEDS["duckworth"] = ("ready", "compare today's partial-day index with the same hour of past days, not with full days")
+for k in ["mitter"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")
+for k in ["sonnenschein", "siljak", "fox"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["borde"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and cross-checks numbers", None, "baird")
+for k in ["griffin"]: NEEDS[k] = ("covered", "the Kahneman sensor already audits the noise of AI judgements", None, "kahneman")
+for k in ["fishburn"]: NEEDS[k] = ("covered", "the Howard sensor already says when waiting for more information pays off", None, "howard")
+for k in ["antiseri"]: NEEDS[k] = ("covered", "the Hagenauer sensor already shows which labels could flip", None, "hagenauer")
