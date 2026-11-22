@@ -214,7 +214,7 @@ export const normHead = (h) => String(h || "").toLowerCase().replace(/[^a-zа-я
 export function regionCandidates(radars, region, exclude, n = 8) {
   const R = REGIONS[region]; if (!R) return [];
   const seen = new Set(exclude instanceof Set ? exclude : (exclude || []).map(normHead)), out = [];
-  const all = (radars || []).flatMap((r) => (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => ({ headline: String(f[1] || ""), source: f[2] || null, time: f[0] || null, weight: +f[3] || 0, link: f[4] || null, radar: r.id || null })));
+  const all = (radars || []).flatMap((r) => (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => ({ headline: String(f[1] || ""), source: f[2] || null, time: f[0] || null, published_at: Number.isFinite(+f[5]) && +f[5] > 0 ? new Date(+f[5]).toISOString() : null, weight: +f[3] || 0, link: f[4] || null, radar: r.id || null })));
   const ok = []; for (const x of all.sort((a, b) => b.weight - a.weight)) { const k = normHead(x.headline); if (!k || seen.has(k) || !R.re.test(x.headline)) continue; seen.add(k); ok.push(x); }
   // сначала по одной самой весомой новости с каждого радара (подкаст идёт по разным радарам), потом остальные по весу
   const radarsSeen = new Set(), first = [], rest = []; for (const x of ok) { if (x.radar && !radarsSeen.has(x.radar)) { radarsSeen.add(x.radar); first.push(x); } else rest.push(x); }
@@ -332,7 +332,7 @@ export const RADAR_INTRO = { en: "The top stories from the Orb Studio radars.", 
 export function radarCandidates(radars, exclude) {
   const seen = new Set(exclude instanceof Set ? exclude : (exclude || [])), out = [];
   for (const r of radars || []) { if (!r || !Array.isArray(r.feed)) continue;
-    const best = r.feed.slice(0, 8).map((f) => ({ radar: r.id || null, title: r.title || "", headline: String(f[1] || "").replace(/\s+/g, " ").trim(), source: f[2] || null, link: typeof f[4] === "string" && /^https:\/\/[^\s"'<>]+$/.test(f[4]) ? f[4] : null, weight: +f[3] || 0 }))
+    const best = r.feed.slice(0, 8).map((f) => ({ radar: r.id || null, published_at: Number.isFinite(+f[5]) && +f[5] > 0 ? new Date(+f[5]).toISOString() : null, title: r.title || "", headline: String(f[1] || "").replace(/\s+/g, " ").trim(), source: f[2] || null, link: typeof f[4] === "string" && /^https:\/\/[^\s"'<>]+$/.test(f[4]) ? f[4] : null, weight: +f[3] || 0 }))
       .filter((x) => x.headline.length >= 15 && !seen.has(normHead(x.headline))).sort((a, b) => b.weight - a.weight)[0];
     if (best) { seen.add(normHead(best.headline)); out.push(best); } }
   return out;
@@ -353,7 +353,7 @@ export function checkRadarNews(out, cands, strip = (t) => t) {
       if (l === "ru" ? cyrShare(t) < 0.5 : cyrShare(t) > 0.1) continue;
       if (l === "de" ? deWords(t) < 2 : l === "en" && deWords(t) >= 2) continue; // немецкая строка должна быть немецкой, английская — нет
       text[l] = t; }
-    if (Object.keys(text).length) { used.add(p.i); res.push({ radar: c.radar, title: c.title, headline: c.headline, source: c.source, link: c.link, text }); } }
+    if (Object.keys(text).length) { used.add(p.i); res.push({ radar: c.radar, title: c.title, headline: c.headline, source: c.source, link: c.link, published_at: c.published_at || null, text }); } }
   return res;
 }
 

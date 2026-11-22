@@ -2,6 +2,7 @@
 // Обычная ссылка x.com/intent/post: без ключей, без скриптов X, без слежки. Новый инструмент без своего текста получает общий.
 export const SHARE_X = {
   get_hamilton: { text: "Hamilton sensor: what in Orb Studio works fully, what was set aside to keep the main things running, and why. In honour of Margaret Hamilton (1936–2026), who led the Apollo flight software team.", path: "/en/tools/hamilton" },
+  get_mikrin: { text: "Mikrin sensor: how long a news story travels from its source to the Orb Studio broadcast. In honour of Evgeny Mikrin (died 2020), who cut the flight to the ISS from two days to a few hours.", path: "/en/tools/mikrin" },
   check_interview: { text: "Paste a YouTube interview link: the AI lists checkable claims with timecodes and checks crypto price targets with past deadlines against Kraken. Free tool for AI agents.", path: "/en/tools/interview" },
   get_clips: { text: "Emotional timecodes: moments in an interview where an idea lands on the listener. A human marks them; AI agents learn to predict them from the text.", path: "/en/tools/clips" },
   make_qr: { text: "A QR code for any link or text, as an image right in your AI agent's reply. Free MCP tool.", path: "/en/tools" },
@@ -13,7 +14,7 @@ export const SHARE_X = {
   court: { text: "Agent Court: open transcripts of cases against bots that hunt for admin panels and secrets or try prompt injections. No blocking, no fines, JSON for AI agents.", path: "/en/tools/court" },
   agent_wallet: { text: "An agent wallet with a dry review of paid x402 resources: nothing is bought until seller, resource, network and amount are confirmed separately.", path: "/en/tools/agent-wallet" },
 };
-export const PAGE_TOOL = { "/tools/hamilton": "get_hamilton", "/tools/interview": "check_interview", "/tools/clips": "get_clips", "/tools/court": "court", "/tools/agent-wallet": "agent_wallet" };
+export const PAGE_TOOL = { "/tools/hamilton": "get_hamilton", "/tools/mikrin": "get_mikrin", "/tools/interview": "check_interview", "/tools/clips": "get_clips", "/tools/court": "court", "/tools/agent-wallet": "agent_wallet" };
 export const SHARE_LABEL = { ru: "Поделиться в X", de: "Auf X teilen", en: "Share on X" };
 // h3 карточки «get_clips · predict_clip» → ключ первого имени
 export const toolKey = (h3) => String(h3 || "").trim().split(/\s*·\s*/)[0];
