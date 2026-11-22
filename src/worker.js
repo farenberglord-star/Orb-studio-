@@ -68,7 +68,8 @@ import { halpernReport, HALPERN_HOURS } from "./halpern.js";
 import { howardReport, howardHint, HOWARD_DAYS } from "./howard.js";
 import { leamerReport } from "./leamer.js";
 import { bairdReport } from "./baird.js";
-import { lybergRadar, lybergReport } from "./lyberg.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
+import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
+import { stateTag } from "./statemedia.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
 import { INBOX, receiveInbox, listInbox, ackInbox, purgeInbox, tokenOk } from "./inbox.js"; // Входящие от внешних агентов (/api/v1/inbox)
@@ -105,7 +106,13 @@ const RADARS = [
       "https://www.theguardian.com/world/americas/rss",
       "https://feeds.bbci.co.uk/russian/rss.xml",
       "https://rss.dw.com/rdf/rss-ru-all",
+      "https://meduza.io/rss/all", // независимое издание на русском
+      "https://tass.com/rss/v2.xml", // государственное (Россия), помечается state_media
+      "https://www.cgtn.com/subscribe/rss/section/world.xml", // государственное (Китай), помечается state_media
+      "https://www.africanews.com/feed/rss",
     ],
+    // квоты: в 12 главных заголовках — хотя бы один от каждого региона, если он есть в лентах; лента показывает все 12
+    quota: ["europe", "north_america", "central_america", "south_america", "china", "russia", "ukraine", "middle_east", "africa"], feedN: 12,
     factors: {
       "Военные":    { w: 90, k: ["missile","strike","drone","troops","military","attack","war","drill","rakete","angriff","krieg","ракет","удар","войск","атак","учени"] },
       "Санкции":    { w: 70, k: ["sanction","tariff","embargo","export control","sanktion","zoll","санкц","пошлин"] },
@@ -366,10 +373,10 @@ async function buildRadar(def, env, fc) {
   const seen = new Set(), raw = lists.flat();
   const uniq = raw.filter((i) => { const k = dedupeKey(i.title); if (seen.has(k)) return false; seen.add(k); return true; });
   const fresh = uniq.filter((i) => Date.now() - i.ts < 72 * 3600e3), onTopic = fresh.filter((i) => !def.filter || def.filter.test(i.title));
-  const items = onTopic
+  const scored = onTopic
     .map((i) => ({ ...i, ...scoreItem(i.title, def.factors) }))
-    .sort((a, b) => b.weight - a.weight || b.ts - a.ts)
-    .slice(0, 12);
+    .sort((a, b) => b.weight - a.weight || b.ts - a.ts);
+  const items = def.quota ? regionQuota(scored, def.quota, 12) : scored.slice(0, 12);
 
   // Факторы: доля заголовков с попаданием × вес группы
   const n = Math.max(items.length, 1);
@@ -407,7 +414,7 @@ async function buildRadar(def, env, fc) {
 
   // Арбитр: сколько независимых изданий пишут ту же новость (по всем лентам радара, до удаления дублей)
   const pool = lists.flat().filter((i) => Date.now() - i.ts < 72 * 3600e3).map((i) => ({ s: srcKey(i.source), sig: sigOf(i.title) }));
-  const top8 = items.slice(0, 8);
+  const top8 = items.slice(0, def.feedN || 8);
   const verify = top8.map((it) => {
     const sig = sigOf(it.title), names = new Map([[srcKey(it.source), it.source]]);
     for (const p of pool) if (p.s && !names.has(p.s) && sameStory(sig, p.sig)) names.set(p.s, p.s);
@@ -863,7 +870,7 @@ function verifySummary(list) {
 function broadcastItems(radars) {
   return radars.flatMap((r) => r.feed.slice(0, 2).map((f, fi) => ({ confirm: r.verify ? r.verify[fi] : null,
     radar: r.id, radarTitle: r.title, anchor: r.anchor,
-    headline: f[1], source: f[2], time: f[0], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, link: f[4], weight: f[3], // время с датой: «23:45» без даты не говорит, вчера это или сегодня
+    headline: f[1], source: f[2], ...stateTag(f[2], f[4]), time: f[0], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, link: f[4], weight: f[3], // время с датой: «23:45» без даты не говорит, вчера это или сегодня
     severity: severity(f[3]), risk_index: r.lvl, delta_24h: r.lvl - r.prev,
     template: anchorLine(r, f), template_de: anchorLineDe(r, f),
   }))).sort((a, b) => b.weight - a.weight);
@@ -3783,7 +3790,7 @@ function clickLabel(request, from) {
     return json({
       ...r, ...radarI18n(r, true, RADAR_TITLE_I18N), severity: severity(r.lvl),
       ...(wantDe ? { headlines_language: deT ? "de (machine translation, original in title)" : "original (German translation unavailable right now)", ...(deT ? { title_de_note: HL_DE_NOTE } : {}) } : {}),
-      feed: r.feed.map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, ...(deT && deT[i] ? { title_de: deT[i] } : {}), source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
+      feed: r.feed.map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, ...(deT && deT[i] ? { title_de: deT[i] } : {}), source, weight, link, ...stateTag(source, link), ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, `api-radar-${r.id}`),
     });
@@ -8233,7 +8240,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
     return { id: r.id, title: r.title, ...radarI18n(r, true, RADAR_TITLE_I18N), risk_index: r.lvl, delta_24h: r.lvl - r.prev, severity: severity(r.lvl), updated_at: r.updated_at,
       ...(deT ? { title_de_note: HL_DE_NOTE } : {}),
       market: r.market || undefined,
-      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, ...(deT && deT[i] ? { title_de: deT[i] } : {}), source, weight, link, ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
+      feed: r.feed.slice(0, limit).map(([time, title, source, weight, link, ts], i) => ({ time, published: ts ? new Date(ts).toISOString() : null, title, ...(deT && deT[i] ? { title_de: deT[i] } : {}), source, weight, link, ...stateTag(source, link), ...verifyInfo(i < 4 ? wcf[i] : (r.verify ? r.verify[i] : null)), ...(VERIFY_ON ? { tone: toneOf(title) } : {}) })),
       page: "https://orbstudio.org/#radar", disclaimer: "Indicator, not advice.", referral: ref };
   }
   if (name === "get_broadcast") {

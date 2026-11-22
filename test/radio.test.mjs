@@ -579,3 +579,13 @@ test("sensor news: when nothing passes, the reasons are kept and shown as not_ai
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /all: "claude_no_answer"/); assert.match(w, /else await sharedPut\(env, "radio-sens-rej"/); assert.match(w, /sharedGet\(env, "radio-sens-rej", 24 \* 3600e3\)/);
 });
+
+import { radarCandidates as _rc, radarNewsUser as _rnu, checkRadarNews as _crn } from "../src/radio.js";
+test("radio: a state-media headline must name its state outlet on air", () => {
+  const radars = [{ id: "geo", title: "Geo", feed: [["10:00", "Kremlin says new round of talks is possible next week", "TASS", 90, "https://tass.com/politics/1", Date.now()]] }];
+  const c = _rc(radars); assert.equal(c[0].state.id, "tass"); assert.match(_rnu(c), /Russian state news agency/);
+  const bad = _crn({ picks: [{ i: 0, en: "The Kremlin says a new round of talks is possible next week.", de: "Der Kreml sagt, eine neue Gesprächsrunde sei nächste Woche möglich, so die Meldung.", ru: "Кремль заявляет, что новый раунд переговоров возможен на следующей неделе." }] }, c);
+  assert.equal(bad.length, 0);
+  const ok = _crn({ picks: [{ i: 0, en: "According to the Russian state news agency TASS, the Kremlin says new talks are possible next week.", de: "Laut der russischen staatlichen Nachrichtenagentur TASS hält der Kreml neue Gespräche für nächste Woche für möglich.", ru: "По данным российского государственного агентства ТАСС, Кремль допускает новый раунд переговоров на следующей неделе." }] }, c);
+  assert.equal(ok.length, 1); assert.deepEqual(Object.keys(ok[0].text).sort(), ["de", "en", "ru"]);
+});
