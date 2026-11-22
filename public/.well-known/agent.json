@@ -116,7 +116,8 @@
     "howard": "https://orbstudio.org/api/v1/howard",
     "leamer": "https://orbstudio.org/api/v1/leamer",
     "baird": "https://orbstudio.org/api/v1/baird",
-    "lyberg": "https://orbstudio.org/api/v1/lyberg"
+    "lyberg": "https://orbstudio.org/api/v1/lyberg",
+    "hagenauer": "https://orbstudio.org/api/v1/hagenauer"
   },
   "auth": "none",
   "payments": {
