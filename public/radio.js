@@ -41,8 +41,12 @@ export const ART = [{ src: "/media/radio/home-thumb.webp", sizes: "720x720", typ
 export function mediaActions(p) {
   return [["play", () => { if (!p.isOn()) p.toggle(); }], ["pause", () => { if (p.isOn()) p.toggle(); }], ["nexttrack", () => { if (p.isStarted()) p.skip(); }], ["stop", () => { if (p.isOn()) p.toggle(); }]];
 }
+// Язык эфира один для всех слушателей: голос Давида и гостей звучит по-русски, подписи страницы остаются на языке посетителя
+export const AIR_LANG = "ru";
 // Эфир без остановок. LOAD_MS — срок на загрузку данных круга; STALL_MS — сколько звук может стоять на месте.
-export const LOAD_MS = 25000, STALL_MS = 12000;
+export const LOAD_MS = 25000, STALL_MS = 12000, VOICE_FAIL_MS = 400, RETRY_MS = 20 * 60e3;
+// Блоки, у которых не загрузился голос, не пробуем снова 20 минут (failed: что → когда не получилось)
+export function notNow(failed, now) { const s = new Set(); for (const [id, at] of failed || []) if (now - at < RETRY_MS) s.add(id); return s; }
 // Сторож звука: st помнит последнюю «отметку» эфира; если она не меняется дольше STALL_MS — застряли
 export function stalled(st, sig, now) { if (st.sig !== sig) { st.sig = sig; st.at = now; return false; } return now - st.at >= STALL_MS; }
 // Что играть, когда круг кончился. Готов следующий круг — берём его (без первого трека, если только что играл «мост»).
@@ -60,9 +64,9 @@ export function silentWav(ms = 60, rate = 8000) { const n = Math.round(rate * ms
   str(0, "RIFF"); v.setUint32(4, 36 + n, true); str(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true); str(36, "data"); v.setUint32(40, n, true); return b; }
 export async function canAutoplay() { try { const a = new Audio(URL.createObjectURL(new Blob([silentWav()], { type: "audio/wav" }))); await a.play(); a.pause(); return true; } catch { return false; } }
 export const T = {
-  ru: { title: "Радио Orb Studio", textOfAir: "Текст эфира", podcast: "Подкаст", questions: "вопросов", radarNews: "Главные новости радаров", radarSrc: "Радары Orb Studio", sensNews: "Новости с датчиков", sensSrc: "Датчики Orb Studio · открытые данные", tapStart: "Коснитесь экрана — эфир начнётся", mk: { gold: "ЗОЛОТО", fut: "ФЬЮЧЕРС", oil: "НЕФТЬ", win: "за {h} ч", funding: "финансирование за период", oi: "открытый интерес", futName: "BTC · бессрочный фьючерс · Kraken Futures", goldName: "PAXG/EUR · токен золота · Kraken", wait: "загрузка…", none: "Биржа сейчас не отдала данные по этому инструменту.", oilNote: "Биржевых цен на нефть здесь пока нет: открытого бесплатного источника с разрешением на показ мы не нашли. Выдуманные цифры не показываем." }, test: "тестовый эфир", start: "▶ Включить радио", pause: "❚❚ Пауза", resume: "▶ Продолжить", skip: "Дальше ▶▶", music: "Музыка", talk: "Интервью", now: "Сейчас в эфире", next: "Далее", tap: "Нажми «Включить радио»: сначала трек, потом Давид с гостем.", noNew: "Новых интервью пока нет — играет музыка. Проверяем каждые несколько минут.", noLink: "Нет связи с эфиром — играет только музыка.", by: "Музыка: Orb Studio (сделана в Suno). Чужих песен в эфире нет.", ai: "Давид и гости — ИИ-агенты, не люди; голоса синтезированы (xAI Grok TTS). Гости по очереди: Grok (xAI), DeepSeek и Gemini (Google), каждый отвечает сам.", story: "Открыть новость", episode: "выпуск от", rundown: "Программа", guestOff: "Гость не ответил", pics: "Картинки магнитолы, Давида и Земли созданы ИИ (Grok). Свечи BTC/EUR — данные Kraken, не прогноз.", scenes: { sky: "НОЧНОЕ НЕБО", market: "РЫНОК", david: "НОВОСТИ · ДАВИД", earth: "ВИД ЗЕМЛИ" } },
-  de: { title: "Radio Orb Studio", textOfAir: "Sendungstext", podcast: "Podcast", questions: "Fragen", radarNews: "Top-Meldungen der Radare", radarSrc: "Orb-Studio-Radare", sensNews: "Neues von den Sensoren", sensSrc: "Orb-Studio-Sensoren · offene Daten", tapStart: "Bildschirm antippen — die Sendung startet", mk: { gold: "GOLD", fut: "FUTURE", oil: "ÖL", win: "in {h} Std.", funding: "Funding je Periode", oi: "Open Interest", futName: "BTC · Perpetual-Future · Kraken Futures", goldName: "PAXG/EUR · Gold-Token · Kraken", wait: "lädt…", none: "Die Börse liefert für dieses Instrument gerade keine Daten.", oilNote: "Börsenpreise für Öl gibt es hier noch nicht: Wir haben keine offene, kostenlose Quelle mit Anzeigeerlaubnis gefunden. Erfundene Zahlen zeigen wir nicht." }, test: "Testsendung", start: "▶ Radio einschalten", pause: "❚❚ Pause", resume: "▶ Weiter", skip: "Weiter ▶▶", music: "Musik", talk: "Interview", now: "Jetzt auf Sendung", next: "Danach", tap: "Tippe auf „Radio einschalten“: erst ein Titel, dann David mit Gast.", noNew: "Noch keine neuen Interviews – es läuft Musik. Wir prüfen alle paar Minuten.", noLink: "Keine Verbindung zur Sendung – es läuft nur Musik.", by: "Musik: Orb Studio (mit Suno erstellt). Keine fremden Songs im Programm.", ai: "David und die Gäste sind KI-Agenten, keine Menschen; die Stimmen sind synthetisch (xAI Grok TTS). Gäste im Wechsel: Grok (xAI), DeepSeek und Gemini (Google), jeder antwortet selbst.", story: "Zur Nachricht", episode: "Folge vom", rundown: "Programm", guestOff: "Gast hat nicht geantwortet", pics: "Bilder von Radio, David und Erde sind KI-generiert (Grok). BTC/EUR-Kerzen: Kraken-Daten, keine Prognose.", scenes: { sky: "NACHTHIMMEL", market: "MARKT", david: "NEWS · DAVID", earth: "ERDBLICK" } },
-  en: { title: "Radio Orb Studio", textOfAir: "Broadcast text", podcast: "Podcast", questions: "questions", radarNews: "Top stories from the radars", radarSrc: "Orb Studio radars", sensNews: "News from the sensors", sensSrc: "Orb Studio sensors · open data", tapStart: "Tap the screen and the broadcast starts", mk: { gold: "GOLD", fut: "FUTURES", oil: "OIL", win: "over {h} h", funding: "funding per period", oi: "open interest", futName: "BTC · perpetual future · Kraken Futures", goldName: "PAXG/EUR · gold token · Kraken", wait: "loading…", none: "The exchange returned no data for this instrument right now.", oilNote: "No exchange oil prices here yet: we have not found an open, free source that allows display. We do not show invented numbers." }, test: "test broadcast", start: "▶ Turn the radio on", pause: "❚❚ Pause", resume: "▶ Resume", skip: "Next ▶▶", music: "Music", talk: "Interview", now: "On air now", next: "Up next", tap: "Tap “Turn the radio on”: a track first, then David with a guest.", noNew: "No new interviews yet — music is playing. We check every few minutes.", noLink: "No connection to the desk — music only.", by: "Music: Orb Studio (made with Suno). No third-party songs on air.", ai: "David and the guests are AI agents, not people; the voices are synthetic (xAI Grok TTS). Guests take turns: Grok (xAI), DeepSeek and Gemini (Google), each answers for itself.", story: "Open the story", episode: "episode of", rundown: "Programme", guestOff: "The guest did not answer", pics: "The radio, David and Earth pictures are AI-generated (Grok). BTC/EUR candles are Kraken data, not a forecast.", scenes: { sky: "NIGHT SKY", market: "MARKETS", david: "NEWS · DAVID", earth: "EARTH VIEW" } },
+  ru: { title: "Радио Orb Studio", airRu: "", textOfAir: "Текст эфира", podcast: "Подкаст", questions: "вопросов", radarNews: "Главные новости радаров", radarSrc: "Радары Orb Studio", sensNews: "Новости с датчиков", sensSrc: "Датчики Orb Studio · открытые данные", tapStart: "Коснитесь экрана — эфир начнётся", mk: { gold: "ЗОЛОТО", fut: "ФЬЮЧЕРС", oil: "НЕФТЬ", win: "за {h} ч", funding: "финансирование за период", oi: "открытый интерес", futName: "BTC · бессрочный фьючерс · Kraken Futures", goldName: "PAXG/EUR · токен золота · Kraken", wait: "загрузка…", none: "Биржа сейчас не отдала данные по этому инструменту.", oilNote: "Биржевых цен на нефть здесь пока нет: открытого бесплатного источника с разрешением на показ мы не нашли. Выдуманные цифры не показываем." }, test: "тестовый эфир", start: "▶ Включить радио", pause: "❚❚ Пауза", resume: "▶ Продолжить", skip: "Дальше ▶▶", music: "Музыка", talk: "Интервью", now: "Сейчас в эфире", next: "Далее", tap: "Нажми «Включить радио»: сначала трек, потом Давид с гостем.", noNew: "Новых интервью пока нет — играет музыка. Проверяем каждые несколько минут.", noLink: "Нет связи с эфиром — играет только музыка.", by: "Музыка: Orb Studio (сделана в Suno). Чужих песен в эфире нет.", ai: "Давид и гости — ИИ-агенты, не люди; голоса синтезированы (xAI Grok TTS). Гости по очереди: Grok (xAI), DeepSeek и Gemini (Google), каждый отвечает сам.", story: "Открыть новость", episode: "выпуск от", rundown: "Программа", guestOff: "Гость не ответил", pics: "Картинки магнитолы, Давида и Земли созданы ИИ (Grok). Свечи BTC/EUR — данные Kraken, не прогноз.", scenes: { sky: "НОЧНОЕ НЕБО", market: "РЫНОК", david: "НОВОСТИ · ДАВИД", earth: "ВИД ЗЕМЛИ" } },
+  de: { title: "Radio Orb Studio", airRu: "Die Sendung läuft auf Russisch.", textOfAir: "Sendungstext", podcast: "Podcast", questions: "Fragen", radarNews: "Top-Meldungen der Radare", radarSrc: "Orb-Studio-Radare", sensNews: "Neues von den Sensoren", sensSrc: "Orb-Studio-Sensoren · offene Daten", tapStart: "Bildschirm antippen — die Sendung startet", mk: { gold: "GOLD", fut: "FUTURE", oil: "ÖL", win: "in {h} Std.", funding: "Funding je Periode", oi: "Open Interest", futName: "BTC · Perpetual-Future · Kraken Futures", goldName: "PAXG/EUR · Gold-Token · Kraken", wait: "lädt…", none: "Die Börse liefert für dieses Instrument gerade keine Daten.", oilNote: "Börsenpreise für Öl gibt es hier noch nicht: Wir haben keine offene, kostenlose Quelle mit Anzeigeerlaubnis gefunden. Erfundene Zahlen zeigen wir nicht." }, test: "Testsendung", start: "▶ Radio einschalten", pause: "❚❚ Pause", resume: "▶ Weiter", skip: "Weiter ▶▶", music: "Musik", talk: "Interview", now: "Jetzt auf Sendung", next: "Danach", tap: "Tippe auf „Radio einschalten“: erst ein Titel, dann David mit Gast.", noNew: "Noch keine neuen Interviews – es läuft Musik. Wir prüfen alle paar Minuten.", noLink: "Keine Verbindung zur Sendung – es läuft nur Musik.", by: "Musik: Orb Studio (mit Suno erstellt). Keine fremden Songs im Programm.", ai: "David und die Gäste sind KI-Agenten, keine Menschen; die Stimmen sind synthetisch (xAI Grok TTS). Gäste im Wechsel: Grok (xAI), DeepSeek und Gemini (Google), jeder antwortet selbst.", story: "Zur Nachricht", episode: "Folge vom", rundown: "Programm", guestOff: "Gast hat nicht geantwortet", pics: "Bilder von Radio, David und Erde sind KI-generiert (Grok). BTC/EUR-Kerzen: Kraken-Daten, keine Prognose.", scenes: { sky: "NACHTHIMMEL", market: "MARKT", david: "NEWS · DAVID", earth: "ERDBLICK" } },
+  en: { title: "Radio Orb Studio", airRu: "The broadcast is in Russian.", textOfAir: "Broadcast text", podcast: "Podcast", questions: "questions", radarNews: "Top stories from the radars", radarSrc: "Orb Studio radars", sensNews: "News from the sensors", sensSrc: "Orb Studio sensors · open data", tapStart: "Tap the screen and the broadcast starts", mk: { gold: "GOLD", fut: "FUTURES", oil: "OIL", win: "over {h} h", funding: "funding per period", oi: "open interest", futName: "BTC · perpetual future · Kraken Futures", goldName: "PAXG/EUR · gold token · Kraken", wait: "loading…", none: "The exchange returned no data for this instrument right now.", oilNote: "No exchange oil prices here yet: we have not found an open, free source that allows display. We do not show invented numbers." }, test: "test broadcast", start: "▶ Turn the radio on", pause: "❚❚ Pause", resume: "▶ Resume", skip: "Next ▶▶", music: "Music", talk: "Interview", now: "On air now", next: "Up next", tap: "Tap “Turn the radio on”: a track first, then David with a guest.", noNew: "No new interviews yet — music is playing. We check every few minutes.", noLink: "No connection to the desk — music only.", by: "Music: Orb Studio (made with Suno). No third-party songs on air.", ai: "David and the guests are AI agents, not people; the voices are synthetic (xAI Grok TTS). Guests take turns: Grok (xAI), DeepSeek and Gemini (Google), each answers for itself.", story: "Open the story", episode: "episode of", rundown: "Programme", guestOff: "The guest did not answer", pics: "The radio, David and Earth pictures are AI-generated (Grok). BTC/EUR candles are Kraken data, not a forecast.", scenes: { sky: "NIGHT SKY", market: "MARKETS", david: "NEWS · DAVID", earth: "EARTH VIEW" } },
 };
 
 // Дата выпуска: ДД.ММ.ГГ по берлинскому времени
@@ -80,7 +84,12 @@ export function worldInterviews(duo, lang) {
   const list = interviews(duo, lang); if (lang === "en") return list;
   // строка без перевода в студии молча остаётся английской; такую находим сравнением с оригиналом
   const en = new Map(interviews(duo, "en").map((iv) => [iv.headline, iv.lines]));
-  return list.filter((iv) => { const o = en.get(iv.headline) || []; return iv.lines.every((x, i) => x.tr === true && (!o[i] || x.text !== o[i].text)); });
+  // Обязательны переведённые вопрос и ответ. Остальные реплики без перевода просто не звучат — из-за одной мелочи разговор не отменяется.
+  const out = [];
+  for (const iv of list) { const o = en.get(iv.headline) || [], done = (x, i) => x.tr === true && (!o[i] || x.text !== o[i].text);
+    const lines = iv.lines.filter(done), has = (k) => lines.some((x) => x.kind === k);
+    if (has("question") && has("answer")) out.push({ ...iv, lines }); }
+  return out;
 }
 export function interviews(duo, lang) {
   if (boardFor(duo)) return [];
@@ -129,20 +138,25 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   const out = []; let k = trackAt, said = o.introSaid ? (o.introGuest || "*") : null; // кого Давид уже представил: новый гость — новое представление
   // повторяющиеся связки идут по кругу из вариантов; счётчик o.turns живёт между вызовами, чтобы фраза не повторялась подряд
   const turns = o.turns || {}, vars = o.variants || {}, say = (p) => { const a = Array.isArray(vars[p]) && vars[p].length ? vars[p] : [dj[p]]; turns[p] = (turns[p] || 0) + 1; return a[(turns[p] - 1) % a.length]; };
+  // Радио слушают, а не читают: в режиме voiceOnly реплика без готового голоса не звучит тишиной, а пропускается; разговор без озвученных вопроса и ответа — тоже
+  const vo = !!o.voiceOnly, hasA = (x) => !!(x && typeof x.audio === "string" && /^https:\/\//.test(x.audio));
+  const sayV = (ttl, parts) => sayItem(ttl, vo ? (parts || []).filter(hasA) : parts);
   const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: (o.nextTrack && o.nextTrack()) || TRACKS[k++ % TRACKS.length] });
-  if (o.first) push(sayItem(title, [o.greeting, dj.ident]));
+  if (o.first) push(sayV(title, [o.greeting, dj.ident]));
   // очередь блоков: подкаст с гостем, потом новости радаров и датчиков; погода (когда пришёл её час) идёт вторым блоком
-  const q = []; if (fresh.length) q.push({ talks: fresh }); for (const n of news) q.push({ news: n });
-  if (o.weather) q.splice(Math.min(1, q.length), 0, { weather: o.weather });
+  const talks2 = vo ? fresh.map((iv) => { const lines = iv.lines.filter(hasA), has = (k) => lines.some((x) => x.kind === k); return has("question") && has("answer") ? { ...iv, lines } : null; }).filter(Boolean) : fresh;
+  const newsV = vo ? news.filter((n) => (Array.isArray(n.lines) ? n.lines.filter(hasA).length > 1 : hasA(n))) : news;
+  const q = []; if (talks2.length) q.push({ talks: talks2 }); for (const n of newsV) q.push({ news: n });
+  if (o.weather && (!vo || hasA(o.weather))) q.splice(Math.min(1, q.length), 0, { weather: o.weather });
   for (const b of q.length ? q.slice(0, o.blocks || BLOCKS) : [{}]) {
     track();
-    if (b.talks) { const g = gOf(b.talks[0]); if (said !== g && said !== "*") { push(sayItem(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
-      for (const iv of b.talks) out.push({ type: "talk", iv }); push(sayItem(title, [say("to_music")])); }
-    else if (b.news) { const n = b.news, it = sayItem(n.title || o.newsTitle || title, [...(Array.isArray(n.lines) ? n.lines : [n]), say("next_track")]); if (it) { it.type = "news"; it.key = n.key; it.label = n.title || o.newsTitle || ""; it.iv.source = n.source || o.newsSource || null; out.push(it); } }
-    else if (b.weather) push(sayItem(title, [b.weather, say("next_track")]));
-    else push(sayItem(title, [say("after_music"), say("next_track")]));
+    if (b.talks) { const g = gOf(b.talks[0]); if (said !== g && said !== "*") { push(sayV(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
+      for (const iv of b.talks) out.push({ type: "talk", iv }); push(sayV(title, [say("to_music")])); }
+    else if (b.news) { const n = b.news, it = sayV(n.title || o.newsTitle || title, [...(Array.isArray(n.lines) ? n.lines : [n]), say("next_track")]); if (it) { it.type = "news"; it.key = n.key; it.label = n.title || o.newsTitle || ""; it.iv.source = n.source || o.newsSource || null; out.push(it); } }
+    else if (b.weather) push(sayV(title, [b.weather, say("next_track")]));
+    else push(sayV(title, [say("after_music"), say("next_track")]));
   }
-  return { items: out, trackAt: k % TRACKS.length, fresh: fresh.length, news: news.length, introGuest: said };
+  return { items: out, trackAt: k % TRACKS.length, fresh: talks2.length, news: newsV.length, introGuest: said };
 }
 
 // Погода звучит не чаще раза в час
@@ -188,7 +202,7 @@ function start() {
   const lang = pickLang(location.search, document.documentElement.dataset.al || navigator.language), t = T[lang] || T.en, st = ST[lang] || ST.en; // data-al: язык из адреса /ru/radio или языка телефона
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.lang = lang; document.title = t.title + " · Orb Studio";
-  $("ttl").textContent = t.title; $("test").hidden = true; $("by").textContent = t.by; $("ai").textContent = t.ai; $("pics").textContent = t.pics; $("rd-h").textContent = t.rundown;
+  $("ttl").textContent = t.title; $("test").hidden = true; $("by").textContent = (lang === AIR_LANG ? "" : t.airRu + " ") + t.by; $("ai").textContent = t.ai; $("pics").textContent = t.pics; $("rd-h").textContent = t.rundown;
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = st[e.dataset.t] || ""; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = st[e.dataset.h] || ""; });
   const play = $("play"), skip = $("skip"), au = new Audio(); au.preload = "auto";
@@ -202,7 +216,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); let voiceLine = false, speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
+  const air = document.querySelector(".air"); const failed = new Map(); let voiceLine = false, itemHeard = false, speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -238,11 +252,15 @@ function start() {
   }
   function nextLine() {
     clearTimeout(timer); const it = items[idx]; if (!it || it.type === "track") return;
-    if (li >= it.iv.lines.length) { if (it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } if (it.key) { heard.add(it.key); saveHeard(); } return next(); }
+    // услышанным считается только то, что действительно прозвучало: если голос не загрузился, разговор вернётся в следующем круге
+    if (li >= it.iv.lines.length) { const id = it.type === "talk" ? it.iv.headline : it.key;
+      if (id && itemHeard) { heard.add(id); saveHeard(); } else if (id) failed.set(id, Date.now()); // голос не пришёл: отложим этот блок, чтобы не дёргать его каждый круг
+      return next(); }
     const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000; fading = false; setVol(1); // голос сразу в полную громкость
     au.onended = au.onerror = null; voiceLine = !!x.audio;
-    if (x.audio) { au.src = x.audio; au.onended = nextLine; au.onerror = () => { timer = setTimeout(nextLine, x.ms || 4000); }; au.play().catch(() => { timer = setTimeout(nextLine, x.ms || 4000); }); }
-    else timer = setTimeout(nextLine, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
+    // голос не загрузился (лимит озвучки, сеть): не молчим «на время чтения», а сразу идём дальше
+    if (x.audio) { au.src = x.audio; au.onended = () => { itemHeard = true; nextLine(); }; au.onerror = () => { timer = setTimeout(nextLine, VOICE_FAIL_MS); }; au.play().catch(() => { timer = setTimeout(nextLine, VOICE_FAIL_MS); }); }
+    else timer = setTimeout(() => { itemHeard = true; nextLine(); }, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
   }
   async function build() {
     // у каждого запроса срок: зависший запрос не должен останавливать эфир
@@ -250,13 +268,13 @@ function start() {
     let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" }, signal: sig() })).json(); } catch { duo = null; }
     // связки Давида и погода: если не пришли, эфир идёт без них
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" }, signal: sig() }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    const [dj, wx, reg, sens, rad] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang), getJ("/api/v1/radio/sensors?lang=" + lang), getJ("/api/v1/radio/radar?lang=" + lang)]);
+    const [dj, wx, reg, sens, rad] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + AIR_LANG), getJ("/api/v1/radio/weather?lang=" + AIR_LANG), getJ("/api/v1/radio/regional?lang=" + AIR_LANG), getJ("/api/v1/radio/sensors?lang=" + AIR_LANG), getJ("/api/v1/radio/radar?lang=" + AIR_LANG)]);
     const stories = sens && sens.status === "ok" && Array.isArray(sens.stories) ? sens.stories.filter((x) => x && typeof x.key === "string" && typeof x.text === "string") : [];
     // главные новости радаров идут первыми среди новостей: один блок на выпуск радаров
     if (rad && rad.status === "ok" && typeof rad.key === "string" && Array.isArray(rad.lines) && rad.lines.length > 1) stories.unshift({ key: rad.key, lines: rad.lines, title: t.radarNews, source: t.radarSrc + (Array.isArray(rad.sources) && rad.sources.length ? " · " + rad.sources.slice(0, 4).join(", ") : "") });
     // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
     weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
-    const p = plan(mergeInterviews(reg, worldInterviews(duo, lang)), heard, trackAt, 2, { dj: dj && dj.links, stories, newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
+    const skipNow = notNow(failed, Date.now()), p = plan(mergeInterviews(reg, worldInterviews(duo, AIR_LANG)).filter((iv) => !skipNow.has(iv.headline)), heard, trackAt, 2, { voiceOnly: true, dj: dj && dj.links, stories: stories.filter((x) => !skipNow.has(x.key)), newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh || p.news ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
@@ -270,7 +288,7 @@ function start() {
     if (idx + 1 >= items.length) { const r = afterPlan(nextPlan, bridged, nextTrack);
       if (r.build && !building) building = build().then((its) => { nextPlan = its; }).catch(() => { nextPlan = null; }).finally(() => { building = null; });
       if (!r.build) nextPlan = null; items = r.items; bridged = r.bridged; idx = -1; }
-    const prev = items[idx]; idx++; const it = items[idx]; rundown(); if (!it) return;
+    const prev = items[idx]; idx++; itemHeard = false; const it = items[idx]; rundown(); if (!it) return;
     // короткая пауза между музыкой и голосом, чтобы Давид не вступал встык
     if (prev && prev.type === "track" && it.type !== "track" && on) { pending = it; timer = setTimeout(() => begin(it), GAP_MS); return; }
     begin(it);
