@@ -364,6 +364,31 @@ C = [
 ("schweder", "Tore Schweder", "Туре Шведер", "1943–2024", "Tore_Schweder", "measurement_error",
  "Confidence distributions: report the whole distribution of uncertainty of an estimate, not one number.", "Доверительные распределения: сообщать всё распределение неопределённости оценки, а не одно число.", "Konfidenzverteilungen: die ganze Unsicherheit einer Schätzung angeben.",
  "Give the range and how likely each part of it is, not only the point estimate."),
+# --- 2025 год (месячные страницы, 22.11.2026; Сёрл получил датчик) ---
+("lynch", "Clifford Lynch", "Клиффорд Линч", "1954–2025", "Clifford_Lynch", "stale_data",
+ "Digital libraries and long-term preservation of digital information.", "Цифровые библиотеки и долгосрочное сохранение цифровой информации.", "Digitale Bibliotheken und Langzeitarchivierung.",
+ "Cite a stable, archived version of a source, not only a link that may disappear."),
+("kurtz", "Thomas G. Kurtz", "Томас Курц", "1941–2025", "Thomas_G._Kurtz", "stale_data",
+ "Convergence and approximation of random (Markov) processes.", "Сходимость и приближение случайных (марковских) процессов.", "Konvergenz und Approximation stochastischer Prozesse.",
+ "Check whether a running average has settled before treating it as stable."),
+("gilyarevsky", "Ruggero Gilyarevsky", "Руджеро Гиляревский", "1929–2025", "Ruggero_Gilyarevsky", "stale_data",
+ "Scientific information and communication (informatics as the science of information).", "Научная информация и коммуникация (информатика как наука об информации).", "Wissenschaftliche Information und Kommunikation.",
+ "Note where and when a piece of information entered the chain you received it through."),
+("abrial", "Jean-Raymond Abrial", "Жан-Раймон Абриаль", "1938–2025", "Jean-Raymond_Abrial", "one_model",
+ "Formal methods: the Z notation and the B-Method for proving programs correct.", "Формальные методы: нотация Z и B-метод для доказательства правильности программ.", "Formale Methoden: Z-Notation und B-Methode.",
+ "State precisely what must always hold, then check each step against it."),
+("benacerraf", "Paul Benacerraf", "Пол Бенасерраф", "1930–2025", "Paul_Benacerraf", "one_model",
+ "'What numbers could not be': the same facts admit several equally good models.", "«Чем числа быть не могут»: одни и те же факты допускают несколько равноправных моделей.", "„What Numbers Could Not Be“: gleiche Fakten, mehrere gleichwertige Modelle.",
+ "If two explanations fit the facts equally well, say so instead of picking one."),
+("maxwell", "Nicholas Maxwell", "Николас Максвелл", "1937–2025", "Nicholas_Maxwell", "rumour_vs_fact",
+ "From Knowledge to Wisdom: inquiry should aim at helping people live well, not only at knowledge.", "«От знания к мудрости»: исследование должно помогать людям жить лучше, а не только накапливать знание.", "„From Knowledge to Wisdom“: Forschung soll helfen, gut zu leben.",
+ "Ask what the person needs the answer for, not only what is true."),
+("ellis", "Brian David Ellis", "Брайан Эллис", "1929–2025", "Brian_David_Ellis", "measurement_error",
+ "Basic Concepts of Measurement: what makes a quantity measurable and a scale meaningful.", "«Основные понятия измерения»: что делает величину измеримой, а шкалу осмысленной.", "„Basic Concepts of Measurement“.",
+ "Before comparing two numbers, check that they are on the same scale."),
+("korte", "Bernhard Korte", "Бернхард Корте", "1938–2025", "Bernhard_Korte", "answer_cost",
+ "Combinatorial optimisation (chip design, routing).", "Комбинаторная оптимизация (проектирование микросхем, маршрутизация).", "Kombinatorische Optimierung.",
+ "Among many possible plans, search systematically for the cheapest one that meets all constraints."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -412,3 +437,9 @@ for k in ["jarke"]: NEEDS[k] = ("covered", "the Baird sensor already keeps sourc
 for k in ["basmann", "schweder"]: NEEDS[k] = ("covered", "the Leamer and Trevisan sensors already give the bounds and the sampling spread of the indices", None, "leamer")
 for k in ["ruse"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
 for k in ["depierris"]: NEEDS[k] = ("covered", "the Hagenauer sensor already shows which labels could flip", None, "hagenauer")
+
+for k in ["lynch"]: NEEDS[k] = ("covered", "the Rabin sensor already checks whether linked source pages still open and match", None, "rabin")
+for k in ["kurtz"]: NEEDS[k] = ("covered", "the Trevisan sensor already shows when a sample settles", None, "trevisan")
+for k in ["benacerraf"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["ellis"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
+for k in ["korte"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest call chains", None, "bertsekas")

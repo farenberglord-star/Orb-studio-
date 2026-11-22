@@ -76,6 +76,7 @@ import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfu
 import { duckworthReport } from "./duckworth.js";
 import { trevisanReport } from "./trevisan.js";
 import { bertsekasReport, tokensOf } from "./bertsekas.js";
+import { searleReport, searleHeadline, SEARLE_EXPLAIN } from "./searle.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
@@ -830,7 +831,7 @@ async function checkHeadline(origin, request, raw, env) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v4-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v5-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
   const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
@@ -860,6 +861,7 @@ async function checkHeadline(origin, request, raw, env) {
     independent_voices: echo.independent_voices, echo: { verdict: echo.verdict, explain: ECHO_EXPLAIN[echo.verdict], agencies: echo.agencies, groups: echo.echo_groups.slice(0, 5), rule: ECHO_RULE },
     tone: toneOf(text), tone_words: toneWords(text),
     ...(wait ? { wait } : {}),
+    speech_act: (() => { const a = searleHeadline(text); return { ...a, explain: SEARLE_EXPLAIN[a.act], sensor: "https://orbstudio.org/tools/searle" }; })(),
     checkability: (() => { const f = frankfurtHeadline(text); return { ...f, explain: FRANKFURT_EXPLAIN[f.class], sensor: "https://orbstudio.org/tools/frankfurt" }; })(),
     explain: { confirmed: "3+ independent voices report the same story", two_sources: "2 independent voices", single_source: n > 1 ? "several outlets, but all repeat one text (one agency or the same headline) — one source" : "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
     ...(looksLikeInjection(text) ? { injection_suspected: true } : {}),
@@ -1724,8 +1726,8 @@ async function polyakNow(env) {
   return polyakReport({ now, series: { hallucination: col("h"), consensus: col("c"), token_hunger: col("t"), geo_radar: col("g") } });
 }
 async function scientistsNow(env, origin) {
-  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v2", 1e15).catch(() => null), rabinNow(env).catch(() => null)]);
-  return scientistsIndex(origin, { hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin });
+  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin, searle] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v2", 1e15).catch(() => null), rabinNow(env).catch(() => null), searleNow(env, {}).catch(() => null)]);
+  return scientistsIndex(origin, { hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin, searle });
 }
 // Научные заголовки для датчика Парка: тот же Google News, что у радаров, два поисковых запроса (en, de)
 const PARK_QUERIES = [["scientists discover OR breakthrough OR \"study finds\" OR miracle cure", "en", "US"], ["Forscher entdecken OR Durchbruch OR Wundermittel OR \"Studie zeigt\"", "de", "DE"]];
@@ -3619,6 +3621,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/duckworth") return json(await duckworthNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/searle") return json(await searleNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/rabin") return json(await rabinNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/frankfurt") return json(await frankfurtNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/crystals") return json(crystalsReport(SCIENTISTS, { zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
@@ -3911,7 +3914,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin"]);
+const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin", "searle"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -4183,6 +4186,7 @@ async function rabinTick(env, ctx) { // «Рабин»: раз в час слу�
   await sharedPut(env, "rabin-v1", { checks: [...(prev.checks || []), ...out].slice(-RABIN_KEEP) });
 }
 async function rabinNow(env) { const d = await sharedGet(env, "rabin-v1", 1e15).catch(() => null); return rabinReport(d && d.checks); }
+async function searleNow(env, ctx) { return searleReport(await allRadars(env, ctx, "https://orbstudio.org").catch(() => [])); } // «Сёрл»: событие или только слова
 async function frankfurtNow(env, ctx) { return frankfurtReport(await allRadars(env, ctx, "https://orbstudio.org").catch(() => [])); } // «Франкфурт»: есть ли в заголовках что проверить
 async function hagenauerNow(env, ctx) { // «Хагенауэр»: запас до смены каждого опубликованного ярлыка
   const o = "https://orbstudio.org", safe = (p) => p.catch(() => null);
@@ -7987,7 +7991,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", required: ["text"], properties: { title: { type: "string", maxLength: 120 }, text: { type: "string", maxLength: 20000 }, paper: { type: "string", enum: ["a4", "letter"] } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "check_headline", title: "Check any headline: how widely is it reported?",
-    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found), how many of them are independent voices and which ones only repeat one agency text (dpa, Reuters, AP, AFP…) or a near-identical headline, whether the headline has anything checkable (Frankfurt sensor: who/when/how many/where, vague formulas), for unconfirmed stories a wait hint from the Howard sensor (how often such stories were later confirmed, after how many hours), and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
+    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found), how many of them are independent voices and which ones only repeat one agency text (dpa, Reuters, AP, AFP…) or a near-identical headline, whether it reports an event or only a promise, threat or demand (Searle sensor), whether the headline has anything checkable (Frankfurt sensor: who/when/how many/where, vague formulas), for unconfirmed stories a wait hint from the Howard sensor (how often such stories were later confirmed, after how many hours), and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
     inputSchema: { type: "object", required: ["headline"], properties: { headline: { type: "string", minLength: 12, maxLength: 300, description: "Headline or short text to check" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_ai_pulse", title: "AI pulse: what is new in AI today",
@@ -8124,6 +8128,9 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_bertsekas", title: "Bertsekas sensor: how many tokens each Orb Studio tool answer costs, and the cheapest call chains",
     description: "Measured answer size in tokens of every read-only Orb Studio MCP tool without input (refreshed every 6 hours), and for typical agent questions the cheap chain of calls versus the naive one, with tokens saved. In honour of Dimitri Bertsekas (1942-2026), author of the standard works on dynamic programming.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_searle", title: "Searle sensor: did it happen, or is it only a promise, threat or demand? (speech acts in headlines)",
+    description: "For every radar headline the speech act: event, claim (someone says), promise or plan, threat or warning, demand or call, with shares per radar, the share that has not happened yet and examples. check_headline adds the same label for any headline as 'speech_act'. Word rules in English, German and Russian, no AI. In honour of John Searle (1932-2025), author of the theory of speech acts.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_rabin", title: "Rabin sensor: random spot checks of radar headlines against the source pages",
     description: "Every hour random radar headlines with a direct link are opened at the source and compared with the page title, og:title and first heading: matches / partly / differs / unreachable, with shares over 7 days and the latest mismatches. Checks feed fidelity, not truth. In honour of Michael O. Rabin (1931-2026), pioneer of randomised algorithms.",
@@ -8487,6 +8494,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_duckworth") return { ...(await duckworthNow(env)), page: origin + "/tools/duckworth", referral: ref };
   if (name === "get_trevisan") return { ...(await trevisanNow(env, ctx)), page: origin + "/tools/trevisan", referral: ref };
   if (name === "get_bertsekas") return { ...(await bertsekasNow(env, ctx, origin, request)), page: origin + "/tools/bertsekas", referral: ref };
+  if (name === "get_searle") return { ...(await searleNow(env, ctx)), page: origin + "/tools/searle", referral: ref };
   if (name === "get_rabin") return { ...(await rabinNow(env)), page: origin + "/tools/rabin", referral: ref };
   if (name === "get_frankfurt") return { ...(await frankfurtNow(env, ctx)), page: origin + "/tools/frankfurt", referral: ref };
   if (name === "get_crystals") return { ...crystalsReport(SCIENTISTS, { zone: args.blind_spot || null, q: args.query || null }), referral: ref };
@@ -8947,7 +8955,7 @@ setCourtLangPicker(pickLang); // суд выбирает язык страниц
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
 // слитые страницы: старый адрес → новое место (раздел на другой странице)
 const MOVED_PAGES = { "/indices": "/sensors#indices", "/tools/cockpit": "/sensors#cockpit", "/map": "/sensors#map", "/guests": "/hall#guest-cards", "/tools/interview": "/tools/clips#interview" };
-const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
+const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/searle", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
