@@ -1,0 +1,55 @@
+# Генератор «Библиотеки кристаллов»: src/crystals.js (для API и MCP) и статичные страницы tools/crystals (ru/de/en) — карточки в HTML, чтобы их видели поисковики.
+import json, html as H, re, sys
+sys.path.insert(0, "tools")
+from crystals_data import C, ZONES
+import honour_pages as HP
+BUILT_ZONE = {"hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data",
+  "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"}
+cards = [dict(id=c[0], name=c[1], name_ru=c[2], years=c[3], wiki="https://en.wikipedia.org/wiki/" + c[4], zone=c[5], idea={"en": c[6], "ru": c[7], "de": c[8]}, rule=c[9]) for c in C if c[1]]
+js = "// СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.\n"
+js += "export const CRYSTAL_ZONES = " + json.dumps(ZONES) + ";\n"
+js += "export const CRYSTAL_BUILT_ZONE = " + json.dumps(BUILT_ZONE) + ";\n"
+js += "export const CRYSTALS = " + json.dumps(cards, ensure_ascii=False, indent=0) + ";\n"
+old = open("src/crystals.js").read(); tail = old[old.index("// Ответ API/MCP"):] if "// Ответ API/MCP" in old else ""
+open("src/crystals.js", "w").write(js + tail)
+Z = {"ru": {"stale_data": "Старые данные вместо свежих", "one_model": "Одна модель вместо реальности", "rumour_vs_fact": "Слух вместо факта", "measurement_error": "Ошибки измерения", "answer_cost": "Цена ответа"},
+     "de": {"stale_data": "Alte statt frischer Daten", "one_model": "Ein Modell statt der Wirklichkeit", "rumour_vs_fact": "Gerücht statt Tatsache", "measurement_error": "Messfehler", "answer_cost": "Kosten der Antwort"},
+     "en": {"stale_data": "Old data taken for fresh", "one_model": "One model taken for reality", "rumour_vs_fact": "Rumour taken for fact", "measurement_error": "Measurement error", "answer_cost": "Cost of the answer"}}
+T = {"ru": dict(title="Библиотека кристаллов · Orb Studio", desc="Идеи учёных, ушедших в 2020–2026 годах, как правила для ИИ-агентов: главная мысль, слепая зона, которую она закрывает, и живой датчик, если он есть. Со ссылками на Википедию.",
+   eye="Orb Studio · инструменты · библиотека", h1="Библиотека кристаллов", lead="Учёные уходят, а их мысли остаются в библиотеках — «поставили и забыли». Здесь мы собираем идеи учёных, ушедших в 2020–2026 годах, и кристаллизуем их в правила для ИИ-агентов: главная мысль одной фразой, слепая зона агента, которую она закрывает, и живой датчик сайта, если он уже есть. Карточки без датчика ждут своего часа.",
+   now_h="Кристаллы по слепым зонам агентов", honour_h="Как собрана библиотека", honour="Учёных находит разведчик Грок-бот по разделам умерших в английской Википедии; годы и статьи сверяются с Википедией, даты смерти 2026 года Claude проверил по некрологам университетов и научных обществ. Мысль учёного пересказана по открытым источникам. Правило для агента — наше толкование, а не слова самого учёного. Похожее уже есть: MCP-серверы «моделей мышления» (thinking-models, Clear Thought) дают агентам принципы рассуждений; здесь каждый принцип связан с конкретным человеком, его статьёй и живыми датчиками Orb Studio.",
+   note="Orb Studio не связана с этими учёными, их семьями и университетами. Если вы нашли ошибку в карточке, напишите нам — исправим.", sensor="Живой датчик", wait="ждёт датчика", wiki="Википедия", rule="Правило для агента (наше толкование)", count="Кристаллов: {n}, из них с живым датчиком: {s}."),
+ "de": dict(title="Kristall-Bibliothek · Orb Studio", desc="Ideen von Forschenden, die 2020–2026 gestorben sind, als Regeln für KI-Agenten: Kerngedanke, der blinde Fleck, den er schließt, und ein Live-Sensor, falls vorhanden. Mit Wikipedia-Links.",
+   eye="Orb Studio · Werkzeuge · Bibliothek", h1="Kristall-Bibliothek", lead="Forschende gehen, ihre Gedanken bleiben in Bibliotheken – „abgestellt und vergessen“. Hier sammeln wir Ideen von Forschenden, die 2020–2026 gestorben sind, und kristallisieren sie zu Regeln für KI-Agenten: der Kerngedanke in einem Satz, der blinde Fleck des Agenten, den er schließt, und ein Live-Sensor der Website, falls es ihn schon gibt. Karten ohne Sensor warten auf ihren Moment.",
+   now_h="Kristalle nach blinden Flecken der Agenten", honour_h="Wie die Bibliothek entsteht", honour="Die Forschenden findet der Späher Grok-Bot in den Todesfall-Rubriken der englischen Wikipedia; Jahre und Artikel werden mit Wikipedia abgeglichen, Todesdaten aus 2026 hat Claude mit Nachrufen von Universitäten und Fachgesellschaften geprüft. Der Gedanke ist nach offenen Quellen wiedergegeben. Die Regel für Agenten ist unsere Deutung, nicht das Wort der Person. Ähnliches gibt es: MCP-Server für „Denkmodelle“ (thinking-models, Clear Thought) liefern Agenten Denkprinzipien; hier ist jedes Prinzip mit einer konkreten Person, ihrem Artikel und den Live-Sensoren von Orb Studio verbunden.",
+   note="Orb Studio steht in keiner Verbindung zu diesen Forschenden, ihren Familien oder Universitäten. Wenn Sie einen Fehler finden, schreiben Sie uns – wir korrigieren ihn.", sensor="Live-Sensor", wait="wartet auf einen Sensor", wiki="Wikipedia", rule="Regel für Agenten (unsere Deutung)", count="Kristalle: {n}, davon mit Live-Sensor: {s}."),
+ "en": dict(title="Crystal Library · Orb Studio", desc="Ideas of scientists who died in 2020–2026 as rules for AI agents: the core thought, the blind spot it closes and a live sensor where one exists. With Wikipedia links.",
+   eye="Orb Studio · tools · library", h1="Crystal Library", lead="Scientists pass away and their thoughts stay in libraries – shelved and forgotten. Here we collect ideas of scientists who died in 2020–2026 and crystallise them into rules for AI agents: the core thought in one sentence, the agent blind spot it closes, and a live sensor of the site where one already exists. Cards without a sensor are waiting for theirs.",
+   now_h="Crystals by agent blind spot", honour_h="How the library is built", honour="The scientists are found by the scout Grok-bot in the deaths sections of English Wikipedia; years and articles are checked against Wikipedia, and deaths in 2026 were checked by Claude against obituaries from universities and scientific societies. The thought is retold from open sources. The rule for agents is our interpretation, not the scientist's own words. Similar things exist: “mental models” MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here every principle is tied to a real person, their article and Orb Studio's live sensors.",
+   note="Orb Studio is not connected with these scientists, their families or universities. If you find a mistake on a card, tell us and we will fix it.", sensor="Live sensor", wait="waiting for a sensor", wiki="Wikipedia", rule="Rule for agents (our interpretation)", count="Crystals: {n}, with a live sensor: {s}.")}
+SCI_SRC = open("src/scientists.js").read()
+def built(lg):
+    out = []
+    for sid, S in HP.SENSORS.items():
+        who, idea, sim, diff, does = HP.PORTAL_ITEMS[sid][lg]
+        out.append(dict(id=sid, who=who, idea=idea, zone=BUILT_ZONE.get(sid, "measurement_error"), sensor=sid, wiki=S["wiki"].get(lg) or S["wiki"].get("en") or S["wiki"]["ru"]))
+    return out
+for lg in ("ru", "de", "en"):
+    t = T[lg]; pre = "" if lg == "ru" else "/" + lg; B = built(lg)
+    groups = []
+    for z in ZONES:
+        items = [b for b in B if b["zone"] == z]
+        li = ['      <li class="cr has"><b>%s</b><p>%s</p><p><a href="%s/tools/%s">%s: get_%s</a> · <a href="%s" rel="noopener">%s</a></p></li>' % (H.escape(b["who"]), H.escape(b["idea"]), pre, b["sensor"], H.escape(t["sensor"]), b["sensor"], b["wiki"], t["wiki"]) for b in items]
+        for c in [c for c in cards if c["zone"] == z]:
+            nm = c["name_ru"] if lg == "ru" else c["name"]
+            li.append('      <li class="cr" id="%s"><b>%s (%s)</b><p>%s</p><p><small>%s: %s</small></p><p><small>%s</small> · <a href="%s" rel="noopener">%s</a></p></li>' % (c["id"], H.escape(nm), H.escape(c["years"]), H.escape(c["idea"][lg]), H.escape(t["rule"]), H.escape(c["rule"]), H.escape(t["wait"]), H.escape(c["wiki"]), t["wiki"]))
+        groups.append('    <h3 id="zone-%s">%s</h3>\n    <ul class="crl">\n%s\n    </ul>' % (z, H.escape(Z[lg][z]), "\n".join(li)))
+    cnt = t["count"].format(n=len(cards) + len(B), s=len(B))
+    c = dict(title=t["title"], desc=t["desc"], eye=t["eye"], h1=t["h1"], lead=t["lead"], now_h=t["now_h"], honour_h=t["honour_h"], honour=H.escape(t["honour"]), note=t["note"],
+             agents={"ru": "Для агентов: <code>GET /api/v1/crystals</code> (фильтры <code>?zone=</code> и <code>?q=</code>) или MCP-инструмент <code>get_crystals</code>. Бесплатно, без ключа.", "de": "Für Agenten: <code>GET /api/v1/crystals</code> (Filter <code>?zone=</code> und <code>?q=</code>) oder das MCP-Werkzeug <code>get_crystals</code>. Kostenlos, ohne Schlüssel.", "en": "For agents: <code>GET /api/v1/crystals</code> (filters <code>?zone=</code> and <code>?q=</code>) or the MCP tool <code>get_crystals</code>. Free, no key."}[lg])
+    person = {"@type": "ItemList", "name": t["h1"], "numberOfItems": len(cards) + len(B), "itemListElement": [{"@type": "Person", "name": x["name"], "sameAs": [x["wiki"]]} for x in cards]}
+    cfg = dict(HP.LD[lg], cnt=cnt, loc=HP.LOC[lg])
+    s = HP.page("crystals", lg, c, "", 'document.getElementById("hmStatus").textContent=HM.cnt;', cfg, person)
+    s = s.replace('<ol class="hm-list" id="hmRows"></ol>', '<div id="hmRows">\n' + "\n".join(groups) + '\n  </div>', 1)
+    s = s.replace('</style>\n</head>', '.crl{list-style:none;padding:0;margin:.4rem 0 1.2rem;display:grid;gap:.6rem}.cr{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:.6rem .8rem}.cr p{margin:.3rem 0}.cr.has{border-color:rgba(120,220,255,.45)}</style>\n</head>', 1)
+    out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/crystals.html"; open(out, "w").write(s); print(out, len(cards), len(B))
