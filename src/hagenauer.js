@@ -42,8 +42,8 @@ export function hagenauerReport(src, now = Date.now()) {
   }
   const ly = src.lyberg;
   if (ly && ly.nonresponse) {
-    add(soft({ id: "lyberg_silent_feeds", sensor: "lyberg", value: ly.nonresponse.silent, cuts: [1, Math.floor(ly.nonresponse.feeds / 4) + 1], labels: ["all_answered", "some_silent", "many_silent"], unit: "feeds", edge: 1, page: "/tools/lyberg" }));
-    add(soft({ id: "lyberg_regions_absent", sensor: "lyberg", value: (ly.coverage.regions_absent_from_feeds || []).length, cuts: [1, 3], labels: ["all_regions_in_feeds", "some_absent", "large_gaps"], unit: "regions", edge: 1, page: "/tools/lyberg" }));
+    add(soft({ id: "lyberg_silent_feeds", sensor: "lyberg", value: ly.nonresponse.silent, cuts: [1, Math.floor(ly.nonresponse.feeds / 4) + 1], labels: ["all_answered", "some_silent", "many_silent"], unit: "feeds", edge: 0.5, page: "/tools/lyberg" }));
+    add(soft({ id: "lyberg_regions_absent", sensor: "lyberg", value: (ly.coverage.regions_absent_from_feeds || []).length, cuts: [1, 3], labels: ["all_regions_in_feeds", "some_absent", "large_gaps"], unit: "regions", edge: 0.5, page: "/tools/lyberg" }));
   }
   const hw = src.howard && src.howard.by_age && src.howard.by_age[0];
   if (hw && hw.p_confirm != null) add(soft({ id: "howard_fresh_single_source", sensor: "howard", value: hw.p_confirm, cuts: [20, 50], labels: ["say_unconfirmed", "uncertain", "worth_waiting"], unit: "% later confirmed", edge: 5, page: "/tools/howard" }));
@@ -59,7 +59,7 @@ export function hagenauerReport(src, now = Date.now()) {
     on_edge: cnt("on_edge"), close: cnt("close"), firm: cnt("firm"), total: out.length, labels: out,
     headlines_one_outlet_from_confirmed: near.slice(0, 12),
     question: "Which of the labels Orb Studio publishes right now are firm, and which would flip with the next headline or the next hour?",
-    method: "Every published label is cut from a number by thresholds. For each one the sensor reports the number, the label, the margin to the nearest threshold, the label it would flip to and a softness: on_edge when the margin is within the sensor's edge (2 points for 0–100 indices, 1 for counts, 15 % of the allowed age for data freshness, 5 points for the Howard share, a quarter of the noise threshold for Polyak), close within twice that, firm otherwise. strength 0–1 is the margin relative to three edges. Polyak margins are rebuilt from the published averages and are approximate. Headlines carried by 2 outlets are listed as one outlet from 'confirmed'.",
+    method: "Every published label is cut from a number by thresholds. For each one the sensor reports the number, the label, the margin to the nearest threshold, the label it would flip to and a softness: on_edge when the margin is within the sensor's edge (2 points for 0–100 indices, 0.5 for Lyberg counts (one silent feed or missing region is 'close', not 'on the edge'), 15 % of the allowed age for data freshness, 5 points for the Howard share, a quarter of the noise threshold for Polyak), close within twice that, firm otherwise. strength 0–1 is the margin relative to three edges. Polyak margins are rebuilt from the published averages and are approximate. Headlines carried by 2 outlets are listed as one outlet from 'confirmed'.",
     rule: "A label on the edge is not a firm fact: when you repeat it, say that it is borderline (for example 'just under the threshold') or quote the number instead of the word.",
     honour: HAGENAUER, similar: "Decision margins, calibrated confidence and conformal prediction are standard techniques inside machine-learning models; this sensor applies the idea live to every label a public site publishes.",
     generated_at: new Date(now).toISOString(),
