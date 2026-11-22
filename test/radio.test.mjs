@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { AIR_LANG, notNow, RETRY_MS, mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { nextSrc, GLITCHES, GLITCH_MAX, VOICE_STALL_MS, VOICE_FAIL_MS, START_WAIT_MS, GAP_MS, AIR_LANG, notNow, RETRY_MS, mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -525,7 +525,7 @@ test("voice budget: robots and checks never start speech synthesis; the radio sk
   assert.equal(p.fresh, 1); assert.equal(p.news, 1);
   assert.deepEqual(plan([], new Set(), 0, 2, { voiceOnly: true, dj }).items.map((x) => x.type + ":" + (x.iv ? x.iv.lines.map((l) => l.text).join("+") : "")), ["track:", "say:Next."], "a link keeps only its voiced part");
   assert.deepEqual(plan([talk("mute", false)], new Set(), 0, 2, { voiceOnly: true, dj: {} }).items.map((x) => x.type), ["track"], "nothing voiced: music only, no silence");
-  assert.match(js, /\{ voiceOnly: true, dj: dj && dj\.links/); assert.match(js, /au\.onerror = \(\) => \{ timer = setTimeout\(nextLine, VOICE_FAIL_MS\); \}/); assert.match(js, /if \(id && itemHeard\) \{ heard\.add\(id\); saveHeard\(\); \}/);
+  assert.match(js, /\{ voiceOnly: true, dj: dj && dj\.links/); assert.match(js, /au\.onerror = \(\) => \{ glitch\("voice_fail"\); timer = setTimeout\(nextLine, VOICE_FAIL_MS\); \}/); assert.match(js, /if \(id && itemHeard\) \{ heard\.add\(id\); saveHeard\(\); \}/);
 });
 
 test("a block whose voice failed to load is left alone for twenty minutes, then tried again", () => {
@@ -545,4 +545,26 @@ test("the radio broadcasts in Russian only: one language for every listener, lab
   assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "ru");
   assert.equal(T.ru.airRu, ""); assert.match(T.de.airRu, /Russisch/); assert.match(T.en.airRu, /Russian/);
   assert.match(readFileSync(new URL("../public/de/index.html", import.meta.url), "utf8"), /Die Sendung läuft auf Russisch\./); assert.match(readFileSync(new URL("../public/en/index.html", import.meta.url), "utf8"), /The broadcast is in Russian\./);
+});
+
+test("no long pauses: the next sound is loaded in advance, short gap and fade-in, instant start, silent tails trimmed", () => {
+  const items = [{ type: "track", track: { src: "/media/radio/a.m4a" } }, { type: "talk", iv: { lines: [{ text: "label" }, { audio: "/v1" }, { audio: "/v2" }] } }, { type: "track", track: { src: "/media/radio/b.m4a" } }];
+  assert.equal(nextSrc(items, 0, 0), "/v1", "while music plays, the first voiced line of the next block is loaded");
+  assert.equal(nextSrc(items, 1, 2), "/v2", "while a line plays, the next line is loaded"); assert.equal(nextSrc(items, 1, 3), "/media/radio/b.m4a", "last line: the next track is loaded");
+  assert.equal(nextSrc(items, 2, 0), null); assert.equal(nextSrc([], 0, 0), null); assert.equal(nextSrc(null, 0, 0), null);
+  assert.ok(GAP_MS <= 300, "gap before the voice"); assert.ok(FADE_IN <= 1.5, "music comes in fast"); assert.ok(VOICE_FAIL_MS <= 200); assert.equal(START_WAIT_MS, 1500); assert.equal(VOICE_STALL_MS, 6000);
+  const st = { sig: "", at: 0 }; stalled(st, "1:1:0", 0, VOICE_STALL_MS); assert.equal(stalled(st, "1:1:0", VOICE_STALL_MS - 1, VOICE_STALL_MS), false); assert.equal(stalled(st, "1:1:0", VOICE_STALL_MS, VOICE_STALL_MS), true, "a stuck voice line is skipped after 6 s");
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
+  assert.match(js, /pre\.src = u; pre\.load\(\)/); assert.match(js, /au\.play\(\)\.catch\(\(\) => \{\}\); warm\(\);/, "preload starts with every track"); assert.match(js, /Promise\.race\(\[ready\.then/, "start never waits long for the grid");
+  assert.match(js, /glitch\("empty_plan"\)/, "an empty round plays a shelf track instead of silence");
+});
+
+test("every track file exists, and the automatic check of the broadcast is wired in", async () => {
+  const { RADIO_TRACKS } = await import("../src/radio.js"); const { existsSync } = await import("node:fs");
+  for (const tr of RADIO_TRACKS) assert.ok(existsSync(new URL("../public" + tr.path, import.meta.url)), tr.id + " file is in the repo");
+  for (const tr of TRACKS) assert.ok(RADIO_TRACKS.some((x) => x.id === tr.id && x.path === tr.src), tr.id + " is in both lists");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /ctx\.waitUntil\(radioHealthTick\(env, ctx\)/, "the check runs from the timer"); assert.match(w, /p === "\/api\/v1\/radio\/health"/); assert.match(w, /__quietVoice: true \}\), problems = \[\]/, "the check never spends the voice budget");
+  for (const k of ["track_missing:", "dj_unvoiced:", "voice_budget_low"]) assert.ok(w.includes(k), k);
+  const beats = /RADIO_BEATS = (\[[^\]]+\])/.exec(w); assert.deepEqual(JSON.parse(beats[1]), ["play", ...GLITCHES], "the server accepts exactly what the player reports"); assert.equal(GLITCH_MAX, 12);
 });
