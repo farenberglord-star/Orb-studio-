@@ -107,7 +107,8 @@
     "hamilton": "https://orbstudio.org/api/v1/hamilton",
     "mikrin": "https://orbstudio.org/api/v1/mikrin",
     "polyak": "https://orbstudio.org/api/v1/polyak",
-    "park": "https://orbstudio.org/api/v1/park"
+    "park": "https://orbstudio.org/api/v1/park",
+    "impulse": "https://orbstudio.org/api/v1/impulse"
   },
   "auth": "none",
   "payments": {

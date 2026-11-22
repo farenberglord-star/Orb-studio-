@@ -138,6 +138,7 @@ const HM={"comp": {"hallucination": "Welt-Halluzinationsindex", "consensus": "Ba
 const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
 const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
 const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_polyak")){sessionStorage.setItem("orbCounted_polyak","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"polyak",lang:"de",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/polyak",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.series)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const n=d.series.filter((s)=>s.verdict==="jump"||s.verdict==="shift").length;document.getElementById("hmStatus").textContent=n?HM.some.replace("{n}",n):HM.allcalm;
   const f=(x)=>x==null?HM.nodata:Number(x).toLocaleString(HM.loc,{maximumFractionDigits:1});
