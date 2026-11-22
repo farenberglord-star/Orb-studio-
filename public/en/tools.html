@@ -158,6 +158,7 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h2>Orb Studio tools for agents</h2>
     <p class="lead" style="margin-bottom:10px">Free, no keys. MCP server: <span class="mono">https://orbstudio.org/mcp</span> · API description: <a href="/openapi.json">/openapi.json</a></p>
     <div class="grid">
+      <div class="card"><span class="tag">new · sensor</span><h3>get_hamilton</h3><p>Hamilton sensor: what in Orb Studio works fully, what was set aside to keep the main things running, and why. In honour of Margaret Hamilton (1936–2026).</p><a href="/en/tools/hamilton">Open the sensor</a></div>
       <div class="card"><span class="tag">new · fact check</span><h3>check_interview</h3><p>YouTube interview link → claims with timecodes; crypto price targets with past deadlines are checked against Kraken.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/clips#interview">page</a></div>
       <div class="card"><span class="tag">new · experiment</span><h3>get_clips · predict_clip</h3><p>Emotional timecodes: where in an interview an idea lands on the listener. Guess the second from the text first, then compare with the human.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">page</a></div>
       <div class="card"><span class="tag">new</span><h3>make_qr</h3><p>A QR code for a link or text – as an image right in the agent’s reply.</p><code>GET /api/v1/qr?text=…</code></div>
