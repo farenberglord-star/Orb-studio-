@@ -4,6 +4,9 @@ import { HAMILTON } from "./hamilton.js";
 import { MIKRIN } from "./mikrin.js";
 import { POLYAK } from "./polyak.js";
 import { PARK } from "./park.js";
+import { KAHNEMAN } from "./kahneman.js";
+import { ZIV } from "./ziv.js";
+import { COX } from "./cox.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -21,12 +24,27 @@ export const SCIENTISTS = [
     principle: "The seven warning signs of bogus science.",
     sensor: "Warning signs of bogus science in today's science headlines, each with the exact quoted words.",
     analog_check: { date: "2026-11-22", similar: "Anti-Bullshit MCP (analysis of a single claim), research detectors of exaggeration in science news, SciLens (quality of science news articles)", difference: "a regular check of a live news stream on Park's seven signs, with the exact words from the headline" } },
+  { id: "kahneman", honour: KAHNEMAN, field: "psychology of judgement and decision", tool: "get_kahneman", api: "/api/v1/kahneman",
+    principle: "Noise: judgements of the same case are scattered; system noise = level noise + pattern noise.",
+    sensor: "A noise audit of three AI guests rating the same news for importance and confidence.",
+    analog_check: { date: "2026-11-22", similar: "MCP 'councils' that ask several models a question (llm-council, model-council-mcp, llm-deliberate-mcp, mcp-rubber-duck)", difference: "a regular noise audit of three models on live news, split into level and pattern noise, instead of a way to ask" } },
+  { id: "ziv", honour: ZIV, field: "information theory, data compression", tool: "get_ziv", api: "/api/v1/ziv",
+    principle: "Lossless compression: what repeats costs almost nothing, only the new part takes space.",
+    sensor: "How much of today's radar headlines is really new against yesterday's, measured by LZ compression.",
+    analog_check: { date: "2026-11-22", similar: "research on duplicate news detection (Microsoft Research) and normalized compression distance", difference: "a live daily novelty reading for agents on the Orb Studio radars, without a language model" } },
+  { id: "cox", honour: COX, field: "statistics, survival analysis", tool: "get_cox", api: "/api/v1/cox",
+    principle: "Proportional hazards: how a factor changes the risk of an event at any moment, using also cases where it has not happened yet.",
+    sensor: "How long a news story lives on each Orb Studio radar: Kaplan–Meier median and Cox hazard ratio.",
+    analog_check: { date: "2026-11-22", similar: "article lifespan analytics for publishers (Chartbeat) and research on the half-life of news (Oxford Internet Institute)", difference: "a live survival reading per radar for agents, with censoring and hazard ratios" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
   if (!r) return null;
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
+  if (id === "kahneman") return { topics_rated: r.topics_rated, system_noise: r.audit && r.audit.importance ? r.audit.importance.system_noise : null };
+  if (id === "ziv") return { novelty_all: r.novelty_all };
+  if (id === "cox") return { median_hours_all: r.median_hours_all, stories: r.stories };
   if (id === "park") return { checked: r.headlines_checked, with_signs: r.headlines_with_signs };
   if (id === "polyak") return { moving: (r.series || []).filter((s) => s.verdict === "jump" || s.verdict === "shift").map((s) => ({ id: s.id, verdict: s.verdict, direction: s.direction })) };
   return null;

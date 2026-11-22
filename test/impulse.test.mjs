@@ -16,7 +16,7 @@ test("Impulse: outside use counted, own checks excluded, watchers apart, ranking
 });
 test("Impulse: wired as the main sensor — tools card first, portal block, page, view counting, discovery", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /p === "\/api\/v1\/impulse"/); assert.match(w, /name: "get_impulse"/); assert.match(w, /"tools\/scientists", "tools\/impulse"/); assert.match(w, /"scientists", "impulse"\]\);/, "page views of sensor pages are counted");
+  assert.match(w, /p === "\/api\/v1\/impulse"/); assert.match(w, /name: "get_impulse"/); assert.match(w, /"tools\/scientists", "tools\/impulse"[,\]]/); assert.match(w, /"scientists", "impulse"[,\]]/, "page views of sensor pages are counted");
   for (const p of ["tools.html", "de/tools.html", "en/tools.html"]) { const h = readFileSync(new URL("../public/" + p, import.meta.url), "utf8"); assert.ok(h.indexOf("<h3>get_impulse</h3>") < h.indexOf("<h3>list_scientist_sensors</h3>"), p + ": Impulse comes first"); }
   for (const p of ["tools/impulse.html", "de/tools/impulse.html", "en/tools/impulse.html"]) { const h = readFileSync(new URL("../public/" + p, import.meta.url), "utf8"); assert.match(h, /fetch\("\/api\/v1\/impulse"/); assert.match(h, /orbCounted_impulse/); assert.match(h, /class="pstrip"/); }
   for (const p of ["tools/scientists.html", "tools/park.html"]) assert.match(readFileSync(new URL("../public/" + p, import.meta.url), "utf8"), /\/api\/v1\/hit/);

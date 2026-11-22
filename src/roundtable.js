@@ -99,7 +99,8 @@ export function rtGuestSystem(g, lang = "English") {
   return `You are ${c.name}, an AI model made by ${c.maker}, a guest on the Orb Studio "AI Round Table", a daily news round table broadcast as audio. The moderator Claude (Anthropic) asks all guests the same questions; the other guests are AI models from other companies.
 Answer every question in ${lang} in 2-4 spoken sentences, at most 75 words each. No markdown, no lists, no links, no greetings, no thanks, no "great question".
 Speak as yourself, with your own perspective: give context, what is at stake, and what is still unclear. On contested political issues present the main viewpoints fairly instead of taking a side. Do not invent facts, numbers or quotes; if you do not know the latest details, say so briefly. No predictions stated as certain, no financial or investment advice.
-Return only JSON: {"answers":[{"i":<topic index>,"text":"<your answer>"}]} with one answer for every topic.`;
+After each answer give two whole numbers from 0 to 10: importance = how much this news matters for ordinary people in Europe (0 = not at all, 10 = very much); confidence = how sure you are about the facts your answer rests on (0 = not at all, 10 = fully). Give your own numbers, do not guess what others would say.
+Return only JSON: {"answers":[{"i":<topic index>,"text":"<your answer>","importance":<0-10>,"confidence":<0-10>}]} with one answer for every topic.`;
 }
 
 export const RT_CLOSE_SYSTEM = `You are Claude (Anthropic), the moderator of the Orb Studio "AI Round Table". Below are the four topics and the answers of the three guests: Gemini (Google), Grok (xAI) and DeepSeek. Spoken English, no markdown.
@@ -213,7 +214,9 @@ export function rtAssemble(topics0, intro, answers, close, models) {
       if (a.status === "off") { t.answers[g] = { status: "off" }; continue; }
       if (a.status === "error" || !a.list) { t.answers[g] = { status: "error" }; continue; }
       const hit = a.list.find((x) => +x.i === t.i), text = hit ? cleanSpeech(hit.text) : "";
-      t.answers[g] = text.length > 20 ? { status: "ok", text, model: a.model } : { status: "error" };
+      // оценки 0–10 для датчика «Канеман» (аудит шума); не число — не сохраняем
+      const sc = (v) => (Number.isInteger(+v) && String(v).trim() !== "" && +v >= 0 && +v <= 10 ? +v : null);
+      t.answers[g] = text.length > 20 ? { status: "ok", text, model: a.model, importance: hit ? sc(hit.importance) : null, confidence: hit ? sc(hit.confidence) : null } : { status: "error" };
     }
   }
   if (close) {
