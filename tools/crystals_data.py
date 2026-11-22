@@ -414,6 +414,31 @@ C = [
 ("stearns", "Richard E. Stearns", "Ричард Стернс", "1936–2026", "Richard_E._Stearns", "answer_cost",
  "Foundations of computational complexity: measuring the time an algorithm needs (Turing award 1993, with Hartmanis).", "Основы теории вычислительной сложности: сколько времени требует алгоритм (премия Тьюринга 1993, вместе с Хартманисом).", "Grundlagen der Komplexitätstheorie (Turing-Preis 1993).",
  "Estimate how much work an answer needs before starting it."),
+# --- 2021 год, февраль–декабрь (22.11.2026) ---
+("harman", "Gilbert Harman", "Гилберт Харман", "1938–2021", "Gilbert_Harman", "stale_data",
+ "Change in View: how to revise beliefs reasonably when new evidence arrives — change as little as needed, keep what still fits.", "«Change in View»: как разумно менять мнение при новых данных — менять не больше необходимого и сохранять то, что ещё сходится.", "„Change in View“: Überzeugungen vernünftig revidieren.",
+ "When new facts arrive, revise only the parts of your answer they touch, and say what changed."),
+("ramsey", "James B. Ramsey", "Джеймс Рэмси", "1937–2021", "James_B._Ramsey", "one_model",
+ "The Ramsey RESET test: does a regression model have the wrong functional form?", "Тест RESET Рэмси: не построена ли регрессионная модель в неправильной форме.", "Ramsey-RESET-Test: falsche funktionale Form?",
+ "Check whether your explanation's shape (straight line, threshold, cycle) is right, not only its numbers."),
+("van_eeden", "Constance van Eeden", "Констанс ван Эден", "1927–2021", "Constance_van_Eeden", "one_model",
+ "Estimation under restricted parameter spaces and robust, distribution-free statistics.", "Оценивание при ограничениях на параметры и устойчивая статистика без заранее выбранной модели.", "Schätzung bei eingeschränkten Parametern, verteilungsfreie Statistik.",
+ "Use what you know about the limits of a quantity (it cannot be negative, cannot exceed 100) when estimating it."),
+("margolis", "Joseph Margolis", "Джозеф Марголис", "1924–2021", "Joseph_Margolis", "one_model",
+ "Pragmatism without a single foundation: interpretation and knowledge change with history and culture.", "Прагматизм без единственного основания: толкование и знание меняются с историей и культурой.", "Pragmatismus ohne festes Fundament.",
+ "Say from which tradition or context an interpretation comes."),
+("boyd", "Richard Boyd", "Ричард Бойд", "1942–2021", "Richard_Boyd", "rumour_vs_fact",
+ "Scientific realism: the success of mature theories is evidence that they are roughly true.", "Научный реализм: успех зрелых теорий — свидетельство того, что они примерно верны.", "Wissenschaftlicher Realismus.",
+ "Give more weight to claims backed by theories that have predicted well before."),
+("dunn", "J. Michael Dunn", "Майкл Данн", "1941–2021", "Jon_Michael_Dunn", "rumour_vs_fact",
+ "Relevance logic and the Belnap–Dunn four-valued logic: besides true and false, information can be 'both' (contradictory sources) or 'neither' (no information).", "Логика релевантности и четырёхзначная логика Белнапа–Данна: кроме «истина» и «ложь» сведения бывают «и то и другое» (источники противоречат) или «ни то ни другое» (сведений нет).", "Relevanzlogik und vierwertige Logik nach Belnap und Dunn.",
+ "When sources contradict, report 'both' with the sources instead of picking one; when there is no information, say 'neither', not 'false'."),
+("blackwell", "Richard J. Blackwell", "Ричард Блэквелл", "1929–2021", "Richard_J._Blackwell", "rumour_vs_fact",
+ "History of the Galileo affair: how authority and evidence collided.", "История дела Галилея: как столкнулись авторитет и доказательства.", "Geschichte des Galilei-Prozesses.",
+ "Do not accept a claim only because an authority states it; ask for the evidence."),
+("savitch", "Walter Savitch", "Уолтер Сэвич", "1943–2021", "Walter_Savitch", "answer_cost",
+ "Savitch's theorem: how much memory a computation needs (nondeterministic space can be simulated with quadratic deterministic space).", "Теорема Сэвича: сколько памяти нужно на вычисление.", "Satz von Savitch: Speicherbedarf einer Berechnung.",
+ "Keep in your context only what the next step needs."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -475,3 +500,9 @@ for k in ["musgrave"]: NEEDS[k] = ("covered", "the Park sensor already flags war
 for k in ["habermas"]: NEEDS[k] = ("covered", "the Searle sensor already separates claims, promises and demands", None, "searle")
 for k in ["neumann"]: NEEDS[k] = ("covered", "the Hamilton and Baird sensors already show what the site postpones and which numbers broke", None, "hamilton")
 for k in ["stearns"]: NEEDS[k] = ("covered", "the Bertsekas sensor already measures the cost of each answer", None, "bertsekas")
+
+NEEDS["harman"] = ("needs_history", "same data as Minker: headlines with correction/update/denial words linked to the original story", "2026-12-13")
+NEEDS["dunn"] = ("needs_idea", "group headlines by story and mark stories whose sources confirm and deny at once ('both') or say nothing ('neither')")
+for k in ["ramsey", "van_eeden"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["boyd"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
+for k in ["savitch"]: NEEDS[k] = ("covered", "the Bertsekas and Trevisan sensors already measure what an answer needs", None, "bertsekas")

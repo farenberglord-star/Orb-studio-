@@ -2477,6 +2477,155 @@ export const CRYSTALS = [
 "note": "the Bertsekas sensor already measures the cost of each answer",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "harman",
+"name": "Gilbert Harman",
+"name_ru": "Гилберт Харман",
+"years": "1938–2021",
+"wiki": "https://en.wikipedia.org/wiki/Gilbert_Harman",
+"zone": "stale_data",
+"idea": {
+"en": "Change in View: how to revise beliefs reasonably when new evidence arrives — change as little as needed, keep what still fits.",
+"ru": "«Change in View»: как разумно менять мнение при новых данных — менять не больше необходимого и сохранять то, что ещё сходится.",
+"de": "„Change in View“: Überzeugungen vernünftig revidieren."
+},
+"rule": "When new facts arrive, revise only the parts of your answer they touch, and say what changed.",
+"needs": {
+"code": "needs_history",
+"note": "same data as Minker: headlines with correction/update/denial words linked to the original story",
+"not_before": "2026-12-13"
+}
+},
+{
+"id": "ramsey",
+"name": "James B. Ramsey",
+"name_ru": "Джеймс Рэмси",
+"years": "1937–2021",
+"wiki": "https://en.wikipedia.org/wiki/James_B._Ramsey",
+"zone": "one_model",
+"idea": {
+"en": "The Ramsey RESET test: does a regression model have the wrong functional form?",
+"ru": "Тест RESET Рэмси: не построена ли регрессионная модель в неправильной форме.",
+"de": "Ramsey-RESET-Test: falsche funktionale Form?"
+},
+"rule": "Check whether your explanation's shape (straight line, threshold, cycle) is right, not only its numbers.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "van_eeden",
+"name": "Constance van Eeden",
+"name_ru": "Констанс ван Эден",
+"years": "1927–2021",
+"wiki": "https://en.wikipedia.org/wiki/Constance_van_Eeden",
+"zone": "one_model",
+"idea": {
+"en": "Estimation under restricted parameter spaces and robust, distribution-free statistics.",
+"ru": "Оценивание при ограничениях на параметры и устойчивая статистика без заранее выбранной модели.",
+"de": "Schätzung bei eingeschränkten Parametern, verteilungsfreie Statistik."
+},
+"rule": "Use what you know about the limits of a quantity (it cannot be negative, cannot exceed 100) when estimating it.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "margolis",
+"name": "Joseph Margolis",
+"name_ru": "Джозеф Марголис",
+"years": "1924–2021",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Margolis",
+"zone": "one_model",
+"idea": {
+"en": "Pragmatism without a single foundation: interpretation and knowledge change with history and culture.",
+"ru": "Прагматизм без единственного основания: толкование и знание меняются с историей и культурой.",
+"de": "Pragmatismus ohne festes Fundament."
+},
+"rule": "Say from which tradition or context an interpretation comes.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "boyd",
+"name": "Richard Boyd",
+"name_ru": "Ричард Бойд",
+"years": "1942–2021",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Boyd",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Scientific realism: the success of mature theories is evidence that they are roughly true.",
+"ru": "Научный реализм: успех зрелых теорий — свидетельство того, что они примерно верны.",
+"de": "Wissenschaftlicher Realismus."
+},
+"rule": "Give more weight to claims backed by theories that have predicted well before.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
+},
+{
+"id": "dunn",
+"name": "J. Michael Dunn",
+"name_ru": "Майкл Данн",
+"years": "1941–2021",
+"wiki": "https://en.wikipedia.org/wiki/Jon_Michael_Dunn",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Relevance logic and the Belnap–Dunn four-valued logic: besides true and false, information can be 'both' (contradictory sources) or 'neither' (no information).",
+"ru": "Логика релевантности и четырёхзначная логика Белнапа–Данна: кроме «истина» и «ложь» сведения бывают «и то и другое» (источники противоречат) или «ни то ни другое» (сведений нет).",
+"de": "Relevanzlogik und vierwertige Logik nach Belnap und Dunn."
+},
+"rule": "When sources contradict, report 'both' with the sources instead of picking one; when there is no information, say 'neither', not 'false'.",
+"needs": {
+"code": "needs_idea",
+"note": "group headlines by story and mark stories whose sources confirm and deny at once ('both') or say nothing ('neither')"
+}
+},
+{
+"id": "blackwell",
+"name": "Richard J. Blackwell",
+"name_ru": "Ричард Блэквелл",
+"years": "1929–2021",
+"wiki": "https://en.wikipedia.org/wiki/Richard_J._Blackwell",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "History of the Galileo affair: how authority and evidence collided.",
+"ru": "История дела Галилея: как столкнулись авторитет и доказательства.",
+"de": "Geschichte des Galilei-Prozesses."
+},
+"rule": "Do not accept a claim only because an authority states it; ask for the evidence.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "savitch",
+"name": "Walter Savitch",
+"name_ru": "Уолтер Сэвич",
+"years": "1943–2021",
+"wiki": "https://en.wikipedia.org/wiki/Walter_Savitch",
+"zone": "answer_cost",
+"idea": {
+"en": "Savitch's theorem: how much memory a computation needs (nondeterministic space can be simulated with quadratic deterministic space).",
+"ru": "Теорема Сэвича: сколько памяти нужно на вычисление.",
+"de": "Satz von Savitch: Speicherbedarf einer Berechnung."
+},
+"rule": "Keep in your context only what the next step needs.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas and Trevisan sensors already measure what an answer needs",
+"covered_by": "bertsekas"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
