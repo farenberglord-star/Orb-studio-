@@ -11,6 +11,7 @@ import { HALPERN } from "./halpern.js";
 import { HOWARD } from "./howard.js";
 import { LEAMER } from "./leamer.js";
 import { BAIRD } from "./baird.js";
+import { LYBERG } from "./lyberg.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -56,6 +57,10 @@ export const SCIENTISTS = [
     principle: "Traceability: a measured value counts only with an unbroken chain to its reference - source, time, unit - and when independent routes agree.",
     sensor: "A live passport for every sensor number of the site: source, time, age, unit, plausible range, primary or derived, and cross-checks by independent routes.",
     analog_check: { date: "2026-11-22", similar: "data lineage and provenance standards (W3C PROV, OpenLineage), Wikidata references per statement", difference: "a public, live passport per published number for agents, with staleness, unit sanity and independent cross-checks" } },
+  { id: "lyberg", honour: LYBERG, field: "survey statistics, data quality", tool: "get_lyberg", api: "/api/v1/lyberg",
+    principle: "Total survey error: coverage, nonresponse, measurement and processing errors add up and are reported together, not only sampling noise.",
+    sensor: "What the radars do not see: languages and world regions covered or missing, feeds that did not answer, items dropped in processing, with a ready caveat for agents.",
+    analog_check: { date: "2026-11-22", similar: "Ground News Blindspot (stories covered by one political side), Media Cloud and GDELT source-coverage dashboards for researchers", difference: "a live total-error report of one news feed for agents: language and region coverage, nonresponse per feed and processing losses" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -63,6 +68,7 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "lyberg") return { verdict: r.verdict, main_language: r.coverage ? r.coverage.main_language : null, regions_not_seen: r.coverage ? r.coverage.regions_not_seen.length : null, silent: r.nonresponse ? r.nonresponse.silent : null };
   if (id === "baird") return { verdict: r.verdict, traced: r.traced, total: r.total, failures: r.failures };
   if (id === "leamer") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: r.verdict, value: c.value, low: c.low, high: c.high } : null; }
   if (id === "howard") { const b = (r.by_age || [])[0]; return { verdict: r.verdict, tracked: r.stories_tracked, p_confirm: b ? b.p_confirm : null, median_wait_h: b ? b.median_wait_h : null }; }

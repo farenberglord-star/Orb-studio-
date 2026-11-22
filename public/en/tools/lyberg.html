@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lyberg sensor · Orb Studio</title>
+<meta name="description" content="What the Orb Studio radars do not see: which languages and regions the feeds miss, which feeds are silent and how many headlines are dropped in processing. Named in honour of Lars Lyberg (1944–2021).">
+<link rel="canonical" href="https://orbstudio.org/en/tools/lyberg">
+<meta property="og:url" content="https://orbstudio.org/en/tools/lyberg">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Lyberg sensor · Orb Studio">
+<meta property="og:description" content="What the Orb Studio radars do not see: which languages and regions the feeds miss, which feeds are silent and how many headlines are dropped in processing. Named in honour of Lars Lyberg (1944–2021).">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools/lyberg">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/lyberg">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/lyberg">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/lyberg">
+<meta property="og:locale" content="en_GB">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Lyberg sensor · Orb Studio", "description": "What the Orb Studio radars do not see: which languages and regions the feeds miss, which feeds are silent and how many headlines are dropped in processing. Named in honour of Lars Lyberg (1944–2021).", "url": "https://orbstudio.org/en/tools/lyberg", "inLanguage": "en", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "about": {"@type": "Person", "name": "Lars Lyberg", "sameAs": ["https://en.wikipedia.org/wiki/Lars_Lyberg"]}, "mainEntity": {"@type": "Dataset", "name": "Lyberg sensor", "description": "What the Orb Studio radars do not see: which languages and regions the feeds miss, which feeds are silent and how many headlines are dropped in processing. Named in honour of Lars Lyberg (1944–2021).", "url": "https://orbstudio.org/api/v1/lyberg", "isAccessibleForFree": true, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/lyberg"}}}</script>
+<style>.hm-list{list-style:none;padding:0;margin:0}.hm-list li{display:grid;grid-template-columns:1.6rem 1fr auto;gap:.15rem .6rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.12)}.hm-list .n{opacity:.6}.hm-list .s{white-space:nowrap}.hm-list .w{grid-column:2/4;font-size:.92rem;opacity:.85}.hm-list .u{grid-column:2/4;font-size:.8rem;opacity:.6}.hm-st{font-size:1.15rem;margin:.2rem 0 .8rem}.pstrip{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;justify-content:center;margin:1.2rem 0 4.5rem;padding:.45rem .8rem;border:1px solid rgba(155,140,255,.35);border-radius:999px;font-size:.8rem;opacity:.85}.pstrip a{text-decoration:none}.pstrip small{opacity:.6}</style>
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – home"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Orb Studio sections"><a href="/">Home</a><a href="/world">World now</a><a href="/ground">On the ground</a><a href="/air">Broadcast</a><a href="/deck">Bridge</a><a href="/for-agents" class="on" aria-current="page">For agents</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/lyberg" hreflang="ru" lang="ru">RU</a><a href="/de/tools/lyberg" hreflang="de" lang="de">DE</a><a href="/en/tools/lyberg" hreflang="en" lang="en" class="on" aria-current="true">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Orb Studio · tools · sensor</div>
+    <h1>Lyberg sensor</h1>
+    <p class="lead">The radars are not the whole world but our feeds. The sensor honestly shows their total error: which languages the headlines are in, which world regions appear and which are missing right now, which feeds did not answer and how many headlines were dropped as duplicates, too old or off topic. Agents get a ready caveat for their answer.</p>
+  </div>
+  <section class="panel" id="now">
+    <h2>Total error of the radars now</h2>
+    <p class="hm-st" id="hmStatus">Loading…</p>
+    <ol class="hm-list" id="hmRows"></ol>
+    <p>For agents: <code>GET /api/v1/lyberg</code> or the MCP tool <code>get_lyberg</code>. Free, no key.</p>
+  </section>
+  <section class="panel" id="honour">
+    <h2>In honour of Lars Lyberg (1944–2021)</h2>
+    <p>Lars Lyberg was a Swedish statistician who worked for many years at Statistics Sweden and Stockholm University and founded the Journal of Official Statistics. He was one of the authors of the total survey error approach: data error is not only sampling noise but also coverage, nonresponse, measurement and processing, and they all count together. <a href="https://en.wikipedia.org/wiki/Lars_Lyberg" rel="noopener">Wikipedia article</a>.</p>
+    <p><small>The sensor is named in his honour; Orb Studio is not connected with Lars Lyberg, his family or Statistics Sweden.</small></p>
+    <p><a href="/en/tools/scientists">All sensors in honour of scientists →</a></p>
+  </section>
+  <aside class="pstrip" aria-label="Orb Studio partners"><small>Orb Studio partners · referral links</small><a href="/go/kraken?from=lyberg" target="_blank" rel="sponsored noopener">Kraken — crypto exchange ↗</a><a href="/go/starlink?from=lyberg" target="_blank" rel="sponsored noopener">Starlink — internet anywhere ↗</a></aside>
+</div>
+<script>
+const HM={"loading": "Loading…", "err": "The sensor did not answer just now.", "nodata": "no data", "r": {"geo": "Geo radar", "budget": "Household budget", "politics": "Politics", "economy": "Economy", "crypto": "Crypto radar", "energy": "Energy radar", "justice": "Justice and security", "web": "Open web"}, "v": {"covered": "Full coverage: every feed answered and every region appears.", "some_gaps": "Some gaps: a few feeds are silent or some regions are missing from the headlines.", "large_gaps": "Large gaps: many feeds are silent or several regions are not seen."}, "lang": {"en": "English", "de": "German", "ru": "Russian", "other": "other"}, "reg": {"europe": "Europe", "russia_ukraine": "Russia and Ukraine", "middle_east": "Middle East", "asia": "Asia", "africa": "Africa", "latin_america": "Latin America", "north_america": "North America"}, "h_lang": "Languages of the headlines", "h_seen": "Regions in the top headlines", "h_blind": "Not seen right now", "h_nr": "Feeds answered", "h_proc": "Processing", "none": "every region is seen", "proc": "received {r}, duplicates {d}, older than 72 h {o}, off topic {t}, kept {k}", "out": "outlets: {n}", "loc": "en-GB"};
+const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
+const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
+const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_lyberg")){sessionStorage.setItem("orbCounted_lyberg","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"lyberg",lang:"en",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
+fetch("/api/v1/lyberg",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!d.coverage){document.getElementById("hmStatus").textContent=HM.err;return;}
+  const c=d.coverage,nr=d.nonresponse,pc=d.processing;document.getElementById("hmStatus").textContent=HM.v[d.verdict]||d.verdict;
+  const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";
+  const lg=Object.entries(c.languages_pct).filter(([k,v])=>v).map(([k,v])=>(HM.lang[k]||k)+" "+v+" %").join(", ");
+  const seen=Object.entries(c.regions_in_top_headlines).filter(([k,v])=>v).sort((a,b)=>b[1]-a[1]).map(([k,v])=>(HM.reg[k]||k)+" "+v).join(", ");
+  const blind=c.regions_not_seen.map((k)=>HM.reg[k]||k).join(", ");
+  document.getElementById("hmRows").innerHTML=li(1,HM.h_lang,lg)+li(2,HM.h_seen,seen||"—")+li(3,HM.h_blind,blind||HM.none)
+   +li(4,HM.h_nr,nr.answered+" / "+nr.feeds,nr.silent_feeds.map((f)=>(HM.r[f.radar]||f.radar)+": "+f.feed).join(", "))
+   +li(5,HM.h_proc,HM.proc.replace("{r}",pc.items_received).replace("{d}",pc.duplicates_removed).replace("{o}",pc.older_than_72h_removed).replace("{t}",pc.off_topic_removed).replace("{k}",pc.kept))
+   +d.radars.map((r)=>li("·",HM.r[r.id]||r.id,r.answered+" / "+r.feeds,HM.out.replace("{n}",r.outlets))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+</script>
+<script type="module" src="/share-x.js"></script>
+<script src="/backnav.js" defer></script>
+</body>
+</html>
