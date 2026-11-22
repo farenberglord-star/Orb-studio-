@@ -10,6 +10,7 @@ import { COX } from "./cox.js";
 import { HALPERN } from "./halpern.js";
 import { HOWARD } from "./howard.js";
 import { LEAMER } from "./leamer.js";
+import { BAIRD } from "./baird.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -51,6 +52,10 @@ export const SCIENTISTS = [
     principle: "Extreme bounds: a conclusion is credible only if it survives the reasonable choices of the model; report the range, not one number.",
     sensor: "How fragile the Orb Studio indices are: each one recomputed under every reasonable alternative choice, with low-high bounds and the choices that move it most.",
     analog_check: { date: "2026-11-22", similar: "extreme bounds analysis (R package ExtremeBounds), specification curve analysis (Simonsohn et al.), multiverse analysis", difference: "runs live on the site's own published indices and names the radar or keyword the number depends on most" } },
+  { id: "baird", honour: BAIRD, field: "metrology, measurement standards", tool: "get_baird", api: "/api/v1/baird",
+    principle: "Traceability: a measured value counts only with an unbroken chain to its reference - source, time, unit - and when independent routes agree.",
+    sensor: "A live passport for every sensor number of the site: source, time, age, unit, plausible range, primary or derived, and cross-checks by independent routes.",
+    analog_check: { date: "2026-11-22", similar: "data lineage and provenance standards (W3C PROV, OpenLineage), Wikidata references per statement", difference: "a public, live passport per published number for agents, with staleness, unit sanity and independent cross-checks" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -58,6 +63,7 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "baird") return { verdict: r.verdict, traced: r.traced, total: r.total, failures: r.failures };
   if (id === "leamer") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: r.verdict, value: c.value, low: c.low, high: c.high } : null; }
   if (id === "howard") { const b = (r.by_age || [])[0]; return { verdict: r.verdict, tracked: r.stories_tracked, p_confirm: b ? b.p_confirm : null, median_wait_h: b ? b.median_wait_h : null }; }
   if (id === "kahneman") return { topics_rated: r.topics_rated, system_noise: r.audit && r.audit.importance ? r.audit.importance.system_noise : null };
