@@ -1724,7 +1724,7 @@ async function polyakNow(env) {
   return polyakReport({ now, series: { hallucination: col("h"), consensus: col("c"), token_hunger: col("t"), geo_radar: col("g") } });
 }
 async function scientistsNow(env, origin) {
-  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v1", 1e15).catch(() => null), rabinNow(env).catch(() => null)]);
+  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v2", 1e15).catch(() => null), rabinNow(env).catch(() => null)]);
   return scientistsIndex(origin, { hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin });
 }
 // Научные заголовки для датчика Парка: тот же Google News, что у радаров, два поисковых запроса (en, de)
@@ -4164,10 +4164,11 @@ async function trevisanNow(env, ctx) { // «Тревизан»: сколько �
 }
 const BERTSEKAS_TOOLS = ["get_radars", "get_sensors", "get_agent_indices", "list_scientist_sensors", "get_impulse", "get_crystals", "get_polyak", "get_halpern", "get_leamer", "get_baird", "get_lyberg", "get_hagenauer", "get_frankfurt", "get_howard", "get_duckworth", "get_trevisan"];
 async function bertsekasNow(env, ctx, origin, request) { // «Бертсекас»: размер ответа каждого инструмента, раз в 6 часов
-  const c = await sharedGet(env, "bertsekas-v1", 6 * 3600e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "bertsekas-v2", 6 * 3600e3).catch(() => null); if (c) return c;
   const sizes = {};
   for (const t of BERTSEKAS_TOOLS) { try { sizes[t] = tokensOf(await mcpTool(t, {}, env, ctx, origin, request)); } catch { sizes[t] = null; } }
-  const r = bertsekasReport(sizes); if (Object.values(sizes).some((v) => v)) await sharedPut(env, "bertsekas-v1", r).catch(() => {}); return r;
+  try { sizes["get_crystals(blind_spot)"] = tokensOf(await mcpTool("get_crystals", { blind_spot: "rumour_vs_fact" }, env, ctx, origin, request)); } catch {}
+  const r = bertsekasReport(sizes); if (Object.values(sizes).some((v) => v)) await sharedPut(env, "bertsekas-v2", r).catch(() => {}); return r;
 }
 async function rabinTick(env, ctx) { // «Рабин»: раз в час случайные заголовки сверяются со страницей источника
   if (await sharedGet(env, "rabin-slot", 55 * 60e3).catch(() => null)) return; await sharedPut(env, "rabin-slot", { t: Date.now() });

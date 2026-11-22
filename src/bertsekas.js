@@ -14,7 +14,7 @@ export const BERTSEKAS_RECIPES = [
   { id: "where_number_from", question: "Where does this sensor number come from and is it fresh?", cheap: ["get_baird"], naive: ["get_sensors", "get_hagenauer"] },
   { id: "what_radars_miss", question: "What do the radars not see right now?", cheap: ["get_lyberg"], naive: ["get_radars", "get_sensors"] },
   { id: "why_index_moved", question: "Why did an index move in the last hours?", cheap: ["get_polyak", "get_halpern"], naive: ["get_agent_indices", "get_radars", "get_halpern"] },
-  { id: "which_thinking_rule", question: "Which reasoning rule applies to this blind spot?", cheap: ["get_crystals"], naive: ["list_scientist_sensors", "get_crystals"] },
+  { id: "which_thinking_rule", question: "Which reasoning rule applies to this blind spot?", cheap: ["get_crystals(blind_spot)"], naive: ["list_scientist_sensors", "get_crystals"] },
   { id: "headline_checkable", question: "Is there anything checkable in today's headlines?", cheap: ["get_frankfurt"], naive: ["get_radars", "get_frankfurt"] },
 ];
 export function bertsekasReport(sizes, now = Date.now()) {
@@ -25,7 +25,7 @@ export function bertsekasReport(sizes, now = Date.now()) {
     sensor: "bertsekas", verdict: tools.length ? "measured" : "no_data", tools, recipes,
     question: "How many tokens does each Orb Studio tool answer cost an agent, and which chain of calls answers a typical question most cheaply?",
     method: "Every 6 hours the sensor calls each read-only Orb Studio MCP tool that needs no input and measures the size of its answer (JSON characters / 4 ≈ tokens). For typical agent questions it compares a cheap chain of calls with a naive one (read everything) that also answers the question. check_headline and other tools that need input or call outside services are not measured.",
-    rule: "Call the cheapest chain that answers your question; read raw headlines (get_radars) only when you need the headlines themselves.",
+    rule: "Call the cheapest chain that answers your question; use filters (for example get_crystals with blind_spot) instead of reading a whole collection.",
     honour: BERTSEKAS, similar: "Tool routers and tool search for agents (in MCP clients, Composio and others) choose which tool to call; LLM cost calculators price tokens. This sensor publishes the measured answer size of every tool of one site and the cheapest call chains for typical questions.",
     generated_at: new Date(now).toISOString(),
   };
