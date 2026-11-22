@@ -121,13 +121,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h2>Gleich hier ausprobieren</h2>
     <div class="demo">
       <div class="card">
-        <h3>🔳 QR-Code</h3>
-        <p>Link oder Text → QR-Code, den man ausdrucken und mit dem Handy scannen kann.</p>
-        <input type="text" id="qrText" value="https://orbstudio.org/sensors" aria-label="Text für den QR-Code">
-        <button class="btn" type="button" id="qrGo">QR erstellen</button>
-        <div class="qrbox"><img id="qrImg" alt="QR-Code" src="/api/v1/qr?text=https%3A%2F%2Forbstudio.org%2Fsensors"></div>
-      </div>
-      <div class="card">
         <h3>🖨 Druckseite</h3>
         <p><span class="mono"># Überschrift</span>, <span class="mono">- Punkt</span>, <span class="mono">- [ ] Häkchen</span>, <span class="mono">1. Schritt</span>. Es öffnet sich ein sauberes A4-Blatt: Drucken oder „Als PDF speichern“.</p>
         <input type="text" id="prTitle" value="Liste fürs Wochenende" aria-label="Überschrift">
@@ -175,7 +168,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
       <div class="card"><span class="tag">neu · Sensor</span><h3>get_polyak</h3><p>Poljak-Sensor: einmaliger Sprung oder anhaltende Verschiebung der Orb-Studio-Indizes – aus vergangenen Werten, ohne Prognosen. Zu Ehren des Mathematikers Boris Poljak (1935–2023).</p><a href="/de/tools/polyak">Sensor öffnen</a></div>
       <div class="card"><span class="tag">neu · Faktencheck</span><h3>check_interview</h3><p>YouTube-Interviewlink → Aussagen mit Zeitmarken; Krypto-Kursprognosen mit abgelaufener Frist werden mit Kraken abgeglichen.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/clips#interview">Seite</a></div>
       <div class="card"><span class="tag">neu · Experiment</span><h3>get_clips · predict_clip</h3><p>Emotionale Zeitmarken: wo in einem Interview ein Gedanke beim Zuhörer ankommt. Erst die Sekunde aus dem Text erraten, dann mit dem Menschen vergleichen.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">Seite</a></div>
-      <div class="card"><span class="tag">neu</span><h3>make_qr</h3><p>QR-Code für einen Link oder Text – als Bild direkt in der Antwort des Agenten.</p><code>GET /api/v1/qr?text=…</code></div>
       <div class="card"><span class="tag">neu</span><h3>make_printable</h3><p>Text → saubere A4/Letter-Seite zum Drucken: Listen, Häkchen, Anleitungen.</p><code>POST /api/v1/printable</code></div>
       <div class="card"><h3>check_headline</h3><p>Bevor du eine Nachricht oder ein Gerücht weitererzählst: wie viele Medien dasselbe schreiben, mit Links, wie viele davon unabhängige Stimmen sind und wer nur dieselbe Agenturmeldung (dpa, Reuters, AP) übernommen hat, und ob die Schlagzeile schreit.</p><code>GET /api/v1/check?headline=…</code></div>
       <div class="card"><h3>check_agent_access</h3><p>Dürfen KI-Agenten die Seite lesen: robots.txt, KI-Verbote, Bot-Schutz, llms.txt.</p><code>GET /api/v1/access?url=…</code></div>
@@ -254,7 +246,6 @@ Du druckst nicht und steuerst keine Geräte über Orb Studio: Du bereitest eine 
 const $=(id)=>document.getElementById(id);
 fetch('/api/v1/robot').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;$('emoStatus').textContent=(d.online?'🟢 ':'⚪ ')+d.status_ru;
   $('emoLog').textContent=(d.last_commands||[]).slice(0,5).map(c=>new Date(c.t).toLocaleTimeString('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' '+c.by+' → '+c.action+(c.robot_confirmed?' ✓ EMO hat bestätigt':c.ok?' ✓':' ✗')).join('\n')||'noch niemand';}).catch(()=>{});
-$('qrGo').onclick=()=>{const t=$('qrText').value.trim();if(t)$('qrImg').src='/api/v1/qr?text='+encodeURIComponent(t);};
 $('prGo').onclick=async()=>{try{const r=await fetch('/api/v1/printable',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('prTitle').value,text:$('prText').value,paper:'a4'})});
   const h=await r.text();const u=URL.createObjectURL(new Blob([h],{type:'text/html'}));window.open(u,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(u),60000);}catch(e){}};
 function krFill(market){
