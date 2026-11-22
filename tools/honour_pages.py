@@ -44,6 +44,7 @@ def page(sid, lg, c, wiki, render_js, cfg, person):
     <h2>{H.escape(c["honour_h"])}</h2>
     <p>{c["honour"].replace("{wiki}", wiki)}</p>
     <p><small>{H.escape(c["note"])}</small></p>
+    <p><a href="{("" if lg == "ru" else "/" + lg)}/tools/scientists">{H.escape(PORTAL[lg]["all"])} →</a></p>
   </section>
   <aside class="pstrip" aria-label="{H.escape(st[0])}"><small>{H.escape(st[0])} · {H.escape(st[3])}</small><a href="/go/kraken?from={sid}" target="_blank" rel="sponsored noopener">{H.escape(st[1])} ↗</a><a href="/go/starlink?from={sid}" target="_blank" rel="sponsored noopener">{H.escape(st[2])} ↗</a></aside>
 </div>
@@ -183,9 +184,80 @@ SENSORS = {
    cfg=dict(comp={"hallucination":"World Hallucination Index","consensus":"You're Absolutely Right Barometer","token_hunger":"Token Hunger Index","geo_radar":"Geo radar"}, verdict={"calm":"calm","jump":"one-off jump","shift":"sustained shift","unknown":"too few readings"},
      last="now", avg="24-hour average", avg3="last 3 hours", inertia="inertia per 6 h", thr="noise threshold", few="readings in 24 h", readings="Readings in 24 h", some="Noticeable movement in indices: {n}", allcalm="All indices calm", nodata="no data", loading="Loading…", err="The sensor did not answer just now."))}),
 }
+PORTAL = {
+ "ru": dict(title="Датчики в честь учёных · Orb Studio", h1="Датчики в честь учёных", eye="Orb Studio · инструменты · портал", all="Все датчики в честь учёных",
+   desc="Математика, знания, импульс: каждый датчик Orb Studio берёт одну идею учёного и применяет её к живым данным. Бесплатно для людей и любых ИИ-агентов: API, MCP, страницы на трёх языках.",
+   lead="Математика, знания, импульс. Каждый датчик берёт одну идею учёного и применяет её к живым данным Orb Studio — так их труды продолжают работать. Датчиками бесплатно пользуются люди и любые ИИ-агенты, без ключа.",
+   rule="Правило портала: датчик делаем, только если в проверке не нашлось инструмента с той же сутью. Похожие инструменты называем открыто, слово «уникальный» не пишем.",
+   idea="Идея", does="Датчик", similar="Похожие инструменты", diff="Отличие", checked="проверено", open="Открыть датчик", wiki="Википедия", now="Сейчас",
+   connect_h="Как подключить агента", connect='MCP-сервер: <code>https://orbstudio.org/mcp</code> (инструменты <code>list_scientist_sensors</code>, <code>get_hamilton</code>, <code>get_mikrin</code>, <code>get_polyak</code>). Список датчиков в JSON: <code>GET /api/v1/scientists</code>. Бесплатно, без ключа.',
+   live={"hamilton_ok":"всё работает полностью","hamilton_set":"отложено: {x}","mikrin":"самый короткий путь — {x}","mikrin_none":"замеров пока нет","polyak_calm":"все индексы спокойны","polyak_move":"заметное движение: {x}"}),
+ "de": dict(title="Sensoren zu Ehren von Wissenschaftlern · Orb Studio", h1="Sensoren zu Ehren von Wissenschaftlern", eye="Orb Studio · Werkzeuge · Portal", all="Alle Sensoren zu Ehren von Wissenschaftlern",
+   desc="Mathematik, Wissen, Impuls: Jeder Sensor von Orb Studio nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf Live-Daten an. Kostenlos für Menschen und alle KI-Agenten: API, MCP, Seiten in drei Sprachen.",
+   lead="Mathematik, Wissen, Impuls. Jeder Sensor nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf die Live-Daten von Orb Studio an – so arbeitet ihr Werk weiter. Menschen und alle KI-Agenten nutzen die Sensoren kostenlos, ohne Schlüssel.",
+   rule="Regel des Portals: Ein Sensor entsteht nur, wenn eine Prüfung kein Werkzeug mit demselben Kern findet. Ähnliche Werkzeuge nennen wir offen, das Wort „einzigartig“ verwenden wir nicht.",
+   idea="Idee", does="Sensor", similar="Ähnliche Werkzeuge", diff="Unterschied", checked="geprüft", open="Sensor öffnen", wiki="Wikipedia", now="Jetzt",
+   connect_h="So verbinden Sie einen Agenten", connect='MCP-Server: <code>https://orbstudio.org/mcp</code> (Werkzeuge <code>list_scientist_sensors</code>, <code>get_hamilton</code>, <code>get_mikrin</code>, <code>get_polyak</code>). Liste der Sensoren als JSON: <code>GET /api/v1/scientists</code>. Kostenlos, ohne Schlüssel.',
+   live={"hamilton_ok":"alles läuft vollständig","hamilton_set":"zurückgestellt: {x}","mikrin":"kürzester Weg – {x}","mikrin_none":"noch keine Messung","polyak_calm":"alle Indizes ruhig","polyak_move":"merkliche Bewegung: {x}"}),
+ "en": dict(title="Sensors in honour of scientists · Orb Studio", h1="Sensors in honour of scientists", eye="Orb Studio · tools · portal", all="All sensors in honour of scientists",
+   desc="Mathematics, knowledge, momentum: each Orb Studio sensor takes one idea of a scientist and applies it to live data. Free for people and any AI agent: API, MCP, pages in three languages.",
+   lead="Mathematics, knowledge, momentum. Each sensor takes one idea of a scientist and applies it to the live data of Orb Studio, so their work keeps working. People and any AI agent use the sensors for free, with no key.",
+   rule="Rule of the portal: a sensor is made only when a check finds no tool with the same essence. Similar tools are named openly; the word “unique” is not used.",
+   idea="Idea", does="Sensor", similar="Similar tools", diff="Difference", checked="checked", open="Open the sensor", wiki="Wikipedia", now="Now",
+   connect_h="How to connect an agent", connect='MCP server: <code>https://orbstudio.org/mcp</code> (tools <code>list_scientist_sensors</code>, <code>get_hamilton</code>, <code>get_mikrin</code>, <code>get_polyak</code>). List of sensors as JSON: <code>GET /api/v1/scientists</code>. Free, no key.',
+   live={"hamilton_ok":"everything works fully","hamilton_set":"set aside: {x}","mikrin":"shortest path – {x}","mikrin_none":"no measurement yet","polyak_calm":"all indices calm","polyak_move":"noticeable movement: {x}"}),
+}
+PORTAL_ITEMS = {
+ "hamilton": {"ru": ("Маргарет Гамильтон (1936–2026), программная инженерия", "При перегрузке держать главное, откладывать второстепенное и говорить, что отложено.", "MCP-проверки статуса сервисов (StatusGator, API Status Check, OutageDeck)", "описывает только Orb Studio и говорит, что отложено и почему, а не просто «работает / упал»", "что в Orb Studio работает полностью, что отложено ради главного и почему"),
+              "de": ("Margaret Hamilton (1936–2026), Software Engineering", "Bei Überlastung das Wichtigste weiterlaufen lassen, Nebensächliches zurückstellen und sagen, was zurückgestellt wurde.", "Statusprüfungen von Diensten für Agenten (StatusGator, API Status Check, OutageDeck)", "beschreibt nur Orb Studio und sagt, was zurückgestellt wurde und warum – nicht nur „läuft / ausgefallen“", "was bei Orb Studio vollständig läuft, was zugunsten des Wichtigsten zurückgestellt wurde und warum"),
+              "en": ("Margaret Hamilton (1936–2026), software engineering", "Under overload keep the main work running, set the rest aside and say what was set aside.", "service status checks for agents (StatusGator, API Status Check, OutageDeck)", "describes only Orb Studio and says what was set aside and why, not just up/down", "what in Orb Studio works fully, what was set aside to keep the main things running, and why")},
+ "mikrin": {"ru": ("Евгений Микрин (умер в 2020), управление космическими кораблями", "Сократить путь: до МКС не за двое суток, а за несколько часов.", "задержка доставки в коммерческих новостных API (Webz.io, Opoint)", "путь новости внутри эфира Orb Studio по шагам, до синтезированного голоса", "за сколько новость доходит от источника до текста Давида и до голоса"),
+            "de": ("Jewgeni Mikrin (gest. 2020), Steuerung von Raumschiffen", "Den Weg verkürzen: zur ISS nicht in zwei Tagen, sondern in wenigen Stunden.", "Zustellverzögerung kommerzieller Nachrichten-APIs (Webz.io, Opoint)", "der Weg einer Nachricht in der Sendung von Orb Studio, Schritt für Schritt bis zur synthetischen Stimme", "wie lange eine Nachricht von der Quelle bis zu Davids Text und bis zur Stimme braucht"),
+            "en": ("Evgeny Mikrin (died 2020), spacecraft control", "Shorten the path: to the ISS in a few hours instead of two days.", "delivery latency of commercial news APIs (Webz.io, Opoint)", "the path of a story inside the Orb Studio broadcast, step by step, up to the synthetic voice", "how long a story travels from its source to David's text and to the voice")},
+ "polyak": {"ru": ("Борис Поляк (1935–2023), оптимизация", "Инерция прошлых шагов (тяжёлый шарик) и усреднение в шуме (Поляка — Юдицкого).", "скользящие средние и поиск аномалий вообще", "для индексов Orb Studio и с ответом одним словом: спокойно, скачок или сдвиг", "разовый скачок или устойчивый сдвиг индексов Orb Studio, только по прошлым значениям"),
+            "de": ("Boris Poljak (1935–2023), Optimierung", "Schwung früherer Schritte (Heavy Ball) und Mittelung im Rauschen (Poljak–Juditsky).", "gleitende Durchschnitte und Anomalieerkennung allgemein", "für die Indizes von Orb Studio, mit einer Antwort in einem Wort: ruhig, Sprung oder Verschiebung", "einmaliger Sprung oder anhaltende Verschiebung der Orb-Studio-Indizes, nur aus vergangenen Werten"),
+            "en": ("Boris Polyak (1935–2023), optimization", "Inertia of past steps (heavy ball) and averaging under noise (Polyak–Juditsky).", "moving averages and anomaly detection in general", "applied to the Orb Studio indices with a one-word answer: calm, jump or shift", "a one-off jump or a sustained shift in the Orb Studio indices, from past readings only")},
+}
+PORTAL_RENDER = """if(!d||!Array.isArray(d.sensors))return;for(const s of d.sensors){const el=document.querySelector('[data-now="'+s.id+'"]');if(!el||!s.now)continue;let t="";
+  if(s.id==="hamilton")t=s.now.set_aside&&s.now.set_aside.length?P.live.hamilton_set.replace("{x}",s.now.set_aside.map((x)=>P.names[x]||x).join(", ")):P.live.hamilton_ok;
+  else if(s.id==="mikrin")t=s.now.minutes!=null?P.live.mikrin.replace("{x}",s.now.minutes+" "+P.min):P.live.mikrin_none;
+  else if(s.id==="polyak")t=s.now.moving&&s.now.moving.length?P.live.polyak_move.replace("{x}",s.now.moving.map((m)=>(P.names[m.id]||m.id)+" "+(m.direction==="up"?"↑":"↓")).join(", ")):P.live.polyak_calm;
+  el.textContent=P.now+": "+t;}"""
+def portal(lg):
+    P = PORTAL[lg]; s = open(TPL[lg]).read(); head = s[:s.index('<div class="wrap">')]; pre = "" if lg == "ru" else "/" + lg; path = pre + "/tools/scientists"
+    head = re.sub(r'<title>.*?</title>', '<title>' + H.escape(P["title"]) + '</title>', head, count=1, flags=re.S)
+    for prop, val in [("name=\"description\"", P["desc"]), ("property=\"og:description\"", P["desc"]), ("property=\"og:title\"", P["title"]), ("property=\"og:url\"", "https://orbstudio.org" + path)]:
+        head = re.sub(r'(<meta ' + re.escape(prop) + r' content=")[^"]*(")', lambda m: m.group(1) + H.escape(val) + m.group(2), head, count=1)
+    head = re.sub(r'(<link rel="canonical" href=")[^"]*(")', lambda m: m.group(1) + "https://orbstudio.org" + path + m.group(2), head, count=1)
+    head = re.sub(r'href="/(ru|de|en)/tools(?:/[a-z-]+)?"', lambda m: 'href="/' + m.group(1) + '/tools/scientists"', head)
+    head = re.sub(r'<link rel="alternate" hreflang[^>]*>\s*', '', head)
+    alt = "".join('<link rel="alternate" hreflang="%s" href="https://orbstudio.org/%s/tools/scientists">\n' % (l, l) for l in ("ru", "de", "en")) + '<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/scientists">\n'
+    items = []
+    for i, (sid, S) in enumerate(SENSORS.items()):
+        items.append({"@type": "ListItem", "position": i + 1, "item": {"@type": "Dataset", "name": S["L"][lg]["h1"], "description": S["L"][lg]["desc"], "url": "https://orbstudio.org" + pre + "/tools/" + sid, "isAccessibleForFree": True, "about": S["person"],
+          "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/" + sid}}})
+    ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": P["title"], "description": P["desc"], "url": "https://orbstudio.org" + path, "inLanguage": lg, "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"},
+          "mainEntity": {"@type": "ItemList", "itemListElement": items}}
+    head = head.replace('</head>', alt + '<meta property="og:locale" content="' + OG_LOCALE[lg] + '">\n<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>\n<style>' + CSS + '.sci{display:grid;gap:.9rem}.sci .card p{margin:.35rem 0}.sci .who{opacity:.8;font-size:.92rem}.sci .now{font-size:.9rem;opacity:.85}.sci small{opacity:.7}</style>\n</head>', 1)
+    cards = []
+    for sid, S in SENSORS.items():
+        c = S["L"][lg]; who, idea, sim, diff, does = PORTAL_ITEMS[sid][lg]; wiki = S["wiki"].get(lg) or S["wiki"]["ru"]
+        cards.append('    <div class="card"><h3>get_%s</h3><p><b>%s</b></p><p class="who">%s</p>\n      <p><b>%s:</b> %s</p><p><b>%s:</b> %s.</p>\n      <p><small>%s: %s. %s: %s (%s 22.11.2026).</small></p>\n      <p class="now" data-now="%s"></p>\n      <p><a href="%s/tools/%s">%s</a> · <a href="%s" rel="noopener">%s</a> · <code>/api/v1/%s</code></p></div>' % (
+            sid, H.escape(c["h1"]), H.escape(who), H.escape(P["idea"]), H.escape(idea), H.escape(P["does"]), H.escape(does[:1].upper() + does[1:]),
+            H.escape(P["similar"]), H.escape(sim), H.escape(P["diff"]), H.escape(diff), H.escape(P["checked"]), sid, pre, sid, H.escape(P["open"]), wiki, H.escape(P["wiki"]), sid))
+    st = STRIP[lg]
+    body = ('<div class="wrap">\n  <div>\n    <div class="eyebrow">' + H.escape(P["eye"]) + '</div>\n    <h1>' + H.escape(P["h1"]) + '</h1>\n    <p class="lead">' + H.escape(P["lead"]) + '</p>\n    <p><small>' + H.escape(P["rule"]) + '</small></p>\n  </div>\n'
+      '  <section class="panel sci">\n' + "\n".join(cards) + '\n  </section>\n  <section class="panel">\n    <h2>' + H.escape(P["connect_h"]) + '</h2>\n    <p>' + P["connect"] + '</p>\n  </section>\n'
+      '  <aside class="pstrip" aria-label="' + H.escape(st[0]) + '"><small>' + H.escape(st[0]) + ' · ' + H.escape(st[3]) + '</small><a href="/go/kraken?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[1]) + ' ↗</a><a href="/go/starlink?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[2]) + ' ↗</a></aside>\n</div>\n'
+      '<script>\nconst P=' + json.dumps({"live": P["live"], "now": P["now"], "min": SENSORS["mikrin"]["L"][lg]["cfg"]["min"], "names": {**SENSORS["hamilton"]["L"][lg]["cfg"]["comp"], **SENSORS["polyak"]["L"][lg]["cfg"]["comp"]}}, ensure_ascii=False) + ';\nfetch("/api/v1/scientists",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{' + PORTAL_RENDER + '}).catch(()=>{});\n</script>\n'
+      '<script type="module" src="/share-x.js"></script>\n<script src="/backnav.js" defer></script>\n</body>\n</html>\n')
+    return head + body
+
 if __name__ == "__main__":
     for sid, S in SENSORS.items():
         for lg, c in S["L"].items():
             cfg = dict(c["cfg"], loc=LOC[lg]); wiki = S["wiki"].get(lg) or S["wiki"]["ru"]
             out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/" + sid + ".html"
             open(out, "w").write(page(sid, lg, c, wiki, S["render"], cfg, S["person"])); print(out)
+    for lg in ("ru", "de", "en"):
+        out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/scientists.html"; open(out, "w").write(portal(lg)); print(out)
