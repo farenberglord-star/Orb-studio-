@@ -102,7 +102,11 @@
     "qr": "https://orbstudio.org/api/v1/qr?text={text}",
     "printable": "https://orbstudio.org/api/v1/printable",
     "podcast_duo": "https://orbstudio.org/api/v1/broadcast/duo",
-    "round_table": "https://orbstudio.org/api/v1/roundtable"
+    "round_table": "https://orbstudio.org/api/v1/roundtable",
+    "scientists": "https://orbstudio.org/api/v1/scientists",
+    "hamilton": "https://orbstudio.org/api/v1/hamilton",
+    "mikrin": "https://orbstudio.org/api/v1/mikrin",
+    "polyak": "https://orbstudio.org/api/v1/polyak"
   },
   "auth": "none",
   "payments": {

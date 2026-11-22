@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sensoren zu Ehren von Wissenschaftlern · Orb Studio</title>
+<meta name="description" content="Mathematik, Wissen, Impuls: Jeder Sensor von Orb Studio nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf Live-Daten an. Kostenlos für Menschen und alle KI-Agenten: API, MCP, Seiten in drei Sprachen.">
+<link rel="canonical" href="https://orbstudio.org/de/tools/scientists">
+<meta property="og:url" content="https://orbstudio.org/de/tools/scientists">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Sensoren zu Ehren von Wissenschaftlern · Orb Studio">
+<meta property="og:description" content="Mathematik, Wissen, Impuls: Jeder Sensor von Orb Studio nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf Live-Daten an. Kostenlos für Menschen und alle KI-Agenten: API, MCP, Seiten in drei Sprachen.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools/scientists">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/scientists">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/scientists">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/scientists">
+<meta property="og:locale" content="de_DE">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Sensoren zu Ehren von Wissenschaftlern · Orb Studio", "description": "Mathematik, Wissen, Impuls: Jeder Sensor von Orb Studio nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf Live-Daten an. Kostenlos für Menschen und alle KI-Agenten: API, MCP, Seiten in drei Sprachen.", "url": "https://orbstudio.org/de/tools/scientists", "inLanguage": "de", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "mainEntity": {"@type": "ItemList", "itemListElement": [{"@type": "ListItem", "position": 1, "item": {"@type": "Dataset", "name": "Hamilton-Sensor", "description": "Was bei Orb Studio vollständig läuft, was zugunsten des Wichtigsten zurückgestellt wurde und warum. Benannt nach Margaret Hamilton (1936–2026), Leiterin der Apollo-Bordsoftware.", "url": "https://orbstudio.org/de/tools/hamilton", "isAccessibleForFree": true, "about": {"@type": "Person", "name": "Margaret Hamilton", "birthDate": "1936-08-17", "deathDate": "2026-09-30", "sameAs": ["https://en.wikipedia.org/wiki/Margaret_Hamilton_(software_engineer)", "https://de.wikipedia.org/wiki/Margaret_Hamilton_(Informatikerin)"]}, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/hamilton"}}}, {"@type": "ListItem", "position": 2, "item": {"@type": "Dataset", "name": "Mikrin-Sensor", "description": "Wie lange eine Nachricht von der Quelle bis in die Sendung von Orb Studio braucht: von der Veröffentlichung bis zu Davids Text und bis zur Stimme. Benannt nach dem Akademiemitglied Jewgeni Mikrin, der den Flug zur ISS von zwei Tagen auf wenige Stunden verkürzte.", "url": "https://orbstudio.org/de/tools/mikrin", "isAccessibleForFree": true, "about": {"@type": "Person", "name": "Evgeny Mikrin", "alternateName": "Евгений Анатольевич Микрин", "sameAs": ["https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BA%D1%80%D0%B8%D0%BD,_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87"]}, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/mikrin"}}}, {"@type": "ListItem", "position": 3, "item": {"@type": "Dataset", "name": "Poljak-Sensor", "description": "Einmaliger Sprung oder anhaltende Verschiebung: Der Sensor unterscheidet das für die Indizes von Orb Studio anhand vergangener Werte, ohne Prognosen. Benannt nach dem Mathematiker Boris Poljak (1935–2023), Urheber der Heavy-Ball-Methode und der Poljak-Juditsky-Mittelung.", "url": "https://orbstudio.org/de/tools/polyak", "isAccessibleForFree": true, "about": {"@type": "Person", "name": "Boris Polyak", "alternateName": "Борис Теодорович Поляк", "birthDate": "1935-05-04", "deathDate": "2023-02-03", "sameAs": ["https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%BB%D1%8F%D0%BA,_%D0%91%D0%BE%D1%80%D0%B8%D1%81_%D0%A2%D0%B5%D0%BE%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%D0%B8%D1%87", "https://www.ipu.ru/en/node/74437"]}, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/polyak"}}}]}}</script>
+<style>.hm-list{list-style:none;padding:0;margin:0}.hm-list li{display:grid;grid-template-columns:1.6rem 1fr auto;gap:.15rem .6rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.12)}.hm-list .n{opacity:.6}.hm-list .s{white-space:nowrap}.hm-list .w{grid-column:2/4;font-size:.92rem;opacity:.85}.hm-list .u{grid-column:2/4;font-size:.8rem;opacity:.6}.hm-st{font-size:1.15rem;margin:.2rem 0 .8rem}.pstrip{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;justify-content:center;margin:1.2rem 0 4.5rem;padding:.45rem .8rem;border:1px solid rgba(155,140,255,.35);border-radius:999px;font-size:.8rem;opacity:.85}.pstrip a{text-decoration:none}.pstrip small{opacity:.6}.sci{display:grid;gap:.9rem}.sci .card p{margin:.35rem 0}.sci .who{opacity:.8;font-size:.92rem}.sci .now{font-size:.9rem;opacity:.85}.sci small{opacity:.7}</style>
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Start</a><a href="/world">Welt jetzt</a><a href="/ground">Vom Boden</a><a href="/air">Sendung</a><a href="/deck">Brücke</a><a href="/for-agents" class="on" aria-current="page">Für Agenten</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/scientists" hreflang="ru" lang="ru">RU</a><a href="/de/tools/scientists" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/tools/scientists" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Orb Studio · Werkzeuge · Portal</div>
+    <h1>Sensoren zu Ehren von Wissenschaftlern</h1>
+    <p class="lead">Mathematik, Wissen, Impuls. Jeder Sensor nimmt eine Idee einer Wissenschaftlerin oder eines Wissenschaftlers und wendet sie auf die Live-Daten von Orb Studio an – so arbeitet ihr Werk weiter. Menschen und alle KI-Agenten nutzen die Sensoren kostenlos, ohne Schlüssel.</p>
+    <p><small>Regel des Portals: Ein Sensor entsteht nur, wenn eine Prüfung kein Werkzeug mit demselben Kern findet. Ähnliche Werkzeuge nennen wir offen, das Wort „einzigartig“ verwenden wir nicht.</small></p>
+  </div>
+  <section class="panel sci">
+    <div class="card"><h3>get_hamilton</h3><p><b>Hamilton-Sensor</b></p><p class="who">Margaret Hamilton (1936–2026), Software Engineering</p>
+      <p><b>Idee:</b> Bei Überlastung das Wichtigste weiterlaufen lassen, Nebensächliches zurückstellen und sagen, was zurückgestellt wurde.</p><p><b>Sensor:</b> Was bei Orb Studio vollständig läuft, was zugunsten des Wichtigsten zurückgestellt wurde und warum.</p>
+      <p><small>Ähnliche Werkzeuge: Statusprüfungen von Diensten für Agenten (StatusGator, API Status Check, OutageDeck). Unterschied: beschreibt nur Orb Studio und sagt, was zurückgestellt wurde und warum – nicht nur „läuft / ausgefallen“ (geprüft 22.11.2026).</small></p>
+      <p class="now" data-now="hamilton"></p>
+      <p><a href="/de/tools/hamilton">Sensor öffnen</a> · <a href="https://de.wikipedia.org/wiki/Margaret_Hamilton_(Informatikerin)" rel="noopener">Wikipedia</a> · <code>/api/v1/hamilton</code></p></div>
+    <div class="card"><h3>get_mikrin</h3><p><b>Mikrin-Sensor</b></p><p class="who">Jewgeni Mikrin (gest. 2020), Steuerung von Raumschiffen</p>
+      <p><b>Idee:</b> Den Weg verkürzen: zur ISS nicht in zwei Tagen, sondern in wenigen Stunden.</p><p><b>Sensor:</b> Wie lange eine Nachricht von der Quelle bis zu Davids Text und bis zur Stimme braucht.</p>
+      <p><small>Ähnliche Werkzeuge: Zustellverzögerung kommerzieller Nachrichten-APIs (Webz.io, Opoint). Unterschied: der Weg einer Nachricht in der Sendung von Orb Studio, Schritt für Schritt bis zur synthetischen Stimme (geprüft 22.11.2026).</small></p>
+      <p class="now" data-now="mikrin"></p>
+      <p><a href="/de/tools/mikrin">Sensor öffnen</a> · <a href="https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BA%D1%80%D0%B8%D0%BD,_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87" rel="noopener">Wikipedia</a> · <code>/api/v1/mikrin</code></p></div>
+    <div class="card"><h3>get_polyak</h3><p><b>Poljak-Sensor</b></p><p class="who">Boris Poljak (1935–2023), Optimierung</p>
+      <p><b>Idee:</b> Schwung früherer Schritte (Heavy Ball) und Mittelung im Rauschen (Poljak–Juditsky).</p><p><b>Sensor:</b> Einmaliger Sprung oder anhaltende Verschiebung der Orb-Studio-Indizes, nur aus vergangenen Werten.</p>
+      <p><small>Ähnliche Werkzeuge: gleitende Durchschnitte und Anomalieerkennung allgemein. Unterschied: für die Indizes von Orb Studio, mit einer Antwort in einem Wort: ruhig, Sprung oder Verschiebung (geprüft 22.11.2026).</small></p>
+      <p class="now" data-now="polyak"></p>
+      <p><a href="/de/tools/polyak">Sensor öffnen</a> · <a href="https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%BB%D1%8F%D0%BA,_%D0%91%D0%BE%D1%80%D0%B8%D1%81_%D0%A2%D0%B5%D0%BE%D0%B4%D0%BE%D1%80%D0%BE%D0%B2%D0%B8%D1%87" rel="noopener">Wikipedia</a> · <code>/api/v1/polyak</code></p></div>
+  </section>
+  <section class="panel">
+    <h2>So verbinden Sie einen Agenten</h2>
+    <p>MCP-Server: <code>https://orbstudio.org/mcp</code> (Werkzeuge <code>list_scientist_sensors</code>, <code>get_hamilton</code>, <code>get_mikrin</code>, <code>get_polyak</code>). Liste der Sensoren als JSON: <code>GET /api/v1/scientists</code>. Kostenlos, ohne Schlüssel.</p>
+  </section>
+  <aside class="pstrip" aria-label="Partner von Orb Studio"><small>Partner von Orb Studio · Empfehlungslinks</small><a href="/go/kraken?from=scientists" target="_blank" rel="sponsored noopener">Kraken — Kryptobörse ↗</a><a href="/go/starlink?from=scientists" target="_blank" rel="sponsored noopener">Starlink — Internet überall ↗</a></aside>
+</div>
+<script>
+const P={"live": {"hamilton_ok": "alles läuft vollständig", "hamilton_set": "zurückgestellt: {x}", "mikrin": "kürzester Weg – {x}", "mikrin_none": "noch keine Messung", "polyak_calm": "alle Indizes ruhig", "polyak_move": "merkliche Bewegung: {x}"}, "now": "Jetzt", "min": "Min.", "names": {"music": "Musik", "voice": "Stimme", "dj": "Davids Moderationen", "sensor_news": "Sensor-Nachrichten", "radar_news": "Radar-Nachrichten", "regional": "Regionale Interviews", "self_check": "Selbstprüfung", "hallucination": "Welt-Halluzinationsindex", "consensus": "Barometer „Du hast absolut recht!“", "token_hunger": "Token-Hunger", "geo_radar": "Geo-Radar"}};
+fetch("/api/v1/scientists",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.sensors))return;for(const s of d.sensors){const el=document.querySelector('[data-now="'+s.id+'"]');if(!el||!s.now)continue;let t="";
+  if(s.id==="hamilton")t=s.now.set_aside&&s.now.set_aside.length?P.live.hamilton_set.replace("{x}",s.now.set_aside.map((x)=>P.names[x]||x).join(", ")):P.live.hamilton_ok;
+  else if(s.id==="mikrin")t=s.now.minutes!=null?P.live.mikrin.replace("{x}",s.now.minutes+" "+P.min):P.live.mikrin_none;
+  else if(s.id==="polyak")t=s.now.moving&&s.now.moving.length?P.live.polyak_move.replace("{x}",s.now.moving.map((m)=>(P.names[m.id]||m.id)+" "+(m.direction==="up"?"↑":"↓")).join(", ")):P.live.polyak_calm;
+  el.textContent=P.now+": "+t;}}).catch(()=>{});
+</script>
+<script type="module" src="/share-x.js"></script>
+<script src="/backnav.js" defer></script>
+</body>
+</html>
