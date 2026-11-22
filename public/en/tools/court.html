@@ -502,6 +502,7 @@ let seen=false;try{seen=sessionStorage.getItem('orbCounted_court')==='1'}catch(e
 (seen?fetch('/api/v1/stats?page=court'):fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"court"}'}))
   .then(r=>r.ok?r.json():null).then(st=>{if(!st||!st.enabled)return;try{sessionStorage.setItem('orbCounted_court','1')}catch(e){}$('cPage').textContent=Number(st.page_total).toLocaleString(LOC);}).catch(()=>{});
 </script>
+<script type="module" src="/share-x.js"></script>
 <script src="/banners.js" defer></script>
 <script src="/backnav.js" defer></script>
 </body>

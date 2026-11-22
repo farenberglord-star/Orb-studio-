@@ -481,7 +481,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-qv]');if(!
 let seen=false;try{seen=sessionStorage.getItem('orbCounted_clips')==='1'}catch(e){}
 if(!seen)fetch('/api/v1/hit',{method:'POST',headers:{'content-type':'application/json'},body:'{"page":"clips"}'}).then(r=>{if(r.ok)try{sessionStorage.setItem('orbCounted_clips','1')}catch(e){}}).catch(()=>{});
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/clips3d.js" defer></script><script src="/banners.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/clips3d.js" defer></script><script type="module" src="/share-x.js"></script>
+<script src="/banners.js" defer></script>
 <script src="/backnav.js" defer></script>
 </body>
 </html>
