@@ -2626,6 +2626,116 @@ export const CRYSTALS = [
 "note": "the Bertsekas and Trevisan sensors already measure what an answer needs",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "mellor",
+"name": "Hugh Mellor",
+"name_ru": "Хью Меллор",
+"years": "1938–2020",
+"wiki": "https://en.wikipedia.org/wiki/Hugh_Mellor",
+"zone": "stale_data",
+"idea": {
+"en": "Real Time: the philosophy of time, and chances as objective probabilities.",
+"ru": "«Real Time»: философия времени и шансы как объективные вероятности.",
+"de": "„Real Time“: Philosophie der Zeit, Chancen als objektive Wahrscheinlichkeiten."
+},
+"rule": "Distinguish the chance of an event from your confidence in a report about it.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Howard sensors already separate how long stories live from how often they get confirmed",
+"covered_by": "howard"
+}
+},
+{
+"id": "curras",
+"name": "Emilia Currás",
+"name_ru": "Эмилия Куррас",
+"years": "1927–2020",
+"wiki": "https://en.wikipedia.org/wiki/Emilia_Currás",
+"zone": "stale_data",
+"idea": {
+"en": "Foundations of information science: ontologies and thesauri that organise knowledge.",
+"ru": "Основы информационной науки: онтологии и тезаурусы, которые упорядочивают знание.",
+"de": "Grundlagen der Informationswissenschaft: Ontologien und Thesauri."
+},
+"rule": "Use consistent terms for the same thing across sources before comparing them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "giere",
+"name": "Ronald Giere",
+"name_ru": "Рональд Гир",
+"years": "1938–2020",
+"wiki": "https://en.wikipedia.org/wiki/Ronald_Giere",
+"zone": "one_model",
+"idea": {
+"en": "Scientific Perspectivism: every model sees the world from a perspective and shows only part of it.",
+"ru": "«Scientific Perspectivism»: каждая модель смотрит на мир с одной точки и видит только его часть.",
+"de": "„Scientific Perspectivism“: jedes Modell zeigt nur einen Teil der Welt."
+},
+"rule": "Say from which perspective (sources, languages, regions) your picture is drawn.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already says from which languages and regions the radars see the world",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "richter",
+"name": "Michael M. Richter",
+"name_ru": "Михаэль Рихтер",
+"years": "1938–2020",
+"wiki": "https://en.wikipedia.org/wiki/Michael_M._Richter",
+"zone": "one_model",
+"idea": {
+"en": "Case-based reasoning: solve a new problem from similar solved cases instead of one general model.",
+"ru": "Рассуждение по прецедентам: решать новую задачу по похожим решённым случаям, а не по одной общей модели.",
+"de": "Fallbasiertes Schließen."
+},
+"rule": "Look for the most similar past case and check how far it really matches.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "giorello",
+"name": "Giulio Giorello",
+"name_ru": "Джулио Джорелло",
+"years": "1945–2020",
+"wiki": "https://en.wikipedia.org/wiki/Giulio_Giorello",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Applied epistemology and the philosophy of science in public life.",
+"ru": "Прикладная эпистемология и философия науки в общественной жизни.",
+"de": "Angewandte Erkenntnistheorie."
+},
+"rule": "Explain how a claim is known, not only what it says.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "caws",
+"name": "Peter Caws",
+"name_ru": "Питер Кос",
+"years": "1931–2020",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Caws",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Systematic philosophy of science: how theories, observations and values fit together.",
+"ru": "Систематическая философия науки: как сходятся теории, наблюдения и ценности.",
+"de": "Systematische Wissenschaftsphilosophie."
+},
+"rule": "Keep observations, theory and value judgements apart in an answer.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

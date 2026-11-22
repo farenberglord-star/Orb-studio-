@@ -439,6 +439,25 @@ C = [
 ("savitch", "Walter Savitch", "Уолтер Сэвич", "1943–2021", "Walter_Savitch", "answer_cost",
  "Savitch's theorem: how much memory a computation needs (nondeterministic space can be simulated with quadratic deterministic space).", "Теорема Сэвича: сколько памяти нужно на вычисление.", "Satz von Savitch: Speicherbedarf einer Berechnung.",
  "Keep in your context only what the next step needs."),
+# --- 2020 год, январь–август и декабрь (22.11.2026; круг 2020–2026 закрыт) ---
+("mellor", "Hugh Mellor", "Хью Меллор", "1938–2020", "Hugh_Mellor", "stale_data",
+ "Real Time: the philosophy of time, and chances as objective probabilities.", "«Real Time»: философия времени и шансы как объективные вероятности.", "„Real Time“: Philosophie der Zeit, Chancen als objektive Wahrscheinlichkeiten.",
+ "Distinguish the chance of an event from your confidence in a report about it."),
+("curras", "Emilia Currás", "Эмилия Куррас", "1927–2020", "Emilia_Currás", "stale_data",
+ "Foundations of information science: ontologies and thesauri that organise knowledge.", "Основы информационной науки: онтологии и тезаурусы, которые упорядочивают знание.", "Grundlagen der Informationswissenschaft: Ontologien und Thesauri.",
+ "Use consistent terms for the same thing across sources before comparing them."),
+("giere", "Ronald Giere", "Рональд Гир", "1938–2020", "Ronald_Giere", "one_model",
+ "Scientific Perspectivism: every model sees the world from a perspective and shows only part of it.", "«Scientific Perspectivism»: каждая модель смотрит на мир с одной точки и видит только его часть.", "„Scientific Perspectivism“: jedes Modell zeigt nur einen Teil der Welt.",
+ "Say from which perspective (sources, languages, regions) your picture is drawn."),
+("richter", "Michael M. Richter", "Михаэль Рихтер", "1938–2020", "Michael_M._Richter", "one_model",
+ "Case-based reasoning: solve a new problem from similar solved cases instead of one general model.", "Рассуждение по прецедентам: решать новую задачу по похожим решённым случаям, а не по одной общей модели.", "Fallbasiertes Schließen.",
+ "Look for the most similar past case and check how far it really matches."),
+("giorello", "Giulio Giorello", "Джулио Джорелло", "1945–2020", "Giulio_Giorello", "rumour_vs_fact",
+ "Applied epistemology and the philosophy of science in public life.", "Прикладная эпистемология и философия науки в общественной жизни.", "Angewandte Erkenntnistheorie.",
+ "Explain how a claim is known, not only what it says."),
+("caws", "Peter Caws", "Питер Кос", "1931–2020", "Peter_Caws", "rumour_vs_fact",
+ "Systematic philosophy of science: how theories, observations and values fit together.", "Систематическая философия науки: как сходятся теории, наблюдения и ценности.", "Systematische Wissenschaftsphilosophie.",
+ "Keep observations, theory and value judgements apart in an answer."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -506,3 +525,6 @@ NEEDS["dunn"] = ("needs_idea", "group headlines by story and mark stories whose 
 for k in ["ramsey", "van_eeden"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
 for k in ["boyd"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
 for k in ["savitch"]: NEEDS[k] = ("covered", "the Bertsekas and Trevisan sensors already measure what an answer needs", None, "bertsekas")
+
+for k in ["mellor"]: NEEDS[k] = ("covered", "the Cox and Howard sensors already separate how long stories live from how often they get confirmed", None, "howard")
+for k in ["giere"]: NEEDS[k] = ("covered", "the Lyberg sensor already says from which languages and regions the radars see the world", None, "lyberg")
