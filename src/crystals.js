@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost"];
-export const CRYSTAL_BUILT_ZONE = {"duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -2177,6 +2177,155 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the Leamer and Trevisan sensors already give the bounds and the sampling spread of the indices",
 "covered_by": "leamer"
+}
+},
+{
+"id": "lynch",
+"name": "Clifford Lynch",
+"name_ru": "Клиффорд Линч",
+"years": "1954–2025",
+"wiki": "https://en.wikipedia.org/wiki/Clifford_Lynch",
+"zone": "stale_data",
+"idea": {
+"en": "Digital libraries and long-term preservation of digital information.",
+"ru": "Цифровые библиотеки и долгосрочное сохранение цифровой информации.",
+"de": "Digitale Bibliotheken und Langzeitarchivierung."
+},
+"rule": "Cite a stable, archived version of a source, not only a link that may disappear.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor already checks whether linked source pages still open and match",
+"covered_by": "rabin"
+}
+},
+{
+"id": "kurtz",
+"name": "Thomas G. Kurtz",
+"name_ru": "Томас Курц",
+"years": "1941–2025",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_G._Kurtz",
+"zone": "stale_data",
+"idea": {
+"en": "Convergence and approximation of random (Markov) processes.",
+"ru": "Сходимость и приближение случайных (марковских) процессов.",
+"de": "Konvergenz und Approximation stochastischer Prozesse."
+},
+"rule": "Check whether a running average has settled before treating it as stable.",
+"needs": {
+"code": "covered",
+"note": "the Trevisan sensor already shows when a sample settles",
+"covered_by": "trevisan"
+}
+},
+{
+"id": "gilyarevsky",
+"name": "Ruggero Gilyarevsky",
+"name_ru": "Руджеро Гиляревский",
+"years": "1929–2025",
+"wiki": "https://en.wikipedia.org/wiki/Ruggero_Gilyarevsky",
+"zone": "stale_data",
+"idea": {
+"en": "Scientific information and communication (informatics as the science of information).",
+"ru": "Научная информация и коммуникация (информатика как наука об информации).",
+"de": "Wissenschaftliche Information und Kommunikation."
+},
+"rule": "Note where and when a piece of information entered the chain you received it through.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "abrial",
+"name": "Jean-Raymond Abrial",
+"name_ru": "Жан-Раймон Абриаль",
+"years": "1938–2025",
+"wiki": "https://en.wikipedia.org/wiki/Jean-Raymond_Abrial",
+"zone": "one_model",
+"idea": {
+"en": "Formal methods: the Z notation and the B-Method for proving programs correct.",
+"ru": "Формальные методы: нотация Z и B-метод для доказательства правильности программ.",
+"de": "Formale Methoden: Z-Notation und B-Methode."
+},
+"rule": "State precisely what must always hold, then check each step against it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "benacerraf",
+"name": "Paul Benacerraf",
+"name_ru": "Пол Бенасерраф",
+"years": "1930–2025",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Benacerraf",
+"zone": "one_model",
+"idea": {
+"en": "'What numbers could not be': the same facts admit several equally good models.",
+"ru": "«Чем числа быть не могут»: одни и те же факты допускают несколько равноправных моделей.",
+"de": "„What Numbers Could Not Be“: gleiche Fakten, mehrere gleichwertige Modelle."
+},
+"rule": "If two explanations fit the facts equally well, say so instead of picking one.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "maxwell",
+"name": "Nicholas Maxwell",
+"name_ru": "Николас Максвелл",
+"years": "1937–2025",
+"wiki": "https://en.wikipedia.org/wiki/Nicholas_Maxwell",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "From Knowledge to Wisdom: inquiry should aim at helping people live well, not only at knowledge.",
+"ru": "«От знания к мудрости»: исследование должно помогать людям жить лучше, а не только накапливать знание.",
+"de": "„From Knowledge to Wisdom“: Forschung soll helfen, gut zu leben."
+},
+"rule": "Ask what the person needs the answer for, not only what is true.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "ellis",
+"name": "Brian David Ellis",
+"name_ru": "Брайан Эллис",
+"years": "1929–2025",
+"wiki": "https://en.wikipedia.org/wiki/Brian_David_Ellis",
+"zone": "measurement_error",
+"idea": {
+"en": "Basic Concepts of Measurement: what makes a quantity measurable and a scale meaningful.",
+"ru": "«Основные понятия измерения»: что делает величину измеримой, а шкалу осмысленной.",
+"de": "„Basic Concepts of Measurement“."
+},
+"rule": "Before comparing two numbers, check that they are on the same scale.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and scales",
+"covered_by": "baird"
+}
+},
+{
+"id": "korte",
+"name": "Bernhard Korte",
+"name_ru": "Бернхард Корте",
+"years": "1938–2025",
+"wiki": "https://en.wikipedia.org/wiki/Bernhard_Korte",
+"zone": "answer_cost",
+"idea": {
+"en": "Combinatorial optimisation (chip design, routing).",
+"ru": "Комбинаторная оптимизация (проектирование микросхем, маршрутизация).",
+"de": "Kombinatorische Optimierung."
+},
+"rule": "Among many possible plans, search systematically for the cheapest one that meets all constraints.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest call chains",
+"covered_by": "bertsekas"
 }
 }
 ];

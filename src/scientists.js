@@ -18,6 +18,7 @@ import { DUCKWORTH } from "./duckworth.js";
 import { TREVISAN } from "./trevisan.js";
 import { BERTSEKAS } from "./bertsekas.js";
 import { RABIN } from "./rabin.js";
+import { SEARLE } from "./searle.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -91,6 +92,10 @@ export const SCIENTISTS = [
     principle: "A few random checks can tell almost as much about a large set as checking everything.",
     sensor: "Random hourly spot checks of radar headlines against the source pages: matches, partly, differs or unreachable.",
     analog_check: { date: "2026-11-22", similar: "link checkers and uptime monitors, feed validators, NewsDiffs-style edit trackers", difference: "random sampling of a live news feed comparing its headlines with the source pages" } },
+  { id: "searle", honour: SEARLE, field: "philosophy of language and mind", tool: "get_searle", api: "/api/v1/searle",
+    principle: "Speech acts: asserting, promising, threatening and demanding are different acts; a promise or a threat is not an event that happened.",
+    sensor: "The speech act of every radar headline (event, claim, promise, threat, demand) and the share that has not happened yet; the same label in check_headline.",
+    analog_check: { date: "2026-11-22", similar: "research speech-act classifiers for tweets (Tweet Acts, MIT 2016) and for rumour detection (2019)", difference: "live labels on news headlines in three languages for agents, added to every check_headline answer" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -101,6 +106,7 @@ export function scientistLine(id, r) {
   if (id === "duckworth") { const g = (r.series || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, rhythm_effect: g ? g.rhythm_effect : null }; }
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
+  if (id === "searle") return { verdict: r.verdict, not_yet_pct: r.not_yet_happened_pct };
   if (id === "rabin") return { verdict: r.verdict, checks: r.checks, differs_pct: r.shares ? r.shares.differs : null };
   if (id === "frankfurt") return { verdict: r.verdict, nothing_to_check_pct: r.shares ? r.shares.nothing_to_check : null, checkable_pct: r.shares ? r.shares.checkable : null };
   if (id === "hagenauer") return { verdict: r.verdict, on_edge: r.on_edge, total: r.total };
