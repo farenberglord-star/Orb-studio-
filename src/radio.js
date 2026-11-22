@@ -380,6 +380,7 @@ const rtxEsc = (x) => String(x == null ? "" : x).replace(/[<>&"]/g, (c) => ({ "<
 // data: { interviews (из regionalInterviews, уже на языке страницы), generated_at, radar: [строки], sensors: [тексты], tracks: RADIO_TRACKS }
 export function radioTextBlock(lang, data) {
   const L = RTX[lang] || RTX.en, e = rtxEsc, d = data || {}, out = ["<h2>" + e(L.h) + "</h2>", "<p>" + e(L.about) + "</p>"];
+  if (d.air === "ru" && L !== RTX.ru) out.push("<p>" + e(lang === "de" ? "Die Sendung läuft auf Russisch; der Text unten ist der Wortlaut der Sendung." : "The broadcast is in Russian; the text below is the wording of the broadcast.") + "</p>");
   const ivs = Array.isArray(d.interviews) ? d.interviews.filter((iv) => iv && Array.isArray(iv.lines) && iv.lines.length) : [];
   if (ivs.length) { out.push("<h3>" + e(L.podcast) + " " + e(ivs[0].guest) + (ivs[0].maker ? " (" + e(ivs[0].maker) + ", " + e(L.guestIs) + ")" : "") + "</h3>");
     if (d.generated_at) out.push("<p>" + e(L.when) + ": <time datetime=\"" + e(d.generated_at) + "\">" + e(String(d.generated_at).slice(0, 16).replace("T", " ")) + " UTC</time></p>");
@@ -399,6 +400,6 @@ export function radioTextBlock(lang, data) {
 }
 export function radioJsonLd(lang, origin) {
   const L = RTX[lang] || RTX.en;
-  return JSON.stringify({ "@context": "https://schema.org", "@type": "RadioBroadcastService", name: "Radio Orb Studio", url: origin + "/" + (RTX[lang] ? lang : "en") + "/radio", description: L.about, inLanguage: ["ru", "de", "en"],
+  return JSON.stringify({ "@context": "https://schema.org", "@type": "RadioBroadcastService", name: "Radio Orb Studio", url: origin + "/" + (RTX[lang] ? lang : "en") + "/radio", description: L.about, inLanguage: "ru",
     broadcaster: { "@type": "Organization", name: "Orb Studio", url: origin }, broadcastDisplayName: "Radio Orb Studio" }).replace(/</g, "\\u003c");
 }

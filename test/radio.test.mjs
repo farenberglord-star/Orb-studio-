@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, statSync } from "node:fs";
-import { notNow, RETRY_MS, mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
+import { AIR_LANG, notNow, RETRY_MS, mediaActions, ART, afterPlan, stalled, STALL_MS, LOAD_MS, rundownRows, worldInterviews, cutAt, TRACK_CUT, CUT_FADE, weatherDue, WEATHER_EVERY_MS, interviews, plan, sayItem, mergeInterviews, daypart, trackGain, FADE_IN, FADE_OUT, TRACKS, T, episodeDate, fmt, sceneOrder, tickerItems, candleBoxes, MARKET_CHIPS, nextMarket, marketData, fmtPrice, fmtChange, wrapWords } from "../public/radio.js";
 import { parseCandles } from "../src/radio.js";
 
 const seg = (i, over = {}) => ({ i, kind: "news", headline: "H" + i, source: "s" + i, link: "https://example.org/" + i,
@@ -249,10 +249,10 @@ test("market screen: whitelist of instruments, honest oil board, futures as repo
   assert.match(html, /id="mk"/); assert.match(html, /\.unit\[data-on="1"\] \.ring\{animation:ring/); assert.match(html, /reduce\)\{\.unit \.ring\{animation:none!important\}/);
 });
 
-test("guests are heard only in the listener's language", () => {
+test("guests are heard only in the language of the broadcast", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(w, /regionalInterviews\(ep, lg\)\.filter\(\(iv\) => iv\.language === lg\)/);
-  assert.match(js, /plan\(mergeInterviews\(reg, worldInterviews\(duo, lang\)\)/);
+  assert.match(js, /plan\(mergeInterviews\(reg, worldInterviews\(duo, AIR_LANG\)\)/);
 });
 
 test("DJ does not repeat himself: four different variants of every repeated link, played in turn", async () => {
@@ -532,4 +532,17 @@ test("a block whose voice failed to load is left alone for twenty minutes, then 
   const now = 1795300000000, f = new Map([["talk A", now - 5 * 60e3], ["sens:1", now - RETRY_MS - 1], ["talk B", now - RETRY_MS + 1000]]);
   assert.deepEqual([...notNow(f, now)].sort(), ["talk A", "talk B"]); assert.deepEqual([...notNow(null, now)], []); assert.equal(RETRY_MS, 1200000);
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /else if \(id\) failed\.set\(id, Date\.now\(\)\)/); assert.match(js, /\.filter\(\(iv\) => !skipNow\.has\(iv\.headline\)\)/);
+});
+
+test("the radio broadcasts in Russian only: one language for every listener, labels stay in the visitor's language", async () => {
+  const { radioTextBlock, radioJsonLd } = await import("../src/radio.js");
+  assert.equal(AIR_LANG, "ru");
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.ok(!/radio\/(dj|weather|regional|sensors|radar)\?lang=" \+ lang\b/.test(js), "the player never asks for another broadcast language"); assert.match(js, /worldInterviews\(duo, AIR_LANG\)/);
+  assert.match(w, /const RADIO_AIR = "ru";/); for (const ep of ["dj", "radar", "sensors", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,[^\\n]*RADIO_AIR'));
+  assert.match(w, /radioRegional\(renv, request, origin, RADIO_AIR,/); assert.match(w, /\[RADIO_AIR\]\.map\(async \(lg\) => \{ try \{/);
+  assert.match(radioTextBlock("de", { air: "ru" }), /Die Sendung läuft auf Russisch/); assert.match(radioTextBlock("en", { air: "ru" }), /The broadcast is in Russian/); assert.ok(!/in Russian|auf Russisch/.test(radioTextBlock("ru", { air: "ru" })));
+  assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "ru");
+  assert.equal(T.ru.airRu, ""); assert.match(T.de.airRu, /Russisch/); assert.match(T.en.airRu, /Russian/);
+  assert.match(readFileSync(new URL("../public/de/index.html", import.meta.url), "utf8"), /Die Sendung läuft auf Russisch\./); assert.match(readFileSync(new URL("../public/en/index.html", import.meta.url), "utf8"), /The broadcast is in Russian\./);
 });
