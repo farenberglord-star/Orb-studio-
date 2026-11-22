@@ -100,6 +100,11 @@ const RADARS = [
       "https://www.scmp.com/rss/91/feed",
       "https://feeds.bbci.co.uk/news/world/rss.xml",
       gnews("Russia OR China OR Pentagon when:1d"),
+      // «Люберг» показал дыры охвата (22.11.2026): не было Латинской Америки и заголовков на русском
+      "https://feeds.bbci.co.uk/news/world/latin_america/rss.xml",
+      "https://www.theguardian.com/world/americas/rss",
+      "https://feeds.bbci.co.uk/russian/rss.xml",
+      "https://rss.dw.com/rdf/rss-ru-all",
     ],
     factors: {
       "Военные":    { w: 90, k: ["missile","strike","drone","troops","military","attack","war","drill","rakete","angriff","krieg","ракет","удар","войск","атак","учени"] },
