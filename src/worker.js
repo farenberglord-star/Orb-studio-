@@ -1650,7 +1650,7 @@ async function radioHealth(env) {
 }
 async function radioSensorsWarm(env, ctx) {
   if (!env.ANTHROPIC_API_KEY) return;
-  const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return;
+  const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && cur.stories && cur.stories[RADIO_AIR] && Object.keys(cur.stories[RADIO_AIR]).length && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return; // свежий выпуск есть, но не на языке эфира — пишем заново
   if (await sharedGet(env, "radio-sens-lock", 20 * 60e3)) return; await sharedPut(env, "radio-sens-lock", { t: Date.now() });
   const out = { generated_at: new Date().toISOString(), stories: {} };
   await Promise.all([RADIO_AIR].map(async (lg) => { try { // новости с датчиков пишутся только на языке эфира

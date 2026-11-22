@@ -569,3 +569,8 @@ test("every track file exists, and the automatic check of the broadcast is wired
   for (const k of ["track_missing:", "dj_unvoiced:", "voice_budget_low"]) assert.ok(w.includes(k), k);
   const beats = /RADIO_BEATS = (\[[^\]]+\])/.exec(w); assert.deepEqual(JSON.parse(beats[1]), ["play", ...GLITCHES], "the server accepts exactly what the player reports"); assert.equal(GLITCH_MAX, 12);
 });
+
+test("sensor news are rewritten at once when the air language changes", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /if \(cur && cur\.stories && cur\.stories\[RADIO_AIR\] && Object\.keys\(cur\.stories\[RADIO_AIR\]\)\.length && Date\.now\(\) - Date\.parse\(cur\.generated_at\) < SENSOR_MS\) return;/);
+});
