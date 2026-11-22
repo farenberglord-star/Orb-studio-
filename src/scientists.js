@@ -9,6 +9,7 @@ import { ZIV } from "./ziv.js";
 import { COX } from "./cox.js";
 import { HALPERN } from "./halpern.js";
 import { HOWARD } from "./howard.js";
+import { LEAMER } from "./leamer.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -46,6 +47,10 @@ export const SCIENTISTS = [
     principle: "Value of information: learn more before deciding only when it could change the decision; otherwise act now.",
     sensor: "Retell now or wait: how often stories carried by 1-2 outlets were later carried by 3+ outlets, and after how many hours, by the age of the story.",
     analog_check: { date: "2026-11-22", similar: "corroborate-mcp (counts corroborating sources now), Reuters News Tracer (internal credibility score for tweets), news fact-check MCP servers", difference: "uses the site's own history to say how often and how soon unconfirmed stories got confirmed, as a wait-or-tell hint for agents" } },
+  { id: "leamer", honour: LEAMER, field: "econometrics, specification uncertainty", tool: "get_leamer", api: "/api/v1/leamer",
+    principle: "Extreme bounds: a conclusion is credible only if it survives the reasonable choices of the model; report the range, not one number.",
+    sensor: "How fragile the Orb Studio indices are: each one recomputed under every reasonable alternative choice, with low-high bounds and the choices that move it most.",
+    analog_check: { date: "2026-11-22", similar: "extreme bounds analysis (R package ExtremeBounds), specification curve analysis (Simonsohn et al.), multiverse analysis", difference: "runs live on the site's own published indices and names the radar or keyword the number depends on most" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -53,6 +58,7 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "leamer") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: r.verdict, value: c.value, low: c.low, high: c.high } : null; }
   if (id === "howard") { const b = (r.by_age || [])[0]; return { verdict: r.verdict, tracked: r.stories_tracked, p_confirm: b ? b.p_confirm : null, median_wait_h: b ? b.median_wait_h : null }; }
   if (id === "kahneman") return { topics_rated: r.topics_rated, system_noise: r.audit && r.audit.importance ? r.audit.importance.system_noise : null };
   if (id === "ziv") return { novelty_all: r.novelty_all };

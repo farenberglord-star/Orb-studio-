@@ -35,7 +35,7 @@ test("hint only for 1–2 voices", () => {
 test("wiring: worker, scientists, pages, discovery", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /p === "\/api\/v1\/howard"/); assert.match(w, /name: "get_howard"/); assert.match(w, /name === "get_howard"/);
-  assert.match(w, /"tools\/howard"/); assert.match(w, /"halpern", "howard"\]\)/);
+  assert.match(w, /"tools\/howard"/); assert.match(w, /"halpern", "howard"/);
   assert.match(w, /ALTER TABLE radar_life ADD COLUMN/); assert.match(w, /howardHint\(hrep/);
   assert.match(readFileSync(new URL("../src/scientists.js", import.meta.url), "utf8"), /id: "howard"/);
   for (const f of ["tools/howard.html", "de/tools/howard.html", "en/tools/howard.html"]) {
