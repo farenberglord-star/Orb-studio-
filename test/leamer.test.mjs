@@ -29,7 +29,7 @@ test("bounds and verdict", () => {
 });
 test("wiring", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /p === "\/api\/v1\/leamer"/); assert.match(w, /name: "get_leamer"/); assert.match(w, /name === "get_leamer"/); assert.match(w, /"tools\/leamer"/); assert.match(w, /"howard", "leamer"\]\)/);
+  assert.match(w, /p === "\/api\/v1\/leamer"/); assert.match(w, /name: "get_leamer"/); assert.match(w, /name === "get_leamer"/); assert.match(w, /"tools\/leamer"/); assert.match(w, /"howard", "leamer"/);
   for (const f of ["tools/leamer.html", "de/tools/leamer.html", "en/tools/leamer.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"); assert.match(h, /\/go\/kraken\?from=leamer/); assert.match(h, /\/go\/starlink\?from=leamer/); assert.match(h, /share-x\.js/); assert.match(h, /Edward_E\._Leamer/); }
   for (const f of ["sitemap.xml", "llms.txt", ".well-known/agent.json", "share-x.js", "tools.html", "de/tools.html", "en/tools.html"]) assert.match(readFileSync(new URL("../public/" + f, import.meta.url), "utf8"), /leamer/);
 });

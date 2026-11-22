@@ -114,7 +114,8 @@
     "cox": "https://orbstudio.org/api/v1/cox",
     "halpern": "https://orbstudio.org/api/v1/halpern",
     "howard": "https://orbstudio.org/api/v1/howard",
-    "leamer": "https://orbstudio.org/api/v1/leamer"
+    "leamer": "https://orbstudio.org/api/v1/leamer",
+    "baird": "https://orbstudio.org/api/v1/baird"
   },
   "auth": "none",
   "payments": {

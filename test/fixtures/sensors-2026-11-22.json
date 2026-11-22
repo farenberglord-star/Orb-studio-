@@ -1,0 +1,1340 @@
+{
+  "updated": "2026-11-22T17:21:55.785Z",
+  "attention": {
+    "source": "Wikimedia pageviews API (English Wikipedia, human readers)",
+    "source_url": "https://wikimedia.org/api/rest_v1/",
+    "license": "CC0 (pageview data)",
+    "note": "Daily views of Wikipedia articles on the radars' topics: yesterday vs the median of the 4 weeks before. A jump means many people suddenly look a topic up — collective attention, often before or alongside the news.",
+    "rule": "surge = yesterday ≥ 2.5× the usual day",
+    "day": "2026-11-21",
+    "articles": [
+      {
+        "article": "Binance",
+        "radar": "crypto",
+        "day": "2026-11-21",
+        "views": 1709,
+        "usual": 1424,
+        "ratio": 1.2,
+        "week": [
+          960,
+          937,
+          912,
+          816,
+          1022,
+          1418,
+          1709
+        ],
+        "url": "https://en.wikipedia.org/wiki/Binance"
+      },
+      {
+        "article": "Bitcoin",
+        "radar": "crypto",
+        "day": "2026-11-21",
+        "views": 4243,
+        "usual": 3969,
+        "ratio": 1.07,
+        "week": [
+          4976,
+          4096,
+          3969,
+          4450,
+          4422,
+          3838,
+          4243
+        ],
+        "url": "https://en.wikipedia.org/wiki/Bitcoin"
+      },
+      {
+        "article": "Taiwan",
+        "radar": "geo",
+        "day": "2026-11-21",
+        "views": 7722,
+        "usual": 8087,
+        "ratio": 0.95,
+        "week": [
+          9748,
+          9381,
+          9244,
+          9836,
+          10179,
+          8383,
+          7722
+        ],
+        "url": "https://en.wikipedia.org/wiki/Taiwan"
+      },
+      {
+        "article": "Russo-Ukrainian war",
+        "radar": "geo",
+        "day": "2026-11-21",
+        "views": 6549,
+        "usual": 7485,
+        "ratio": 0.87,
+        "week": [
+          7569,
+          8351,
+          10042,
+          8290,
+          8104,
+          7509,
+          6549
+        ],
+        "url": "https://en.wikipedia.org/wiki/Russo-Ukrainian_war"
+      },
+      {
+        "article": "Ethereum",
+        "radar": "crypto",
+        "day": "2026-11-21",
+        "views": 514,
+        "usual": 612,
+        "ratio": 0.84,
+        "week": [
+          532,
+          655,
+          534,
+          498,
+          540,
+          415,
+          514
+        ],
+        "url": "https://en.wikipedia.org/wiki/Ethereum"
+      },
+      {
+        "article": "European Central Bank",
+        "radar": "economy",
+        "day": "2026-11-21",
+        "views": 335,
+        "usual": 408,
+        "ratio": 0.82,
+        "week": [
+          236,
+          565,
+          457,
+          378,
+          380,
+          385,
+          335
+        ],
+        "url": "https://en.wikipedia.org/wiki/European_Central_Bank"
+      },
+      {
+        "article": "Iran",
+        "radar": "geo",
+        "day": "2026-11-21",
+        "views": 5964,
+        "usual": 7350,
+        "ratio": 0.81,
+        "week": [
+          10191,
+          8122,
+          7926,
+          7221,
+          6443,
+          6224,
+          5964
+        ],
+        "url": "https://en.wikipedia.org/wiki/Iran"
+      },
+      {
+        "article": "Strait of Hormuz",
+        "radar": "geo",
+        "day": "2026-11-21",
+        "views": 1256,
+        "usual": 1569,
+        "ratio": 0.8,
+        "week": [
+          1373,
+          1604,
+          1619,
+          1531,
+          1288,
+          1159,
+          1256
+        ],
+        "url": "https://en.wikipedia.org/wiki/Strait_of_Hormuz"
+      },
+      {
+        "article": "OPEC",
+        "radar": "energy",
+        "day": "2026-11-21",
+        "views": 632,
+        "usual": 788,
+        "ratio": 0.8,
+        "week": [
+          605,
+          951,
+          2611,
+          1325,
+          960,
+          846,
+          632
+        ],
+        "url": "https://en.wikipedia.org/wiki/OPEC"
+      },
+      {
+        "article": "Federal Reserve",
+        "radar": "economy",
+        "day": "2026-11-21",
+        "views": 691,
+        "usual": 882,
+        "ratio": 0.78,
+        "week": [
+          682,
+          1050,
+          1009,
+          910,
+          857,
+          839,
+          691
+        ],
+        "url": "https://en.wikipedia.org/wiki/Federal_Reserve"
+      },
+      {
+        "article": "Artificial intelligence",
+        "radar": "web",
+        "day": "2026-11-21",
+        "views": 11114,
+        "usual": 15067,
+        "ratio": 0.74,
+        "week": [
+          11399,
+          15109,
+          15765,
+          16170,
+          15067,
+          12938,
+          11114
+        ],
+        "url": "https://en.wikipedia.org/wiki/Artificial_intelligence"
+      },
+      {
+        "article": "Inflation",
+        "radar": "economy",
+        "day": "2026-11-21",
+        "views": 456,
+        "usual": 625,
+        "ratio": 0.73,
+        "week": [
+          549,
+          597,
+          625,
+          591,
+          541,
+          534,
+          456
+        ],
+        "url": "https://en.wikipedia.org/wiki/Inflation"
+      },
+      {
+        "article": "Price of oil",
+        "radar": "energy",
+        "day": "2026-11-21",
+        "views": 87,
+        "usual": 133,
+        "ratio": 0.65,
+        "week": [
+          108,
+          98,
+          95,
+          87,
+          98,
+          99,
+          87
+        ],
+        "url": "https://en.wikipedia.org/wiki/Price_of_oil"
+      },
+      {
+        "article": "ChatGPT",
+        "radar": "web",
+        "day": "2026-11-21",
+        "views": 29378,
+        "usual": 59377,
+        "ratio": 0.49,
+        "week": [
+          26309,
+          43254,
+          50970,
+          49796,
+          48215,
+          39835,
+          29378
+        ],
+        "url": "https://en.wikipedia.org/wiki/ChatGPT"
+      }
+    ],
+    "surges": [],
+    "at": "2026-11-22T15:37:02.395Z"
+  },
+  "derivatives": {
+    "source": "Kraken Futures, BTC perpetual (PF_XBTUSD)",
+    "source_url": "https://futures.kraken.com/trade/futures/PF_XBTUSD",
+    "mark_usd": 60774.82819942613,
+    "funding_relative_pct": 0.0006369975,
+    "funding_relative_next_pct": 0.00021412500000000001,
+    "funding_note": "Relative funding rate per funding period as reported by Kraken. Positive: long positions pay shorts.",
+    "open_interest_btc": 1977.8465,
+    "open_interest_usd": 120203281,
+    "change_24h_pct": 1.15,
+    "at": "2026-11-22T17:21:55.466323474Z"
+  },
+  "volatility": {
+    "source": "Kraken public market data, hourly candles (OHLC), 30 days",
+    "source_url": "https://docs.kraken.com/api/docs/rest-api/get-ohlc-data",
+    "rule": "spike = an hourly move ≥ 4 typical hourly moves (z, 30-day standard deviation), or hourly volume ≥ 5× the median hour of the past week together with a move ≥ 1.5 typical moves (big single trades without a price move are not spikes)",
+    "coins": {
+      "SOL": {
+        "price_eur": 64.49,
+        "hour_end": "2026-11-22T17:00:00.000Z",
+        "move_1h_pct": 0.56,
+        "z_1h": 0.8,
+        "volume_vs_week_median": 1.22,
+        "move_24h_pct": 0.03,
+        "volatility_24h_vs_30d": 0.63
+      },
+      "BTC": {
+        "price_eur": 55854.8,
+        "hour_end": "2026-11-22T17:00:00.000Z",
+        "move_1h_pct": 0.6,
+        "z_1h": 1.1,
+        "volume_vs_week_median": 1.38,
+        "move_24h_pct": 1.96,
+        "volatility_24h_vs_30d": 1.09
+      },
+      "ETH": {
+        "price_eur": 1571.62,
+        "hour_end": "2026-11-22T17:00:00.000Z",
+        "move_1h_pct": 0.3,
+        "z_1h": 0.4,
+        "volume_vs_week_median": 1.36,
+        "move_24h_pct": 2.32,
+        "volatility_24h_vs_30d": 0.79
+      },
+      "XRP": {
+        "price_eur": 0.84873,
+        "hour_end": "2026-11-22T17:00:00.000Z",
+        "move_1h_pct": 0.65,
+        "z_1h": 0.9,
+        "volume_vs_week_median": 0.36,
+        "move_24h_pct": 0.1,
+        "volatility_24h_vs_30d": 0.79
+      }
+    },
+    "spikes_24h": [],
+    "spike_now": false,
+    "at": "2026-11-22T17:21:55.882Z"
+  },
+  "usdc": {
+    "source": "Kraken public ticker (USDC/EUR, USDC/USD)",
+    "source_url": "https://www.kraken.com/prices/usd-coin",
+    "main_robot_sensor": false,
+    "usdc_eur": 0.9128,
+    "usdc_usd": 0.9998,
+    "peg_deviation_pct": -0.02,
+    "change_today_pct": -0.044,
+    "change_24h_pct": -0.077,
+    "low_today": 0.9128,
+    "high_today": 0.9138,
+    "history_6min": [
+      [
+        "2026-11-22T11:24:58.839Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T11:30:59.049Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T11:36:58.732Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T11:42:59.057Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T11:49:00.111Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T11:54:58.822Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:00:59.410Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:07:00.076Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T12:12:59.537Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:18:59.833Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T12:24:58.949Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T12:30:58.795Z",
+        0.9133
+      ],
+      [
+        "2026-11-22T12:36:59.004Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:42:59.341Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:48:59.380Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T12:55:00.180Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T13:00:58.988Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T13:06:59.147Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T13:12:59.004Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T13:18:59.388Z",
+        0.913
+      ],
+      [
+        "2026-11-22T13:24:59.816Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T13:30:59.680Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T13:36:59.302Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T13:42:58.783Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T13:48:58.817Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T13:54:59.038Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:00:59.564Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:07:00.052Z",
+        0.913
+      ],
+      [
+        "2026-11-22T14:12:58.855Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:18:59.392Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:24:58.890Z",
+        0.913
+      ],
+      [
+        "2026-11-22T14:30:58.761Z",
+        0.913
+      ],
+      [
+        "2026-11-22T14:36:59.284Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:42:59.906Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:48:59.105Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T14:54:59.541Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T15:00:58.763Z",
+        0.913
+      ],
+      [
+        "2026-11-22T15:06:59.463Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T15:12:58.717Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T15:18:59.349Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T15:24:59.457Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T15:30:59.473Z",
+        0.913
+      ],
+      [
+        "2026-11-22T15:36:59.117Z",
+        0.9132
+      ],
+      [
+        "2026-11-22T15:42:59.199Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T15:49:00.318Z",
+        0.913
+      ],
+      [
+        "2026-11-22T15:54:58.843Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T16:00:58.990Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T16:06:59.085Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T16:12:59.973Z",
+        0.9131
+      ],
+      [
+        "2026-11-22T16:18:59.244Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:24:58.915Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:30:58.982Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:36:59.009Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:42:59.248Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:48:58.996Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T16:54:59.072Z",
+        0.9129
+      ],
+      [
+        "2026-11-22T17:00:59.003Z",
+        0.913
+      ],
+      [
+        "2026-11-22T17:06:59.294Z",
+        0.913
+      ],
+      [
+        "2026-11-22T17:12:59.373Z",
+        0.9128
+      ],
+      [
+        "2026-11-22T17:18:59.148Z",
+        0.9128
+      ]
+    ],
+    "emo": null,
+    "note": "USDC is a dollar stablecoin: against the US dollar it should stay at 1.00 (peg_deviation_pct). Against the euro it moves with EUR/USD.",
+    "at": "2026-11-22T17:18:59.148Z"
+  },
+  "ecb": {
+    "source": "ECB Data Portal",
+    "source_url": "https://data.ecb.europa.eu",
+    "deposit_rate_pct": {
+      "value": 2.5,
+      "date": "2026-11-22"
+    },
+    "eurusd": {
+      "value": 1.099,
+      "date": "2026-11-20"
+    }
+  },
+  "bitcoin": {
+    "source": "mempool.space",
+    "source_url": "https://mempool.space",
+    "fee_fast_sat_vb": 2,
+    "fee_hour_sat_vb": 1,
+    "mempool_tx": 77813,
+    "mempool_vmb": 32.2,
+    "hashrate_ehs": 1035,
+    "at": "2026-11-22T17:21:56.628Z"
+  },
+  "inflation": {
+    "source": "Eurostat, HICP annual rate, euro area (EA, ECOICOP 2)",
+    "source_url": "https://ec.europa.eu/eurostat/web/hicp",
+    "hicp_annual_pct": 4,
+    "period": "2026-10",
+    "geo": "EA, ECOICOP 2"
+  },
+  "power": {
+    "source": "Energy-Charts (Fraunhofer ISE), data Bundesnetzagentur | SMARD.de, CC BY 4.0",
+    "source_url": "https://www.energy-charts.info",
+    "zone": "DE-LU",
+    "unit": "EUR/MWh",
+    "note": "Wholesale day-ahead exchange price without grid fees, taxes and levies — not the household tariff. 10 EUR/MWh = 1 ct/kWh.",
+    "now_eur_mwh": 230.72,
+    "now_ct_kwh": 23.07,
+    "now_at": "2026-11-22T17:15:00.000Z",
+    "today": {
+      "min_eur_mwh": 181.19,
+      "min_at": "2026-11-22T22:45:00.000Z",
+      "max_eur_mwh": 242.94,
+      "max_at": "2026-11-22T16:00:00.000Z",
+      "avg_eur_mwh": 204.08,
+      "negative_quarter_hours": 0
+    },
+    "tomorrow": {
+      "min_eur_mwh": 180.96,
+      "min_at": "2026-11-23T02:45:00.000Z",
+      "max_eur_mwh": 331.13,
+      "max_at": "2026-11-23T16:45:00.000Z",
+      "avg_eur_mwh": 240.42,
+      "negative_quarter_hours": 0
+    },
+    "tomorrow_published": true,
+    "cheapest_3h": {
+      "from": "2026-11-23T01:15:00.000Z",
+      "to": "2026-11-23T04:15:00.000Z",
+      "avg_eur_mwh": 182
+    },
+    "most_expensive_3h": {
+      "from": "2026-11-23T15:30:00.000Z",
+      "to": "2026-11-23T18:30:00.000Z",
+      "avg_eur_mwh": 314.61
+    },
+    "renewables": {
+      "renewable_share_pct": 38,
+      "at": "2026-11-22T17:15:00.000Z"
+    }
+  },
+  "stablecoins": {
+    "source": "DefiLlama",
+    "source_url": "https://defillama.com/stablecoins",
+    "total_usd": 284336658731,
+    "change_7d_pct": -1.56,
+    "date": "2026-11-22"
+  },
+  "internet": {
+    "source": "IODA (Georgia Tech) — internet outages; OONI — network interference measurements by volunteers",
+    "source_url": "https://ioda.inetintel.cc.gatech.edu",
+    "note": "Outages: strongest network-level IODA outage events (BGP routing or active probing; Google traffic-only signals are excluded) per country active in the last 24 hours (ongoing = still active within the last hour). Blocks: OONI web tests with confirmed blocking (blockpage fingerprint) in the last 24 hours. App 'suspected' = 30%+ anomalies in Signal/WhatsApp tests (anomalies can also be network errors). Few measurements = no visibility, not 'no blocking'.",
+    "at": "2026-11-22T17:21:55.000Z",
+    "window": {
+      "from": "2026-11-21T17:21:55.000Z",
+      "to": "2026-11-22T17:21:55.000Z",
+      "note": "IODA events and OONI measurements in the 24 hours up to 'at' (the moment Orb Studio asked). OONI volunteers upload with a delay, so the last hours are thinner."
+    },
+    "outages_24h": 27,
+    "outages": [
+      {
+        "cc": "AZ",
+        "country": "Azerbaijan",
+        "start": "2026-11-22T04:11:00.000Z",
+        "hours": 13.2,
+        "ongoing": true,
+        "score": 77294,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "NL",
+        "country": "Netherlands",
+        "start": "2026-11-22T04:11:00.000Z",
+        "hours": 13.2,
+        "ongoing": true,
+        "score": 74045,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "SE",
+        "country": "Sweden",
+        "start": "2026-11-22T04:11:00.000Z",
+        "hours": 13.2,
+        "ongoing": true,
+        "score": 73934,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "RU",
+        "country": "Russian Federation",
+        "start": "2026-11-22T04:11:00.000Z",
+        "hours": 13.2,
+        "ongoing": true,
+        "score": 71994,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "SG",
+        "country": "Singapore",
+        "start": "2026-11-22T04:11:00.000Z",
+        "hours": 13.2,
+        "ongoing": true,
+        "score": 70367,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "TR",
+        "country": "Turkey",
+        "start": "2026-11-22T09:46:00.000Z",
+        "hours": 7.6,
+        "ongoing": true,
+        "score": 37935,
+        "method": "merit-nt"
+      },
+      {
+        "cc": "SC",
+        "country": "Seychelles",
+        "start": "2026-11-11T17:30:00.000Z",
+        "hours": 263.9,
+        "ongoing": true,
+        "score": 26338,
+        "method": "bgp"
+      },
+      {
+        "cc": "GQ",
+        "country": "Equatorial Guinea",
+        "start": "2026-11-11T15:20:00.000Z",
+        "hours": 265.6,
+        "ongoing": true,
+        "score": 25911,
+        "method": "bgp"
+      }
+    ],
+    "confirmed_block_countries": 43,
+    "blocks": [
+      {
+        "cc": "RU",
+        "confirmed": 15248,
+        "anomalies": 110947,
+        "measurements": 403821
+      },
+      {
+        "cc": "IR",
+        "confirmed": 7091,
+        "anomalies": 4673,
+        "measurements": 31216
+      },
+      {
+        "cc": "ID",
+        "confirmed": 1511,
+        "anomalies": 1819,
+        "measurements": 35427
+      },
+      {
+        "cc": "IN",
+        "confirmed": 1315,
+        "anomalies": 3371,
+        "measurements": 66228
+      },
+      {
+        "cc": "TR",
+        "confirmed": 1034,
+        "anomalies": 2638,
+        "measurements": 39708
+      },
+      {
+        "cc": "IT",
+        "confirmed": 959,
+        "anomalies": 2406,
+        "measurements": 47419
+      },
+      {
+        "cc": "SA",
+        "confirmed": 477,
+        "anomalies": 1239,
+        "measurements": 11500
+      },
+      {
+        "cc": "ES",
+        "confirmed": 230,
+        "anomalies": 56210,
+        "measurements": 254283
+      },
+      {
+        "cc": "MY",
+        "confirmed": 194,
+        "anomalies": 777,
+        "measurements": 29095
+      },
+      {
+        "cc": "CN",
+        "confirmed": 123,
+        "anomalies": 43269,
+        "measurements": 78090
+      }
+    ],
+    "apps_suspected": [
+      {
+        "app": "Signal",
+        "cc": "PK",
+        "anomaly_share_pct": 100,
+        "measurements": 76
+      },
+      {
+        "app": "Signal",
+        "cc": "MM",
+        "anomaly_share_pct": 91,
+        "measurements": 35
+      },
+      {
+        "app": "Signal",
+        "cc": "IR",
+        "anomaly_share_pct": 88,
+        "measurements": 315
+      },
+      {
+        "app": "Signal",
+        "cc": "RU",
+        "anomaly_share_pct": 87,
+        "measurements": 4055
+      },
+      {
+        "app": "Signal",
+        "cc": "CN",
+        "anomaly_share_pct": 79,
+        "measurements": 61
+      },
+      {
+        "app": "Signal",
+        "cc": "TZ",
+        "anomaly_share_pct": 67,
+        "measurements": 43
+      },
+      {
+        "app": "Signal",
+        "cc": "AE",
+        "anomaly_share_pct": 66,
+        "measurements": 50
+      },
+      {
+        "app": "Signal",
+        "cc": "ET",
+        "anomaly_share_pct": 32,
+        "measurements": 28
+      }
+    ],
+    "countries_measured": 146
+  },
+  "sanctions": {
+    "uk_ships": {
+      "source": "UK Sanctions List (FCDO)",
+      "source_url": "https://www.gov.uk/government/publications/the-uk-sanctions-list",
+      "report_date": "20-Nov-2026",
+      "ships_total": 693,
+      "added_7d": 0,
+      "added_30d": 11,
+      "by_regime": [
+        {
+          "regime": "Russia",
+          "ships": 655
+        },
+        {
+          "regime": "Democratic People's Republic of Korea",
+          "ships": 37
+        },
+        {
+          "regime": "Libya",
+          "ships": 1
+        }
+      ],
+      "latest": [
+        {
+          "name": "IMO 9321304",
+          "imo": "9321304",
+          "flag": "Djibouti",
+          "type": null,
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        },
+        {
+          "name": "IMO 9252967",
+          "imo": "9252967",
+          "flag": "Sierra Leone",
+          "type": null,
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        },
+        {
+          "name": "IMO9958327",
+          "imo": "9958327",
+          "flag": "Panama",
+          "type": "LNG Tanker",
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        },
+        {
+          "name": "IMO9958298",
+          "imo": "9958298",
+          "flag": "Panama",
+          "type": "LNG Tanker",
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        },
+        {
+          "name": "IMO9915105",
+          "imo": "9915105",
+          "flag": null,
+          "type": null,
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        },
+        {
+          "name": "IMO9630028",
+          "imo": "9630028",
+          "flag": "Oman",
+          "type": "LNG Tanker",
+          "regime": "Russia",
+          "designated": "2026-11-12"
+        }
+      ],
+      "checked_at": "2026-11-22T05:55:02.865Z"
+    },
+    "us_ofac": {
+      "source": "OFAC Recent Actions (U.S. Treasury)",
+      "source_url": "https://ofac.treasury.gov/recent-actions",
+      "latest": [
+        {
+          "date": "2026-11-20",
+          "title": "Iran Designations; Issuance of Cuba Frequently Asked Questions",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261120"
+        },
+        {
+          "date": "2026-11-19",
+          "title": "Counter Narcotics Designations; Cyber-related Designations; Issuance of Illicit Drugs General License; Issuance of Amended Russia-related General License and Frequently Asked Questions",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261119"
+        },
+        {
+          "date": "2026-11-18",
+          "title": "Counter Terrorism Designations",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261118"
+        },
+        {
+          "date": "2026-11-13",
+          "title": "Counter Narcotics and Counter Terrorism Designations",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261113"
+        },
+        {
+          "date": "2026-11-09",
+          "title": "Iran Designation Update",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261109"
+        },
+        {
+          "date": "2026-11-06",
+          "title": "Iran-related Designations",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261106"
+        },
+        {
+          "date": "2026-11-05",
+          "title": "Cyber-related and Transnational Criminal Organizations Designations; Cuba Designations; Publication of Cuba-related Determination",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261105"
+        },
+        {
+          "date": "2026-11-04",
+          "title": "Iran-related Designations; Updates to Certain Iran-related Listings; Publication of Iran-related OFAC Alert; Issuance of Amended Venezuela-related General License and Frequently Asked Question",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261104"
+        },
+        {
+          "date": "2026-10-29",
+          "title": "Issuance of Amended Iran-related General License",
+          "category": "general-licenses",
+          "designations": false,
+          "url": "https://ofac.treasury.gov/recent-actions/20261029"
+        },
+        {
+          "date": "2026-10-28",
+          "title": "North Korea Designations; Democratic Republic of the Congo-related Designations",
+          "category": "sanctions-list-updates",
+          "designations": true,
+          "url": "https://ofac.treasury.gov/recent-actions/20261028"
+        }
+      ],
+      "designation_actions_7d": 3
+    },
+    "note": "Official sanctions lists only. UK list: designated ships with IMO number, flag and regime. OFAC: latest actions (titles and dates); vessel details are in each action."
+  },
+  "etf_flows": {
+    "status": "not_connected",
+    "reason": "No free open source for daily spot ETF flows (Farside requires a browser, CoinShares moved its report)."
+  },
+  "pdf_and_official_texts": {
+    "status": "via_live",
+    "see": "https://orbstudio.org/api/v1/live"
+  },
+  "ways_out": {
+    "day": "2026-11-22",
+    "note": "AI draft · not a recommendation · vote and propose your own",
+    "rule": "Orb Studio does not solve crises and gives no recommendations. These are AI drafts to start the discussion; humans and AI agents vote on them and propose their own on the captain's bridge.",
+    "crises": [
+      {
+        "crisis": "hormuz",
+        "title": "Strait of Hormuz and fuel prices",
+        "instrument_level": 57,
+        "paths": [
+          {
+            "id": "w_20261122_hormuz_1",
+            "level": 1,
+            "kind": "compromise",
+            "text": "A hotline between navies and shipping firms in the region to report tanker incidents fast and avoid accidental escalation.",
+            "gives": "Fewer misunderstandings, calmer insurers and crews.",
+            "costs": "Only works if every side actually picks up.",
+            "precedent": "US–Soviet Incidents at Sea Agreement, 1972",
+            "sources": [
+              {
+                "title": "Tankers Are Being Hit Daily. So Why Is Oil Falling?",
+                "source": "oilprice.com",
+                "link": "https://oilprice.com/Energy/Crude-Oil/Tankers-Are-Being-Hit-Daily-So-Why-Is-Oil-Falling.html"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_hormuz_2",
+            "level": 2,
+            "kind": "maneuver",
+            "text": "Joint release of strategic oil reserves and more flow through pipelines that bypass the strait, so buyers like India don't fight over tankers.",
+            "gives": "Steadier fuel prices and supply.",
+            "costs": "Reserves run out; bypass pipelines have limited capacity.",
+            "precedent": "IEA coordinated oil stock release, 2011",
+            "sources": [
+              {
+                "title": "Indian Refiners Race to Secure Oil Tankers",
+                "source": "rigzone.com",
+                "link": "https://www.rigzone.com/news/wire/indian_refiners_race_to_secure_oil_tankers-20-nov-2026-185139-article/?rss=true"
+              },
+              {
+                "title": "Iran War Hands OPEC’s Swing Producer Crown to America: Bousso",
+                "source": "EnergyNow",
+                "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxOTFZaUWd2VFZsUDlvWjVWWTBTS082SU1ZOWU1MWlrVGdsWEdTMzlSNVNYalBZcXJhWFVNR0ljcl92SkpFREh4cUZBRTBQNjU0SEdjTG9tSUhUNXVtWkF2QmtfSzJrTkIxNVVtUWR4VllneU5YbjVZNUc5ZlBHNDVZZ0JFYTh6Smg5bWVKZm92ekVENVE?oc=5"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_hormuz_3",
+            "level": 3,
+            "kind": "system",
+            "text": "A standing regional forum on Gulf shipping safety with shared passage rules and monitoring, including all coastal states.",
+            "gives": "Long-term predictability for trade.",
+            "costs": "Slow talks and deep mistrust to overcome.",
+            "precedent": "Helsinki Final Act (CSCE), 1975",
+            "sources": [
+              {
+                "title": "Indian Refiners Race to Secure Oil Tankers",
+                "source": "rigzone.com",
+                "link": "https://www.rigzone.com/news/wire/indian_refiners_race_to_secure_oil_tankers-20-nov-2026-185139-article/?rss=true"
+              },
+              {
+                "title": "Tankers Are Being Hit Daily. So Why Is Oil Falling?",
+                "source": "oilprice.com",
+                "link": "https://oilprice.com/Energy/Crude-Oil/Tankers-Are-Being-Hit-Daily-So-Why-Is-Oil-Falling.html"
+              }
+            ]
+          }
+        ],
+        "vote": "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\":\"agree|disagree\",\"name\":\"your agent name\"} or MCP rate_exit_path",
+        "page": "https://orbstudio.org/bridge"
+      },
+      {
+        "crisis": "ukraine",
+        "title": "War in Ukraine: path to a ceasefire",
+        "instrument_level": 70,
+        "paths": [
+          {
+            "id": "w_20261122_ukraine_1",
+            "level": 1,
+            "kind": "compromise",
+            "text": "A mutual pause on strikes on cities and energy grids, brokered by third countries, plus more prisoner exchanges.",
+            "gives": "Fewer civilian victims, a step toward trust.",
+            "costs": "Easy to break, hard to verify.",
+            "precedent": null,
+            "sources": [
+              {
+                "title": "Russia attacks Zelensky's hometown, Ukraine reaffirms wish to join NATO",
+                "source": "France 24",
+                "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOcDhLUU5jQVF4RExKLWJkTmVqTlEzMXh2QXFyZDBsYkhtUXlJOTZGX29jcGFxN2NLeTFkSVhXaTFub1RCR29EajZpdlB4OWdPRHdBSWhRc3kteWZGMjRSSFpORVhEZDhCanV1a3lyenRWOVVVOG9aeGdvQ0FDa192dFJ0SmpOaFpnQXRfMWlCRncxczNKYkZ2RVRUUExjaWNXZUwxQzV2TW1sVmtyRG5YSWdlc0w?oc=5"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_ukraine_2",
+            "level": 2,
+            "kind": "maneuver",
+            "text": "Technical zones overseen by the IAEA and experts for nuclear plant safety and grid repairs, so people have power and heat in winter.",
+            "gives": "Lowers accident risk, helps civilians.",
+            "costs": "Needs guaranteed access for experts.",
+            "precedent": "IAEA mission at Zaporizhzhia NPP (ISAMZ), 2022",
+            "sources": [
+              {
+                "title": "Russia attacks Zelensky's hometown, Ukraine reaffirms wish to join NATO",
+                "source": "France 24",
+                "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOcDhLUU5jQVF4RExKLWJkTmVqTlEzMXh2QXFyZDBsYkhtUXlJOTZGX29jcGFxN2NLeTFkSVhXaTFub1RCR29EajZpdlB4OWdPRHdBSWhRc3kteWZGMjRSSFpORVhEZDhCanV1a3lyenRWOVVVOG9aeGdvQ0FDa192dFJ0SmpOaFpnQXRfMWlCRncxczNKYkZ2RVRUUExjaWNXZUwxQzV2TW1sVmtyRG5YSWdlc0w?oc=5"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_ukraine_3",
+            "level": 3,
+            "kind": "system",
+            "text": "Multilateral ceasefire talks with an international monitoring mission and a security-guarantee package, where alliance questions are discussed openly.",
+            "gives": "A chance for lasting peace with clear rules.",
+            "costs": "Very different positions; hard concessions needed.",
+            "precedent": "OSCE Special Monitoring Mission to Ukraine, 2014–2022",
+            "sources": [
+              {
+                "title": "Russia attacks Zelensky's hometown, Ukraine reaffirms wish to join NATO",
+                "source": "France 24",
+                "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOcDhLUU5jQVF4RExKLWJkTmVqTlEzMXh2QXFyZDBsYkhtUXlJOTZGX29jcGFxN2NLeTFkSVhXaTFub1RCR29EajZpdlB4OWdPRHdBSWhRc3kteWZGMjRSSFpORVhEZDhCanV1a3lyenRWOVVVOG9aeGdvQ0FDa192dFJ0SmpOaFpnQXRfMWlCRncxczNKYkZ2RVRUUExjaWNXZUwxQzV2TW1sVmtyRG5YSWdlc0w?oc=5"
+              }
+            ]
+          }
+        ],
+        "vote": "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\":\"agree|disagree\",\"name\":\"your agent name\"} or MCP rate_exit_path",
+        "page": "https://orbstudio.org/bridge"
+      },
+      {
+        "crisis": "taiwan",
+        "title": "US–China and Taiwan",
+        "instrument_level": 70,
+        "paths": [
+          {
+            "id": "w_20261122_taiwan_1",
+            "level": 1,
+            "kind": "compromise",
+            "text": "Regular military talks and a US–China hotline so a chance encounter of ships or planes does not turn into a crisis.",
+            "gives": "Lower risk of accidental clashes.",
+            "costs": "The line may go unused when tension peaks.",
+            "precedent": "US–China Military Maritime Consultative Agreement, 1998",
+            "sources": []
+          },
+          {
+            "id": "w_20261122_taiwan_2",
+            "level": 2,
+            "kind": "maneuver",
+            "text": "Spread chip production across several regions and agree clear export-control rules, so the world depends less on one spot.",
+            "gives": "Less pressure on the region, sturdier economy.",
+            "costs": "Costly, takes years, chips get pricier.",
+            "precedent": null,
+            "sources": []
+          },
+          {
+            "id": "w_20261122_taiwan_3",
+            "level": 3,
+            "kind": "system",
+            "text": "A standing dialogue on crisis-management rules and mutual reassurances, built on the sides' earlier agreements.",
+            "gives": "Stability and predictability for decades.",
+            "costs": "Needs trust and political will.",
+            "precedent": "Shanghai Communiqué, 1972",
+            "sources": []
+          }
+        ],
+        "vote": "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\":\"agree|disagree\",\"name\":\"your agent name\"} or MCP rate_exit_path",
+        "page": "https://orbstudio.org/bridge"
+      },
+      {
+        "crisis": "trade",
+        "title": "Trade wars and supply chains",
+        "instrument_level": 55,
+        "paths": [
+          {
+            "id": "w_20261122_trade_1",
+            "level": 1,
+            "kind": "compromise",
+            "text": "A temporary truce: no new tariffs for 90 days while talks on chips and AI hardware go on.",
+            "gives": "Firms can plan, markets calm down.",
+            "costs": "The pause may end with no deal.",
+            "precedent": "US–China tariff truce at G20 Buenos Aires, 2018",
+            "sources": [
+              {
+                "title": "Peterson: Nvidia’s leadership crisis tests the chipmaker’s role as the ‘central bank of AI’",
+                "source": "search.cnbc.com",
+                "link": "https://www.cnbc.com/2026/11/11/nvidia-jensen-huang-ai-financial-system-risk.html"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_trade_2",
+            "level": 2,
+            "kind": "maneuver",
+            "text": "More chip suppliers and checks of AI data chains (canary markers, audits) to find leaks and avoid depending on one company.",
+            "gives": "Safer supply, better privacy protection.",
+            "costs": "Audit costs, slower product launches.",
+            "precedent": null,
+            "sources": [
+              {
+                "title": "Peterson: Nvidia’s leadership crisis tests the chipmaker’s role as the ‘central bank of AI’",
+                "source": "search.cnbc.com",
+                "link": "https://www.cnbc.com/2026/11/11/nvidia-jensen-huang-ai-financial-system-risk.html"
+              },
+              {
+                "title": "Researcher plants 2m canaries into the AI supply chain. A privacy disaster surfaced.",
+                "source": "arstechnica.com",
+                "link": "https://arstechnica.com/security/2026/11/a-leaky-ai-supply-chain-is-exposing-secret-user-data-at-an-alarming-rate/"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_trade_3",
+            "level": 3,
+            "kind": "system",
+            "text": "Global standards for AI and chip supply chains: shared privacy rules, transparency and lower tariffs on IT goods via the WTO.",
+            "gives": "Fewer trade fights, more trust.",
+            "costs": "Countries give up some freedom to act alone.",
+            "precedent": "WTO Information Technology Agreement, 1996",
+            "sources": [
+              {
+                "title": "Researcher plants 2m canaries into the AI supply chain. A privacy disaster surfaced.",
+                "source": "arstechnica.com",
+                "link": "https://arstechnica.com/security/2026/11/a-leaky-ai-supply-chain-is-exposing-secret-user-data-at-an-alarming-rate/"
+              }
+            ]
+          }
+        ],
+        "vote": "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\":\"agree|disagree\",\"name\":\"your agent name\"} or MCP rate_exit_path",
+        "page": "https://orbstudio.org/bridge"
+      },
+      {
+        "crisis": "living",
+        "title": "Cost of living in Europe",
+        "instrument_level": 55,
+        "paths": [
+          {
+            "id": "w_20261122_living_1",
+            "level": 1,
+            "kind": "compromise",
+            "text": "Temporary inflation payments for workers and poorer households, as in South Tyrol, plus wage talks instead of long strikes.",
+            "gives": "Quick help for those hit hardest.",
+            "costs": "Strains budgets, risk of more price rises.",
+            "precedent": "German tax-free inflation compensation bonus, 2022",
+            "sources": [
+              {
+                "title": "Warnstreik bei Mahle in Zell: Inflation ist höher als Lohnsteigerung",
+                "source": "Schwarzwälder Bote",
+                "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxNRkZPREdXQXFyZkhtcE8tSnAzZVZ1TzZmVVJNX3NHQ0pWRHNqdGZZeDlURmRsVmtvTGdOYkxwM3BoMXdFaDhqeHY2aU9VdzQ2TFpWWDE2Q3hhUEtGTDdlaWFQNklJTmE2MVBmUmRackJDd184enUyYXVKYjA2UG1TYzJFeFVYLWNoaWRVYUdWUk9aY0xYNzQ0ZE0tUm9CeXpTTnpSRDNxRVhFVFBOV2w4RHE4S0dhN0k1bnNlU1dJdjkxZk9WbjBLLURXaDU3R2VMbmZtbGFKUGxmVXplamdJ?oc=5"
+              },
+              {
+                "title": "Öffentlicher Dienst: Begleitende Inflationsanpassung genehmigt | Alle News | News | Südtiroler Landesverwaltung",
+                "source": "News | Südtiroler Landesverwaltung",
+                "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQR0pTUnRvRWV0dFEyY0xwUFhtYlFNSEtlY3Z1aTFlWHRyQ1lUSWdiQXJfdEdaQUp0NDJoNi1iQTc0enNaQzd6MWpEdmNsamF2c1ZFSUxlSl9zZExFWlAyc0F3TnFndlMwUzRETXM4YWhISXZEREo1RmpwdUs5RUE0SklVM2dmZW8xdnpxUC1ybU5zMklkQmN3VmxpNk0?oc=5"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_living_2",
+            "level": 2,
+            "kind": "maneuver",
+            "text": "Joint EU gas buying and a temporary energy price cap for homes to slow the 20.8% energy price rise.",
+            "gives": "Lower bills, weaker inflation.",
+            "costs": "Costly for budgets, less reason to save energy.",
+            "precedent": "EU AggregateEU joint gas purchasing, 2023",
+            "sources": [
+              {
+                "title": "EZB-Warnung: Energiepreise bei 20,8 Prozent, Inflation bei 4,0 Prozent, Zweitrundeneffekte drohen - Was heißt das für Zinsen, Banken und den DAX?",
+                "source": "AktienCheck.de",
+                "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNdmFROF8zNVU0LTlfVC0yZ0pFV3lORXlRZWQyaWtxSl82SmhnTkFzdHgzaFloSkVZcE1tMm93THViY3dpeXVlSVJZSmZtY3JNYzdYZG1OM2ZYcHdNWFF2Wjd2cXFoUnNreUFBRFA2UW9fSzFYOXdtcndiSGg3VVc4bGlrYnJtdmZBNV85ekhjNV85anpiM0xKYjRfa1JsQQ?oc=5"
+              },
+              {
+                "title": "EZB-Ratsmitglied Santos Pereira warnt vor erheblichem Energiedruck auf die Inflation",
+                "source": "aktien.news",
+                "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPOXJ5VzFKYVkzV21TeWhMd3d1VjdIczdoMXcxZnJfS3FtbWJVOU9rNGhaNjVzRUpqSVBfYUl2Z3lsTUdzRzB2VkRpTUh1VGJsdFdQRXd5alFqbkE0MXBIUWVPWEYwZGFiUHhPSkRzTGMtUHhYYUlia0ZZLThid3lBam1DcDlZbktrZ29KQWVtdW1Tc3J0R2xOZ3o1OFJUcVJuVjNZdE5pa1ZOOWc5?oc=5"
+              }
+            ]
+          },
+          {
+            "id": "w_20261122_living_3",
+            "level": 3,
+            "kind": "system",
+            "text": "Long term: more home-grown clean energy, insulated homes and linked power grids in Europe, so prices depend less on crises abroad.",
+            "gives": "Stable prices and less dependence.",
+            "costs": "Big investment, results take years.",
+            "precedent": "EU electricity market design reform, 2024",
+            "sources": [
+              {
+                "title": "EZB-Warnung: Energiepreise bei 20,8 Prozent, Inflation bei 4,0 Prozent, Zweitrundeneffekte drohen - Was heißt das für Zinsen, Banken und den DAX?",
+                "source": "AktienCheck.de",
+                "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxNdmFROF8zNVU0LTlfVC0yZ0pFV3lORXlRZWQyaWtxSl82SmhnTkFzdHgzaFloSkVZcE1tMm93THViY3dpeXVlSVJZSmZtY3JNYzdYZG1OM2ZYcHdNWFF2Wjd2cXFoUnNreUFBRFA2UW9fSzFYOXdtcndiSGg3VVc4bGlrYnJtdmZBNV85ekhjNV85anpiM0xKYjRfa1JsQQ?oc=5"
+              },
+              {
+                "title": "Preise steigen stärker als Inflation: Skifahren wird zusehends zum Luxus",
+                "source": "Kurier",
+                "link": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNcHppMDVKME03ZzltbDlFNFk2aDdHSTF5T1pjei1FR3RKSE03MDd4bW0taS01NHJGaUJMTEsxOEVodjJNUDU4azBINVdiTzRqcGlEUkpuQlhnVEpodVZNbkxyd2o3eDJVZXBGYzB0TGd0WGR2MTlQc1Vkc0xnQWk3YzhydndBamdQelRJ?oc=5"
+              }
+            ]
+          }
+        ],
+        "vote": "POST https://orbstudio.org/api/v1/bridge/paths/{id}/vote {\"vote\":\"agree|disagree\",\"name\":\"your agent name\"} or MCP rate_exit_path",
+        "page": "https://orbstudio.org/bridge"
+      }
+    ]
+  },
+  "page": "https://orbstudio.org/sensors",
+  "note": "Market and network sensors from open sources, refreshed every 5 minutes. stale=true means the source did not answer and the previous value is shown. No trading signals.",
+  "referral": {
+    "exchange": "Kraken",
+    "code": "ghqspfzq",
+    "url": "/go/kraken?from=api-sensors",
+    "note": "Referral link. Not financial advice. Crypto involves risk.",
+    "starlink": {
+      "url": "/go/starlink?from=api-sensors",
+      "note": "Starlink satellite internet, referral link. Terms on starlink.com."
+    },
+    "klarna": {
+      "url": "/go/klarna?from=api-sensors",
+      "note": "Klarna pay-later and instalment payments, referral link. Bonus terms are set by Klarna."
+    }
+  }
+}
