@@ -59,9 +59,9 @@ export const RADIO_TRACKS = [
   { id: "bright-current", title: "Bright Current", path: "/media/radio/bright-current.m4a", sec: 156 },
   { id: "iron-horizon", title: "Iron Horizon", path: "/media/radio/iron-horizon.m4a", sec: 208 },
   { id: "signal-highway", title: "Signal Highway", path: "/media/radio/signal-highway.m4a", sec: 122 },
-  { id: "cold-meridian", title: "Cold Meridian", path: "/media/radio/cold-meridian.m4a", sec: 213 },
-  { id: "heavy-current", title: "Heavy Current", path: "/media/radio/heavy-current.m4a", sec: 270 },
-  { id: "static-lanterns", title: "Static Lanterns", path: "/media/radio/static-lanterns.m4a", sec: 80 },
+  { id: "cold-meridian", title: "Cold Meridian", path: "/media/radio/cold-meridian.m4a", sec: 212 },
+  { id: "heavy-current", title: "Heavy Current", path: "/media/radio/heavy-current.m4a", sec: 269 },
+  { id: "static-lanterns", title: "Static Lanterns", path: "/media/radio/static-lanterns.m4a", sec: 79 },
 ];
 const https = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 export function radioCard(duo, origin = "https://orbstudio.org") {

@@ -14,9 +14,9 @@ export const TRACKS = [
   { id: "bright-current", title: "Bright Current", src: "/media/radio/bright-current.m4a", sec: 156 },
   { id: "iron-horizon", title: "Iron Horizon", src: "/media/radio/iron-horizon.m4a", sec: 208 },
   { id: "signal-highway", title: "Signal Highway", src: "/media/radio/signal-highway.m4a", sec: 122 },
-  { id: "cold-meridian", title: "Cold Meridian", src: "/media/radio/cold-meridian.m4a", sec: 213 },
-  { id: "heavy-current", title: "Heavy Current", src: "/media/radio/heavy-current.m4a", sec: 270 },
-  { id: "static-lanterns", title: "Static Lanterns", src: "/media/radio/static-lanterns.m4a", sec: 80 },
+  { id: "cold-meridian", title: "Cold Meridian", src: "/media/radio/cold-meridian.m4a", sec: 212 },
+  { id: "heavy-current", title: "Heavy Current", src: "/media/radio/heavy-current.m4a", sec: 269 },
+  { id: "static-lanterns", title: "Static Lanterns", src: "/media/radio/static-lanterns.m4a", sec: 79 },
 ];
 // Музыкальная полка: треки идут вперемешку; пока не прозвучат все, ни один не повторяется. bag — что ещё не звучало в этом круге.
 export function nextTrackId(ids, bag, last, rnd = Math.random) {
@@ -47,11 +47,20 @@ export function mediaActions(p) {
 // Язык эфира один для всех слушателей: голос Давида и гостей звучит по-русски, подписи страницы остаются на языке посетителя
 export const AIR_LANG = "ru";
 // Эфир без остановок. LOAD_MS — срок на загрузку данных круга; STALL_MS — сколько звук может стоять на месте.
-export const LOAD_MS = 25000, STALL_MS = 12000, VOICE_FAIL_MS = 400, RETRY_MS = 20 * 60e3;
+export const LOAD_MS = 25000, STALL_MS = 12000, VOICE_STALL_MS = 6000, VOICE_FAIL_MS = 150, START_WAIT_MS = 1500, RETRY_MS = 20 * 60e3; // музыке даём 12 с (слабая сеть в дороге), голосу — 6 с: реплика короткая, ждать её дольше незачем
 // Блоки, у которых не загрузился голос, не пробуем снова 20 минут (failed: что → когда не получилось)
 export function notNow(failed, now) { const s = new Set(); for (const [id, at] of failed || []) if (now - at < RETRY_MS) s.add(id); return s; }
 // Сторож звука: st помнит последнюю «отметку» эфира; если она не меняется дольше STALL_MS — застряли
-export function stalled(st, sig, now) { if (st.sig !== sig) { st.sig = sig; st.at = now; return false; } return now - st.at >= STALL_MS; }
+export function stalled(st, sig, now, limit = STALL_MS) { if (st.sig !== sig) { st.sig = sig; st.at = now; return false; } return now - st.at >= limit; }
+// Что прозвучит следом: следующая реплика этого блока, иначе начало следующего пункта (трек или первая озвученная реплика).
+// Этот файл загружается заранее, пока идёт текущий звук, — поэтому между музыкой и голосом нет тишины «на загрузку».
+export function nextSrc(items, idx, li) {
+  const cur = items && items[idx]; if (cur && cur.type !== "track" && cur.iv) for (const x of cur.iv.lines.slice(li)) if (x && x.audio) return x.audio;
+  const nx = items && items[idx + 1]; if (!nx) return null; if (nx.type === "track") return (nx.track && nx.track.src) || null;
+  for (const x of (nx.iv && nx.iv.lines) || []) if (x && x.audio) return x.audio; return null;
+}
+// Сбои эфира считаются автоматически: что именно случилось у слушателя, видно в статистике (без имён и адресов)
+export const GLITCHES = ["stall_track", "stall_voice", "voice_fail", "track_error", "empty_plan"], GLITCH_MAX = 12;
 // Что играть, когда круг кончился. Готов следующий круг — берём его (без первого трека, если только что играл «мост»).
 // Не готов — ставим трек с полки и просим собрать круг; так между кругами нет тишины, даже если сеть медленная.
 export function afterPlan(nextPlan, bridged, nextTrack) {
@@ -108,7 +117,7 @@ export function interviews(duo, lang) {
 // Время суток слушателя по часам его устройства: утро 5–11, день 12–17, вечер 18–22, ночь 23–4
 export function daypart(hour) { const h = ((Math.floor(+hour) % 24) + 24) % 24; return h >= 5 && h < 12 ? "morning" : h >= 12 && h < 18 ? "day" : h >= 18 && h < 23 ? "evening" : "night"; }
 // Плавное начало и конец трека: громкость 0→1 за FADE_IN секунд и 1→0 за последние FADE_OUT секунд
-export const FADE_IN = 3.5, FADE_OUT = 3, GAP_MS = 1200;
+export const FADE_IN = 1.2, FADE_OUT = 2, GAP_MS = 250; // трек вступает за секунду, пауза перед голосом — четверть секунды
 export function trackGain(pos, dur, out = FADE_OUT) { if (!(pos >= 0)) return 0; const up = Math.min(1, pos / FADE_IN), down = dur > FADE_IN + out ? Math.min(1, Math.max(0, (dur - pos) / out)) : 1; return +Math.max(0, Math.min(up, down)).toFixed(3); }
 // Сначала интервью ближе к слушателю (его регион), потом общий мировой выпуск. Одна и та же новость дважды не ставится.
 export function mergeInterviews(reg, world) {
@@ -209,6 +218,12 @@ function start() {
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = st[e.dataset.t] || ""; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = st[e.dataset.h] || ""; });
   const play = $("play"), skip = $("skip"), au = new Audio(); au.preload = "auto";
+  // второй, беззвучный плеер только загружает следующий файл в память браузера
+  const pre = new Audio(); pre.preload = "auto"; let preSrc = "";
+  const warm = () => { const u = nextSrc(items, idx, li); if (u && u !== preSrc) { preSrc = u; try { pre.src = u; pre.load(); } catch {} } };
+  let glitches = 0, playSent = false;
+  const beat = (kind) => { if (navigator.webdriver) return; try { fetch("/api/v1/radio/beat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind }), keepalive: true }).catch(() => {}); } catch {} };
+  const glitch = (kind) => { if (glitches++ < GLITCH_MAX) beat(kind); };
   play.textContent = "▶"; play.setAttribute("aria-label", t.start); skip.textContent = "▶▶"; skip.setAttribute("aria-label", t.skip); $("hint").textContent = t.tap;
   $("np-k").textContent = t.title; $("np").textContent = t.tap;
 
@@ -262,7 +277,7 @@ function start() {
     const x = it.iv.lines[li++]; showLine(it.iv, x); lineAt = Date.now(); lineMsNow = x.ms || 4000; fading = false; setVol(1); // голос сразу в полную громкость
     au.onended = au.onerror = null; voiceLine = !!x.audio;
     // голос не загрузился (лимит озвучки, сеть): не молчим «на время чтения», а сразу идём дальше
-    if (x.audio) { au.src = x.audio; au.onended = () => { itemHeard = true; nextLine(); }; au.onerror = () => { timer = setTimeout(nextLine, VOICE_FAIL_MS); }; au.play().catch(() => { timer = setTimeout(nextLine, VOICE_FAIL_MS); }); }
+    if (x.audio) { au.src = x.audio; au.onended = () => { itemHeard = true; nextLine(); }; au.onerror = () => { glitch("voice_fail"); timer = setTimeout(nextLine, VOICE_FAIL_MS); }; au.play().catch(() => { timer = setTimeout(nextLine, VOICE_FAIL_MS); }); warm(); }
     else timer = setTimeout(() => { itemHeard = true; nextLine(); }, x.ms || 4000); // у реплики нет голоса: показываем текст на время чтения
   }
   async function build() {
@@ -285,25 +300,32 @@ function start() {
     return p.items;
   }
   // Карусель не останавливается: когда круг кончился, сразу играет трек с полки («мост»), а следующий круг собирается в это время.
-  let nextPlan = null, building = null, bridged = false;
+  let nextPlan = null, building = null, bridged = false, lateStart = false;
   function next() {
     clearTimeout(timer); au.onended = au.onerror = null;
     if (idx + 1 >= items.length) { const r = afterPlan(nextPlan, bridged, nextTrack);
       if (r.build && !building) building = build().then((its) => { nextPlan = its; }).catch(() => { nextPlan = null; }).finally(() => { building = null; });
       if (!r.build) nextPlan = null; items = r.items; bridged = r.bridged; idx = -1; }
-    const prev = items[idx]; idx++; itemHeard = false; const it = items[idx]; rundown(); if (!it) return;
+    const prev = items[idx]; idx++; itemHeard = false; let it = items[idx];
+    // пустой круг быть не должен, но если случился — играем трек с полки, а не молчим
+    if (!it) { glitch("empty_plan"); const tr = nextTrack(); if (!tr) return; items = [{ type: "track", track: tr }]; idx = 0; it = items[0]; }
+    rundown();
     // короткая пауза между музыкой и голосом, чтобы Давид не вступал встык
     if (prev && prev.type === "track" && it.type !== "track" && on) { pending = it; timer = setTimeout(() => begin(it), GAP_MS); return; }
     begin(it);
   }
   function begin(it) {
     pending = null; if (items[idx] !== it) return;
-    if (it.type === "track") { showTrack(it.track); fading = true; setVol(0); au.src = it.track.src; au.onended = next; au.onerror = next; if (on) au.play().catch(() => {}); }
+    if (it.type === "track") { showTrack(it.track); fading = true; setVol(0); au.src = it.track.src; au.onended = next; au.onerror = () => { glitch("track_error"); next(); }; if (on) au.play().catch(() => {}); warm(); }
     else { li = 0; nextLine(); }
   }
   const go = async () => {
     audioGraph();
-    if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; await ready; next(); return; } // сетка уже собрана при открытии страницы
+    if (!started) { started = true; setOn(true); $("hint").hidden = true; skip.hidden = false; if (!playSent) { playSent = true; beat("play"); }
+      // сетка обычно уже собрана; если сеть медлит дольше START_WAIT_MS — сразу играет трек с полки, а сетка подхватится после него
+      const inTime = await Promise.race([ready.then(() => true), new Promise((r) => setTimeout(() => r(false), START_WAIT_MS))]);
+      if (!inTime && !items.length) { lateStart = true; const tr = nextTrack(); if (tr) { items = [{ type: "track", track: tr }]; bridged = true; idx = -1; } }
+      next(); return; } // сетка уже собрана при открытии страницы
     setOn(!on); if (on) { if (pending) begin(pending); else if (au.src && !au.ended) au.play().catch(() => {}); else next(); } else { au.pause(); clearTimeout(timer); }
   };
   play.addEventListener("click", go);
@@ -316,16 +338,16 @@ function start() {
     const once = (e) => { document.removeEventListener("pointerdown", once, true); play.classList.remove("wait"); if (!started && !(e.target.closest && e.target.closest("#play"))) go(); };
     document.addEventListener("pointerdown", once, true); });
   skip.addEventListener("click", () => { if (!started) return; au.pause(); const it = items[idx]; if (it && it.type === "talk") { heard.add(it.iv.headline); saveHeard(); } if (it && it.key) { heard.add(it.key); saveHeard(); } setOn(true); next(); });
-  const ready = build().then((its) => { items = its; idx = -1; if (!started) rundown(); }).catch(() => { items = []; idx = -1; });
+  const ready = build().then((its) => { if (lateStart) { nextPlan = its; return; } items = its; idx = -1; if (!started) rundown(); }).catch(() => { if (!lateStart) { items = []; idx = -1; } });
 
   // ---- часы, полоса времени, прокрутка длинной реплики ----
   const clock = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); $("clock").textContent = p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + p(d.getFullYear() % 100) + " " + p(d.getHours()) + ":" + p(d.getMinutes()); };
   clock();
-  // сторож: если звук 12 секунд стоит на месте (файл завис в сети, вкладку придержал телефон), эфир идёт дальше — реплика пропускается, трек сменяется
+  // сторож: если музыка 12 секунд (голос — 6 секунд) стоит на месте (файл завис в сети, вкладку придержал телефон), эфир идёт дальше — реплика пропускается, трек сменяется
   const wd = { sig: "", at: Date.now() };
   setInterval(() => { const it = items[idx]; if (!on || !started || !it || pending || (it.type !== "track" && !voiceLine)) { wd.sig = ""; wd.at = Date.now(); return; }
-    if (!stalled(wd, idx + ":" + li + ":" + Math.round(au.currentTime * 4), Date.now())) return;
-    wd.sig = ""; wd.at = Date.now(); if (actx && actx.state !== "running") actx.resume().catch(() => {});
+    if (!stalled(wd, idx + ":" + li + ":" + Math.round(au.currentTime * 4), Date.now(), it.type === "track" ? STALL_MS : VOICE_STALL_MS)) return;
+    wd.sig = ""; wd.at = Date.now(); if (actx && actx.state !== "running") actx.resume().catch(() => {}); glitch(it.type === "track" ? "stall_track" : "stall_voice");
     if (it.type === "track") next(); else { au.onended = au.onerror = null; nextLine(); } }, 1000);
   // плавное начало и конец трека; длинный трек через две минуты тихо уходит, и слово берёт Давид
   setInterval(() => { if (!(fading && on && !au.paused)) return; const end = cutAt(au.duration), cut = end < au.duration;

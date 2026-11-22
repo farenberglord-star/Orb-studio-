@@ -1618,6 +1618,36 @@ async function radioRadar(env, origin, lang) {
     host: "David — Orb Studio AI host (lines written by Claude)", check: "One sentence per headline, only what the headline states; a number that is not in the headline rejects the line.", radars_url: origin + "/api/v1/radars", voices: "Synthetic AI voice (xAI Grok TTS).", scope_note: "Headlines are third-party data. No forecasts or advice." };
 }
 // Новости с датчиков для радио: раз в четыре часа Claude пересказывает строки датчиков на трёх языках; в эфир идёт только то, что прошло проверку чисел
+// ---- Автоматическая проверка эфира ----
+// Раз в полчаса сервер сам проверяет всё, из чего собирается эфир: файлы всех треков на месте, связки Давида озвучены,
+// новости и интервью готовы, остаток дневного лимита голоса. Результат и журнал последних проблем — в /api/v1/radio/health.
+const RADIO_HEALTH_KEY = "radio-health-v1", RADIO_HEALTH_MS = 30 * 60e3, RADIO_BEATS = ["play", "stall_track", "stall_voice", "voice_fail", "track_error", "empty_plan"];
+async function radioHealthRun(env, ctx, origin) {
+  const q = Object.assign(Object.create(env), { __quietVoice: true }), problems = [], info = {}; // тихий режим: проверка не тратит голос
+  const files = await Promise.all(RADIO_TRACKS.map(async (t) => { try { const r = await env.ASSETS.fetch(new Request(origin + t.path, { method: "HEAD" })); return r.ok; } catch { return false; } }));
+  RADIO_TRACKS.forEach((t, i) => { if (!files[i]) problems.push("track_missing:" + t.id); }); info.tracks = RADIO_TRACKS.length;
+  try { const dj = await radioDj(q, ctx, origin, RADIO_AIR), links = Object.values((dj && dj.links) || {}); info.dj_links = links.length; info.dj_voiced = links.filter((x) => x && x.audio).length;
+    if (!links.length) problems.push("dj_no_links"); else if (info.dj_voiced < links.length) problems.push("dj_unvoiced:" + (links.length - info.dj_voiced)); } catch { problems.push("dj_error"); }
+  try { const s = await radioSensors(q, origin, RADIO_AIR); info.sensor_stories = (s.stories || []).length; if (s.status !== "ok") problems.push("sensors_" + s.status); if (s.not_aired) info.sensors_not_aired = s.not_aired; } catch { problems.push("sensors_error"); }
+  try { const r = await radioRadar(q, origin, RADIO_AIR); if (r.status !== "ok") problems.push("radar_" + r.status); } catch { problems.push("radar_error"); }
+  try { const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 }; info.voice_used = used.c; info.voice_limit = DUO_TTS_DAY_CHARS;
+    if (used.c > DUO_TTS_DAY_CHARS * 0.9) problems.push("voice_budget_low"); } catch {}
+  return { ok: !problems.length, checked_at: new Date().toISOString(), problems, info };
+}
+async function radioHealthTick(env, ctx) {
+  const cur = await sharedGet(env, RADIO_HEALTH_KEY, 1e15); if (cur && Date.now() - Date.parse(cur.checked_at) < RADIO_HEALTH_MS) return;
+  const res = await radioHealthRun(env, ctx, "https://orbstudio.org"), log = ((cur && cur.log) || []).slice(0, 39);
+  if (!res.ok) log.unshift({ at: res.checked_at, problems: res.problems }); // в журнал попадают только проверки с проблемами
+  await sharedPut(env, RADIO_HEALTH_KEY, { ...res, log });
+}
+async function radioHealth(env) {
+  const cur = await sharedGet(env, RADIO_HEALTH_KEY, 1e15), out = { status: cur ? (cur.ok ? "ok" : "problems") : "no check yet", every_minutes: RADIO_HEALTH_MS / 60e3, ...(cur || {}) };
+  // что случалось у слушателей за последние дни: запуски эфира и сбои, которые плеер пережил сам (перешёл дальше)
+  try { const rows = (await env.DB.prepare("SELECT day, name, n FROM hits WHERE page='radio-air' AND day>=?1 ORDER BY day DESC").bind(new Date(Date.now() - 6 * 864e5).toISOString().slice(0, 10)).all()).results || [];
+    const days = {}; for (const r of rows) (days[r.day] = days[r.day] || {})[r.name] = r.n; out.listeners = days; } catch {}
+  out.note = "Automatic check of everything the broadcast is made of; the player itself skips a stuck sound and reports it here. Counts are anonymous.";
+  return out;
+}
 async function radioSensorsWarm(env, ctx) {
   if (!env.ANTHROPIC_API_KEY) return;
   const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return;
@@ -3429,6 +3459,12 @@ async function handleApi(url, request, env, ctx) {
   // Эфир радио идёт на одном языке — русском (решение автора 22.11.2026: так дневного лимита озвучки хватает на весь день). Параметр lang у радио больше не меняет язык.
   const renv = quietVoice(request, url) ? Object.assign(Object.create(env), { __quietVoice: true }) : env;
   // связки диджея Давида для текущего выпуска (пишет Claude, голос — тот же синтез, что в студии)
+  if (p === "/api/v1/radio/health") return json(await radioHealth(env), { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/beat" && request.method === "POST") { // плеер сообщает: эфир запущен / был сбой такого-то вида. Роботов не считаем
+    let kind = ""; try { kind = String(((await request.json()) || {}).kind || ""); } catch {}
+    const robot = /HeadlessChrome|Playwright|Puppeteer|PhantomJS|Lighthouse|Selenium|webdriver/i.test(request.headers.get("user-agent") || "");
+    if (RADIO_BEATS.includes(kind) && !robot && !classifyAgent(request.headers.get("user-agent"))) await recordHit(env, "radio-air", "air", kind);
+    return json({ ok: true }, { "Cache-Control": "no-store" }); }
   if (p === "/api/v1/radio/dj") return json(await radioDj(renv, ctx, origin, RADIO_AIR), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   // интервью ближе к слушателю (регион по стране IP; ?region=eu|us — для проверки)
   if (p === "/api/v1/radio/radar") return json(await radioRadar(renv, origin, RADIO_AIR), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
@@ -8652,7 +8688,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
