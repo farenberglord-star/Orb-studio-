@@ -1655,15 +1655,19 @@ async function radioSensorsWarm(env, ctx) {
   const out = { generated_at: new Date().toISOString(), stories: {} };
   await Promise.all([RADIO_AIR].map(async (lg) => { try { // новости с датчиков пишутся только на языке эфира
     const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
-    const st = checkSensorStories(await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800), facts, lg, stripInvisible);
+    const raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800).catch(() => null);
+    if (!raw) { (out.rejected = out.rejected || {})[lg] = { all: "claude_no_answer" }; return; } // Claude не ответил: причина видна в not_aired
+    const st = checkSensorStories(raw, facts, lg, stripInvisible);
     out.stories[lg] = st; if (st._rejected) (out.rejected = out.rejected || {})[lg] = st._rejected; // причины отказа храним рядом: видно, что и почему не вышло в эфир
   } catch {} }));
   if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v2", out);
+  else await sharedPut(env, "radio-sens-rej", { at: out.generated_at, rejected: out.rejected || { [RADIO_AIR]: { all: "no_sensor_lines" } } }); // ничего не прошло: причины храним, чтобы было видно почему
 }
 async function radioSensors(env, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
   const ids = mine ? Object.keys(SENSOR_TOPICS).filter((k) => mine[k] && mine[k].text) : [];
-  const rejected = (ep && ep.rejected && ep.rejected[lg]) || null;
+  let rejected = (ep && ep.rejected && ep.rejected[lg]) || null;
+  if (!(ep && ep.stories && ep.stories[lg])) { const rj = await sharedGet(env, "radio-sens-rej", 24 * 3600e3).catch(() => null); if (rj && rj.rejected && rj.rejected[lg]) rejected = { ...rj.rejected[lg], at: rj.at }; }
   if (!ids.length) return { status: "preparing", language: lg, not_aired: rejected };
   const audio = await Promise.all(ids.map((k) => radioVoice(env, origin, mine[k].text, lg)));
   return { status: "ok", language: lg, generated_at: ep.generated_at, not_aired: rejected, stories: ids.map((k, i) => ({ id: k, key: "sens:" + k + ":" + ep.generated_at, text: mine[k].text, audio: audio[i], sensor_lines: mine[k].facts })),

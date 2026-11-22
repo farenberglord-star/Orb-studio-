@@ -574,3 +574,8 @@ test("sensor news are rewritten at once when the air language changes", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /if \(cur && cur\.stories && cur\.stories\[RADIO_AIR\] && Object\.keys\(cur\.stories\[RADIO_AIR\]\)\.length && Date\.now\(\) - Date\.parse\(cur\.generated_at\) < SENSOR_MS\) return;/);
 });
+
+test("sensor news: when nothing passes, the reasons are kept and shown as not_aired", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /all: "claude_no_answer"/); assert.match(w, /else await sharedPut\(env, "radio-sens-rej"/); assert.match(w, /sharedGet\(env, "radio-sens-rej", 24 \* 3600e3\)/);
+});
