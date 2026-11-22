@@ -27,7 +27,7 @@ test("report merges live sensors and filters by zone and query", () => {
 });
 test("pages and wiring", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /p === "\/api\/v1\/crystals"/); assert.match(w, /name: "get_crystals"/); assert.match(w, /name === "get_crystals"/); assert.match(w, /"tools\/crystals"/); assert.match(w, /"hagenauer", "crystals"\]\)/);
+  assert.match(w, /p === "\/api\/v1\/crystals"/); assert.match(w, /name: "get_crystals"/); assert.match(w, /name === "get_crystals"/); assert.match(w, /"tools\/crystals"/); assert.match(w, /"hagenauer", "crystals"/);
   for (const f of ["tools/crystals.html", "de/tools/crystals.html", "en/tools/crystals.html"]) {
     const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8");
     assert.match(h, /\/go\/kraken\?from=crystals/); assert.match(h, /\/go\/starlink\?from=crystals/); assert.match(h, /share-x\.js/); assert.match(h, /hreflang="de"/);

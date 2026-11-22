@@ -118,7 +118,8 @@
     "baird": "https://orbstudio.org/api/v1/baird",
     "lyberg": "https://orbstudio.org/api/v1/lyberg",
     "hagenauer": "https://orbstudio.org/api/v1/hagenauer",
-    "crystals": "https://orbstudio.org/api/v1/crystals"
+    "crystals": "https://orbstudio.org/api/v1/crystals",
+    "frankfurt": "https://orbstudio.org/api/v1/frankfurt"
   },
   "auth": "none",
   "payments": {

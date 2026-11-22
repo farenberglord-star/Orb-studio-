@@ -13,6 +13,7 @@ import { LEAMER } from "./leamer.js";
 import { BAIRD } from "./baird.js";
 import { LYBERG } from "./lyberg.js";
 import { HAGENAUER } from "./hagenauer.js";
+import { FRANKFURT } from "./frankfurt.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -66,6 +67,10 @@ export const SCIENTISTS = [
     principle: "Soft decisions: keep how reliable a decision is instead of rounding a noisy signal to 0 or 1.",
     sensor: "Margin to the next threshold for every label the site publishes, with the label it would flip to, sorted from the shakiest.",
     analog_check: { date: "2026-11-22", similar: "decision margins, calibrated confidence and conformal prediction inside machine-learning models", difference: "applied live to every published label of a public site, across all its sensors, for agents" } },
+  { id: "frankfurt", honour: FRANKFURT, field: "moral philosophy, philosophy of language", tool: "get_frankfurt", api: "/api/v1/frankfurt",
+    principle: "On Bullshit: talk that does not care about truth leaves nothing to check.",
+    sensor: "Checkable anchors (who, when, how many, where) and vague formulas in every radar headline, with shares per radar; the same verdict in check_headline.",
+    analog_check: { date: "2026-11-22", similar: "retext-intensify and SEO vague-language detectors (weasel words in a text), ClaimBuster (check-worthiness of sentences), research on vagueness and fake news", difference: "counts checkable anchors live across a news feed per radar and adds the verdict to every check_headline answer" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -73,6 +78,7 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "frankfurt") return { verdict: r.verdict, nothing_to_check_pct: r.shares ? r.shares.nothing_to_check : null, checkable_pct: r.shares ? r.shares.checkable : null };
   if (id === "hagenauer") return { verdict: r.verdict, on_edge: r.on_edge, total: r.total };
   if (id === "lyberg") return { verdict: r.verdict, main_language: r.coverage ? r.coverage.main_language : null, regions_not_seen: r.coverage ? r.coverage.regions_not_seen.length : null, silent: r.nonresponse ? r.nonresponse.silent : null };
   if (id === "baird") return { verdict: r.verdict, traced: r.traced, total: r.total, failures: r.failures };
