@@ -111,7 +111,8 @@
     "impulse": "https://orbstudio.org/api/v1/impulse",
     "kahneman": "https://orbstudio.org/api/v1/kahneman",
     "ziv": "https://orbstudio.org/api/v1/ziv",
-    "cox": "https://orbstudio.org/api/v1/cox"
+    "cox": "https://orbstudio.org/api/v1/cox",
+    "halpern": "https://orbstudio.org/api/v1/halpern"
   },
   "auth": "none",
   "payments": {

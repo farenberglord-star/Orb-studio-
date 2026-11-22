@@ -4,6 +4,7 @@ export const SHARE_X = {
   get_hamilton: { text: "Hamilton sensor: what in Orb Studio works fully, what was set aside to keep the main things running, and why. In honour of Margaret Hamilton (1936–2026), who led the Apollo flight software team.", path: "/en/tools/hamilton" },
   get_impulse: { text: "Impulse: which sensors in honour of scientists outside AI agents actually use this week. The main sensor of the Orb Studio scientists portal; free via API and MCP.", path: "/en/tools/impulse" },
   list_scientist_sensors: { text: "Sensors in honour of scientists: one idea of a scientist (Margaret Hamilton, Evgeny Mikrin, Boris Polyak) applied to live Orb Studio data. Free for any AI agent via API and MCP.", path: "/en/tools/scientists" },
+  get_halpern: { text: "Halpern sensor: which headlines moved an Orb Studio index in the last 6 hours, by the Halpern–Pearl test of actual causation. In honour of Joseph Halpern (1953–2026).", path: "/en/tools/halpern" },
   get_kahneman: { text: "Kahneman sensor: a noise audit of three AI models (Gemini, Grok, DeepSeek) judging the same news. In honour of Daniel Kahneman (1934–2024), author of 'Noise'.", path: "/en/tools/kahneman" },
   get_ziv: { text: "Ziv sensor: how much of today's news headlines is really new, measured by LZ compression. In honour of Jacob Ziv (1931–2023), co-author of LZ77 and LZ78.", path: "/en/tools/ziv" },
   get_cox: { text: "Cox sensor: how long a news story lives on each Orb Studio radar, with Kaplan-Meier medians and Cox hazard ratios. In honour of Sir David Cox (1924–2022).", path: "/en/tools/cox" },
@@ -21,7 +22,7 @@ export const SHARE_X = {
   court: { text: "Agent Court: open transcripts of cases against bots that hunt for admin panels and secrets or try prompt injections. No blocking, no fines, JSON for AI agents.", path: "/en/tools/court" },
   agent_wallet: { text: "An agent wallet with a dry review of paid x402 resources: nothing is bought until seller, resource, network and amount are confirmed separately.", path: "/en/tools/agent-wallet" },
 };
-export const PAGE_TOOL = { "/tools/hamilton": "get_hamilton", "/tools/mikrin": "get_mikrin", "/tools/polyak": "get_polyak", "/tools/park": "get_park", "/tools/kahneman": "get_kahneman", "/tools/ziv": "get_ziv", "/tools/cox": "get_cox", "/tools/scientists": "list_scientist_sensors", "/tools/impulse": "get_impulse", "/tools/interview": "check_interview", "/tools/clips": "get_clips", "/tools/court": "court", "/tools/agent-wallet": "agent_wallet" };
+export const PAGE_TOOL = { "/tools/hamilton": "get_hamilton", "/tools/mikrin": "get_mikrin", "/tools/polyak": "get_polyak", "/tools/park": "get_park", "/tools/kahneman": "get_kahneman", "/tools/ziv": "get_ziv", "/tools/cox": "get_cox", "/tools/halpern": "get_halpern", "/tools/scientists": "list_scientist_sensors", "/tools/impulse": "get_impulse", "/tools/interview": "check_interview", "/tools/clips": "get_clips", "/tools/court": "court", "/tools/agent-wallet": "agent_wallet" };
 export const SHARE_LABEL = { ru: "Поделиться в X", de: "Auf X teilen", en: "Share on X" };
 // h3 карточки «get_clips · predict_clip» → ключ первого имени
 export const toolKey = (h3) => String(h3 || "").trim().split(/\s*·\s*/)[0];

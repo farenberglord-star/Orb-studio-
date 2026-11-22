@@ -42,7 +42,7 @@ test("three sensors are wired like the others: pages, SEO, Kraken strip, share, 
   const d = rt.rtAssemble([{ i: 0, headline: "H" }], "intro", { gemini: { list: [{ i: 0, text: "x".repeat(40), importance: 7, confidence: "11" }] }, grok: { status: "off" }, deepseek: { list: [{ i: 0, text: "y".repeat(40), importance: "4" }] } }, null, { claude: "c" });
   assert.equal(d.topics[0].answers.gemini.importance, 7); assert.equal(d.topics[0].answers.gemini.confidence, null, "out of range is dropped"); assert.equal(d.topics[0].answers.deepseek.importance, 4);
   assert.match(w, /ctx\.waitUntil\(zivTick\(env, ctx\)/); assert.match(w, /ctx\.waitUntil\(coxTick\(env, ctx\)/);
-  for (const id of ["kahneman", "ziv", "cox"]) {
+  for (const id of ["kahneman", "ziv", "cox", "halpern"]) {
     assert.match(w, new RegExp('p === "/api/v1/' + id + '"')); assert.match(w, new RegExp('name: "get_' + id + '"')); assert.match(w, new RegExp('"tools/' + id + '"'));
     for (const pre of ["", "de/", "en/"]) { const h = readFileSync(new URL("../public/" + pre + "tools/" + id + ".html", import.meta.url), "utf8");
       assert.match(h, new RegExp('fetch\\("/api/v1/' + id + '"')); assert.match(h, /href="\/go\/kraken\?from=/); assert.equal((h.match(/rel="alternate" hreflang=/g) || []).length, 4); assert.match(h, /application\/ld\+json/); assert.match(h, /tools\/scientists">/); assert.match(h, /src="\/share-x\.js"/); }
