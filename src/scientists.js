@@ -8,6 +8,7 @@ import { KAHNEMAN } from "./kahneman.js";
 import { ZIV } from "./ziv.js";
 import { COX } from "./cox.js";
 import { HALPERN } from "./halpern.js";
+import { HOWARD } from "./howard.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -41,6 +42,10 @@ export const SCIENTISTS = [
     principle: "Actual causality: a cause is what, had it been different, would have changed the outcome – the smallest such set.",
     sensor: "Which headlines moved an Orb Studio index in the last 6 hours, and what the index is made of now.",
     analog_check: { date: "2026-11-22", similar: "root-cause analysis of metric changes in monitoring systems (for example Datadog) and feature attribution libraries such as SHAP", difference: "a counterfactual test over the live Orb Studio indices that names the very headlines, with source and radar" } },
+  { id: "howard", honour: HOWARD, field: "decision analysis, value of information", tool: "get_howard", api: "/api/v1/howard",
+    principle: "Value of information: learn more before deciding only when it could change the decision; otherwise act now.",
+    sensor: "Retell now or wait: how often stories carried by 1-2 outlets were later carried by 3+ outlets, and after how many hours, by the age of the story.",
+    analog_check: { date: "2026-11-22", similar: "corroborate-mcp (counts corroborating sources now), Reuters News Tracer (internal credibility score for tweets), news fact-check MCP servers", difference: "uses the site's own history to say how often and how soon unconfirmed stories got confirmed, as a wait-or-tell hint for agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -48,6 +53,7 @@ export function scientistLine(id, r) {
   if (id === "hamilton") return { status: r.status, set_aside: (r.components || []).filter((c) => c.state !== "full" && c.state !== "unknown").map((c) => c.id) };
   if (id === "mikrin") { const b = (r.blocks || []).find((x) => x.id === r.shortest_path); return { shortest_path: r.shortest_path || null, minutes: b ? b.steps[0].minutes_median : null }; }
   if (id === "halpern") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { verdict: c.verdict, shift: c.shift, causes: (c.causes || []).length } : null; }
+  if (id === "howard") { const b = (r.by_age || [])[0]; return { verdict: r.verdict, tracked: r.stories_tracked, p_confirm: b ? b.p_confirm : null, median_wait_h: b ? b.median_wait_h : null }; }
   if (id === "kahneman") return { topics_rated: r.topics_rated, system_noise: r.audit && r.audit.importance ? r.audit.importance.system_noise : null };
   if (id === "ziv") return { novelty_all: r.novelty_all };
   if (id === "cox") return { median_hours_all: r.median_hours_all, stories: r.stories };

@@ -112,7 +112,8 @@
     "kahneman": "https://orbstudio.org/api/v1/kahneman",
     "ziv": "https://orbstudio.org/api/v1/ziv",
     "cox": "https://orbstudio.org/api/v1/cox",
-    "halpern": "https://orbstudio.org/api/v1/halpern"
+    "halpern": "https://orbstudio.org/api/v1/halpern",
+    "howard": "https://orbstudio.org/api/v1/howard"
   },
   "auth": "none",
   "payments": {
