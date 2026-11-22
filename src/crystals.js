@@ -1768,6 +1768,229 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "schank",
+"name": "Roger Schank",
+"name_ru": "Роджер Шенк",
+"years": "1946–2023",
+"wiki": "https://en.wikipedia.org/wiki/Roger_Schank",
+"zone": "stale_data",
+"idea": {
+"en": "Dynamic memory and case-based reasoning: understanding by recalling similar past cases and revising them.",
+"ru": "Динамическая память и рассуждение по прецедентам: понимание через похожие прошлые случаи, которые обновляются.",
+"de": "Dynamisches Gedächtnis und fallbasiertes Schließen."
+},
+"rule": "Before judging a new story, recall similar past cases and say how this one differs.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "newton_smith",
+"name": "William Newton-Smith",
+"name_ru": "Уильям Ньютон-Смит",
+"years": "1943–2023",
+"wiki": "https://en.wikipedia.org/wiki/William_Newton-Smith",
+"zone": "stale_data",
+"idea": {
+"en": "The Structure of Time: philosophy of time and of scientific rationality.",
+"ru": "«Структура времени»: философия времени и научной рациональности.",
+"de": "„The Structure of Time“: Philosophie der Zeit."
+},
+"rule": "Keep 'when it happened' apart from 'when it was reported'.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
+},
+{
+"id": "paul_david",
+"name": "Paul A. David",
+"name_ru": "Пол Дэвид",
+"years": "1935–2023",
+"wiki": "https://en.wikipedia.org/wiki/Paul_A._David",
+"zone": "stale_data",
+"idea": {
+"en": "Path dependence: early choices like the QWERTY layout persist long after better options appear.",
+"ru": "Зависимость от пройденного пути: ранние решения вроде раскладки QWERTY держатся, хотя уже устарели.",
+"de": "Pfadabhängigkeit: frühe Entscheidungen wie QWERTY bleiben bestehen."
+},
+"rule": "Ask whether a practice persists because it is best or only because it came first.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "machamer",
+"name": "Peter K. Machamer",
+"name_ru": "Питер Махамер",
+"years": "1942–2023",
+"wiki": "https://en.wikipedia.org/wiki/Peter_K._Machamer",
+"zone": "one_model",
+"idea": {
+"en": "Mechanistic explanation: explain by the parts and activities that produce an effect, not by one deductive law.",
+"ru": "Механистическое объяснение: объяснять через части и действия, которые дают эффект, а не через один закон.",
+"de": "Mechanistische Erklärung: durch Teile und Tätigkeiten, nicht durch ein Gesetz."
+},
+"rule": "Explain a change by the concrete steps that produced it.",
+"needs": {
+"code": "covered",
+"note": "the Halpern sensor already names the headlines that moved an index",
+"covered_by": "halpern"
+}
+},
+{
+"id": "gintis",
+"name": "Herbert Gintis",
+"name_ru": "Герберт Гинтис",
+"years": "1940–2023",
+"wiki": "https://en.wikipedia.org/wiki/Herbert_Gintis",
+"zone": "one_model",
+"idea": {
+"en": "The Bounds of Reason: game theory needs a model of what players know and believe (epistemic game theory).",
+"ru": "«Границы разума»: теории игр нужна модель того, что игроки знают и во что верят.",
+"de": "„The Bounds of Reason“: epistemische Spieltheorie."
+},
+"rule": "When predicting what actors do, state what you assume they know.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "wilks",
+"name": "Yorick Wilks",
+"name_ru": "Йорик Уилкс",
+"years": "1939–2023",
+"wiki": "https://en.wikipedia.org/wiki/Yorick_Wilks",
+"zone": "one_model",
+"idea": {
+"en": "Preference semantics: among several readings choose the most coherent one.",
+"ru": "Семантика предпочтений: из нескольких толкований выбирается самое согласованное.",
+"de": "Präferenzsemantik: die kohärenteste Lesart wählen."
+},
+"rule": "When a phrase is ambiguous, pick the reading that fits the rest of the text, and say so.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hans_albert",
+"name": "Hans Albert",
+"name_ru": "Ханс Альберт",
+"years": "1921–2023",
+"wiki": "https://en.wikipedia.org/wiki/Hans_Albert",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The Münchhausen trilemma: no claim can be justified to the very end — every chain stops at an assumption, a circle or an infinite regress.",
+"ru": "Трилемма Мюнхгаузена: никакое утверждение нельзя обосновать до конца — цепочка упирается в допущение, круг или бесконечность.",
+"de": "Münchhausen-Trilemma: keine Aussage lässt sich letztbegründen."
+},
+"rule": "Name the assumption your conclusion finally rests on.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already shows which labels could flip",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "scriven",
+"name": "Michael Scriven",
+"name_ru": "Майкл Скрайвен",
+"years": "1928–2023",
+"wiki": "https://en.wikipedia.org/wiki/Michael_Scriven",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Evaluation theory and critical thinking (formative versus summative evaluation).",
+"ru": "Теория оценивания и критическое мышление (формирующее и итоговое оценивание).",
+"de": "Evaluationstheorie und kritisches Denken."
+},
+"rule": "Say by what criteria you judged something good or bad.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "jarvie",
+"name": "Ian Jarvie",
+"name_ru": "Иэн Джарви",
+"years": "1937–2023",
+"wiki": "https://en.wikipedia.org/wiki/Ian_Jarvie",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Science as a social institution where members test each other's claims.",
+"ru": "Наука как сообщество, где участники проверяют утверждения друг друга.",
+"de": "Wissenschaft als Gemeinschaft gegenseitiger Prüfung."
+},
+"rule": "Trust a claim more when independent people have tried to refute it.",
+"needs": {
+"code": "covered",
+"note": "check_headline already counts independent voices and agency echo",
+"covered_by": "kahneman"
+}
+},
+{
+"id": "van_emden",
+"name": "Maarten van Emden",
+"name_ru": "Мартен ван Эмден",
+"years": "1937–2023",
+"wiki": "https://en.wikipedia.org/wiki/Maarten_van_Emden",
+"zone": "measurement_error",
+"idea": {
+"en": "Interval arithmetic and logic programming: compute with a number together with its error bounds.",
+"ru": "Интервальная арифметика и логическое программирование: число считается вместе с его погрешностью.",
+"de": "Intervallarithmetik: rechnen mit Zahl und Fehlergrenzen."
+},
+"rule": "Carry error bounds through every calculation and report the interval.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports low–high bounds of the indices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "markova",
+"name": "Elena Vladimirovna Markova",
+"name_ru": "Елена Маркова",
+"years": "1923–2023",
+"wiki": "https://en.wikipedia.org/wiki/Elena_Vladimirovna_Markova",
+"zone": "measurement_error",
+"idea": {
+"en": "Design of experiments under non-uniform conditions.",
+"ru": "Планирование экспериментов при неоднородных условиях.",
+"de": "Versuchsplanung unter ungleichen Bedingungen."
+},
+"rule": "Compare like with like: measurements taken under different conditions are not directly comparable.",
+"needs": {
+"code": "covered",
+"note": "the Duckworth sensor already compares like with like (same time of day)",
+"covered_by": "duckworth"
+}
+},
+{
+"id": "fleming",
+"name": "Wendell Fleming",
+"name_ru": "Уэнделл Флеминг",
+"years": "1928–2023",
+"wiki": "https://en.wikipedia.org/wiki/Wendell_Fleming",
+"zone": "answer_cost",
+"idea": {
+"en": "Optimal control of random processes (stochastic control).",
+"ru": "Оптимальное управление случайными процессами.",
+"de": "Optimale Steuerung stochastischer Prozesse."
+},
+"rule": "Choose actions that work well across the random paths, not only the expected one.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already says when waiting for more information pays off",
+"covered_by": "howard"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

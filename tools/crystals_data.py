@@ -296,6 +296,43 @@ C = [
 ("morita", "Kenichi Morita", "Кэнъити Морита", "1949–2025", "Kenichi_Morita", "answer_cost",
  "Reversible computing: computation that loses no information.", "Обратимые вычисления: вычисления без потери информации.", "Reversible Berechnung ohne Informationsverlust.",
  "Keep enough of your steps to retrace how you reached an answer."),
+# --- 2023 год (месячные страницы, 22.11.2026) ---
+("schank", "Roger Schank", "Роджер Шенк", "1946–2023", "Roger_Schank", "stale_data",
+ "Dynamic memory and case-based reasoning: understanding by recalling similar past cases and revising them.", "Динамическая память и рассуждение по прецедентам: понимание через похожие прошлые случаи, которые обновляются.", "Dynamisches Gedächtnis und fallbasiertes Schließen.",
+ "Before judging a new story, recall similar past cases and say how this one differs."),
+("newton_smith", "William Newton-Smith", "Уильям Ньютон-Смит", "1943–2023", "William_Newton-Smith", "stale_data",
+ "The Structure of Time: philosophy of time and of scientific rationality.", "«Структура времени»: философия времени и научной рациональности.", "„The Structure of Time“: Philosophie der Zeit.",
+ "Keep 'when it happened' apart from 'when it was reported'."),
+("paul_david", "Paul A. David", "Пол Дэвид", "1935–2023", "Paul_A._David", "stale_data",
+ "Path dependence: early choices like the QWERTY layout persist long after better options appear.", "Зависимость от пройденного пути: ранние решения вроде раскладки QWERTY держатся, хотя уже устарели.", "Pfadabhängigkeit: frühe Entscheidungen wie QWERTY bleiben bestehen.",
+ "Ask whether a practice persists because it is best or only because it came first."),
+("machamer", "Peter K. Machamer", "Питер Махамер", "1942–2023", "Peter_K._Machamer", "one_model",
+ "Mechanistic explanation: explain by the parts and activities that produce an effect, not by one deductive law.", "Механистическое объяснение: объяснять через части и действия, которые дают эффект, а не через один закон.", "Mechanistische Erklärung: durch Teile und Tätigkeiten, nicht durch ein Gesetz.",
+ "Explain a change by the concrete steps that produced it."),
+("gintis", "Herbert Gintis", "Герберт Гинтис", "1940–2023", "Herbert_Gintis", "one_model",
+ "The Bounds of Reason: game theory needs a model of what players know and believe (epistemic game theory).", "«Границы разума»: теории игр нужна модель того, что игроки знают и во что верят.", "„The Bounds of Reason“: epistemische Spieltheorie.",
+ "When predicting what actors do, state what you assume they know."),
+("wilks", "Yorick Wilks", "Йорик Уилкс", "1939–2023", "Yorick_Wilks", "one_model",
+ "Preference semantics: among several readings choose the most coherent one.", "Семантика предпочтений: из нескольких толкований выбирается самое согласованное.", "Präferenzsemantik: die kohärenteste Lesart wählen.",
+ "When a phrase is ambiguous, pick the reading that fits the rest of the text, and say so."),
+("hans_albert", "Hans Albert", "Ханс Альберт", "1921–2023", "Hans_Albert", "rumour_vs_fact",
+ "The Münchhausen trilemma: no claim can be justified to the very end — every chain stops at an assumption, a circle or an infinite regress.", "Трилемма Мюнхгаузена: никакое утверждение нельзя обосновать до конца — цепочка упирается в допущение, круг или бесконечность.", "Münchhausen-Trilemma: keine Aussage lässt sich letztbegründen.",
+ "Name the assumption your conclusion finally rests on."),
+("scriven", "Michael Scriven", "Майкл Скрайвен", "1928–2023", "Michael_Scriven", "rumour_vs_fact",
+ "Evaluation theory and critical thinking (formative versus summative evaluation).", "Теория оценивания и критическое мышление (формирующее и итоговое оценивание).", "Evaluationstheorie und kritisches Denken.",
+ "Say by what criteria you judged something good or bad."),
+("jarvie", "Ian Jarvie", "Иэн Джарви", "1937–2023", "Ian_Jarvie", "rumour_vs_fact",
+ "Science as a social institution where members test each other's claims.", "Наука как сообщество, где участники проверяют утверждения друг друга.", "Wissenschaft als Gemeinschaft gegenseitiger Prüfung.",
+ "Trust a claim more when independent people have tried to refute it."),
+("van_emden", "Maarten van Emden", "Мартен ван Эмден", "1937–2023", "Maarten_van_Emden", "measurement_error",
+ "Interval arithmetic and logic programming: compute with a number together with its error bounds.", "Интервальная арифметика и логическое программирование: число считается вместе с его погрешностью.", "Intervallarithmetik: rechnen mit Zahl und Fehlergrenzen.",
+ "Carry error bounds through every calculation and report the interval."),
+("markova", "Elena Vladimirovna Markova", "Елена Маркова", "1923–2023", "Elena_Vladimirovna_Markova", "measurement_error",
+ "Design of experiments under non-uniform conditions.", "Планирование экспериментов при неоднородных условиях.", "Versuchsplanung unter ungleichen Bedingungen.",
+ "Compare like with like: measurements taken under different conditions are not directly comparable."),
+("fleming", "Wendell Fleming", "Уэнделл Флеминг", "1928–2023", "Wendell_Fleming", "answer_cost",
+ "Optimal control of random processes (stochastic control).", "Оптимальное управление случайными процессами.", "Optimale Steuerung stochastischer Prozesse.",
+ "Choose actions that work well across the random paths, not only the expected one."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -330,3 +367,11 @@ for k in ["borde"]: NEEDS[k] = ("covered", "the Baird sensor already traces unit
 for k in ["griffin"]: NEEDS[k] = ("covered", "the Kahneman sensor already audits the noise of AI judgements", None, "kahneman")
 for k in ["fishburn"]: NEEDS[k] = ("covered", "the Howard sensor already says when waiting for more information pays off", None, "howard")
 for k in ["antiseri"]: NEEDS[k] = ("covered", "the Hagenauer sensor already shows which labels could flip", None, "hagenauer")
+
+for k in ["newton_smith"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")
+for k in ["machamer"]: NEEDS[k] = ("covered", "the Halpern sensor already names the headlines that moved an index", None, "halpern")
+for k in ["hans_albert"]: NEEDS[k] = ("covered", "the Hagenauer sensor already shows which labels could flip", None, "hagenauer")
+for k in ["jarvie"]: NEEDS[k] = ("covered", "check_headline already counts independent voices and agency echo", None, "kahneman")
+for k in ["van_emden"]: NEEDS[k] = ("covered", "the Leamer sensor already reports low–high bounds of the indices", None, "leamer")
+for k in ["markova"]: NEEDS[k] = ("covered", "the Duckworth sensor already compares like with like (same time of day)", None, "duckworth")
+for k in ["fleming"]: NEEDS[k] = ("covered", "the Howard sensor already says when waiting for more information pays off", None, "howard")
