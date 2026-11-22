@@ -1991,6 +1991,193 @@ export const CRYSTALS = [
 "note": "the Howard sensor already says when waiting for more information pays off",
 "covered_by": "howard"
 }
+},
+{
+"id": "emerson",
+"name": "E. Allen Emerson",
+"name_ru": "Аллен Эмерсон",
+"years": "1954–2024",
+"wiki": "https://en.wikipedia.org/wiki/E._Allen_Emerson",
+"zone": "stale_data",
+"idea": {
+"en": "Temporal logic and model checking (Turing award 2007): rules for what is true and when, checked automatically.",
+"ru": "Темпоральная логика и проверка моделей (премия Тьюринга 2007): правила о том, что истинно и когда, проверяемые автоматически.",
+"de": "Temporallogik und Model Checking (Turing-Preis 2007)."
+},
+"rule": "Write claims with their time condition ('until', 'since', 'always after') and check them against it.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
+},
+{
+"id": "stein",
+"name": "Howard Stein",
+"name_ru": "Ховард Стайн",
+"years": "1929–2024",
+"wiki": "https://en.wikipedia.org/wiki/Howard_Stein_(philosopher)",
+"zone": "stale_data",
+"idea": {
+"en": "Foundations of the physics of space and time.",
+"ru": "Основания физики пространства и времени.",
+"de": "Grundlagen der Physik von Raum und Zeit."
+},
+"rule": "Say in which frame (place, time, reference) a measurement holds.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
+},
+{
+"id": "jarke",
+"name": "Matthias Jarke",
+"name_ru": "Маттиас Ярке",
+"years": "1952–2024",
+"wiki": "https://en.wikipedia.org/wiki/Matthias_Jarke",
+"zone": "stale_data",
+"idea": {
+"en": "Metadata and data quality in information systems (data warehouses).",
+"ru": "Метаданные и качество данных в информационных системах (хранилища данных).",
+"de": "Metadaten und Datenqualität in Informationssystemen."
+},
+"rule": "Keep the metadata (source, time, unit) with every value you pass on.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already keeps source, time and unit with every number",
+"covered_by": "baird"
+}
+},
+{
+"id": "basmann",
+"name": "Robert Basmann",
+"name_ru": "Роберт Басман",
+"years": "1926–2024",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Basmann",
+"zone": "one_model",
+"idea": {
+"en": "Simultaneous-equation models and identification: whether a model can be determined from the data at all.",
+"ru": "Системы одновременных уравнений и идентификация: можно ли вообще однозначно определить модель по данным.",
+"de": "Simultane Gleichungsmodelle und Identifikation."
+},
+"rule": "Ask whether the data could tell your explanation apart from another one at all.",
+"needs": {
+"code": "covered",
+"note": "the Leamer and Trevisan sensors already give the bounds and the sampling spread of the indices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "conway",
+"name": "Richard W. Conway",
+"name_ru": "Ричард Конвей",
+"years": "1931–2024",
+"wiki": "https://en.wikipedia.org/wiki/Richard_W._Conway",
+"zone": "one_model",
+"idea": {
+"en": "Methodology of computer simulation.",
+"ru": "Методология компьютерного моделирования.",
+"de": "Methodik der Computersimulation."
+},
+"rule": "A simulation shows what follows from its assumptions; report the assumptions with the result.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "cleaveland",
+"name": "Rance Cleaveland",
+"name_ru": "Рэнс Кливленд",
+"years": "1961–2024",
+"wiki": "https://en.wikipedia.org/wiki/Rance_Cleaveland",
+"zone": "one_model",
+"idea": {
+"en": "Verification tools that check automatically whether a system behaves as specified.",
+"ru": "Инструменты, которые автоматически проверяют, работает ли система как задумано.",
+"de": "Werkzeuge zur automatischen Verifikation."
+},
+"rule": "Test your conclusion against the specification, not only against the example in front of you.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "ruse",
+"name": "Michael Ruse",
+"name_ru": "Майкл Руз",
+"years": "1940–2024",
+"wiki": "https://en.wikipedia.org/wiki/Michael_Ruse",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The demarcation between science and non-science (and its role in court cases on creationism).",
+"ru": "Граница между наукой и ненаукой (и её роль в судебных делах о креационизме).",
+"de": "Abgrenzung von Wissenschaft und Nichtwissenschaft."
+},
+"rule": "Ask whether a claim is testable and open to revision before calling it scientific.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
+},
+{
+"id": "depierris",
+"name": "Graciela De Pierris",
+"name_ru": "Грасиела Де Пьеррис",
+"years": "1950–2024",
+"wiki": "https://en.wikipedia.org/wiki/Graciela_De_Pierris",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Ideas, Evidence and Method: Hume's scepticism and the limits of evidence.",
+"ru": "«Идеи, свидетельства и метод»: скептицизм Юма и пределы свидетельств.",
+"de": "„Ideas, Evidence, and Method“: Humes Skeptizismus."
+},
+"rule": "Past regularity is not proof of the next case; say when you rely on it.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already shows which labels could flip",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "cresswell",
+"name": "Max Cresswell",
+"name_ru": "Макс Крессвелл",
+"years": "1939–2024",
+"wiki": "https://en.wikipedia.org/wiki/Max_Cresswell",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Semantics of belief sentences and modal logic.",
+"ru": "Семантика высказываний об убеждениях и модальная логика.",
+"de": "Semantik von Glaubenssätzen und Modallogik."
+},
+"rule": "'X believes that p' is a claim about X, not about p; do not report it as p.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "schweder",
+"name": "Tore Schweder",
+"name_ru": "Туре Шведер",
+"years": "1943–2024",
+"wiki": "https://en.wikipedia.org/wiki/Tore_Schweder",
+"zone": "measurement_error",
+"idea": {
+"en": "Confidence distributions: report the whole distribution of uncertainty of an estimate, not one number.",
+"ru": "Доверительные распределения: сообщать всё распределение неопределённости оценки, а не одно число.",
+"de": "Konfidenzverteilungen: die ganze Unsicherheit einer Schätzung angeben."
+},
+"rule": "Give the range and how likely each part of it is, not only the point estimate.",
+"needs": {
+"code": "covered",
+"note": "the Leamer and Trevisan sensors already give the bounds and the sampling spread of the indices",
+"covered_by": "leamer"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

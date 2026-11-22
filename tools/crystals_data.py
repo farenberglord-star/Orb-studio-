@@ -333,6 +333,37 @@ C = [
 ("fleming", "Wendell Fleming", "Уэнделл Флеминг", "1928–2023", "Wendell_Fleming", "answer_cost",
  "Optimal control of random processes (stochastic control).", "Оптимальное управление случайными процессами.", "Optimale Steuerung stochastischer Prozesse.",
  "Choose actions that work well across the random paths, not only the expected one."),
+# --- 2024 год (месячные страницы, 22.11.2026) ---
+("emerson", "E. Allen Emerson", "Аллен Эмерсон", "1954–2024", "E._Allen_Emerson", "stale_data",
+ "Temporal logic and model checking (Turing award 2007): rules for what is true and when, checked automatically.", "Темпоральная логика и проверка моделей (премия Тьюринга 2007): правила о том, что истинно и когда, проверяемые автоматически.", "Temporallogik und Model Checking (Turing-Preis 2007).",
+ "Write claims with their time condition ('until', 'since', 'always after') and check them against it."),
+("stein", "Howard Stein", "Ховард Стайн", "1929–2024", "Howard_Stein_(philosopher)", "stale_data",
+ "Foundations of the physics of space and time.", "Основания физики пространства и времени.", "Grundlagen der Physik von Raum und Zeit.",
+ "Say in which frame (place, time, reference) a measurement holds."),
+("jarke", "Matthias Jarke", "Маттиас Ярке", "1952–2024", "Matthias_Jarke", "stale_data",
+ "Metadata and data quality in information systems (data warehouses).", "Метаданные и качество данных в информационных системах (хранилища данных).", "Metadaten und Datenqualität in Informationssystemen.",
+ "Keep the metadata (source, time, unit) with every value you pass on."),
+("basmann", "Robert Basmann", "Роберт Басман", "1926–2024", "Robert_Basmann", "one_model",
+ "Simultaneous-equation models and identification: whether a model can be determined from the data at all.", "Системы одновременных уравнений и идентификация: можно ли вообще однозначно определить модель по данным.", "Simultane Gleichungsmodelle und Identifikation.",
+ "Ask whether the data could tell your explanation apart from another one at all."),
+("conway", "Richard W. Conway", "Ричард Конвей", "1931–2024", "Richard_W._Conway", "one_model",
+ "Methodology of computer simulation.", "Методология компьютерного моделирования.", "Methodik der Computersimulation.",
+ "A simulation shows what follows from its assumptions; report the assumptions with the result."),
+("cleaveland", "Rance Cleaveland", "Рэнс Кливленд", "1961–2024", "Rance_Cleaveland", "one_model",
+ "Verification tools that check automatically whether a system behaves as specified.", "Инструменты, которые автоматически проверяют, работает ли система как задумано.", "Werkzeuge zur automatischen Verifikation.",
+ "Test your conclusion against the specification, not only against the example in front of you."),
+("ruse", "Michael Ruse", "Майкл Руз", "1940–2024", "Michael_Ruse", "rumour_vs_fact",
+ "The demarcation between science and non-science (and its role in court cases on creationism).", "Граница между наукой и ненаукой (и её роль в судебных делах о креационизме).", "Abgrenzung von Wissenschaft und Nichtwissenschaft.",
+ "Ask whether a claim is testable and open to revision before calling it scientific."),
+("depierris", "Graciela De Pierris", "Грасиела Де Пьеррис", "1950–2024", "Graciela_De_Pierris", "rumour_vs_fact",
+ "Ideas, Evidence and Method: Hume's scepticism and the limits of evidence.", "«Идеи, свидетельства и метод»: скептицизм Юма и пределы свидетельств.", "„Ideas, Evidence, and Method“: Humes Skeptizismus.",
+ "Past regularity is not proof of the next case; say when you rely on it."),
+("cresswell", "Max Cresswell", "Макс Крессвелл", "1939–2024", "Max_Cresswell", "rumour_vs_fact",
+ "Semantics of belief sentences and modal logic.", "Семантика высказываний об убеждениях и модальная логика.", "Semantik von Glaubenssätzen und Modallogik.",
+ "'X believes that p' is a claim about X, not about p; do not report it as p."),
+("schweder", "Tore Schweder", "Туре Шведер", "1943–2024", "Tore_Schweder", "measurement_error",
+ "Confidence distributions: report the whole distribution of uncertainty of an estimate, not one number.", "Доверительные распределения: сообщать всё распределение неопределённости оценки, а не одно число.", "Konfidenzverteilungen: die ganze Unsicherheit einer Schätzung angeben.",
+ "Give the range and how likely each part of it is, not only the point estimate."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -375,3 +406,9 @@ for k in ["jarvie"]: NEEDS[k] = ("covered", "check_headline already counts indep
 for k in ["van_emden"]: NEEDS[k] = ("covered", "the Leamer sensor already reports low–high bounds of the indices", None, "leamer")
 for k in ["markova"]: NEEDS[k] = ("covered", "the Duckworth sensor already compares like with like (same time of day)", None, "duckworth")
 for k in ["fleming"]: NEEDS[k] = ("covered", "the Howard sensor already says when waiting for more information pays off", None, "howard")
+
+for k in ["emerson", "stein"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")
+for k in ["jarke"]: NEEDS[k] = ("covered", "the Baird sensor already keeps source, time and unit with every number", None, "baird")
+for k in ["basmann", "schweder"]: NEEDS[k] = ("covered", "the Leamer and Trevisan sensors already give the bounds and the sampling spread of the indices", None, "leamer")
+for k in ["ruse"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
+for k in ["depierris"]: NEEDS[k] = ("covered", "the Hagenauer sensor already shows which labels could flip", None, "hagenauer")
