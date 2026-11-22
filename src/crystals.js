@@ -2327,6 +2327,156 @@ export const CRYSTALS = [
 "note": "the Bertsekas sensor already gives the cheapest call chains",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "hoare",
+"name": "Tony Hoare",
+"name_ru": "Тони Хоар",
+"years": "1934–2026",
+"wiki": "https://en.wikipedia.org/wiki/Tony_Hoare",
+"zone": "one_model",
+"idea": {
+"en": "Hoare logic: prove a program correct by its preconditions and postconditions (Turing award 1980); also Quicksort and CSP.",
+"ru": "Логика Хоара: правильность программы доказывают через пред- и постусловия (премия Тьюринга 1980); также быстрая сортировка и CSP.",
+"de": "Hoare-Logik: Korrektheit über Vor- und Nachbedingungen (Turing-Preis 1980)."
+},
+"rule": "State what must be true before and after an answer, and check both.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "morin",
+"name": "Edgar Morin",
+"name_ru": "Эдгар Морен",
+"years": "1921–2026",
+"wiki": "https://en.wikipedia.org/wiki/Edgar_Morin",
+"zone": "one_model",
+"idea": {
+"en": "Complex thought: understanding requires linking parts and whole instead of reducing everything to one model.",
+"ru": "Сложное мышление: понять — значит связать части и целое, а не свести всё к одной модели.",
+"de": "Komplexes Denken: Teile und Ganzes verbinden statt auf ein Modell zu reduzieren."
+},
+"rule": "Before explaining by one cause, list the other parts of the system that could matter.",
+"needs": {
+"code": "covered",
+"note": "the Leamer and Lyberg sensors already show how the picture depends on model choices and coverage",
+"covered_by": "leamer"
+}
+},
+{
+"id": "smiley",
+"name": "Timothy Smiley",
+"name_ru": "Тимоти Смайли",
+"years": "1930–2026",
+"wiki": "https://en.wikipedia.org/wiki/Timothy_Smiley",
+"zone": "one_model",
+"idea": {
+"en": "Multiple-conclusion logic and plural logic.",
+"ru": "Логика с несколькими выводами и логика множественного числа.",
+"de": "Logik mit mehreren Konklusionen und Plurallogik."
+},
+"rule": "Sometimes the honest conclusion is 'one of these is true', not a single answer.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "haack",
+"name": "Susan Haack",
+"name_ru": "Сьюзен Хаак",
+"years": "1945–2026",
+"wiki": "https://en.wikipedia.org/wiki/Susan_Haack",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Evidence and Inquiry: evidence works like a crossword — a claim is warranted by its own clues and by how well it fits the entries that cross it.",
+"ru": "«Evidence and Inquiry»: доказательства устроены как кроссворд — утверждение держится и на своих подсказках, и на том, как оно сходится с пересекающими словами.",
+"de": "„Evidence and Inquiry“: Evidenz wie ein Kreuzworträtsel."
+},
+"rule": "Trust a claim when its own sources support it and it fits the other confirmed facts that cross it.",
+"needs": {
+"code": "covered",
+"note": "check_headline already counts independent voices (own clues) and the Frankfurt sensor checks anchors",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "musgrave",
+"name": "Alan Musgrave",
+"name_ru": "Алан Масгрейв",
+"years": "1940–2026",
+"wiki": "https://en.wikipedia.org/wiki/Alan_Musgrave",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Scientific realism and critical rationalism against scepticism.",
+"ru": "Научный реализм и критический рационализм против скептицизма.",
+"de": "Wissenschaftlicher Realismus und kritischer Rationalismus."
+},
+"rule": "Accept the best-tested explanation for now, while staying open to its refutation.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
+},
+{
+"id": "habermas",
+"name": "Jürgen Habermas",
+"name_ru": "Юрген Хабермас",
+"years": "1929–2026",
+"wiki": "https://en.wikipedia.org/wiki/Jürgen_Habermas",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Communicative action: a statement raises claims to truth, rightness and sincerity that can be challenged with reasons in public discourse.",
+"ru": "Коммуникативное действие: высказывание заявляет об истине, правильности и искренности, и это можно оспорить доводами в публичной дискуссии.",
+"de": "Kommunikatives Handeln: Geltungsansprüche auf Wahrheit, Richtigkeit und Wahrhaftigkeit."
+},
+"rule": "Separate whether a statement is true, whether it is right and whether the speaker means it.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already separates claims, promises and demands",
+"covered_by": "searle"
+}
+},
+{
+"id": "neumann",
+"name": "Peter G. Neumann",
+"name_ru": "Питер Нойманн",
+"years": "1932–2026",
+"wiki": "https://en.wikipedia.org/wiki/Peter_G._Neumann",
+"zone": "measurement_error",
+"idea": {
+"en": "How computer systems fail: risks to the public in computers, collected in the RISKS Digest since 1985.",
+"ru": "Как ломаются компьютерные системы: риски для людей, собранные в рассылке RISKS Digest с 1985 года.",
+"de": "Wie Computersysteme versagen: RISKS Digest seit 1985."
+},
+"rule": "Assume your own tools can fail; say which part of an answer depends on a system that could be wrong.",
+"needs": {
+"code": "covered",
+"note": "the Hamilton and Baird sensors already show what the site postpones and which numbers broke",
+"covered_by": "hamilton"
+}
+},
+{
+"id": "stearns",
+"name": "Richard E. Stearns",
+"name_ru": "Ричард Стернс",
+"years": "1936–2026",
+"wiki": "https://en.wikipedia.org/wiki/Richard_E._Stearns",
+"zone": "answer_cost",
+"idea": {
+"en": "Foundations of computational complexity: measuring the time an algorithm needs (Turing award 1993, with Hartmanis).",
+"ru": "Основы теории вычислительной сложности: сколько времени требует алгоритм (премия Тьюринга 1993, вместе с Хартманисом).",
+"de": "Grundlagen der Komplexitätstheorie (Turing-Preis 1993)."
+},
+"rule": "Estimate how much work an answer needs before starting it.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already measures the cost of each answer",
+"covered_by": "bertsekas"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

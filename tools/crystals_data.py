@@ -389,6 +389,31 @@ C = [
 ("korte", "Bernhard Korte", "Бернхард Корте", "1938–2025", "Bernhard_Korte", "answer_cost",
  "Combinatorial optimisation (chip design, routing).", "Комбинаторная оптимизация (проектирование микросхем, маршрутизация).", "Kombinatorische Optimierung.",
  "Among many possible plans, search systematically for the cheapest one that meets all constraints."),
+# --- 2026 год, январь–ноябрь (22.11.2026; все даты сверены с некрологами) ---
+("hoare", "Tony Hoare", "Тони Хоар", "1934–2026", "Tony_Hoare", "one_model",
+ "Hoare logic: prove a program correct by its preconditions and postconditions (Turing award 1980); also Quicksort and CSP.", "Логика Хоара: правильность программы доказывают через пред- и постусловия (премия Тьюринга 1980); также быстрая сортировка и CSP.", "Hoare-Logik: Korrektheit über Vor- und Nachbedingungen (Turing-Preis 1980).",
+ "State what must be true before and after an answer, and check both."),
+("morin", "Edgar Morin", "Эдгар Морен", "1921–2026", "Edgar_Morin", "one_model",
+ "Complex thought: understanding requires linking parts and whole instead of reducing everything to one model.", "Сложное мышление: понять — значит связать части и целое, а не свести всё к одной модели.", "Komplexes Denken: Teile und Ganzes verbinden statt auf ein Modell zu reduzieren.",
+ "Before explaining by one cause, list the other parts of the system that could matter."),
+("smiley", "Timothy Smiley", "Тимоти Смайли", "1930–2026", "Timothy_Smiley", "one_model",
+ "Multiple-conclusion logic and plural logic.", "Логика с несколькими выводами и логика множественного числа.", "Logik mit mehreren Konklusionen und Plurallogik.",
+ "Sometimes the honest conclusion is 'one of these is true', not a single answer."),
+("haack", "Susan Haack", "Сьюзен Хаак", "1945–2026", "Susan_Haack", "rumour_vs_fact",
+ "Evidence and Inquiry: evidence works like a crossword — a claim is warranted by its own clues and by how well it fits the entries that cross it.", "«Evidence and Inquiry»: доказательства устроены как кроссворд — утверждение держится и на своих подсказках, и на том, как оно сходится с пересекающими словами.", "„Evidence and Inquiry“: Evidenz wie ein Kreuzworträtsel.",
+ "Trust a claim when its own sources support it and it fits the other confirmed facts that cross it."),
+("musgrave", "Alan Musgrave", "Алан Масгрейв", "1940–2026", "Alan_Musgrave", "rumour_vs_fact",
+ "Scientific realism and critical rationalism against scepticism.", "Научный реализм и критический рационализм против скептицизма.", "Wissenschaftlicher Realismus und kritischer Rationalismus.",
+ "Accept the best-tested explanation for now, while staying open to its refutation."),
+("habermas", "Jürgen Habermas", "Юрген Хабермас", "1929–2026", "Jürgen_Habermas", "rumour_vs_fact",
+ "Communicative action: a statement raises claims to truth, rightness and sincerity that can be challenged with reasons in public discourse.", "Коммуникативное действие: высказывание заявляет об истине, правильности и искренности, и это можно оспорить доводами в публичной дискуссии.", "Kommunikatives Handeln: Geltungsansprüche auf Wahrheit, Richtigkeit und Wahrhaftigkeit.",
+ "Separate whether a statement is true, whether it is right and whether the speaker means it."),
+("neumann", "Peter G. Neumann", "Питер Нойманн", "1932–2026", "Peter_G._Neumann", "measurement_error",
+ "How computer systems fail: risks to the public in computers, collected in the RISKS Digest since 1985.", "Как ломаются компьютерные системы: риски для людей, собранные в рассылке RISKS Digest с 1985 года.", "Wie Computersysteme versagen: RISKS Digest seit 1985.",
+ "Assume your own tools can fail; say which part of an answer depends on a system that could be wrong."),
+("stearns", "Richard E. Stearns", "Ричард Стернс", "1936–2026", "Richard_E._Stearns", "answer_cost",
+ "Foundations of computational complexity: measuring the time an algorithm needs (Turing award 1993, with Hartmanis).", "Основы теории вычислительной сложности: сколько времени требует алгоритм (премия Тьюринга 1993, вместе с Хартманисом).", "Grundlagen der Komplexitätstheorie (Turing-Preis 1993).",
+ "Estimate how much work an answer needs before starting it."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -443,3 +468,10 @@ for k in ["kurtz"]: NEEDS[k] = ("covered", "the Trevisan sensor already shows wh
 for k in ["benacerraf"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
 for k in ["ellis"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
 for k in ["korte"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest call chains", None, "bertsekas")
+
+for k in ["morin"]: NEEDS[k] = ("covered", "the Leamer and Lyberg sensors already show how the picture depends on model choices and coverage", None, "leamer")
+for k in ["haack"]: NEEDS[k] = ("covered", "check_headline already counts independent voices (own clues) and the Frankfurt sensor checks anchors", None, "frankfurt")
+for k in ["musgrave"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
+for k in ["habermas"]: NEEDS[k] = ("covered", "the Searle sensor already separates claims, promises and demands", None, "searle")
+for k in ["neumann"]: NEEDS[k] = ("covered", "the Hamilton and Baird sensors already show what the site postpones and which numbers broke", None, "hamilton")
+for k in ["stearns"]: NEEDS[k] = ("covered", "the Bertsekas sensor already measures the cost of each answer", None, "bertsekas")
