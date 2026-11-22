@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost"];
-export const CRYSTAL_BUILT_ZONE = {"frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -1290,24 +1290,6 @@ export const CRYSTALS = [
 }
 },
 {
-"id": "rabin",
-"name": "Michael O. Rabin",
-"name_ru": "Михаэль Рабин",
-"years": "1931–2026",
-"wiki": "https://en.wikipedia.org/wiki/Michael_O._Rabin",
-"zone": "answer_cost",
-"idea": {
-"en": "Computational complexity and randomised algorithms (Turing award 1976): randomness can make a hard check cheap.",
-"ru": "Вычислительная сложность и вероятностные алгоритмы (премия Тьюринга 1976): случайность может сделать трудную проверку дешёвой.",
-"de": "Komplexitätstheorie und randomisierte Algorithmen (Turing-Preis 1976)."
-},
-"rule": "A few random spot checks can tell a lot about a large set.",
-"needs": {
-"code": "ready",
-"note": "random spot checks of the sensor numbers against their sources"
-}
-},
-{
 "id": "berger",
 "name": "Toby Berger",
 "name_ru": "Тоби Бергер",
@@ -1474,24 +1456,6 @@ export const CRYSTALS = [
 }
 },
 {
-"id": "trevisan",
-"name": "Luca Trevisan",
-"name_ru": "Лука Тревизан",
-"years": "1971–2024",
-"wiki": "https://en.wikipedia.org/wiki/Luca_Trevisan",
-"zone": "answer_cost",
-"idea": {
-"en": "Pseudorandomness and sublinear algorithms: getting an answer without reading all the data.",
-"ru": "Псевдослучайность и сублинейные алгоритмы: ответ без просмотра всех данных.",
-"de": "Pseudozufall und sublineare Algorithmen."
-},
-"rule": "A well-chosen sample can answer without reading everything; say that you sampled.",
-"needs": {
-"code": "ready",
-"note": "the smallest sample of headlines that reproduces each index within ±5 points"
-}
-},
-{
 "id": "wets",
 "name": "Roger J-B Wets",
 "name_ru": "Роджер Уэтс",
@@ -1507,24 +1471,6 @@ export const CRYSTALS = [
 "needs": {
 "code": "needs_idea",
 "note": "no live measurable form found yet"
-}
-},
-{
-"id": "bertsekas",
-"name": "Dimitri Bertsekas",
-"name_ru": "Димитри Бертсекас",
-"years": "1942–2026",
-"wiki": "https://en.wikipedia.org/wiki/Dimitri_Bertsekas",
-"zone": "answer_cost",
-"idea": {
-"en": "Dynamic programming and optimisation: minimising the total cost of a chain of decisions.",
-"ru": "Динамическое программирование: как свести к минимуму суммарную стоимость цепочки решений.",
-"de": "Dynamische Programmierung: Gesamtkosten einer Entscheidungskette minimieren."
-},
-"rule": "Plan the whole chain of steps; the cheapest first step is not always the cheapest path.",
-"needs": {
-"code": "ready",
-"note": "measure the size in tokens of every Orb Studio tool answer and give the cheapest chain of calls for typical agent questions"
 }
 },
 {
@@ -1601,24 +1547,6 @@ export const CRYSTALS = [
 }
 },
 {
-"id": "duckworth",
-"name": "Frank Duckworth",
-"name_ru": "Фрэнк Дакворт",
-"years": "1939–2024",
-"wiki": "https://en.wikipedia.org/wiki/Frank_Duckworth",
-"zone": "stale_data",
-"idea": {
-"en": "The Duckworth–Lewis method: fairly resetting a cricket target when a match is interrupted.",
-"ru": "Метод Дакворта–Льюиса: честный пересчёт цели матча в крикете, если игру прервали.",
-"de": "Duckworth-Lewis-Methode: faire Neuberechnung des Ziels nach einer Unterbrechung."
-},
-"rule": "When data is interrupted, adjust the comparison fairly instead of comparing a partial day with a full one.",
-"needs": {
-"code": "ready",
-"note": "compare today's partial-day index with the same hour of past days, not with full days"
-}
-},
-{
 "id": "sonnenschein",
 "name": "Hugo F. Sonnenschein",
 "name_ru": "Хьюго Зонненшайн",
@@ -1689,8 +1617,8 @@ export const CRYSTALS = [
 },
 "rule": "Prefer sources whose incentives reward accuracy; ask what a source gains from the claim.",
 "needs": {
-"code": "ready",
-"note": "proper scoring for the Orb Studio forecast game, so that agents gain only by reporting their true confidence"
+"code": "covered",
+"note": "applied: the Orb Studio forecast game now ranks agents by the Brier score (honest_confidence_30d in get_prediction), so stating the true confidence pays off"
 }
 },
 {

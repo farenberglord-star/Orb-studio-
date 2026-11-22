@@ -217,9 +217,6 @@ C = [
 ("whittle", "Peter Whittle", "Питер Уиттл", "1927–2021", "Peter_Whittle_(mathematician)", "answer_cost",
  "The Whittle index: how to share effort between options in a changing world (restless bandits).", "Индекс Уиттла: как распределять усилия между вариантами в меняющемся мире.", "Whittle-Index: Aufwand zwischen Optionen in einer sich ändernden Welt verteilen.",
  "Spend checks on the sources that change most and matter most."),
-("rabin", "Michael O. Rabin", "Михаэль Рабин", "1931–2026", "Michael_O._Rabin", "answer_cost",
- "Computational complexity and randomised algorithms (Turing award 1976): randomness can make a hard check cheap.", "Вычислительная сложность и вероятностные алгоритмы (премия Тьюринга 1976): случайность может сделать трудную проверку дешёвой.", "Komplexitätstheorie und randomisierte Algorithmen (Turing-Preis 1976).",
- "A few random spot checks can tell a lot about a large set."),
 ("berger", "Toby Berger", "Тоби Бергер", "1940–2022", "Toby_Berger", "answer_cost",
  "Rate-distortion theory: how many bits are needed to convey an answer with a given accuracy.", "Теория скорости и искажения: сколько бит нужно, чтобы передать ответ с заданной точностью.", "Raten-Verzerrungs-Theorie: Bits für eine gegebene Genauigkeit.",
  "Match the length of the answer to the accuracy the person needs."),
@@ -247,15 +244,9 @@ C = [
 ("kersten", "Martin L. Kersten", "Мартин Керстен", "1953–2022", "Martin_L._Kersten", "answer_cost",
  "Column-store databases and query optimisation (MonetDB).", "Колоночные базы данных и оптимизация запросов (MonetDB).", "Spaltenorientierte Datenbanken und Abfrageoptimierung (MonetDB).",
  "Ask only for the fields you need."),
-("trevisan", "Luca Trevisan", "Лука Тревизан", "1971–2024", "Luca_Trevisan", "answer_cost",
- "Pseudorandomness and sublinear algorithms: getting an answer without reading all the data.", "Псевдослучайность и сублинейные алгоритмы: ответ без просмотра всех данных.", "Pseudozufall und sublineare Algorithmen.",
- "A well-chosen sample can answer without reading everything; say that you sampled."),
 ("wets", "Roger J-B Wets", "Роджер Уэтс", "1937–2025", "Roger_J-B_Wets", "answer_cost",
  "Stochastic programming: decisions when the input data is still random.", "Стохастическое программирование: решения, когда исходные данные ещё случайны.", "Stochastische Optimierung: Entscheidungen bei zufälligen Daten.",
  "Plan for several scenarios, not for the single expected one."),
-("bertsekas", "Dimitri Bertsekas", "Димитри Бертсекас", "1942–2026", "Dimitri_Bertsekas", "answer_cost",
- "Dynamic programming and optimisation: minimising the total cost of a chain of decisions.", "Динамическое программирование: как свести к минимуму суммарную стоимость цепочки решений.", "Dynamische Programmierung: Gesamtkosten einer Entscheidungskette minimieren.",
- "Plan the whole chain of steps; the cheapest first step is not always the cheapest path."),
 ("davis", "Martin Davis", "Мартин Дэвис", "1928–2023", "Martin_Davis_(mathematician)", "answer_cost",
  "The DPLL algorithm at the core of SAT solvers that check whether logical formulas can be satisfied.", "Алгоритм DPLL, на котором построены SAT-солверы, проверяющие выполнимость логических формул.", "DPLL-Algorithmus, Grundlage der SAT-Solver.",
  "Check whether a set of claims can all be true together before you combine them."),
@@ -269,9 +260,6 @@ C = [
 ("nagao", "Makoto Nagao", "Макото Нагао", "1936–2021", "Makoto_Nagao", "stale_data",
  "Example-based machine translation and digital libraries.", "Машинный перевод по примерам и цифровые библиотеки.", "Beispielbasierte maschinelle Übersetzung und digitale Bibliotheken.",
  "When translating a headline, compare with how the same phrase was rendered before."),
-("duckworth", "Frank Duckworth", "Фрэнк Дакворт", "1939–2024", "Frank_Duckworth", "stale_data",
- "The Duckworth–Lewis method: fairly resetting a cricket target when a match is interrupted.", "Метод Дакворта–Льюиса: честный пересчёт цели матча в крикете, если игру прервали.", "Duckworth-Lewis-Methode: faire Neuberechnung des Ziels nach einer Unterbrechung.",
- "When data is interrupted, adjust the comparison fairly instead of comparing a partial day with a full one."),
 ("sonnenschein", "Hugo F. Sonnenschein", "Хьюго Зонненшайн", "1940–2021", "Hugo_F._Sonnenschein", "one_model",
  "The Sonnenschein–Mantel–Debreu theorem: a general market model says almost nothing about how the market as a whole behaves.", "Теорема Зонненшайна–Мантеля–Дебрё: общая модель рынка почти ничего не говорит о поведении рынка в целом.", "Sonnenschein-Mantel-Debreu-Theorem: das allgemeine Marktmodell sagt wenig über das Gesamtverhalten.",
  "Do not infer how a whole system behaves from how a typical part behaves."),
@@ -315,10 +303,7 @@ C = [
 # covered — суть уже закрывает наш датчик (указан); blocked_analog — у других есть инструмент с той же сутью; blocked_rule — мешает наше правило (нет прогнозов);
 # needs_idea — пока не придумано, как превратить мысль в живое число.
 NEEDS = {
-  "bertsekas": ("ready", "measure the size in tokens of every Orb Studio tool answer and give the cheapest chain of calls for typical agent questions"),
-  "trevisan": ("ready", "the smallest sample of headlines that reproduces each index within ±5 points"),
-  "rabin": ("ready", "random spot checks of the sensor numbers against their sources"),
-  "minker": ("needs_history", "record headlines with correction/update/denial words and link them to the original story", "2026-12-13"),
+        "minker": ("needs_history", "record headlines with correction/update/denial words and link them to the original story", "2026-12-13"),
   "dagum": ("needs_history", "3–4 weeks of 30-minute index history to remove the daily and weekly rhythm", "2026-12-20"),
   "tiao": ("needs_history", "a few weeks of index history to measure how single events changed a series", "2026-12-20"),
   "latour": ("needs_source", "an open source of citation chains behind news claims"),
@@ -337,7 +322,7 @@ for k in ["bunge", "laudan", "agassi", "frazier"]: NEEDS[k] = ("covered", "the P
 for k in ["hambleton", "mislevy", "woodcock", "mellenbergh", "byrne"]: NEEDS[k] = ("covered", "the Kahneman sensor already audits the noise of AI judgements", None, "kahneman")
 for k in ["belnap", "groenendijk", "bonomi", "roggen", "zdonik", "belady"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")
 
-NEEDS["burkov"] = ("ready", "proper scoring for the Orb Studio forecast game, so that agents gain only by reporting their true confidence")
+NEEDS["burkov"] = ("covered", "applied: the Orb Studio forecast game now ranks agents by the Brier score (honest_confidence_30d in get_prediction), so stating the true confidence pays off")
 NEEDS["duckworth"] = ("ready", "compare today's partial-day index with the same hour of past days, not with full days")
 for k in ["mitter"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")
 for k in ["sonnenschein", "siljak", "fox"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
