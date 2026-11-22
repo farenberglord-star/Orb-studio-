@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hagenauer-Sensor · Orb Studio</title>
+<meta name="description" content="Welche Etiketten von Orb Studio fest sind und welche auf der Kippe stehen: Abstand jedes Urteils der Website zur nächsten Schwelle und wohin es kippen würde. Benannt nach Joachim Hagenauer (1941–2026).">
+<link rel="canonical" href="https://orbstudio.org/de/tools/hagenauer">
+<meta property="og:url" content="https://orbstudio.org/de/tools/hagenauer">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Hagenauer-Sensor · Orb Studio">
+<meta property="og:description" content="Welche Etiketten von Orb Studio fest sind und welche auf der Kippe stehen: Abstand jedes Urteils der Website zur nächsten Schwelle und wohin es kippen würde. Benannt nach Joachim Hagenauer (1941–2026).">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools/hagenauer">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/hagenauer">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/hagenauer">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/hagenauer">
+<meta property="og:locale" content="de_DE">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Hagenauer-Sensor · Orb Studio", "description": "Welche Etiketten von Orb Studio fest sind und welche auf der Kippe stehen: Abstand jedes Urteils der Website zur nächsten Schwelle und wohin es kippen würde. Benannt nach Joachim Hagenauer (1941–2026).", "url": "https://orbstudio.org/de/tools/hagenauer", "inLanguage": "de", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "about": {"@type": "Person", "name": "Joachim Hagenauer", "sameAs": ["https://en.wikipedia.org/wiki/Joachim_Hagenauer"]}, "mainEntity": {"@type": "Dataset", "name": "Hagenauer-Sensor", "description": "Welche Etiketten von Orb Studio fest sind und welche auf der Kippe stehen: Abstand jedes Urteils der Website zur nächsten Schwelle und wohin es kippen würde. Benannt nach Joachim Hagenauer (1941–2026).", "url": "https://orbstudio.org/api/v1/hagenauer", "isAccessibleForFree": true, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/hagenauer"}}}</script>
+<style>.hm-list{list-style:none;padding:0;margin:0}.hm-list li{display:grid;grid-template-columns:1.6rem 1fr auto;gap:.15rem .6rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.12)}.hm-list .n{opacity:.6}.hm-list .s{white-space:nowrap}.hm-list .w{grid-column:2/4;font-size:.92rem;opacity:.85}.hm-list .u{grid-column:2/4;font-size:.8rem;opacity:.6}.hm-st{font-size:1.15rem;margin:.2rem 0 .8rem}.pstrip{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;justify-content:center;margin:1.2rem 0 4.5rem;padding:.45rem .8rem;border:1px solid rgba(155,140,255,.35);border-radius:999px;font-size:.8rem;opacity:.85}.pstrip a{text-decoration:none}.pstrip small{opacity:.6}</style>
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Start</a><a href="/world">Welt jetzt</a><a href="/ground">Vom Boden</a><a href="/air">Sendung</a><a href="/deck">Brücke</a><a href="/for-agents" class="on" aria-current="page">Für Agenten</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/hagenauer" hreflang="ru" lang="ru">RU</a><a href="/de/tools/hagenauer" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/tools/hagenauer" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Orb Studio · Werkzeuge · Sensor</div>
+    <h1>Hagenauer-Sensor</h1>
+    <p class="lead">Das Wort „im Rahmen“ auf der Waage ist dasselbe bei 6 Tonnen und bei 9,9 von 10. Auch unsere Sensoren liefern Wörter – „ruhig“, „robust“, „aktuell“, „bestätigt“. Der Sensor zeigt die Zahl hinter jedem Wort und den Abstand zum nächsten Etikett: was fest ist und was mit der nächsten Schlagzeile oder in einer Stunde kippt. Die wackligsten zuerst.</p>
+  </div>
+  <section class="panel" id="now">
+    <h2>Etiketten der Website jetzt: von wacklig bis fest</h2>
+    <p class="hm-st" id="hmStatus">Wird geladen…</p>
+    <ol class="hm-list" id="hmRows"></ol>
+    <p>Für Agenten: <code>GET /api/v1/hagenauer</code> oder das MCP-Werkzeug <code>get_hagenauer</code>. Kostenlos, ohne Schlüssel.</p>
+  </section>
+  <section class="panel" id="honour">
+    <h2>Zu Ehren von Joachim Hagenauer (1941–2026)</h2>
+    <p>Joachim Hagenauer war ein deutscher Informationstheoretiker und Professor an der Technischen Universität München. Mit Peter Hoeher entwickelte er den Soft-Output-Viterbi-Algorithmus (SOVA) und prägte die „weichen“ Entscheidungen: Ein verrauschtes Signal wird nicht sofort auf 0 oder 1 gerundet, sondern seine Zuverlässigkeit bleibt erhalten. Diese Ideen stecken in Turbo-Codes und im modernen Mobilfunk. <a href="https://en.wikipedia.org/wiki/Joachim_Hagenauer" rel="noopener">Artikel in der Wikipedia (Englisch)</a>.</p>
+    <p><small>Der Sensor ist nach ihm benannt; Orb Studio steht in keiner Verbindung zu Joachim Hagenauer, seiner Familie oder der Technischen Universität München.</small></p>
+    <p><a href="/de/tools/scientists">Alle Sensoren zu Ehren von Wissenschaftlern →</a></p>
+  </section>
+  <aside class="pstrip" aria-label="Partner von Orb Studio"><small>Partner von Orb Studio · Empfehlungslinks</small><a href="/go/kraken?from=hagenauer" target="_blank" rel="sponsored noopener">Kraken — Kryptobörse ↗</a><a href="/go/starlink?from=hagenauer" target="_blank" rel="sponsored noopener">Starlink — Internet überall ↗</a></aside>
+</div>
+<script>
+const HM={"loading": "Wird geladen…", "err": "Der Sensor hat gerade nicht geantwortet.", "nodata": "keine Daten", "r": {"geo": "Geo-Radar", "budget": "Haushaltsbudget", "politics": "Politik", "economy": "Wirtschaft", "crypto": "Krypto-Radar", "energy": "Energie-Radar", "justice": "Justiz und Sicherheit", "web": "Offenes Web"}, "n": {"hallucination": "Halluzinationsindex", "consensus": "Einigkeitsbarometer", "token_hunger": "Token-Hunger", "silent_feeds": "stumme Feeds", "regions_absent": "Regionen ohne Feeds", "fresh_single_source": "frische Nachricht aus 1–2 Medien"}, "s": {"radar": "Radar", "index": "Index", "leamer": "Leamer", "baird": "Baird", "lyberg": "Lyberg", "howard": "Howard", "polyak": "Poljak"}, "v": {"on_edge": "auf der Kippe", "close": "nahe am Wechsel", "firm": "fest"}, "l": {"calm": "ruhig", "tense": "angespannt", "alarming": "alarmierend", "robust": "robust", "sensitive": "empfindlich", "fragile": "fragil", "fresh": "aktuell", "stale": "veraltet", "moving": "in Bewegung", "clear": "klar", "cloudy": "bewölkt", "stormy": "Gewitter", "all_answered": "alle geantwortet", "some_silent": "einige stumm", "many_silent": "viele stumm", "all_regions_in_feeds": "alle Regionen in den Feeds", "some_absent": "einige fehlen", "large_gaps": "große Lücken", "almost_logical": "fast logisch", "fantasising_a_little": "fantasiert ein wenig", "sounds_like_a_model": "wie ein Modell ohne Kontext", "hallucinates_harder_than_any_model": "halluziniert stärker als jedes Modell", "world_is_arguing": "die Welt streitet", "more_dispute_than_agreement": "mehr Streit", "slowly_agreeing": "man einigt sich", "worrying_unanimity": "beunruhigende Einigkeit", "say_unconfirmed": "sag „unbestätigt“", "uncertain": "unklar", "worth_waiting": "Warten lohnt sich"}, "m": "Wert {v} ({u}), Abstand {m} bis „{t}“", "nomargin": "keine Schwelle in der Nähe", "near": "Ein Medium von „bestätigt“ entfernt", "sum": "Auf der Kippe: {e}, nahe am Wechsel: {c}, fest: {f}", "loc": "de-DE"};
+const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
+const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
+const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_hagenauer")){sessionStorage.setItem("orbCounted_hagenauer","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"hagenauer",lang:"de",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
+fetch("/api/v1/hagenauer",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.labels)){document.getElementById("hmStatus").textContent=HM.err;return;}
+  document.getElementById("hmStatus").textContent=HM.sum.replace("{e}",d.on_edge).replace("{c}",d.close).replace("{f}",d.firm);
+  const nm=(id)=>{const m=id.match(/^(radar|index|leamer|baird|lyberg|howard|polyak)_(.+)$/);if(!m)return id;const k=m[2];return (HM.s[m[1]]||m[1])+": "+(HM.r[k]||HM.n[k]||k);};
+  const lb=(l)=>HM.l[l]||String(l).replace(/_/g," ");
+  const rows=d.labels.filter((x)=>x.softness!=="firm").concat(d.labels.filter((x)=>x.softness==="firm").slice(0,6));
+  document.getElementById("hmRows").innerHTML=rows.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(nm(x.id))+": "+esc(lb(x.label))+"</b><span class=\"w\">"+esc(HM.v[x.softness])+"</span><span class=\"u\">"+esc(x.margin==null?HM.nomargin:HM.m.replace("{v}",x.value).replace("{m}",x.margin).replace("{u}",x.unit).replace("{t}",lb(x.flips_to)))+"</span></li>").join("")
+   +((d.headlines_one_outlet_from_confirmed||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.near)+"</b></li>"+d.headlines_one_outlet_from_confirmed.slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"u\">"+esc((HM.r[h.radar]||h.radar)+" · "+(h.source||""))+"</span></li>").join(""):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+</script>
+<script type="module" src="/share-x.js"></script>
+<script src="/backnav.js" defer></script>
+</body>
+</html>
