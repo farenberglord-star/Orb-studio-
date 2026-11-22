@@ -5,7 +5,7 @@
 // Ключи — только секреты воркера: ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY (в код не пишутся).
 
 export const RT_LANGS = ["en", "de", "ru"]; // три языка сайта; румынский и турецкий сняты 21.11.2026
-export const RT_TR = ["de", "ru"];
+export const RT_TR = ["de"]; // голос и перевод круглого стола — только немецкий (решение автора 22.11.2026)
 export const RT_GUESTS = ["gemini", "grok", "deepseek"];
 export const RT_CAST = {
   claude: { name: "Claude", maker: "Anthropic", role: "moderator", voice: "lumen" },
