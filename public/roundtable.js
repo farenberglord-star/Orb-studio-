@@ -376,7 +376,7 @@ function start() {
   }
   async function load() {
     clearTimeout(timer); clearTimeout(retry);
-    let d = null; try { d = await (await fetch(API + "?lang=" + lang, { headers: { accept: "application/json" } })).json(); } catch { d = null; }
+    let d = null; try { d = await (await fetch(API + "?lang=de", { headers: { accept: "application/json" } })).json(); } catch { d = null; }
     if (!d) { showBoard(t.noLink, t.noLinkSub); retry = setTimeout(load, 90000); return; }
     if (d.status !== "ok" || !d.queue) { showBoard(t.preparing, t.preparingSub); retry = setTimeout(load, 120000); return; }
     ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);

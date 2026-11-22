@@ -534,17 +534,18 @@ test("a block whose voice failed to load is left alone for twenty minutes, then 
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /else if \(id\) failed\.set\(id, Date\.now\(\)\)/); assert.match(js, /\.filter\(\(iv\) => !skipNow\.has\(iv\.headline\)\)/);
 });
 
-test("the radio broadcasts in Russian only: one language for every listener, labels stay in the visitor's language", async () => {
-  const { radioTextBlock, radioJsonLd } = await import("../src/radio.js");
-  assert.equal(AIR_LANG, "ru");
-  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+test("the radio, studio and round table speak German only: one air language for every listener, labels stay in the visitor's language", async () => {
+  const { radioTextBlock, radioJsonLd } = await import("../src/radio.js"); const rt = await import("../src/roundtable.js");
+  assert.equal(AIR_LANG, "de");
+  const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), sd = readFileSync(new URL("../public/studio-duo.js", import.meta.url), "utf8"), rtj = readFileSync(new URL("../public/roundtable.js", import.meta.url), "utf8");
   assert.ok(!/radio\/(dj|weather|regional|sensors|radar)\?lang=" \+ lang\b/.test(js), "the player never asks for another broadcast language"); assert.match(js, /worldInterviews\(duo, AIR_LANG\)/);
-  assert.match(w, /const RADIO_AIR = "ru";/); for (const ep of ["dj", "radar", "sensors", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,[^\\n]*RADIO_AIR'));
+  assert.match(w, /const RADIO_AIR = "de";/); for (const ep of ["dj", "radar", "sensors", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,[^\\n]*RADIO_AIR'));
   assert.match(w, /radioRegional\(renv, request, origin, RADIO_AIR,/); assert.match(w, /\[RADIO_AIR\]\.map\(async \(lg\) => \{ try \{/);
-  assert.match(radioTextBlock("de", { air: "ru" }), /Die Sendung läuft auf Russisch/); assert.match(radioTextBlock("en", { air: "ru" }), /The broadcast is in Russian/); assert.ok(!/in Russian|auf Russisch/.test(radioTextBlock("ru", { air: "ru" })));
-  assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "ru");
-  assert.equal(T.ru.airRu, ""); assert.match(T.de.airRu, /Russisch/); assert.match(T.en.airRu, /Russian/);
-  assert.match(readFileSync(new URL("../public/de/index.html", import.meta.url), "utf8"), /Die Sendung läuft auf Russisch\./); assert.match(readFileSync(new URL("../public/en/index.html", import.meta.url), "utf8"), /The broadcast is in Russian\./);
+  assert.match(w, /const DUO_LANGS = \["de"\];/); assert.deepEqual(rt.RT_TR, ["de"]); assert.match(sd, /export const AIR_STUDIO = "de";/); assert.ok(!/buildQueue\([^)]*, lang\)\.filter|buildQueue\(ep2, lang\)/.test(sd), "the studio never builds its queue in another language"); assert.match(rtj, /fetch\(API \+ "\?lang=de"/);
+  assert.match(radioTextBlock("ru", { air: "de" }), /Эфир идёт на немецком/); assert.match(radioTextBlock("en", { air: "de" }), /The broadcast is in German/); assert.ok(!/in German|на немецком/.test(radioTextBlock("de", { air: "de" })));
+  assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "de");
+  assert.equal(T.de.airNote, ""); assert.match(T.ru.airNote, /немецком/); assert.match(T.en.airNote, /German/);
+  assert.match(readFileSync(new URL("../public/en/index.html", import.meta.url), "utf8"), /The broadcast is in German\./); assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /Эфир идёт на немецком\./);
 });
 
 test("no long pauses: the next sound is loaded in advance, short gap and fade-in, instant start, silent tails trimmed", () => {
