@@ -108,7 +108,10 @@
     "mikrin": "https://orbstudio.org/api/v1/mikrin",
     "polyak": "https://orbstudio.org/api/v1/polyak",
     "park": "https://orbstudio.org/api/v1/park",
-    "impulse": "https://orbstudio.org/api/v1/impulse"
+    "impulse": "https://orbstudio.org/api/v1/impulse",
+    "kahneman": "https://orbstudio.org/api/v1/kahneman",
+    "ziv": "https://orbstudio.org/api/v1/ziv",
+    "cox": "https://orbstudio.org/api/v1/cox"
   },
   "auth": "none",
   "payments": {
