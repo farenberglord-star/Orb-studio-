@@ -542,6 +542,19 @@ C = [
 ("gambarelli", "Gianfranco Gambarelli", "Джанфранко Гамбарелли", "1946–2026", "https://it.wikipedia.org/wiki/Gianfranco_Gambarelli", "answer_cost",
  "Game theory and decision methods (power indices, friend of John Nash).", "Теория игр и методы принятия решений (индексы силы; друг Джона Нэша).", "Spieltheorie und Entscheidungsmethoden (Machtindizes).",
  "When several actors decide, weigh who can actually tip the outcome."),
+# --- китайская, арабская, персидская, турецкая Википедия, умершие 2020–2026 (23.11.2026) ---
+("elmasri", "Ramez Elmasri", "Рамез Эльмасри", "1950–2022", "https://ar.wikipedia.org/wiki/%D8%B1%D8%A7%D9%85%D8%B2_%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A", "stale_data",
+ "Database systems ('Fundamentals of Database Systems') and temporal databases that keep several versions of the data at once.", "Системы баз данных («Fundamentals of Database Systems») и временные базы, где одновременно хранятся несколько версий данных.", "Datenbanksysteme und temporale Datenbanken mit mehreren Datenversionen.",
+ "Keep the version and time of the data you quote; yesterday's record and today's may both be 'the record'."),
+("wang_peizhuang", "Wang Peizhuang", "Ван Пэйчжуан", "1936–2025", "https://zh.wikipedia.org/wiki/%E6%B1%AA%E5%9F%B9%E5%BA%84", "one_model",
+ "Fuzzy mathematics in China: working with concepts that have no sharp boundaries.", "Нечёткая математика в Китае: как работать с понятиями без чётких границ.", "Fuzzy-Mathematik in China: Begriffe ohne scharfe Grenzen.",
+ "Some categories have no sharp edge; say how strongly something belongs, not only whether it does."),
+("al_hasadi", "Najib al-Hasadi", "Наджиб аль-Хасади", "1952–2025", "https://ar.wikipedia.org/wiki/%D9%86%D8%AC%D9%8A%D8%A8_%D8%A7%D9%84%D8%AD%D8%B5%D8%A7%D8%AF%D9%8A", "rumour_vs_fact",
+ "Libyan philosopher of critical thinking: 'Doubting the sanctity of science', 'The book of fallacies', 'Sensors of critical thinking'.", "Ливийский философ критического мышления: «Сомнение в святости науки», «Книга заблуждений», «Датчики критического мышления».", "Libyscher Philosoph des kritischen Denkens.",
+ "Question even the claims that come wrapped in the authority of science, and name the fallacy when you see one."),
+("ning_jinsheng", "Ning Jinsheng", "Нин Цзиньшэн", "1932–2020", "https://zh.wikipedia.org/wiki/%E5%AE%81%E6%B4%A5%E7%94%9F", "measurement_error",
+ "Geodesy: precise measurement of the Earth and its reference frames.", "Геодезия: точные измерения Земли и её систем отсчёта.", "Geodäsie: präzise Vermessung der Erde und ihrer Bezugssysteme.",
+ "A position or a number means nothing without its reference frame; state it."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -634,3 +647,8 @@ for k in ["galves"]: NEEDS[k] = ("covered", "the Polyak sensor already chooses i
 for k in ["lolli"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
 for k in ["alsina"]: NEEDS[k] = ("covered", "the Hagenauer sensor already keeps the degree of each label instead of yes or no", None, "hagenauer")
 for k in ["gambarelli"]: NEEDS[k] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
+
+NEEDS["elmasri"] = ("needs_history", "the same version history as Rinne: Orb Studio keeps first and later values of each sensor number since 23.11.2026", "2026-12-21")
+for k in ["wang_peizhuang"]: NEEDS[k] = ("covered", "the Hagenauer sensor already keeps the degree of each label instead of yes or no", None, "hagenauer")
+for k in ["al_hasadi"]: NEEDS[k] = ("covered", "the Frankfurt and Park sensors already work as 'sensors of critical thinking' on the headlines", None, "frankfurt")
+for k in ["ning_jinsheng"]: NEEDS[k] = ("covered", "the Baird sensor already gives every number its reference: source, time and unit", None, "baird")

@@ -3241,6 +3241,82 @@ export const CRYSTALS = [
 "note": "the Howard sensor already weighs when more information pays off",
 "covered_by": "howard"
 }
+},
+{
+"id": "elmasri",
+"name": "Ramez Elmasri",
+"name_ru": "Рамез Эльмасри",
+"years": "1950–2022",
+"wiki": "https://ar.wikipedia.org/wiki/%D8%B1%D8%A7%D9%85%D8%B2_%D8%A7%D9%84%D9%85%D8%B5%D8%B1%D9%8A",
+"zone": "stale_data",
+"idea": {
+"en": "Database systems ('Fundamentals of Database Systems') and temporal databases that keep several versions of the data at once.",
+"ru": "Системы баз данных («Fundamentals of Database Systems») и временные базы, где одновременно хранятся несколько версий данных.",
+"de": "Datenbanksysteme und temporale Datenbanken mit mehreren Datenversionen."
+},
+"rule": "Keep the version and time of the data you quote; yesterday's record and today's may both be 'the record'.",
+"needs": {
+"code": "needs_history",
+"note": "the same version history as Rinne: Orb Studio keeps first and later values of each sensor number since 23.11.2026",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "wang_peizhuang",
+"name": "Wang Peizhuang",
+"name_ru": "Ван Пэйчжуан",
+"years": "1936–2025",
+"wiki": "https://zh.wikipedia.org/wiki/%E6%B1%AA%E5%9F%B9%E5%BA%84",
+"zone": "one_model",
+"idea": {
+"en": "Fuzzy mathematics in China: working with concepts that have no sharp boundaries.",
+"ru": "Нечёткая математика в Китае: как работать с понятиями без чётких границ.",
+"de": "Fuzzy-Mathematik in China: Begriffe ohne scharfe Grenzen."
+},
+"rule": "Some categories have no sharp edge; say how strongly something belongs, not only whether it does.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already keeps the degree of each label instead of yes or no",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "al_hasadi",
+"name": "Najib al-Hasadi",
+"name_ru": "Наджиб аль-Хасади",
+"years": "1952–2025",
+"wiki": "https://ar.wikipedia.org/wiki/%D9%86%D8%AC%D9%8A%D8%A8_%D8%A7%D9%84%D8%AD%D8%B5%D8%A7%D8%AF%D9%8A",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Libyan philosopher of critical thinking: 'Doubting the sanctity of science', 'The book of fallacies', 'Sensors of critical thinking'.",
+"ru": "Ливийский философ критического мышления: «Сомнение в святости науки», «Книга заблуждений», «Датчики критического мышления».",
+"de": "Libyscher Philosoph des kritischen Denkens."
+},
+"rule": "Question even the claims that come wrapped in the authority of science, and name the fallacy when you see one.",
+"needs": {
+"code": "covered",
+"note": "the Frankfurt and Park sensors already work as 'sensors of critical thinking' on the headlines",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "ning_jinsheng",
+"name": "Ning Jinsheng",
+"name_ru": "Нин Цзиньшэн",
+"years": "1932–2020",
+"wiki": "https://zh.wikipedia.org/wiki/%E5%AE%81%E6%B4%A5%E7%94%9F",
+"zone": "measurement_error",
+"idea": {
+"en": "Geodesy: precise measurement of the Earth and its reference frames.",
+"ru": "Геодезия: точные измерения Земли и её систем отсчёта.",
+"de": "Geodäsie: präzise Vermessung der Erde und ihrer Bezugssysteme."
+},
+"rule": "A position or a number means nothing without its reference frame; state it.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives every number its reference: source, time and unit",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
