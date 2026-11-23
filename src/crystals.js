@@ -5494,6 +5494,366 @@ export const CRYSTALS = [
 "note": "the Park sensor already checks science headlines for signs of pseudoscience",
 "covered_by": "park"
 }
+},
+{
+"id": "perrow",
+"name": "Charles Perrow",
+"name_ru": "Чарльз Перроу",
+"years": "1925–2019",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Perrow",
+"zone": "side_effects",
+"idea": {
+"en": "'Normal Accidents': in tightly coupled, complex systems small failures combine into accidents that nobody planned.",
+"ru": "«Нормальные аварии»: в сложных и тесно связанных системах мелкие сбои складываются в аварии, которых никто не планировал.",
+"de": "„Normale Katastrophen“: in eng gekoppelten Systemen addieren sich kleine Fehler."
+},
+"rule": "Ask which other parts are tightly linked to the step you change.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "jervis",
+"name": "Robert Jervis",
+"name_ru": "Роберт Джервис",
+"years": "1940–2021",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Jervis",
+"zone": "side_effects",
+"idea": {
+"en": "'System Effects': in interconnected systems actions have indirect and delayed consequences that can reverse the intended result.",
+"ru": "«Эффекты системы»: во взаимосвязанных системах действия дают косвенные и запоздалые последствия, которые могут перевернуть задуманный результат.",
+"de": "„System Effects“: indirekte und verzögerte Folgen."
+},
+"rule": "Look for the indirect and delayed effect, not only the direct one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rosenthal",
+"name": "Robert Rosenthal",
+"name_ru": "Роберт Розенталь",
+"years": "1933–2024",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Rosenthal_(psychologist)",
+"zone": "side_effects",
+"idea": {
+"en": "Expectancy effects (the Pygmalion effect): expectations change behaviour and can make a prediction come true.",
+"ru": "Эффект ожиданий (эффект Пигмалиона): ожидания меняют поведение и могут сделать предсказание сбывшимся.",
+"de": "Erwartungseffekte (Pygmalion-Effekt)."
+},
+"rule": "Remember that your forecast, once read, can change what people do.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "kasperson",
+"name": "Roger Kasperson",
+"name_ru": "Роджер Касперсон",
+"years": "1938–2021",
+"wiki": "https://en.wikipedia.org/wiki/Roger_Kasperson",
+"zone": "side_effects",
+"idea": {
+"en": "Social amplification of risk: a risk message grows or shrinks as it is retold by media and people.",
+"ru": "Социальное усиление риска: сообщение о риске усиливается или ослабевает при пересказе СМИ и людьми.",
+"de": "Soziale Verstärkung von Risiken."
+},
+"rule": "Before retelling a risk, check whether the retelling makes it bigger than the source said.",
+"needs": {
+"code": "covered",
+"note": "applied: check_headline counts independent voices, so a story amplified by many reprints is not taken for many confirmations"
+}
+},
+{
+"id": "scott_jc",
+"name": "James C. Scott",
+"name_ru": "Джеймс Скотт",
+"years": "1936–2024",
+"wiki": "https://en.wikipedia.org/wiki/James_C._Scott",
+"zone": "side_effects",
+"idea": {
+"en": "'Seeing Like a State': top-down schemes fail when they simplify away the local knowledge that made things work.",
+"ru": "«Благими намерениями государства»: схемы «улучшения сверху» проваливаются, когда упрощают местное знание, на котором всё держалось.",
+"de": "„Seeing Like a State“: Pläne von oben scheitern an weggelassenem lokalem Wissen."
+},
+"rule": "Ask what local knowledge your simple plan leaves out.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "selten",
+"name": "Reinhard Selten",
+"name_ru": "Райнхард Зельтен",
+"years": "1930–2016",
+"wiki": "https://en.wikipedia.org/wiki/Reinhard_Selten",
+"zone": "side_effects",
+"idea": {
+"en": "Subgame perfection and bounded rationality: a plan must hold at every later step, given how others will respond then.",
+"ru": "Совершенство в подыграх и ограниченная рациональность: план должен выдерживать каждый следующий шаг с учётом того, как ответят другие.",
+"de": "Teilspielperfektheit und begrenzte Rationalität."
+},
+"rule": "Check that your advice still holds after the other side's next move.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "shubik",
+"name": "Martin Shubik",
+"name_ru": "Мартин Шубик",
+"years": "1926–2018",
+"wiki": "https://en.wikipedia.org/wiki/Martin_Shubik",
+"zone": "side_effects",
+"idea": {
+"en": "The dollar auction and strategic market games: rational step-by-step bidding can lead everyone into a loss.",
+"ru": "Долларовый аукцион и стратегические рыночные игры: разумные пошаговые ставки могут завести всех в убыток.",
+"de": "Dollarauktion: schrittweise rationale Gebote führen alle in den Verlust."
+},
+"rule": "Before escalating, ask where the escalation ends for everyone.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "holling",
+"name": "C. S. Holling",
+"name_ru": "Кроуфорд Холлинг",
+"years": "1930–2019",
+"wiki": "https://en.wikipedia.org/wiki/C._S._Holling",
+"zone": "side_effects",
+"idea": {
+"en": "Ecological resilience: optimising a system for efficiency can make it fragile to shocks.",
+"ru": "Экологическая устойчивость: оптимизация системы ради эффективности может сделать её хрупкой к потрясениям.",
+"de": "Ökologische Resilienz."
+},
+"rule": "Ask whether making something more efficient also makes it more fragile.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "raiffa",
+"name": "Howard Raiffa",
+"name_ru": "Говард Райфа",
+"years": "1924–2016",
+"wiki": "https://en.wikipedia.org/wiki/Howard_Raiffa",
+"zone": "side_effects",
+"idea": {
+"en": "Decision analysis and negotiation: structure a decision by options, uncertainties and the other party's interests.",
+"ru": "Анализ решений и переговоры: строить решение из вариантов, неопределённостей и интересов другой стороны.",
+"de": "Entscheidungsanalyse und Verhandlung."
+},
+"rule": "Lay out the options and the other side's interests before recommending one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "apresyan",
+"name": "Yuri Apresyan",
+"name_ru": "Юрий Апресян",
+"years": "1930–2024",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%90%D0%BF%D1%80%D0%B5%D1%81%D1%8F%D0%BD%2C_%D0%AE%D1%80%D0%B8%D0%B9_%D0%94%D0%B5%D1%80%D0%B5%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "look_alike",
+"idea": {
+"en": "Systematic lexicography: synonyms differ in fine shades, and one word has several meanings.",
+"ru": "Системная лексикография: синонимы различаются тонкими оттенками, а одно слово имеет несколько значений.",
+"de": "Systematische Lexikographie: Synonyme unterscheiden sich fein."
+},
+"rule": "Do not treat two near-synonyms as exactly the same; check the shade.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "paducheva",
+"name": "Elena Paducheva",
+"name_ru": "Елена Падучева",
+"years": "1935–2019",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D0%B4%D1%83%D1%87%D0%B5%D0%B2%D0%B0%2C_%D0%95%D0%BB%D0%B5%D0%BD%D0%B0_%D0%92%D0%B8%D0%BA%D1%82%D0%BE%D1%80%D0%BE%D0%B2%D0%BD%D0%B0",
+"zone": "look_alike",
+"idea": {
+"en": "Semantics of reference and aspect: the same sentence can refer to different things depending on context.",
+"ru": "Семантика референции и вида: одно и то же предложение может указывать на разное в зависимости от контекста.",
+"de": "Semantik der Referenz."
+},
+"rule": "Ask what exactly a phrase refers to here before matching it with another.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "zaliznyak",
+"name": "Andrey Zaliznyak",
+"name_ru": "Андрей Зализняк",
+"years": "1935–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%BB%D0%B8%D0%B7%D0%BD%D1%8F%D0%BA%2C_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B9_%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "look_alike",
+"idea": {
+"en": "The grammatical dictionary of Russian: all forms of one word belong together; different words can share one form.",
+"ru": "Грамматический словарь русского языка: все формы одного слова — одно слово, а разные слова могут совпадать в одной форме.",
+"de": "Grammatisches Wörterbuch des Russischen."
+},
+"rule": "Group forms of one word together, and do not merge different words that share a form.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "saracevic",
+"name": "Tefko Saracevic",
+"name_ru": "Тефко Сарачевич",
+"years": "1930–2024",
+"wiki": "https://en.wikipedia.org/wiki/Tefko_Saracevic",
+"zone": "look_alike",
+"idea": {
+"en": "Relevance in information retrieval: matching words is not the same as answering the need.",
+"ru": "Релевантность в информационном поиске: совпадение слов — не то же самое, что ответ на потребность.",
+"de": "Relevanz im Information Retrieval."
+},
+"rule": "A result that shares the words may still not answer the question.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "kilgarriff",
+"name": "Adam Kilgarriff",
+"name_ru": "Адам Килгаррифф",
+"years": "1960–2015",
+"wiki": "https://en.wikipedia.org/wiki/Adam_Kilgarriff",
+"zone": "look_alike",
+"idea": {
+"en": "Word senses from corpora ('I don't believe in word senses'): meanings are clusters of uses, not fixed boxes.",
+"ru": "Значения слов по корпусам («Я не верю в значения слов»): значения — это скопления употреблений, а не жёсткие ящики.",
+"de": "Wortbedeutungen aus Korpora."
+},
+"rule": "Judge what a word means here from how it is used, not from a fixed list.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "kay",
+"name": "Martin Kay",
+"name_ru": "Мартин Кей",
+"years": "1935–2021",
+"wiki": "https://en.wikipedia.org/wiki/Martin_Kay",
+"zone": "look_alike",
+"idea": {
+"en": "Computational linguistics and translation: machines should help humans where meaning is ambiguous, not decide alone.",
+"ru": "Компьютерная лингвистика и перевод: машина должна помогать человеку там, где смысл неоднозначен, а не решать одна.",
+"de": "Computerlinguistik und Übersetzung."
+},
+"rule": "Where a meaning is ambiguous, show the options instead of picking one silently.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rey",
+"name": "Alain Rey",
+"name_ru": "Ален Рей",
+"years": "1928–2020",
+"wiki": "https://en.wikipedia.org/wiki/Alain_Rey",
+"zone": "look_alike",
+"idea": {
+"en": "Historical lexicography (Le Robert): words change meaning over time.",
+"ru": "Историческая лексикография (словари Le Robert): слова меняют значение со временем.",
+"de": "Historische Lexikographie (Le Robert)."
+},
+"rule": "Check whether a word meant the same thing when the source was written.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hutchins",
+"name": "W. John Hutchins",
+"name_ru": "Джон Хатчинс",
+"years": "1939–2021",
+"wiki": "https://en.wikipedia.org/wiki/W._John_Hutchins",
+"zone": "look_alike",
+"idea": {
+"en": "History of machine translation: the same word can have different translations, and early systems failed on ambiguity.",
+"ru": "История машинного перевода: одно слово может переводиться по-разному, и первые системы спотыкались о неоднозначность.",
+"de": "Geschichte der maschinellen Übersetzung."
+},
+"rule": "When translating a key term, check that the translation keeps the meaning.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hanks",
+"name": "Patrick Hanks",
+"name_ru": "Патрик Хэнкс",
+"years": "1940–2024",
+"wiki": "https://en.wikipedia.org/wiki/Patrick_Hanks",
+"zone": "look_alike",
+"idea": {
+"en": "Corpus pattern analysis: a word's meaning is fixed by the pattern it occurs in.",
+"ru": "Анализ корпусных шаблонов: значение слова задаётся шаблоном, в котором оно встречается.",
+"de": "Korpusmusteranalyse."
+},
+"rule": "Read the whole pattern around a word before deciding what it means.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "fensel",
+"name": "Dieter Fensel",
+"name_ru": "Дитер Фензель",
+"years": "1960–2024",
+"wiki": "https://en.wikipedia.org/wiki/Dieter_Fensel",
+"zone": "look_alike",
+"idea": {
+"en": "Ontologies and the semantic web: shared, explicit definitions so that different systems mean the same thing by a term.",
+"ru": "Онтологии и семантический веб: общие явные определения, чтобы разные системы понимали термин одинаково.",
+"de": "Ontologien und Semantic Web."
+},
+"rule": "Use an explicit shared definition when two sources use the same term.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lyons",
+"name": "John Lyons",
+"name_ru": "Джон Лайонз",
+"years": "1932–2020",
+"wiki": "https://en.wikipedia.org/wiki/John_Lyons_(linguist)",
+"zone": "look_alike",
+"idea": {
+"en": "Structural semantics: the meaning of a word is set by its relations to other words (synonymy, opposites, inclusion).",
+"ru": "Структурная семантика: значение слова задаётся его отношениями с другими словами (синонимия, противоположность, включение).",
+"de": "Strukturelle Semantik."
+},
+"rule": "Check how two words relate (same, broader, opposite) before treating them as one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
