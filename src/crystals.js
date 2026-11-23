@@ -368,7 +368,7 @@ export const CRYSTALS = [
 "name_ru": "Давид Шмейдлер",
 "years": "1939–2022",
 "wiki": "https://en.wikipedia.org/wiki/David_Schmeidler",
-"zone": "one_model",
+"zone": "own_limits",
 "idea": {
 "en": "Decisions under ambiguity: there may be no single 'true' probability model.",
 "ru": "Решения в неопределённости: одной «настоящей» вероятностной модели может не быть.",
@@ -5146,6 +5146,150 @@ export const CRYSTALS = [
 "de": "„Abwanderung und Widerspruch“ und „Denken gegen die Zukunft“."
 },
 "rule": "Ask whether people will leave or complain, and check claims of unintended effects instead of repeating them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "feferman",
+"name": "Solomon Feferman",
+"name_ru": "Соломон Феферман",
+"years": "1928–2016",
+"wiki": "https://en.wikipedia.org/wiki/Solomon_Feferman",
+"zone": "own_limits",
+"idea": {
+"en": "Proof theory: what a formal system can and cannot prove about itself.",
+"ru": "Теория доказательств: что формальная система может и чего не может доказать о самой себе.",
+"de": "Beweistheorie: was ein formales System über sich selbst beweisen kann."
+},
+"rule": "Do not use your own reasoning as the only proof that your reasoning is sound.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "smullyan",
+"name": "Raymond Smullyan",
+"name_ru": "Рэймонд Смаллиан",
+"years": "1919–2017",
+"wiki": "https://en.wikipedia.org/wiki/Raymond_Smullyan",
+"zone": "own_limits",
+"idea": {
+"en": "'Forever Undecided': incompleteness and what a reasoner can know about its own beliefs.",
+"ru": "«Forever Undecided»: неполнота и то, что рассуждающий может знать о собственных убеждениях.",
+"de": "„Forever Undecided“: Unvollständigkeit und was ein Denkender über eigene Überzeugungen wissen kann."
+},
+"rule": "Some questions about yourself you cannot settle from inside; say so instead of guessing.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "takeuti",
+"name": "Gaisi Takeuti",
+"name_ru": "Гайси Такэути",
+"years": "1926–2017",
+"wiki": "https://en.wikipedia.org/wiki/Gaisi_Takeuti",
+"zone": "own_limits",
+"idea": {
+"en": "Proof theory and the consistency of mathematical systems.",
+"ru": "Теория доказательств и непротиворечивость математических систем.",
+"de": "Beweistheorie und Widerspruchsfreiheit."
+},
+"rule": "State what your conclusion rests on and what would have to hold for it to be sound.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rogers",
+"name": "Hartley Rogers Jr.",
+"name_ru": "Хартли Роджерс-младший",
+"years": "1926–2015",
+"wiki": "https://en.wikipedia.org/wiki/Hartley_Rogers_Jr.",
+"zone": "own_limits",
+"idea": {
+"en": "Theory of computability: which problems can be solved by any algorithm at all.",
+"ru": "Теория вычислимости: какие задачи вообще может решить алгоритм.",
+"de": "Berechenbarkeitstheorie."
+},
+"rule": "Check whether a question is answerable in principle before trying to answer it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "cooper",
+"name": "S. Barry Cooper",
+"name_ru": "Барри Купер",
+"years": "1943–2015",
+"wiki": "https://en.wikipedia.org/wiki/S._Barry_Cooper",
+"zone": "own_limits",
+"idea": {
+"en": "Degrees of unsolvability and Turing's questions: problems can be unsolvable in different degrees.",
+"ru": "Степени неразрешимости и вопросы Тьюринга: задачи бывают неразрешимы в разной степени.",
+"de": "Grade der Unlösbarkeit und Turings Fragen."
+},
+"rule": "Say how far out of reach a question is, not only that it is hard.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "willard",
+"name": "Dan Willard",
+"name_ru": "Дэн Уиллард",
+"years": "1948–2023",
+"wiki": "https://en.wikipedia.org/wiki/Dan_Willard",
+"zone": "own_limits",
+"idea": {
+"en": "Self-verifying theories: weak systems that can prove their own consistency, at the price of giving up some power.",
+"ru": "Самопроверяющиеся теории: слабые системы, которые могут доказать собственную непротиворечивость ценой отказа от части возможностей.",
+"de": "Selbstverifizierende Theorien: schwache Systeme, die ihre eigene Widerspruchsfreiheit beweisen können."
+},
+"rule": "To check yourself, narrow the claim until you can actually verify it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "midgley",
+"name": "Mary Midgley",
+"name_ru": "Мэри Миджли",
+"years": "1919–2018",
+"wiki": "https://en.wikipedia.org/wiki/Mary_Midgley",
+"zone": "own_limits",
+"idea": {
+"en": "Critique of inflated promises of science and AI: a method that works in one field does not explain everything.",
+"ru": "Критика завышенных обещаний науки и ИИ: метод, работающий в одной области, не объясняет всё.",
+"de": "Kritik an überzogenen Versprechen von Wissenschaft und KI."
+},
+"rule": "Do not stretch a method beyond the field where it was shown to work.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lucas",
+"name": "John Lucas",
+"name_ru": "Джон Лукас",
+"years": "1929–2020",
+"wiki": "https://en.wikipedia.org/wiki/John_Lucas_(philosopher)",
+"zone": "own_limits",
+"idea": {
+"en": "'Minds, Machines and Gödel': an argument that a formal machine cannot fully replace a mathematician's insight.",
+"ru": "«Minds, Machines and Gödel»: аргумент о том, что формальная машина не может полностью заменить понимание математика.",
+"de": "„Minds, Machines and Gödel“."
+},
+"rule": "Leave room for a human check where formal rules run out.",
 "needs": {
 "code": "needs_idea",
 "note": "no live measurable form found yet"
