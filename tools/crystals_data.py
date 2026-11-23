@@ -789,6 +789,10 @@ C = [
 ('lamfalussy', 'Alexandre Lamfalussy', 'Александр Ламфалусси', '1929–2015', 'https://it.wikipedia.org/wiki/Alexandre_Lamfalussy', 'measurement_error',
  'Macroprudential view: look for fragility of the whole system before a crisis, not only at each institution.', 'Макропруденциальный подход: искать хрупкость всей системы до кризиса, а не только у каждого участника по отдельности.', 'Makroprudenzielle Sicht: Fragilität des Gesamtsystems vor der Krise suchen.',
  'Check the whole system, not only its parts one by one.'),
+# --- от Gemini (Лиана), 23.11.2026 ---
+('schelling', 'Thomas Schelling', 'Томас Шеллинг', '1921–2016', 'https://en.wikipedia.org/wiki/Thomas_Schelling', 'side_effects',
+ "'Micromotives and Macrobehavior' and focal points: individually sensible small choices add up to large effects nobody intended, and expectations shape what others do.", '«Микромотивы и макроповедение» и фокальные точки: разумные по отдельности маленькие решения складываются в большие последствия, которых никто не хотел, а ожидания меняют поведение других.', '„Micromotives and Macrobehavior“ und Fokalpunkte: kleine vernünftige Einzelentscheidungen ergeben große, ungewollte Folgen.',
+ 'Ask what happens when many agents follow the same advice at once.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).

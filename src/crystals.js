@@ -4728,6 +4728,24 @@ export const CRYSTALS = [
 "note": "the Simpson sensor already checks whether the whole index and its radars move the same way",
 "covered_by": "simpson"
 }
+},
+{
+"id": "schelling",
+"name": "Thomas Schelling",
+"name_ru": "Томас Шеллинг",
+"years": "1921–2016",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Schelling",
+"zone": "side_effects",
+"idea": {
+"en": "'Micromotives and Macrobehavior' and focal points: individually sensible small choices add up to large effects nobody intended, and expectations shape what others do.",
+"ru": "«Микромотивы и макроповедение» и фокальные точки: разумные по отдельности маленькие решения складываются в большие последствия, которых никто не хотел, а ожидания меняют поведение других.",
+"de": "„Micromotives and Macrobehavior“ und Fokalpunkte: kleine vernünftige Einzelentscheidungen ergeben große, ungewollte Folgen."
+},
+"rule": "Ask what happens when many agents follow the same advice at once.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
