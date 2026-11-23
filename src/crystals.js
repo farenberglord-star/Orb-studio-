@@ -8277,6 +8277,136 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "a small list of state words that hide danger (empty, safe, cleared, contained) for the passport; no tested list yet"
 }
+},
+{
+"id": "wittgenstein",
+"name": "Ludwig Wittgenstein",
+"name_ru": "Людвиг Витгенштейн",
+"years": "1889–1951",
+"wiki": "https://en.wikipedia.org/wiki/Ludwig_Wittgenstein",
+"zone": "look_alike",
+"idea": {
+"en": "'Philosophical Investigations' (1953): the meaning of a word is its use in a practice; things called by one word share only a 'family resemblance', not one common essence.",
+"ru": "«Философские исследования» (1953): значение слова — это его употребление в практике; вещи, названные одним словом, связаны лишь «семейным сходством», а не общей сущностью.",
+"de": "„Philosophische Untersuchungen“ (1953): Bedeutung ist Gebrauch; Familienähnlichkeit."
+},
+"rule": "Read a key word ('crisis', 'deal', 'win') by how this source uses it, not by one fixed definition.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport flags metaphors and the echo check compares meanings across wordings"
+}
+},
+{
+"id": "borel",
+"name": "Émile Borel",
+"name_ru": "Эмиль Борель",
+"years": "1871–1956",
+"wiki": "https://en.wikipedia.org/wiki/%C3%89mile_Borel",
+"zone": "own_limits",
+"idea": {
+"en": "'Le hasard' and 'Les probabilités et la vie' (1943): events of small enough probability should be treated as practically impossible — but one must say how small, and on what scale of trials.",
+"ru": "«Случай» и «Вероятности и жизнь» (1943): события достаточно малой вероятности следует считать практически невозможными — но надо сказать, насколько малой и на каком числе испытаний.",
+"de": "„Les probabilités et la vie“ (1943): Borels Gesetz des Zufalls."
+},
+"rule": "Before calling something 'impossible', say how unlikely it is and how many chances it had to happen.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport asks for stronger evidence for extraordinary claims (Hume, Laplace)"
+}
+},
+{
+"id": "reichenbach",
+"name": "Hans Reichenbach",
+"name_ru": "Ханс Райхенбах",
+"years": "1891–1953",
+"wiki": "https://en.wikipedia.org/wiki/Hans_Reichenbach",
+"zone": "one_model",
+"idea": {
+"en": "The common cause principle ('The Direction of Time', 1956): when two things are correlated and neither causes the other, look for a third that causes both; he also separated the context of discovery from the context of justification.",
+"ru": "Принцип общей причины («Направление времени», 1956): если две вещи связаны, но ни одна не вызывает другую, ищи третью, которая вызывает обе; он же отделил контекст открытия от контекста обоснования.",
+"de": "Prinzip der gemeinsamen Ursache (1956)."
+},
+"rule": "If two things move together, check for a third that drives both before linking them.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'who leads whom' (Granger + Salmon + Reichenbach): a common driver of radar and prices (e.g. the same news) must be ruled out",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "von_neumann",
+"name": "John von Neumann",
+"name_ru": "Джон фон Нейман",
+"years": "1903–1957",
+"wiki": "https://en.wikipedia.org/wiki/John_von_Neumann",
+"zone": "side_effects",
+"idea": {
+"en": "The minimax theorem (1928) and 'Theory of Games and Economic Behavior' (1944, with Morgenstern): judge a move by the best reply it leaves the other side.",
+"ru": "Теорема о минимаксе (1928) и «Теория игр и экономическое поведение» (1944, с Моргенштерном): оценивай ход по лучшему ответу, который он оставляет другой стороне.",
+"de": "Minimax-Satz (1928) und Spieltheorie (1944)."
+},
+"rule": "When others will react, judge an action by their best response, not by its first effect.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'published radar moves the market' (Rosenthal + Keynes + von Neumann): reactions to a published signal",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "bowley",
+"name": "Arthur Lyon Bowley",
+"name_ru": "Артур Лайон Боули",
+"years": "1869–1957",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_Lyon_Bowley",
+"zone": "measurement_error",
+"idea": {
+"en": "'Livelihood and Poverty' (1915) pioneered random sampling of households: a sample speaks for a population only if every member had a known chance to be chosen.",
+"ru": "«Заработок и бедность» (1915) впервые применила случайную выборку домохозяйств: выборка говорит за всё население, только если у каждого был известный шанс в неё попасть.",
+"de": "„Livelihood and Poverty“ (1915): Zufallsstichproben von Haushalten."
+},
+"rule": "Ask how a survey chose its people before trusting its percentage for everyone.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports who the feeds cannot see",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "mises_r",
+"name": "Richard von Mises",
+"name_ru": "Рихард фон Мизес",
+"years": "1883–1953",
+"wiki": "https://en.wikipedia.org/wiki/Richard_von_Mises",
+"zone": "measurement_error",
+"idea": {
+"en": "The birthday problem (1939): in a room of just 23 people two share a birthday more often than not — coincidences are far more likely than they feel. He also founded the frequency theory of probability.",
+"ru": "Задача о днях рождения (1939): уже среди 23 человек двое с одним днём рождения встречаются чаще, чем нет, — совпадения гораздо вероятнее, чем кажется. Он же создал частотную теорию вероятности.",
+"de": "Geburtstagsproblem (1939): Zufälle sind wahrscheinlicher als gefühlt."
+},
+"rule": "Before calling a coincidence suspicious, count how many chances there were for some coincidence to happen.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already refuses conclusions from a few coincidences",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "thorndike",
+"name": "Edward Thorndike",
+"name_ru": "Эдвард Торндайк",
+"years": "1874–1949",
+"wiki": "https://en.wikipedia.org/wiki/Edward_Thorndike",
+"zone": "look_alike",
+"idea": {
+"en": "'A constant error in psychological ratings' (1920): the halo effect — one good or bad trait colours how all other traits are judged.",
+"ru": "«Постоянная ошибка в психологических оценках» (1920): эффект ореола — одна хорошая или плохая черта окрашивает оценку всех остальных.",
+"de": "Halo-Effekt (1920)."
+},
+"rule": "Judge each claim about a person or company on its own evidence, not on their reputation.",
+"needs": {
+"code": "needs_idea",
+"note": "flag headlines whose claim rests on a name's reputation; no word rule yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
