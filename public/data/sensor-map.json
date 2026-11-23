@@ -399,6 +399,33 @@
    ]
   },
   {
+   "id": "h2",
+   "ico": "⛽",
+   "scope": "place",
+   "api": "/api/v1/h2-stations",
+   "mcp": "get_h2_stations",
+   "time_key": "newest_signal_at",
+   "time_kind": "measured",
+   "name": {
+    "ru": "Водородные заправки Гамбурга",
+    "de": "Wasserstofftankstellen Hamburg",
+    "en": "Hamburg hydrogen stations"
+   },
+   "what": {
+    "ru": "Работают ли водородные заправки Гамбурга прямо сейчас: статус станции и по видам топлива (700 и 350 бар), свободные колонки. Станции без свежего сигнала помечены и без статуса.",
+    "de": "Sind die Wasserstofftankstellen in Hamburg gerade verfügbar: Status je Station und je Kraftstoffart (700 und 350 bar), freie Zapfsäulen. Stationen ohne frisches Signal sind markiert und ohne Status.",
+    "en": "Whether Hamburg's hydrogen stations are available right now: status per station and per fuelling option (700 and 350 bar), free nozzles. Stations without a fresh signal are marked and show no status."
+   },
+   "pins": [
+    {
+     "lat": 53.55,
+     "lon": 10.0,
+     "kind": "area",
+     "label": "Hamburg"
+    }
+   ]
+  },
+  {
    "id": "weather_at",
    "ico": "⛅",
    "scope": "place",

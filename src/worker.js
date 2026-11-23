@@ -32,6 +32,7 @@ import { parseGas } from "./gas.js";
 import { snapshot as pulseSnapshot, diff as pulseDiff, mergeEvents, sinceMs, etagBasis, PULSE_SENSORS } from "./pulse.js";
 import { parseTawes, TAWES_URL, ATTRIBUTION as TAWES_ATTR, STALE_MIN as TAWES_STALE_MIN } from "./weather_at.js";
 import { parseKarlsruhe, parseLeipzig, KA_URL, LE_URL, SOURCES as PARK_SRC, STALE_MIN as PARK_STALE_MIN } from "./parking.js";
+import { H2_API, H2_PAGE, H2_STATUS_TTL_MS, H2_MIN_GAP_MS, H2_LIST_TTL_MS, H2_SOURCE, STALE_MIN as H2_STALE_MIN, parseStations as h2ParseStations, parseStatus as h2ParseStatus, newestSignal as h2Newest } from "./h2stations.js";
 import { parseBafin, BAFIN_FEED } from "./bafin.js";
 import { parseLhp, LHP_URL } from "./lhp.js";
 import { PARTIES as PA_PARTIES, reduceDaily as paReduce, rowFor as paRow, summarizeAttention as paSummarize, dayRange as paRange, apiUrl as paApi, ATTRIBUTION as PA_ATTRIBUTION, CONTEXT_NOTE as PA_NOTE } from "./partyattention.js";
@@ -540,7 +541,7 @@ const FR_LOADERS = {
   radars: (env, ctx, origin) => allRadars(env, ctx, origin),
   sensors: (env) => sharedGet(env, "sensors-v8", 2 * 86400e3),   // только сохранённая копия: пересчёт всех датчиков здесь слишком тяжёл
   quakes: () => quakesData(), disasters: () => disastersData(), food: () => foodPricesData(), chokepoints: (env, ctx) => chokepointsData(env, null), outbreaks: () => outbreaksData(), displacement: () => displacementData(), space: () => spaceData(), radiation: () => radiationData(), flood: () => lhpData(), elbe: () => hydroData(), weather_at: () => weatherAtData(),
-  gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(),
+  gas: (env) => gasData(env), polls: () => pollsData(), party: () => partyAttentionData(), roads: (env) => roadsData(env), parking: () => parkingData(), h2: (env) => h2Data(env),
   aviation: (env, ctx) => aviationData(env, ctx), bafin: () => bafinData(), prices: (env) => pricesRadar(env, "hamburg"), tariffs: (env, ctx, origin) => tariffsData(env, origin),
   safeworld: async (env, ctx, origin) => { const r = await env.ASSETS.fetch(new Request(origin + "/safeworld-data.json")); return r.ok ? r.json() : null; },
   noise: async (env) => (await sharedGet(env, SW_KEY, SW_MAX_AGE + 2 * 864e5)) || { ok: false },
@@ -2442,6 +2443,74 @@ async function parkingData(city, liveOnly) {
   return { free: true, status, ok: okN > 0, http: okN === 0 ? 503 : 200, checked_at: new Date().toISOString(), live_max_age_min: PARK_STALE_MIN, live_count: liveTotal, facilities_count: items.length, items, sources, page: "https://orbstudio.org/api/v1/parking-de",
     note: "Free-space counts from two open municipal feeds, passed through unchanged. live=false means the source marks the facility as not real-time or closed, or its last reading is older than live_max_age_min; no numbers are shown for it. Data converted by Orb Studio to one format (Leipzig local time written with its UTC offset). Not an official product of Stadt Karlsruhe or Stadt Leipzig and not endorsed by them. Parking-space counts are not a promise that a space will be free on arrival." };
 }
+// ================= Водородные заправки Гамбурга: /api/v1/h2-stations, MCP get_h2_stations =================
+// Источник: H2-Stations Export API v2 (Clean Hydrogen JU, CC BY 4.0). Токен ТОЛЬКО из env.H2_STATIONS_TOKEN: не выводится, не логируется, не попадает в ответы и тексты ошибок.
+// Опрос не чаще раза в минуту со ВСЕХ дата-центров вместе: общий замок и кэш в D1 (таблица shared). Один запрос /hrs/status на весь опрос + раз в сутки список станций (/hrs).
+async function h2Claim(env, gapMs) {
+  try {
+    await ensureShared(env);
+    const now = Date.now();
+    const r = await env.DB.prepare("INSERT INTO shared (k, v, ts) VALUES ('h2-claim', '1', ?1) ON CONFLICT(k) DO UPDATE SET ts=?1 WHERE ts < ?2").bind(now, now - gapMs).run();
+    return !!(r.meta && r.meta.changes > 0);
+  } catch (e) { return false; }
+}
+async function h2Backoff(env, sec) {   // 429: следующий опрос не раньше, чем через Retry-After (не больше 15 минут)
+  try { const wait = Math.min(Math.max(+sec || 60, 60), 900) * 1000; await env.DB.prepare("UPDATE shared SET ts=?1 WHERE k='h2-claim'").bind(Date.now() + wait - H2_MIN_GAP_MS).run(); } catch (e) {}
+}
+async function h2Fetch(env, path) {
+  let r;
+  try {
+    r = await fetch(H2_API + path, { redirect: "error", signal: AbortSignal.timeout(12000),
+      headers: { Authorization: "Bearer " + env.H2_STATIONS_TOKEN, Accept: "application/json", "User-Agent": "Orb Studio (https://orbstudio.org)" } });
+  } catch (e) { throw new Error("network"); }   // текст исходной ошибки не пробрасываем
+  if (r.status === 429) { await h2Backoff(env, r.headers.get("retry-after")); throw new Error("http 429"); }
+  if (!r.ok) throw new Error("http " + r.status);
+  try { return await r.json(); } catch (e) { throw new Error("bad json"); }
+}
+async function h2StationList(env) {
+  const hit = await sharedGet(env, "h2-list-v1", H2_LIST_TTL_MS);
+  if (hit && Array.isArray(hit.stations) && hit.stations.length) return hit;
+  const all = [];
+  for (let off = 0, n = 0; n < 10; n++, off += H2_PAGE) {   // сами считаем offset: ответу `next` с чужим адресом токен не отдаём
+    const j = await h2Fetch(env, `/hrs?limit=${H2_PAGE}&offset=${off}`);
+    const rows = j && Array.isArray(j.results) ? j.results : null;
+    if (!rows) throw new Error("bad list");
+    all.push(...rows);
+    if (rows.length < H2_PAGE || !j.next) break;
+  }
+  const parsed = h2ParseStations(all);
+  if (!parsed.ok || !parsed.stations.length) throw new Error("no Hamburg stations");
+  const val = { fetched_at: new Date().toISOString(), stations: parsed.stations };
+  await sharedPut(env, "h2-list-v1", val);
+  return val;
+}
+async function h2Data(env) {
+  const head = { free: true, source: H2_SOURCE.attribution, license: H2_SOURCE.license, license_url: H2_SOURCE.license_url, source_url: H2_SOURCE.url, page: "https://orbstudio.org/api/v1/h2-stations" };
+  if (!env || !env.H2_STATIONS_TOKEN || !env.DB) return { ...head, status: "unavailable", ok: false, http: 503, checked_at: new Date().toISOString(), items: [], note: "Sensor is not configured on this deployment." };
+  const now = Date.now();
+  let last = await sharedGet(env, "h2-status-v1", 24 * 3600e3);   // последняя хорошая копия (до суток)
+  let state = last && now - (last.fetched_ms || 0) < H2_STATUS_TTL_MS ? "cached" : null, err = null;
+  if (!state && await h2Claim(env, H2_MIN_GAP_MS)) {
+    try {
+      const list = await h2StationList(env);
+      const body = await h2Fetch(env, "/hrs/status?sections=availability,usage,pricing,fuel_types,events");
+      const ids = new Set(list.stations.map((x) => x.hrs_id));
+      const mine = body && Array.isArray(body.stations) ? body.stations.filter((x) => x && ids.has(String(x.hrs_id))) : null;
+      if (!mine) throw new Error("bad status");
+      last = { fetched_ms: Date.now(), fetched_at: new Date().toISOString(), datetime: body.datetime || null, stations: list.stations, raw: mine };
+      await sharedPut(env, "h2-status-v1", last);
+      state = "ok";
+    } catch (e) { err = String((e && e.message) || "error").replace(/[^\w .:-]/g, "").slice(0, 40); }
+  }
+  if (!state) state = last ? (err ? "degraded" : "cached") : "unavailable";
+  if (!last) return { ...head, status: "unavailable", ok: false, http: 503, checked_at: new Date().toISOString(), items: [], ...(err ? { error: err } : {}), note: "No reading yet. The first load can take a minute; the source is asked at most once a minute." };
+  const parsed = h2ParseStatus({ stations: last.raw, datetime: last.datetime }, last.stations, Date.now());
+  const items = parsed.items, liveN = items.filter((x) => x.live).length;
+  return { ...head, status: state, ok: parsed.ok, http: parsed.ok ? 200 : 503, checked_at: new Date().toISOString(), fetched_at: last.fetched_at, source_datetime: last.datetime, newest_signal_at: h2Newest(items),
+    live_max_age_min: H2_STALE_MIN, poll_min_gap_s: H2_MIN_GAP_MS / 1000, stations_count: items.length, live_count: liveN, items, ...(err ? { error: err } : {}),
+    attribution: H2_SOURCE.attribution, reuse: H2_SOURCE.reuse,
+    note: "Hydrogen refuelling stations in Hamburg, passed through from the H2-Stations Export API v2 (Clean Hydrogen Joint Undertaking, CC BY 4.0). status is our one-word summary over by_fuel (available, limitedly-available, unavailable, closed, unknown); by_fuel is the source's own derived status per fuelling option (700ld = 700 bar light-duty, 350hd = 350 bar heavy-duty). live=false means no usable signal or the last signal is older than live_max_age_min; no status is shown for it. Station prices are the operator's gross price per kg where the operator publishes one. Orb Studio asks the source at most once a minute and caches the answer for all visitors. Not an official product of the Clean Hydrogen Joint Undertaking and not endorsed by it; not a guarantee that a station will be available when you arrive." };
+}
 // ================= Австрия: живые станции TAWES (GeoSphere Austria): /api/v1/weather-at, MCP get_weather_at =================
 async function weatherAtData(stationFilter) {
   const base = { free: true, source: TAWES_ATTR.text, license: TAWES_ATTR.license, license_url: TAWES_ATTR.license_url, dataset_url: TAWES_ATTR.url, page: "https://orbstudio.org/api/v1/weather-at", live_max_age_min: TAWES_STALE_MIN,
@@ -3404,6 +3473,7 @@ const OA_GET = [
   ["/api/v1/hydro/flood-warnings", "getFloodWarnings", "Free official German flood warnings and situation classes from LHP (hochwasserzentralen.de), CC BY 4.0: active warnings with class and name, highest class, stand time. No water levels, not a forecast.", []],
   ["/api/v1/finance/bafin-measures", "getBafinMeasures", "Free official BaFin supervisory measures (RSS Maßnahmen), last 20 entries: date, title (unchanged, German), sector derived from the link path, url, source. Measures against natural persons are withheld. Not a company rating.", []],
   ["/api/v1/parking-de", "getParkingDe", "Free live parking occupancy from two open municipal feeds: Karlsruhe region car parks (Stadt Karlsruhe, CC BY 4.0) and Leipzig Park+Ride (Stadt Leipzig, dl-de/by-2-0). Free spaces, capacity, occupancy and reading time per facility; stale or non-real-time facilities are marked live=false with no numbers.", [OA_Q("city", "filter by city name, e.g. Leipzig, Rastatt, Karlsruhe"), OA_Q("live", "1 = only facilities with a fresh live reading")]],
+  ["/api/v1/h2-stations", "getH2Stations", "Free live availability of hydrogen refuelling stations in Hamburg from the H2-Stations Export API v2 (Clean Hydrogen Joint Undertaking, CC BY 4.0): one-word status per station, status per fuelling option (700ld, 350hd, ...), nozzles available, ongoing operator events, operator price per kg where published. No signal or a signal older than 30 minutes = live=false with no status. The source is asked at most once a minute.", []],
   ["/api/v1/changes", "getChanges", "Free impulse log: what changed in the sensors since a given time (new gas day, new BaFin measure, new significant earthquake, change of flood warnings, change of a NOAA space-weather scale). Facts noticed by our own poll, not predictions. Sensor endpoints also support ETag / If-None-Match (304) for a cheap change check.", [OA_Q("since", "ISO time or epoch seconds/milliseconds; omit for the latest events"), OA_Q("sensor", "gas, bafin, flood, quakes or space"), OA_Q("limit", "1-100")]],
   ["/api/v1/weather-at", "getWeatherAt", "Free live 10-minute weather observations from 12 GeoSphere Austria TAWES stations (Austria only, CC BY 4.0): temperature, precipitation, wind, gust, pressure, humidity, sunshine, snow depth. Values unchanged, empty readings stay null, a station without a reading is live=false. Not a forecast.", [OA_Q("station", "filter by station id, name or state, e.g. 11035, Wien, Tirol")]],
   ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
@@ -8177,6 +8247,9 @@ const MCP_TOOLS = [
   { name: "get_parking_de", title: "Live parking occupancy: Karlsruhe region and Leipzig P+R",
     description: "Free. Free spaces, capacity and occupancy of car parks in the Karlsruhe region (Stadt Karlsruhe open data, CC BY 4.0) and Leipzig Park+Ride facilities (Stadt Leipzig, dl-de/by-2-0), with the reading time of each. A facility that is not real-time, closed or older than live_max_age_min is returned with live=false and no numbers. Source attribution and licence are in every item. Not an official product of the cities; not a guarantee that a space will be free.",
     inputSchema: { type: "object", properties: { city: { type: "string", description: "City name filter, e.g. Leipzig, Rastatt, Karlsruhe" }, live_only: { type: "boolean" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "get_h2_stations", title: "Hydrogen stations in Hamburg: live availability",
+    description: "Free. Live availability of the hydrogen refuelling stations in Hamburg from the H2-Stations Export API v2 (Clean Hydrogen Joint Undertaking, CC BY 4.0): a one-word status per station (available, limitedly-available, unavailable, closed, unknown), the status per fuelling option (700ld = 700 bar light-duty, 350hd = 350 bar heavy-duty), nozzles available, ongoing operator events and the operator's gross price per kg where published. A station with no usable signal or a signal older than live_max_age_min is returned with live=false and no status. Attribution and licence are in the answer. Not an official product of the Clean Hydrogen JU; not a guarantee that a station will be available on arrival.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_changes", title: "What changed: impulse log of the sensors",
     description: "Free. Instead of polling every sensor, ask what changed since a time: new gas storage day, new BaFin measure, new significant earthquake, change of the active flood warnings, change of a NOAA space-weather scale. Each event has detected_at (when our poll noticed it, at most about 6 minutes after the source published) and the source time where there is one. Facts, not predictions. The log starts after its baseline_at and keeps the latest 100 events. Sensor HTTP endpoints also answer 304 to If-None-Match.",
     inputSchema: { type: "object", properties: { since: { type: "string", description: "ISO time (2026-11-11T10:00:00Z) or epoch seconds/milliseconds" }, sensor: { type: "string", enum: ["gas", "bafin", "flood", "quakes", "space"] }, limit: { type: "integer", minimum: 1, maximum: 100 } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8608,6 +8681,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_flood_warnings") { const { http, ...d } = await lhpData(); return { ...d, referral: ref }; }
   if (name === "get_bafin_measures") { const { http, ...d } = await bafinData(); return { ...d, referral: ref }; }
   if (name === "get_parking_de") { const { http, ...d } = await parkingData(args && args.city, !!(args && args.live_only)); return { ...d, referral: ref }; }
+  if (name === "get_h2_stations") { const { http, ...d } = await h2Data(env); return { ...d, referral: ref }; }
   if (name === "get_changes") { const { http, ...d } = await changesData(env, args && args.since, args && args.sensor, args && args.limit); return { ...d, referral: ref }; }
   if (name === "get_weather_at") { const { http, ...d } = await weatherAtData(args && args.station); return { ...d, referral: ref }; }
   if (name === "get_gas_storage") { const { http, ...d } = await gasData(env); return { ...d, referral: ref }; }
@@ -9329,6 +9403,10 @@ async function handleRequest(request, env, ctx) {
     if (url.pathname === "/api/v1/finance/bafin-measures") {
       const { http, ...d } = await bafinData();
       return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
+    }
+    if (url.pathname === "/api/v1/h2-stations") {
+      const { http, ...d } = await h2Data(env);
+      return json(d, { "Cache-Control": "public, max-age=60", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
     if (url.pathname === "/api/v1/parking-de") {
       const { http, ...d } = await parkingData(url.searchParams.get("city"), url.searchParams.get("live") === "1");

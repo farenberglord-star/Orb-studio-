@@ -63,6 +63,8 @@ export const CATALOG = [
     name: { ru: "Автобаны вокруг Гамбурга", de: "Autobahnen um Hamburg", en: "Motorways around Hamburg" }, get: (d) => d && d.updated },
   { id: "parking", src: "parking", endpoint: "/api/v1/parking-de", expect_h: 1, kind: "measure", source: "Karlsruhe, Leipzig open data",
     name: { ru: "Парковки", de: "Parkhäuser", en: "Parking" }, get: (d) => newest((d && d.items || []).map((x) => x && x.updated_at)) },
+  { id: "h2_hamburg", src: "h2", endpoint: "/api/v1/h2-stations", expect_h: 1, kind: "measure", source: "H2-Stations (Clean Hydrogen JU)",
+    name: { ru: "Водородные заправки Гамбурга", de: "Wasserstofftankstellen Hamburg", en: "Hamburg hydrogen stations" }, get: (d) => d && d.newest_signal_at },
   { id: "aviation_hamburg", src: "aviation", endpoint: "/api/v1/aviation", expect_h: 1, kind: "measure", source: "adsb.lol (ADS-B)",
     name: { ru: "Небо над Гамбургом", de: "Himmel über Hamburg", en: "Sky over Hamburg" }, get: (d) => d && d.generated_at },
   { id: "bafin", src: "bafin", endpoint: "/api/v1/finance/bafin-measures", expect_h: null, kind: "event", source: "BaFin",

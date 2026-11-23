@@ -220,6 +220,7 @@
       "get_bafin_measures",
       "get_flood_warnings",
       "get_parking_de",
+      "get_h2_stations",
       "get_weather_at",
       "get_changes",
       "get_radiation_dose_rate",
