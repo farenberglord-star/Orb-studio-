@@ -3,6 +3,7 @@
 # Мост — с чем из Библиотеки кристаллов и датчиков Orb Studio связана старая идея.
 E = "https://en.wikipedia.org/wiki/"
 ERAS = {"1350-1600": ("Renaissance and the age of discovery, 1350–1600", "Возрождение и великие открытия, 1350–1600", "Renaissance und Entdeckungen, 1350–1600"),
+        "1601-1700": ("Seventeenth century", "XVII век", "17. Jahrhundert"),
         "1801-1900": ("Nineteenth century", "XIX век", "19. Jahrhundert")}
 TM = [
 ("buridan", "Jean Buridan", "Жан Буридан", "c. 1301 – c. 1358", E + "Jean_Buridan", "answer_cost",
@@ -69,4 +70,12 @@ TM = [
  "'The Life of Words': words change their meaning over time.", "«Жизнь слов»: слова со временем меняют значение.", "„La vie des mots“: Wörter ändern ihre Bedeutung.",
  "Check what a word meant when the source was written.", "1801-1900",
  "Koselleck and Alain Rey in the library; with Valla, a bridge of five centuries.", "Козеллек и Ален Рей в библиотеке; вместе с Валлой — мост через пять веков."),
+("schall_von_bell", "Johann Adam Schall von Bell", "Адам Шалль фон Белль", "1591 – 1666", E + "Johann_Adam_Schall_von_Bell", "one_model",
+ "In 1644 the Chinese court settled the dispute between rival astronomical methods by a public test: whose eclipse prediction came true. His method won and reformed the calendar.", "В 1644 году китайский двор решил спор соперничающих астрономических методов публичной проверкой: чьё предсказание затмения сбудется. Победил его метод, и календарь реформировали.", "1644 entschied der chinesische Hof den Streit der Methoden durch eine öffentliche Probe: wessen Finsternis-Vorhersage eintraf.",
+ "Settle a dispute between models by a check against what happens, not by authority.", "1601-1700",
+ "Track record sensor and the forecast game scored by the Brier rule: models are judged by what came true.", "«Счёт попаданий» и игра прогнозов по правилу Брайера: модели судят по тому, что сбылось."),
+("song_yingxing", "Song Yingxing", "Сун Инсин", "1587 – c. 1666", E + "Song_Yingxing", "rumour_vs_fact",
+ "'Tiangong Kaiwu' (The Exploitation of the Works of Nature): he described crafts from what he saw in workshops and fields, and mocked scholars who wrote without looking.", "«Тяньгун кайу»: он описывал ремёсла по тому, что видел в мастерских и полях, и смеялся над учёными, которые писали, не глядя.", "„Tiangong Kaiwu“: Handwerk beschrieben nach eigener Beobachtung.",
+ "Prefer what was observed over what was only written about; say which one you have.", "1601-1700",
+ "Frankfurt sensor: is there something checkable in the claim; Baird: where did the number come from.", "Датчик Франкфурта: есть ли в утверждении что проверить; Бэрд: откуда взялось число."),
 ]

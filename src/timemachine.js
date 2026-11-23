@@ -1,5 +1,5 @@
 // СГЕНЕРИРОВАНО tools/timemachine.py из tools/timemachine_data.py — правьте данные там.
-export const TM_ERAS = {"1350-1600": {"en": "Renaissance and the age of discovery, 1350–1600", "ru": "Возрождение и великие открытия, 1350–1600", "de": "Renaissance und Entdeckungen, 1350–1600"}, "1801-1900": {"en": "Nineteenth century", "ru": "XIX век", "de": "19. Jahrhundert"}};
+export const TM_ERAS = {"1350-1600": {"en": "Renaissance and the age of discovery, 1350–1600", "ru": "Возрождение и великие открытия, 1350–1600", "de": "Renaissance und Entdeckungen, 1350–1600"}, "1601-1700": {"en": "Seventeenth century", "ru": "XVII век", "de": "17. Jahrhundert"}, "1801-1900": {"en": "Nineteenth century", "ru": "XIX век", "de": "19. Jahrhundert"}};
 export const TIME_MACHINE = [
 {
 "id": "buridan",
@@ -303,6 +303,44 @@ export const TIME_MACHINE = [
 "bridge": {
 "en": "Koselleck and Alain Rey in the library; with Valla, a bridge of five centuries.",
 "ru": "Козеллек и Ален Рей в библиотеке; вместе с Валлой — мост через пять веков."
+}
+},
+{
+"id": "schall_von_bell",
+"name": "Johann Adam Schall von Bell",
+"name_ru": "Адам Шалль фон Белль",
+"years": "1591 – 1666",
+"wiki": "https://en.wikipedia.org/wiki/Johann_Adam_Schall_von_Bell",
+"zone": "one_model",
+"idea": {
+"en": "In 1644 the Chinese court settled the dispute between rival astronomical methods by a public test: whose eclipse prediction came true. His method won and reformed the calendar.",
+"ru": "В 1644 году китайский двор решил спор соперничающих астрономических методов публичной проверкой: чьё предсказание затмения сбудется. Победил его метод, и календарь реформировали.",
+"de": "1644 entschied der chinesische Hof den Streit der Methoden durch eine öffentliche Probe: wessen Finsternis-Vorhersage eintraf."
+},
+"rule": "Settle a dispute between models by a check against what happens, not by authority.",
+"era": "1601-1700",
+"bridge": {
+"en": "Track record sensor and the forecast game scored by the Brier rule: models are judged by what came true.",
+"ru": "«Счёт попаданий» и игра прогнозов по правилу Брайера: модели судят по тому, что сбылось."
+}
+},
+{
+"id": "song_yingxing",
+"name": "Song Yingxing",
+"name_ru": "Сун Инсин",
+"years": "1587 – c. 1666",
+"wiki": "https://en.wikipedia.org/wiki/Song_Yingxing",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Tiangong Kaiwu' (The Exploitation of the Works of Nature): he described crafts from what he saw in workshops and fields, and mocked scholars who wrote without looking.",
+"ru": "«Тяньгун кайу»: он описывал ремёсла по тому, что видел в мастерских и полях, и смеялся над учёными, которые писали, не глядя.",
+"de": "„Tiangong Kaiwu“: Handwerk beschrieben nach eigener Beobachtung."
+},
+"rule": "Prefer what was observed over what was only written about; say which one you have.",
+"era": "1601-1700",
+"bridge": {
+"en": "Frankfurt sensor: is there something checkable in the claim; Baird: where did the number come from.",
+"ru": "Датчик Франкфурта: есть ли в утверждении что проверить; Бэрд: откуда взялось число."
 }
 }
 ];
