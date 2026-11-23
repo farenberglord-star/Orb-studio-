@@ -70,6 +70,7 @@ import { leamerReport } from "./leamer.js";
 import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
+import { newsPassport, PASSPORT_RULE } from "./passport.js";
 import { hagenauerReport } from "./hagenauer.js";
 import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
@@ -1042,8 +1043,8 @@ async function quakesData() {
 // ================= Студия на двоих: ведущий Давид и Grok (xAI), /api/v1/broadcast/duo, MCP get_broadcast_duo =================
 // Ключ: секрет XAI_API_KEY (его создаёт владелец в Cloudflare, в чат не пишется); модель: переменная XAI_MODEL (по умолчанию grok-4.7; grok-4 у xAI недоступна).
 // Выпуск кэшируется на 30 минут по набору заголовков; Grok зовём не чаще, чем меняются заголовки. Ответ Grok проверяется: прогнозы и советы в эфир не идут.
-async function askGrok(env, headline, source, facts, retry, ms, question, avoid, custom) {
-  const msgs = custom ? [{ role: "system", content: custom.system }, { role: "user", content: custom.user }] : [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question, avoid) }];
+async function askGrok(env, headline, source, facts, retry, ms, question, avoid, custom, passport) {
+  const msgs = custom ? [{ role: "system", content: custom.system }, { role: "user", content: custom.user }] : [{ role: "system", content: GROK_SYSTEM }, { role: "user", content: grokUser(headline, source, facts, question, avoid, passport) }];
   if (retry) msgs.push({ role: "user", content: FORECAST_REMINDER });
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST", signal: AbortSignal.timeout(ms || 20000),
@@ -1109,12 +1110,13 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
     const facts = relevantFacts(allFacts, it.headline, it.question); // только показания по теме новости
+    const passport = newsPassport(it); // паспорт новости: цепочка проверок перед эфиром
     try {
-      let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question, avoid); model = a.model;
+      let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question, avoid, null, passport); model = a.model;
       reply = duoCheck(a.text, stripInvisible);
-      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question, avoid); reply = duoCheck(a.text, stripInvisible); }
+      if (!reply.ok && (reply.reason === "forecast_language" || reply.reason === "too_long")) { a = await askGrok(env, it.headline, it.source, facts, true, ms, it.question, avoid, null, passport); reply = duoCheck(a.text, stripInvisible); }
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: String(e && e.message || e).slice(0, 200) }); }
-    return { headline: it.headline, source: it.source, link: it.link, time: it.time, published_at: it.published_at || null, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, reply };
+    return { headline: it.headline, source: it.source, link: it.link, time: it.time, published_at: it.published_at || null, read: (lines && lines[i] && lines[i].en) || it.headline, question: it.question || null, thanks: it.thanks || null, facts, passport, reply };
   }));
   // Сегмент «чем интересуются агенты»: самый читаемый датчик сегодня (без сканеров каталогов и поисковиков)
   // Сегмент «датчики» после первой новости: резкие изменения показаний по детектору аномалий

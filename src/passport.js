@@ -1,0 +1,35 @@
+// «Паспорт новости»: одна цепочка проверок перед эфиром. Каждая новость проходит шаги в порядке зон библиотеки:
+// 1) свежесть (Микрин/Кокс), 2) факт или слух (независимые голоса, Сёрл — речевой акт, Франкфурт — есть ли что проверить, госСМИ),
+// 3) уверенность и 4) что не говорить (зоны 6–8: Касперсон — не раздувать риск, Линдли — не говорить с уверенностью, которой нет).
+// Без ИИ, только правила. Ведущие говорят своими словами, но опираются на паспорт, а не на сырой заголовок.
+import { searleHeadline } from "./searle.js";
+import { frankfurtHeadline } from "./frankfurt.js";
+
+export const PASSPORT_STATUS = { event: "reported_event", claim: "statement", promise: "plan_or_promise", threat: "threat_or_warning", demand: "demand" };
+
+export function newsPassport(it, now = Date.now()) {
+  const headline = String((it && it.headline) || ""), act = searleHeadline(headline), chk = frankfurtHeadline(headline);
+  const pub = it && it.published_at ? Date.parse(it.published_at) : NaN, age = Number.isFinite(pub) ? Math.max(0, (now - pub) / 3600e3) : null;
+  const voices = it && Number.isFinite(+it.confirm) && it.confirm !== null ? +it.confirm : null;
+  const status = PASSPORT_STATUS[act.act] || "reported_event", say = [];
+  if (act.act === "threat") say.push("This is a threat or warning, not something that happened: do not say it was done.");
+  else if (act.act === "demand") say.push("This is a demand or a call, not a decision: say who wants it.");
+  else if (act.act === "promise") say.push("This is a plan, promise or announcement: it has not happened yet.");
+  else if (act.act === "claim") say.push("This is someone's statement: attribute it ('X says'), do not present it as the fact itself.");
+  if (voices === 1) say.push("Only one outlet carries it so far: say so.");
+  else if (voices === 0) say.push("No other outlet confirms it yet: treat it as unconfirmed.");
+  if (age != null && age > 24) say.push(`Reported about ${Math.round(age)} hours ago: do not call it breaking or new.`);
+  if (chk.class === "nothing_to_check") say.push("The headline is vague (no clear who, when or how many): do not add specifics and do not present it as established.");
+  else if (chk.class === "hedged") say.push("The headline is hedged (" + chk.vague_words.slice(0, 3).join(", ") + "): keep the hedge.");
+  if (it && it.state_media) say.push(`The source is state media (${it.state_media}): name it as such.`);
+  say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
+  const low = (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48);
+  const high = !low && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
+  return {
+    what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
+    checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
+    confidence: high ? "high" : low ? "low" : "medium", say,
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+  };
+}
+export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";
