@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error", "harman": "own_limits"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -2476,25 +2476,6 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the Bertsekas sensor already measures the cost of each answer",
 "covered_by": "bertsekas"
-}
-},
-{
-"id": "harman",
-"name": "Gilbert Harman",
-"name_ru": "Гилберт Харман",
-"years": "1938–2021",
-"wiki": "https://en.wikipedia.org/wiki/Gilbert_Harman",
-"zone": "stale_data",
-"idea": {
-"en": "Change in View: how to revise beliefs reasonably when new evidence arrives — change as little as needed, keep what still fits.",
-"ru": "«Change in View»: как разумно менять мнение при новых данных — менять не больше необходимого и сохранять то, что ещё сходится.",
-"de": "„Change in View“: Überzeugungen vernünftig revidieren."
-},
-"rule": "When new facts arrive, revise only the parts of your answer they touch, and say what changed.",
-"needs": {
-"code": "needs_history",
-"note": "same data as Minker: headlines with correction/update/denial words linked to the original story",
-"not_before": "2026-12-13"
 }
 },
 {

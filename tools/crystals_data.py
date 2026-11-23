@@ -415,9 +415,6 @@ C = [
  "Foundations of computational complexity: measuring the time an algorithm needs (Turing award 1993, with Hartmanis).", "Основы теории вычислительной сложности: сколько времени требует алгоритм (премия Тьюринга 1993, вместе с Хартманисом).", "Grundlagen der Komplexitätstheorie (Turing-Preis 1993).",
  "Estimate how much work an answer needs before starting it."),
 # --- 2021 год, февраль–декабрь (22.11.2026) ---
-("harman", "Gilbert Harman", "Гилберт Харман", "1938–2021", "Gilbert_Harman", "stale_data",
- "Change in View: how to revise beliefs reasonably when new evidence arrives — change as little as needed, keep what still fits.", "«Change in View»: как разумно менять мнение при новых данных — менять не больше необходимого и сохранять то, что ещё сходится.", "„Change in View“: Überzeugungen vernünftig revidieren.",
- "When new facts arrive, revise only the parts of your answer they touch, and say what changed."),
 ("ramsey", "James B. Ramsey", "Джеймс Рэмси", "1937–2021", "James_B._Ramsey", "one_model",
  "The Ramsey RESET test: does a regression model have the wrong functional form?", "Тест RESET Рэмси: не построена ли регрессионная модель в неправильной форме.", "Ramsey-RESET-Test: falsche funktionale Form?",
  "Check whether your explanation's shape (straight line, threshold, cycle) is right, not only its numbers."),
@@ -1424,7 +1421,6 @@ for k in ["habermas"]: NEEDS[k] = ("covered", "the Searle sensor already separat
 for k in ["neumann"]: NEEDS[k] = ("covered", "the Hamilton and Baird sensors already show what the site postpones and which numbers broke", None, "hamilton")
 for k in ["stearns"]: NEEDS[k] = ("covered", "the Bertsekas sensor already measures the cost of each answer", None, "bertsekas")
 
-NEEDS["harman"] = ("needs_history", "same data as Minker: headlines with correction/update/denial words linked to the original story", "2026-12-13")
 NEEDS["dunn"] = ("needs_idea", "group headlines by story and mark stories whose sources confirm and deny at once ('both') or say nothing ('neither')")
 for k in ["ramsey", "van_eeden"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
 for k in ["boyd"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")

@@ -20,7 +20,7 @@ export function agencyOf(o) {
   for (const [name, re] of AGENCIES) if (re.test(src) || re.test(head) || re.test(title)) return name;
   return null;
 }
-function words(t) {
+export function words(t) {
   return new Set(String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((w) => w.length >= 3));
 }
 function jaccard(a, b) {
@@ -43,7 +43,7 @@ export function levenshtein(a, b, max = Infinity) {
 }
 // слова совпадают, если одинаковы или (от 5 букв) отличаются одной буквой: опечатка, другая транслитерация, окончание
 const near = (x, y) => x === y || (x.length >= 5 && y.length >= 5 && levenshtein(x, y, 1) <= 1);
-function fuzzyJaccard(a, b) {
+export function fuzzyJaccard(a, b) {
   if (!a.size || !b.size) return 0;
   const rest = [...b]; let k = 0;
   for (const x of a) { const i = rest.findIndex((y) => near(x, y)); if (i >= 0) { k++; rest.splice(i, 1); } }
