@@ -21,3 +21,9 @@ test("wiring", () => {
   assert.match(w, /p === "\/api\/v1\/simpson"/); assert.match(w, /name: "get_simpson"/); assert.match(w, /"tools\/simpson"/);
   for (const f of ["tools/simpson.html", "de/tools/simpson.html", "en/tools/simpson.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"); assert.match(h, /\/go\/kraken\?from=simpson/); assert.match(h, /share-x\.js/); assert.match(h, /Edward_H\._Simpson/); }
 });
+
+test("one radar against the total is not yet a paradox", () => {
+  const then = [...H("a", "war", 6), ...H("a", "deal", 1), ...H("b", "war", 5), ...H("b", "deal", 5)];
+  const now = [...H("a", "war", 5), ...H("a", "deal", 2), ...H("b", "war", 8), ...H("b", "deal", 2)];
+  assert.notEqual(simpsonDecompose(now, then, part).verdict, "paradox");
+});
