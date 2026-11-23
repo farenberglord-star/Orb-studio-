@@ -1113,7 +1113,7 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
   let model = null;
   const amp = {}; // «Касперсон»: сколько изданий несли историю в начале и на пике (для паспорта)
   try { const hs = items.map((x) => x.headline).filter(Boolean).slice(0, 10);
-    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
+    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
     const facts = relevantFacts(allFacts, it.headline, it.question); // только показания по теме новости
@@ -1817,7 +1817,7 @@ async function passportOf(env, ctx, origin, headline) { // паспорт люб
   for (const r of await allRadars(env, ctx, origin).catch(() => [])) (r.feed || []).forEach((f, j) => all.push({ headline: f[1], source: f[2], link: f[4], radar: r.id, confirm: r.verify ? r.verify[j] : null, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, ...stateTag(f[2], f[4]) }));
   const hit = all.find((x) => norm(x.headline) === nh) || all.find((x) => { const a = norm(x.headline); return a.length > 20 && (a.includes(nh) || nh.includes(a)); });
   let amp = null;
-  if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
+  if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   const p = newsPassport(hit ? { ...hit, amplified: amp } : { headline: h });
   return { ...p, on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
     rule: PASSPORT_RULE, page: origin + "/tools/method" };
@@ -1826,7 +1826,7 @@ async function methodNow(env, ctx, origin) { // «Как Orb Studio провер
   const c = await sharedGet(env, "method-v1", 10 * 60e3).catch(() => null); if (c) return c;
   const items = broadcastItems(await allRadars(env, ctx, origin).catch(() => [])).slice(0, 6), amp = {};
   try { const hs = items.map((x) => x.headline).filter(Boolean);
-    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
+    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   const r = methodReport(items.map((it) => ({ radar: it.radar, source: it.source, link: it.link, ...newsPassport({ ...it, amplified: amp[it.headline] || null }) })));
   await sharedPut(env, "method-v1", r).catch(() => {}); return r;
 }

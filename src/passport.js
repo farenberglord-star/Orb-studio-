@@ -13,6 +13,9 @@ const FORECAST_RE = /(?<![\p{L}])(forecasts?|predicts?|predicted|expects?|expect
 const SPEAKERS = /trump|putin|selensk|zelensk|merz|macron|scholz|starmer|xi\b|erdo|netan|biden|vance|lavrov|peskov|kremlin|white house|трамп|путин|зеленск|мерц|макрон|эрдоган|нетаньях|лавров|песков|кремл|белый дом/i;
 // Юм, «О чудесах»: чем необычнее утверждение, тем сильнее нужны доказательства. Слова «рекорд», «беспрецедентный», «впервые», «шок» на трёх языках.
 export const EXTRAORDINARY = /(?<![\p{L}])(record\p{L}*|unprecedented|first[- ]ever|historic|never before|biggest ever|shock\p{L}*|bombshell|rekord\p{L}*|beispiellos\p{L}*|erstmals|noch nie|historisch\p{L}*|schock\p{L}*|рекорд\p{L}*|беспрецедентн\p{L}*|впервые|никогда (?:ещё|прежде)|историческ\p{L}*|шок\p{L}*|сенсаци\p{L}*)(?![\p{L}])/iu;
+// Деррида, Шлейермахер: слова в кавычках или «X: …» вне контекста могут значить другое. Валла, Добровский, Шаль: найденный или утёкший документ проверяют по дате, словам и происхождению.
+export const QUOTED = /["“”«»„]|‘[^’]{3,}’|(?<![\p{L}])'[^']{3,}'(?![\p{L}])/u; // апостроф в «Trump’s» — не кавычка
+export const FOUND_DOC = /(?<![\p{L}])(leak\p{L}*|unearthed|newly (?:found|discovered|released)|secret (?:letter|memo|files?|documents?|recording|tape)|documents? (?:show|reveal)\p{L}*|(?:audio|video) (?:recording|tape)s?|dossier|geleakt\p{L}*|aufgetaucht\p{L}*|Geheim(?:papier|dokument|akte)\p{L}*|Dokumente? (?:zeig|belegt)\p{L}*|Mitschnitt\p{L}*|утечк\p{L}*|утёкш\p{L}*|рассекреч\p{L}*|секретн\p{L}* (?:документ|письм|запис)\p{L}*|документы показ\p{L}*|аудиозапис\p{L}*|переписк\p{L}*|досье)(?![\p{L}])/iu;
 function actOf(headline, searle) {
   const t = String(headline || "").trim();
   if (/\?\s*$/.test(t)) return "question";
@@ -32,6 +35,11 @@ export function newsPassport(it, now = Date.now()) {
   else if (act.act === "demand") say.push("This is a demand or a call, not a decision: say who wants it.");
   else if (act.act === "promise") say.push("This is a plan, promise or announcement: it has not happened yet.");
   else if (act.act === "claim") say.push("This is someone's statement: attribute it ('X says'), do not present it as the fact itself.");
+  if (QUOTED.test(headline) || (act.act === "claim" && COLON_SPEAKER.test(headline))) say.push("The headline carries someone's words: out of context they can mean something else — say whose words they are and where they were said, and do not build the story on the quote alone.");
+  const foundDoc = FOUND_DOC.test(headline);
+  if (foundDoc) say.push("The story rests on a leaked or newly found document or recording: say that its date, wording and origin still need checking — a find that suits one side needs double checking, not less.");
+  const amp0 = it && it.amplified;
+  if (amp0 && amp0.first_source && (voices == null || voices >= 2)) say.push(`First carried by ${amp0.first_source}: if outlets repeat each other, credit the first source, not the number of retellings.`);
   const extraordinary = EXTRAORDINARY.test(headline);
   if (extraordinary && (voices == null || voices <= 2)) say.push("The headline makes an extraordinary claim (record, unprecedented, first ever) and few outlets carry it: the more extraordinary the claim, the stronger the evidence must be — present it as reported, not as established.");
   if (voices === 1) say.push("Only one outlet carries it so far: say so.");
@@ -44,13 +52,14 @@ export function newsPassport(it, now = Date.now()) {
   if (it && it.state_media) say.push(`The source is state media (${it.state_media}): name it as such.`);
   say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
   const low = (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48) || (extraordinary && (voices == null || voices <= 2));
-  const high = !low && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
+  const high = !low && !foundDoc && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
   return {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
+    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc,
     confidence: high ? "high" : low ? "low" : "medium", say,
-    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

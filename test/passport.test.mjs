@@ -61,3 +61,18 @@ test("Hume: an extraordinary claim with few outlets gets extra caution", () => {
   assert.ok(!newsPassport({ headline: "Record heat in Spain", confirm: 6, published_at: new Date(now - 3600e3).toISOString() }, now).say.some((x) => /extraordinary/.test(x)), "many outlets: no extra line");
   assert.ok(newsPassport({ headline: "Erstmals seit 1990: Bahn streicht alle Züge" }, now).say.some((x) => /extraordinary/.test(x)));
 });
+test("quotes, found documents and first source (Derrida, Valla/Dobrovsky/Chasles, Schleicher)", async () => {
+  const { newsPassport } = await import("../src/passport.js");
+  const q = newsPassport({ headline: "Minister calls plan “a disaster” for farmers", confirm: 4 });
+  assert.ok(q.quoted && q.say.some((x) => /out of context/.test(x)));
+  const d = newsPassport({ headline: "Leaked memo shows ministry knew about delays", confirm: 5, published_at: new Date().toISOString() });
+  assert.ok(d.found_document && d.say.some((x) => /double checking/.test(x)) && d.confidence !== "high");
+  const f = newsPassport({ headline: "Rail strike halts trains across Germany", confirm: 4, amplified: { outlets_first: 1, outlets_peak: 6, first_source: "Reuters" } });
+  assert.equal(f.first_source, "Reuters"); assert.ok(f.say.some((x) => /First carried by Reuters/.test(x)));
+  const n = newsPassport({ headline: "Rail strike halts trains across Germany", confirm: 4 });
+  assert.ok(!n.quoted && !n.found_document && !n.say.some((x) => /First carried/.test(x)));
+});
+test("hosts correct a false premise (Strawson, Schopenhauer)", async () => {
+  const { GROK_SYSTEM } = await import("../src/duo.js"); const { rtGuestSystem } = await import("../src/roundtable.js");
+  assert.match(GROK_SYSTEM, /false or unverified premise/); assert.match(rtGuestSystem("grok"), /false or unverified premise/);
+});
