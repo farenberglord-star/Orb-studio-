@@ -3971,6 +3971,285 @@ export const CRYSTALS = [
 "note": "the Howard sensor already weighs when more information pays off",
 "covered_by": "howard"
 }
+},
+{
+"id": "kalman",
+"name": "Rudolf E. Kálmán",
+"name_ru": "Рудольф Калман",
+"years": "1930–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D1%8C%D0%BC%D0%B0%D0%BD%2C_%D0%A0%D1%83%D0%B4%D0%BE%D0%BB%D1%8C%D1%84",
+"zone": "stale_data",
+"idea": {
+"en": "The Kalman filter: update an estimate with each new measurement, weighting it by how noisy it is.",
+"ru": "Фильтр Калмана: обновлять оценку с каждым новым измерением, взвешивая его по тому, насколько оно шумное.",
+"de": "Kalman-Filter: Schätzung mit jeder neuen Messung aktualisieren, gewichtet nach ihrem Rauschen."
+},
+"rule": "Do not replace your estimate with the latest noisy reading, and do not ignore it: blend them by reliability.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates a one-off jump from a lasting shift in noisy indices",
+"covered_by": "polyak"
+}
+},
+{
+"id": "forrester",
+"name": "Jay W. Forrester",
+"name_ru": "Джей Форрестер",
+"years": "1918–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A4%D0%BE%D1%80%D1%80%D0%B5%D1%81%D1%82%D0%B5%D1%80%2C_%D0%94%D0%B6%D0%B5%D0%B9",
+"zone": "stale_data",
+"idea": {
+"en": "System dynamics: delays and feedback loops make the picture in the head lag behind the real state of the system.",
+"ru": "Системная динамика: задержки и обратные связи заставляют картину в голове отставать от реального состояния системы.",
+"de": "Systemdynamik: Verzögerungen und Rückkopplungen lassen das Bild im Kopf dem echten Zustand hinterherhinken."
+},
+"rule": "Say how old your picture of the system is and which delays sit between the event and your data.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives the age of every published number",
+"covered_by": "baird"
+}
+},
+{
+"id": "zadeh",
+"name": "Lotfi A. Zadeh",
+"name_ru": "Лотфи Заде",
+"years": "1921–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%B4%D0%B5%2C_%D0%9B%D0%BE%D1%82%D1%84%D0%B8",
+"zone": "one_model",
+"idea": {
+"en": "Fuzzy logic: membership comes in degrees, not only yes or no.",
+"ru": "Нечёткая логика: принадлежность бывает по степеням, а не только «да» или «нет».",
+"de": "Fuzzy-Logik: Zugehörigkeit hat Grade, nicht nur ja oder nein."
+},
+"rule": "Keep the degree: 'tense at 0.55' is not the same as 'tense'.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already keeps the degree instead of rounding labels to yes or no",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "karpenko",
+"name": "Alexander S. Karpenko",
+"name_ru": "Александр Карпенко",
+"years": "1946–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%80%D0%BF%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%A1%D1%82%D0%B5%D0%BF%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "one_model",
+"idea": {
+"en": "Many-valued logics: true and false are not the only possible values of a statement.",
+"ru": "Многозначные логики: «истина» и «ложь» — не единственные возможные значения утверждения.",
+"de": "Mehrwertige Logiken: wahr und falsch sind nicht die einzigen Werte einer Aussage."
+},
+"rule": "Allow more than two answers: true, false, contested, unknown.",
+"needs": {
+"code": "covered",
+"note": "check_headline already returns four values: affirmed, denied, both, neither (sources_agree)",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "bershtein",
+"name": "Leonid S. Bershtein",
+"name_ru": "Леонид Берштейн",
+"years": "1941–2015",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%91%D0%B5%D1%80%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%9B%D0%B5%D0%BE%D0%BD%D0%B8%D0%B4_%D0%A1%D0%B0%D0%BC%D0%BE%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "one_model",
+"idea": {
+"en": "Intelligent systems that decide with incomplete and fuzzy data.",
+"ru": "Интеллектуальные системы, которые принимают решения при неполных и нечётких данных.",
+"de": "Intelligente Systeme, die mit unvollständigen und unscharfen Daten entscheiden."
+},
+"rule": "When data are incomplete, say which part is missing and decide only as far as the rest allows.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hintikka",
+"name": "Jaakko Hintikka",
+"name_ru": "Яакко Хинтикка",
+"years": "1929–2015",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A5%D0%B8%D0%BD%D1%82%D0%B8%D0%BA%D0%BA%D0%B0%2C_%D0%AF%D0%B0%D0%BA%D0%BA%D0%BE",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Epistemic logic: 'knows that' and 'believes that' are different; inquiry as asking the right questions.",
+"ru": "Эпистемическая логика: «знает, что» и «считает, что» — разные вещи; поиск как задавание правильных вопросов.",
+"de": "Epistemische Logik: „weiß, dass“ und „glaubt, dass“ sind verschieden; Forschung als Stellen der richtigen Fragen."
+},
+"rule": "Mark whether you know a thing or only believe it, and which question would turn belief into knowledge.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "voevodsky",
+"name": "Vladimir Voevodsky",
+"name_ru": "Владимир Воеводский",
+"years": "1966–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%92%D0%BE%D0%B5%D0%B2%D0%BE%D0%B4%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Univalent foundations: proofs checked by a computer, because even experts' proofs contain unnoticed errors.",
+"ru": "Унивалентные основания: доказательства, которые проверяет компьютер, потому что и в доказательствах экспертов бывают незамеченные ошибки.",
+"de": "Univalente Grundlagen: computergeprüfte Beweise, weil auch Beweise von Fachleuten unbemerkte Fehler enthalten."
+},
+"rule": "Do not trust an argument because of who made it; check it mechanically where you can.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor already re-checks random published headlines against their sources",
+"covered_by": "rabin"
+}
+},
+{
+"id": "pushkin",
+"name": "Sergey B. Pushkin",
+"name_ru": "Сергей Пушкин",
+"years": "1925–2015",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD%2C_%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9_%D0%91%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "measurement_error",
+"idea": {
+"en": "Keeper of the state time standard (1967–2011): every clock is only as good as its chain back to the standard.",
+"ru": "Хранитель государственного эталона времени (1967–2011): любые часы точны лишь настолько, насколько надёжна их цепочка до эталона.",
+"de": "Hüter des staatlichen Zeitnormals (1967–2011): jede Uhr ist nur so gut wie ihre Kette zum Normal."
+},
+"rule": "Give a time or a number together with the source it was set against.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces every number to its source and time",
+"covered_by": "baird"
+}
+},
+{
+"id": "trakhtenbrot",
+"name": "Boris Trakhtenbrot",
+"name_ru": "Борис Трахтенброт",
+"years": "1921–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A2%D1%80%D0%B0%D1%85%D1%82%D0%B5%D0%BD%D0%B1%D1%80%D0%BE%D1%82%2C_%D0%91%D0%BE%D1%80%D0%B8%D1%81_%D0%90%D0%B2%D1%80%D0%B0%D0%B0%D0%BC%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "answer_cost",
+"idea": {
+"en": "Limits of algorithms: some questions cannot be decided by any algorithm, and others only at a huge cost.",
+"ru": "Пределы алгоритмов: на некоторые вопросы не ответит никакой алгоритм, на другие — только ценой огромных затрат.",
+"de": "Grenzen der Algorithmen: manche Fragen kann kein Algorithmus entscheiden, andere nur mit riesigem Aufwand."
+},
+"rule": "Before searching, ask whether the question can be settled at all with the data you can reach.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "sigal",
+"name": "Izrail Kh. Sigal",
+"name_ru": "Израиль Сигал",
+"years": "1938–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A1%D0%B8%D0%B3%D0%B0%D0%BB%2C_%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8C_%D0%A5%D0%B0%D0%B8%D0%BC%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "answer_cost",
+"idea": {
+"en": "Operations research: solving large discrete optimisation problems approximately and with bounded effort.",
+"ru": "Исследование операций: приближённое решение больших дискретных задач оптимизации с ограниченными затратами.",
+"de": "Operations Research: große diskrete Optimierungsprobleme näherungsweise mit begrenztem Aufwand lösen."
+},
+"rule": "A good answer within budget beats a perfect one that is too expensive; say how far from optimal it may be.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "arrow",
+"name": "Kenneth Arrow",
+"name_ru": "Кеннет Эрроу",
+"years": "1921–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%AD%D1%80%D1%80%D0%BE%D1%83%2C_%D0%9A%D0%B5%D0%BD%D0%BD%D0%B5%D1%82",
+"zone": "answer_cost",
+"idea": {
+"en": "Impossibility theorem and the economics of information: no voting rule is perfect, and information has a price and a value.",
+"ru": "Теорема о невозможности и экономика информации: идеального правила голосования нет, а у информации есть цена и ценность.",
+"de": "Unmöglichkeitssatz und Informationsökonomie: keine Abstimmungsregel ist perfekt, Information hat Preis und Wert."
+},
+"rule": "Pay for more information only when it can change the decision.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs when more information pays off",
+"covered_by": "howard"
+}
+},
+{
+"id": "levenshtein",
+"name": "Vladimir Levenshtein",
+"name_ru": "Владимир Левенштейн",
+"years": "1935–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%98%D0%BE%D1%81%D0%B8%D1%84%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Edit distance: how many single-letter changes turn one text into another — finds duplicates and misspelt names.",
+"ru": "Расстояние редактирования: сколько замен букв превращают один текст в другой — находит дубли и имена с опечатками.",
+"de": "Editierdistanz: wie viele Buchstabenänderungen einen Text in einen anderen verwandeln – findet Dubletten und vertippte Namen."
+},
+"rule": "Two headlines that differ by a few letters are one story, not two confirmations.",
+"needs": {
+"code": "needs_idea",
+"note": "could make echo detection in check_headline tolerant to typos and small rewrites; not a sensor of its own"
+}
+},
+{
+"id": "freivalds",
+"name": "Rūsiņš Freivalds",
+"name_ru": "Русиньш Фрейвалдс",
+"years": "1942–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A4%D1%80%D0%B5%D0%B9%D0%B2%D0%B0%D0%BB%D0%B4%D1%81%2C_%D0%A0%D1%83%D1%81%D0%B8%D0%BD%D1%8C%D1%88_%D0%9C%D0%B0%D1%80%D1%82%D1%8B%D0%BD%D1%8C%D1%88",
+"zone": "measurement_error",
+"idea": {
+"en": "Freivalds' algorithm: checking an answer at random is much cheaper than computing it again.",
+"ru": "Алгоритм Фрейвалдса: случайная проверка ответа намного дешевле, чем повторное вычисление.",
+"de": "Freivalds-Algorithmus: eine zufällige Prüfung der Antwort ist viel billiger als neu zu rechnen."
+},
+"rule": "Spot-check a random sample of your results instead of trusting all or recomputing all.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor already spot-checks a random sample instead of all",
+"covered_by": "rabin"
+}
+},
+{
+"id": "minsky",
+"name": "Marvin Minsky",
+"name_ru": "Марвин Минский",
+"years": "1927–2016",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%9C%D0%B0%D1%80%D0%B2%D0%B8%D0%BD_%D0%9B%D0%B8",
+"zone": "one_model",
+"idea": {
+"en": "'The Society of Mind': intelligence as a community of simple agents that disagree and negotiate.",
+"ru": "«Общество разума»: интеллект как сообщество простых агентов, которые спорят и договариваются.",
+"de": "„The Society of Mind“: Intelligenz als Gemeinschaft einfacher Agenten, die streiten und verhandeln."
+},
+"rule": "Let different parts or models check each other instead of trusting a single voice.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "fodor",
+"name": "Jerry Fodor",
+"name_ru": "Джерри Фодор",
+"years": "1935–2017",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A4%D0%BE%D0%B4%D0%BE%D1%80%2C_%D0%94%D0%B6%D0%B5%D1%80%D1%80%D0%B8_%D0%90%D0%BB%D0%B0%D0%BD",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Modularity of mind and the language of thought: meaning lies beneath the surface of the words.",
+"ru": "Модульность ума и язык мысли: смысл лежит под поверхностью слов.",
+"de": "Modularität des Geistes und Sprache des Denkens: Bedeutung liegt unter der Oberfläche der Wörter."
+},
+"rule": "Do not judge a text by its surface words alone; ask what it actually claims.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

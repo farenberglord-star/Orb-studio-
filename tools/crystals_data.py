@@ -663,6 +663,52 @@ C = [
 ('skala', 'Heinz J. Skala', 'Хайнц Скала', '1942–2019', 'https://de.wikipedia.org/wiki/Heinz_J._Skala', 'answer_cost',
  'Decision theory under uncertainty.', 'Теория решений в условиях неопределённости.', 'Entscheidungstheorie unter Unsicherheit.',
  'Separate what you know, what you estimate and what you simply do not know.'),
+# --- русская Википедия, 2015–2017 (23.11.2026) ---
+('kalman', 'Rudolf E. Kálmán', 'Рудольф Калман', '1930–2016', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D1%8C%D0%BC%D0%B0%D0%BD%2C_%D0%A0%D1%83%D0%B4%D0%BE%D0%BB%D1%8C%D1%84', 'stale_data',
+ 'The Kalman filter: update an estimate with each new measurement, weighting it by how noisy it is.', 'Фильтр Калмана: обновлять оценку с каждым новым измерением, взвешивая его по тому, насколько оно шумное.', 'Kalman-Filter: Schätzung mit jeder neuen Messung aktualisieren, gewichtet nach ihrem Rauschen.',
+ 'Do not replace your estimate with the latest noisy reading, and do not ignore it: blend them by reliability.'),
+('forrester', 'Jay W. Forrester', 'Джей Форрестер', '1918–2016', 'https://ru.wikipedia.org/wiki/%D0%A4%D0%BE%D1%80%D1%80%D0%B5%D1%81%D1%82%D0%B5%D1%80%2C_%D0%94%D0%B6%D0%B5%D0%B9', 'stale_data',
+ 'System dynamics: delays and feedback loops make the picture in the head lag behind the real state of the system.', 'Системная динамика: задержки и обратные связи заставляют картину в голове отставать от реального состояния системы.', 'Systemdynamik: Verzögerungen und Rückkopplungen lassen das Bild im Kopf dem echten Zustand hinterherhinken.',
+ 'Say how old your picture of the system is and which delays sit between the event and your data.'),
+('zadeh', 'Lotfi A. Zadeh', 'Лотфи Заде', '1921–2017', 'https://ru.wikipedia.org/wiki/%D0%97%D0%B0%D0%B4%D0%B5%2C_%D0%9B%D0%BE%D1%82%D1%84%D0%B8', 'one_model',
+ 'Fuzzy logic: membership comes in degrees, not only yes or no.', 'Нечёткая логика: принадлежность бывает по степеням, а не только «да» или «нет».', 'Fuzzy-Logik: Zugehörigkeit hat Grade, nicht nur ja oder nein.',
+ "Keep the degree: 'tense at 0.55' is not the same as 'tense'."),
+('karpenko', 'Alexander S. Karpenko', 'Александр Карпенко', '1946–2017', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D1%80%D0%BF%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%A1%D1%82%D0%B5%D0%BF%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%87', 'one_model',
+ 'Many-valued logics: true and false are not the only possible values of a statement.', 'Многозначные логики: «истина» и «ложь» — не единственные возможные значения утверждения.', 'Mehrwertige Logiken: wahr und falsch sind nicht die einzigen Werte einer Aussage.',
+ 'Allow more than two answers: true, false, contested, unknown.'),
+('bershtein', 'Leonid S. Bershtein', 'Леонид Берштейн', '1941–2015', 'https://ru.wikipedia.org/wiki/%D0%91%D0%B5%D1%80%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%9B%D0%B5%D0%BE%D0%BD%D0%B8%D0%B4_%D0%A1%D0%B0%D0%BC%D0%BE%D0%B9%D0%BB%D0%BE%D0%B2%D0%B8%D1%87', 'one_model',
+ 'Intelligent systems that decide with incomplete and fuzzy data.', 'Интеллектуальные системы, которые принимают решения при неполных и нечётких данных.', 'Intelligente Systeme, die mit unvollständigen und unscharfen Daten entscheiden.',
+ 'When data are incomplete, say which part is missing and decide only as far as the rest allows.'),
+('hintikka', 'Jaakko Hintikka', 'Яакко Хинтикка', '1929–2015', 'https://ru.wikipedia.org/wiki/%D0%A5%D0%B8%D0%BD%D1%82%D0%B8%D0%BA%D0%BA%D0%B0%2C_%D0%AF%D0%B0%D0%BA%D0%BA%D0%BE', 'rumour_vs_fact',
+ "Epistemic logic: 'knows that' and 'believes that' are different; inquiry as asking the right questions.", 'Эпистемическая логика: «знает, что» и «считает, что» — разные вещи; поиск как задавание правильных вопросов.', 'Epistemische Logik: „weiß, dass“ und „glaubt, dass“ sind verschieden; Forschung als Stellen der richtigen Fragen.',
+ 'Mark whether you know a thing or only believe it, and which question would turn belief into knowledge.'),
+('voevodsky', 'Vladimir Voevodsky', 'Владимир Воеводский', '1966–2017', 'https://ru.wikipedia.org/wiki/%D0%92%D0%BE%D0%B5%D0%B2%D0%BE%D0%B4%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80%D0%BE%D0%B2%D0%B8%D1%87', 'rumour_vs_fact',
+ "Univalent foundations: proofs checked by a computer, because even experts' proofs contain unnoticed errors.", 'Унивалентные основания: доказательства, которые проверяет компьютер, потому что и в доказательствах экспертов бывают незамеченные ошибки.', 'Univalente Grundlagen: computergeprüfte Beweise, weil auch Beweise von Fachleuten unbemerkte Fehler enthalten.',
+ 'Do not trust an argument because of who made it; check it mechanically where you can.'),
+('pushkin', 'Sergey B. Pushkin', 'Сергей Пушкин', '1925–2015', 'https://ru.wikipedia.org/wiki/%D0%9F%D1%83%D1%88%D0%BA%D0%B8%D0%BD%2C_%D0%A1%D0%B5%D1%80%D0%B3%D0%B5%D0%B9_%D0%91%D0%BE%D1%80%D0%B8%D1%81%D0%BE%D0%B2%D0%B8%D1%87', 'measurement_error',
+ 'Keeper of the state time standard (1967–2011): every clock is only as good as its chain back to the standard.', 'Хранитель государственного эталона времени (1967–2011): любые часы точны лишь настолько, насколько надёжна их цепочка до эталона.', 'Hüter des staatlichen Zeitnormals (1967–2011): jede Uhr ist nur so gut wie ihre Kette zum Normal.',
+ 'Give a time or a number together with the source it was set against.'),
+('trakhtenbrot', 'Boris Trakhtenbrot', 'Борис Трахтенброт', '1921–2016', 'https://ru.wikipedia.org/wiki/%D0%A2%D1%80%D0%B0%D1%85%D1%82%D0%B5%D0%BD%D0%B1%D1%80%D0%BE%D1%82%2C_%D0%91%D0%BE%D1%80%D0%B8%D1%81_%D0%90%D0%B2%D1%80%D0%B0%D0%B0%D0%BC%D0%BE%D0%B2%D0%B8%D1%87', 'answer_cost',
+ 'Limits of algorithms: some questions cannot be decided by any algorithm, and others only at a huge cost.', 'Пределы алгоритмов: на некоторые вопросы не ответит никакой алгоритм, на другие — только ценой огромных затрат.', 'Grenzen der Algorithmen: manche Fragen kann kein Algorithmus entscheiden, andere nur mit riesigem Aufwand.',
+ 'Before searching, ask whether the question can be settled at all with the data you can reach.'),
+('sigal', 'Izrail Kh. Sigal', 'Израиль Сигал', '1938–2016', 'https://ru.wikipedia.org/wiki/%D0%A1%D0%B8%D0%B3%D0%B0%D0%BB%2C_%D0%98%D0%B7%D1%80%D0%B0%D0%B8%D0%BB%D1%8C_%D0%A5%D0%B0%D0%B8%D0%BC%D0%BE%D0%B2%D0%B8%D1%87', 'answer_cost',
+ 'Operations research: solving large discrete optimisation problems approximately and with bounded effort.', 'Исследование операций: приближённое решение больших дискретных задач оптимизации с ограниченными затратами.', 'Operations Research: große diskrete Optimierungsprobleme näherungsweise mit begrenztem Aufwand lösen.',
+ 'A good answer within budget beats a perfect one that is too expensive; say how far from optimal it may be.'),
+('arrow', 'Kenneth Arrow', 'Кеннет Эрроу', '1921–2017', 'https://ru.wikipedia.org/wiki/%D0%AD%D1%80%D1%80%D0%BE%D1%83%2C_%D0%9A%D0%B5%D0%BD%D0%BD%D0%B5%D1%82', 'answer_cost',
+ 'Impossibility theorem and the economics of information: no voting rule is perfect, and information has a price and a value.', 'Теорема о невозможности и экономика информации: идеального правила голосования нет, а у информации есть цена и ценность.', 'Unmöglichkeitssatz und Informationsökonomie: keine Abstimmungsregel ist perfekt, Information hat Preis und Wert.',
+ 'Pay for more information only when it can change the decision.'),
+('levenshtein', 'Vladimir Levenshtein', 'Владимир Левенштейн', '1935–2017', 'https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%98%D0%BE%D1%81%D0%B8%D1%84%D0%BE%D0%B2%D0%B8%D1%87', 'rumour_vs_fact',
+ 'Edit distance: how many single-letter changes turn one text into another — finds duplicates and misspelt names.', 'Расстояние редактирования: сколько замен букв превращают один текст в другой — находит дубли и имена с опечатками.', 'Editierdistanz: wie viele Buchstabenänderungen einen Text in einen anderen verwandeln – findet Dubletten und vertippte Namen.',
+ 'Two headlines that differ by a few letters are one story, not two confirmations.'),
+('freivalds', 'Rūsiņš Freivalds', 'Русиньш Фрейвалдс', '1942–2016', 'https://ru.wikipedia.org/wiki/%D0%A4%D1%80%D0%B5%D0%B9%D0%B2%D0%B0%D0%BB%D0%B4%D1%81%2C_%D0%A0%D1%83%D1%81%D0%B8%D0%BD%D1%8C%D1%88_%D0%9C%D0%B0%D1%80%D1%82%D1%8B%D0%BD%D1%8C%D1%88', 'measurement_error',
+ "Freivalds' algorithm: checking an answer at random is much cheaper than computing it again.", 'Алгоритм Фрейвалдса: случайная проверка ответа намного дешевле, чем повторное вычисление.', 'Freivalds-Algorithmus: eine zufällige Prüfung der Antwort ist viel billiger als neu zu rechnen.',
+ 'Spot-check a random sample of your results instead of trusting all or recomputing all.'),
+('minsky', 'Marvin Minsky', 'Марвин Минский', '1927–2016', 'https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%9C%D0%B0%D1%80%D0%B2%D0%B8%D0%BD_%D0%9B%D0%B8', 'one_model',
+ "'The Society of Mind': intelligence as a community of simple agents that disagree and negotiate.", '«Общество разума»: интеллект как сообщество простых агентов, которые спорят и договариваются.', '„The Society of Mind“: Intelligenz als Gemeinschaft einfacher Agenten, die streiten und verhandeln.',
+ 'Let different parts or models check each other instead of trusting a single voice.'),
+('fodor', 'Jerry Fodor', 'Джерри Фодор', '1935–2017', 'https://ru.wikipedia.org/wiki/%D0%A4%D0%BE%D0%B4%D0%BE%D1%80%2C_%D0%94%D0%B6%D0%B5%D1%80%D1%80%D0%B8_%D0%90%D0%BB%D0%B0%D0%BD', 'rumour_vs_fact',
+ 'Modularity of mind and the language of thought: meaning lies beneath the surface of the words.', 'Модульность ума и язык мысли: смысл лежит под поверхностью слов.', 'Modularität des Geistes und Sprache des Denkens: Bedeutung liegt unter der Oberfläche der Wörter.',
+ 'Do not judge a text by its surface words alone; ask what it actually claims.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -785,3 +831,14 @@ for k in ["troelstra"]: NEEDS[k] = ("covered", "check_headline already keeps 'ne
 for k in ["pfanzagl"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
 for k in ["winograd", "guddat"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
 for k in ["skala"]: NEEDS[k] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
+
+NEEDS["kalman"] = ("covered", "the Polyak sensor already separates a one-off jump from a lasting shift in noisy indices", None, "polyak")
+NEEDS["forrester"] = ("covered", "the Baird sensor already gives the age of every published number", None, "baird")
+NEEDS["zadeh"] = ("covered", "the Hagenauer sensor already keeps the degree instead of rounding labels to yes or no", None, "hagenauer")
+NEEDS["karpenko"] = ("covered", "check_headline already returns four values: affirmed, denied, both, neither (sources_agree)", None, "frankfurt")
+NEEDS["voevodsky"] = ("covered", "the Rabin sensor already re-checks random published headlines against their sources", None, "rabin")
+NEEDS["freivalds"] = ("covered", "the Rabin sensor already spot-checks a random sample instead of all", None, "rabin")
+NEEDS["pushkin"] = ("covered", "the Baird sensor already traces every number to its source and time", None, "baird")
+NEEDS["sigal"] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
+NEEDS["arrow"] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
+NEEDS["levenshtein"] = ("needs_idea", "could make echo detection in check_headline tolerant to typos and small rewrites; not a sensor of its own")
