@@ -1535,6 +1535,7 @@ async function duoWarm(env, ctx) {
     if (DUO_CAROUSEL) menu.unshift({ id: "trends", kind: "trends", title: "What the world is talking about (trends)", reading: terms.slice(0, 15).map((t) => `${t.term} [${t.src}]`).join("; "), source: "Google Trends, Wikipedia most read" + (tr.x && tr.x.by_location ? ", X trends" : "") });
   }
   const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
+  for (const c of cands) if (!c.passport) c.passport = newsPassport(c); // паспорт новости для выбора Давида
   const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent, carousel);
   // Выпуск публикуется только после переводов: иначе слушатель получил бы английский, а потом выпуск «поменялся» бы под ним
@@ -1806,6 +1807,18 @@ async function howardNow(env) {
   try { rows = (await env.DB.prepare("SELECT first_ts, last_ts, n_first, n_max, t3 FROM radar_life WHERE n_first IS NOT NULL AND first_ts > ?1").bind(Date.now() - HOWARD_DAYS * 864e5).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE n_first IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = howardReport(rows, Date.now(), since); await sharedPut(env, "howard-v1", r).catch(() => {}); return r;
+}
+async function passportOf(env, ctx, origin, headline) { // паспорт любого заголовка: если он есть на радарах — с числом изданий, возрастом и усилением
+  const h = String(headline || "").replace(/\s+/g, " ").trim().slice(0, 300); if (h.length < 8) return { error: "headline_too_short", note: "Send a headline of at least 8 characters." };
+  const norm = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim(), nh = norm(h);
+  const all = [];
+  for (const r of await allRadars(env, ctx, origin).catch(() => [])) (r.feed || []).forEach((f, j) => all.push({ headline: f[1], source: f[2], link: f[4], radar: r.id, confirm: r.verify ? r.verify[j] : null, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, ...stateTag(f[2], f[4]) }));
+  const hit = all.find((x) => norm(x.headline) === nh) || all.find((x) => { const a = norm(x.headline); return a.length > 20 && (a.includes(nh) || nh.includes(a)); });
+  let amp = null;
+  if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
+  const p = newsPassport(hit ? { ...hit, amplified: amp } : { headline: h });
+  return { ...p, on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
+    rule: PASSPORT_RULE, page: origin + "/tools/method" };
 }
 async function methodNow(env, ctx, origin) { // «Как Orb Studio проверяет новости»: три слоя и живые паспорта главных заголовков
   const c = await sharedGet(env, "method-v1", 10 * 60e3).catch(() => null); if (c) return c;
@@ -3678,6 +3691,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/duckworth") return json(await duckworthNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/kasperson") return json(await kaspersonNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/trackrecord") return json(await trackrecordNow(env, { hour: url.searchParams.get("hour") }), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
@@ -8200,6 +8214,9 @@ const MCP_TOOLS = [
   { name: "get_bertsekas", title: "Bertsekas sensor: how many tokens each Orb Studio tool answer costs, and the cheapest call chains",
     description: "Measured answer size in tokens of every read-only Orb Studio MCP tool without input (refreshed every 6 hours), and for typical agent questions the cheap chain of calls versus the naive one, with tokens saved. In honour of Dimitri Bertsekas (1942-2026), author of the standard works on dynamic programming.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_news_passport", title: "News passport for any headline: event, statement, promise, threat, forecast or question — and how to say it",
+    description: "Runs Orb Studio's chain of checks on one headline, as the hosts of the Orb Studio studio and round table receive it: status (reported_event, statement, plan_or_promise, threat_or_warning, demand, forecast_or_speculation, question_headline), checkability, state media, and — when the headline is on the Orb Studio radars — how many outlets carry it, its age and whether retellings amplified it; then a confidence (high / medium / low) and plain 'say' lines (for example: do not present a threat as something that happened; only one outlet so far). Word rules, no AI, no web search. For outlet search use check_headline.",
+    inputSchema: { type: "object", properties: { headline: { type: "string", minLength: 8, maxLength: 300, description: "The headline to check" } }, required: ["headline"], additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_method", title: "How Orb Studio checks news: three layers of rules and the live news passport of today's top headlines",
     description: "The method behind Orb Studio's sensors and studio, as one pipeline: layer 1 (which scientists enter the Crystal Library), layer 2 (how a card becomes a sensor, a news-passport line or a host rule), layer 3 (the order in which a news item is checked before air: freshness, fact or rumour, numbers, one model, consequences and look-alikes, limits of knowledge, cost). Plus live news passports of today's top radar headlines: status (event, statement, promise, threat, forecast, question), outlets, age, amplification, confidence and the lines the hosts follow. Word rules, no AI.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8577,6 +8594,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_duckworth") return { ...(await duckworthNow(env)), page: origin + "/tools/duckworth", referral: ref };
   if (name === "get_trevisan") return { ...(await trevisanNow(env, ctx)), page: origin + "/tools/trevisan", referral: ref };
   if (name === "get_bertsekas") return { ...(await bertsekasNow(env, ctx, origin, request)), page: origin + "/tools/bertsekas", referral: ref };
+  if (name === "get_news_passport") return { ...(await passportOf(env, ctx, origin, args.headline)), referral: ref };
   if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
   if (name === "get_kasperson") return { ...(await kaspersonNow(env)), page: origin + "/tools/kasperson", referral: ref };
   if (name === "get_trackrecord") return { ...(await trackrecordNow(env, args || {})), page: origin + "/tools/trackrecord", referral: ref };

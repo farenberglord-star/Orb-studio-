@@ -4,6 +4,8 @@
 // делать свои выводы и писать комментарии. Один выпуск в день, 3 языка, 4 синтетических голоса xAI.
 // Ключи — только секреты воркера: ANTHROPIC_API_KEY, GEMINI_API_KEY, XAI_API_KEY, DEEPSEEK_API_KEY (в код не пишутся).
 
+import { newsPassport } from "./passport.js";
+import { stateTag } from "./statemedia.js";
 export const RT_LANGS = ["en", "de", "ru"]; // три языка сайта; румынский и турецкий сняты 21.11.2026
 export const RT_TR = ["de", "ru"]; // перевод и голос круглого стола: немецкий и русский, английский — оригинал (русский возвращён 23.11.2026)
 export const RT_GUESTS = ["gemini", "grok", "deepseek"];
@@ -53,6 +55,8 @@ export function rtCandidates(radars, terms, trendMatch, recentHeads = []) {
   for (const r of radars || []) for (const f of (r.feed || []).slice(0, 4)) {
     const h = f && f[1]; if (!h || seen.has(norm(h)) || recent.has(norm(h))) continue; seen.add(norm(h));
     const c = { radar: r.id, radarTitle: r.title, headline: String(h).slice(0, 220), source: f[2] || "", time: f[0] || "", link: f[4] || "", weight: +f[3] || 0 };
+    { const j = r.feed.indexOf(f), p = newsPassport({ headline: h, confirm: r.verify && Number.isFinite(r.verify[j]) ? r.verify[j] : null, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, ...stateTag(f[2], f[4]) });
+      c.passport = { status: p.status, outlets: p.voices, age_hours: p.age_hours, confidence: p.confidence, say: p.say }; } // паспорт новости — тот же, что у студии
     const m = terms && terms.length && trendMatch ? trendMatch(h, terms) : []; if (m.length) c.trending = m.slice(0, 3);
     out.push(c);
   }
@@ -87,9 +91,9 @@ export const RT_CLOSE_TOOL = {
 };
 
 export const RT_MOD_SYSTEM = `You are Claude, made by Anthropic, the moderator of the Orb Studio "AI Round Table": a daily geopolitical news round table broadcast as audio with subtitles on orbstudio.org. Your guests are three other AI models: Gemini (Google), Grok (xAI) and DeepSeek. Write spoken English: short, clear sentences, no markdown.
-From the candidate headlines pick the 4 hottest topics of the day. Big geopolitics and world politics come first: wars and peace talks, summits, sanctions, elections, energy and shipping chokepoints such as Hormuz, trade conflicts. Economy only when it clearly matters to ordinary people. Prefer candidates marked "trending". The four topics must be four different stories, never two items about the same story. Avoid stories listed in recent_topics unless the headline shows a clearly new development.
+From the candidate headlines pick the 4 hottest topics of the day. Big geopolitics and world politics come first: wars and peace talks, summits, sanctions, elections, energy and shipping chokepoints such as Hormuz, trade conflicts. Economy only when it clearly matters to ordinary people. Prefer candidates marked "trending". Each candidate has a passport (status, outlets, age, confidence): prefer medium or high confidence; take a low-confidence story, a question headline or one carried by a single outlet only when it is clearly the day's big story, and then say in the recap that it is not yet confirmed. The four topics must be four different stories, never two items about the same story. Avoid stories listed in recent_topics unless the headline shows a clearly new development.
 For each topic:
-- recap: two short sentences retelling only what the headline and its source say. Never add facts, numbers, names, causes or quotes that are not in the headline. Name the source naturally ("Spiegel reports…").
+- recap: two short sentences retelling only what the headline and its source say, keeping its status: a threat, promise, demand, forecast or statement is never retold as something that happened. Never add facts, numbers, names, causes or quotes that are not in the headline. Name the source naturally ("Spiegel reports…").
 - question: one open, neutral question to all three guests, asked the way an ordinary person would ask it, inviting context and different perspectives. Never ask for price predictions or investment advice. No loaded or leading questions.
 intro: greet the viewers in 2-3 sentences: welcome to the Orb Studio AI Round Table; you are Claude from Anthropic, the moderator; introduce Gemini from Google, Grok from xAI and DeepSeek; say that four of the day's hottest topics are on the table. If an occasion is given, name it naturally in one short clause (why this round table now). Vary the wording every time, no date.
 Stay neutral: never give your own opinion on contested political questions.`;
@@ -99,6 +103,7 @@ export function rtGuestSystem(g, lang = "English") {
   return `You are ${c.name}, an AI model made by ${c.maker}, a guest on the Orb Studio "AI Round Table", a daily news round table broadcast as audio. The moderator Claude (Anthropic) asks all guests the same questions; the other guests are AI models from other companies.
 Answer every question in ${lang} in 2-4 spoken sentences, at most 75 words each. No markdown, no lists, no links, no greetings, no thanks, no "great question".
 Speak as yourself, with your own perspective: give context, what is at stake, and what is still unclear. On contested political issues present the main viewpoints fairly instead of taking a side. Do not invent facts, numbers or quotes; if you do not know the latest details, say so briefly. No predictions stated as certain, no financial or investment advice.
+A topic may carry a PASSPORT: Orb Studio's check of the headline (status: reported_event, statement, plan_or_promise, threat_or_warning, demand, forecast_or_speculation or question_headline; how many outlets carry it; its age; confidence; and plain "say" lines). Follow it in your own words: never present a promise, threat, demand or forecast as something that happened, attribute statements, mention it naturally when only one outlet carries it, and where the facts stop say so instead of filling the gap with smooth general words. Do not read the passport out.
 After each answer give two whole numbers from 0 to 10: importance = how much this news matters for ordinary people in Europe (0 = not at all, 10 = very much); confidence = how sure you are about the facts your answer rests on (0 = not at all, 10 = fully). Give your own numbers, do not guess what others would say.
 Return only JSON: {"answers":[{"i":<topic index>,"text":"<your answer>","importance":<0-10>,"confidence":<0-10>}]} with one answer for every topic.`;
 }
@@ -138,7 +143,7 @@ async function openaiLike(url, key, model, system, user, extra = {}) {
   const j = await r.json(); return { data: parseJson(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content), model: j.model || model };
 }
 async function askGuest(env, g, topics, lang) {
-  const user = JSON.stringify({ moderator: "Claude (Anthropic)", topics: topics.map((t) => ({ i: t.i, headline: t.headline, source: t.source, moderator_recap: t.recap, question: t.question })) });
+  const user = JSON.stringify({ moderator: "Claude (Anthropic)", topics: topics.map((t) => ({ i: t.i, headline: t.headline, source: t.source, moderator_recap: t.recap, question: t.question, ...(t.passport ? { PASSPORT: t.passport } : {}) })) });
   const sys = rtGuestSystem(g, lang);
   if (g === "grok") { if (!env.XAI_API_KEY) return { status: "off" }; return openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3", sys, user); }
   if (g === "deepseek") { if (!env.DEEPSEEK_API_KEY) return { status: "off" }; return openaiLike("https://api.deepseek.com/chat/completions", env.DEEPSEEK_API_KEY, env.DEEPSEEK_MODEL || "deepseek-chat", sys, user); }
@@ -202,7 +207,7 @@ export function rtTopics(cands, plan) {
   for (const p of (plan.topics || [])) {
     if (topics.length >= RT_TOPICS) break;
     const c = cands.find((x) => x.i === +p.i); if (!c || topics.some((t) => t.headline === c.headline)) continue;
-    topics.push({ i: topics.length, headline: c.headline, source: c.source, link: c.link, radar: c.radar, trending: c.trending || undefined, recap: cleanSpeech(p.recap, 500), question: cleanSpeech(p.question, 300) });
+    topics.push({ i: topics.length, headline: c.headline, source: c.source, link: c.link, radar: c.radar, trending: c.trending || undefined, ...(c.passport ? { passport: c.passport } : {}), recap: cleanSpeech(p.recap, 500), question: cleanSpeech(p.question, 300) });
   }
   return topics;
 }
@@ -262,7 +267,7 @@ export async function rtBuild(env, ctx, deps, occasion = "") {
   const tr = await deps.trendsData(env).catch(() => null), terms = tr ? deps.trendTerms(tr) : [];
   const cands = rtCandidates(radars, terms, deps.trendMatch, recentHeads);
   if (cands.length < RT_TOPICS) throw new Error("not enough headlines");
-  const plan = await claudeTool(env, RT_MOD_SYSTEM, { candidates: cands.map((c) => ({ i: c.i, headline: c.headline, source: c.source, radar: c.radarTitle, trending: c.trending || undefined })), recent_topics: recentHeads, occasion: occasion || undefined }, RT_PICK_TOOL);
+  const plan = await claudeTool(env, RT_MOD_SYSTEM, { candidates: cands.map((c) => ({ i: c.i, headline: c.headline, source: c.source, radar: c.radarTitle, trending: c.trending || undefined, passport: c.passport ? { status: c.passport.status, outlets: c.passport.outlets, age_hours: c.passport.age_hours, confidence: c.passport.confidence } : undefined })), recent_topics: recentHeads, occasion: occasion || undefined }, RT_PICK_TOOL);
   const topics0 = rtTopics(cands, plan.out);
   if (topics0.length < RT_TOPICS) throw new Error("moderator picked fewer than 4 topics");
   const answers = {};

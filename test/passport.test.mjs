@@ -44,3 +44,14 @@ test("bridges: amplified story (Zajonc + Kasperson) and 'not known yet' (Weizenb
 test("a place before the colon is not a speaker", () => {
   assert.equal(newsPassport({ headline: "Turkey: Thousands protest closure of critical media outlets" }, now).status, "reported_event");
 });
+test("round table and David's pick get the passport; any-headline passport tool exists", async () => {
+  const { rtCandidates, rtGuestSystem, RT_MOD_SYSTEM } = await import("../src/roundtable.js");
+  const radars = [{ id: "geo", title: "Geo", feed: [["10:00", "Iran threatens to close the Strait of Hormuz", "Reuters", 80, "https://x", Date.now() - 3600e3]], verify: [1] }];
+  const c = rtCandidates(radars, [], null, []);
+  assert.equal(c[0].passport.status, "threat_or_warning"); assert.equal(c[0].passport.outlets, 1);
+  assert.match(rtGuestSystem("grok"), /PASSPORT/); assert.match(RT_MOD_SYSTEM, /passport/);
+  const { pickUser, HOST_PICK_SYSTEM } = await import("../src/duo.js");
+  assert.match(pickUser([{ headline: "h", passport: newsPassport({ headline: "Will it rain?" }, now) }], [], [], []), /question_headline/); assert.match(HOST_PICK_SYSTEM, /passport/);
+  assert.match(GROK_SYSTEM, /do not open every answer with "David,"/);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /name: "get_news_passport"/); assert.match(w, /p === "\/api\/v1\/passport"/);
+});
