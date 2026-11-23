@@ -342,6 +342,215 @@ export const TIME_MACHINE = [
 "en": "Frankfurt sensor: is there something checkable in the claim; Baird: where did the number come from.",
 "ru": "Датчик Франкфурта: есть ли в утверждении что проверить; Бэрд: откуда взялось число."
 }
+},
+{
+"id": "bacon",
+"name": "Francis Bacon",
+"name_ru": "Фрэнсис Бэкон",
+"years": "1561 – 1626",
+"wiki": "https://en.wikipedia.org/wiki/Francis_Bacon",
+"zone": "own_limits",
+"idea": {
+"en": "The idols of the mind (tribe, cave, marketplace, theatre) and the 'table of absence': we see what confirms us, so look for the cases where the effect is missing.",
+"ru": "Идолы разума (рода, пещеры, рынка, театра) и «таблица отсутствия»: мы видим то, что нас подтверждает, поэтому ищи случаи, где эффекта нет.",
+"de": "Idole des Geistes und die „Tafel der Abwesenheit“."
+},
+"rule": "Look for the cases that would prove you wrong, not only the ones that agree.",
+"era": "1601-1700",
+"bridge": {
+"en": "Kahneman sensor (noise in judgements) and the forecast game: count the misses, not only the hits.",
+"ru": "Датчик Канемана (шум суждений) и игра прогнозов: считай промахи, а не только попадания."
+}
+},
+{
+"id": "casaubon",
+"name": "Isaac Casaubon",
+"name_ru": "Исаак Казобон",
+"years": "1559 – 1614",
+"wiki": "https://en.wikipedia.org/wiki/Isaac_Casaubon",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "He dated the 'Hermetic' texts, believed to be older than Moses, to late antiquity by their language and references — the second great unmasking by anachronism after Valla.",
+"ru": "Он датировал «Герметический корпус», который считали древнее Моисея, поздней античностью по языку и упоминаниям — второе великое разоблачение по анахронизму после Валлы.",
+"de": "Er datierte die „hermetischen“ Schriften anhand ihrer Sprache in die Spätantike."
+},
+"rule": "Date a source by what it mentions and how it speaks, not by what it claims about itself.",
+"era": "1601-1700",
+"bridge": {
+"en": "With Valla, Koselleck and Darmesteter: a bridge of four centuries for checking the date of a source.",
+"ru": "С Валлой, Козеллеком и Дармстетером: мост через четыре века для проверки даты источника."
+}
+},
+{
+"id": "kepler",
+"name": "Johannes Kepler",
+"name_ru": "Иоганн Кеплер",
+"years": "1571 – 1630",
+"wiki": "https://en.wikipedia.org/wiki/Johannes_Kepler",
+"zone": "one_model",
+"idea": {
+"en": "He gave up his own circular orbit for Mars because it missed Tycho Brahe's observations by eight arcminutes — and found the ellipse.",
+"ru": "Он отказался от собственной круговой орбиты Марса, потому что она расходилась с наблюдениями Тихо Браге на восемь угловых минут, — и нашёл эллипс.",
+"de": "Er verwarf seine Kreisbahn wegen acht Bogenminuten Abweichung von Tycho Brahes Daten."
+},
+"rule": "When good data disagree with your elegant model, change the model.",
+"era": "1601-1700",
+"bridge": {
+"en": "Leamer and Breiman: trust what predicts, not what looks nicest.",
+"ru": "Лимер и Брейман: верь тому, что предсказывает, а не тому, что красивее."
+}
+},
+{
+"id": "galileo",
+"name": "Galileo Galilei",
+"name_ru": "Галилео Галилей",
+"years": "1564 – 1642",
+"wiki": "https://en.wikipedia.org/wiki/Galileo_Galilei",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "He looked through the telescope and reported what he saw, against what authorities had written: observation over authority.",
+"ru": "Он посмотрел в телескоп и сообщил, что видел, вопреки написанному авторитетами: наблюдение важнее авторитета.",
+"de": "Beobachtung vor Autorität: was das Fernrohr zeigt."
+},
+"rule": "Weigh a claim by the evidence behind it, not by who says it.",
+"era": "1601-1700",
+"bridge": {
+"en": "check_headline and the news passport: status and outlets, not the speaker's rank.",
+"ru": "Проверка заголовков и паспорт новости: статус и число изданий, а не ранг говорящего."
+}
+},
+{
+"id": "pascal",
+"name": "Blaise Pascal",
+"name_ru": "Блез Паскаль",
+"years": "1623 – 1662",
+"wiki": "https://en.wikipedia.org/wiki/Blaise_Pascal",
+"zone": "answer_cost",
+"idea": {
+"en": "With Fermat he solved the 'problem of points': divide the stakes of an unfinished game by the chances of what would have happened — the birth of expected value.",
+"ru": "Вместе с Ферма он решил «задачу об очках»: делить ставку прерванной игры по шансам того, что могло бы произойти, — рождение математического ожидания.",
+"de": "Mit Fermat das „Problem der Punkte“: Erwartungswert."
+},
+"rule": "Weigh outcomes by their chances, not only by how good or bad they would be.",
+"era": "1601-1700",
+"bridge": {
+"en": "Track record sensor and the forecast game: chances, intervals and the Brier score.",
+"ru": "«Счёт попаданий» и игра прогнозов: шансы, интервалы и правило Брайера."
+}
+},
+{
+"id": "descartes",
+"name": "René Descartes",
+"name_ru": "Рене Декарт",
+"years": "1596 – 1650",
+"wiki": "https://en.wikipedia.org/wiki/Ren%C3%A9_Descartes",
+"zone": "own_limits",
+"idea": {
+"en": "'Discourse on the Method': accept nothing as true that you do not clearly know; divide each difficulty into parts; check that nothing is left out.",
+"ru": "«Рассуждение о методе»: не принимать за истину то, чего ясно не знаешь; делить трудность на части; проверять, что ничего не упущено.",
+"de": "„Abhandlung über die Methode“: Zweifel, Zerlegen, Vollständigkeit prüfen."
+},
+"rule": "Split a hard question into parts and check at the end that nothing is missing.",
+"era": "1601-1700",
+"bridge": {
+"en": "Hamilton sensor (what works, what was set aside) and the three layers of the method.",
+"ru": "Датчик Гамильтон (что работает, что отложено) и три слоя метода."
+}
+},
+{
+"id": "huygens",
+"name": "Christiaan Huygens",
+"name_ru": "Христиан Гюйгенс",
+"years": "1629 – 1695",
+"wiki": "https://en.wikipedia.org/wiki/Christiaan_Huygens",
+"zone": "measurement_error",
+"idea": {
+"en": "'On Reasoning in Games of Chance', the first printed book on probability: the value of an uncertain outcome can be calculated.",
+"ru": "«О расчётах в азартных играх», первая печатная книга о вероятности: ценность неопределённого исхода можно вычислить.",
+"de": "„De ratiociniis in ludo aleae“: das erste gedruckte Wahrscheinlichkeitsbuch."
+},
+"rule": "Put a number on uncertainty instead of calling it 'possible'.",
+"era": "1601-1700",
+"bridge": {
+"en": "Hagenauer sensor: soft degrees instead of hard labels.",
+"ru": "Датчик Хагенауэра: степени вместо жёстких ярлыков."
+}
+},
+{
+"id": "petty",
+"name": "William Petty",
+"name_ru": "Уильям Петти",
+"years": "1623 – 1687",
+"wiki": "https://en.wikipedia.org/wiki/William_Petty",
+"zone": "measurement_error",
+"idea": {
+"en": "'Political Arithmetick': speak 'in terms of number, weight or measure' instead of opinion — the start of statistics about people.",
+"ru": "«Политическая арифметика»: говорить «числом, весом и мерой», а не мнением, — начало статистики о людях.",
+"de": "„Politische Arithmetik“: in Zahl, Gewicht und Maß sprechen."
+},
+"rule": "Back a claim about society with a number, its source and its unit.",
+"era": "1601-1700",
+"bridge": {
+"en": "Baird sensor: the passport of every number.",
+"ru": "Датчик Бэрда: паспорт каждого числа."
+}
+},
+{
+"id": "napier",
+"name": "John Napier",
+"name_ru": "Джон Непер",
+"years": "1550 – 1617",
+"wiki": "https://en.wikipedia.org/wiki/John_Napier",
+"zone": "answer_cost",
+"idea": {
+"en": "Logarithms: a long multiplication becomes an addition — a tool that cut the cost of computing for three centuries.",
+"ru": "Логарифмы: долгое умножение превращается в сложение — инструмент, удешевивший вычисления на три века.",
+"de": "Logarithmen: Multiplikation wird Addition."
+},
+"rule": "Look for the transformation that makes the job cheap before doing it the long way.",
+"era": "1601-1700",
+"bridge": {
+"en": "Bertsekas sensor: the cheap chain of calls instead of the naive one.",
+"ru": "Датчик Бертсекаса: дешёвая цепочка вызовов вместо наивной."
+}
+},
+{
+"id": "mersenne",
+"name": "Marin Mersenne",
+"name_ru": "Марен Мерсенн",
+"years": "1588 – 1648",
+"wiki": "https://en.wikipedia.org/wiki/Marin_Mersenne",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "He ran Europe's network of scientific letters and asked others to repeat experiments before believing them.",
+"ru": "Он вёл сеть научной переписки Европы и просил других повторить опыт, прежде чем ему поверить.",
+"de": "Er bat andere, Experimente zu wiederholen, bevor man ihnen glaubte."
+},
+"rule": "Trust a result more when independent others have repeated it.",
+"era": "1601-1700",
+"bridge": {
+"en": "check_headline: independent voices, not copies; Rabin sensor: random re-checks.",
+"ru": "Проверка заголовков: независимые голоса, а не копии; датчик Рабина: случайная перепроверка."
+}
+},
+{
+"id": "arnauld",
+"name": "Antoine Arnauld",
+"name_ru": "Антуан Арно",
+"years": "1612 – 1694",
+"wiki": "https://en.wikipedia.org/wiki/Antoine_Arnauld",
+"zone": "side_effects",
+"idea": {
+"en": "'Port-Royal Logic': fear of a harm should depend not only on how grave it is but on how probable — people fear thunder more than they should.",
+"ru": "«Логика Пор-Рояля»: страх перед вредом должен зависеть не только от его тяжести, но и от вероятности — люди боятся грома больше, чем следует.",
+"de": "„Logik von Port-Royal“: Furcht nach Schwere und Wahrscheinlichkeit."
+},
+"rule": "Weigh a risk by its probability as well as its size before you alarm anyone.",
+"era": "1601-1700",
+"bridge": {
+"en": "Kasperson sensor and the passport line 'do not make the risk sound bigger': a root of 1662.",
+"ru": "Датчик Касперсона и строка паспорта «не раздувай риск»: корень 1662 года."
+}
 }
 ];
 export function timeMachineReport({ era = null, zone = null, q = null } = {}, origin = "https://orbstudio.org") {
