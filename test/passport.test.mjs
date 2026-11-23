@@ -27,11 +27,17 @@ test("Grok gets the passport, and the segment shows it", () => {
   assert.match(GROK_SYSTEM, /PASSPORT/);
   const d = assembleDuo([{ headline: "h", source: "s", read: "h", facts: [], passport: p, reply: { ok: true, text: "ok" } }]);
   assert.equal(d.segments[0].passport.status, "plan_or_promise");
-  assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /const passport = newsPassport\(it\)/);
+  assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /const passport = newsPassport\(\{ ...it, amplified/);
 });
 test("colon speaker, forecast, question", () => {
   assert.equal(newsPassport({ headline: "Трамп: Иран за неделю выпустил рекордное число ракет" }, now).status, "statement");
   assert.equal(newsPassport({ headline: "Citi Report: Fed to Raise Rates by 25 BPS in December" }, now).status, "forecast_or_speculation");
   assert.equal(newsPassport({ headline: "Will It Be Enough to Stop the Rate Hikes?" }, now).status, "question_headline");
   assert.equal(newsPassport({ headline: "Drones hit fuel depots in three Russian regions" }, now).status, "reported_event");
+});
+test("bridges: amplified story (Zajonc + Kasperson) and 'not known yet' (Weizenbaum)", () => {
+  const p = newsPassport({ headline: "Explosion at port", confirm: 5, amplified: { outlets_first: 1, outlets_peak: 5 } }, now);
+  assert.deepEqual(p.amplified, { from: 1, to: 5 }); assert.ok(p.say.some((x) => /repetition is not confirmation/.test(x)));
+  assert.equal(newsPassport({ headline: "x", amplified: { outlets_first: 2, outlets_peak: 3 } }, now).amplified, null);
+  assert.match(GROK_SYSTEM, /never cover a gap with smooth general words/);
 });

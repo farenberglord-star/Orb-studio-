@@ -33,6 +33,8 @@ export function newsPassport(it, now = Date.now()) {
   if (age != null && age > 24) say.push(`Reported about ${Math.round(age)} hours ago: do not call it breaking or new.`);
   if (chk.class === "nothing_to_check") say.push("The headline is vague (no clear who, when or how many): do not add specifics and do not present it as established.");
   else if (chk.class === "hedged") say.push("The headline is hedged (" + chk.vague_words.slice(0, 3).join(", ") + "): keep the hedge.");
+  const amp = it && it.amplified;
+  if (amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first)) say.push(`Retellings spread this story from ${amp.outlets_first} to ${amp.outlets_peak} outlets: repetition is not confirmation and makes it feel truer than it is — stick to what the first source said.`);
   if (it && it.state_media) say.push(`The source is state media (${it.state_media}): name it as such.`);
   say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
   const low = (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48);
@@ -40,8 +42,9 @@ export function newsPassport(it, now = Date.now()) {
   return {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
+    amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
     confidence: high ? "high" : low ? "low" : "medium", say,
-    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

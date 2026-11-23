@@ -1108,10 +1108,13 @@ async function duoBuild(env, ctx, origin, items, lines, ms, avoid, recent, carou
   const [cp, gas, sensors] = await Promise.all([chokepointsData(env, ctx).catch(() => null), gasData(env).catch(() => null), sensorsData(env, ctx).catch(() => null)]);
   const allFacts = buildFacts({ chokepoints: cp, gas, sensors });
   let model = null;
+  const amp = {}; // «Касперсон»: сколько изданий несли историю в начале и на пике (для паспорта)
+  try { const hs = items.map((x) => x.headline).filter(Boolean).slice(0, 10);
+    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
   const segs = await Promise.all(items.map(async (it, i) => {
     let reply = null;
     const facts = relevantFacts(allFacts, it.headline, it.question); // только показания по теме новости
-    const passport = newsPassport(it); // паспорт новости: цепочка проверок перед эфиром
+    const passport = newsPassport({ ...it, amplified: amp[it.headline] || null }); // паспорт новости: цепочка проверок перед эфиром
     try {
       let a = await askGrok(env, it.headline, it.source, facts, false, ms, it.question, avoid, null, passport); model = a.model;
       reply = duoCheck(a.text, stripInvisible);
