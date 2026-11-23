@@ -7943,6 +7943,44 @@ export const CRYSTALS = [
 "note": "the Baird sensor already traces what every published number measures",
 "covered_by": "baird"
 }
+},
+{
+"id": "leskien",
+"name": "August Leskien",
+"name_ru": "Август Лескин",
+"years": "1840–1916",
+"wiki": "https://en.wikipedia.org/wiki/August_Leskien",
+"zone": "own_limits",
+"idea": {
+"en": "With the Neogrammarians (1876) he held that sound laws work without exceptions: an apparent exception points to another rule or to borrowing, not to chance.",
+"ru": "Вместе с младограмматиками (1876) он утверждал, что звуковые законы действуют без исключений: кажущееся исключение указывает на другое правило или заимствование, а не на случай.",
+"de": "Junggrammatiker (1876): Ausnahmslosigkeit der Lautgesetze."
+},
+"rule": "Treat an exception as a clue to a rule you have not found yet, before writing it off as noise.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already checks whether radar jumps revert or hold (radar_noise) before calling them noise",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "boehm_bawerk",
+"name": "Eugen von Böhm-Bawerk",
+"name_ru": "Ойген фон Бём-Баверк",
+"years": "1851–1914",
+"wiki": "https://en.wikipedia.org/wiki/Eugen_von_B%C3%B6hm-Bawerk",
+"zone": "answer_cost",
+"idea": {
+"en": "'Capital and Interest' (1884–89): people value present goods above the same goods in the future, so time itself has a price.",
+"ru": "«Капитал и процент» (1884–89): люди ценят блага сейчас выше тех же благ в будущем, поэтому у самого времени есть цена.",
+"de": "„Kapital und Kapitalzins“ (1884–89): Gegenwartsgüter werden höher bewertet."
+},
+"rule": "Compare a cost now with a benefit later only after saying how much the waiting itself costs.",
+"needs": {
+"code": "covered",
+"note": "the Mikrin sensor already measures what each step of waiting costs on the way to the air",
+"covered_by": "mikrin"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
