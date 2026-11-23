@@ -1,5 +1,5 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
-export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost"];
+export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
 export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
 export const CRYSTALS = [
 {
@@ -4072,7 +4072,7 @@ export const CRYSTALS = [
 "name_ru": "Яакко Хинтикка",
 "years": "1929–2015",
 "wiki": "https://ru.wikipedia.org/wiki/%D0%A5%D0%B8%D0%BD%D1%82%D0%B8%D0%BA%D0%BA%D0%B0%2C_%D0%AF%D0%B0%D0%BA%D0%BA%D0%BE",
-"zone": "rumour_vs_fact",
+"zone": "own_limits",
 "idea": {
 "en": "Epistemic logic: 'knows that' and 'believes that' are different; inquiry as asking the right questions.",
 "ru": "Эпистемическая логика: «знает, что» и «считает, что» — разные вещи; поиск как задавание правильных вопросов.",
@@ -4128,7 +4128,7 @@ export const CRYSTALS = [
 "name_ru": "Борис Трахтенброт",
 "years": "1921–2016",
 "wiki": "https://ru.wikipedia.org/wiki/%D0%A2%D1%80%D0%B0%D1%85%D1%82%D0%B5%D0%BD%D0%B1%D1%80%D0%BE%D1%82%2C_%D0%91%D0%BE%D1%80%D0%B8%D1%81_%D0%90%D0%B2%D1%80%D0%B0%D0%B0%D0%BC%D0%BE%D0%B2%D0%B8%D1%87",
-"zone": "answer_cost",
+"zone": "own_limits",
 "idea": {
 "en": "Limits of algorithms: some questions cannot be decided by any algorithm, and others only at a huge cost.",
 "ru": "Пределы алгоритмов: на некоторые вопросы не ответит никакой алгоритм, на другие — только ценой огромных затрат.",
@@ -4184,7 +4184,7 @@ export const CRYSTALS = [
 "name_ru": "Владимир Левенштейн",
 "years": "1935–2017",
 "wiki": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%98%D0%BE%D1%81%D0%B8%D1%84%D0%BE%D0%B2%D0%B8%D1%87",
-"zone": "rumour_vs_fact",
+"zone": "look_alike",
 "idea": {
 "en": "Edit distance: how many single-letter changes turn one text into another — finds duplicates and misspelt names.",
 "ru": "Расстояние редактирования: сколько замен букв превращают один текст в другой — находит дубли и имена с опечатками.",
@@ -4405,7 +4405,7 @@ export const CRYSTALS = [
 "name_ru": "Рольф Роттлендер",
 "years": "1932–2016",
 "wiki": "https://de.wikipedia.org/wiki/Rolf_C._A._Rottl%C3%A4nder",
-"zone": "measurement_error",
+"zone": "look_alike",
 "idea": {
 "en": "Ancient units of length: the same unit name meant different lengths in different places.",
 "ru": "Античные меры длины: одно и то же название меры означало разную длину в разных местах.",
@@ -4443,7 +4443,7 @@ export const CRYSTALS = [
 "name_ru": "Вернер Крабс",
 "years": "1934–2017",
 "wiki": "https://de.wikipedia.org/wiki/Werner_Krabs",
-"zone": "answer_cost",
+"zone": "side_effects",
 "idea": {
 "en": "Optimal control and game theory.",
 "ru": "Оптимальное управление и теория игр.",
@@ -4497,7 +4497,7 @@ export const CRYSTALS = [
 "name_ru": "Хьюберт Дрейфус",
 "years": "1929–2017",
 "wiki": "https://de.wikipedia.org/wiki/Hubert_Dreyfus",
-"zone": "one_model",
+"zone": "own_limits",
 "idea": {
 "en": "Critique of AI: a formal model is not the same as real skill and understanding.",
 "ru": "Критика ИИ: формальная модель — не то же самое, что настоящее умение и понимание.",
@@ -4533,7 +4533,7 @@ export const CRYSTALS = [
 "name_ru": "Рудольф Вилле",
 "years": "1937–2017",
 "wiki": "https://de.wikipedia.org/wiki/Rudolf_Wille",
-"zone": "one_model",
+"zone": "look_alike",
 "idea": {
 "en": "Formal concept analysis: concepts as sets of objects that share sets of attributes.",
 "ru": "Формальный анализ понятий: понятия как множества объектов с общими признаками.",
@@ -4680,7 +4680,7 @@ export const CRYSTALS = [
 "name_ru": "Джон Нэш",
 "years": "1928–2015",
 "wiki": "https://it.wikipedia.org/wiki/John_Nash",
-"zone": "answer_cost",
+"zone": "side_effects",
 "idea": {
 "en": "Nash equilibrium: in strategic situations the best move depends on what others do in response.",
 "ru": "Равновесие Нэша: в стратегической ситуации лучший ход зависит от ответных ходов других.",
@@ -4698,7 +4698,7 @@ export const CRYSTALS = [
 "name_ru": "Ульрих Бек",
 "years": "1944–2015",
 "wiki": "https://it.wikipedia.org/wiki/Ulrich_Beck",
-"zone": "one_model",
+"zone": "side_effects",
 "idea": {
 "en": "Risk society: modern decisions produce side effects and system risks no single actor foresees.",
 "ru": "Общество риска: современные решения порождают побочные эффекты и системные риски, которых не предвидит ни один участник.",
