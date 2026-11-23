@@ -124,7 +124,8 @@
     "trevisan": "https://orbstudio.org/api/v1/trevisan",
     "bertsekas": "https://orbstudio.org/api/v1/bertsekas",
     "rabin": "https://orbstudio.org/api/v1/rabin",
-    "searle": "https://orbstudio.org/api/v1/searle"
+    "searle": "https://orbstudio.org/api/v1/searle",
+    "simpson": "https://orbstudio.org/api/v1/simpson"
   },
   "auth": "none",
   "payments": {

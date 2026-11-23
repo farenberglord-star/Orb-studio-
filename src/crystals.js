@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost"];
-export const CRYSTAL_BUILT_ZONE = {"searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -3316,6 +3316,174 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the Baird sensor already gives every number its reference: source, time and unit",
 "covered_by": "baird"
+}
+},
+{
+"id": "rosenblatt",
+"name": "Murray Rosenblatt",
+"name_ru": "Мюррей Розенблатт",
+"years": "1926–2019",
+"wiki": "https://en.wikipedia.org/wiki/Murray_Rosenblatt",
+"zone": "stale_data",
+"idea": {
+"en": "Time-series analysis, spectral estimation and kernel density estimation.",
+"ru": "Анализ временных рядов, спектральные оценки и ядерные оценки плотности.",
+"de": "Zeitreihenanalyse, Spektral- und Kerndichteschätzung."
+},
+"rule": "Look for regular cycles in a series before treating a swing as news.",
+"needs": {
+"code": "covered",
+"note": "the Duckworth sensor already compares with the same time of day",
+"covered_by": "duckworth"
+}
+},
+{
+"id": "benzecri",
+"name": "Jean-Paul Benzécri",
+"name_ru": "Жан-Поль Бензекри",
+"years": "1932–2019",
+"wiki": "https://fr.wikipedia.org/wiki/Jean-Paul_Benz%C3%A9cri",
+"zone": "one_model",
+"idea": {
+"en": "Data analysis 'from the data, not from the model': correspondence analysis.",
+"ru": "Анализ данных «от данных, а не от модели»: корреспондентный анализ.",
+"de": "Datenanalyse „aus den Daten, nicht aus dem Modell“: Korrespondenzanalyse."
+},
+"rule": "Let the data show its structure before you impose a model on it.",
+"needs": {
+"code": "covered",
+"note": "the Simpson sensor already lets the per-radar structure show before the total",
+"covered_by": "simpson"
+}
+},
+{
+"id": "gruenbaum",
+"name": "Adolf Grünbaum",
+"name_ru": "Адольф Грюнбаум",
+"years": "1923–2018",
+"wiki": "https://en.wikipedia.org/wiki/Adolf_Gr%C3%BCnbaum",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Critique of psychoanalysis and of Popper: what makes a theory actually testable.",
+"ru": "Критика психоанализа и Поппера: что делает теорию действительно проверяемой.",
+"de": "Kritik der Psychoanalyse und Poppers: was eine Theorie prüfbar macht."
+},
+"rule": "Ask what observation would count against a claim; if none would, it is not being tested.",
+"needs": {
+"code": "covered",
+"note": "the Park and Frankfurt sensors already ask whether a claim gives anything to test",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "gayon",
+"name": "Jean Gayon",
+"name_ru": "Жан Гайон",
+"years": "1949–2018",
+"wiki": "https://fr.wikipedia.org/wiki/Jean_Gayon",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "History and philosophy of science, especially of biology and heredity.",
+"ru": "История и философия науки, особенно биологии и наследственности.",
+"de": "Geschichte und Philosophie der Wissenschaft, besonders der Biologie."
+},
+"rule": "Know the history of a scientific claim: how it was disputed and how it settled.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "casari",
+"name": "Ettore Casari",
+"name_ru": "Этторе Казари",
+"years": "1933–2019",
+"wiki": "https://it.wikipedia.org/wiki/Ettore_Casari",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'La matematica della verità': logic and the mathematics of truth.",
+"ru": "«La matematica della verità»: логика и математика истины.",
+"de": "„La matematica della verità“: Logik und Mathematik der Wahrheit."
+},
+"rule": "Keep 'true' for what is shown, and 'plausible' for what only seems so.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "wuketits",
+"name": "Franz M. Wuketits",
+"name_ru": "Франц Вукетиц",
+"years": "1955–2018",
+"wiki": "https://en.wikipedia.org/wiki/Franz_M._Wuketits",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Evolutionary epistemology: our ways of knowing were shaped by evolution and carry its biases.",
+"ru": "Эволюционная эпистемология: наши способы познания сформированы эволюцией и несут её искажения.",
+"de": "Evolutionäre Erkenntnistheorie."
+},
+"rule": "Expect your intuitions to favour vivid and threatening stories; correct for it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "turzeniecka",
+"name": "Danuta Turzeniecka",
+"name_ru": "Данута Туженецка",
+"years": "1931–2018",
+"wiki": "https://pl.wikipedia.org/wiki/Danuta_Turzeniecka",
+"zone": "measurement_error",
+"idea": {
+"en": "Metrology and the evaluation of measurement uncertainty.",
+"ru": "Метрология и оценка неопределённости измерений.",
+"de": "Messtechnik und Bewertung der Messunsicherheit."
+},
+"rule": "Report a measurement with its uncertainty, or do not compare it.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units, sources and cross-checks",
+"covered_by": "baird"
+}
+},
+{
+"id": "altman",
+"name": "Doug Altman",
+"name_ru": "Дуг Альтман",
+"years": "1948–2018",
+"wiki": "https://en.wikipedia.org/wiki/Doug_Altman",
+"zone": "measurement_error",
+"idea": {
+"en": "Reliability of statistics in research and reporting standards; 'absence of evidence is not evidence of absence'.",
+"ru": "Надёжность статистики в исследованиях и стандарты отчётности; «отсутствие доказательств — не доказательство отсутствия».",
+"de": "Verlässlichkeit von Statistik in der Forschung."
+},
+"rule": "'No evidence found' is not 'shown not to exist'; say which one you have.",
+"needs": {
+"code": "covered",
+"note": "check_headline already tells 'neither' (no information) from 'denied'",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "lawrence_brown",
+"name": "Lawrence D. Brown",
+"name_ru": "Лоуренс Браун",
+"years": "1940–2018",
+"wiki": "https://en.wikipedia.org/wiki/Lawrence_D._Brown",
+"zone": "answer_cost",
+"idea": {
+"en": "Statistical decision theory and minimax rules: choose the action whose worst case is least bad.",
+"ru": "Статистическая теория решений и минимакс: выбирать действие с наименее плохим худшим случаем.",
+"de": "Statistische Entscheidungstheorie und Minimax."
+},
+"rule": "When the cost of being wrong is high, pick the answer whose worst case you can live with.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs waiting against being wrong",
+"covered_by": "howard"
 }
 }
 ];

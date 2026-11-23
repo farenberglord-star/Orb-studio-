@@ -19,6 +19,7 @@ import { TREVISAN } from "./trevisan.js";
 import { BERTSEKAS } from "./bertsekas.js";
 import { RABIN } from "./rabin.js";
 import { SEARLE } from "./searle.js";
+import { SIMPSON } from "./simpson.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -96,6 +97,10 @@ export const SCIENTISTS = [
     principle: "Speech acts: asserting, promising, threatening and demanding are different acts; a promise or a threat is not an event that happened.",
     sensor: "The speech act of every radar headline (event, claim, promise, threat, demand) and the share that has not happened yet; the same label in check_headline.",
     analog_check: { date: "2026-11-22", similar: "research speech-act classifiers for tweets (Tweet Acts, MIT 2016) and for rumour detection (2019)", difference: "live labels on news headlines in three languages for agents, added to every check_headline answer" } },
+  { id: "simpson", honour: SIMPSON, field: "statistics", tool: "get_simpson", api: "/api/v1/simpson",
+    principle: "Simpson's paradox: a combined trend can reverse the trend inside every group when the mix of groups changes.",
+    sensor: "Each index change over 6 hours split into the change inside the radars and the change of their mix; flags a paradox when they point opposite ways.",
+    analog_check: { date: "2026-11-23", similar: "manual Simpson's-paradox checks taught in statistics, research tools that detect it in tables and dashboards", difference: "a live decomposition of the site's own index changes by radar, for agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -106,6 +111,7 @@ export function scientistLine(id, r) {
   if (id === "duckworth") { const g = (r.series || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, rhythm_effect: g ? g.rhythm_effect : null }; }
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
+  if (id === "simpson") { const c = (r.indices || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, change: c ? c.change : null, within: c ? c.within_radars : null }; }
   if (id === "searle") return { verdict: r.verdict, not_yet_pct: r.not_yet_happened_pct };
   if (id === "rabin") return { verdict: r.verdict, checks: r.checks, differs_pct: r.shares ? r.shares.differs : null };
   if (id === "frankfurt") return { verdict: r.verdict, nothing_to_check_pct: r.shares ? r.shares.nothing_to_check : null, checkable_pct: r.shares ? r.shares.checkable : null };

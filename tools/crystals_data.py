@@ -555,6 +555,34 @@ C = [
 ("ning_jinsheng", "Ning Jinsheng", "Нин Цзиньшэн", "1932–2020", "https://zh.wikipedia.org/wiki/%E5%AE%81%E6%B4%A5%E7%94%9F", "measurement_error",
  "Geodesy: precise measurement of the Earth and its reference frames.", "Геодезия: точные измерения Земли и её систем отсчёта.", "Geodäsie: präzise Vermessung der Erde und ihrer Bezugssysteme.",
  "A position or a number means nothing without its reference frame; state it."),
+# --- 2018–2019, 11 языков (23.11.2026; рамка расширена пользователем); Симпсон получил датчик ---
+("rosenblatt", "Murray Rosenblatt", "Мюррей Розенблатт", "1926–2019", "Murray_Rosenblatt", "stale_data",
+ "Time-series analysis, spectral estimation and kernel density estimation.", "Анализ временных рядов, спектральные оценки и ядерные оценки плотности.", "Zeitreihenanalyse, Spektral- und Kerndichteschätzung.",
+ "Look for regular cycles in a series before treating a swing as news."),
+("benzecri", "Jean-Paul Benzécri", "Жан-Поль Бензекри", "1932–2019", "https://fr.wikipedia.org/wiki/Jean-Paul_Benz%C3%A9cri", "one_model",
+ "Data analysis 'from the data, not from the model': correspondence analysis.", "Анализ данных «от данных, а не от модели»: корреспондентный анализ.", "Datenanalyse „aus den Daten, nicht aus dem Modell“: Korrespondenzanalyse.",
+ "Let the data show its structure before you impose a model on it."),
+("gruenbaum", "Adolf Grünbaum", "Адольф Грюнбаум", "1923–2018", "Adolf_Gr%C3%BCnbaum", "rumour_vs_fact",
+ "Critique of psychoanalysis and of Popper: what makes a theory actually testable.", "Критика психоанализа и Поппера: что делает теорию действительно проверяемой.", "Kritik der Psychoanalyse und Poppers: was eine Theorie prüfbar macht.",
+ "Ask what observation would count against a claim; if none would, it is not being tested."),
+("gayon", "Jean Gayon", "Жан Гайон", "1949–2018", "https://fr.wikipedia.org/wiki/Jean_Gayon", "rumour_vs_fact",
+ "History and philosophy of science, especially of biology and heredity.", "История и философия науки, особенно биологии и наследственности.", "Geschichte und Philosophie der Wissenschaft, besonders der Biologie.",
+ "Know the history of a scientific claim: how it was disputed and how it settled."),
+("casari", "Ettore Casari", "Этторе Казари", "1933–2019", "https://it.wikipedia.org/wiki/Ettore_Casari", "rumour_vs_fact",
+ "'La matematica della verità': logic and the mathematics of truth.", "«La matematica della verità»: логика и математика истины.", "„La matematica della verità“: Logik und Mathematik der Wahrheit.",
+ "Keep 'true' for what is shown, and 'plausible' for what only seems so."),
+("wuketits", "Franz M. Wuketits", "Франц Вукетиц", "1955–2018", "Franz_M._Wuketits", "rumour_vs_fact",
+ "Evolutionary epistemology: our ways of knowing were shaped by evolution and carry its biases.", "Эволюционная эпистемология: наши способы познания сформированы эволюцией и несут её искажения.", "Evolutionäre Erkenntnistheorie.",
+ "Expect your intuitions to favour vivid and threatening stories; correct for it."),
+("turzeniecka", "Danuta Turzeniecka", "Данута Туженецка", "1931–2018", "https://pl.wikipedia.org/wiki/Danuta_Turzeniecka", "measurement_error",
+ "Metrology and the evaluation of measurement uncertainty.", "Метрология и оценка неопределённости измерений.", "Messtechnik und Bewertung der Messunsicherheit.",
+ "Report a measurement with its uncertainty, or do not compare it."),
+("altman", "Doug Altman", "Дуг Альтман", "1948–2018", "Doug_Altman", "measurement_error",
+ "Reliability of statistics in research and reporting standards; 'absence of evidence is not evidence of absence'.", "Надёжность статистики в исследованиях и стандарты отчётности; «отсутствие доказательств — не доказательство отсутствия».", "Verlässlichkeit von Statistik in der Forschung.",
+ "'No evidence found' is not 'shown not to exist'; say which one you have."),
+("lawrence_brown", "Lawrence D. Brown", "Лоуренс Браун", "1940–2018", "Lawrence_D._Brown", "answer_cost",
+ "Statistical decision theory and minimax rules: choose the action whose worst case is least bad.", "Статистическая теория решений и минимакс: выбирать действие с наименее плохим худшим случаем.", "Statistische Entscheidungstheorie und Minimax.",
+ "When the cost of being wrong is high, pick the answer whose worst case you can live with."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -652,3 +680,10 @@ NEEDS["elmasri"] = ("needs_history", "the same version history as Rinne: Orb Stu
 for k in ["wang_peizhuang"]: NEEDS[k] = ("covered", "the Hagenauer sensor already keeps the degree of each label instead of yes or no", None, "hagenauer")
 for k in ["al_hasadi"]: NEEDS[k] = ("covered", "the Frankfurt and Park sensors already work as 'sensors of critical thinking' on the headlines", None, "frankfurt")
 for k in ["ning_jinsheng"]: NEEDS[k] = ("covered", "the Baird sensor already gives every number its reference: source, time and unit", None, "baird")
+
+for k in ["rosenblatt"]: NEEDS[k] = ("covered", "the Duckworth sensor already compares with the same time of day", None, "duckworth")
+for k in ["benzecri"]: NEEDS[k] = ("covered", "the Simpson sensor already lets the per-radar structure show before the total", None, "simpson")
+for k in ["gruenbaum"]: NEEDS[k] = ("covered", "the Park and Frankfurt sensors already ask whether a claim gives anything to test", None, "frankfurt")
+for k in ["turzeniecka"]: NEEDS[k] = ("covered", "the Baird sensor already traces units, sources and cross-checks", None, "baird")
+for k in ["altman"]: NEEDS[k] = ("covered", "check_headline already tells 'neither' (no information) from 'denied'", None, "frankfurt")
+for k in ["lawrence_brown"]: NEEDS[k] = ("covered", "the Howard sensor already weighs waiting against being wrong", None, "howard")
