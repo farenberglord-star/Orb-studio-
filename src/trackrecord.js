@@ -64,6 +64,21 @@ export const TRACK_EXPLAIN = {
   radar_unchanged: "days when the radar did not change",
   no_days: "no days in this group",
 };
+// «Шум радара» (мостик Грилихес + «Счёт попаданий» + Поляк): насколько радар меняется сам по себе — обычное суточное изменение,
+// доля получасовых скачков на 5+ пунктов и как часто они возвращаются в течение часа. Шумное измерение делает связи слабее, чем они есть.
+export function radarNoise(rows, now = Date.now()) {
+  const r = (rows || []).filter((x) => x && x.v != null && x.ts > now - 30 * D);
+  if (r.length < 96) return { verdict: "collecting", points: r.length };
+  const d24 = [];
+  for (const x of r) { const y = radarAt(r, x.ts - D); if (y != null) d24.push(Math.abs(x.v - y)); }
+  const steps = r.slice(1).map((x, i) => x.v - r[i].v), jumps = steps.map((d, i) => ({ d, i })).filter((s) => Math.abs(s.d) >= 5);
+  const back = jumps.filter(({ d, i }) => { const nx = steps.slice(i + 1, i + 3).reduce((a, b) => a + b, 0); return Math.sign(nx) === -Math.sign(d) && Math.abs(nx) >= Math.abs(d) * 0.6; }).length;
+  const q = (a, p) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(p * s.length))] : null; };
+  return { verdict: "measured", points: r.length, since: new Date(r[0].ts).toISOString(), typical_24h_change: q(d24, 0.5), large_24h_change_p90: q(d24, 0.9),
+    jumps_30min_5plus_pct: steps.length ? Math.round(1000 * jumps.length / steps.length) / 10 : null, jumps_reverted_within_1h_pct: jumps.length ? Math.round(100 * back / jumps.length) : null,
+    rule: "A 24-hour radar change smaller than typical_24h_change is within the radar's ordinary day-to-day movement. Many half-hour jumps that come straight back are measurement flicker (the mix of headlines changes), not a real shift.",
+    bridge: "Crystal Library bridge: Griliches (noisy data hides and fakes links) + track record + Polyak (jump or shift)." };
+}
 export function trackReport(rows, coins, { now = Date.now(), hourUtc = 12, days = 30 } = {}) {
   const per = {};
   for (const [c, candles] of Object.entries(coins || {})) {
@@ -76,7 +91,8 @@ export function trackReport(rows, coins, { now = Date.now(), hourUtc = 12, days 
   return {
     sensor: "trackrecord", verdict: anyN < TRACK_MIN ? "collecting" : "measured",
     question: "When the Orb Studio crypto radar changed over a day, how often did BTC and ETH move the opposite way (or the same way) over the next day?",
-    radar_now: cur, coins: per, explain: TRACK_EXPLAIN,
+    radar_now: cur ? { ...cur, vs_typical: (() => { const nz = radarNoise(rows, now); return nz.verdict === "measured" ? (Math.abs(cur.change) <= nz.typical_24h_change ? "within_typical_daily_move" : Math.abs(cur.change) >= nz.large_24h_change_p90 ? "large_move_top_10pct" : "above_typical") : null; })() } : null,
+    radar_noise: radarNoise(rows, now), coins: per, explain: TRACK_EXPLAIN,
     method: `One point per day at ${String(hourUtc).padStart(2, "0")}:00 UTC (query hour=0–23 to match your own check time), last ${days} days: the crypto radar change over the previous 24 hours (stored every 30 minutes) and the next 24-hour change of the Kraken price (close of the last completed hourly candle, EUR pairs XBTEUR and ETHEUR). Windows do not overlap. Days are grouped by the size of the radar change (0, 1–2, 3–5, 6+ points). 'Against' = radar fell and price rose, or radar rose and price fell. The 90 % interval is the Wilson score interval; with fewer than ${TRACK_MIN} days in a group there is no conclusion. Compare with share_days_price_rose: if the price rose on most days anyway, a high 'against' share after radar drops may only reflect that.`,
     rule: "This measures past coincidence over a small sample, not a forecast and not a trading signal. Report the number of days and the interval together with any share.",
     history_since: rows.length ? new Date(rows[0].ts).toISOString() : null,

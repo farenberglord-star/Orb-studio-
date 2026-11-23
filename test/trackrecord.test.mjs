@@ -49,3 +49,12 @@ test("wiring", () => {
   const sm = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8");
   for (const pre of ["", "/de", "/en"]) assert.ok(sm.includes("<loc>https://orbstudio.org" + pre + "/tools/trackrecord</loc>"));
 });
+test("radar noise (Griliches bridge): typical daily move, flicker that comes back", async () => {
+  const { radarNoise } = await import("../src/trackrecord.js");
+  const now = Date.UTC(2026, 10, 23, 12), rows = [];
+  for (let i = 0; i < 400; i++) rows.push({ ts: now - (400 - i) * 30 * 60e3, v: 65 + (i % 48 < 24 ? 2 : -2) + (i % 37 === 0 ? 8 : 0) });
+  const n = radarNoise(rows, now);
+  assert.equal(n.verdict, "measured"); assert.ok(n.typical_24h_change >= 0); assert.ok(n.jumps_30min_5plus_pct > 0); assert.ok(n.jumps_reverted_within_1h_pct >= 30, String(n.jumps_reverted_within_1h_pct));
+  assert.equal(radarNoise(rows.slice(0, 20), now).verdict, "collecting");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /lv\("budget"\), lv\("politics"\)/);
+});
