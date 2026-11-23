@@ -3485,6 +3485,249 @@ export const CRYSTALS = [
 "note": "the Howard sensor already weighs waiting against being wrong",
 "covered_by": "howard"
 }
+},
+{
+"id": "kalinichenko",
+"name": "Leonid Kalinichenko",
+"name_ru": "Леонид Калиниченко",
+"years": "1937–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%9B%D0%B5%D0%BE%D0%BD%D0%B8%D0%B4_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "stale_data",
+"idea": {
+"en": "Integration of heterogeneous databases: bringing different sources to one consistent picture.",
+"ru": "Как сводить вместе разнородные базы данных в одну согласованную картину.",
+"de": "Integration heterogener Datenbanken."
+},
+"rule": "Before merging data from two sources, align their definitions, units and times.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already aligns units, sources and cross-checks",
+"covered_by": "baird"
+}
+},
+{
+"id": "basharin",
+"name": "Gely Basharin",
+"name_ru": "Гелий Башарин",
+"years": "1927–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D1%88%D0%B0%D1%80%D0%B8%D0%BD%2C_%D0%93%D0%B5%D0%BB%D0%B8%D0%B9_%D0%9F%D0%B0%D0%B2%D0%BB%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "stale_data",
+"idea": {
+"en": "Queueing theory and delays in telecommunication networks.",
+"ru": "Теория очередей и задержек в сетях связи.",
+"de": "Warteschlangen und Verzögerungen in Netzen."
+},
+"rule": "Every relay in a chain adds delay; estimate how old the news is by the time it reaches you.",
+"needs": {
+"code": "covered",
+"note": "the Mikrin sensor already measures delays from source to air",
+"covered_by": "mikrin"
+}
+},
+{
+"id": "pospelov",
+"name": "Dmitry Pospelov",
+"name_ru": "Дмитрий Поспелов",
+"years": "1932–2019",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D1%81%D0%BF%D0%B5%D0%BB%D0%BE%D0%B2%2C_%D0%94%D0%BC%D0%B8%D1%82%D1%80%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "one_model",
+"idea": {
+"en": "One of the founders of Soviet artificial intelligence: situational control and fuzzy systems — act on the recognised situation, not on one fixed model.",
+"ru": "Один из отцов советского искусственного интеллекта: ситуационное управление и нечёткие системы — действовать по распознанной ситуации, а не по одной жёсткой модели.",
+"de": "Mitbegründer der sowjetischen KI: situative Steuerung und Fuzzy-Systeme."
+},
+"rule": "First classify the situation you are in, then choose the rule that fits it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "palyutin",
+"name": "Evgeny Palyutin",
+"name_ru": "Евгений Палютин",
+"years": "1945–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D0%BB%D1%8E%D1%82%D0%B8%D0%BD%2C_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "one_model",
+"idea": {
+"en": "Model theory: the same axioms can have many different models.",
+"ru": "Теория моделей: у одних и тех же аксиом бывает много разных моделей.",
+"de": "Modelltheorie: dieselben Axiome haben viele Modelle."
+},
+"rule": "The same description can fit several different situations; check which one you face.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "minlos",
+"name": "Robert Minlos",
+"name_ru": "Роберт Минлос",
+"years": "1931–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BD%D0%BB%D0%BE%D1%81%2C_%D0%A0%D0%BE%D0%B1%D0%B5%D1%80%D1%82_%D0%90%D0%B4%D0%BE%D0%BB%D1%8C%D1%84%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "one_model",
+"idea": {
+"en": "Statistical physics and random fields: global order arising from many local random interactions.",
+"ru": "Статистическая физика и случайные поля: общий порядок из множества местных случайных взаимодействий.",
+"de": "Statistische Physik und Zufallsfelder."
+},
+"rule": "A pattern across many sources can arise from local noise; check it before calling it a trend.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
+},
+{
+"id": "stepin",
+"name": "Vyacheslav Stepin",
+"name_ru": "Вячеслав Стёпин",
+"years": "1934–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A1%D1%82%D1%91%D0%BF%D0%B8%D0%BD%2C_%D0%92%D1%8F%D1%87%D0%B5%D1%81%D0%BB%D0%B0%D0%B2_%D0%A1%D0%B5%D0%BC%D1%91%D0%BD%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The structure of a scientific theory and types of scientific rationality (classical, non-classical, post-non-classical).",
+"ru": "Как устроена научная теория и какие бывают типы научной рациональности (классический, неклассический, постнеклассический).",
+"de": "Struktur wissenschaftlicher Theorien und Typen der Rationalität."
+},
+"rule": "Say which kind of evidence a claim rests on: observation, theory or expert consensus.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "ivin",
+"name": "Alexander Ivin",
+"name_ru": "Александр Ивин",
+"years": "1939–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%98%D0%B2%D0%B8%D0%BD%2C_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%90%D1%80%D1%85%D0%B8%D0%BF%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Theory of argumentation and the logic of evaluations: an evaluation ('good', 'bad') is not a statement of fact.",
+"ru": "Теория аргументации и логика оценок: оценка («хорошо», «плохо») — не утверждение о факте.",
+"de": "Argumentationstheorie und Logik der Bewertungen."
+},
+"rule": "Separate the facts in a headline from the evaluation wrapped around them.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already separates events from claims and other acts",
+"covered_by": "searle"
+}
+},
+{
+"id": "rakitov",
+"name": "Anatoly Rakitov",
+"name_ru": "Анатолий Ракитов",
+"years": "1928–2019",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D0%BA%D0%B8%D1%82%D0%BE%D0%B2%2C_%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D0%B8%D0%B9_%D0%98%D0%BB%D1%8C%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Information epistemology: knowledge in a society where information is produced and traded at scale.",
+"ru": "«Информационная эпистемология»: знание в обществе, где информацию производят и продают в огромных объёмах.",
+"de": "Informationelle Erkenntnistheorie."
+},
+"rule": "More information is not more knowledge; ask what a source adds that others do not.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "popovich",
+"name": "Myroslav Popovych",
+"name_ru": "Мирослав Попович",
+"years": "1930–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%BF%D0%BE%D0%B2%D0%B8%D1%87%2C_%D0%9C%D0%B8%D1%80%D0%BE%D1%81%D0%BB%D0%B0%D0%B2_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Logic and methodology of science (Kyiv school).",
+"ru": "Логика и методология науки (киевская школа).",
+"de": "Logik und Methodologie der Wissenschaft (Kiewer Schule)."
+},
+"rule": "State the method by which a conclusion was reached.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "kovalenko",
+"name": "Igor Kovalenko",
+"name_ru": "Игорь Коваленко",
+"years": "1935–2019",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%B2%D0%B0%D0%BB%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%98%D0%B3%D0%BE%D1%80%D1%8C_%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "measurement_error",
+"idea": {
+"en": "Reliability theory and the analysis of rare events.",
+"ru": "Теория надёжности и анализ редких событий.",
+"de": "Zuverlässigkeitstheorie und seltene Ereignisse."
+},
+"rule": "A rare event that has not happened in your data is not impossible; say how much data you have.",
+"needs": {
+"code": "covered",
+"note": "the Hamilton sensor already shows what fails or is postponed",
+"covered_by": "hamilton"
+}
+},
+{
+"id": "golshtein",
+"name": "Evgeny Golshtein",
+"name_ru": "Евгений Гольштейн",
+"years": "1931–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%93%D0%BE%D0%BB%D1%8C%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "answer_cost",
+"idea": {
+"en": "Mathematical programming and duality theory.",
+"ru": "Математическое программирование и теория двойственности.",
+"de": "Mathematische Programmierung und Dualitätstheorie."
+},
+"rule": "Every limit you work under has a price; ask what relaxing it would gain.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "uspensky",
+"name": "Vladimir Uspensky",
+"name_ru": "Владимир Успенский",
+"years": "1930–2018",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A3%D1%81%D0%BF%D0%B5%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "answer_cost",
+"idea": {
+"en": "Theory of algorithms and Kolmogorov complexity (a student of Kolmogorov).",
+"ru": "Теория алгоритмов и колмогоровская сложность (ученик Колмогорова).",
+"de": "Algorithmentheorie und Kolmogorow-Komplexität."
+},
+"rule": "The shortest faithful description is usually the best answer.",
+"needs": {
+"code": "covered",
+"note": "the Ziv sensor already measures information by compression",
+"covered_by": "ziv"
+}
+},
+{
+"id": "boltyansky",
+"name": "Vladimir Boltyansky",
+"name_ru": "Владимир Болтянский",
+"years": "1925–2019",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%82%D1%8F%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "answer_cost",
+"idea": {
+"en": "Co-author of the maximum principle of optimal control (with Pontryagin, Gamkrelidze, Mishchenko).",
+"ru": "Соавтор принципа максимума в теории оптимального управления (с Понтрягиным, Гамкрелидзе, Мищенко).",
+"de": "Mitautor des Maximumprinzips der optimalen Steuerung."
+},
+"rule": "Choose each step by its effect on the whole path to the goal.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

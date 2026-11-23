@@ -583,6 +583,46 @@ C = [
 ("lawrence_brown", "Lawrence D. Brown", "Лоуренс Браун", "1940–2018", "Lawrence_D._Brown", "answer_cost",
  "Statistical decision theory and minimax rules: choose the action whose worst case is least bad.", "Статистическая теория решений и минимакс: выбирать действие с наименее плохим худшим случаем.", "Statistische Entscheidungstheorie und Minimax.",
  "When the cost of being wrong is high, pick the answer whose worst case you can live with."),
+# --- русская Википедия, 2018–2019 (23.11.2026) ---
+('kalinichenko', 'Leonid Kalinichenko', 'Леонид Калиниченко', '1937–2018', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%B0%D0%BB%D0%B8%D0%BD%D0%B8%D1%87%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%9B%D0%B5%D0%BE%D0%BD%D0%B8%D0%B4_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87', 'stale_data',
+ 'Integration of heterogeneous databases: bringing different sources to one consistent picture.', 'Как сводить вместе разнородные базы данных в одну согласованную картину.', 'Integration heterogener Datenbanken.',
+ 'Before merging data from two sources, align their definitions, units and times.'),
+('basharin', 'Gely Basharin', 'Гелий Башарин', '1927–2018', 'https://ru.wikipedia.org/wiki/%D0%91%D0%B0%D1%88%D0%B0%D1%80%D0%B8%D0%BD%2C_%D0%93%D0%B5%D0%BB%D0%B8%D0%B9_%D0%9F%D0%B0%D0%B2%D0%BB%D0%BE%D0%B2%D0%B8%D1%87', 'stale_data',
+ 'Queueing theory and delays in telecommunication networks.', 'Теория очередей и задержек в сетях связи.', 'Warteschlangen und Verzögerungen in Netzen.',
+ 'Every relay in a chain adds delay; estimate how old the news is by the time it reaches you.'),
+('pospelov', 'Dmitry Pospelov', 'Дмитрий Поспелов', '1932–2019', 'https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D1%81%D0%BF%D0%B5%D0%BB%D0%BE%D0%B2%2C_%D0%94%D0%BC%D0%B8%D1%82%D1%80%D0%B8%D0%B9_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80%D0%BE%D0%B2%D0%B8%D1%87', 'one_model',
+ 'One of the founders of Soviet artificial intelligence: situational control and fuzzy systems — act on the recognised situation, not on one fixed model.', 'Один из отцов советского искусственного интеллекта: ситуационное управление и нечёткие системы — действовать по распознанной ситуации, а не по одной жёсткой модели.', 'Mitbegründer der sowjetischen KI: situative Steuerung und Fuzzy-Systeme.',
+ 'First classify the situation you are in, then choose the rule that fits it.'),
+('palyutin', 'Evgeny Palyutin', 'Евгений Палютин', '1945–2018', 'https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D0%BB%D1%8E%D1%82%D0%B8%D0%BD%2C_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87', 'one_model',
+ 'Model theory: the same axioms can have many different models.', 'Теория моделей: у одних и тех же аксиом бывает много разных моделей.', 'Modelltheorie: dieselben Axiome haben viele Modelle.',
+ 'The same description can fit several different situations; check which one you face.'),
+('minlos', 'Robert Minlos', 'Роберт Минлос', '1931–2018', 'https://ru.wikipedia.org/wiki/%D0%9C%D0%B8%D0%BD%D0%BB%D0%BE%D1%81%2C_%D0%A0%D0%BE%D0%B1%D0%B5%D1%80%D1%82_%D0%90%D0%B4%D0%BE%D0%BB%D1%8C%D1%84%D0%BE%D0%B2%D0%B8%D1%87', 'one_model',
+ 'Statistical physics and random fields: global order arising from many local random interactions.', 'Статистическая физика и случайные поля: общий порядок из множества местных случайных взаимодействий.', 'Statistische Physik und Zufallsfelder.',
+ 'A pattern across many sources can arise from local noise; check it before calling it a trend.'),
+('stepin', 'Vyacheslav Stepin', 'Вячеслав Стёпин', '1934–2018', 'https://ru.wikipedia.org/wiki/%D0%A1%D1%82%D1%91%D0%BF%D0%B8%D0%BD%2C_%D0%92%D1%8F%D1%87%D0%B5%D1%81%D0%BB%D0%B0%D0%B2_%D0%A1%D0%B5%D0%BC%D1%91%D0%BD%D0%BE%D0%B2%D0%B8%D1%87', 'rumour_vs_fact',
+ 'The structure of a scientific theory and types of scientific rationality (classical, non-classical, post-non-classical).', 'Как устроена научная теория и какие бывают типы научной рациональности (классический, неклассический, постнеклассический).', 'Struktur wissenschaftlicher Theorien und Typen der Rationalität.',
+ 'Say which kind of evidence a claim rests on: observation, theory or expert consensus.'),
+('ivin', 'Alexander Ivin', 'Александр Ивин', '1939–2018', 'https://ru.wikipedia.org/wiki/%D0%98%D0%B2%D0%B8%D0%BD%2C_%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B0%D0%BD%D0%B4%D1%80_%D0%90%D1%80%D1%85%D0%B8%D0%BF%D0%BE%D0%B2%D0%B8%D1%87', 'rumour_vs_fact',
+ "Theory of argumentation and the logic of evaluations: an evaluation ('good', 'bad') is not a statement of fact.", 'Теория аргументации и логика оценок: оценка («хорошо», «плохо») — не утверждение о факте.', 'Argumentationstheorie und Logik der Bewertungen.',
+ 'Separate the facts in a headline from the evaluation wrapped around them.'),
+('rakitov', 'Anatoly Rakitov', 'Анатолий Ракитов', '1928–2019', 'https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D0%BA%D0%B8%D1%82%D0%BE%D0%B2%2C_%D0%90%D0%BD%D0%B0%D1%82%D0%BE%D0%BB%D0%B8%D0%B9_%D0%98%D0%BB%D1%8C%D0%B8%D1%87', 'rumour_vs_fact',
+ 'Information epistemology: knowledge in a society where information is produced and traded at scale.', '«Информационная эпистемология»: знание в обществе, где информацию производят и продают в огромных объёмах.', 'Informationelle Erkenntnistheorie.',
+ 'More information is not more knowledge; ask what a source adds that others do not.'),
+('popovich', 'Myroslav Popovych', 'Мирослав Попович', '1930–2018', 'https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%BF%D0%BE%D0%B2%D0%B8%D1%87%2C_%D0%9C%D0%B8%D1%80%D0%BE%D1%81%D0%BB%D0%B0%D0%B2_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80%D0%BE%D0%B2%D0%B8%D1%87', 'rumour_vs_fact',
+ 'Logic and methodology of science (Kyiv school).', 'Логика и методология науки (киевская школа).', 'Logik und Methodologie der Wissenschaft (Kiewer Schule).',
+ 'State the method by which a conclusion was reached.'),
+('kovalenko', 'Igor Kovalenko', 'Игорь Коваленко', '1935–2019', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D0%B2%D0%B0%D0%BB%D0%B5%D0%BD%D0%BA%D0%BE%2C_%D0%98%D0%B3%D0%BE%D1%80%D1%8C_%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B5%D0%B2%D0%B8%D1%87', 'measurement_error',
+ 'Reliability theory and the analysis of rare events.', 'Теория надёжности и анализ редких событий.', 'Zuverlässigkeitstheorie und seltene Ereignisse.',
+ 'A rare event that has not happened in your data is not impossible; say how much data you have.'),
+('golshtein', 'Evgeny Golshtein', 'Евгений Гольштейн', '1931–2018', 'https://ru.wikipedia.org/wiki/%D0%93%D0%BE%D0%BB%D1%8C%D1%88%D1%82%D0%B5%D0%B9%D0%BD%2C_%D0%95%D0%B2%D0%B3%D0%B5%D0%BD%D0%B8%D0%B9_%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87', 'answer_cost',
+ 'Mathematical programming and duality theory.', 'Математическое программирование и теория двойственности.', 'Mathematische Programmierung und Dualitätstheorie.',
+ 'Every limit you work under has a price; ask what relaxing it would gain.'),
+('uspensky', 'Vladimir Uspensky', 'Владимир Успенский', '1930–2018', 'https://ru.wikipedia.org/wiki/%D0%A3%D1%81%D0%BF%D0%B5%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%90%D0%BD%D0%B4%D1%80%D0%B5%D0%B5%D0%B2%D0%B8%D1%87', 'answer_cost',
+ 'Theory of algorithms and Kolmogorov complexity (a student of Kolmogorov).', 'Теория алгоритмов и колмогоровская сложность (ученик Колмогорова).', 'Algorithmentheorie und Kolmogorow-Komplexität.',
+ 'The shortest faithful description is usually the best answer.'),
+('boltyansky', 'Vladimir Boltyansky', 'Владимир Болтянский', '1925–2019', 'https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%82%D1%8F%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87', 'answer_cost',
+ 'Co-author of the maximum principle of optimal control (with Pontryagin, Gamkrelidze, Mishchenko).', 'Соавтор принципа максимума в теории оптимального управления (с Понтрягиным, Гамкрелидзе, Мищенко).', 'Mitautor des Maximumprinzips der optimalen Steuerung.',
+ 'Choose each step by its effect on the whole path to the goal.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -687,3 +727,12 @@ for k in ["gruenbaum"]: NEEDS[k] = ("covered", "the Park and Frankfurt sensors a
 for k in ["turzeniecka"]: NEEDS[k] = ("covered", "the Baird sensor already traces units, sources and cross-checks", None, "baird")
 for k in ["altman"]: NEEDS[k] = ("covered", "check_headline already tells 'neither' (no information) from 'denied'", None, "frankfurt")
 for k in ["lawrence_brown"]: NEEDS[k] = ("covered", "the Howard sensor already weighs waiting against being wrong", None, "howard")
+
+for k in ["kalinichenko"]: NEEDS[k] = ("covered", "the Baird sensor already aligns units, sources and cross-checks", None, "baird")
+for k in ["basharin"]: NEEDS[k] = ("covered", "the Mikrin sensor already measures delays from source to air", None, "mikrin")
+for k in ["palyutin"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["minlos"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")
+for k in ["ivin"]: NEEDS[k] = ("covered", "the Searle sensor already separates events from claims and other acts", None, "searle")
+for k in ["kovalenko"]: NEEDS[k] = ("covered", "the Hamilton sensor already shows what fails or is postponed", None, "hamilton")
+for k in ["golshtein", "boltyansky"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
+for k in ["uspensky"]: NEEDS[k] = ("covered", "the Ziv sensor already measures information by compression", None, "ziv")
