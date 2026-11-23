@@ -8147,6 +8147,154 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "applied: the forecast game scores agents by the Brier rule, so honest degrees of belief pay off"
 }
+},
+{
+"id": "whitehead",
+"name": "Alfred North Whitehead",
+"name_ru": "Альфред Норт Уайтхед",
+"years": "1861–1947",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_North_Whitehead",
+"zone": "one_model",
+"idea": {
+"en": "The 'fallacy of misplaced concreteness' ('Science and the Modern World', 1925): mistaking an abstraction — a model, a number, a category — for the concrete reality it was cut from.",
+"ru": "«Ошибка неуместной конкретности» («Наука и современный мир», 1925): принимать абстракцию — модель, число, категорию — за конкретную реальность, из которой её вырезали.",
+"de": "„Fallacy of misplaced concreteness“ (1925)."
+},
+"rule": "Do not talk about an index or a model as if it were the world itself; say what it leaves out.",
+"needs": {
+"code": "covered",
+"note": "applied: every sensor states its method and what it leaves out; hosts say where the facts stop"
+}
+},
+{
+"id": "schumpeter",
+"name": "Joseph Schumpeter",
+"name_ru": "Йозеф Шумпетер",
+"years": "1883–1950",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Schumpeter",
+"zone": "one_model",
+"idea": {
+"en": "The 'Ricardian vice' ('History of Economic Analysis', 1954): drawing firm practical conclusions from a model whose convenient assumptions guarantee the answer.",
+"ru": "«Рикардианский порок» («История экономического анализа», 1954): делать твёрдые практические выводы из модели, удобные допущения которой заранее гарантируют ответ.",
+"de": "„Ricardian vice“ (1954)."
+},
+"rule": "Before acting on a model's conclusion, check whether its assumptions already built that conclusion in.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far an index depends on the model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "fisher_i",
+"name": "Irving Fisher",
+"name_ru": "Ирвинг Фишер",
+"years": "1867–1947",
+"wiki": "https://en.wikipedia.org/wiki/Irving_Fisher",
+"zone": "own_limits",
+"idea": {
+"en": "'The Making of Index Numbers' (1922) — and in October 1929, days before the crash, he said stock prices had reached 'a permanently high plateau'.",
+"ru": "«Построение индексов» (1922) — и в октябре 1929 года, за несколько дней до краха, он заявил, что курсы акций вышли на «постоянно высокое плато».",
+"de": "Indexzahlen (1922) – und das „dauerhaft hohe Plateau“ kurz vor dem Crash 1929."
+},
+"rule": "Even a great expert's confident forecast can fail within days; report forecasts with their uncertainty, not as facts.",
+"needs": {
+"code": "covered",
+"note": "applied: Orb Studio gives no forecasts; the forecast game scores confident misses by the Brier rule"
+}
+},
+{
+"id": "keynes",
+"name": "John Maynard Keynes",
+"name_ru": "Джон Мейнард Кейнс",
+"years": "1883–1946",
+"wiki": "https://en.wikipedia.org/wiki/John_Maynard_Keynes",
+"zone": "side_effects",
+"idea": {
+"en": "'A Treatise on Probability' (1921) on the weight of evidence, and the 'beauty contest' (1936): investors guess what others will think, not what a thing is worth.",
+"ru": "«Трактат о вероятности» (1921) о весе свидетельств и «конкурс красоты» (1936): инвесторы угадывают, что подумают другие, а не сколько вещь стоит.",
+"de": "Wahrscheinlichkeit (1921) und der „Schönheitswettbewerb“ (1936)."
+},
+"rule": "A price can reflect what people expect others to think; do not read it as the value of the thing.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'published radar moves the market' (Rosenthal + Bush + Keynes's beauty contest)",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "spearman",
+"name": "Charles Spearman",
+"name_ru": "Чарльз Спирмен",
+"years": "1863–1945",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Spearman",
+"zone": "measurement_error",
+"idea": {
+"en": "'The proof and measurement of association' (1904): measurement error weakens the correlation you see, and he gave a correction for it; also rank correlation.",
+"ru": "«Доказательство и измерение связи» (1904): ошибка измерения ослабляет видимую корреляцию, и он дал поправку на это; а также ранговая корреляция.",
+"de": "Minderungskorrektur (1904): Messfehler schwächen Korrelationen."
+},
+"rule": "A weak link between noisy measures may be a stronger link hidden by noise; say how noisy the measures are.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already reports radar noise next to any link with prices",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "neurath",
+"name": "Otto Neurath",
+"name_ru": "Отто Нейрат",
+"years": "1882–1945",
+"wiki": "https://en.wikipedia.org/wiki/Otto_Neurath",
+"zone": "own_limits",
+"idea": {
+"en": "'Neurath's boat' (1932): we are like sailors rebuilding their ship at sea — we can replace one plank at a time, never all at once.",
+"ru": "«Корабль Нейрата» (1932): мы как моряки, перестраивающие корабль в открытом море, — можно менять по одной доске, но не всё сразу.",
+"de": "„Neuraths Schiff“ (1932)."
+},
+"rule": "Correct one belief at a time against the others you keep fixed; say which ones you kept.",
+"needs": {
+"code": "covered",
+"note": "applied: the method resolves rule conflicts one at a time, the more cautious rule wins"
+}
+},
+{
+"id": "eddington",
+"name": "Arthur Eddington",
+"name_ru": "Артур Эддингтон",
+"years": "1882–1944",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_Eddington",
+"zone": "measurement_error",
+"idea": {
+"en": "The fish-net parable ('The Philosophy of Physical Science', 1939): a net with two-inch mesh 'proves' there are no fish smaller than two inches — the instrument chooses what you can find.",
+"ru": "Притча о сети («Философия физической науки», 1939): сеть с ячейкой в два дюйма «доказывает», что рыб меньше двух дюймов нет, — прибор решает, что ты можешь найти.",
+"de": "Fischnetz-Gleichnis (1939): das Netz bestimmt, was man fängt."
+},
+"rule": "Before saying something does not exist, ask whether your sources could have caught it.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports which regions and languages the feeds cannot see",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "whorf",
+"name": "Benjamin Lee Whorf",
+"name_ru": "Бенджамин Ли Уорф",
+"years": "1897–1941",
+"wiki": "https://en.wikipedia.org/wiki/Benjamin_Lee_Whorf",
+"zone": "look_alike",
+"idea": {
+"en": "As a fire-insurance inspector he saw workers smoke near 'empty' petrol drums: the word 'empty' hid that the drums were full of explosive vapour.",
+"ru": "Работая инспектором страховой компании, он видел, как рабочие курят у «пустых» бочек из-под бензина: слово «пустой» скрывало, что бочки полны взрывоопасных паров.",
+"de": "Brandschutz-Beobachtung: „leere“ Benzinfässer voller Dämpfe."
+},
+"rule": "Check whether a word in the headline ('empty', 'safe', 'cleared') hides the real state of things.",
+"needs": {
+"code": "needs_idea",
+"note": "a small list of state words that hide danger (empty, safe, cleared, contained) for the passport; no tested list yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
