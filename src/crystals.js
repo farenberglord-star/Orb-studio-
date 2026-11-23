@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -5547,24 +5547,6 @@ export const CRYSTALS = [
 "needs": {
 "code": "needs_idea",
 "note": "no live measurable form found yet"
-}
-},
-{
-"id": "kasperson",
-"name": "Roger Kasperson",
-"name_ru": "Роджер Касперсон",
-"years": "1938–2021",
-"wiki": "https://en.wikipedia.org/wiki/Roger_Kasperson",
-"zone": "side_effects",
-"idea": {
-"en": "Social amplification of risk: a risk message grows or shrinks as it is retold by media and people.",
-"ru": "Социальное усиление риска: сообщение о риске усиливается или ослабевает при пересказе СМИ и людьми.",
-"de": "Soziale Verstärkung von Risiken."
-},
-"rule": "Before retelling a risk, check whether the retelling makes it bigger than the source said.",
-"needs": {
-"code": "covered",
-"note": "applied: check_headline counts independent voices, so a story amplified by many reprints is not taken for many confirmations"
 }
 },
 {

@@ -930,9 +930,6 @@ C = [
 ('rosenthal', 'Robert Rosenthal', 'Роберт Розенталь', '1933–2024', 'https://en.wikipedia.org/wiki/Robert_Rosenthal_(psychologist)', 'side_effects',
  'Expectancy effects (the Pygmalion effect): expectations change behaviour and can make a prediction come true.', 'Эффект ожиданий (эффект Пигмалиона): ожидания меняют поведение и могут сделать предсказание сбывшимся.', 'Erwartungseffekte (Pygmalion-Effekt).',
  'Remember that your forecast, once read, can change what people do.'),
-('kasperson', 'Roger Kasperson', 'Роджер Касперсон', '1938–2021', 'https://en.wikipedia.org/wiki/Roger_Kasperson', 'side_effects',
- 'Social amplification of risk: a risk message grows or shrinks as it is retold by media and people.', 'Социальное усиление риска: сообщение о риске усиливается или ослабевает при пересказе СМИ и людьми.', 'Soziale Verstärkung von Risiken.',
- 'Before retelling a risk, check whether the retelling makes it bigger than the source said.'),
 ('scott_jc', 'James C. Scott', 'Джеймс Скотт', '1936–2024', 'https://en.wikipedia.org/wiki/James_C._Scott', 'side_effects',
  "'Seeing Like a State': top-down schemes fail when they simplify away the local knowledge that made things work.", '«Благими намерениями государства»: схемы «улучшения сверху» проваливаются, когда упрощают местное знание, на котором всё держалось.', '„Seeing Like a State“: Pläne von oben scheitern an weggelassenem lokalem Wissen.',
  'Ask what local knowledge your simple plan leaves out.'),
@@ -1142,4 +1139,3 @@ NEEDS["lindley"] = ("covered", "applied: the forecast game scores agents by the 
 NEEDS["gardner"] = ("covered", "the Park sensor already checks science headlines for signs of pseudoscience", None, "park")
 NEEDS["mcmullin"] = ("covered", "the track record sensor already measures whether the radar matched what happened next", None, "trackrecord")
 
-NEEDS["kasperson"] = ("covered", "applied: check_headline counts independent voices, so a story amplified by many reprints is not taken for many confirmations")
