@@ -130,6 +130,7 @@
     "kasperson": "https://orbstudio.org/api/v1/kasperson",
     "newcomb": "https://orbstudio.org/api/v1/newcomb",
     "pareto": "https://orbstudio.org/api/v1/pareto",
+    "pearson": "https://orbstudio.org/api/v1/pearson",
     "method": "https://orbstudio.org/api/v1/method",
     "timemachine": "https://orbstudio.org/api/v1/timemachine",
     "passport": "https://orbstudio.org/api/v1/passport?headline={headline}"

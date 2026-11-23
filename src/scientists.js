@@ -23,6 +23,7 @@ import { SIMPSON } from "./simpson.js";
 import { KASPERSON } from "./kasperson.js";
 import { NEWCOMB } from "./newcomb.js";
 import { PARETO } from "./pareto.js";
+import { PEARSON } from "./pearson.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -116,6 +117,10 @@ export const SCIENTISTS = [
     principle: "Power laws: a small share of cases carries a large share of the total.",
     sensor: "For the index and each radar: share of all half-hour movement carried by the largest 20% of jumps (30 days), biggest jump versus the median.",
     analog_check: { date: "2026-11-23", similar: "tail and concentration measures in finance and economics (Pareto and Lorenz curves, Gini, tail indices)", difference: "a simple top-20% share applied live to the site's own radars, for agents" } },
+  { id: "pearson", honour: PEARSON, field: "statistics", tool: "get_pearson", api: "/api/v1/pearson",
+    principle: "Every test makes two kinds of error — a false alarm and a miss — and lowering one raises the other.",
+    sensor: "In the forecast game: false alarms and misses, their rates and confident errors, for humans, verified and unverified agents and per agent.",
+    analog_check: { date: "2026-11-23", similar: "confusion matrices, ROC analysis and forecast verification scores in meteorology", difference: "live on an open forecast game between humans and AI agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -127,6 +132,7 @@ export function scientistLine(id, r) {
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
   if (id === "simpson") { const c = (r.indices || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, change: c ? c.change : null, within: c ? c.within_radars : null }; }
+  if (id === "pearson") return { verdict: r.verdict, answers: r.all ? r.all.answers : 0, false_alarms: r.all ? r.all.false_alarms : 0, misses: r.all ? r.all.misses : 0 };
   if (id === "pareto") return { verdict: r.verdict, index_top20: r.index ? r.index.top20_share : null, index_tail: r.index ? r.index.tail : null };
   if (id === "newcomb") return { verdict: r.verdict, numbers: r.numbers, mad: r.mad };
   if (id === "kasperson") return { verdict: r.verdict, stories: r.stories, amplified: r.amplified, amplified_pct: r.amplified_pct };

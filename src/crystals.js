@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -8651,24 +8651,6 @@ export const CRYSTALS = [
 "code": "needs_history",
 "note": "bridge 'published radar moves the market' (Rosenthal + Keynes + Wiener + Phillips: a link breaks once people act on it)",
 "not_before": "2026-12-21"
-}
-},
-{
-"id": "pearson_e",
-"name": "Egon Pearson",
-"name_ru": "Эгон Пирсон",
-"years": "1895–1980",
-"wiki": "https://en.wikipedia.org/wiki/Egon_Pearson",
-"zone": "measurement_error",
-"idea": {
-"en": "The Neyman–Pearson lemma (1933): every test makes two kinds of error — a false alarm and a miss — and lowering one raises the other.",
-"ru": "Лемма Неймана — Пирсона (1933): у любой проверки два вида ошибок — ложная тревога и пропуск, и уменьшение одной увеличивает другую.",
-"de": "Neyman-Pearson-Lemma (1933): Fehler erster und zweiter Art."
-},
-"rule": "Say which error is worse here — a false alarm or a miss — and set the threshold for that.",
-"needs": {
-"code": "ready",
-"note": "bridge 'cost of error' (E. Pearson + Savage + Snedecor + Wedderburn, Grok): in the forecast game, report each agent's false alarms and misses separately; data exist, needs the owner's yes"
 }
 },
 {
