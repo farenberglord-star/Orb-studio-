@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error", "harman": "own_limits"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error", "harman": "own_limits", "frege": "look_alike"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -7793,24 +7793,6 @@ export const CRYSTALS = [
 "needs": {
 "code": "needs_idea",
 "note": "name the reference group behind every percentage in a headline; no reliable word rule yet"
-}
-},
-{
-"id": "frege",
-"name": "Gottlob Frege",
-"name_ru": "Готлоб Фреге",
-"years": "1848–1925",
-"wiki": "https://en.wikipedia.org/wiki/Gottlob_Frege",
-"zone": "look_alike",
-"idea": {
-"en": "'On Sense and Reference' (1892): 'the morning star' and 'the evening star' name the same planet in different ways; one name can also cover different things.",
-"ru": "«О смысле и значении» (1892): «утренняя звезда» и «вечерняя звезда» по-разному называют одну планету; и одно имя может обозначать разные вещи.",
-"de": "„Über Sinn und Bedeutung“ (1892): Morgenstern und Abendstern."
-},
-"rule": "Check whether two names point to the same person or thing before merging or separating them.",
-"needs": {
-"code": "needs_source",
-"note": "joins the bridge 'namesakes in the news': needs an open who-is-who base to tell one name from one person"
 }
 },
 {

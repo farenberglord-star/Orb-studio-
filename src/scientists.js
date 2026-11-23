@@ -26,6 +26,7 @@ import { PARETO } from "./pareto.js";
 import { PEARSON } from "./pearson.js";
 import { COHEN } from "./cohen.js";
 import { HARMAN } from "./harman.js";
+import { FREGE } from "./frege.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -131,6 +132,10 @@ export const SCIENTISTS = [
     principle: "Change in view: revise beliefs when new evidence comes, and keep confidence in proportion to how often it is revised.",
     sensor: "The news passport's confidence at first sight versus later denials or corrections of the same story, per confidence level.",
     analog_check: { date: "2026-11-23", similar: "calibration and reliability diagrams in weather and forecast verification", difference: "checks the calibration of a live news-checking rule set against later corrections, for agents" } },
+  { id: "frege", honour: FREGE, field: "logic and philosophy of language", tool: "get_frege", api: "/api/v1/frege",
+    principle: "Sense and reference: one name can point to different people, and different names to the same one.",
+    sensor: "Person names in radar headlines looked up in Wikidata: how many share their exact name with other people.",
+    analog_check: { date: "2026-11-23", similar: "entity-linking tools (OpenTapioca, spaCy entity linker, Google Knowledge Graph, DBpedia Spotlight)", difference: "reports live, for news headlines on the radars, how often a name is shared by several people, for agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -142,6 +147,7 @@ export function scientistLine(id, r) {
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
   if (id === "simpson") { const c = (r.indices || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, change: c ? c.change : null, within: c ? c.within_radars : null }; }
+  if (id === "frege") return { verdict: r.verdict, names: r.people_names, ambiguous: r.ambiguous };
   if (id === "harman") return { verdict: r.verdict, resolved: r.stories_resolved, waiting: r.stories_waiting };
   if (id === "cohen") return { verdict: r.verdict, blind: (r.checks || []).filter((c) => c.grade === "blind").length, checks: (r.checks || []).length };
   if (id === "pearson") return { verdict: r.verdict, answers: r.all ? r.all.answers : 0, false_alarms: r.all ? r.all.false_alarms : 0, misses: r.all ? r.all.misses : 0 };

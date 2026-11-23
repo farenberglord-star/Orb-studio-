@@ -54,7 +54,7 @@ export const CRYSTAL_BRIDGES = [
   B("radar_moves_market", "A published radar moves the market", "Радар меняет рынок", "side_effects", "waiting", ["rosenthal", "keynes", "von_neumann", "wiener", "phillips_w", "campbell_dt"], { until: "2026-12-21" }),
   B("revisions", "How often numbers are revised", "Правки чисел", "stale_data", "waiting", ["rinne", "elmasri"], { until: "2026-12-21" }),
   B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "source", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { needs: "open evaluation–potency–activity word list in three languages (candidate NRC VAD, licence to check)" }),
-  B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "source", ["frege", "geach", "dirichlet", "levenshtein"], { needs: "open who-is-who base (candidate Wikidata, CC0)" }),
+  B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "sensor", ["frege", "geach", "dirichlet", "levenshtein"], { sensor: "frege" }),
   B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "idea", ["schmidt_j", "schleicher", "tarde"], { needs: "time each outlet joined a story (not stored yet)" }),
   B("check_the_die", "Test even the obvious", "Проверь кость", "measurement_error", "idea", ["weldon", "bertrand"]),
   B("reference_class", "Every percentage has a group", "Референтный класс", "one_model", "idea", ["venn", "bertrand", "weldon"]),
