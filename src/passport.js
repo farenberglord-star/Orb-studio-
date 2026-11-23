@@ -4,16 +4,18 @@
 // Без ИИ, только правила. Ведущие говорят своими словами, но опираются на паспорт, а не на сырой заголовок.
 import { searleHeadline } from "./searle.js";
 import { frankfurtHeadline } from "./frankfurt.js";
+import { regionsOf } from "./lyberg.js";
 
 export const PASSPORT_STATUS = { event: "reported_event", claim: "statement", promise: "plan_or_promise", threat: "threat_or_warning", demand: "demand", forecast: "forecast_or_speculation", question: "question_headline" };
 // «Трамп: Иран …», «Kremlin: …» — заявление с двоеточием; прогнозы и догадки; заголовок-вопрос
 const COLON_SPEAKER = /^\s*(?:[\p{Lu}][\p{L}.'’-]*)(?:\s+[\p{Lu}][\p{L}.'’-]*){0,3}\s*:\s+\S/u;
 const FORECAST_RE = /(?<![\p{L}])(forecasts?|predicts?|predicted|expects?|expected|outlook|projects?|projected|sees|could|may|might|likely|odds|prognos\p{L}*|erwartet|rechnet mit|könnte|dürfte|прогноз\p{L}*|ожида\p{L}*|может|могут|вероятн\p{L}*)(?![\p{L}])|(?<![\p{L}])report\s*:|\bto (raise|cut|hike|lower) rates\b/iu;
+const SPEAKERS = /trump|putin|selensk|zelensk|merz|macron|scholz|starmer|xi\b|erdo|netan|biden|vance|lavrov|peskov|kremlin|white house|трамп|путин|зеленск|мерц|макрон|эрдоган|нетаньях|лавров|песков|кремл|белый дом/i;
 function actOf(headline, searle) {
   const t = String(headline || "").trim();
   if (/\?\s*$/.test(t)) return "question";
   if (FORECAST_RE.test(t) && (searle.act === "event" || searle.act === "promise")) return "forecast"; // «X says … could» остаётся заявлением
-  if (searle.act === "event" && COLON_SPEAKER.test(t)) return "claim";
+  if (searle.act === "event" && COLON_SPEAKER.test(t)) { const head = t.split(":")[0]; if (SPEAKERS.test(head) || !regionsOf(head).length) return "claim"; } // «Turkey: …» — место, а не говорящий
   return searle.act;
 }
 

@@ -41,3 +41,6 @@ test("bridges: amplified story (Zajonc + Kasperson) and 'not known yet' (Weizenb
   assert.equal(newsPassport({ headline: "x", amplified: { outlets_first: 2, outlets_peak: 3 } }, now).amplified, null);
   assert.match(GROK_SYSTEM, /never cover a gap with smooth general words/);
 });
+test("a place before the colon is not a speaker", () => {
+  assert.equal(newsPassport({ headline: "Turkey: Thousands protest closure of critical media outlets" }, now).status, "reported_event");
+});
