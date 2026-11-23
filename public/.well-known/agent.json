@@ -133,6 +133,7 @@
     "pearson": "https://orbstudio.org/api/v1/pearson",
     "cohen": "https://orbstudio.org/api/v1/cohen",
     "harman": "https://orbstudio.org/api/v1/harman",
+    "crystal_bridges": "https://orbstudio.org/api/v1/crystal-bridges",
     "method": "https://orbstudio.org/api/v1/method",
     "timemachine": "https://orbstudio.org/api/v1/timemachine",
     "passport": "https://orbstudio.org/api/v1/passport?headline={headline}"

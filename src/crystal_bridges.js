@@ -1,0 +1,80 @@
+// Мостики Библиотеки кристаллов: связки двух-четырёх идей, которые вместе дают то, чего нет ни у одной по отдельности.
+// Покрытие меряем не только по карточкам, но и по мостикам: сколько связок уже работают (датчик, строка паспорта, правило ведущих
+// или закрыты существующим датчиком), сколько ждут истории и сколько ждут источника или идеи. Источник списка — CLAUDE.md.
+// status: sensor | line (строка паспорта или правило ведущих) | covered (закрыто существующим датчиком) | waiting (копится история) | source (нужен открытый источник) | idea (нужна идея измерения)
+const B = (id, en, ru, zone, status, cards, extra = {}) => ({ id, name: { en, ru }, zone, status, cards, ...extra });
+export const CRYSTAL_BRIDGES = [
+  B("amplification", "Amplification by retelling", "Усиление при пересказе", "side_effects", "sensor", ["kasperson", "toffler", "howard", "searle"], { sensor: "kasperson" }),
+  B("first_digit", "First-digit law", "Закон первой цифры", "measurement_error", "sensor", ["newcomb", "bessel", "baird", "rabin"], { sensor: "newcomb" }),
+  B("heavy_tails", "Heavy tails", "Тяжёлые хвосты", "measurement_error", "sensor", ["pareto", "mandelbrot", "chebyshev", "lorenz"], { sensor: "pareto" }),
+  B("cost_of_error", "Cost of error", "Цена ошибки", "measurement_error", "sensor", ["pearson", "savage", "snedecor", "wedderburn_r"], { sensor: "pearson" }),
+  B("not_significant", "Not significant ≠ no effect", "Незначимо ≠ нет эффекта", "answer_cost", "sensor", ["cohen", "mooers", "gosset", "howard"], { sensor: "cohen" }),
+  B("own_confidence", "Is our own confidence honest", "Честна ли наша уверенность", "own_limits", "sensor", ["harman", "festinger", "lindley", "burkov"], { sensor: "harman" }),
+  B("radar_noise", "Radar noise", "Шум радара", "measurement_error", "sensor", ["griliches", "polyak", "trackrecord"], { sensor: "trackrecord" }),
+  B("familiar_true", "The familiar feels true", "Привычное кажется правдой", "rumour_vs_fact", "line", ["zajonc", "kasperson", "galbraith"]),
+  B("smooth_not_understanding", "Smoothness ≠ understanding", "Гладкость ≠ понимание", "own_limits", "line", ["weizenbaum", "dreyfus", "naur"]),
+  B("false_premise", "False premise", "Ложная посылка", "rumour_vs_fact", "line", ["strawson", "nozick", "schopenhauer", "bentham"]),
+  B("quote_context", "Quote out of context", "Цитата вне контекста", "look_alike", "line", ["derrida", "koselleck", "schleiermacher"]),
+  B("found_document", "Forgeries are caught by words", "Подделку ловят словами", "rumour_vs_fact", "line", ["valla", "casaubon", "dobrovsky", "chasles"]),
+  B("extraordinary", "Extraordinary claims need more", "Необычное требует большего", "rumour_vs_fact", "line", ["hume", "laplace", "borel"]),
+  B("metaphor", "Metaphor ≠ fact", "Метафора ≠ факт", "look_alike", "line", ["max_mueller", "condillac"]),
+  B("who_else_pays", "Who else pays", "Кто ещё платит", "side_effects", "line", ["sidgwick", "bastiat", "powell", "tinbergen"]),
+  B("rumour_risk", "Rumour = importance × ambiguity", "Слух = важность × неясность", "rumour_vs_fact", "line", ["allport", "cantril", "tarde"]),
+  B("first_source", "First source, not the count of retellings", "Первоисточник, а не число пересказов", "rumour_vs_fact", "line", ["tannery", "stephen_l", "schleicher", "shakhmatov"]),
+  B("rule_conflict", "When rules conflict, the cautious one wins", "Конфликт правил: побеждает осторожное", "own_limits", "line", ["bobbio", "neurath"]),
+  B("knowledge_dispersed", "Say 'not known'", "Знание рассеяно: говори «неизвестно»", "own_limits", "line", ["hayek", "weizenbaum", "polanyi_m"]),
+  B("several_hypotheses", "Several working hypotheses", "Несколько гипотез", "one_model", "line", ["chamberlin", "peirce", "duhem"]),
+  B("honest_answer_pays", "The honest answer pays", "Честный ответ выгоден", "answer_cost", "line", ["vickrey", "burkov", "ramsey_f", "de_finetti"]),
+  B("witness_question", "The question shapes the answer", "Свидетель и вопрос", "rumour_vs_fact", "line", ["binet", "muensterberg", "strawson"]),
+  B("instrument_limit", "Limit of the instrument", "Предел прибора", "measurement_error", "covered", ["abbe", "gibbs", "fechner"], { sensor: "trackrecord" }),
+  B("random_is_a_model", "'At random' is a model too", "«Наугад» — тоже модель", "one_model", "covered", ["bertrand", "leamer", "breiman"], { sensor: "leamer" }),
+  B("empty_cell", "Show the empty cell", "Пустая клетка", "own_limits", "covered", ["mendeleev", "lyberg", "halley"], { sensor: "lyberg" }),
+  B("difference_without_difference", "A difference that makes no difference", "Разница без разницы", "look_alike", "covered", ["james_w", "levenshtein"], { sensor: "frankfurt" }),
+  B("scale_decides", "The scale decides the arithmetic", "Шкала решает арифметику", "measurement_error", "covered", ["stevens_ss", "baird", "richardson_lf", "kendall"], { sensor: "baird" }),
+  B("net_decides_catch", "The net decides the catch", "Сеть решает улов", "measurement_error", "covered", ["eddington", "lyberg", "bowley"], { sensor: "lyberg" }),
+  B("noise_or_shift", "Noise or shift", "Шум или сдвиг", "measurement_error", "covered", ["galton", "lexis", "polyak"], { sensor: "polyak" }),
+  B("robust_conclusion", "Does the conclusion survive a nudge", "Устойчивость вывода", "one_model", "covered", ["lyapunov", "duhem", "quine", "leamer"], { sensor: "leamer" }),
+  B("rare_in_clusters", "Rare events cluster by chance", "Редкое кучками", "measurement_error", "covered", ["bortkiewicz", "mises_r", "skinner_bf"], { sensor: "trackrecord" }),
+  B("few_data_wide_band", "Few data, wide bands", "Мало данных — шире границы", "measurement_error", "covered", ["gosset", "helmert", "neyman", "cramer"], { sensor: "trackrecord" }),
+  B("model_not_world", "The model is not the world", "Модель ≠ мир", "one_model", "covered", ["whitehead", "schumpeter", "robinson_j", "leamer"], { sensor: "leamer" }),
+  B("other_things_equal", "Other things equal", "При прочих равных", "one_model", "covered", ["marshall_a", "simpson", "frisch"], { sensor: "simpson" }),
+  B("index_weights", "Weights make the index", "Веса индекса", "measurement_error", "covered", ["edgeworth", "konus", "allen_rgd", "kuznets"], { sensor: "baird" }),
+  B("prestige_not_quality", "Prestige ≠ quality", "Престиж ≠ качество", "look_alike", "covered", ["veblen", "zajonc", "kasperson"], { sensor: "kasperson" }),
+  B("unanimity", "Unanimity is not proof", "Единогласие ≠ доказательство", "rumour_vs_fact", "covered", ["asch", "condorcet", "hempel"], { sensor: "frankfurt" }),
+  B("formal_limit", "A system cannot check itself", "Граница формализации", "own_limits", "covered", ["goedel", "tarski", "polanyi_m", "ryle"], { sensor: "rabin" }),
+  B("calm_breeds_risk", "Stability breeds risk", "Стабильность растит риск", "side_effects", "covered", ["minsky_h", "pareto", "mandelbrot"], { sensor: "pareto" }),
+  B("message_functions", "Three functions of a message", "Три функции сообщения", "rumour_vs_fact", "covered", ["buehler", "searle", "goffman"], { sensor: "searle" }),
+  B("test_before_data", "Fix the test before the data", "Тест до данных", "measurement_error", "covered", ["fisher_r", "skinner_bf"], { sensor: "trackrecord" }),
+  B("not_confirmed", "Not confirmed ≠ refuted", "Не подтверждено ≠ опровергнуто", "rumour_vs_fact", "covered", ["greimas", "dunn", "karpenko"], { sensor: "frankfurt" }),
+  B("verb_aspect", "Done, doing or planned", "Вид глагола", "rumour_vs_fact", "covered", ["maslov", "searle", "grice"], { sensor: "searle" }),
+  B("index_not_living", "An index is not the cost of living", "Индекс ≠ стоимость жизни", "measurement_error", "covered", ["konus", "baird", "kuznets"], { sensor: "baird" }),
+  B("who_leads_whom", "Who leads whom", "Кто кого ведёт", "one_model", "waiting", ["granger", "salmon_w", "reichenbach", "pearson_k", "mill", "cournot"], { until: "2026-12-14" }),
+  B("forecast_horizon", "Forecast horizon", "Горизонт прогноза", "one_model", "waiting", ["lorenz", "poincare", "mandelbrot"], { until: "2026-12-14" }),
+  B("spill_over", "Spill-over between radars", "Перенос между радарами", "side_effects", "waiting", ["leontief", "walras", "kahn_r", "quesnay"], { until: "2026-12-21" }),
+  B("radar_moves_market", "A published radar moves the market", "Радар меняет рынок", "side_effects", "waiting", ["rosenthal", "keynes", "von_neumann", "wiener", "phillips_w", "campbell_dt"], { until: "2026-12-21" }),
+  B("revisions", "How often numbers are revised", "Правки чисел", "stale_data", "waiting", ["rinne", "elmasri"], { until: "2026-12-21" }),
+  B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "source", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { needs: "open evaluation–potency–activity word list in three languages (candidate NRC VAD, licence to check)" }),
+  B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "source", ["frege", "geach", "dirichlet", "levenshtein"], { needs: "open who-is-who base (candidate Wikidata, CC0)" }),
+  B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "idea", ["schmidt_j", "schleicher", "tarde"], { needs: "time each outlet joined a story (not stored yet)" }),
+  B("check_the_die", "Test even the obvious", "Проверь кость", "measurement_error", "idea", ["weldon", "bertrand"]),
+  B("reference_class", "Every percentage has a group", "Референтный класс", "one_model", "idea", ["venn", "bertrand", "weldon"]),
+  B("own_yardstick", "Judging by one's own yardstick", "Своя мерка", "look_alike", "idea", ["sumner", "bessel", "winch"]),
+  B("halo", "Reputation instead of evidence", "Ореол", "look_alike", "idea", ["thorndike", "veblen", "zajonc"]),
+  B("fact_or_value", "Fact or value judgement", "Факт или оценка", "rumour_vs_fact", "idea", ["weber_m", "osgood", "elias"]),
+  B("context_not_meaning", "Similar context ≠ same meaning", "Контекст ≠ смысл", "look_alike", "idea", ["harris_z", "kilgarriff", "levenshtein"]),
+  B("word_hides_danger", "A word hides the danger", "Слово прячет опасность", "look_alike", "idea", ["whorf", "max_mueller"]),
+  B("explanation_vs_understanding", "Explanation ≠ understanding", "Объяснение ≠ понимание", "look_alike", "idea", ["dilthey", "searle"]),
+];
+export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting"], blocked: ["source", "idea"] };
+export function bridgesReport(now = Date.now()) {
+  const by = (st) => CRYSTAL_BRIDGES.filter((b) => b.status === st).length, n = CRYSTAL_BRIDGES.length;
+  const zones = {}; for (const b of CRYSTAL_BRIDGES) { const z = (zones[b.zone] = zones[b.zone] || { bridges: 0, working: 0, waiting: 0, blocked: 0 }); z.bridges++; z[Object.keys(BRIDGE_GROUPS).find((g) => BRIDGE_GROUPS[g].includes(b.status))]++; }
+  const working = by("sensor") + by("line") + by("covered");
+  return {
+    library: "crystal_bridges", bridges: n,
+    counts: { sensor: by("sensor"), line: by("line"), covered: by("covered"), waiting: by("waiting"), source: by("source"), idea: by("idea") },
+    working, working_pct: Math.round((100 * working) / n), zones, list: CRYSTAL_BRIDGES,
+    about: "Bridges are combinations of two to six ideas from the Crystal Library that together give something none gives alone. Status: sensor (a live sensor), line (a news-passport line or host rule), covered (closed by an existing sensor), waiting (history is accumulating, with a date), source (needs an open data source), idea (needs a way to measure).",
+    generated_at: new Date(now).toISOString(),
+  };
+}

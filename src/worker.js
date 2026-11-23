@@ -88,6 +88,7 @@ import { paretoReport } from "./pareto.js";
 import { pearsonReport } from "./pearson.js";
 import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
+import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
@@ -3746,6 +3747,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/timemachine") return json(timeMachineReport({ era: url.searchParams.get("era"), zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }, url.origin), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/crystal-bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/harman") return json(await harmanNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/cohen") return json(await cohenNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/pearson") return json(await pearsonNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
@@ -8281,6 +8283,9 @@ const MCP_TOOLS = [
   { name: "get_method", title: "How Orb Studio checks news: three layers of rules and the live news passport of today's top headlines",
     description: "The method behind Orb Studio's sensors and studio, as one pipeline: layer 1 (which scientists enter the Crystal Library), layer 2 (how a card becomes a sensor, a news-passport line or a host rule), layer 3 (the order in which a news item is checked before air: freshness, fact or rumour, numbers, one model, consequences and look-alikes, limits of knowledge, cost). Plus live news passports of today's top radar headlines: status (event, statement, promise, threat, forecast, question), outlets, age, amplification, confidence and the lines the hosts follow. Word rules, no AI.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_crystal_bridges", title: "Crystal Library bridges: which combinations of scientists' ideas already work as sensors or rules, and which wait for history, a source or an idea",
+    description: "Every bridge of the Orb Studio Crystal Library (two to six scientists' ideas that together give something none gives alone) with its zone, cards and status: sensor, line (news-passport line or host rule), covered (closed by an existing sensor), waiting (with the date history will suffice), source (needs an open data source) or idea; plus counts per zone. Read-only, no AI.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_harman", title: "Harman sensor: is the Orb Studio news passport honest about its own confidence?",
     description: "The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8673,6 +8678,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_time_machine") return { ...timeMachineReport({ era: args.era || null, zone: args.blind_spot || null, q: args.query || null }, origin), referral: ref };
   if (name === "get_news_passport") return { ...(await passportOf(env, ctx, origin, args.headline)), referral: ref };
   if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
+  if (name === "get_crystal_bridges") return { ...bridgesReport(), page: origin + "/tools/crystals", referral: ref };
   if (name === "get_harman") return { ...(await harmanNow(env)), page: origin + "/tools/harman", referral: ref };
   if (name === "get_cohen") return { ...(await cohenNow(env)), page: origin + "/tools/cohen", referral: ref };
   if (name === "get_pearson") return { ...(await pearsonNow(env)), page: origin + "/tools/pearson", referral: ref };
