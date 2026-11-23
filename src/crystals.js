@@ -7184,6 +7184,61 @@ export const CRYSTALS = [
 "note": "the Searle sensor and the news passport already tell an event from a promise, plan or threat",
 "covered_by": "searle"
 }
+},
+{
+"id": "hopper",
+"name": "Grace Hopper",
+"name_ru": "Грейс Хоппер",
+"years": "1906–1992",
+"wiki": "https://en.wikipedia.org/wiki/Grace_Hopper",
+"zone": "answer_cost",
+"idea": {
+"en": "Making invisible costs visible: she handed out 30-cm wires to show what a nanosecond is — the distance light travels — so people would feel the cost of delay.",
+"ru": "Сделать невидимую цену видимой: она раздавала 30-сантиметровые проводки, чтобы показать наносекунду — путь света, — и люди почувствовали цену задержки.",
+"de": "Unsichtbare Kosten sichtbar machen: das Nanosekunden-Kabel."
+},
+"rule": "Show the cost of an answer in concrete units (time, tokens, money), not as an abstraction.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already shows the cost of every tool answer in tokens",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "aizerman",
+"name": "Mark Aizerman",
+"name_ru": "Марк Айзерман",
+"years": "1913–1992",
+"wiki": "https://en.wikipedia.org/wiki/Mark_Aizerman",
+"zone": "look_alike",
+"idea": {
+"en": "The method of potential functions (a forerunner of the kernel trick) and the theory of choice: similarity is something you choose to measure, and the choice shapes the result.",
+"ru": "Метод потенциальных функций (предшественник «ядерного трюка») и теория выбора: сходство — это то, как ты решил его измерять, и выбор меры определяет результат.",
+"de": "Potentialfunktionen und Wahltheorie."
+},
+"rule": "Say which measure of similarity you used before calling two things alike.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "anders",
+"name": "Günther Anders",
+"name_ru": "Гюнтер Андерс",
+"years": "1902–1992",
+"wiki": "https://en.wikipedia.org/wiki/G%C3%BCnther_Anders",
+"zone": "side_effects",
+"idea": {
+"en": "The 'Promethean gap': people can make more than they can imagine the consequences of.",
+"ru": "«Прометеев разрыв»: люди способны создать больше, чем способны представить себе последствия.",
+"de": "„Das prometheische Gefälle“."
+},
+"rule": "Before acting at scale, try to picture the consequences concretely, not only the intended effect.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

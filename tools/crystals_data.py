@@ -1205,6 +1205,16 @@ C = [
 ('maslov', 'Yuri Maslov', 'Юрий Маслов', '1914–1990', 'https://en.wikipedia.org/wiki/Yuri_Maslov', 'rumour_vs_fact',
  'Theory of verbal aspect: a completed action and an ongoing or planned one are different, and languages mark the difference.', 'Теория вида глагола: завершённое действие и длящееся или запланированное — разные вещи, и язык это различает.', 'Aspekttheorie: abgeschlossene und andauernde Handlung.',
  'Check whether a verb says it is done, is happening or is only intended.'),
+# --- эксперимент Claude: русская Википедия, 1992 (дополнение, сырьё — Лиана), 23.11.2026 ---
+('hopper', 'Grace Hopper', 'Грейс Хоппер', '1906–1992', 'https://en.wikipedia.org/wiki/Grace_Hopper', 'answer_cost',
+ 'Making invisible costs visible: she handed out 30-cm wires to show what a nanosecond is — the distance light travels — so people would feel the cost of delay.', 'Сделать невидимую цену видимой: она раздавала 30-сантиметровые проводки, чтобы показать наносекунду — путь света, — и люди почувствовали цену задержки.', 'Unsichtbare Kosten sichtbar machen: das Nanosekunden-Kabel.',
+ 'Show the cost of an answer in concrete units (time, tokens, money), not as an abstraction.'),
+('aizerman', 'Mark Aizerman', 'Марк Айзерман', '1913–1992', 'https://en.wikipedia.org/wiki/Mark_Aizerman', 'look_alike',
+ 'The method of potential functions (a forerunner of the kernel trick) and the theory of choice: similarity is something you choose to measure, and the choice shapes the result.', 'Метод потенциальных функций (предшественник «ядерного трюка») и теория выбора: сходство — это то, как ты решил его измерять, и выбор меры определяет результат.', 'Potentialfunktionen und Wahltheorie.',
+ 'Say which measure of similarity you used before calling two things alike.'),
+('anders', 'Günther Anders', 'Гюнтер Андерс', '1902–1992', 'https://en.wikipedia.org/wiki/G%C3%BCnther_Anders', 'side_effects',
+ "The 'Promethean gap': people can make more than they can imagine the consequences of.", '«Прометеев разрыв»: люди способны создать больше, чем способны представить себе последствия.', '„Das prometheische Gefälle“.',
+ 'Before acting at scale, try to picture the consequences concretely, not only the intended effect.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1392,3 +1402,5 @@ NEEDS["skinner_bf"] = ("covered", "the track record sensor already refuses a con
 NEEDS["konus"] = ("covered", "the Baird sensor already traces what every published number measures, with its source and unit", None, "baird")
 NEEDS["maslov"] = ("covered", "the Searle sensor and the news passport already tell an event from a promise, plan or threat", None, "searle")
 NEEDS["elias"] = ("needs_source", "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to measure how charged a headline is")
+
+NEEDS["hopper"] = ("covered", "the Bertsekas sensor already shows the cost of every tool answer in tokens", None, "bertsekas")
