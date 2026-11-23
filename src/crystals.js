@@ -7999,6 +7999,154 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "applied: check_headline compares the same story across outlets and languages and keeps what they share (independent_voices)"
 }
+},
+{
+"id": "wallas",
+"name": "Graham Wallas",
+"name_ru": "Грэм Уоллас",
+"years": "1858–1932",
+"wiki": "https://en.wikipedia.org/wiki/Graham_Wallas",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Human Nature in Politics' (1908): political opinion is moved mostly by habit, images and emotion, not by reasoned argument.",
+"ru": "«Человеческая природа в политике» (1908): политическое мнение движут в основном привычка, образы и эмоции, а не доводы.",
+"de": "„Human Nature in Politics“ (1908): Gewohnheit und Bilder statt Argumente."
+},
+"rule": "Notice when a headline works by an image or an emotion instead of a claim you can check.",
+"needs": {
+"code": "needs_source",
+"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to tell an emotional image from a checkable claim"
+}
+},
+{
+"id": "follett",
+"name": "Mary Parker Follett",
+"name_ru": "Мэри Паркер Фоллетт",
+"years": "1868–1933",
+"wiki": "https://en.wikipedia.org/wiki/Mary_Parker_Follett",
+"zone": "answer_cost",
+"idea": {
+"en": "'Constructive Conflict' (1925): a conflict can end in domination, compromise or integration — a solution that meets what both sides really need.",
+"ru": "«Конструктивный конфликт» (1925): конфликт может закончиться подчинением, компромиссом или интеграцией — решением, которое даёт обеим сторонам то, что им действительно нужно.",
+"de": "„Constructive Conflict“ (1925): Integration statt Kompromiss."
+},
+"rule": "Do not frame a dispute as only two options; ask what each side actually needs.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts present the main viewpoints on contested issues and name who else gains or pays"
+}
+},
+{
+"id": "schlick",
+"name": "Moritz Schlick",
+"name_ru": "Мориц Шлик",
+"years": "1882–1936",
+"wiki": "https://en.wikipedia.org/wiki/Moritz_Schlick",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The Vienna Circle's verification principle: the meaning of a statement lies in the way it could be checked against experience.",
+"ru": "Принцип верификации Венского кружка: смысл утверждения — в том, как его можно проверить опытом.",
+"de": "Verifikationsprinzip des Wiener Kreises."
+},
+"rule": "Ask what observation would show the claim true or false; if none could, say it cannot be checked.",
+"needs": {
+"code": "covered",
+"note": "the Frankfurt sensor already tells checkable headlines from vague ones",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "sapir",
+"name": "Edward Sapir",
+"name_ru": "Эдвард Сепир",
+"years": "1884–1939",
+"wiki": "https://en.wikipedia.org/wiki/Edward_Sapir",
+"zone": "look_alike",
+"idea": {
+"en": "Language as a guide to social reality (1929): the categories a language forces on its speakers shape what they notice and report.",
+"ru": "Язык как путеводитель по социальной реальности (1929): категории, которые язык навязывает говорящим, определяют, что они замечают и сообщают.",
+"de": "Sprache als Leitfaden der sozialen Wirklichkeit (1929)."
+},
+"rule": "When the same news comes in several languages, check what each wording adds or leaves out.",
+"needs": {
+"code": "covered",
+"note": "applied: the echo check compares the same story across ru/de/en and the passport flags metaphors"
+}
+},
+{
+"id": "pearson_k",
+"name": "Karl Pearson",
+"name_ru": "Карл Пирсон",
+"years": "1857–1936",
+"wiki": "https://en.wikipedia.org/wiki/Karl_Pearson",
+"zone": "one_model",
+"idea": {
+"en": "'The Grammar of Science' (1892) and the chi-squared test (1900): correlation measures how two things move together, not what causes what; a fit must be tested against chance. (His eugenics is rejected; the statistical tools stand.)",
+"ru": "«Грамматика науки» (1892) и критерий хи-квадрат (1900): корреляция показывает, как две вещи меняются вместе, а не что чем вызвано; согласие с моделью надо проверять против случайности. (Его евгеника отвергнута; статистические инструменты остаются.)",
+"de": "„The Grammar of Science“ (1892); Chi-Quadrat-Test (1900)."
+},
+"rule": "A correlation is not a cause; test whether the pattern could be chance before explaining it.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'who leads whom' (Granger + Pearson + Mill): correlation of radar and prices first, cause later",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "bortkiewicz",
+"name": "Ladislaus Bortkiewicz",
+"name_ru": "Владислав Борткевич",
+"years": "1868–1931",
+"wiki": "https://en.wikipedia.org/wiki/Ladislaus_Bortkiewicz",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Law of Small Numbers' (1898): deaths from horse kicks in the Prussian cavalry followed the Poisson law — rare events cluster by chance alone.",
+"ru": "«Закон малых чисел» (1898): число погибших от ударов копытом в прусской кавалерии подчинялось закону Пуассона — редкие события и по чистой случайности идут кучками.",
+"de": "„Das Gesetz der kleinen Zahlen“ (1898)."
+},
+"rule": "With rare events, a bad week can be pure chance; compare with what chance alone would give.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already refuses conclusions from few days and shows ordinary noise",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "gosset",
+"name": "William Sealy Gosset",
+"name_ru": "Уильям Сили Госсет",
+"years": "1876–1937",
+"wiki": "https://en.wikipedia.org/wiki/William_Sealy_Gosset",
+"zone": "measurement_error",
+"idea": {
+"en": "As 'Student' (1908), working at the Guinness brewery, he showed that small samples need wider error bands than large ones — the t-distribution.",
+"ru": "Под псевдонимом «Стьюдент» (1908), работая на пивоварне Guinness, он показал, что маленьким выборкам нужны более широкие границы погрешности, чем большим, — t-распределение.",
+"de": "„Student“ (1908): t-Verteilung für kleine Stichproben."
+},
+"rule": "The fewer the observations, the wider the uncertainty you must state.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already gives Wilson intervals that widen with fewer days",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "ramsey_f",
+"name": "Frank Ramsey",
+"name_ru": "Фрэнк Рамсей",
+"years": "1903–1930",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Ramsey_(mathematician)",
+"zone": "own_limits",
+"idea": {
+"en": "'Truth and Probability' (1926): a degree of belief can be measured by the bets you would accept, and beliefs should hang together consistently.",
+"ru": "«Истина и вероятность» (1926): степень уверенности можно измерить ставками, которые ты готов принять, а убеждения должны быть согласованы между собой.",
+"de": "„Truth and Probability“ (1926)."
+},
+"rule": "State your confidence as a number you would bet on, and keep it consistent across related claims.",
+"needs": {
+"code": "covered",
+"note": "applied: the forecast game scores agents by the Brier rule, so honest degrees of belief pay off"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
