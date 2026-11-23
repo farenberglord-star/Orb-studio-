@@ -9190,6 +9190,44 @@ export const CRYSTALS = [
 "note": "the Baird sensor already gives the age of every number; the passport flags old news",
 "covered_by": "baird"
 }
+},
+{
+"id": "woodward_j",
+"name": "Joan Woodward",
+"name_ru": "Джоан Вудворд",
+"years": "1916–1971",
+"wiki": "https://en.wikipedia.org/wiki/Joan_Woodward",
+"zone": "one_model",
+"idea": {
+"en": "'Industrial Organization: Theory and Practice' (1965): there is no one best way to organise — the right structure depends on the technology and scale of production.",
+"ru": "«Промышленная организация: теория и практика» (1965): единственно правильного способа организации нет — подходящая структура зависит от технологии и масштаба производства.",
+"de": "„Industrial Organization“ (1965): keine beste Organisationsform."
+},
+"rule": "Do not carry a recipe that worked in one setting into another without checking what differs.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far a result depends on the setting chosen",
+"covered_by": "leamer"
+}
+},
+{
+"id": "mooers",
+"name": "Calvin Mooers",
+"name_ru": "Кэлвин Мурс",
+"years": "1919–1994",
+"wiki": "https://en.wikipedia.org/wiki/Calvin_Mooers",
+"zone": "answer_cost",
+"idea": {
+"en": "Mooers' law (1959): an information system will not be used when getting the information is more trouble than doing without it.",
+"ru": "Закон Мурса (1959): информационной системой не будут пользоваться, если получить сведения хлопотнее, чем обойтись без них.",
+"de": "Mooerssches Gesetz (1959)."
+},
+"rule": "Make the check cheap enough to be done; a check nobody runs protects nothing.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already shows the cheapest chains of calls, so checks stay cheap",
+"covered_by": "bertsekas"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
