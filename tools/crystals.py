@@ -53,6 +53,7 @@ for lg in ("ru", "de", "en"):
     person = {"@type": "ItemList", "name": t["h1"], "numberOfItems": len(cards) + len(B), "itemListElement": [{"@type": "Person", "name": x["name"], "sameAs": [x["wiki"]]} for x in cards]}
     cfg = dict(HP.LD[lg], cnt=cnt, loc=HP.LOC[lg])
     s = HP.page("crystals", lg, c, "", 'document.getElementById("hmStatus").textContent=HM.cnt;', cfg, person)
+    s = s.replace('<script type="module" src="/share-x.js"></script>', '<script>document.addEventListener("click",(e)=>{const a=e.target.closest&&e.target.closest("li.cr a[href*=\\"wikipedia.org\\"]");if(!a)return;const li=a.closest("li.cr");try{navigator.sendBeacon("/api/v1/crystal-click",new Blob([JSON.stringify({id:li.id})],{type:"application/json"}));}catch(x){}});</script>\n<script type="module" src="/share-x.js"></script>', 1)
     s = s.replace('<ol class="hm-list" id="hmRows"></ol>', '<div id="hmRows">\n' + "\n".join(groups) + '\n  </div>', 1)
     s = s.replace('</style>\n</head>', '.crl{list-style:none;padding:0;margin:.4rem 0 1.2rem;display:grid;gap:.6rem}.cr{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:.6rem .8rem}.cr p{margin:.3rem 0}.cr.has{border-color:rgba(120,220,255,.45)}</style>\n</head>', 1)
     out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/crystals.html"; open(out, "w").write(s); print(out, len(cards), len(B))

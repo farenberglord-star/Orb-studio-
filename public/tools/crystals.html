@@ -463,6 +463,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_crystals")){sessionStorage.setItem("orbCounted_crystals","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"crystals",lang:"ru",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/crystals",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{document.getElementById("hmStatus").textContent=HM.cnt;}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
+<script>document.addEventListener("click",(e)=>{const a=e.target.closest&&e.target.closest("li.cr a[href*=\"wikipedia.org\"]");if(!a)return;const li=a.closest("li.cr");try{navigator.sendBeacon("/api/v1/crystal-click",new Blob([JSON.stringify({id:li.id})],{type:"application/json"}));}catch(x){}});</script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>
 </body>

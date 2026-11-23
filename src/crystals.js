@@ -5169,3 +5169,21 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
 }
+
+// «Чьи идеи вспоминают»: переходы людей с карточек в Википедию и находки карточек агентами (get_crystals с фильтром) за 30 дней.
+// rows: строки hits с page = "crystal:<id>", kind = "wiki_click" | "found"
+export function crystalsRemembered(rows, scientists = [], now = Date.now()) {
+  const from = new Date(now - 29 * 864e5).toISOString().slice(0, 10), by = new Map();
+  const names = new Map([...CRYSTALS.map((c) => [c.id, { name: c.name, name_ru: c.name_ru, years: c.years, zone: c.zone, wiki: c.wiki }]),
+    ...(scientists || []).map((s) => [s.id, { name: s.honour.name, years: s.honour.years || null, zone: CRYSTAL_BUILT_ZONE[s.id] || null, sensor: "/tools/" + s.id }])]);
+  for (const r of rows || []) {
+    if (!r || r.day < from || !String(r.page).startsWith("crystal:")) continue;
+    const id = String(r.page).slice(8); if (!names.has(id)) continue;
+    const x = by.get(id) || { id, ...names.get(id), wiki_clicks_30d: 0, found_by_agents_30d: 0, days: new Set() };
+    if (r.kind === "wiki_click") x.wiki_clicks_30d += +r.n || 0; else if (r.kind === "found") x.found_by_agents_30d += +r.n || 0; else continue;
+    x.days.add(r.day); by.set(id, x);
+  }
+  const list = [...by.values()].map(({ days, ...x }) => ({ ...x, days_30d: days.size })).sort((a, b) => (b.wiki_clicks_30d + b.found_by_agents_30d) - (a.wiki_clicks_30d + a.found_by_agents_30d) || b.days_30d - a.days_30d);
+  return { period: "last 30 days", scientists_remembered: list.length, of: names.size, top: list.slice(0, 20),
+    how_to_read: "wiki_clicks_30d = how often people followed the link from a Crystal Library card to the scientist's Wikipedia article; found_by_agents_30d = how often an outside AI agent got this card from get_crystals or /api/v1/crystals with a filter (blind_spot or query; full unfiltered lists are not counted). Our own checks, robots and the owner are not counted. No personal data: only the card and the day." };
+}

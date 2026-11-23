@@ -60,7 +60,7 @@ import { hamiltonReport } from "./hamilton.js";
 import { mikrinReport } from "./mikrin.js";
 import { polyakReport } from "./polyak.js";
 import { scientistsIndex, SCIENTISTS } from "./scientists.js";
-import { impulseReport } from "./impulse.js";
+import { impulseReport, IMPULSE_OWN } from "./impulse.js";
 import { kahnemanReport } from "./kahneman.js"; // «Канеман»: шум оценок трёх ИИ-гостей круглого стола
 import { zivReport } from "./ziv.js"; // «Зив»: сколько нового в заголовках радаров (сжатие LZ)
 import { coxReport } from "./cox.js";
@@ -71,7 +71,7 @@ import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
 import { hagenauerReport } from "./hagenauer.js";
-import { crystalsReport } from "./crystals.js";
+import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
 import { duckworthReport } from "./duckworth.js";
 import { trevisanReport } from "./trevisan.js";
@@ -1751,7 +1751,16 @@ async function parkWarm(env, ctx) {
 async function impulseNow(env) {
   const sensors = SCIENTISTS.map((s) => ({ id: s.id, tool: s.tool, api: s.api })), pages = [...sensors.flatMap((s) => ["/mcp/" + s.tool, s.api]), ...sensors.map((s) => s.id)];
   let rows = []; try { rows = (await env.DB.prepare("SELECT day, page, kind, name, n FROM hits WHERE day >= ?1 AND page IN (" + pages.map((_, i) => "?" + (i + 2)).join(",") + ")").bind(new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10), ...pages).all()).results || []; } catch {}
-  return impulseReport(sensors, rows);
+  let cr = []; try { cr = (await env.DB.prepare("SELECT day, page, kind, n FROM hits WHERE day >= ?1 AND page LIKE 'crystal:%'").bind(new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10)).all()).results || []; } catch {}
+  return { ...impulseReport(sensors, rows), remembered: crystalsRemembered(cr, SCIENTISTS) };
+}
+// карточки, которые агент получил по фильтру (зона или поиск), — «нашёл агент»; полный список без фильтра не считаем
+const CRYSTAL_IDS = new Set([...CRYSTALS.map((c) => c.id), ...SCIENTISTS.map((s) => s.id)]);
+function crystalsFound(env, ctx, request, rep, filtered) {
+  if (!filtered || !rep || !Array.isArray(rep.crystals) || rep.crystals.length > 40) return;
+  const ua = (request && request.headers.get("user-agent")) || "";
+  if (IMPULSE_OWN.test(ua) || (request && isOwner(request))) return;
+  ctx.waitUntil(Promise.all(rep.crystals.map((c) => recordHit(env, "crystal:" + c.id, "found", ""))));
 }
 async function kahnemanNow(env) { const arc = await sharedGet(env, RT_ARCHIVE, 1e15).catch(() => null); return kahnemanReport((arc && arc.episodes) || [], RT_GUESTS); }
 // заголовки радаров: { radarId: [заголовок, …] } — первые 8 каждой ленты, как их видят радары
@@ -3652,7 +3661,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/searle") return json(await searleNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/rabin") return json(await rabinNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/frankfurt") return json(await frankfurtNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/crystals") return json(crystalsReport(SCIENTISTS, { zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/crystals") { const zq = { zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }, rep = crystalsReport(SCIENTISTS, zq); crystalsFound(env, ctx, request, rep, zq.zone || zq.q); return json(rep, { "Cache-Control": "no-store", "Access-Control-Allow-Origin": "*" }); }
   if (p === "/api/v1/hagenauer") return json(await hagenauerNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/lyberg") return json(await lybergNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/baird") return json(await bairdNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
@@ -8214,7 +8223,7 @@ const MCP_TOOLS = [
     description: "Free. Named in honour of Sir David Cox (1924–2022), author of the proportional hazards model (1972). A story starts when its headline first appears on a radar and ends when it is gone for 2 hours; stories still on a radar count as censored. Returns per radar the Kaplan–Meier median lifetime in hours and the Cox hazard ratio against the other radars with a 95% interval (above 1 = stories end sooner). Past data only.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_impulse", title: "Impulse: which sensors in honour of scientists outside AI agents actually use",
-    description: "Free. The main sensor of the Orb Studio portal of sensors in honour of scientists. For each sensor (Hamilton, Mikrin, Polyak, Park and more) it returns calls by outside programs in the last 7 days via MCP and API, how many different programs, on how many days, the trend against the week before, the first outside use, page views by people, and separately the watchers (search engines, catalogues, monitors). Our own checks are not counted. Shows whose work the world takes up.",
+    description: "Also 'remembered': whose ideas from the Crystal Library people and agents return to in the last 30 days (clicks from a card to the scientist's Wikipedia article, cards found by outside agents via get_crystals with a filter). Free. The main sensor of the Orb Studio portal of sensors in honour of scientists. For each sensor (Hamilton, Mikrin, Polyak, Park and more) it returns calls by outside programs in the last 7 days via MCP and API, how many different programs, on how many days, the trend against the week before, the first outside use, page views by people, and separately the watchers (search engines, catalogues, monitors). Our own checks are not counted. Shows whose work the world takes up.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "list_scientist_sensors", title: "Sensors in honour of scientists: one idea of a scientist applied to live Orb Studio data",
     description: "Free. Lists the Orb Studio sensors named in honour of scientists (Margaret Hamilton, Evgeny Mikrin, Boris Polyak, Robert L. Park, Daniel Kahneman, Jacob Ziv, David Cox, Joseph Halpern, more to come): the scientist, the principle taken from their work, what the sensor measures, its API, MCP tool, pages in ru/de/en, Wikipedia link, an honest analog check (similar tools and the difference) and a one-line live reading of each sensor.",
@@ -8543,7 +8552,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_searle") return { ...(await searleNow(env, ctx)), page: origin + "/tools/searle", referral: ref };
   if (name === "get_rabin") return { ...(await rabinNow(env)), page: origin + "/tools/rabin", referral: ref };
   if (name === "get_frankfurt") return { ...(await frankfurtNow(env, ctx)), page: origin + "/tools/frankfurt", referral: ref };
-  if (name === "get_crystals") return { ...crystalsReport(SCIENTISTS, { zone: args.blind_spot || null, q: args.query || null }), referral: ref };
+  if (name === "get_crystals") { const rep = crystalsReport(SCIENTISTS, { zone: args.blind_spot || null, q: args.query || null }); crystalsFound(env, ctx, request, rep, args.blind_spot || args.query); return { ...rep, referral: ref }; }
   if (name === "get_hagenauer") return { ...(await hagenauerNow(env, ctx)), page: origin + "/tools/hagenauer", referral: ref };
   if (name === "get_lyberg") return { ...(await lybergNow(env, ctx)), page: origin + "/tools/lyberg", referral: ref };
   if (name === "get_baird") return { ...(await bairdNow(env, ctx)), page: origin + "/tools/baird", referral: ref };
@@ -9435,6 +9444,12 @@ async function handleRequest(request, env, ctx) {
     }
     if (url.pathname === "/feed/studio-de.xml") return new Response(await podFeedXml(env, url.origin), { headers: { "content-type": "application/rss+xml; charset=utf-8", "cache-control": "public, max-age=600", "access-control-allow-origin": "*" } });
     { const fm = url.pathname.match(/^\/feed\/studio-de\/(\d{10,16})\.mp3$/); if (fm) return podAudio(env, fm[1], request); }
+    if (url.pathname === "/api/v1/crystal-click" && request.method === "POST") { // переход человека с карточки библиотеки в Википедию
+      let id = ""; try { id = String(((await request.json()) || {}).id || "").slice(0, 40); } catch {}
+      const robot = /HeadlessChrome|Playwright|Puppeteer|PhantomJS|Lighthouse|Selenium|webdriver/i.test(request.headers.get("user-agent") || "");
+      if (CRYSTAL_IDS.has(id) && !robot && !classifyAgent(request.headers.get("user-agent")) && !isOwner(request)) await recordHit(env, "crystal:" + id, "wiki_click", "");
+      return json({ ok: true }, { "Cache-Control": "no-store" });
+    }
     if (url.pathname === "/api/v1/hit" && request.method === "POST") {
       let page = "home", body = {};
       try { body = (await request.json()) || {}; page = (body.page || "home").toString().slice(0, 20); } catch {}
