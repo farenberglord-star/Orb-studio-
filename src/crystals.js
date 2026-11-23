@@ -6054,6 +6054,859 @@ export const CRYSTALS = [
 "note": "the Kasperson sensor already shows which stories were repeated by many outlets; check_headline counts independent voices",
 "covered_by": "kasperson"
 }
+},
+{
+"id": "sparck_jones",
+"name": "Karen Spärck Jones",
+"name_ru": "Карен Спарк Джонс",
+"years": "1935–2007",
+"wiki": "https://en.wikipedia.org/wiki/Karen_Sp%C3%A4rck_Jones",
+"zone": "look_alike",
+"idea": {
+"en": "Inverse document frequency: common words make texts look alike; rare, distinctive words show what really matches.",
+"ru": "Обратная частота документа (IDF): частые слова делают тексты ложно похожими, совпадение показывают редкие различительные слова.",
+"de": "IDF: häufige Wörter täuschen Ähnlichkeit vor, seltene zeigen echte Übereinstimmung."
+},
+"rule": "Match on rare, distinctive words, not on common ones.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "watzlawick",
+"name": "Paul Watzlawick",
+"name_ru": "Пауль Вацлавик",
+"years": "1921–2007",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Watzlawick",
+"zone": "side_effects",
+"idea": {
+"en": "Axioms of communication: one cannot not communicate; every message has a content and a relationship level.",
+"ru": "Аксиомы коммуникации: невозможно не коммуницировать; у каждого сообщения есть уровень содержания и уровень отношений.",
+"de": "Axiome der Kommunikation: man kann nicht nicht kommunizieren."
+},
+"rule": "Silence or evasion is also a message; think how it will be read.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rorty",
+"name": "Richard Rorty",
+"name_ru": "Ричард Рорти",
+"years": "1931–2007",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Rorty",
+"zone": "own_limits",
+"idea": {
+"en": "Normal and abnormal discourse: when vocabularies clash, there may be no single neutral answer.",
+"ru": "Нормальный и анормальный дискурс: когда сталкиваются разные словари понятий, единого нейтрального ответа может не быть.",
+"de": "Normaler und abnormaler Diskurs: unvereinbare Vokabulare."
+},
+"rule": "When two frameworks clash, say so instead of faking one objective answer.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "douglas_m",
+"name": "Mary Douglas",
+"name_ru": "Мэри Дуглас",
+"years": "1921–2007",
+"wiki": "https://en.wikipedia.org/wiki/Mary_Douglas",
+"zone": "look_alike",
+"idea": {
+"en": "'Purity and Danger': anomalies are produced by the classification itself — matter out of place.",
+"ru": "«Чистота и опасность»: аномалии порождает сама система классификации — «вещь не на своём месте».",
+"de": "„Reinheit und Gefährdung“: Anomalien entstehen durch die Klassifikation."
+},
+"rule": "Do not force an odd case into the nearest familiar category; say it does not fit.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rapoport",
+"name": "Anatol Rapoport",
+"name_ru": "Анатолий Рапопорт",
+"years": "1911–2007",
+"wiki": "https://en.wikipedia.org/wiki/Anatol_Rapoport",
+"zone": "side_effects",
+"idea": {
+"en": "Tit for tat in the repeated prisoner's dilemma, and Rapoport's rules: restate the other side's view fairly before criticising.",
+"ru": "«Око за око» в повторяющейся дилемме заключённого и правила Рапопорта: честно перескажи позицию другой стороны, прежде чем критиковать.",
+"de": "„Tit for Tat“ und Rapoports Regeln fairer Kritik."
+},
+"rule": "Restate the strongest version of a view before answering it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "friedman_m",
+"name": "Milton Friedman",
+"name_ru": "Милтон Фридман",
+"years": "1912–2006",
+"wiki": "https://en.wikipedia.org/wiki/Milton_Friedman",
+"zone": "side_effects",
+"idea": {
+"en": "Long and variable lags: the effects of policy arrive late and unevenly, so reacting to short-term noise can destabilise.",
+"ru": "Длинные и переменные лаги: последствия политики приходят поздно и неравномерно, поэтому реакция на краткосрочный шум раскачивает систему.",
+"de": "Lange und variable Wirkungsverzögerungen."
+},
+"rule": "Do not read today's move as the effect of yesterday's decision; effects come late.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "galbraith",
+"name": "John Kenneth Galbraith",
+"name_ru": "Джон Кеннет Гэлбрейт",
+"years": "1908–2006",
+"wiki": "https://en.wikipedia.org/wiki/John_Kenneth_Galbraith",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Conventional wisdom': ideas valued because they are familiar and comfortable, not because they are accurate.",
+"ru": "«Общепринятая мудрость»: идеи, ценимые за привычность и удобство, а не за точность.",
+"de": "„Konventionelle Weisheit“: geschätzt, weil vertraut, nicht weil richtig."
+},
+"rule": "Do not treat a familiar phrase as true just because everyone repeats it.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the news passport already flag stories that feel true because they are repeated",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "geertz",
+"name": "Clifford Geertz",
+"name_ru": "Клиффорд Гирц",
+"years": "1926–2006",
+"wiki": "https://en.wikipedia.org/wiki/Clifford_Geertz",
+"zone": "look_alike",
+"idea": {
+"en": "Thick description: a twitch and a wink look the same; only context tells them apart.",
+"ru": "Насыщенное описание: тик и подмигивание выглядят одинаково, различает их только контекст.",
+"de": "Dichte Beschreibung: Zucken und Zwinkern sehen gleich aus."
+},
+"rule": "Read the context before deciding that two identical-looking things mean the same.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "strawson",
+"name": "P. F. Strawson",
+"name_ru": "Питер Стросон",
+"years": "1919–2006",
+"wiki": "https://en.wikipedia.org/wiki/P._F._Strawson",
+"zone": "own_limits",
+"idea": {
+"en": "'On Referring' and presupposition: a statement about something that does not exist is not simply false — the question itself fails.",
+"ru": "«О референции» и пресуппозиция: утверждение о несуществующем не просто ложно — проваливается сам вопрос.",
+"de": "„On Referring“ und Präsupposition."
+},
+"rule": "If a question rests on a false premise, challenge the premise instead of answering yes or no.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "jacobs",
+"name": "Jane Jacobs",
+"name_ru": "Джейн Джекобс",
+"years": "1916–2006",
+"wiki": "https://en.wikipedia.org/wiki/Jane_Jacobs",
+"zone": "side_effects",
+"idea": {
+"en": "'The Death and Life of Great American Cities': cities are organised complexity held together by local feedback; top-down plans break it.",
+"ru": "«Смерть и жизнь больших американских городов»: город — организованная сложность на местных обратных связях, которую ломают планы сверху.",
+"de": "„Tod und Leben großer amerikanischer Städte“."
+},
+"rule": "Do not override local signals with one central scheme.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "koselleck",
+"name": "Reinhart Koselleck",
+"name_ru": "Райнхарт Козеллек",
+"years": "1923–2006",
+"wiki": "https://en.wikipedia.org/wiki/Reinhart_Koselleck",
+"zone": "look_alike",
+"idea": {
+"en": "History of concepts: one word carries layers of meaning from different times.",
+"ru": "История понятий: одно слово несёт пласты смыслов из разных времён.",
+"de": "Begriffsgeschichte: Wörter tragen Bedeutungsschichten verschiedener Zeiten."
+},
+"rule": "Check which layer of meaning a word has in this source and time.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "dantzig",
+"name": "George Dantzig",
+"name_ru": "Джордж Данциг",
+"years": "1914–2005",
+"wiki": "https://en.wikipedia.org/wiki/George_Dantzig",
+"zone": "own_limits",
+"idea": {
+"en": "Linear programming and the simplex method: first check that the constraints can be met at all.",
+"ru": "Линейное программирование и симплекс-метод: сначала проверь, совместимы ли ограничения вообще.",
+"de": "Lineare Optimierung: zuerst prüfen, ob die Bedingungen erfüllbar sind."
+},
+"rule": "If the requirements contradict each other, say the task has no solution instead of faking a compromise.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "breiman",
+"name": "Leo Breiman",
+"name_ru": "Лео Брейман",
+"years": "1928–2005",
+"wiki": "https://en.wikipedia.org/wiki/Leo_Breiman",
+"zone": "one_model",
+"idea": {
+"en": "Random forests and 'The Two Cultures': judge a model by how well it predicts, and combine many models to reduce chance matches.",
+"ru": "Случайный лес и «Две культуры»: оценивай модель по тому, как она предсказывает, и объединяй много моделей, чтобы уменьшить случайные совпадения.",
+"de": "Random Forests und „Two Cultures“."
+},
+"rule": "Trust the model that predicts well, not the one with the nicest story.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already recomputes each index under all reasonable model variants",
+"covered_by": "leamer"
+}
+},
+{
+"id": "ricoeur",
+"name": "Paul Ricœur",
+"name_ru": "Поль Рикёр",
+"years": "1913–2005",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Ric%C5%93ur",
+"zone": "look_alike",
+"idea": {
+"en": "Two kinds of identity: sameness (idem) and selfhood that persists through change (ipse); hermeneutics of trust and suspicion.",
+"ru": "Два вида тождества: одинаковость (idem) и самость, сохраняющаяся в изменении (ipse); герменевтика доверия и подозрения.",
+"de": "Idem- und Ipse-Identität."
+},
+"rule": "Ask whether 'the same' means identical features or the same thing that has changed.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "mayr",
+"name": "Ernst Mayr",
+"name_ru": "Эрнст Майр",
+"years": "1904–2005",
+"wiki": "https://en.wikipedia.org/wiki/Ernst_Mayr",
+"zone": "one_model",
+"idea": {
+"en": "Population thinking: variation is real and the average is an abstraction; proximate and ultimate causes differ.",
+"ru": "Популяционное мышление: изменчивость реальна, а среднее — абстракция; ближайшая и глубинная причины различаются.",
+"de": "Populationsdenken: Variation ist real, der Durchschnitt eine Abstraktion."
+},
+"rule": "Do not describe an individual case by the average of its group.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "edwards_w",
+"name": "Ward Edwards",
+"name_ru": "Уорд Эдвардс",
+"years": "1927–2005",
+"wiki": "https://en.wikipedia.org/wiki/Ward_Edwards",
+"zone": "own_limits",
+"idea": {
+"en": "Behavioural decision theory and conservatism: people update too little when new evidence arrives.",
+"ru": "Поведенческая теория решений и консерватизм: люди слишком слабо меняют мнение, когда приходят новые факты.",
+"de": "Verhaltensentscheidungstheorie und Konservatismus beim Lernen."
+},
+"rule": "Change your confidence as much as the new evidence warrants, no less.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "derrida",
+"name": "Jacques Derrida",
+"name_ru": "Жак Деррида",
+"years": "1930–2004",
+"wiki": "https://en.wikipedia.org/wiki/Jacques_Derrida",
+"zone": "look_alike",
+"idea": {
+"en": "Iterability: a quote or a sign can be lifted into a new context, and its meaning shifts.",
+"ru": "Итерабельность: цитату или знак можно перенести в новый контекст, и смысл сдвигается.",
+"de": "Iterabilität: Zitate verschieben ihren Sinn im neuen Kontext."
+},
+"rule": "Do not assume a quote keeps its meaning outside the context it was said in.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "maynard_smith",
+"name": "John Maynard Smith",
+"name_ru": "Джон Мейнард Смит",
+"years": "1920–2004",
+"wiki": "https://en.wikipedia.org/wiki/John_Maynard_Smith",
+"zone": "side_effects",
+"idea": {
+"en": "Evolutionarily stable strategies and honest signals: a strategy is stable only if it survives others adapting to it.",
+"ru": "Эволюционно стабильные стратегии и честные сигналы: стратегия устойчива, только если выдерживает приспособление других.",
+"de": "Evolutionär stabile Strategien und ehrliche Signale."
+},
+"rule": "Ask whether your rule still works once others adapt to it or game it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "bobbio",
+"name": "Norberto Bobbio",
+"name_ru": "Норберто Боббио",
+"years": "1909–2004",
+"wiki": "https://en.wikipedia.org/wiki/Norberto_Bobbio",
+"zone": "own_limits",
+"idea": {
+"en": "Antinomies in systems of rules and the criteria for resolving them: later, higher or more specific rule.",
+"ru": "Антиномии в системах правил и критерии их разрешения: более позднее, более высокое или более специальное правило.",
+"de": "Antinomien in Normensystemen und ihre Auflösung."
+},
+"rule": "When two of your rules conflict, name the conflict and the priority instead of silently breaking one.",
+"needs": {
+"code": "covered",
+"note": "applied: Orb Studio's method resolves conflicting rules by priority — the more cautious rule wins (/tools/method)"
+}
+},
+{
+"id": "churchman",
+"name": "C. West Churchman",
+"name_ru": "Чарльз Уэст Черчмен",
+"years": "1913–2004",
+"wiki": "https://en.wikipedia.org/wiki/C._West_Churchman",
+"zone": "side_effects",
+"idea": {
+"en": "The systems approach and boundary critique: side effects hide just outside where you drew the system's edge.",
+"ru": "Системный подход и критика границ: побочные эффекты прячутся сразу за той границей, где ты очертил систему.",
+"de": "Systemansatz und Grenzkritik."
+},
+"rule": "Ask what lies just outside the frame you chose.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "iverson",
+"name": "Kenneth E. Iverson",
+"name_ru": "Кеннет Айверсон",
+"years": "1920–2004",
+"wiki": "https://en.wikipedia.org/wiki/Kenneth_E._Iverson",
+"zone": "look_alike",
+"idea": {
+"en": "'Notation as a Tool of Thought': a precise notation shows structure that wordy language hides.",
+"ru": "«Нотация как инструмент мысли»: точная запись показывает структуру, которую скрывает многословный язык.",
+"de": "„Notation as a Tool of Thought“."
+},
+"rule": "Write the key relation precisely when words leave it ambiguous.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "davidson_d",
+"name": "Donald Davidson",
+"name_ru": "Дональд Дэвидсон",
+"years": "1917–2003",
+"wiki": "https://en.wikipedia.org/wiki/Donald_Davidson_(philosopher)",
+"zone": "look_alike",
+"idea": {
+"en": "The principle of charity and triangulation: read others as making sense, but anchor meaning in a shared world.",
+"ru": "Принцип милосердия и триангуляция: читай других как говорящих осмысленно, но привязывай смысл к общему миру.",
+"de": "Prinzip der Nachsicht und Triangulation."
+},
+"rule": "Read a request charitably, but check it against shared facts.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "von_wright",
+"name": "Georg Henrik von Wright",
+"name_ru": "Георг Хенрик фон Вригт",
+"years": "1916–2003",
+"wiki": "https://en.wikipedia.org/wiki/Georg_Henrik_von_Wright",
+"zone": "side_effects",
+"idea": {
+"en": "Deontic logic: obligations, permissions and prohibitions must fit together.",
+"ru": "Деонтическая логика: обязанности, разрешения и запреты должны быть согласованы.",
+"de": "Deontische Logik."
+},
+"rule": "Check that doing what you must does not require doing what you must not.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "williams_b",
+"name": "Bernard Williams",
+"name_ru": "Бернард Уильямс",
+"years": "1929–2003",
+"wiki": "https://en.wikipedia.org/wiki/Bernard_Williams",
+"zone": "own_limits",
+"idea": {
+"en": "Truth and Truthfulness: the two virtues of accuracy and sincerity; moral luck separates the decision from its outcome.",
+"ru": "«Истина и правдивость»: две добродетели — точность и искренность; моральная удача отделяет решение от исхода.",
+"de": "„Wahrheit und Wahrhaftigkeit“: Genauigkeit und Aufrichtigkeit."
+},
+"rule": "Be accurate and sincere: do not mislead by smoothness, and judge a decision apart from its luck.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "needham",
+"name": "Roger Needham",
+"name_ru": "Роджер Нидэм",
+"years": "1935–2003",
+"wiki": "https://en.wikipedia.org/wiki/Roger_Needham",
+"zone": "look_alike",
+"idea": {
+"en": "Authentication protocols (Needham–Schroeder): never trust a claimed identity without verifying it.",
+"ru": "Протоколы аутентификации (Нидэма — Шрёдера): никогда не доверяй заявленной личности без проверки.",
+"de": "Authentifizierungsprotokolle (Needham-Schroeder)."
+},
+"rule": "Verify who a message really comes from before acting on it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "modigliani",
+"name": "Franco Modigliani",
+"name_ru": "Франко Модильяни",
+"years": "1918–2003",
+"wiki": "https://en.wikipedia.org/wiki/Franco_Modigliani",
+"zone": "look_alike",
+"idea": {
+"en": "Modigliani–Miller and the life-cycle hypothesis: repackaging the same flows does not create value; judge over the whole horizon.",
+"ru": "Модильяни — Миллер и гипотеза жизненного цикла: переупаковка тех же потоков не создаёт ценности; оценивай на всём горизонте.",
+"de": "Modigliani-Miller und Lebenszyklushypothese."
+},
+"rule": "Do not take a new wrapping of the same thing for a real change.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "postman",
+"name": "Neil Postman",
+"name_ru": "Нил Постман",
+"years": "1931–2003",
+"wiki": "https://en.wikipedia.org/wiki/Neil_Postman",
+"zone": "own_limits",
+"idea": {
+"en": "'Amusing Ourselves to Death': every medium favours its own kind of truth; entertainment pushes out checking.",
+"ru": "«Развлекаемся до смерти»: каждый медиум предпочитает свой вид истины; развлечение вытесняет проверку.",
+"de": "„Wir amüsieren uns zu Tode“."
+},
+"rule": "Do not let a lively format replace checking.",
+"needs": {
+"code": "covered",
+"note": "applied: Grok and David must say 'not known yet' instead of covering gaps with smooth words"
+}
+},
+{
+"id": "said_e",
+"name": "Edward Said",
+"name_ru": "Эдвард Саид",
+"years": "1935–2003",
+"wiki": "https://en.wikipedia.org/wiki/Edward_Said",
+"zone": "look_alike",
+"idea": {
+"en": "'Orientalism': institutional texts can build a stereotype of 'the other' and pass it off as knowledge.",
+"ru": "«Ориентализм»: институциональные тексты могут построить стереотип «другого» и выдавать его за знание.",
+"de": "„Orientalismus“: Stereotype als Wissen."
+},
+"rule": "Do not pass off a stereotype about a group as a fact about one case.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "dijkstra",
+"name": "Edsger W. Dijkstra",
+"name_ru": "Эдсгер Дейкстра",
+"years": "1930–2002",
+"wiki": "https://en.wikipedia.org/wiki/Edsger_W._Dijkstra",
+"zone": "own_limits",
+"idea": {
+"en": "Separation of concerns and weakest preconditions: state what must hold before a step, and check it.",
+"ru": "Разделение ответственности и слабейшие предусловия: скажи, что должно быть верно до шага, и проверь это.",
+"de": "Trennung der Belange und schwächste Vorbedingungen."
+},
+"rule": "Check a step's preconditions before you take it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rawls",
+"name": "John Rawls",
+"name_ru": "Джон Ролз",
+"years": "1921–2002",
+"wiki": "https://en.wikipedia.org/wiki/John_Rawls",
+"zone": "side_effects",
+"idea": {
+"en": "'A Theory of Justice': the veil of ignorance, reflective equilibrium and attention to the worst-off.",
+"ru": "«Теория справедливости»: занавес неведения, рефлексивное равновесие и внимание к тем, кому хуже всего.",
+"de": "„Eine Theorie der Gerechtigkeit“."
+},
+"rule": "Ask how your advice looks to the person who would be worst off.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "nozick",
+"name": "Robert Nozick",
+"name_ru": "Роберт Нозик",
+"years": "1938–2002",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Nozick",
+"zone": "own_limits",
+"idea": {
+"en": "Truth-tracking: you know something only if you would not believe it were it false.",
+"ru": "Отслеживание истины: ты знаешь что-то, только если не поверил бы в это, будь оно ложным.",
+"de": "Wahrheitsverfolgung: Wissen nur, wenn man es bei Falschheit nicht glauben würde."
+},
+"rule": "Ask: would I say this just as confidently if it were false? If yes, I do not know it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "bourdieu",
+"name": "Pierre Bourdieu",
+"name_ru": "Пьер Бурдьё",
+"years": "1930–2002",
+"wiki": "https://en.wikipedia.org/wiki/Pierre_Bourdieu",
+"zone": "side_effects",
+"idea": {
+"en": "Fields and habitus: the same act has a different meaning and price in different social fields.",
+"ru": "Поля и габитус: одно и то же действие имеет разный смысл и цену в разных социальных полях.",
+"de": "Feld und Habitus."
+},
+"rule": "Consider the field the reader is in before judging what an answer will mean to them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "gadamer",
+"name": "Hans-Georg Gadamer",
+"name_ru": "Ханс-Георг Гадамер",
+"years": "1900–2002",
+"wiki": "https://en.wikipedia.org/wiki/Hans-Georg_Gadamer",
+"zone": "look_alike",
+"idea": {
+"en": "'Truth and Method': understanding is a fusion of horizons; one's own assumptions shape what one reads.",
+"ru": "«Истина и метод»: понимание — это слияние горизонтов; собственные допущения влияют на прочитанное.",
+"de": "„Wahrheit und Methode“: Horizontverschmelzung."
+},
+"rule": "State your assumptions instead of quietly filling gaps with them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "von_foerster",
+"name": "Heinz von Foerster",
+"name_ru": "Хайнц фон Фёрстер",
+"years": "1911–2002",
+"wiki": "https://en.wikipedia.org/wiki/Heinz_von_Foerster",
+"zone": "side_effects",
+"idea": {
+"en": "Second-order cybernetics: the observer is part of the system; act so as to increase the number of choices.",
+"ru": "Кибернетика второго порядка: наблюдатель — часть системы; действуй так, чтобы выборов становилось больше.",
+"de": "Kybernetik zweiter Ordnung."
+},
+"rule": "Count yourself in the system you describe, and do not close options too early.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "jeffrey_r",
+"name": "Richard Jeffrey",
+"name_ru": "Ричард Джеффри",
+"years": "1926–2002",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Jeffrey",
+"zone": "own_limits",
+"idea": {
+"en": "Jeffrey conditioning: update beliefs on uncertain evidence without turning it into certainty.",
+"ru": "Обусловливание Джеффри: обновлять убеждения по неуверенным свидетельствам, не превращая их в достоверность.",
+"de": "Jeffrey-Konditionalisierung."
+},
+"rule": "Weigh uncertain evidence softly; do not treat it as a hard fact.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already keeps soft degrees instead of hard labels",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "gould",
+"name": "Stephen Jay Gould",
+"name_ru": "Стивен Джей Гулд",
+"years": "1941–2002",
+"wiki": "https://en.wikipedia.org/wiki/Stephen_Jay_Gould",
+"zone": "one_model",
+"idea": {
+"en": "Punctuated equilibrium: long plateaus broken by sudden change.",
+"ru": "Прерывистое равновесие: долгие плато, прерываемые резкими изменениями.",
+"de": "Unterbrochenes Gleichgewicht."
+},
+"rule": "Do not extend a calm trend as if a jump could not come.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already tells a one-off jump from a lasting shift",
+"covered_by": "polyak"
+}
+},
+{
+"id": "simon_ha",
+"name": "Herbert A. Simon",
+"name_ru": "Герберт Саймон",
+"years": "1916–2001",
+"wiki": "https://en.wikipedia.org/wiki/Herbert_A._Simon",
+"zone": "answer_cost",
+"idea": {
+"en": "Bounded rationality and satisficing: with limited time and information, look for an answer that is good enough.",
+"ru": "Ограниченная рациональность и «достаточно хорошее» решение: при ограниченном времени и данных ищи ответ, которого достаточно.",
+"de": "Begrenzte Rationalität und Satisficing."
+},
+"rule": "Stop when the answer is good enough for the purpose, and say where it is limited.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains that answer well enough",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "shannon",
+"name": "Claude Shannon",
+"name_ru": "Клод Шеннон",
+"years": "1916–2001",
+"wiki": "https://en.wikipedia.org/wiki/Claude_Shannon",
+"zone": "measurement_error",
+"idea": {
+"en": "Information theory: a noisy channel carries only so much information; more precision cannot be squeezed out of it.",
+"ru": "Теория информации: зашумлённый канал несёт ограниченное количество информации; больше точности из него не выжать.",
+"de": "Informationstheorie: Kanalkapazität begrenzt die Genauigkeit."
+},
+"rule": "Do not read more precision into a noisy signal than it carries; ask for more data instead.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lewis_d",
+"name": "David Lewis",
+"name_ru": "Дэвид Льюис",
+"years": "1941–2001",
+"wiki": "https://en.wikipedia.org/wiki/David_Lewis_(philosopher)",
+"zone": "look_alike",
+"idea": {
+"en": "Counterparts and counterfactuals: a look-alike in another situation is a counterpart, not the same thing.",
+"ru": "Двойники и контрфактические условия: похожий в другой ситуации — двойник, а не тот же самый предмет.",
+"de": "Gegenstücktheorie und Kontrafaktische."
+},
+"rule": "Do not treat a similar case elsewhere as the same case.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "anscombe",
+"name": "G. E. M. Anscombe",
+"name_ru": "Элизабет Энском",
+"years": "1919–2001",
+"wiki": "https://en.wikipedia.org/wiki/G._E._M._Anscombe",
+"zone": "side_effects",
+"idea": {
+"en": "'Intention': an act is intended only under a description; describe your act another way to see its other effects.",
+"ru": "«Намерение»: действие намеренно только под определённым описанием; опиши свой поступок иначе, чтобы увидеть другие его последствия.",
+"de": "„Absicht“: Handlungen unter einer Beschreibung."
+},
+"rule": "Describe your answer in another way to see what else it does.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "varela",
+"name": "Francisco Varela",
+"name_ru": "Франсиско Варела",
+"years": "1946–2001",
+"wiki": "https://en.wikipedia.org/wiki/Francisco_Varela",
+"zone": "side_effects",
+"idea": {
+"en": "Enaction: a system does not just mirror the world; each response changes the environment it then meets.",
+"ru": "Энактивизм: система не просто отражает мир; каждый ответ меняет среду, с которой она потом встречается.",
+"de": "Enaktivismus: jede Antwort verändert die Umwelt."
+},
+"rule": "Remember that what you publish changes what you will observe next.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "salmon_w",
+"name": "Wesley C. Salmon",
+"name_ru": "Уэсли Сэлмон",
+"years": "1925–2001",
+"wiki": "https://en.wikipedia.org/wiki/Wesley_C._Salmon",
+"zone": "one_model",
+"idea": {
+"en": "Causal processes versus pseudo-processes: a moving shadow correlates with its object but transmits nothing.",
+"ru": "Причинные процессы и псевдопроцессы: движущаяся тень совпадает с предметом, но ничего не передаёт.",
+"de": "Kausale Prozesse und Pseudoprozesse."
+},
+"rule": "Before calling a correlation a cause, ask what is actually transmitted.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'who leads whom' with Granger and the track record sensor: cause or shadow?",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "quine",
+"name": "W. V. O. Quine",
+"name_ru": "Уиллард Куайн",
+"years": "1908–2000",
+"wiki": "https://en.wikipedia.org/wiki/Willard_Van_Orman_Quine",
+"zone": "look_alike",
+"idea": {
+"en": "Indeterminacy of translation ('gavagai'): the same behaviour fits different meanings; a hypothesis is tested together with all one knows.",
+"ru": "Неопределённость перевода («гавагай»): одно и то же поведение совместимо с разными значениями; гипотеза проверяется вместе со всем знанием.",
+"de": "Unbestimmtheit der Übersetzung („Gavagai“)."
+},
+"rule": "State what exactly a term refers to; equal behaviour does not prove equal meaning.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "harsanyi",
+"name": "John Harsanyi",
+"name_ru": "Джон Харшаньи",
+"years": "1920–2000",
+"wiki": "https://en.wikipedia.org/wiki/John_Harsanyi",
+"zone": "side_effects",
+"idea": {
+"en": "Games with incomplete information: reason about the possible types of the other side and update as they act.",
+"ru": "Игры с неполной информацией: рассуждать о возможных «типах» другой стороны и обновлять оценку по её действиям.",
+"de": "Spiele mit unvollständiger Information."
+},
+"rule": "When you do not know the other side's aims, keep several possibilities and update.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "barwise",
+"name": "Jon Barwise",
+"name_ru": "Джон Барвайс",
+"years": "1942–2000",
+"wiki": "https://en.wikipedia.org/wiki/Jon_Barwise",
+"zone": "look_alike",
+"idea": {
+"en": "Situation semantics: a statement is true of a situation; carrying it to another situation needs a check.",
+"ru": "Ситуационная семантика: утверждение истинно в ситуации; перенос в другую ситуацию требует проверки.",
+"de": "Situationssemantik."
+},
+"rule": "Check that a conclusion still holds before applying it to a different situation.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "tukey",
+"name": "John Tukey",
+"name_ru": "Джон Тьюки",
+"years": "1915–2000",
+"wiki": "https://en.wikipedia.org/wiki/John_Tukey",
+"zone": "measurement_error",
+"idea": {
+"en": "Exploratory data analysis and robust statistics: look at the raw data and its outliers before modelling.",
+"ru": "Разведочный анализ данных и робастная статистика: посмотри на сырые данные и выбросы до построения модели.",
+"de": "Explorative Datenanalyse und robuste Statistik."
+},
+"rule": "Look at the raw numbers and their outliers before summarising them.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far each radar or word moves an index",
+"covered_by": "leamer"
+}
+},
+{
+"id": "pike",
+"name": "Kenneth Pike",
+"name_ru": "Кеннет Пайк",
+"years": "1912–2000",
+"wiki": "https://en.wikipedia.org/wiki/Kenneth_Lee_Pike",
+"zone": "look_alike",
+"idea": {
+"en": "Emic and etic: outside resemblance of forms is not the same as equal function inside a system.",
+"ru": "Эмическое и этическое: внешнее сходство форм — не то же, что одинаковая функция внутри системы.",
+"de": "Emisch und etisch."
+},
+"rule": "Do not equate things that look alike from outside but work differently inside.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
