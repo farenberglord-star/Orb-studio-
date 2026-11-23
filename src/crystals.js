@@ -1070,7 +1070,7 @@ export const CRYSTALS = [
 "name_ru": "Уильям Уинклер",
 "years": "1946–2022",
 "wiki": "https://en.wikipedia.org/wiki/William_E._Winkler",
-"zone": "measurement_error",
+"zone": "look_alike",
 "idea": {
 "en": "Record linkage: errors when matching records from different databases (Jaro–Winkler similarity).",
 "ru": "Сопоставление записей: ошибки при сопоставлении данных из разных баз (сходство Джаро–Уинклера).",
@@ -1720,7 +1720,7 @@ export const CRYSTALS = [
 "name_ru": "Джон Робертс",
 "years": "1945–2026",
 "wiki": "https://en.wikipedia.org/wiki/Donald_John_Roberts",
-"zone": "answer_cost",
+"zone": "side_effects",
 "idea": {
 "en": "Games with incomplete information and the economics of organisations.",
 "ru": "Игры с неполной информацией и экономика организаций.",
@@ -1849,7 +1849,7 @@ export const CRYSTALS = [
 "name_ru": "Герберт Гинтис",
 "years": "1940–2023",
 "wiki": "https://en.wikipedia.org/wiki/Herbert_Gintis",
-"zone": "one_model",
+"zone": "side_effects",
 "idea": {
 "en": "The Bounds of Reason: game theory needs a model of what players know and believe (epistemic game theory).",
 "ru": "«Границы разума»: теории игр нужна модель того, что игроки знают и во что верят.",
@@ -3229,7 +3229,7 @@ export const CRYSTALS = [
 "name_ru": "Джанфранко Гамбарелли",
 "years": "1946–2026",
 "wiki": "https://it.wikipedia.org/wiki/Gianfranco_Gambarelli",
-"zone": "answer_cost",
+"zone": "side_effects",
 "idea": {
 "en": "Game theory and decision methods (power indices, friend of John Nash).",
 "ru": "Теория игр и методы принятия решений (индексы силы; друг Джона Нэша).",
