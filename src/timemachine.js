@@ -1,5 +1,5 @@
 // СГЕНЕРИРОВАНО tools/timemachine.py из tools/timemachine_data.py — правьте данные там.
-export const TM_ERAS = {"1350-1600": {"en": "Renaissance and the age of discovery, 1350–1600", "ru": "Возрождение и великие открытия, 1350–1600", "de": "Renaissance und Entdeckungen, 1350–1600"}, "1601-1700": {"en": "Seventeenth century", "ru": "XVII век", "de": "17. Jahrhundert"}, "1801-1900": {"en": "Nineteenth century", "ru": "XIX век", "de": "19. Jahrhundert"}};
+export const TM_ERAS = {"1350-1600": {"en": "Renaissance and the age of discovery, 1350–1600", "ru": "Возрождение и великие открытия, 1350–1600", "de": "Renaissance und Entdeckungen, 1350–1600"}, "1601-1700": {"en": "Seventeenth century", "ru": "XVII век", "de": "17. Jahrhundert"}, "1701-1800": {"en": "Eighteenth century", "ru": "XVIII век", "de": "18. Jahrhundert"}, "1801-1900": {"en": "Nineteenth century", "ru": "XIX век", "de": "19. Jahrhundert"}};
 export const TIME_MACHINE = [
 {
 "id": "buridan",
@@ -550,6 +550,272 @@ export const TIME_MACHINE = [
 "bridge": {
 "en": "Kasperson sensor and the passport line 'do not make the risk sound bigger': a root of 1662.",
 "ru": "Датчик Касперсона и строка паспорта «не раздувай риск»: корень 1662 года."
+}
+},
+{
+"id": "bernoulli_jacob",
+"name": "Jacob Bernoulli",
+"name_ru": "Якоб Бернулли",
+"years": "1655 – 1705",
+"wiki": "https://en.wikipedia.org/wiki/Jacob_Bernoulli",
+"zone": "measurement_error",
+"idea": {
+"en": "'Ars Conjectandi' and the law of large numbers: with more observations the observed share comes close to the true chance — and he asked how many are enough for 'moral certainty'.",
+"ru": "«Искусство предположений» и закон больших чисел: чем больше наблюдений, тем ближе наблюдаемая доля к истинной вероятности, — и он спросил, сколько их нужно для «моральной достоверности».",
+"de": "„Ars Conjectandi“ und das Gesetz der großen Zahlen."
+},
+"rule": "Ask how many observations a conclusion needs before you draw it.",
+"era": "1701-1800",
+"bridge": {
+"en": "Track record (no conclusion under 8 days) and Trevisan (how many headlines are enough).",
+"ru": "«Счёт попаданий» (без вывода при меньше 8 днях) и Тревизан (сколько заголовков достаточно)."
+}
+},
+{
+"id": "bayes",
+"name": "Thomas Bayes",
+"name_ru": "Томас Байес",
+"years": "c. 1701 – 1761",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Bayes",
+"zone": "own_limits",
+"idea": {
+"en": "Bayes' theorem: update how strongly you believe something by how much more likely the new evidence is if it is true than if it is false.",
+"ru": "Теорема Байеса: меняй уверенность ровно настолько, насколько новое свидетельство вероятнее при истинности, чем при ложности.",
+"de": "Satz von Bayes: Überzeugung nach der Beweiskraft neuer Daten anpassen."
+},
+"rule": "Update your confidence by the strength of the new evidence, no more and no less.",
+"era": "1701-1800",
+"bridge": {
+"en": "Howard (wait or speak), Hagenauer (soft degrees), Edwards and Jeffrey in the library.",
+"ru": "Ховард (ждать или говорить), Хагенауэр (степени), Эдвардс и Джеффри в библиотеке."
+}
+},
+{
+"id": "hume",
+"name": "David Hume",
+"name_ru": "Дэвид Юм",
+"years": "1711 – 1776",
+"wiki": "https://en.wikipedia.org/wiki/David_Hume",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Of Miracles': weigh a report against how improbable the event is — the more extraordinary the claim, the stronger the evidence must be. And the problem of induction: past patterns do not guarantee the future.",
+"ru": "«О чудесах»: соизмеряй свидетельство с невероятностью события — чем необычнее утверждение, тем сильнее должны быть доказательства. И проблема индукции: прошлые закономерности не гарантируют будущего.",
+"de": "„Über Wunder“: je außergewöhnlicher die Behauptung, desto stärker der Beleg."
+},
+"rule": "The more extraordinary a claim, the more independent evidence it needs before you repeat it.",
+"era": "1701-1800",
+"bridge": {
+"en": "News passport: a 'record' or 'unprecedented' story carried by one outlet deserves extra caution.",
+"ru": "Паспорт новости: история про «рекорд» или «беспрецедентное» от одного издания требует особой осторожности."
+}
+},
+{
+"id": "de_moivre",
+"name": "Abraham de Moivre",
+"name_ru": "Абрахам де Муавр",
+"years": "1667 – 1754",
+"wiki": "https://en.wikipedia.org/wiki/Abraham_de_Moivre",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Doctrine of Chances' and the normal approximation: the uncertainty of an average shrinks with the square root of the number of observations.",
+"ru": "«Учение о шансах» и нормальное приближение: неопределённость среднего уменьшается как корень из числа наблюдений.",
+"de": "„The Doctrine of Chances“: Unsicherheit schrumpft mit der Wurzel aus n."
+},
+"rule": "Four times the data halves the uncertainty, not quarters it.",
+"era": "1701-1800",
+"bridge": {
+"en": "Trevisan sensor and the Wilson intervals of the track record.",
+"ru": "Датчик Тревизана и интервалы Уилсона в «Счёте попаданий»."
+}
+},
+{
+"id": "bernoulli_daniel",
+"name": "Daniel Bernoulli",
+"name_ru": "Даниил Бернулли",
+"years": "1700 – 1782",
+"wiki": "https://en.wikipedia.org/wiki/Daniel_Bernoulli",
+"zone": "answer_cost",
+"idea": {
+"en": "The St Petersburg paradox and expected utility: the value of a gain depends on what you already have, not only on its size.",
+"ru": "Петербургский парадокс и ожидаемая полезность: ценность выигрыша зависит от того, что у тебя уже есть, а не только от его размера.",
+"de": "Sankt-Petersburg-Paradoxon und Erwartungsnutzen."
+},
+"rule": "Judge what a result is worth to this person, not only its raw size.",
+"era": "1701-1800",
+"bridge": {
+"en": "Pascal and Huygens before him; Kahneman and Tversky after.",
+"ru": "До него Паскаль и Гюйгенс; после — Канеман и Тверски."
+}
+},
+{
+"id": "condorcet",
+"name": "Marquis de Condorcet",
+"name_ru": "Мари Жан Антуан Кондорсе",
+"years": "1743 – 1794",
+"wiki": "https://en.wikipedia.org/wiki/Marquis_de_Condorcet",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The jury theorem: a majority of voters is more likely right than any one of them — but only if they judge independently.",
+"ru": "Теорема о жюри: большинство вероятнее право, чем любой отдельный голосующий, — но только если они судят независимо.",
+"de": "Jury-Theorem: die Mehrheit irrt seltener – nur bei unabhängigen Urteilen."
+},
+"rule": "Many agreeing sources count only if they are independent of each other.",
+"era": "1701-1800",
+"bridge": {
+"en": "check_headline counts independent voices after removing agency echo — the condition of Condorcet's theorem; Mersenne's repeated experiments.",
+"ru": "Проверка заголовков считает независимые голоса без эха агентств — это и есть условие теоремы Кондорсе; повтор опыта у Мерсенна."
+}
+},
+{
+"id": "halley",
+"name": "Edmond Halley",
+"name_ru": "Эдмунд Галлей",
+"years": "1656 – 1742",
+"wiki": "https://en.wikipedia.org/wiki/Edmond_Halley",
+"zone": "one_model",
+"idea": {
+"en": "He predicted the comet's return for 1758 and died before it came; the prediction came true and proved the model. He also built the first life table from real records.",
+"ru": "Он предсказал возвращение кометы в 1758 году и не дожил до него; предсказание сбылось и доказало модель. Он же составил первую таблицу смертности по реальным записям.",
+"de": "Er sagte die Rückkehr des Kometen für 1758 voraus; die Vorhersage bestätigte das Modell."
+},
+"rule": "A model earns trust by a dated prediction that later comes true.",
+"era": "1701-1800",
+"bridge": {
+"en": "Schall von Bell's eclipse test, the track record sensor and the forecast game.",
+"ru": "Проверка затмением у Шалля фон Белля, «Счёт попаданий» и игра прогнозов."
+}
+},
+{
+"id": "bayle",
+"name": "Pierre Bayle",
+"name_ru": "Пьер Бейль",
+"years": "1647 – 1706",
+"wiki": "https://en.wikipedia.org/wiki/Pierre_Bayle",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The 'Historical and Critical Dictionary': its notes list the errors of earlier dictionaries and authorities, one by one.",
+"ru": "«Исторический и критический словарь»: в примечаниях он перечисляет ошибки прежних словарей и авторитетов, одну за другой.",
+"de": "„Historisches und kritisches Wörterbuch“: Fehler früherer Werke."
+},
+"rule": "Check what a reference work says against its own sources; reference works copy each other's errors.",
+"era": "1701-1800",
+"bridge": {
+"en": "Rabin sensor (random re-checks) and Kasperson (copies spread errors).",
+"ru": "Датчик Рабина (случайная перепроверка) и Касперсон (копии разносят ошибки)."
+}
+},
+{
+"id": "leibniz",
+"name": "Gottfried Wilhelm Leibniz",
+"name_ru": "Готфрид Вильгельм Лейбниц",
+"years": "1646 – 1716",
+"wiki": "https://en.wikipedia.org/wiki/Gottfried_Wilhelm_Leibniz",
+"zone": "one_model",
+"idea": {
+"en": "'Calculemus!' — let us calculate: turn a dispute into a computation that anyone can check.",
+"ru": "«Calculemus!» — давайте посчитаем: превратить спор в вычисление, которое может проверить любой.",
+"de": "„Calculemus!“ – Streit in eine prüfbare Rechnung verwandeln."
+},
+"rule": "Where you can, replace an argument by a calculation others can repeat.",
+"era": "1701-1800",
+"bridge": {
+"en": "The method page and every sensor's open 'method' field: anyone can recompute.",
+"ru": "Страница метода и открытое поле «method» у каждого датчика: пересчитать может любой."
+}
+},
+{
+"id": "lambert",
+"name": "Johann Heinrich Lambert",
+"name_ru": "Иоганн Генрих Ламберт",
+"years": "1728 – 1777",
+"wiki": "https://en.wikipedia.org/wiki/Johann_Heinrich_Lambert",
+"zone": "measurement_error",
+"idea": {
+"en": "Theory of errors and 'Neues Organon': combine many imperfect measurements to find the most probable value, and separate appearance from truth.",
+"ru": "Теория ошибок и «Новый органон»: объединять много неточных измерений, чтобы найти наиболее вероятное значение, и отделять видимость от истины.",
+"de": "Fehlertheorie und „Neues Organon“."
+},
+"rule": "Combine several imperfect measurements instead of trusting one.",
+"era": "1701-1800",
+"bridge": {
+"en": "Baird (independent paths) and Polyak (averaging against noise).",
+"ru": "Бэрд (независимые пути) и Поляк (усреднение против шума)."
+}
+},
+{
+"id": "smith",
+"name": "Adam Smith",
+"name_ru": "Адам Смит",
+"years": "1723 – 1790",
+"wiki": "https://en.wikipedia.org/wiki/Adam_Smith",
+"zone": "side_effects",
+"idea": {
+"en": "'The Wealth of Nations': individual choices add up to results nobody intended — the 'invisible hand' and its failures.",
+"ru": "«Богатство народов»: решения отдельных людей складываются в результаты, которых никто не задумывал, — «невидимая рука» и её сбои.",
+"de": "„Der Wohlstand der Nationen“: ungewollte Gesamtergebnisse."
+},
+"rule": "Ask what the sum of many people following your advice will do.",
+"era": "1701-1800",
+"bridge": {
+"en": "Schelling and Merton in the library: micromotives and unintended consequences.",
+"ru": "Шеллинг и Мёртон в библиотеке: микромотивы и непреднамеренные последствия."
+}
+},
+{
+"id": "quesnay",
+"name": "François Quesnay",
+"name_ru": "Франсуа Кенэ",
+"years": "1694 – 1774",
+"wiki": "https://en.wikipedia.org/wiki/Fran%C3%A7ois_Quesnay",
+"zone": "side_effects",
+"idea": {
+"en": "The 'Tableau économique': the first chart of how money flows between sectors — ancestor of Leontief's input–output.",
+"ru": "«Экономическая таблица»: первая схема того, как деньги текут между отраслями, — предок межотраслевого баланса Леонтьева.",
+"de": "„Tableau économique“: Vorläufer der Input-Output-Analyse."
+},
+"rule": "Follow a change through the flows it feeds, not just its first stop.",
+"era": "1701-1800",
+"bridge": {
+"en": "Leontief's bridge 'spill-over between radars', waiting for the history of all eight radars.",
+"ru": "Мостик Леонтьева «перенос между радарами», ждёт истории всех восьми радаров."
+}
+},
+{
+"id": "condillac",
+"name": "Étienne Bonnot de Condillac",
+"name_ru": "Этьен Бонно де Кондильяк",
+"years": "1714 – 1780",
+"wiki": "https://en.wikipedia.org/wiki/%C3%89tienne_Bonnot_de_Condillac",
+"zone": "look_alike",
+"idea": {
+"en": "'A science is a well-made language': unclear words make unclear thinking.",
+"ru": "«Наука — это хорошо устроенный язык»: неясные слова рождают неясное мышление.",
+"de": "„Eine Wissenschaft ist eine gut gemachte Sprache.“"
+},
+"rule": "Define your key words before reasoning with them.",
+"era": "1701-1800",
+"bridge": {
+"en": "Naess, Quine and Iverson in the library.",
+"ru": "Нэсс, Куайн и Айверсон в библиотеке."
+}
+},
+{
+"id": "saccheri",
+"name": "Giovanni Girolamo Saccheri",
+"name_ru": "Джованни Джироламо Саккери",
+"years": "1667 – 1733",
+"wiki": "https://en.wikipedia.org/wiki/Giovanni_Girolamo_Saccheri",
+"zone": "own_limits",
+"idea": {
+"en": "Trying to prove Euclid's parallel axiom, he derived consistent non-Euclidean results — and rejected them as 'repugnant'. He found the new geometry and refused to see it.",
+"ru": "Пытаясь доказать аксиому параллельных Евклида, он получил непротиворечивые неевклидовы следствия — и отверг их как «отвратительные». Он нашёл новую геометрию и отказался её видеть.",
+"de": "Er fand nichteuklidische Ergebnisse und verwarf sie als „widerwärtig“."
+},
+"rule": "Do not reject a result only because it contradicts what you expected.",
+"era": "1701-1800",
+"bridge": {
+"en": "The opposite of Kepler: one gave up his model for the data, the other gave up the data for his model.",
+"ru": "Противоположность Кеплеру: тот отказался от модели ради данных, этот — от данных ради модели."
 }
 }
 ];
