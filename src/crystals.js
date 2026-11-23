@@ -4562,6 +4562,172 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "malinvaud",
+"name": "Edmond Malinvaud",
+"name_ru": "Эдмон Маленво",
+"years": "1923–2015",
+"wiki": "https://it.wikipedia.org/wiki/Edmond_Malinvaud",
+"zone": "one_model",
+"idea": {
+"en": "Econometrics and disequilibrium: statistical models of the economy hold only within limits, and markets need not clear.",
+"ru": "Эконометрика и неравновесие: статистические модели экономики верны лишь в своих пределах, а рынки не обязаны приходить в равновесие.",
+"de": "Ökonometrie und Ungleichgewicht: Modelle gelten nur in ihren Grenzen."
+},
+"rule": "State the conditions under which your model holds, and what happens outside them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "marquard",
+"name": "Odo Marquard",
+"name_ru": "Одо Марквард",
+"years": "1928–2015",
+"wiki": "https://it.wikipedia.org/wiki/Odo_Marquard",
+"zone": "one_model",
+"idea": {
+"en": "Scepticism and pluralism: distrust single theories that claim the whole truth; keep several interpretations.",
+"ru": "Скептицизм и плюрализм: не доверять единым теориям, претендующим на всю истину; держать несколько толкований.",
+"de": "Skepsis und Pluralismus gegenüber Theorien mit Anspruch auf die ganze Wahrheit."
+},
+"rule": "Offer at least one other reading before settling on yours.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "maris",
+"name": "Bernard Maris",
+"name_ru": "Бернар Мари",
+"years": "1946–2015",
+"wiki": "https://it.wikipedia.org/wiki/Bernard_Maris",
+"zone": "one_model",
+"idea": {
+"en": "Critique of economic dogma: blind trust in closed macro models and market forecasts.",
+"ru": "Критика экономического догматизма: слепая вера в закрытые макромодели и рыночные прогнозы.",
+"de": "Kritik am ökonomischen Dogmatismus und blindem Vertrauen in Marktprognosen."
+},
+"rule": "Do not present a forecast as a fact; say whose model it is.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "montagna",
+"name": "Franco Montagna",
+"name_ru": "Франко Монтанья",
+"years": "1948–2015",
+"wiki": "https://it.wikipedia.org/wiki/Franco_Montagna",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Provability logic, many-valued logics of uncertainty and the foundations of subjective probability.",
+"ru": "Логика доказуемости, многозначные логики неопределённости и основания субъективной вероятности.",
+"de": "Beweisbarkeitslogik, mehrwertige Logiken und subjektive Wahrscheinlichkeit."
+},
+"rule": "Separate 'proven', 'probable' and 'believed'.",
+"needs": {
+"code": "covered",
+"note": "check_headline already keeps affirmed, denied, both and neither apart (sources_agree)",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "bruel",
+"name": "Per V. Brüel",
+"name_ru": "Пер Вильгельм Брюэль",
+"years": "1915–2015",
+"wiki": "https://it.wikipedia.org/wiki/Per_Vilhelm_Br%C3%BCel",
+"zone": "measurement_error",
+"idea": {
+"en": "Precision acoustics and vibration measurement (co-founder of Brüel & Kjær): instruments must be calibrated to be trusted.",
+"ru": "Прецизионные измерения звука и вибраций (сооснователь Brüel & Kjær): прибору можно верить, только если он откалиброван.",
+"de": "Präzisionsmessung von Schall und Schwingungen (Brüel & Kjær)."
+},
+"rule": "Ask when the instrument behind a number was last calibrated.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces every number to its source and checks it against independent paths",
+"covered_by": "baird"
+}
+},
+{
+"id": "matousek",
+"name": "Jiří Matoušek",
+"name_ru": "Иржи Матоушек",
+"years": "1963–2015",
+"wiki": "https://it.wikipedia.org/wiki/Ji%C5%99%C3%AD_Matou%C5%A1ek_(matematico)",
+"zone": "answer_cost",
+"idea": {
+"en": "Computational geometry and approximation: a small well-chosen sample can stand in for a huge set with bounded error.",
+"ru": "Вычислительная геометрия и аппроксимация: маленькая хорошо выбранная выборка может заменить огромное множество с ограниченной ошибкой.",
+"de": "Algorithmische Geometrie: eine kleine gut gewählte Stichprobe ersetzt eine riesige Menge mit begrenztem Fehler."
+},
+"rule": "Use a small representative sample and state the error bound.",
+"needs": {
+"code": "covered",
+"note": "the Trevisan sensor already shows how many headlines are enough for the barometer",
+"covered_by": "trevisan"
+}
+},
+{
+"id": "nash",
+"name": "John F. Nash",
+"name_ru": "Джон Нэш",
+"years": "1928–2015",
+"wiki": "https://it.wikipedia.org/wiki/John_Nash",
+"zone": "answer_cost",
+"idea": {
+"en": "Nash equilibrium: in strategic situations the best move depends on what others do in response.",
+"ru": "Равновесие Нэша: в стратегической ситуации лучший ход зависит от ответных ходов других.",
+"de": "Nash-Gleichgewicht: der beste Zug hängt von den Antworten der anderen ab."
+},
+"rule": "Before recommending a move, consider how the other side will respond.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "beck",
+"name": "Ulrich Beck",
+"name_ru": "Ульрих Бек",
+"years": "1944–2015",
+"wiki": "https://it.wikipedia.org/wiki/Ulrich_Beck",
+"zone": "one_model",
+"idea": {
+"en": "Risk society: modern decisions produce side effects and system risks no single actor foresees.",
+"ru": "Общество риска: современные решения порождают побочные эффекты и системные риски, которых не предвидит ни один участник.",
+"de": "Risikogesellschaft: Entscheidungen erzeugen Nebenfolgen und Systemrisiken."
+},
+"rule": "Name the side effects of an action, not only its intended effect.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lamfalussy",
+"name": "Alexandre Lamfalussy",
+"name_ru": "Александр Ламфалусси",
+"years": "1929–2015",
+"wiki": "https://it.wikipedia.org/wiki/Alexandre_Lamfalussy",
+"zone": "measurement_error",
+"idea": {
+"en": "Macroprudential view: look for fragility of the whole system before a crisis, not only at each institution.",
+"ru": "Макропруденциальный подход: искать хрупкость всей системы до кризиса, а не только у каждого участника по отдельности.",
+"de": "Makroprudenzielle Sicht: Fragilität des Gesamtsystems vor der Krise suchen."
+},
+"rule": "Check the whole system, not only its parts one by one.",
+"needs": {
+"code": "covered",
+"note": "the Simpson sensor already checks whether the whole index and its radars move the same way",
+"covered_by": "simpson"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

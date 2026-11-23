@@ -761,6 +761,34 @@ C = [
 ('henrichs', 'Norbert Henrichs', 'Норберт Хенрихс', '1935–2016', 'https://de.wikipedia.org/wiki/Norbert_Henrichs', 'answer_cost',
  'Text indexing without a fixed vocabulary.', 'Индексация текстов без заданного словаря.', 'Textindexierung ohne festes Vokabular.',
  'Index by the words the texts actually use.'),
+# --- итальянская Википедия, январь–июнь 2015 (23.11.2026) ---
+('malinvaud', 'Edmond Malinvaud', 'Эдмон Маленво', '1923–2015', 'https://it.wikipedia.org/wiki/Edmond_Malinvaud', 'one_model',
+ 'Econometrics and disequilibrium: statistical models of the economy hold only within limits, and markets need not clear.', 'Эконометрика и неравновесие: статистические модели экономики верны лишь в своих пределах, а рынки не обязаны приходить в равновесие.', 'Ökonometrie und Ungleichgewicht: Modelle gelten nur in ihren Grenzen.',
+ 'State the conditions under which your model holds, and what happens outside them.'),
+('marquard', 'Odo Marquard', 'Одо Марквард', '1928–2015', 'https://it.wikipedia.org/wiki/Odo_Marquard', 'one_model',
+ 'Scepticism and pluralism: distrust single theories that claim the whole truth; keep several interpretations.', 'Скептицизм и плюрализм: не доверять единым теориям, претендующим на всю истину; держать несколько толкований.', 'Skepsis und Pluralismus gegenüber Theorien mit Anspruch auf die ganze Wahrheit.',
+ 'Offer at least one other reading before settling on yours.'),
+('maris', 'Bernard Maris', 'Бернар Мари', '1946–2015', 'https://it.wikipedia.org/wiki/Bernard_Maris', 'one_model',
+ 'Critique of economic dogma: blind trust in closed macro models and market forecasts.', 'Критика экономического догматизма: слепая вера в закрытые макромодели и рыночные прогнозы.', 'Kritik am ökonomischen Dogmatismus und blindem Vertrauen in Marktprognosen.',
+ 'Do not present a forecast as a fact; say whose model it is.'),
+('montagna', 'Franco Montagna', 'Франко Монтанья', '1948–2015', 'https://it.wikipedia.org/wiki/Franco_Montagna', 'rumour_vs_fact',
+ 'Provability logic, many-valued logics of uncertainty and the foundations of subjective probability.', 'Логика доказуемости, многозначные логики неопределённости и основания субъективной вероятности.', 'Beweisbarkeitslogik, mehrwertige Logiken und subjektive Wahrscheinlichkeit.',
+ "Separate 'proven', 'probable' and 'believed'."),
+('bruel', 'Per V. Brüel', 'Пер Вильгельм Брюэль', '1915–2015', 'https://it.wikipedia.org/wiki/Per_Vilhelm_Br%C3%BCel', 'measurement_error',
+ 'Precision acoustics and vibration measurement (co-founder of Brüel & Kjær): instruments must be calibrated to be trusted.', 'Прецизионные измерения звука и вибраций (сооснователь Brüel & Kjær): прибору можно верить, только если он откалиброван.', 'Präzisionsmessung von Schall und Schwingungen (Brüel & Kjær).',
+ 'Ask when the instrument behind a number was last calibrated.'),
+('matousek', 'Jiří Matoušek', 'Иржи Матоушек', '1963–2015', 'https://it.wikipedia.org/wiki/Ji%C5%99%C3%AD_Matou%C5%A1ek_(matematico)', 'answer_cost',
+ 'Computational geometry and approximation: a small well-chosen sample can stand in for a huge set with bounded error.', 'Вычислительная геометрия и аппроксимация: маленькая хорошо выбранная выборка может заменить огромное множество с ограниченной ошибкой.', 'Algorithmische Geometrie: eine kleine gut gewählte Stichprobe ersetzt eine riesige Menge mit begrenztem Fehler.',
+ 'Use a small representative sample and state the error bound.'),
+('nash', 'John F. Nash', 'Джон Нэш', '1928–2015', 'https://it.wikipedia.org/wiki/John_Nash', 'answer_cost',
+ 'Nash equilibrium: in strategic situations the best move depends on what others do in response.', 'Равновесие Нэша: в стратегической ситуации лучший ход зависит от ответных ходов других.', 'Nash-Gleichgewicht: der beste Zug hängt von den Antworten der anderen ab.',
+ 'Before recommending a move, consider how the other side will respond.'),
+('beck', 'Ulrich Beck', 'Ульрих Бек', '1944–2015', 'https://it.wikipedia.org/wiki/Ulrich_Beck', 'one_model',
+ 'Risk society: modern decisions produce side effects and system risks no single actor foresees.', 'Общество риска: современные решения порождают побочные эффекты и системные риски, которых не предвидит ни один участник.', 'Risikogesellschaft: Entscheidungen erzeugen Nebenfolgen und Systemrisiken.',
+ 'Name the side effects of an action, not only its intended effect.'),
+('lamfalussy', 'Alexandre Lamfalussy', 'Александр Ламфалусси', '1929–2015', 'https://it.wikipedia.org/wiki/Alexandre_Lamfalussy', 'measurement_error',
+ 'Macroprudential view: look for fragility of the whole system before a crisis, not only at each institution.', 'Макропруденциальный подход: искать хрупкость всей системы до кризиса, а не только у каждого участника по отдельности.', 'Makroprudenzielle Sicht: Fragilität des Gesamtsystems vor der Krise suchen.',
+ 'Check the whole system, not only its parts one by one.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -902,3 +930,8 @@ NEEDS["gy"] = ("covered", "the Lyberg sensor already reports coverage gaps of th
 NEEDS["rottlaender"] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
 NEEDS["mueller_merbach"] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
 NEEDS["garfield"] = ("needs_source", "a citation graph for news sources would be needed")
+
+NEEDS["montagna"] = ("covered", "check_headline already keeps affirmed, denied, both and neither apart (sources_agree)", None, "frankfurt")
+NEEDS["bruel"] = ("covered", "the Baird sensor already traces every number to its source and checks it against independent paths", None, "baird")
+NEEDS["matousek"] = ("covered", "the Trevisan sensor already shows how many headlines are enough for the barometer", None, "trevisan")
+NEEDS["lamfalussy"] = ("covered", "the Simpson sensor already checks whether the whole index and its radars move the same way", None, "simpson")
