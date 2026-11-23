@@ -1063,7 +1063,8 @@ async function askGrok(env, headline, source, facts, retry, ms, question, avoid,
 const DUO_VOICES = { david: "rex", grok: "sal", gemini: "ara", deepseek: "atlas" }; // голоса гостей радио — те же, что в круглом столе
 const DUO_TTS_DAY_CHARS = 90000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
 const DUO_LANGS = ["de", "ru"]; // перевод эфира студии (оригинал — английский): немецкий и русский; английский — оригинал. Русский возвращён 23.11.2026 по просьбе автора
-const RADIO_AIR = "de"; // язык эфира радио
+const RADIO_AIR = "de"; // язык эфира радио по умолчанию; с 23.11.2026 (решение автора) радио снова звучит на языке слушателя: ru, de или en
+const radioLang = (l) => (DJ_LANGS.includes(l) ? l : RADIO_AIR);
 // Кому голос не синтезируем: роботы и скрипты по подписи, а также любой запрос с ?voice=0
 function quietVoice(request, url) { return url.searchParams.get("voice") === "0" || !!classifyAgent(request.headers.get("user-agent")); }
 async function duoAudio(env, ctx, origin, url, quiet = false) {
@@ -1877,16 +1878,27 @@ async function radioSensorsWarm(env, ctx) {
   if (!env.ANTHROPIC_API_KEY) return;
   const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && cur.stories && cur.stories[RADIO_AIR] && Object.keys(cur.stories[RADIO_AIR]).length && Date.now() - Date.parse(cur.generated_at) < SENSOR_MS) return; // свежий выпуск есть, но не на языке эфира — пишем заново
   if (await sharedGet(env, "radio-sens-lock", 20 * 60e3)) return; await sharedPut(env, "radio-sens-lock", { t: Date.now() });
-  const out = { generated_at: new Date().toISOString(), stories: {} };
-  await Promise.all([RADIO_AIR].map(async (lg) => { try { // новости с датчиков пишутся только на языке эфира
+  const out = { generated_at: new Date().toISOString(), stories: { ...((cur && cur.stories) || {}) }, at_lang: { ...((cur && cur.at_lang) || {}) } }; // ru/en пишет radioSensorsLang по запросу слушателя
+  await Promise.all([RADIO_AIR].map(async (lg) => { try { // по расписанию — только язык эфира по умолчанию
     const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
     const raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800).catch(() => null);
     if (!raw) { (out.rejected = out.rejected || {})[lg] = { all: "claude_no_answer" }; return; } // Claude не ответил: причина видна в not_aired
     const st = checkSensorStories(raw, facts, lg, stripInvisible);
-    out.stories[lg] = st; if (st._rejected) (out.rejected = out.rejected || {})[lg] = st._rejected; // причины отказа храним рядом: видно, что и почему не вышло в эфир
+    out.stories[lg] = st; out.at_lang[lg] = out.generated_at; if (st._rejected) (out.rejected = out.rejected || {})[lg] = st._rejected; // причины отказа храним рядом: видно, что и почему не вышло в эфир
   } catch {} }));
   if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v2", out);
   else await sharedPut(env, "radio-sens-rej", { at: out.generated_at, rejected: out.rejected || { [RADIO_AIR]: { all: "no_sensor_lines" } } }); // ничего не прошло: причины храним, чтобы было видно почему
+}
+// Экономия: новости с датчиков на ru/en пишутся не по расписанию, а только когда пришёл живой слушатель на этом языке (раз в SENSOR_MS на язык)
+async function radioSensorsLang(env, ctx, lg) {
+  if (!env.ANTHROPIC_API_KEY || !DJ_LANGS.includes(lg)) return;
+  const cur = await sharedGet(env, "radio-sens-v2", 1e15); if (cur && cur.stories && cur.stories[lg] && Object.keys(cur.stories[lg]).length && Date.now() - Date.parse(cur.at_lang && cur.at_lang[lg] || cur.generated_at) < SENSOR_MS) return;
+  if (await sharedGet(env, "radio-sens-lock-" + lg, 20 * 60e3)) return; await sharedPut(env, "radio-sens-lock-" + lg, { t: Date.now() });
+  const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
+  const raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800).catch(() => null); if (!raw) return;
+  const st = checkSensorStories(raw, facts, lg, stripInvisible), now = await sharedGet(env, "radio-sens-v2", 1e15) || { generated_at: new Date().toISOString(), stories: {} };
+  now.stories = { ...(now.stories || {}), [lg]: st }; now.at_lang = { ...(now.at_lang || {}), [lg]: new Date().toISOString() }; if (st._rejected) now.rejected = { ...(now.rejected || {}), [lg]: st._rejected };
+  await sharedPut(env, "radio-sens-v2", now);
 }
 async function radioSensors(env, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
@@ -1919,12 +1931,12 @@ async function radioRegionWarm(env, ctx) {
 }
 // Текст эфира для страницы радио: то же, что слышит слушатель этого региона и языка, из сохранённых выпусков
 async function radioPageText(env, request, lang) {
-  const lg = RADIO_AIR, region = regionFor(request.cf && request.cf.country) || "eu"; // подписи — на языке страницы, сам эфир — на русском
+  const lg = radioLang(lang), region = regionFor(request.cf && request.cf.country) || "eu"; // эфир и подписи — на языке страницы
   const [ep, rad, sens] = await Promise.all([sharedGet(env, "radio-region-v5-" + region, 2 * REGION_MS).catch(() => null), sharedGet(env, "radio-radar-v1", 3 * RADAR_MS).catch(() => null), sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS).catch(() => null)]);
   const interviews = ep ? regionalInterviews(ep, lg).filter((iv) => iv.language === lg) : [];
   const radar = rad && Array.isArray(rad.items) ? rad.items.filter((x) => x && x.text && x.text[lg]).map((x) => ((x.titles && x.titles[lg]) || x.title) + ". " + x.text[lg]) : [];
   const sm = sens && sens.stories && sens.stories[lg] ? Object.values(sens.stories[lg]).map((x) => x && x.text).filter(Boolean) : [];
-  return { html: radioTextBlock(DJ_LANGS.includes(lang) ? lang : "en", { interviews, generated_at: ep && ep.generated_at, radar, sensors: sm, tracks: RADIO_TRACKS, air: RADIO_AIR }), ld: radioJsonLd(DJ_LANGS.includes(lang) ? lang : "en", "https://orbstudio.org") };
+  return { html: radioTextBlock(DJ_LANGS.includes(lang) ? lang : "en", { interviews, generated_at: ep && ep.generated_at, radar, sensors: sm, tracks: RADIO_TRACKS, air: lg }), ld: radioJsonLd(DJ_LANGS.includes(lang) ? lang : "en", "https://orbstudio.org") };
 }
 async function radioRegional(env, request, origin, lang, forced) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", region = REGIONS[forced] ? forced : regionFor(request.cf && request.cf.country);
@@ -3721,13 +3733,13 @@ async function handleApi(url, request, env, ctx) {
     const robot = /HeadlessChrome|Playwright|Puppeteer|PhantomJS|Lighthouse|Selenium|webdriver/i.test(request.headers.get("user-agent") || "");
     if (RADIO_BEATS.includes(kind) && !robot && !classifyAgent(request.headers.get("user-agent"))) await recordHit(env, "radio-air", "air", kind);
     return json({ ok: true }, { "Cache-Control": "no-store" }); }
-  if (p === "/api/v1/radio/dj") return json(await radioDj(renv, ctx, origin, RADIO_AIR), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/dj") return json(await radioDj(renv, ctx, origin, radioLang(url.searchParams.get("lang"))), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   // интервью ближе к слушателю (регион по стране IP; ?region=eu|us — для проверки)
-  if (p === "/api/v1/radio/radar") return json(await radioRadar(renv, origin, RADIO_AIR), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/radio/sensors") return json(await radioSensors(renv, origin, RADIO_AIR), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/radio/regional") return json(await radioRegional(renv, request, origin, RADIO_AIR, url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
+  if (p === "/api/v1/radio/radar") return json(await radioRadar(renv, origin, radioLang(url.searchParams.get("lang"))), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/radio/sensors") { const lg = radioLang(url.searchParams.get("lang")); if (lg !== RADIO_AIR && !renv.__quietVoice) ctx.waitUntil(radioSensorsLang(env, ctx, lg).catch(() => null)); return json(await radioSensors(renv, origin, lg), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" }); }
+  if (p === "/api/v1/radio/regional") return json(await radioRegional(renv, request, origin, radioLang(url.searchParams.get("lang")), url.searchParams.get("region")), { "Cache-Control": "private, max-age=120" });
   // погода для города слушателя: город по IP даёт Cloudflare, он нигде не сохраняется вместе с посетителем
-  if (p === "/api/v1/radio/weather") return json(await radioWeather(renv, request, origin, RADIO_AIR), { "Cache-Control": "private, max-age=600" });
+  if (p === "/api/v1/radio/weather") return json(await radioWeather(renv, request, origin, radioLang(url.searchParams.get("lang"))), { "Cache-Control": "private, max-age=600" });
   if (p === "/api/v1/radio/audio") {
     const k = url.searchParams.get("k") || ""; if (!/^[0-9a-f]{40}$/.test(k) || !env.DB) return json({ error: "no such line" }, { "Cache-Control": "no-store" }, 404);
     const hit = await env.DB.prepare("SELECT audio FROM tts_cache WHERE k=?1").bind(k).first().catch(() => null);

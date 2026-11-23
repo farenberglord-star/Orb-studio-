@@ -252,7 +252,7 @@ test("market screen: whitelist of instruments, honest oil board, futures as repo
 test("guests are heard only in the language of the broadcast", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(w, /regionalInterviews\(ep, lg\)\.filter\(\(iv\) => iv\.language === lg\)/);
-  assert.match(js, /plan\(mergeInterviews\(reg, worldInterviews\(duo, AIR_LANG\)\)/);
+  assert.match(js, /plan\(mergeInterviews\(reg, worldInterviews\(duo, lang\)\)/);
 });
 
 test("DJ does not repeat himself: four different variants of every repeated link, played in turn", async () => {
@@ -513,7 +513,8 @@ test("voice budget: robots and checks never start speech synthesis; the radio sk
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8");
   assert.match(w, /function quietVoice\(request, url\) \{ return url\.searchParams\.get\("voice"\) === "0" \|\| !!classifyAgent\(request\.headers\.get\("user-agent"\)\); \}/);
   assert.match(w, /if \(cachedOnly\) return null;/); assert.match(w, /ttsEnsure\(env, text, who, lg, !!env\.__quietVoice\)/);
-  for (const ep of ["dj", "radar", "sensors", "regional", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,'), ep + " uses the quiet-aware env");
+  for (const ep of ["dj", "radar", "regional", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,'), ep + " uses the quiet-aware env");
+  assert.match(w, /return json\(await radioSensors\(renv, origin, lg\)/, "sensors uses the quiet-aware env");
   assert.match(w, /duoAudio\(env, ctx, origin, url, quietVoice\(request, url\)\)/); assert.match(w, /if \(quiet\) return bad\("this line has not been voiced yet/);
   // плеер: в режиме «только голос» безголосые реплики и блоки не попадают в сетку
   const A = (n) => "https://orbstudio.org/api/v1/radio/audio?k=" + String(n).padStart(40, "0"), V = (text, n) => ({ text, audio: A(n) });
@@ -534,18 +535,19 @@ test("a block whose voice failed to load is left alone for twenty minutes, then 
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"); assert.match(js, /else if \(id\) failed\.set\(id, Date\.now\(\)\)/); assert.match(js, /\.filter\(\(iv\) => !skipNow\.has\(iv\.headline\)\)/);
 });
 
-test("the radio, studio and round table speak German only: one air language for every listener, labels stay in the visitor's language", async () => {
-  const { radioTextBlock, radioJsonLd } = await import("../src/radio.js"); const rt = await import("../src/roundtable.js");
+test("the radio speaks the listener's language again (ru, de, en), with the news passport and lazy sensor stories", async () => {
+  const { radioTextBlock, radioJsonLd, radarCandidates, radarNewsUser, RADAR_NEWS_SYSTEM } = await import("../src/radio.js"); const rt = await import("../src/roundtable.js");
   assert.equal(AIR_LANG, "de");
   const js = readFileSync(new URL("../public/radio.js", import.meta.url), "utf8"), w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), sd = readFileSync(new URL("../public/studio-duo.js", import.meta.url), "utf8"), rtj = readFileSync(new URL("../public/roundtable.js", import.meta.url), "utf8");
-  assert.ok(!/radio\/(dj|weather|regional|sensors|radar)\?lang=" \+ lang\b/.test(js), "the player never asks for another broadcast language"); assert.match(js, /worldInterviews\(duo, AIR_LANG\)/);
-  assert.match(w, /const RADIO_AIR = "de";/); for (const ep of ["dj", "radar", "sensors", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,[^\\n]*RADIO_AIR'));
-  assert.match(w, /radioRegional\(renv, request, origin, RADIO_AIR,/); assert.match(w, /\[RADIO_AIR\]\.map\(async \(lg\) => \{ try \{/);
-  assert.match(w, /const DUO_LANGS = \["de", "ru"\];/); assert.deepEqual(rt.RT_TR, ["de", "ru"]); assert.ok(!/AIR_STUDIO/.test(sd) && /buildQueue\(ep2, lang\)/.test(sd), "the studio plays in the visitor language (ru, de or en)"); assert.match(rtj, /fetch\(API \+ "\?lang=" \+ lang/);
-  assert.match(radioTextBlock("ru", { air: "de" }), /Эфир идёт на немецком/); assert.match(radioTextBlock("en", { air: "de" }), /The broadcast is in German/); assert.ok(!/in German|на немецком/.test(radioTextBlock("de", { air: "de" })));
-  assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "de");
-  assert.equal(T.de.airNote, ""); assert.match(T.ru.airNote, /немецком/); assert.match(T.en.airNote, /German/);
-  assert.match(readFileSync(new URL("../public/en/index.html", import.meta.url), "utf8"), /The broadcast is in German\./); assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /Эфир идёт на немецком\./);
+  assert.match(js, /radio\/dj\?lang=" \+ lang\b/); assert.match(js, /worldInterviews\(duo, lang\)/);
+  for (const ep of ["dj", "radar", "weather"]) assert.match(w, new RegExp('p === "/api/v1/radio/' + ep + '"\\) return json\\(await radio[A-Za-z]+\\(renv,[^\\n]*radioLang\\(url\\.searchParams\\.get\\("lang"\\)\\)'));
+  assert.match(w, /radioSensorsLang\(env, ctx, lg\)/); assert.match(w, /if \(lg !== RADIO_AIR && !renv\.__quietVoice\)/, "ru/en sensor stories are written only for a live listener");
+  assert.match(w, /const DUO_LANGS = \["de", "ru"\];/); assert.deepEqual(rt.RT_TR, ["de", "ru"]); assert.ok(!/AIR_STUDIO/.test(sd) && /buildQueue\(ep2, lang\)/.test(sd)); assert.match(rtj, /fetch\(API \+ "\?lang=" \+ lang/);
+  assert.ok(!/in German|на немецком/.test(radioTextBlock("ru", { air: "ru" }))); assert.equal(JSON.parse(radioJsonLd("de", "https://orbstudio.org")).inLanguage, "de");
+  assert.match(readFileSync(new URL("../public/index.html", import.meta.url), "utf8"), /на вашем языке/);
+  const radars = [{ id: "geo", title: "Geo", feed: [["10:00", "Iran threatens to close the Strait of Hormuz to shipping", "Reuters", 80, "https://x.example", Date.now() - 3600e3]], verify: [1] }];
+  const c = radarCandidates(radars, new Set()); assert.equal(c[0].passport.status, "threat_or_warning"); assert.equal(c[0].passport.outlets, 1);
+  assert.match(radarNewsUser(c), /PASSPORT/); assert.match(RADAR_NEWS_SYSTEM, /never told as something that happened/);
 });
 
 test("no long pauses: the next sound is loaded in advance, short gap and fade-in, instant start, silent tails trimmed", () => {

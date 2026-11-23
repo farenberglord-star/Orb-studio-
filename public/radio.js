@@ -45,7 +45,7 @@ export function mediaActions(p) {
   return [["play", () => { if (!p.isOn()) p.toggle(); }], ["pause", () => { if (p.isOn()) p.toggle(); }], ["nexttrack", () => { if (p.isStarted()) p.skip(); }], ["stop", () => { if (p.isOn()) p.toggle(); }]];
 }
 // Язык эфира один для всех слушателей: голос Давида и гостей звучит по-русски, подписи страницы остаются на языке посетителя
-export const AIR_LANG = "de";
+export const AIR_LANG = "de"; // язык эфира по умолчанию; плеер просит эфир на языке страницы (ru, de, en) — решение автора 23.11.2026
 // Эфир без остановок. LOAD_MS — срок на загрузку данных круга; STALL_MS — сколько звук может стоять на месте.
 export const LOAD_MS = 25000, STALL_MS = 12000, VOICE_STALL_MS = 6000, VOICE_FAIL_MS = 150, START_WAIT_MS = 1500, RETRY_MS = 20 * 60e3; // музыке даём 12 с (слабая сеть в дороге), голосу — 6 с: реплика короткая, ждать её дольше незачем
 // Блоки, у которых не загрузился голос, не пробуем снова 20 минут (failed: что → когда не получилось)
@@ -214,7 +214,7 @@ function start() {
   const lang = pickLang(location.search, document.documentElement.dataset.al || navigator.language), t = T[lang] || T.en, st = ST[lang] || ST.en; // data-al: язык из адреса /ru/radio или языка телефона
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   document.documentElement.lang = lang; document.title = t.title + " · Orb Studio";
-  $("ttl").textContent = t.title; $("test").hidden = true; $("by").textContent = (lang === AIR_LANG ? "" : t.airNote + " ") + t.by; $("ai").textContent = t.ai; $("pics").textContent = t.pics; $("rd-h").textContent = t.rundown;
+  $("ttl").textContent = t.title; $("test").hidden = true; $("by").textContent = t.by; $("ai").textContent = t.ai; $("pics").textContent = t.pics; $("rd-h").textContent = t.rundown;
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = st[e.dataset.t] || ""; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = st[e.dataset.h] || ""; });
   const play = $("play"), skip = $("skip"), au = new Audio(); au.preload = "auto";
@@ -286,13 +286,13 @@ function start() {
     let duo = null; try { duo = await (await fetch(API, { headers: { accept: "application/json" }, signal: sig() })).json(); } catch { duo = null; }
     // связки Давида и погода: если не пришли, эфир идёт без них
     const getJ = (u) => fetch(u, { headers: { accept: "application/json" }, signal: sig() }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    const [dj, wx, reg, sens, rad] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + AIR_LANG), getJ("/api/v1/radio/weather?lang=" + AIR_LANG), getJ("/api/v1/radio/regional?lang=" + AIR_LANG), getJ("/api/v1/radio/sensors?lang=" + AIR_LANG), getJ("/api/v1/radio/radar?lang=" + AIR_LANG)]);
+    const [dj, wx, reg, sens, rad] = await Promise.all([getJ("/api/v1/radio/dj?lang=" + lang), getJ("/api/v1/radio/weather?lang=" + lang), getJ("/api/v1/radio/regional?lang=" + lang), getJ("/api/v1/radio/sensors?lang=" + lang), getJ("/api/v1/radio/radar?lang=" + lang)]);
     const stories = sens && sens.status === "ok" && Array.isArray(sens.stories) ? sens.stories.filter((x) => x && typeof x.key === "string" && typeof x.text === "string") : [];
     // главные новости радаров идут первыми среди новостей: один блок на выпуск радаров
     if (rad && rad.status === "ok" && typeof rad.key === "string" && Array.isArray(rad.lines) && rad.lines.length > 1) stories.unshift({ key: rad.key, lines: rad.lines, title: t.radarNews, source: t.radarSrc + (Array.isArray(rad.sources) && rad.sources.length ? " · " + rad.sources.slice(0, 4).join(", ") : "") });
     // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
     weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
-    const skipNow = notNow(failed, Date.now()), p = plan(mergeInterviews(reg, worldInterviews(duo, AIR_LANG)).filter((iv) => !skipNow.has(iv.headline)), heard, trackAt, 2, { voiceOnly: true, dj: dj && dj.links, stories: stories.filter((x) => !skipNow.has(x.key)), newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
+    const skipNow = notNow(failed, Date.now()), p = plan(mergeInterviews(reg, worldInterviews(duo, lang)).filter((iv) => !skipNow.has(iv.headline)), heard, trackAt, 2, { voiceOnly: true, dj: dj && dj.links, stories: stories.filter((x) => !skipNow.has(x.key)), newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh || p.news ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
