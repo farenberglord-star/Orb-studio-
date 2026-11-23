@@ -127,7 +127,8 @@
     "searle": "https://orbstudio.org/api/v1/searle",
     "simpson": "https://orbstudio.org/api/v1/simpson",
     "trackrecord": "https://orbstudio.org/api/v1/trackrecord",
-    "kasperson": "https://orbstudio.org/api/v1/kasperson"
+    "kasperson": "https://orbstudio.org/api/v1/kasperson",
+    "method": "https://orbstudio.org/api/v1/method"
   },
   "auth": "none",
   "payments": {

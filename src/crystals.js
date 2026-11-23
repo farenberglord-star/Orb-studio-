@@ -6069,7 +6069,7 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
     needs_summary: needs, ready_to_build: wait.filter((c) => c.needs.code === "ready").map((c) => ({ id: c.id, name: c.name, plan: c.needs.note })),
     history_due: wait.filter((c) => c.needs.code === "needs_history").map((c) => ({ id: c.id, name: c.name, not_before: c.needs.not_before, plan: c.needs.note })),
     crystals: all,
-    about: "Ideas of scientists who died in 2008-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
+    about: "Ideas of scientists who died in 2000-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
 }

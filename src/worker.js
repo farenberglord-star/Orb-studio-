@@ -71,6 +71,7 @@ import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
 import { newsPassport, PASSPORT_RULE } from "./passport.js";
+import { methodReport } from "./method.js";
 import { hagenauerReport } from "./hagenauer.js";
 import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
@@ -1805,6 +1806,14 @@ async function howardNow(env) {
   try { rows = (await env.DB.prepare("SELECT first_ts, last_ts, n_first, n_max, t3 FROM radar_life WHERE n_first IS NOT NULL AND first_ts > ?1").bind(Date.now() - HOWARD_DAYS * 864e5).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE n_first IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = howardReport(rows, Date.now(), since); await sharedPut(env, "howard-v1", r).catch(() => {}); return r;
+}
+async function methodNow(env, ctx, origin) { // «Как Orb Studio проверяет новости»: три слоя и живые паспорта главных заголовков
+  const c = await sharedGet(env, "method-v1", 10 * 60e3).catch(() => null); if (c) return c;
+  const items = broadcastItems(await allRadars(env, ctx, origin).catch(() => [])).slice(0, 6), amp = {};
+  try { const hs = items.map((x) => x.headline).filter(Boolean);
+    if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b }; } catch {}
+  const r = methodReport(items.map((it) => ({ radar: it.radar, source: it.source, link: it.link, ...newsPassport({ ...it, amplified: amp[it.headline] || null }) })));
+  await sharedPut(env, "method-v1", r).catch(() => {}); return r;
 }
 async function kaspersonNow(env) { // «Касперсон»: какие истории разошлись намного шире первого источника
   const c = await sharedGet(env, "kasperson-v1", 10 * 60e3).catch(() => null); if (c) return c;
@@ -3669,6 +3678,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/duckworth") return json(await duckworthNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/kasperson") return json(await kaspersonNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/trackrecord") return json(await trackrecordNow(env, { hour: url.searchParams.get("hour") }), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/simpson") return json(await simpsonNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
@@ -3965,7 +3975,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin", "searle", "simpson", "trackrecord", "kasperson"]);
+const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin", "searle", "simpson", "trackrecord", "kasperson", "method"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -8190,6 +8200,9 @@ const MCP_TOOLS = [
   { name: "get_bertsekas", title: "Bertsekas sensor: how many tokens each Orb Studio tool answer costs, and the cheapest call chains",
     description: "Measured answer size in tokens of every read-only Orb Studio MCP tool without input (refreshed every 6 hours), and for typical agent questions the cheap chain of calls versus the naive one, with tokens saved. In honour of Dimitri Bertsekas (1942-2026), author of the standard works on dynamic programming.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_method", title: "How Orb Studio checks news: three layers of rules and the live news passport of today's top headlines",
+    description: "The method behind Orb Studio's sensors and studio, as one pipeline: layer 1 (which scientists enter the Crystal Library), layer 2 (how a card becomes a sensor, a news-passport line or a host rule), layer 3 (the order in which a news item is checked before air: freshness, fact or rumour, numbers, one model, consequences and look-alikes, limits of knowledge, cost). Plus live news passports of today's top radar headlines: status (event, statement, promise, threat, forecast, question), outlets, age, amplification, confidence and the lines the hosts follow. Word rules, no AI.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_kasperson", title: "Kasperson sensor: which radar stories spread far wider than their first source (social amplification of risk)",
     description: "For every Orb Studio radar story of the last 7 days: outlets at first sight and at the peak, growth factor, amplified (3+ outlets and 2x), per radar and per speech act (event, claim, promise, threat, demand), with the most amplified stories. More outlets means wider spread, not more facts. No AI. In honour of Roger Kasperson (1938-2021), author of the social amplification of risk framework.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8209,7 +8222,7 @@ const MCP_TOOLS = [
     description: "How much of what the Orb Studio radars carry can actually be checked: for every top headline the anchors who / when / how many / where and vague formulas (experts say, reportedly, could; angeblich, könnte; якобы, по слухам), classed checkable / hedged / thin / nothing_to_check, with shares per radar and examples. check_headline adds the same verdict for any headline as 'checkability'. Word rules, no AI; measures checkability, not truth. In honour of Harry Frankfurt (1929-2023), author of 'On Bullshit'.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_crystals", title: "Crystal Library: reasoning rules from the ideas of scientists who died in 2020-2026",
-    description: "Ideas of scientists who died in 2008-2026 (found by the scouts Grok and Gemini in Wikipedia death lists in many languages), each crystallised into a rule an AI agent can apply, grouped by agent blind spot: stale_data, one_model, rumour_vs_fact, measurement_error, answer_cost, side_effects (the agent does not see how others respond or what side effects follow), look_alike (similar taken for the same: duplicates with typos, one word for different things), own_limits (fluent answers where it cannot really answer). Each card has the core idea, the rule (Orb Studio's interpretation), the Wikipedia link and, where it exists, a live Orb Studio sensor that checks the rule now. Filter by blind_spot or search with query.",
+    description: "Ideas of scientists who died in 2000-2026 (found by the scouts Grok and Gemini in Wikipedia death lists in many languages), each crystallised into a rule an AI agent can apply, grouped by agent blind spot: stale_data, one_model, rumour_vs_fact, measurement_error, answer_cost, side_effects (the agent does not see how others respond or what side effects follow), look_alike (similar taken for the same: duplicates with typos, one word for different things), own_limits (fluent answers where it cannot really answer). Each card has the core idea, the rule (Orb Studio's interpretation), the Wikipedia link and, where it exists, a live Orb Studio sensor that checks the rule now. Filter by blind_spot or search with query.",
     inputSchema: { type: "object", properties: { blind_spot: { type: "string", enum: ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"] }, query: { type: "string", maxLength: 80, description: "name or word to search" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_hagenauer", title: "Hagenauer sensor: which Orb Studio labels are firm and which are on the edge (soft decisions)",
@@ -8564,6 +8577,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_duckworth") return { ...(await duckworthNow(env)), page: origin + "/tools/duckworth", referral: ref };
   if (name === "get_trevisan") return { ...(await trevisanNow(env, ctx)), page: origin + "/tools/trevisan", referral: ref };
   if (name === "get_bertsekas") return { ...(await bertsekasNow(env, ctx, origin, request)), page: origin + "/tools/bertsekas", referral: ref };
+  if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
   if (name === "get_kasperson") return { ...(await kaspersonNow(env)), page: origin + "/tools/kasperson", referral: ref };
   if (name === "get_trackrecord") return { ...(await trackrecordNow(env, args || {})), page: origin + "/tools/trackrecord", referral: ref };
   if (name === "get_simpson") return { ...(await simpsonNow(env)), page: origin + "/tools/simpson", referral: ref };
@@ -9028,7 +9042,7 @@ setCourtLangPicker(pickLang); // суд выбирает язык страниц
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
 // слитые страницы: старый адрес → новое место (раздел на другой странице)
 const MOVED_PAGES = { "/indices": "/sensors#indices", "/tools/cockpit": "/sensors#cockpit", "/map": "/sensors#map", "/guests": "/hall#guest-cards", "/tools/interview": "/tools/clips#interview" };
-const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/searle", "tools/simpson", "tools/trackrecord", "tools/kasperson", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
+const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/searle", "tools/simpson", "tools/trackrecord", "tools/kasperson", "tools/method", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
