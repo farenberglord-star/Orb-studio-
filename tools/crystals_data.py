@@ -1173,6 +1173,22 @@ C = [
 ('knorozov', 'Yuri Knorozov', 'Юрий Кнорозов', '1922–1999', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%BD%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%B2%2C_%D0%AE%D1%80%D0%B8%D0%B9_%D0%92%D0%B0%D0%BB%D0%B5%D0%BD%D1%82%D0%B8%D0%BD%D0%BE%D0%B2%D0%B8%D1%87', 'look_alike',
  'Deciphering the Maya script: count the signs and their positions before deciding what kind of writing it is — similar-looking signs may work differently.', 'Дешифровка письменности майя: сначала посчитать знаки и их позиции, а потом решать, что это за письмо, — похожие знаки могут работать по-разному.', 'Entzifferung der Maya-Schrift: erst Zeichen zählen, dann deuten.',
  'Count and compare before you interpret: similar signs may play different roles.'),
+# --- эксперимент Claude: русская Википедия, 1991–1992 (сырьё — Лиана), 23.11.2026 ---
+('osgood', 'Charles E. Osgood', 'Чарльз Осгуд', '1916–1991', 'https://en.wikipedia.org/wiki/Charles_E._Osgood', 'measurement_error',
+ 'The semantic differential: the feeling a word carries can be measured on three scales — good–bad, strong–weak, active–passive.', 'Семантический дифференциал: эмоциональную окраску слова можно измерить по трём шкалам — хорошо–плохо, сильно–слабо, активно–пассивно.', 'Semantisches Differential: Bewertung, Stärke, Aktivität.',
+ 'Separate what a headline says from the emotional charge of its words.'),
+('hayek', 'Friedrich Hayek', 'Фридрих Хайек', '1899–1992', 'https://en.wikipedia.org/wiki/Friedrich_Hayek', 'own_limits',
+ "'The Use of Knowledge in Society' and 'The Pretence of Knowledge': knowledge is spread across many people and places; no single planner has it all.", '«Использование знания в обществе» и «Претензия знания»: знание рассеяно по множеству людей и мест, ни у одного планировщика его нет целиком.', '„Die Verwertung des Wissens in der Gesellschaft“ und „Die Anmaßung von Wissen“.',
+ 'Do not speak as if you had all the local knowledge; say what you cannot see from where you are.'),
+('greimas', 'Algirdas Julien Greimas', 'Альгирдас Греймас', '1917–1992', 'https://en.wikipedia.org/wiki/Algirdas_Julien_Greimas', 'look_alike',
+ "The semiotic square: 'not true' is not the same as 'false' — contraries and contradictories are different.", 'Семиотический квадрат: «не истинно» — не то же, что «ложно»; противоположность и противоречие — разные вещи.', 'Semiotisches Quadrat: „nicht wahr“ ist nicht „falsch“.',
+ "Do not turn 'not confirmed' into 'denied'."),
+('moles', 'Abraham Moles', 'Абрахам Моль', '1920–1992', 'https://en.wikipedia.org/wiki/Abraham_Moles', 'stale_data',
+ 'Information theory of perception: a message informs only by what is new in it; redundancy is what we already expect.', 'Теория информации и восприятие: сообщение информирует только новым в нём; избыточность — то, чего мы и так ожидаем.', 'Informationstheorie der Wahrnehmung: nur das Neue informiert.',
+ 'Tell what is new; skip what the listener already knows.'),
+('harris_z', 'Zellig Harris', 'Зеллиг Харрис', '1909–1992', 'https://en.wikipedia.org/wiki/Zellig_Harris', 'look_alike',
+ "Distributional analysis: words used in similar contexts tend to have similar meanings — the root of today's word embeddings, and of their errors.", 'Дистрибутивный анализ: слова в похожих контекстах обычно похожи по смыслу — корень нынешних векторных представлений и их ошибок.', 'Distributionelle Analyse: ähnliche Kontexte, ähnliche Bedeutung.',
+ 'Similar context suggests similar meaning but does not prove it; check before merging two terms.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1350,3 +1366,8 @@ NEEDS["salmon_w"] = ("needs_history", "bridge 'who leads whom' with Granger and 
 
 NEEDS["leontief"] = ("needs_history", "bridge 'spill-over between radars' (Leontief + Granger + Haavelmo): only the geo and crypto radar levels are stored, and the geo radar barely moves (70–73 over 11 days); all eight radar levels need to be stored for a few weeks", "2026-12-21")
 NEEDS["griliches"] = ("covered", "the track record sensor already reports intervals; noisy radar readings make real links look weaker", None, "trackrecord")
+
+NEEDS["osgood"] = ("needs_source", "bridge 'tone in three dimensions' (Osgood + Kasperson + news passport): needs an open evaluation–potency–activity word list in English, German and Russian that may be used live")
+NEEDS["greimas"] = ("covered", "check_headline already keeps 'neither' apart from 'denied' (sources_agree, four values)", None, "frankfurt")
+NEEDS["moles"] = ("covered", "the Ziv sensor already measures how much in the headlines is new", None, "ziv")
+NEEDS["hayek"] = ("covered", "applied: Grok, David and the round-table guests say 'not known yet' where the facts stop")

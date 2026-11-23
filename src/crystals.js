@@ -6999,6 +6999,98 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "osgood",
+"name": "Charles E. Osgood",
+"name_ru": "Чарльз Осгуд",
+"years": "1916–1991",
+"wiki": "https://en.wikipedia.org/wiki/Charles_E._Osgood",
+"zone": "measurement_error",
+"idea": {
+"en": "The semantic differential: the feeling a word carries can be measured on three scales — good–bad, strong–weak, active–passive.",
+"ru": "Семантический дифференциал: эмоциональную окраску слова можно измерить по трём шкалам — хорошо–плохо, сильно–слабо, активно–пассивно.",
+"de": "Semantisches Differential: Bewertung, Stärke, Aktivität."
+},
+"rule": "Separate what a headline says from the emotional charge of its words.",
+"needs": {
+"code": "needs_source",
+"note": "bridge 'tone in three dimensions' (Osgood + Kasperson + news passport): needs an open evaluation–potency–activity word list in English, German and Russian that may be used live"
+}
+},
+{
+"id": "hayek",
+"name": "Friedrich Hayek",
+"name_ru": "Фридрих Хайек",
+"years": "1899–1992",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_Hayek",
+"zone": "own_limits",
+"idea": {
+"en": "'The Use of Knowledge in Society' and 'The Pretence of Knowledge': knowledge is spread across many people and places; no single planner has it all.",
+"ru": "«Использование знания в обществе» и «Претензия знания»: знание рассеяно по множеству людей и мест, ни у одного планировщика его нет целиком.",
+"de": "„Die Verwertung des Wissens in der Gesellschaft“ und „Die Anmaßung von Wissen“."
+},
+"rule": "Do not speak as if you had all the local knowledge; say what you cannot see from where you are.",
+"needs": {
+"code": "covered",
+"note": "applied: Grok, David and the round-table guests say 'not known yet' where the facts stop"
+}
+},
+{
+"id": "greimas",
+"name": "Algirdas Julien Greimas",
+"name_ru": "Альгирдас Греймас",
+"years": "1917–1992",
+"wiki": "https://en.wikipedia.org/wiki/Algirdas_Julien_Greimas",
+"zone": "look_alike",
+"idea": {
+"en": "The semiotic square: 'not true' is not the same as 'false' — contraries and contradictories are different.",
+"ru": "Семиотический квадрат: «не истинно» — не то же, что «ложно»; противоположность и противоречие — разные вещи.",
+"de": "Semiotisches Quadrat: „nicht wahr“ ist nicht „falsch“."
+},
+"rule": "Do not turn 'not confirmed' into 'denied'.",
+"needs": {
+"code": "covered",
+"note": "check_headline already keeps 'neither' apart from 'denied' (sources_agree, four values)",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "moles",
+"name": "Abraham Moles",
+"name_ru": "Абрахам Моль",
+"years": "1920–1992",
+"wiki": "https://en.wikipedia.org/wiki/Abraham_Moles",
+"zone": "stale_data",
+"idea": {
+"en": "Information theory of perception: a message informs only by what is new in it; redundancy is what we already expect.",
+"ru": "Теория информации и восприятие: сообщение информирует только новым в нём; избыточность — то, чего мы и так ожидаем.",
+"de": "Informationstheorie der Wahrnehmung: nur das Neue informiert."
+},
+"rule": "Tell what is new; skip what the listener already knows.",
+"needs": {
+"code": "covered",
+"note": "the Ziv sensor already measures how much in the headlines is new",
+"covered_by": "ziv"
+}
+},
+{
+"id": "harris_z",
+"name": "Zellig Harris",
+"name_ru": "Зеллиг Харрис",
+"years": "1909–1992",
+"wiki": "https://en.wikipedia.org/wiki/Zellig_Harris",
+"zone": "look_alike",
+"idea": {
+"en": "Distributional analysis: words used in similar contexts tend to have similar meanings — the root of today's word embeddings, and of their errors.",
+"ru": "Дистрибутивный анализ: слова в похожих контекстах обычно похожи по смыслу — корень нынешних векторных представлений и их ошибок.",
+"de": "Distributionelle Analyse: ähnliche Kontexte, ähnliche Bedeutung."
+},
+"rule": "Similar context suggests similar meaning but does not prove it; check before merging two terms.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
