@@ -1189,6 +1189,22 @@ C = [
 ('harris_z', 'Zellig Harris', 'Зеллиг Харрис', '1909–1992', 'https://en.wikipedia.org/wiki/Zellig_Harris', 'look_alike',
  "Distributional analysis: words used in similar contexts tend to have similar meanings — the root of today's word embeddings, and of their errors.", 'Дистрибутивный анализ: слова в похожих контекстах обычно похожи по смыслу — корень нынешних векторных представлений и их ошибок.', 'Distributionelle Analyse: ähnliche Kontexte, ähnliche Bedeutung.',
  'Similar context suggests similar meaning but does not prove it; check before merging two terms.'),
+# --- эксперимент Claude: русская Википедия, 1990 (сырьё — Лиана), 23.11.2026 ---
+('skinner_bf', 'B. F. Skinner', 'Беррес Фредерик Скиннер', '1904–1990', 'https://en.wikipedia.org/wiki/B._F._Skinner', 'own_limits',
+ "'Superstition in the pigeon': rewards that come by chance make a learner repeat whatever it happened to be doing — a rule built from coincidences.", '«Суеверие у голубя»: случайные награды заставляют повторять то, что делал в тот момент, — правило, выстроенное из совпадений.', '„Aberglaube bei der Taube“: zufällige Belohnungen erzeugen Scheinregeln.',
+ 'Do not build a rule from a few lucky coincidences; count how often it really held.'),
+('konus', 'Alexander Konüs', 'Александр Конюс', '1895–1990', 'https://en.wikipedia.org/wiki/Alexander_Kon%C3%BCs', 'measurement_error',
+ 'The Konüs true cost-of-living index: a price index measures the cost of keeping the same standard of living, which a fixed basket only approximates.', 'Истинный индекс стоимости жизни Конюса: индекс цен измеряет, сколько стоит сохранить прежний уровень жизни, а фиксированная корзина лишь приближает это.', 'Konüs-Index der Lebenshaltungskosten.',
+ 'Say what a price index actually measures before saying what it means for a household.'),
+('elias', 'Norbert Elias', 'Норберт Элиас', '1897–1990', 'https://en.wikipedia.org/wiki/Norbert_Elias', 'rumour_vs_fact',
+ "'Involvement and Detachment': strong emotional involvement in events distorts knowledge of them.", '«Вовлечённость и отстранённость»: сильная эмоциональная вовлечённость в события искажает знание о них.', '„Engagement und Distanzierung“.',
+ 'Keep the tone of an alarming story from shaping what you claim about it.'),
+('lachmann', 'Ludwig Lachmann', 'Людвиг Лахманн', '1906–1990', 'https://en.wikipedia.org/wiki/Ludwig_Lachmann', 'one_model',
+ "Radical uncertainty and the 'kaleidic' economy: expectations differ between people and can rearrange the picture suddenly.", 'Радикальная неопределённость и «калейдоскопическая» экономика: ожидания у людей разные и могут внезапно перестроить всю картину.', 'Radikale Unsicherheit und „kaleidische“ Wirtschaft.',
+ 'Do not assume everyone reads the same data the same way; expectations can flip the picture.'),
+('maslov', 'Yuri Maslov', 'Юрий Маслов', '1914–1990', 'https://en.wikipedia.org/wiki/Yuri_Maslov', 'rumour_vs_fact',
+ 'Theory of verbal aspect: a completed action and an ongoing or planned one are different, and languages mark the difference.', 'Теория вида глагола: завершённое действие и длящееся или запланированное — разные вещи, и язык это различает.', 'Aspekttheorie: abgeschlossene und andauernde Handlung.',
+ 'Check whether a verb says it is done, is happening or is only intended.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1371,3 +1387,8 @@ NEEDS["osgood"] = ("needs_source", "bridge 'tone in three dimensions' (Osgood + 
 NEEDS["greimas"] = ("covered", "check_headline already keeps 'neither' apart from 'denied' (sources_agree, four values)", None, "frankfurt")
 NEEDS["moles"] = ("covered", "the Ziv sensor already measures how much in the headlines is new", None, "ziv")
 NEEDS["hayek"] = ("covered", "applied: Grok, David and the round-table guests say 'not known yet' where the facts stop")
+
+NEEDS["skinner_bf"] = ("covered", "the track record sensor already refuses a conclusion with fewer than 8 days and shows the radar's ordinary noise", None, "trackrecord")
+NEEDS["konus"] = ("covered", "the Baird sensor already traces what every published number measures, with its source and unit", None, "baird")
+NEEDS["maslov"] = ("covered", "the Searle sensor and the news passport already tell an event from a promise, plan or threat", None, "searle")
+NEEDS["elias"] = ("needs_source", "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to measure how charged a headline is")

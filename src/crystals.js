@@ -7091,6 +7091,99 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "skinner_bf",
+"name": "B. F. Skinner",
+"name_ru": "Беррес Фредерик Скиннер",
+"years": "1904–1990",
+"wiki": "https://en.wikipedia.org/wiki/B._F._Skinner",
+"zone": "own_limits",
+"idea": {
+"en": "'Superstition in the pigeon': rewards that come by chance make a learner repeat whatever it happened to be doing — a rule built from coincidences.",
+"ru": "«Суеверие у голубя»: случайные награды заставляют повторять то, что делал в тот момент, — правило, выстроенное из совпадений.",
+"de": "„Aberglaube bei der Taube“: zufällige Belohnungen erzeugen Scheinregeln."
+},
+"rule": "Do not build a rule from a few lucky coincidences; count how often it really held.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already refuses a conclusion with fewer than 8 days and shows the radar's ordinary noise",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "konus",
+"name": "Alexander Konüs",
+"name_ru": "Александр Конюс",
+"years": "1895–1990",
+"wiki": "https://en.wikipedia.org/wiki/Alexander_Kon%C3%BCs",
+"zone": "measurement_error",
+"idea": {
+"en": "The Konüs true cost-of-living index: a price index measures the cost of keeping the same standard of living, which a fixed basket only approximates.",
+"ru": "Истинный индекс стоимости жизни Конюса: индекс цен измеряет, сколько стоит сохранить прежний уровень жизни, а фиксированная корзина лишь приближает это.",
+"de": "Konüs-Index der Lebenshaltungskosten."
+},
+"rule": "Say what a price index actually measures before saying what it means for a household.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces what every published number measures, with its source and unit",
+"covered_by": "baird"
+}
+},
+{
+"id": "elias",
+"name": "Norbert Elias",
+"name_ru": "Норберт Элиас",
+"years": "1897–1990",
+"wiki": "https://en.wikipedia.org/wiki/Norbert_Elias",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Involvement and Detachment': strong emotional involvement in events distorts knowledge of them.",
+"ru": "«Вовлечённость и отстранённость»: сильная эмоциональная вовлечённость в события искажает знание о них.",
+"de": "„Engagement und Distanzierung“."
+},
+"rule": "Keep the tone of an alarming story from shaping what you claim about it.",
+"needs": {
+"code": "needs_source",
+"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to measure how charged a headline is"
+}
+},
+{
+"id": "lachmann",
+"name": "Ludwig Lachmann",
+"name_ru": "Людвиг Лахманн",
+"years": "1906–1990",
+"wiki": "https://en.wikipedia.org/wiki/Ludwig_Lachmann",
+"zone": "one_model",
+"idea": {
+"en": "Radical uncertainty and the 'kaleidic' economy: expectations differ between people and can rearrange the picture suddenly.",
+"ru": "Радикальная неопределённость и «калейдоскопическая» экономика: ожидания у людей разные и могут внезапно перестроить всю картину.",
+"de": "Radikale Unsicherheit und „kaleidische“ Wirtschaft."
+},
+"rule": "Do not assume everyone reads the same data the same way; expectations can flip the picture.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "maslov",
+"name": "Yuri Maslov",
+"name_ru": "Юрий Маслов",
+"years": "1914–1990",
+"wiki": "https://en.wikipedia.org/wiki/Yuri_Maslov",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Theory of verbal aspect: a completed action and an ongoing or planned one are different, and languages mark the difference.",
+"ru": "Теория вида глагола: завершённое действие и длящееся или запланированное — разные вещи, и язык это различает.",
+"de": "Aspekttheorie: abgeschlossene und andauernde Handlung."
+},
+"rule": "Check whether a verb says it is done, is happening or is only intended.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor and the news passport already tell an event from a promise, plan or threat",
+"covered_by": "searle"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
