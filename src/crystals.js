@@ -7981,6 +7981,24 @@ export const CRYSTALS = [
 "note": "the Mikrin sensor already measures what each step of waiting costs on the way to the air",
 "covered_by": "mikrin"
 }
+},
+{
+"id": "klein_f",
+"name": "Felix Klein",
+"name_ru": "Феликс Клейн",
+"years": "1849–1925",
+"wiki": "https://en.wikipedia.org/wiki/Felix_Klein",
+"zone": "look_alike",
+"idea": {
+"en": "The Erlangen programme (1872): a geometry is defined by what stays unchanged under its allowed transformations — the invariants.",
+"ru": "Эрлангенская программа (1872): геометрию определяет то, что остаётся неизменным при её допустимых преобразованиях, — инварианты.",
+"de": "Erlanger Programm (1872): Invarianten unter Transformationen."
+},
+"rule": "When the same story comes in different words, languages or framings, keep what stays the same in all of them as the fact.",
+"needs": {
+"code": "covered",
+"note": "applied: check_headline compares the same story across outlets and languages and keeps what they share (independent_voices)"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

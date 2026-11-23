@@ -1266,6 +1266,8 @@ C = [
 # --- Лиана, «умный сканер», 1911–1920 (сверка после DeepSeek), 23.11.2026 ---
 ('leskien', 'August Leskien', 'Август Лескин', '1840–1916', 'https://en.wikipedia.org/wiki/August_Leskien', 'own_limits', 'With the Neogrammarians (1876) he held that sound laws work without exceptions: an apparent exception points to another rule or to borrowing, not to chance.', 'Вместе с младограмматиками (1876) он утверждал, что звуковые законы действуют без исключений: кажущееся исключение указывает на другое правило или заимствование, а не на случай.', 'Junggrammatiker (1876): Ausnahmslosigkeit der Lautgesetze.', 'Treat an exception as a clue to a rule you have not found yet, before writing it off as noise.'),
 ('boehm_bawerk', 'Eugen von Böhm-Bawerk', 'Ойген фон Бём-Баверк', '1851–1914', 'https://en.wikipedia.org/wiki/Eugen_von_B%C3%B6hm-Bawerk', 'answer_cost', "'Capital and Interest' (1884–89): people value present goods above the same goods in the future, so time itself has a price.", '«Капитал и процент» (1884–89): люди ценят блага сейчас выше тех же благ в будущем, поэтому у самого времени есть цена.', '„Kapital und Kapitalzins“ (1884–89): Gegenwartsgüter werden höher bewertet.', 'Compare a cost now with a benefit later only after saying how much the waiting itself costs.'),
+# --- Лиана, «умный сканер», 1921–1930 (вслепую, сверка), 23.11.2026 ---
+('klein_f', 'Felix Klein', 'Феликс Клейн', '1849–1925', 'https://en.wikipedia.org/wiki/Felix_Klein', 'look_alike', 'The Erlangen programme (1872): a geometry is defined by what stays unchanged under its allowed transformations — the invariants.', 'Эрлангенская программа (1872): геометрию определяет то, что остаётся неизменным при её допустимых преобразованиях, — инварианты.', 'Erlanger Programm (1872): Invarianten unter Transformationen.', 'When the same story comes in different words, languages or framings, keep what stays the same in all of them as the fact.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1496,3 +1498,4 @@ NEEDS["chamberlin"] = ("covered", "applied: hosts keep statements, forecasts and
 NEEDS["durkheim"] = ("covered", "the Baird sensor already traces what every published number measures", None, "baird")
 NEEDS["leskien"] = ("covered", "the track record sensor already checks whether radar jumps revert or hold (radar_noise) before calling them noise", None, "trackrecord")
 NEEDS["boehm_bawerk"] = ("covered", "the Mikrin sensor already measures what each step of waiting costs on the way to the air", None, "mikrin")
+NEEDS["klein_f"] = ("covered", "applied: check_headline compares the same story across outlets and languages and keeps what they share (independent_voices)")
