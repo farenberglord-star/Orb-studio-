@@ -7239,6 +7239,192 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "bertrand",
+"name": "Joseph Bertrand",
+"name_ru": "Жозеф Бертран",
+"years": "1822–1900",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Bertrand",
+"zone": "one_model",
+"idea": {
+"en": "Bertrand's paradox (1889): 'choose a chord at random' gives three different probabilities depending on how the randomness is set up.",
+"ru": "Парадокс Бертрана (1889): «выберем хорду наугад» даёт три разные вероятности в зависимости от того, как задана случайность.",
+"de": "Bertrand-Paradoxon: „zufällig“ ergibt je nach Modell verschiedene Wahrscheinlichkeiten."
+},
+"rule": "Before saying 'at random' or 'by chance', say how the chance was defined; another setup gives another answer.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already recomputes each index under all reasonable model variants",
+"covered_by": "leamer"
+}
+},
+{
+"id": "sidgwick",
+"name": "Henry Sidgwick",
+"name_ru": "Генри Сиджвик",
+"years": "1838–1900",
+"wiki": "https://en.wikipedia.org/wiki/Henry_Sidgwick",
+"zone": "side_effects",
+"idea": {
+"en": "'Principles of Political Economy' (1883): private gain and public gain can diverge — a lighthouse helps ships that never pay for it.",
+"ru": "«Принципы политической экономии» (1883): частная и общественная выгода могут расходиться — маяк помогает и тем судам, что за него не платят.",
+"de": "Privater und gesellschaftlicher Nutzen können auseinanderfallen (Leuchtturm-Beispiel)."
+},
+"rule": "Ask who gains and who pays besides the actor in the story.",
+"needs": {
+"code": "needs_idea",
+"note": "name who bears costs or gains besides the actor in a story; no open way yet to measure it from headlines"
+}
+},
+{
+"id": "max_mueller",
+"name": "Friedrich Max Müller",
+"name_ru": "Фридрих Макс Мюллер",
+"years": "1823–1900",
+"wiki": "https://en.wikipedia.org/wiki/Max_M%C3%BCller",
+"zone": "look_alike",
+"idea": {
+"en": "'Mythology is a disease of language': metaphors taken literally turn into imagined beings and events.",
+"ru": "«Мифология — болезнь языка»: метафоры, понятые буквально, превращаются в выдуманные существа и события.",
+"de": "„Mythologie ist eine Krankheit der Sprache“: wörtlich genommene Metaphern."
+},
+"rule": "Do not take a headline metaphor ('price war', 'tsunami of layoffs') as a literal fact.",
+"needs": {
+"code": "needs_source",
+"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open list of news metaphors in English, German and Russian"
+}
+},
+{
+"id": "schmidt_j",
+"name": "Johannes Schmidt",
+"name_ru": "Йоханнес Шмидт",
+"years": "1843–1901",
+"wiki": "https://en.wikipedia.org/wiki/Johannes_Schmidt_(linguist)",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The wave theory (1872): language changes spread like waves between neighbours, not only down a family tree.",
+"ru": "Волновая теория (1872): изменения в языке расходятся волнами между соседями, а не только вниз по родословному древу.",
+"de": "Wellentheorie (1872): Neuerungen breiten sich wie Wellen zwischen Nachbarn aus."
+},
+"rule": "A shared wording may come from neighbours copying each other, not from one common source; check both.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'tree or wave' (Schmidt + Schleicher + Tarde): radar_life keeps only the first source of a story; the times when each outlet joined are needed",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "powell",
+"name": "John Wesley Powell",
+"name_ru": "Джон Уэсли Пауэлл",
+"years": "1834–1902",
+"wiki": "https://en.wikipedia.org/wiki/John_Wesley_Powell",
+"zone": "side_effects",
+"idea": {
+"en": "'Report on the Lands of the Arid Region' (1878): settlement of the American West must follow the limits of water, not the straight lines of the map.",
+"ru": "«Доклад о землях засушливого региона» (1878): заселение американского Запада должно следовать пределам воды, а не прямым линиям на карте.",
+"de": "Bericht über die Trockengebiete (1878): Besiedlung nach Wassergrenzen, nicht nach Kartenlinien."
+},
+"rule": "Before scaling a plan up, find the resource that limits it.",
+"needs": {
+"code": "needs_idea",
+"note": "find the limiting resource behind a plan in the news; no measurable form yet"
+}
+},
+{
+"id": "gibbs",
+"name": "Josiah Willard Gibbs",
+"name_ru": "Джозайя Уиллард Гиббс",
+"years": "1839–1903",
+"wiki": "https://en.wikipedia.org/wiki/Josiah_Willard_Gibbs",
+"zone": "measurement_error",
+"idea": {
+"en": "The Gibbs phenomenon (1899): when smooth waves approximate a sudden jump, they overshoot it by about 9% however many waves you add.",
+"ru": "Явление Гиббса (1899): когда плавные волны приближают резкий скачок, они перелетают его примерно на 9 %, сколько волн ни добавляй.",
+"de": "Gibbs-Phänomen (1899): glatte Näherungen überschießen einen Sprung um etwa 9 %."
+},
+"rule": "Near a sudden jump, a smoothed curve shows peaks that are not in the data; read the raw values.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already tells a one-off jump from a lasting shift in raw index values",
+"covered_by": "polyak"
+}
+},
+{
+"id": "tarde",
+"name": "Gabriel Tarde",
+"name_ru": "Габриэль Тард",
+"years": "1843–1904",
+"wiki": "https://en.wikipedia.org/wiki/Gabriel_Tarde",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Laws of Imitation' (1890): ideas, fashions and rumours spread by copying, and each copy shifts them a little.",
+"ru": "«Законы подражания» (1890): идеи, мода и слухи распространяются через подражание, и каждая копия немного их сдвигает.",
+"de": "„Die Gesetze der Nachahmung“ (1890)."
+},
+"rule": "A story that spreads by copying grows in reach, not in proof; go back to the first version.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor already shows how retellings spread a story from few to many outlets",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "tannery",
+"name": "Paul Tannery",
+"name_ru": "Поль Таннери",
+"years": "1843–1904",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Tannery",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Historian of Greek science and editor of the works of Fermat and Descartes from the manuscripts: what we know of ancient ideas passed through copyists and translators.",
+"ru": "Историк греческой науки, издатель трудов Ферма и Декарта по рукописям: то, что мы знаем об античных идеях, прошло через переписчиков и переводчиков.",
+"de": "Herausgeber von Fermat und Descartes nach den Handschriften."
+},
+"rule": "When a claim reached you through retellings and translations, look for the original wording.",
+"needs": {
+"code": "covered",
+"note": "applied: the news passport names the first source of a story and asks to credit it, not the count of retellings"
+}
+},
+{
+"id": "stephen_l",
+"name": "Leslie Stephen",
+"name_ru": "Лесли Стивен",
+"years": "1832–1904",
+"wiki": "https://en.wikipedia.org/wiki/Leslie_Stephen",
+"zone": "stale_data",
+"idea": {
+"en": "First editor of the 'Dictionary of National Biography' (1885–1891): every entry built from sources and corrected in later editions.",
+"ru": "Первый редактор «Национального биографического словаря» (1885–1891): каждая статья строилась по источникам и исправлялась в следующих изданиях.",
+"de": "Erster Herausgeber des „Dictionary of National Biography“."
+},
+"rule": "A reference entry is only as good as its sources and its last correction; check both.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces every number to its source and time",
+"covered_by": "baird"
+}
+},
+{
+"id": "abbe",
+"name": "Ernst Abbe",
+"name_ru": "Эрнст Аббе",
+"years": "1840–1905",
+"wiki": "https://en.wikipedia.org/wiki/Ernst_Abbe",
+"zone": "own_limits",
+"idea": {
+"en": "The Abbe limit (1873): a microscope cannot resolve details smaller than about half the wavelength of light; below that you see artefacts of the instrument.",
+"ru": "Предел Аббе (1873): микроскоп не различает детали меньше примерно половины длины волны света; за этим пределом видны артефакты прибора, а не объект.",
+"de": "Abbe-Grenze (1873): unterhalb der Auflösung sieht man Artefakte des Instruments."
+},
+"rule": "A change smaller than your instrument's resolution is not a finding; say it is within the noise.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already shows the radar's ordinary noise (radar_noise), so changes inside it are not findings",
+"covered_by": "trackrecord"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
@@ -7254,7 +7440,7 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
     needs_summary: needs, ready_to_build: wait.filter((c) => c.needs.code === "ready").map((c) => ({ id: c.id, name: c.name, plan: c.needs.note })),
     history_due: wait.filter((c) => c.needs.code === "needs_history").map((c) => ({ id: c.id, name: c.name, not_before: c.needs.not_before, plan: c.needs.note })),
     crystals: all,
-    about: "Ideas of scientists who died in 2000-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
+    about: "Ideas of scientists who died in 1900-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
 }

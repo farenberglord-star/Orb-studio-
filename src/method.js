@@ -2,7 +2,7 @@
 // Слой 1 — кого берём в Библиотеку кристаллов, слой 2 — как карточка становится инструментом, слой 3 — как новость идёт в эфир (паспорт новости).
 export const METHOD_LAYERS = [
   { layer: 1, name: "Selection: who enters the Crystal Library", question: "Does this scientist deserve a card?", output: "a card: idea, rule, blind spot",
-    rules: ["The scientist died in 2000–2026; the death is confirmed by a Wikipedia article, and for 2025–2026 also by an obituary.",
+    rules: ["The scientist died in 1900–2026; the death is confirmed by a Wikipedia article, and for 2025–2026 also by an obituary.",
       "Not already in the library and not a namesake: full name, years and field are checked.",
       "The rule for agents follows from the scientist's own work, not invented on top of it.",
       "The idea fits one of the eight agent blind spots.",

@@ -9,7 +9,7 @@ test("every crystal: name, years, Wikipedia link, zone, ideas in three languages
   const ids = new Set();
   for (const c of CRYSTALS) {
     assert.ok(!ids.has(c.id), "duplicate " + c.id); ids.add(c.id);
-    assert.ok(c.name && c.name_ru && /(20(2[0-6])|201[0-9]|200[0-9]|199[0-9])$/.test(c.years), c.id + " years " + c.years);
+    assert.ok(c.name && c.name_ru && /(20(2[0-6])|201[0-9]|200[0-9]|19[0-9][0-9])$/.test(c.years), c.id + " years " + c.years);
     assert.match(c.wiki, /^https:\/\/(en|de|ru|fr|pl|it|es|zh|ar|fa|tr)\.wikipedia\.org\/wiki\/\S+$/);
     assert.ok(CRYSTAL_ZONES.includes(c.zone), c.id);
     for (const l of ["en", "ru", "de"]) assert.ok(c.idea[l] && c.idea[l].length > 10, c.id + " " + l);
