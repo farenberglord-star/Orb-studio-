@@ -2,7 +2,7 @@
 // Деплой: npx wrangler deploy (Workers Builds делает это сам при каждом push в main).
 // Переменные окружения: ANTHROPIC_API_KEY (секрет), ANTHROPIC_MODEL, KRAKEN_URL, KRAKEN_CODE; KV: ORB_KV (необязательно).
 
-import { echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE } from "./echo.js";
+import { echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE, fourValued } from "./echo.js";
 import { asLines } from "./voicelines.js";
 import { SENS_W } from "./sensors_i18n.js";
 import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
@@ -831,7 +831,7 @@ async function checkHeadline(origin, request, raw, env) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v5-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v6-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
   const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
@@ -861,6 +861,7 @@ async function checkHeadline(origin, request, raw, env) {
     independent_voices: echo.independent_voices, echo: { verdict: echo.verdict, explain: ECHO_EXPLAIN[echo.verdict], agencies: echo.agencies, groups: echo.echo_groups.slice(0, 5), rule: ECHO_RULE },
     tone: toneOf(text), tone_words: toneWords(text),
     ...(wait ? { wait } : {}),
+    sources_agree: searched ? fourValued(raws) : null,
     speech_act: (() => { const a = searleHeadline(text); return { ...a, explain: SEARLE_EXPLAIN[a.act], sensor: "https://orbstudio.org/tools/searle" }; })(),
     checkability: (() => { const f = frankfurtHeadline(text); return { ...f, explain: FRANKFURT_EXPLAIN[f.class], sensor: "https://orbstudio.org/tools/frankfurt" }; })(),
     explain: { confirmed: "3+ independent voices report the same story", two_sources: "2 independent voices", single_source: n > 1 ? "several outlets, but all repeat one text (one agency or the same headline) — one source" : "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
@@ -8001,7 +8002,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", required: ["text"], properties: { title: { type: "string", maxLength: 120 }, text: { type: "string", maxLength: 20000 }, paper: { type: "string", enum: ["a4", "letter"] } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "check_headline", title: "Check any headline: how widely is it reported?",
-    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found), how many of them are independent voices and which ones only repeat one agency text (dpa, Reuters, AP, AFP…) or a near-identical headline, whether it reports an event or only a promise, threat or demand (Searle sensor), whether the headline has anything checkable (Frankfurt sensor: who/when/how many/where, vague formulas), for unconfirmed stories a wait hint from the Howard sensor (how often such stories were later confirmed, after how many hours), and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
+    description: "Before you repeat a headline, rumour or viral post to a person, check it: returns how many different news outlets reported the same story in the last 2 days (Bing News) with links, a verdict (confirmed / two_sources / single_source / not_found), how many of them are independent voices and which ones only repeat one agency text (dpa, Reuters, AP, AFP…) or a near-identical headline, whether the outlets affirm it, deny it, both (contradictory) or neither (Belnap-Dunn four values), whether it reports an event or only a promise, threat or demand (Searle sensor), whether the headline has anything checkable (Frankfurt sensor: who/when/how many/where, vague formulas), for unconfirmed stories a wait hint from the Howard sensor (how often such stories were later confirmed, after how many hours), and the tone of the headline (alarmist / charged / neutral, with the shouting words). Measures spread across outlets, not truth. No AI, never rewrites the news. Limit 30 checks per hour.",
     inputSchema: { type: "object", required: ["headline"], properties: { headline: { type: "string", minLength: 12, maxLength: 300, description: "Headline or short text to check" } }, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_ai_pulse", title: "AI pulse: what is new in AI today",

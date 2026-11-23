@@ -36,8 +36,17 @@ test("independent outlets", () => {
 
 test("check_headline uses independent voices for its verdict", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /import \{ echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE \} from "\.\/echo\.js"/);
+  assert.match(w, /import \{ echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE, fourValued \} from "\.\/echo\.js"/);
   assert.match(w, /v = echo\.independent_voices, verdict = .*v >= 3 \? "confirmed"/);
   assert.match(w, /independent_voices: echo\.independent_voices/);
-  assert.match(w, /chk-v5-/);
+  assert.match(w, /chk-v6-/); assert.match(w, /sources_agree: searched \? fourValued\(raws\)/);
+});
+
+import { fourValued } from "../src/echo.js";
+test("Belnap-Dunn four values over outlets", () => {
+  assert.equal(fourValued([]).value, "neither");
+  assert.equal(fourValued([{ outlet: "A", title: "Minister resigns" }, { outlet: "B", title: "Minister resigns after scandal" }]).value, "affirmed");
+  assert.equal(fourValued([{ outlet: "A", title: "Minister resigns" }, { outlet: "B", title: "Ministry denies minister resigned" }]).value, "both");
+  assert.equal(fourValued([{ outlet: "A", title: "Kreml dementiert Bericht" }]).value, "denied");
+  assert.equal(fourValued([{ outlet: "A", title: "МИД опроверг сообщения" }, { outlet: "B", title: "Сообщения о встрече" }]).value, "both");
 });

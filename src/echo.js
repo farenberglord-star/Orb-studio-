@@ -63,3 +63,16 @@ export const ECHO_EXPLAIN = {
   independent: "the outlets wrote their own headlines and no shared agency tag was found",
 };
 export const ECHO_RULE = "Independent voices = groups of outlets after merging those with the same agency tag (dpa, Reuters, AP, AFP, Bloomberg, epd/KNA, APA, TASS, RIA, Interfax) in the source name, the first lines of the snippet or the headline, and those whose headlines share at least 70% of words. It is a lower estimate of copying: an agency text rewritten in new words is not detected, and two outlets quoting the same agency on different points are merged. Idea: Daniel Kahneman's availability heuristic — a story repeated by many outlets feels more certain than one source deserves.";
+
+// Четырёхзначная оценка Белнапа–Данна (и паранепротиворечивость да Косты): сведения бывают «подтверждают»,
+// «опровергают», «и то и другое» (источники противоречат) и «ни то ни другое» (сведений нет). По заголовкам изданий.
+export const DENY_RE = /(?<![\p{L}])(den(y|ies|ied)|rejects?|rejected|refutes?|refuted|debunk\p{L}*|false|fake|hoax|untrue|no evidence|not true|dementiert\p{L}*|weist zurück|wies zurück|falschmeldung|fake news|widerlegt|bestreitet|bestritt|опроверг\p{L}*|отрица\p{L}*|фейк\p{L}*|ложн\p{L}*|не соответству\p{L}*|неправд\p{L}*)(?![\p{L}])/iu;
+export function fourValued(outlets) {
+  const n = (outlets || []).length;
+  if (!n) return { value: "neither", affirm: 0, deny: 0, explain: "no outlet carries it: absence of information, not evidence that it is false" };
+  const deny = outlets.filter((o) => DENY_RE.test(String(o.title || ""))).map((o) => o.outlet), affirm = n - deny.length;
+  const value = deny.length && affirm ? "both" : deny.length ? "denied" : "affirmed";
+  return { value, affirm, deny: deny.length, denying_outlets: deny.slice(0, 6),
+    explain: { both: "some outlets carry the story and some deny or call it false: report it as contested, with both sides", denied: "the outlets found report it as denied or false", affirmed: "the outlets found carry it and none of their headlines deny it (this is not proof that it is true)" }[value],
+    rule: "Belnap–Dunn four values: affirmed / denied / both (contradictory sources) / neither (no information). Denial words in headlines in English, German and Russian; word rules, no AI. Named after J. Michael Dunn (1941–2021) and Newton da Costa (1929–2024)." };
+}
