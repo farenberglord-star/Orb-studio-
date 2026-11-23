@@ -2922,6 +2922,175 @@ export const CRYSTALS = [
 "note": "the Polyak sensor already separates noise from real shifts",
 "covered_by": "polyak"
 }
+},
+{
+"id": "trzesicki",
+"name": "Kazimierz Trzęsicki",
+"name_ru": "Казимеж Тшенсицкий",
+"years": "1947–2025",
+"wiki": "https://pl.wikipedia.org/wiki/Kazimierz_Trz%C4%99sicki",
+"zone": "stale_data",
+"idea": {
+"en": "Tense logic and the question of determinism: are statements about the future already true or false?",
+"ru": "Логика грамматических времён и вопрос о детерминизме: истинны ли уже высказывания о будущем?",
+"de": "Zeitlogik und Determinismus: sind Aussagen über die Zukunft schon wahr?"
+},
+"rule": "Do not report a statement about the future as already true; keep its tense.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already separates promises and plans from events",
+"covered_by": "searle"
+}
+},
+{
+"id": "domanski",
+"name": "Czesław Domański",
+"name_ru": "Чеслав Доманьский",
+"years": "1943–2026",
+"wiki": "https://pl.wikipedia.org/wiki/Czes%C5%82aw_Doma%C5%84ski",
+"zone": "one_model",
+"idea": {
+"en": "Founder of the Łódź school of nonparametric statistics: conclusions without a model chosen in advance.",
+"ru": "Основатель лодзинской школы непараметрической статистики: выводы без заранее выбранной модели.",
+"de": "Begründer der Lodzer Schule der nichtparametrischen Statistik."
+},
+"rule": "When you do not know the shape of the data, use methods that do not assume one.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "dowek",
+"name": "Gilles Dowek",
+"name_ru": "Жиль Довек",
+"years": "1966–2025",
+"wiki": "https://fr.wikipedia.org/wiki/Gilles_Dowek",
+"zone": "one_model",
+"idea": {
+"en": "Formal proof checking and the logical framework Dedukti, which lets proofs from different systems be checked together.",
+"ru": "Формальная проверка доказательств и система Dedukti, в которой можно сверять доказательства из разных систем.",
+"de": "Formale Beweisprüfung und das Logik-Framework Dedukti."
+},
+"rule": "Make your reasoning checkable step by step, so that another system could verify it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "vaduva",
+"name": "Ion Văduva",
+"name_ru": "Ион Вэдува",
+"years": "1936–2023",
+"wiki": "https://fr.wikipedia.org/wiki/Ion_V%C4%83duva",
+"zone": "one_model",
+"idea": {
+"en": "Computer simulation and the estimation of distributions (Romanian school of probability).",
+"ru": "Компьютерное моделирование и оценка распределений (румынская школа теории вероятностей).",
+"de": "Computersimulation und Schätzung von Verteilungen."
+},
+"rule": "Check a simulated result against the real data it is meant to imitate.",
+"needs": {
+"code": "covered",
+"note": "the Trevisan sensor already simulates random samples of the headlines",
+"covered_by": "trevisan"
+}
+},
+{
+"id": "michel_meyer",
+"name": "Michel Meyer",
+"name_ru": "Мишель Мейер",
+"years": "1950–2022",
+"wiki": "https://fr.wikipedia.org/wiki/Michel_Meyer_(philosophe)",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Découverte et justification en science' and problematology: thinking starts from questions; how a claim was found is not how it is justified.",
+"ru": "«Découverte et justification en science» и проблематология: мысль начинается с вопроса; как утверждение нашли — не то же, что его обоснование.",
+"de": "„Découverte et justification en science“ und Problematologie."
+},
+"rule": "Say which question a claim answers, and keep how it was found apart from why it holds.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lecourt",
+"name": "Dominique Lecourt",
+"name_ru": "Доминик Лекур",
+"years": "1944–2022",
+"wiki": "https://fr.wikipedia.org/wiki/Dominique_Lecourt",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The Lysenko affair: how ideology presented itself as science.",
+"ru": "Дело Лысенко: как идеология выдавала себя за науку.",
+"de": "Die Lyssenko-Affäre: wie Ideologie sich als Wissenschaft ausgab."
+},
+"rule": "Be wary when a scientific claim is backed mainly by political authority.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already flags warning signs of bogus science",
+"covered_by": "park"
+}
+},
+{
+"id": "chajda",
+"name": "Jan Chajda",
+"name_ru": "Ян Хайда",
+"years": "1939–2022",
+"wiki": "https://pl.wikipedia.org/wiki/Jan_Chajda",
+"zone": "measurement_error",
+"idea": {
+"en": "Technical metrology and measuring systems.",
+"ru": "Техническая метрология и измерительные системы.",
+"de": "Technische Messtechnik und Messsysteme."
+},
+"rule": "Every measurement has an instrument and an uncertainty; name both.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units, sources and cross-checks",
+"covered_by": "baird"
+}
+},
+{
+"id": "ogryczak",
+"name": "Włodzimierz Ogryczak",
+"name_ru": "Влодзимеж Огрычак",
+"years": "1951–2020",
+"wiki": "https://pl.wikipedia.org/wiki/W%C5%82odzimierz_Ogryczak",
+"zone": "answer_cost",
+"idea": {
+"en": "Multiple-criteria optimisation and decision support, including fair (equitable) solutions.",
+"ru": "Оптимизация по нескольким критериям и поддержка решений, в том числе справедливые решения.",
+"de": "Mehrkriterielle Optimierung und Entscheidungsunterstützung."
+},
+"rule": "When goals conflict, show the trade-off instead of hiding it in one score.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already shows the cost trade-offs of answers",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "vuillemin",
+"name": "Jean Vuillemin",
+"name_ru": "Жан Вюйемен",
+"years": "1947–2026",
+"wiki": "https://fr.wikipedia.org/wiki/Jean_Vuillemin",
+"zone": "answer_cost",
+"idea": {
+"en": "With Rivest, a lower bound on how many queries an algorithm needs to test a graph property (Aanderaa–Karp–Rosenberg conjecture); binomial heaps.",
+"ru": "Вместе с Ривестом — нижняя граница числа запросов, нужных алгоритму, чтобы проверить свойство графа; биномиальные кучи.",
+"de": "Mit Rivest: untere Schranke für Anfragen beim Testen von Grapheigenschaften."
+},
+"rule": "Some questions cannot be answered without looking at most of the data; recognise them before sampling.",
+"needs": {
+"code": "covered",
+"note": "the Trevisan sensor already shows when an index needs almost all headlines",
+"covered_by": "trevisan"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

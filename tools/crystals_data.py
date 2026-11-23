@@ -489,6 +489,34 @@ C = [
 ("schnorr", "Claus Peter Schnorr", "Клаус Петер Шнорр", "1943–2025", "https://de.wikipedia.org/wiki/Claus_Peter_Schnorr", "answer_cost",
  "Complexity theory, algorithmic randomness and the Schnorr signature.", "Теория сложности, алгоритмическая случайность и подпись Шнорра.", "Komplexitätstheorie, algorithmischer Zufall, Schnorr-Signatur.",
  "Something that looks random may still have a pattern; test before assuming noise."),
+# --- французская и польская Википедия, умершие 2020–2026 (23.11.2026); даты 2025–2026 сверены с некрологами ---
+("trzesicki", "Kazimierz Trzęsicki", "Казимеж Тшенсицкий", "1947–2025", "https://pl.wikipedia.org/wiki/Kazimierz_Trz%C4%99sicki", "stale_data",
+ "Tense logic and the question of determinism: are statements about the future already true or false?", "Логика грамматических времён и вопрос о детерминизме: истинны ли уже высказывания о будущем?", "Zeitlogik und Determinismus: sind Aussagen über die Zukunft schon wahr?",
+ "Do not report a statement about the future as already true; keep its tense."),
+("domanski", "Czesław Domański", "Чеслав Доманьский", "1943–2026", "https://pl.wikipedia.org/wiki/Czes%C5%82aw_Doma%C5%84ski", "one_model",
+ "Founder of the Łódź school of nonparametric statistics: conclusions without a model chosen in advance.", "Основатель лодзинской школы непараметрической статистики: выводы без заранее выбранной модели.", "Begründer der Lodzer Schule der nichtparametrischen Statistik.",
+ "When you do not know the shape of the data, use methods that do not assume one."),
+("dowek", "Gilles Dowek", "Жиль Довек", "1966–2025", "https://fr.wikipedia.org/wiki/Gilles_Dowek", "one_model",
+ "Formal proof checking and the logical framework Dedukti, which lets proofs from different systems be checked together.", "Формальная проверка доказательств и система Dedukti, в которой можно сверять доказательства из разных систем.", "Formale Beweisprüfung und das Logik-Framework Dedukti.",
+ "Make your reasoning checkable step by step, so that another system could verify it."),
+("vaduva", "Ion Văduva", "Ион Вэдува", "1936–2023", "https://fr.wikipedia.org/wiki/Ion_V%C4%83duva", "one_model",
+ "Computer simulation and the estimation of distributions (Romanian school of probability).", "Компьютерное моделирование и оценка распределений (румынская школа теории вероятностей).", "Computersimulation und Schätzung von Verteilungen.",
+ "Check a simulated result against the real data it is meant to imitate."),
+("michel_meyer", "Michel Meyer", "Мишель Мейер", "1950–2022", "https://fr.wikipedia.org/wiki/Michel_Meyer_(philosophe)", "rumour_vs_fact",
+ "'Découverte et justification en science' and problematology: thinking starts from questions; how a claim was found is not how it is justified.", "«Découverte et justification en science» и проблематология: мысль начинается с вопроса; как утверждение нашли — не то же, что его обоснование.", "„Découverte et justification en science“ und Problematologie.",
+ "Say which question a claim answers, and keep how it was found apart from why it holds."),
+("lecourt", "Dominique Lecourt", "Доминик Лекур", "1944–2022", "https://fr.wikipedia.org/wiki/Dominique_Lecourt", "rumour_vs_fact",
+ "The Lysenko affair: how ideology presented itself as science.", "Дело Лысенко: как идеология выдавала себя за науку.", "Die Lyssenko-Affäre: wie Ideologie sich als Wissenschaft ausgab.",
+ "Be wary when a scientific claim is backed mainly by political authority."),
+("chajda", "Jan Chajda", "Ян Хайда", "1939–2022", "https://pl.wikipedia.org/wiki/Jan_Chajda", "measurement_error",
+ "Technical metrology and measuring systems.", "Техническая метрология и измерительные системы.", "Technische Messtechnik und Messsysteme.",
+ "Every measurement has an instrument and an uncertainty; name both."),
+("ogryczak", "Włodzimierz Ogryczak", "Влодзимеж Огрычак", "1951–2020", "https://pl.wikipedia.org/wiki/W%C5%82odzimierz_Ogryczak", "answer_cost",
+ "Multiple-criteria optimisation and decision support, including fair (equitable) solutions.", "Оптимизация по нескольким критериям и поддержка решений, в том числе справедливые решения.", "Mehrkriterielle Optimierung und Entscheidungsunterstützung.",
+ "When goals conflict, show the trade-off instead of hiding it in one score."),
+("vuillemin", "Jean Vuillemin", "Жан Вюйемен", "1947–2026", "https://fr.wikipedia.org/wiki/Jean_Vuillemin", "answer_cost",
+ "With Rivest, a lower bound on how many queries an algorithm needs to test a graph property (Aanderaa–Karp–Rosenberg conjecture); binomial heaps.", "Вместе с Ривестом — нижняя граница числа запросов, нужных алгоритму, чтобы проверить свойство графа; биномиальные кучи.", "Mit Rivest: untere Schranke für Anfragen beim Testen von Grapheigenschaften.",
+ "Some questions cannot be answered without looking at most of the data; recognise them before sampling."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -566,3 +594,11 @@ for k in ["schloegl"]: NEEDS[k] = ("covered", "the Lyberg sensor already compare
 for k in ["bunke"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
 for k in ["woeginger"]: NEEDS[k] = ("covered", "the Trevisan and Bertsekas sensors already trade accuracy for cost", None, "trevisan")
 for k in ["schnorr"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")
+
+for k in ["trzesicki"]: NEEDS[k] = ("covered", "the Searle sensor already separates promises and plans from events", None, "searle")
+for k in ["domanski"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["vaduva"]: NEEDS[k] = ("covered", "the Trevisan sensor already simulates random samples of the headlines", None, "trevisan")
+for k in ["lecourt"]: NEEDS[k] = ("covered", "the Park sensor already flags warning signs of bogus science", None, "park")
+for k in ["chajda"]: NEEDS[k] = ("covered", "the Baird sensor already traces units, sources and cross-checks", None, "baird")
+for k in ["ogryczak"]: NEEDS[k] = ("covered", "the Bertsekas sensor already shows the cost trade-offs of answers", None, "bertsekas")
+for k in ["vuillemin"]: NEEDS[k] = ("covered", "the Trevisan sensor already shows when an index needs almost all headlines", None, "trevisan")
