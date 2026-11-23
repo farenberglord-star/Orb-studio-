@@ -3728,6 +3728,249 @@ export const CRYSTALS = [
 "note": "the Bertsekas sensor already gives the cheapest chains of calls",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "raessler",
+"name": "Susanne Rässler",
+"name_ru": "Сюзанне Ресслер",
+"years": "1962–2018",
+"wiki": "https://de.wikipedia.org/wiki/Susanne_R%C3%A4ssler",
+"zone": "stale_data",
+"idea": {
+"en": "Statistical matching and multiple imputation: filling gaps in data and combining different sources honestly.",
+"ru": "Статистическое сопоставление и множественное заполнение пропусков: честно сводить разные источники и заполнять пробелы.",
+"de": "Statistisches Matching und multiple Imputation."
+},
+"rule": "When you fill a gap in the data, say that it was filled and how uncertain the filled value is.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports gaps and silent feeds",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "manna",
+"name": "Zohar Manna",
+"name_ru": "Зохар Манна",
+"years": "1939–2018",
+"wiki": "https://de.wikipedia.org/wiki/Zohar_Manna",
+"zone": "stale_data",
+"idea": {
+"en": "Temporal logic and verification of systems that change over time (with Amir Pnueli).",
+"ru": "Временная логика и проверка систем, которые меняются во времени (вместе с Амиром Пнуэли).",
+"de": "Temporallogik und Verifikation zeitabhängiger Systeme."
+},
+"rule": "A statement that was true at one step may be false at the next; check it at the step you report.",
+"needs": {
+"code": "covered",
+"note": "the Cox and Hagenauer sensors already show the age of stories and when labels go stale",
+"covered_by": "cox"
+}
+},
+{
+"id": "bucy",
+"name": "Richard S. Bucy",
+"name_ru": "Ричард Бьюси",
+"years": "1935–2019",
+"wiki": "https://de.wikipedia.org/wiki/Richard_S._Bucy",
+"zone": "stale_data",
+"idea": {
+"en": "The Kalman–Bucy filter: updating an estimate continuously from fresh noisy measurements.",
+"ru": "Фильтр Калмана–Бьюси: как непрерывно обновлять оценку по свежим шумным измерениям.",
+"de": "Kalman-Bucy-Filter."
+},
+"rule": "Blend each new noisy reading with your current estimate in proportion to how reliable each is.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already smooths the indices against noise",
+"covered_by": "polyak"
+}
+},
+{
+"id": "hampel",
+"name": "Frank Hampel",
+"name_ru": "Франк Хампель",
+"years": "1941–2018",
+"wiki": "https://de.wikipedia.org/wiki/Frank_Hampel",
+"zone": "one_model",
+"idea": {
+"en": "Robust statistics and the influence function: how much a single outlier or a wrong model can move a conclusion.",
+"ru": "Робастная статистика и функция влияния: насколько один выброс или неверная модель могут сдвинуть вывод.",
+"de": "Robuste Statistik und Einflussfunktion."
+},
+"rule": "Check how far your conclusion moves if you drop the single most extreme data point.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far an index moves without each radar or word",
+"covered_by": "leamer"
+}
+},
+{
+"id": "troelstra",
+"name": "Anne Troelstra",
+"name_ru": "Анне Трулстра",
+"years": "1939–2019",
+"wiki": "https://de.wikipedia.org/wiki/Anne_Troelstra",
+"zone": "one_model",
+"idea": {
+"en": "Intuitionistic logic: a claim counts as true only when it is constructed or proven, not just because its opposite was not proven.",
+"ru": "Интуиционистская логика: утверждение считается верным, только когда оно построено или доказано, а не потому, что не доказано обратное.",
+"de": "Intuitionistische Logik."
+},
+"rule": "'Not disproved' is not 'proved'; keep a third answer: not settled.",
+"needs": {
+"code": "covered",
+"note": "check_headline already keeps 'neither' apart from 'denied' (sources_agree)",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "hoering",
+"name": "Walter Hoering",
+"name_ru": "Вальтер Хёринг",
+"years": "1933–2019",
+"wiki": "https://de.wikipedia.org/wiki/Walter_Hoering",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Logic and philosophy of science.",
+"ru": "Логика и теория науки.",
+"de": "Logik und Wissenschaftstheorie."
+},
+"rule": "Show the logical step from the evidence to the claim.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "detlefsen",
+"name": "Michael Detlefsen",
+"name_ru": "Майкл Детлефсен",
+"years": "1948–2019",
+"wiki": "https://de.wikipedia.org/wiki/Michael_Detlefsen",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Philosophy of mathematics: what a proof actually establishes and for whom.",
+"ru": "Философия математики: что именно устанавливает доказательство и для кого.",
+"de": "Philosophie der Mathematik."
+},
+"rule": "Say what your argument proves and what it leaves open.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "harre",
+"name": "Rom Harré",
+"name_ru": "Ром Харре",
+"years": "1927–2019",
+"wiki": "https://de.wikipedia.org/wiki/Rom_Harr%C3%A9",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Philosophy of science: explanation by real causal powers and mechanisms, not only by regularities.",
+"ru": "Теория науки: объяснение через реальные причинные силы и механизмы, а не только через закономерности.",
+"de": "Wissenschaftstheorie: Erklärung durch Kausalkräfte."
+},
+"rule": "A regular pattern is not yet an explanation; name the mechanism or say it is unknown.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "pfanzagl",
+"name": "Johann Pfanzagl",
+"name_ru": "Иоганн Пфанцагль",
+"years": "1928–2019",
+"wiki": "https://de.wikipedia.org/wiki/Johann_Pfanzagl",
+"zone": "measurement_error",
+"idea": {
+"en": "'Theory of Measurement': when numbers assigned to things are meaningful, and which operations on them make sense.",
+"ru": "«Theory of Measurement»: когда числа, присвоенные вещам, имеют смысл и какие действия с ними допустимы.",
+"de": "„Theory of Measurement“."
+},
+"rule": "Do only the arithmetic the scale allows: an index of 60 is not 'twice as' 30.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and scales",
+"covered_by": "baird"
+}
+},
+{
+"id": "busch",
+"name": "Paul Busch",
+"name_ru": "Пауль Буш",
+"years": "1955–2018",
+"wiki": "https://de.wikipedia.org/wiki/Paul_Busch_(Physiker)",
+"zone": "measurement_error",
+"idea": {
+"en": "Quantum theory of measurement: a measurement can disturb what it measures.",
+"ru": "Квантовая теория измерения: измерение может возмущать то, что оно меряет.",
+"de": "Quantentheorie der Messung."
+},
+"rule": "Ask whether watching or reporting a thing changes it (a published index can move the market it describes).",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "winograd",
+"name": "Shmuel Winograd",
+"name_ru": "Шмуэль Виноград",
+"years": "1936–2019",
+"wiki": "https://de.wikipedia.org/wiki/Shmuel_Winograd",
+"zone": "answer_cost",
+"idea": {
+"en": "Complexity of computation: the minimum number of operations a task needs (Winograd's algorithms for fast multiplication and FFT).",
+"ru": "Сложность вычислений: наименьшее число операций для задачи (алгоритмы Винограда для быстрого умножения и БПФ).",
+"de": "Komplexität: minimale Operationszahl (Winograd-Algorithmen)."
+},
+"rule": "Find the fewest steps that still answer the question fully.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "guddat",
+"name": "Jürgen Guddat",
+"name_ru": "Юрген Гуддат",
+"years": "1941–2018",
+"wiki": "https://de.wikipedia.org/wiki/J%C3%BCrgen_Guddat",
+"zone": "answer_cost",
+"idea": {
+"en": "Parametric optimisation: how the best solution changes when the conditions change.",
+"ru": "Параметрическая оптимизация: как меняется лучшее решение, когда меняются условия.",
+"de": "Parametrische Optimierung."
+},
+"rule": "Say under which conditions your recommendation would change.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "skala",
+"name": "Heinz J. Skala",
+"name_ru": "Хайнц Скала",
+"years": "1942–2019",
+"wiki": "https://de.wikipedia.org/wiki/Heinz_J._Skala",
+"zone": "answer_cost",
+"idea": {
+"en": "Decision theory under uncertainty.",
+"ru": "Теория решений в условиях неопределённости.",
+"de": "Entscheidungstheorie unter Unsicherheit."
+},
+"rule": "Separate what you know, what you estimate and what you simply do not know.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs when more information pays off",
+"covered_by": "howard"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

@@ -623,6 +623,46 @@ C = [
 ('boltyansky', 'Vladimir Boltyansky', 'Владимир Болтянский', '1925–2019', 'https://ru.wikipedia.org/wiki/%D0%91%D0%BE%D0%BB%D1%82%D1%8F%D0%BD%D1%81%D0%BA%D0%B8%D0%B9%2C_%D0%92%D0%BB%D0%B0%D0%B4%D0%B8%D0%BC%D0%B8%D1%80_%D0%93%D1%80%D0%B8%D0%B3%D0%BE%D1%80%D1%8C%D0%B5%D0%B2%D0%B8%D1%87', 'answer_cost',
  'Co-author of the maximum principle of optimal control (with Pontryagin, Gamkrelidze, Mishchenko).', 'Соавтор принципа максимума в теории оптимального управления (с Понтрягиным, Гамкрелидзе, Мищенко).', 'Mitautor des Maximumprinzips der optimalen Steuerung.',
  'Choose each step by its effect on the whole path to the goal.'),
+# --- немецкая Википедия, 2018–2019 (23.11.2026) ---
+('raessler', 'Susanne Rässler', 'Сюзанне Ресслер', '1962–2018', 'https://de.wikipedia.org/wiki/Susanne_R%C3%A4ssler', 'stale_data',
+ 'Statistical matching and multiple imputation: filling gaps in data and combining different sources honestly.', 'Статистическое сопоставление и множественное заполнение пропусков: честно сводить разные источники и заполнять пробелы.', 'Statistisches Matching und multiple Imputation.',
+ 'When you fill a gap in the data, say that it was filled and how uncertain the filled value is.'),
+('manna', 'Zohar Manna', 'Зохар Манна', '1939–2018', 'https://de.wikipedia.org/wiki/Zohar_Manna', 'stale_data',
+ 'Temporal logic and verification of systems that change over time (with Amir Pnueli).', 'Временная логика и проверка систем, которые меняются во времени (вместе с Амиром Пнуэли).', 'Temporallogik und Verifikation zeitabhängiger Systeme.',
+ 'A statement that was true at one step may be false at the next; check it at the step you report.'),
+('bucy', 'Richard S. Bucy', 'Ричард Бьюси', '1935–2019', 'https://de.wikipedia.org/wiki/Richard_S._Bucy', 'stale_data',
+ 'The Kalman–Bucy filter: updating an estimate continuously from fresh noisy measurements.', 'Фильтр Калмана–Бьюси: как непрерывно обновлять оценку по свежим шумным измерениям.', 'Kalman-Bucy-Filter.',
+ 'Blend each new noisy reading with your current estimate in proportion to how reliable each is.'),
+('hampel', 'Frank Hampel', 'Франк Хампель', '1941–2018', 'https://de.wikipedia.org/wiki/Frank_Hampel', 'one_model',
+ 'Robust statistics and the influence function: how much a single outlier or a wrong model can move a conclusion.', 'Робастная статистика и функция влияния: насколько один выброс или неверная модель могут сдвинуть вывод.', 'Robuste Statistik und Einflussfunktion.',
+ 'Check how far your conclusion moves if you drop the single most extreme data point.'),
+('troelstra', 'Anne Troelstra', 'Анне Трулстра', '1939–2019', 'https://de.wikipedia.org/wiki/Anne_Troelstra', 'one_model',
+ 'Intuitionistic logic: a claim counts as true only when it is constructed or proven, not just because its opposite was not proven.', 'Интуиционистская логика: утверждение считается верным, только когда оно построено или доказано, а не потому, что не доказано обратное.', 'Intuitionistische Logik.',
+ "'Not disproved' is not 'proved'; keep a third answer: not settled."),
+('hoering', 'Walter Hoering', 'Вальтер Хёринг', '1933–2019', 'https://de.wikipedia.org/wiki/Walter_Hoering', 'rumour_vs_fact',
+ 'Logic and philosophy of science.', 'Логика и теория науки.', 'Logik und Wissenschaftstheorie.',
+ 'Show the logical step from the evidence to the claim.'),
+('detlefsen', 'Michael Detlefsen', 'Майкл Детлефсен', '1948–2019', 'https://de.wikipedia.org/wiki/Michael_Detlefsen', 'rumour_vs_fact',
+ 'Philosophy of mathematics: what a proof actually establishes and for whom.', 'Философия математики: что именно устанавливает доказательство и для кого.', 'Philosophie der Mathematik.',
+ 'Say what your argument proves and what it leaves open.'),
+('harre', 'Rom Harré', 'Ром Харре', '1927–2019', 'https://de.wikipedia.org/wiki/Rom_Harr%C3%A9', 'rumour_vs_fact',
+ 'Philosophy of science: explanation by real causal powers and mechanisms, not only by regularities.', 'Теория науки: объяснение через реальные причинные силы и механизмы, а не только через закономерности.', 'Wissenschaftstheorie: Erklärung durch Kausalkräfte.',
+ 'A regular pattern is not yet an explanation; name the mechanism or say it is unknown.'),
+('pfanzagl', 'Johann Pfanzagl', 'Иоганн Пфанцагль', '1928–2019', 'https://de.wikipedia.org/wiki/Johann_Pfanzagl', 'measurement_error',
+ "'Theory of Measurement': when numbers assigned to things are meaningful, and which operations on them make sense.", '«Theory of Measurement»: когда числа, присвоенные вещам, имеют смысл и какие действия с ними допустимы.', '„Theory of Measurement“.',
+ "Do only the arithmetic the scale allows: an index of 60 is not 'twice as' 30."),
+('busch', 'Paul Busch', 'Пауль Буш', '1955–2018', 'https://de.wikipedia.org/wiki/Paul_Busch_(Physiker)', 'measurement_error',
+ 'Quantum theory of measurement: a measurement can disturb what it measures.', 'Квантовая теория измерения: измерение может возмущать то, что оно меряет.', 'Quantentheorie der Messung.',
+ 'Ask whether watching or reporting a thing changes it (a published index can move the market it describes).'),
+('winograd', 'Shmuel Winograd', 'Шмуэль Виноград', '1936–2019', 'https://de.wikipedia.org/wiki/Shmuel_Winograd', 'answer_cost',
+ "Complexity of computation: the minimum number of operations a task needs (Winograd's algorithms for fast multiplication and FFT).", 'Сложность вычислений: наименьшее число операций для задачи (алгоритмы Винограда для быстрого умножения и БПФ).', 'Komplexität: minimale Operationszahl (Winograd-Algorithmen).',
+ 'Find the fewest steps that still answer the question fully.'),
+('guddat', 'Jürgen Guddat', 'Юрген Гуддат', '1941–2018', 'https://de.wikipedia.org/wiki/J%C3%BCrgen_Guddat', 'answer_cost',
+ 'Parametric optimisation: how the best solution changes when the conditions change.', 'Параметрическая оптимизация: как меняется лучшее решение, когда меняются условия.', 'Parametrische Optimierung.',
+ 'Say under which conditions your recommendation would change.'),
+('skala', 'Heinz J. Skala', 'Хайнц Скала', '1942–2019', 'https://de.wikipedia.org/wiki/Heinz_J._Skala', 'answer_cost',
+ 'Decision theory under uncertainty.', 'Теория решений в условиях неопределённости.', 'Entscheidungstheorie unter Unsicherheit.',
+ 'Separate what you know, what you estimate and what you simply do not know.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -736,3 +776,12 @@ for k in ["ivin"]: NEEDS[k] = ("covered", "the Searle sensor already separates e
 for k in ["kovalenko"]: NEEDS[k] = ("covered", "the Hamilton sensor already shows what fails or is postponed", None, "hamilton")
 for k in ["golshtein", "boltyansky"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
 for k in ["uspensky"]: NEEDS[k] = ("covered", "the Ziv sensor already measures information by compression", None, "ziv")
+
+for k in ["raessler"]: NEEDS[k] = ("covered", "the Lyberg sensor already reports gaps and silent feeds", None, "lyberg")
+for k in ["manna"]: NEEDS[k] = ("covered", "the Cox and Hagenauer sensors already show the age of stories and when labels go stale", None, "cox")
+for k in ["bucy"]: NEEDS[k] = ("covered", "the Polyak sensor already smooths the indices against noise", None, "polyak")
+for k in ["hampel"]: NEEDS[k] = ("covered", "the Leamer sensor already shows how far an index moves without each radar or word", None, "leamer")
+for k in ["troelstra"]: NEEDS[k] = ("covered", "check_headline already keeps 'neither' apart from 'denied' (sources_agree)", None, "frankfurt")
+for k in ["pfanzagl"]: NEEDS[k] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
+for k in ["winograd", "guddat"]: NEEDS[k] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
+for k in ["skala"]: NEEDS[k] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
