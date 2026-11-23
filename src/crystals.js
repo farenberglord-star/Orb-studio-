@@ -7776,6 +7776,173 @@ export const CRYSTALS = [
 "note": "the Leamer sensor already gives bounds instead of one number; the track record sensor gives intervals",
 "covered_by": "leamer"
 }
+},
+{
+"id": "menger_c",
+"name": "Carl Menger",
+"name_ru": "Карл Менгер",
+"years": "1840–1921",
+"wiki": "https://en.wikipedia.org/wiki/Carl_Menger",
+"zone": "answer_cost",
+"idea": {
+"en": "'Principles of Economics' (1871): the value of a good is set by the use of its last unit, not by its total usefulness — marginal utility.",
+"ru": "«Основания политической экономии» (1871): ценность блага определяется пользой его последней единицы, а не общей полезностью, — предельная полезность.",
+"de": "„Grundsätze der Volkswirtschaftslehre“ (1871): Grenznutzen."
+},
+"rule": "Before fetching one more source, ask what that one more would change in the answer.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs when one more piece of information pays off",
+"covered_by": "howard"
+}
+},
+{
+"id": "pareto",
+"name": "Vilfredo Pareto",
+"name_ru": "Вильфредо Парето",
+"years": "1848–1923",
+"wiki": "https://en.wikipedia.org/wiki/Vilfredo_Pareto",
+"zone": "measurement_error",
+"idea": {
+"en": "'Cours d'économie politique' (1896–97): incomes follow a power law — a small share of people holds a large share of the total (the Pareto distribution behind the '80/20' rule).",
+"ru": "«Курс политической экономии» (1896–97): доходы подчиняются степенному закону — небольшая доля людей держит большую долю всего (распределение Парето, отсюда «80/20»).",
+"de": "Pareto-Verteilung (1896–97): wenige halten einen großen Teil."
+},
+"rule": "In lopsided data the average misleads; say how much of the total the top few carry.",
+"needs": {
+"code": "ready",
+"note": "bridge 'heavy tails' (Pareto + Mandelbrot + Chebyshev + Lorenz): from ix_hist, what share of all radar movement came from the biggest 20% of half-hour jumps; data exist since 23.11.2026, needs the owner's yes for a sensor"
+}
+},
+{
+"id": "venn",
+"name": "John Venn",
+"name_ru": "Джон Венн",
+"years": "1834–1923",
+"wiki": "https://en.wikipedia.org/wiki/John_Venn",
+"zone": "one_model",
+"idea": {
+"en": "'The Logic of Chance' (1866): a probability is a frequency within a chosen group — and the same person belongs to many groups with different frequencies (the reference-class problem).",
+"ru": "«Логика случая» (1866): вероятность — это частота внутри выбранной группы, а один и тот же человек входит во многие группы с разными частотами (проблема референтного класса).",
+"de": "„The Logic of Chance“ (1866): Wahrscheinlichkeit hängt von der Bezugsklasse ab."
+},
+"rule": "Every percentage belongs to a group: say which group, and that another group would give another number.",
+"needs": {
+"code": "needs_idea",
+"note": "name the reference group behind every percentage in a headline; no reliable word rule yet"
+}
+},
+{
+"id": "frege",
+"name": "Gottlob Frege",
+"name_ru": "Готлоб Фреге",
+"years": "1848–1925",
+"wiki": "https://en.wikipedia.org/wiki/Gottlob_Frege",
+"zone": "look_alike",
+"idea": {
+"en": "'On Sense and Reference' (1892): 'the morning star' and 'the evening star' name the same planet in different ways; one name can also cover different things.",
+"ru": "«О смысле и значении» (1892): «утренняя звезда» и «вечерняя звезда» по-разному называют одну планету; и одно имя может обозначать разные вещи.",
+"de": "„Über Sinn und Bedeutung“ (1892): Morgenstern und Abendstern."
+},
+"rule": "Check whether two names point to the same person or thing before merging or separating them.",
+"needs": {
+"code": "needs_source",
+"note": "joins the bridge 'namesakes in the news': needs an open who-is-who base to tell one name from one person"
+}
+},
+{
+"id": "edgeworth",
+"name": "Francis Ysidro Edgeworth",
+"name_ru": "Фрэнсис Исидро Эджуорт",
+"years": "1845–1926",
+"wiki": "https://en.wikipedia.org/wiki/Francis_Ysidro_Edgeworth",
+"zone": "measurement_error",
+"idea": {
+"en": "His memoranda on index numbers (1887–89, the Marshall–Edgeworth index): a price index changes with the weights and the base you choose.",
+"ru": "Его записки об индексах цен (1887–89, индекс Маршалла — Эджуорта): индекс меняется в зависимости от выбранных весов и базы.",
+"de": "Indexzahlen (1887–89): Gewichte und Basis bestimmen den Index."
+},
+"rule": "When quoting an index, say what weights and base it uses; another choice gives another number.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already recomputes each index under other weights",
+"covered_by": "leamer"
+}
+},
+{
+"id": "veblen",
+"name": "Thorstein Veblen",
+"name_ru": "Торстейн Веблен",
+"years": "1857–1929",
+"wiki": "https://en.wikipedia.org/wiki/Thorstein_Veblen",
+"zone": "look_alike",
+"idea": {
+"en": "'The Theory of the Leisure Class' (1899): conspicuous consumption — things are bought to show status, so a high price can signal prestige rather than quality.",
+"ru": "«Теория праздного класса» (1899): показное потребление — вещи покупают, чтобы показать статус, поэтому высокая цена может означать престиж, а не качество.",
+"de": "„Theorie der feinen Leute“ (1899): demonstrativer Konsum."
+},
+"rule": "Do not read a high price, a famous name or wide popularity as proof of quality or truth.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the passport already say that wide spread is not proof",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "marshall_a",
+"name": "Alfred Marshall",
+"name_ru": "Альфред Маршалл",
+"years": "1842–1924",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_Marshall",
+"zone": "one_model",
+"idea": {
+"en": "'Principles of Economics' (1890): 'other things being equal' (ceteris paribus) — study one cause at a time while holding the rest fixed, knowing the rest never really stay fixed.",
+"ru": "«Принципы экономической науки» (1890): «при прочих равных» — изучать одну причину, держа остальное неизменным, помня, что в жизни остальное не стоит на месте.",
+"de": "„Principles of Economics“ (1890): ceteris paribus."
+},
+"rule": "When you explain a change by one cause, say what you held fixed and whether it really stayed fixed.",
+"needs": {
+"code": "covered",
+"note": "the Simpson sensor already checks whether the mix of radars changed under an index move",
+"covered_by": "simpson"
+}
+},
+{
+"id": "chamberlin",
+"name": "Thomas Chrowder Chamberlin",
+"name_ru": "Томас Чемберлин",
+"years": "1843–1928",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Chrowder_Chamberlin",
+"zone": "one_model",
+"idea": {
+"en": "'The Method of Multiple Working Hypotheses' (1890): keeping one favourite explanation makes you see only supporting facts; keep several alive and test them against each other.",
+"ru": "«Метод множественных рабочих гипотез» (1890): любимое единственное объяснение заставляет видеть только подтверждающие факты; держи в голове несколько и проверяй их друг против друга.",
+"de": "„The Method of Multiple Working Hypotheses“ (1890)."
+},
+"rule": "Keep at least two explanations open until the facts rule one out.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts keep statements, forecasts and questions apart from events and say where the facts stop"
+}
+},
+{
+"id": "durkheim",
+"name": "Émile Durkheim",
+"name_ru": "Эмиль Дюркгейм",
+"years": "1858–1917",
+"wiki": "https://en.wikipedia.org/wiki/%C3%89mile_Durkheim",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Rules of Sociological Method' (1895): treat social facts as things — measure them from outside, with definitions fixed in advance, not from impressions.",
+"ru": "«Метод социологии» (1895): рассматривать социальные факты как вещи — измерять их извне, с заранее заданными определениями, а не по впечатлениям.",
+"de": "„Die Regeln der soziologischen Methode“ (1895)."
+},
+"rule": "Fix the definition before counting; a count with a shifting definition measures the definition.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces what every published number measures",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
