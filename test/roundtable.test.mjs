@@ -113,7 +113,7 @@ test("author's archive round: German and English translations cover every thesis
 test("three site languages only: Russian, German, English — Romanian and Turkish are retired", async () => {
   const { readFileSync } = await import("node:fs");
   const m = await import("../src/roundtable.js"), page = await import("../public/roundtable.js"), duo = await import("../public/studio-duo.js");
-  assert.deepEqual(m.RT_LANGS, ["en", "de", "ru"]); assert.deepEqual(m.RT_TR, ["de"]);
+  assert.deepEqual(m.RT_LANGS, ["en", "de", "ru"]); assert.deepEqual(m.RT_TR, ["de", "ru"]);
   assert.deepEqual(Object.keys(page.T).sort(), ["de", "en", "ru"]); assert.deepEqual(Object.keys(duo.T).sort(), ["de", "en", "ru"]);
   assert.equal(duo.pickLang("?lang=ro", "ru-RU"), "ru"); assert.equal(duo.pickLang("", "tr-TR"), "en");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
