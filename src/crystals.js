@@ -5294,6 +5294,206 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "mccarthy",
+"name": "John McCarthy",
+"name_ru": "Джон Маккарти",
+"years": "1927–2011",
+"wiki": "https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)",
+"zone": "side_effects",
+"idea": {
+"en": "The frame problem and non-monotonic reasoning: an action changes some things and leaves others; conclusions by default must be withdrawn when exceptions appear.",
+"ru": "Проблема фрейма и немонотонные рассуждения: действие меняет одно и не меняет другое; выводы «по умолчанию» надо отзывать, когда появляются исключения.",
+"de": "Rahmenproblem und nichtmonotones Schließen."
+},
+"rule": "Say what your action changes and what it leaves unchanged, and drop a default conclusion when an exception appears.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "dummett",
+"name": "Michael Dummett",
+"name_ru": "Майкл Даммит",
+"years": "1925–2011",
+"wiki": "https://en.wikipedia.org/wiki/Michael_Dummett",
+"zone": "own_limits",
+"idea": {
+"en": "Justificationist semantics: a statement is meaningful as far as we know how to justify it.",
+"ru": "Обосновательная семантика: утверждение осмысленно настолько, насколько мы знаем, как его обосновать.",
+"de": "Rechtfertigungssemantik: eine Aussage hat Sinn, soweit wir wissen, wie man sie begründet."
+},
+"rule": "Do not assert what you have no way of justifying.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "garfinkel",
+"name": "Harold Garfinkel",
+"name_ru": "Гарольд Гарфинкель",
+"years": "1917–2011",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Garfinkel",
+"zone": "look_alike",
+"idea": {
+"en": "Ethnomethodology and indexicality: the same words mean different things in different unspoken contexts.",
+"ru": "Этнометодология и индексикальность: одни и те же слова значат разное в разном невысказанном контексте.",
+"de": "Ethnomethodologie und Indexikalität."
+},
+"rule": "The same words in a different context may not mean the same; check the context before matching.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "goldratt",
+"name": "Eliyahu M. Goldratt",
+"name_ru": "Элияху Голдратт",
+"years": "1947–2011",
+"wiki": "https://en.wikipedia.org/wiki/Eliyahu_M._Goldratt",
+"zone": "side_effects",
+"idea": {
+"en": "Theory of constraints: improving one link without regard to the system's bottleneck can make the whole worse.",
+"ru": "Теория ограничений: улучшение одного звена без учёта узкого места системы может ухудшить целое.",
+"de": "Engpasstheorie: lokale Optimierung ohne Engpass verschlechtert das Ganze."
+},
+"rule": "Before optimising one step, find the bottleneck of the whole chain.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "mcmullin",
+"name": "Ernan McMullin",
+"name_ru": "Эрнан Макмаллин",
+"years": "1924–2011",
+"wiki": "https://en.wikipedia.org/wiki/Ernan_McMullin",
+"zone": "own_limits",
+"idea": {
+"en": "Epistemic values of theory choice: predictive accuracy, coherence and fertility, not a smooth story fitted after the fact.",
+"ru": "Эпистемические ценности выбора теорий: предсказательная точность, согласованность и плодотворность, а не гладкая история, подогнанная задним числом.",
+"de": "Epistemische Werte der Theoriewahl."
+},
+"rule": "Prefer an explanation that predicted something over one that fits any outcome after the fact.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already measures whether the radar matched what happened next",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "milner",
+"name": "Robin Milner",
+"name_ru": "Робин Милнер",
+"years": "1934–2010",
+"wiki": "https://en.wikipedia.org/wiki/Robin_Milner",
+"zone": "look_alike",
+"idea": {
+"en": "Bisimulation and type inference: two processes are the same only if they behave the same in every situation, not because they look alike.",
+"ru": "Бисимуляция и вывод типов: два процесса одинаковы, только если ведут себя одинаково в любой ситуации, а не потому, что похожи.",
+"de": "Bisimulation und Typinferenz."
+},
+"rule": "Call two things the same only when they behave the same, not when they look the same.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "dawes",
+"name": "Robyn Dawes",
+"name_ru": "Робин Доус",
+"years": "1936–2010",
+"wiki": "https://en.wikipedia.org/wiki/Robyn_Dawes",
+"zone": "own_limits",
+"idea": {
+"en": "'The robust beauty of improper linear models': simple formulas beat expert intuition, which overrates its own insight.",
+"ru": "«Надёжная красота неправильных линейных моделей»: простые формулы выигрывают у интуиции экспертов, которая переоценивает свою проницательность.",
+"de": "Einfache lineare Modelle schlagen Experten-Intuition."
+},
+"rule": "Where a simple rule has a record, trust it over a convincing story.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "foot",
+"name": "Philippa Foot",
+"name_ru": "Филиппа Фут",
+"years": "1920–2010",
+"wiki": "https://en.wikipedia.org/wiki/Philippa_Foot",
+"zone": "side_effects",
+"idea": {
+"en": "The trolley problem and the doctrine of double effect: separate the intended aim from foreseen side effects and judge them apart.",
+"ru": "Проблема вагонетки и доктрина двойного эффекта: разделять задуманную цель и предвидимые побочные эффекты и оценивать их отдельно.",
+"de": "Trolley-Problem und Doppelwirkung."
+},
+"rule": "Name the foreseen side effects of an answer separately from its aim.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "turchin",
+"name": "Valentin Turchin",
+"name_ru": "Валентин Турчин",
+"years": "1931–2010",
+"wiki": "https://en.wikipedia.org/wiki/Valentin_Turchin",
+"zone": "own_limits",
+"idea": {
+"en": "Metasystem transitions ('The Phenomenon of Science'): a control level above the rules watches where they stop working.",
+"ru": "Метасистемные переходы («Феномен науки»): уровень контроля над правилами следит, где они перестают работать.",
+"de": "Metasystemübergänge („The Phenomenon of Science“)."
+},
+"rule": "Keep a check above your own rules that notices when they no longer apply.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "mandelbrot",
+"name": "Benoit Mandelbrot",
+"name_ru": "Бенуа Мандельброт",
+"years": "1924–2010",
+"wiki": "https://en.wikipedia.org/wiki/Benoit_Mandelbrot",
+"zone": "own_limits",
+"idea": {
+"en": "Fractals and heavy tails: 'wild' randomness, where rare huge jumps dominate, behaves differently from the calm bell curve.",
+"ru": "Фракталы и тяжёлые хвосты: «дикая» случайность, где редкие огромные скачки решают всё, ведёт себя не так, как спокойная колоколообразная кривая.",
+"de": "Fraktale und schwere Ränder: „wilde“ Zufälligkeit."
+},
+"rule": "Do not give narrow ranges for markets with rare huge jumps.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "gardner",
+"name": "Martin Gardner",
+"name_ru": "Мартин Гарднер",
+"years": "1914–2010",
+"wiki": "https://en.wikipedia.org/wiki/Martin_Gardner",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Fads and Fallacies in the Name of Science': sceptical checks against pseudoscience, coincidences and self-confirming explanations.",
+"ru": "«Причуды и заблуждения во имя науки»: скептическая проверка против лженауки, совпадений и самоподтверждающихся объяснений.",
+"de": "„Fads and Fallacies“: Skepsis gegenüber Pseudowissenschaft."
+},
+"rule": "Treat a striking coincidence as a coincidence until shown otherwise.",
+"needs": {
+"code": "covered",
+"note": "the Park sensor already checks science headlines for signs of pseudoscience",
+"covered_by": "park"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
@@ -5309,7 +5509,7 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
     needs_summary: needs, ready_to_build: wait.filter((c) => c.needs.code === "ready").map((c) => ({ id: c.id, name: c.name, plan: c.needs.note })),
     history_due: wait.filter((c) => c.needs.code === "needs_history").map((c) => ({ id: c.id, name: c.name, not_before: c.needs.not_before, plan: c.needs.note })),
     crystals: all,
-    about: "Ideas of scientists who died in 2020-2026, crystallised into rules for AI agents. Facts from open sources (English Wikipedia; 2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
+    about: "Ideas of scientists who died in 2010-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
 }

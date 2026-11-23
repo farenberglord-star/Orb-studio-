@@ -886,6 +886,40 @@ C = [
 ('lucas', 'John Lucas', 'Джон Лукас', '1929–2020', 'https://en.wikipedia.org/wiki/John_Lucas_(philosopher)', "own_limits",
  "'Minds, Machines and Gödel': an argument that a formal machine cannot fully replace a mathematician's insight.", '«Minds, Machines and Gödel»: аргумент о том, что формальная машина не может полностью заменить понимание математика.', '„Minds, Machines and Gödel“.',
  'Leave room for a human check where formal rules run out.'),
+# --- от Gemini (Лиана): 2010–2011 (23.11.2026) ---
+('mccarthy', 'John McCarthy', 'Джон Маккарти', '1927–2011', 'https://en.wikipedia.org/wiki/John_McCarthy_(computer_scientist)', 'side_effects',
+ 'The frame problem and non-monotonic reasoning: an action changes some things and leaves others; conclusions by default must be withdrawn when exceptions appear.', 'Проблема фрейма и немонотонные рассуждения: действие меняет одно и не меняет другое; выводы «по умолчанию» надо отзывать, когда появляются исключения.', 'Rahmenproblem und nichtmonotones Schließen.',
+ 'Say what your action changes and what it leaves unchanged, and drop a default conclusion when an exception appears.'),
+('dummett', 'Michael Dummett', 'Майкл Даммит', '1925–2011', 'https://en.wikipedia.org/wiki/Michael_Dummett', 'own_limits',
+ 'Justificationist semantics: a statement is meaningful as far as we know how to justify it.', 'Обосновательная семантика: утверждение осмысленно настолько, насколько мы знаем, как его обосновать.', 'Rechtfertigungssemantik: eine Aussage hat Sinn, soweit wir wissen, wie man sie begründet.',
+ 'Do not assert what you have no way of justifying.'),
+('garfinkel', 'Harold Garfinkel', 'Гарольд Гарфинкель', '1917–2011', 'https://en.wikipedia.org/wiki/Harold_Garfinkel', 'look_alike',
+ 'Ethnomethodology and indexicality: the same words mean different things in different unspoken contexts.', 'Этнометодология и индексикальность: одни и те же слова значат разное в разном невысказанном контексте.', 'Ethnomethodologie und Indexikalität.',
+ 'The same words in a different context may not mean the same; check the context before matching.'),
+('goldratt', 'Eliyahu M. Goldratt', 'Элияху Голдратт', '1947–2011', 'https://en.wikipedia.org/wiki/Eliyahu_M._Goldratt', 'side_effects',
+ "Theory of constraints: improving one link without regard to the system's bottleneck can make the whole worse.", 'Теория ограничений: улучшение одного звена без учёта узкого места системы может ухудшить целое.', 'Engpasstheorie: lokale Optimierung ohne Engpass verschlechtert das Ganze.',
+ 'Before optimising one step, find the bottleneck of the whole chain.'),
+('mcmullin', 'Ernan McMullin', 'Эрнан Макмаллин', '1924–2011', 'https://en.wikipedia.org/wiki/Ernan_McMullin', 'own_limits',
+ 'Epistemic values of theory choice: predictive accuracy, coherence and fertility, not a smooth story fitted after the fact.', 'Эпистемические ценности выбора теорий: предсказательная точность, согласованность и плодотворность, а не гладкая история, подогнанная задним числом.', 'Epistemische Werte der Theoriewahl.',
+ 'Prefer an explanation that predicted something over one that fits any outcome after the fact.'),
+('milner', 'Robin Milner', 'Робин Милнер', '1934–2010', 'https://en.wikipedia.org/wiki/Robin_Milner', 'look_alike',
+ 'Bisimulation and type inference: two processes are the same only if they behave the same in every situation, not because they look alike.', 'Бисимуляция и вывод типов: два процесса одинаковы, только если ведут себя одинаково в любой ситуации, а не потому, что похожи.', 'Bisimulation und Typinferenz.',
+ 'Call two things the same only when they behave the same, not when they look the same.'),
+('dawes', 'Robyn Dawes', 'Робин Доус', '1936–2010', 'https://en.wikipedia.org/wiki/Robyn_Dawes', 'own_limits',
+ "'The robust beauty of improper linear models': simple formulas beat expert intuition, which overrates its own insight.", '«Надёжная красота неправильных линейных моделей»: простые формулы выигрывают у интуиции экспертов, которая переоценивает свою проницательность.', 'Einfache lineare Modelle schlagen Experten-Intuition.',
+ 'Where a simple rule has a record, trust it over a convincing story.'),
+('foot', 'Philippa Foot', 'Филиппа Фут', '1920–2010', 'https://en.wikipedia.org/wiki/Philippa_Foot', 'side_effects',
+ 'The trolley problem and the doctrine of double effect: separate the intended aim from foreseen side effects and judge them apart.', 'Проблема вагонетки и доктрина двойного эффекта: разделять задуманную цель и предвидимые побочные эффекты и оценивать их отдельно.', 'Trolley-Problem und Doppelwirkung.',
+ 'Name the foreseen side effects of an answer separately from its aim.'),
+('turchin', 'Valentin Turchin', 'Валентин Турчин', '1931–2010', 'https://en.wikipedia.org/wiki/Valentin_Turchin', 'own_limits',
+ "Metasystem transitions ('The Phenomenon of Science'): a control level above the rules watches where they stop working.", 'Метасистемные переходы («Феномен науки»): уровень контроля над правилами следит, где они перестают работать.', 'Metasystemübergänge („The Phenomenon of Science“).',
+ 'Keep a check above your own rules that notices when they no longer apply.'),
+('mandelbrot', 'Benoit Mandelbrot', 'Бенуа Мандельброт', '1924–2010', 'https://en.wikipedia.org/wiki/Benoit_Mandelbrot', 'own_limits',
+ "Fractals and heavy tails: 'wild' randomness, where rare huge jumps dominate, behaves differently from the calm bell curve.", 'Фракталы и тяжёлые хвосты: «дикая» случайность, где редкие огромные скачки решают всё, ведёт себя не так, как спокойная колоколообразная кривая.', 'Fraktale und schwere Ränder: „wilde“ Zufälligkeit.',
+ 'Do not give narrow ranges for markets with rare huge jumps.'),
+('gardner', 'Martin Gardner', 'Мартин Гарднер', '1914–2010', 'https://en.wikipedia.org/wiki/Martin_Gardner', 'rumour_vs_fact',
+ "'Fads and Fallacies in the Name of Science': sceptical checks against pseudoscience, coincidences and self-confirming explanations.", '«Причуды и заблуждения во имя науки»: скептическая проверка против лженауки, совпадений и самоподтверждающихся объяснений.', '„Fads and Fallacies“: Skepsis gegenüber Pseudowissenschaft.',
+ 'Treat a striking coincidence as a coincidence until shown otherwise.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1043,3 +1077,6 @@ NEEDS["suppes"] = ("covered", "the Baird sensor already traces units and scales"
 NEEDS["box"] = ("covered", "the Leamer sensor already shows how far an index depends on the model choices", None, "leamer")
 NEEDS["fogel"] = ("covered", "the Halpern sensor already asks what the index would be without each headline", None, "halpern")
 NEEDS["lindley"] = ("covered", "applied: the forecast game scores agents by the Brier rule (honest_confidence_30d in get_prediction), so overclaiming certainty costs")
+
+NEEDS["gardner"] = ("covered", "the Park sensor already checks science headlines for signs of pseudoscience", None, "park")
+NEEDS["mcmullin"] = ("covered", "the track record sensor already measures whether the radar matched what happened next", None, "trackrecord")
