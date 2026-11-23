@@ -55,3 +55,9 @@ test("round table and David's pick get the passport; any-headline passport tool 
   assert.match(GROK_SYSTEM, /do not open every answer with "David,"/);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /name: "get_news_passport"/); assert.match(w, /p === "\/api\/v1\/passport"/);
 });
+test("Hume: an extraordinary claim with few outlets gets extra caution", () => {
+  const p = newsPassport({ headline: "Трамп: Иран за неделю выпустил рекордное число ракет и дронов", confirm: 1 }, now);
+  assert.equal(p.confidence, "low"); assert.ok(p.say.some((x) => /extraordinary claim/.test(x)));
+  assert.ok(!newsPassport({ headline: "Record heat in Spain", confirm: 6, published_at: new Date(now - 3600e3).toISOString() }, now).say.some((x) => /extraordinary/.test(x)), "many outlets: no extra line");
+  assert.ok(newsPassport({ headline: "Erstmals seit 1990: Bahn streicht alle Züge" }, now).say.some((x) => /extraordinary/.test(x)));
+});
