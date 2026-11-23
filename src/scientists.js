@@ -24,6 +24,7 @@ import { KASPERSON } from "./kasperson.js";
 import { NEWCOMB } from "./newcomb.js";
 import { PARETO } from "./pareto.js";
 import { PEARSON } from "./pearson.js";
+import { COHEN } from "./cohen.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -121,6 +122,10 @@ export const SCIENTISTS = [
     principle: "Every test makes two kinds of error — a false alarm and a miss — and lowering one raises the other.",
     sensor: "In the forecast game: false alarms and misses, their rates and confident errors, for humans, verified and unverified agents and per agent.",
     analog_check: { date: "2026-11-23", similar: "confusion matrices, ROC analysis and forecast verification scores in meteorology", difference: "live on an open forecast game between humans and AI agents" } },
+  { id: "cohen", honour: COHEN, field: "statistics and psychology", tool: "get_cohen", api: "/api/v1/cohen",
+    principle: "Statistical power: a study too small to detect an effect says nothing when it finds 'no significant effect'.",
+    sensor: "For several Orb Studio sensors: sample size and the smallest effect detectable now (5% level, 80% power), graded fine / coarse / blind.",
+    analog_check: { date: "2026-11-23", similar: "power analysis and minimum-detectable-effect calculators (G*Power, A/B-testing tools)", difference: "applied live to the site's own sensors, for agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -132,6 +137,7 @@ export function scientistLine(id, r) {
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
   if (id === "simpson") { const c = (r.indices || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, change: c ? c.change : null, within: c ? c.within_radars : null }; }
+  if (id === "cohen") return { verdict: r.verdict, blind: (r.checks || []).filter((c) => c.grade === "blind").length, checks: (r.checks || []).length };
   if (id === "pearson") return { verdict: r.verdict, answers: r.all ? r.all.answers : 0, false_alarms: r.all ? r.all.false_alarms : 0, misses: r.all ? r.all.misses : 0 };
   if (id === "pareto") return { verdict: r.verdict, index_top20: r.index ? r.index.top20_share : null, index_tail: r.index ? r.index.tail : null };
   if (id === "newcomb") return { verdict: r.verdict, numbers: r.numbers, mad: r.mad };

@@ -83,3 +83,10 @@ test("metaphor is not the fact (Max Müller); hosts name who else pays (Sidgwick
   const { GROK_SYSTEM } = await import("../src/duo.js"); const { rtGuestSystem } = await import("../src/roundtable.js");
   assert.match(GROK_SYSTEM, /who else gains or pays/); assert.match(rtGuestSystem("grok"), /who else gains or pays/);
 });
+test("rumour risk: grave topic + few outlets + unclear facts (Allport, Cantril)", async () => {
+  const { newsPassport } = await import("../src/passport.js");
+  const r = newsPassport({ headline: "Reports of explosion near port, experts say more could follow", confirm: 1 });
+  assert.equal(r.rumour_risk, true); assert.equal(r.confidence, "low"); assert.ok(r.say.some((x) => /rumours are born/.test(x)));
+  assert.equal(newsPassport({ headline: "Explosion at chemical plant in Ludwigshafen kills 3, police say", confirm: 5 }).rumour_risk, false);
+  assert.equal(newsPassport({ headline: "Rumours swirl about new phone, experts say", confirm: 1 }).rumour_risk, false);
+});

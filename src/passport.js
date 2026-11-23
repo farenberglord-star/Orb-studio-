@@ -18,6 +18,8 @@ export const QUOTED = /["“”«»„]|‘[^’]{3,}’|(?<![\p{L}])'[^']{3,}'(
 export const FOUND_DOC = /(?<![\p{L}])(leak\p{L}*|unearthed|newly (?:found|discovered|released)|secret (?:letter|memo|files?|documents?|recording|tape)|documents? (?:show|reveal)\p{L}*|(?:audio|video) (?:recording|tape)s?|dossier|geleakt\p{L}*|aufgetaucht\p{L}*|Geheim(?:papier|dokument|akte)\p{L}*|Dokumente? (?:zeig|belegt)\p{L}*|Mitschnitt\p{L}*|утечк\p{L}*|утёкш\p{L}*|рассекреч\p{L}*|секретн\p{L}* (?:документ|письм|запис)\p{L}*|документы показ\p{L}*|аудиозапис\p{L}*|переписк\p{L}*|досье)(?![\p{L}])/iu;
 // Макс Мюллер, «болезнь языка»: метафора, понятая буквально, становится выдуманным событием. Короткий свой список на трёх языках.
 export const METAPHOR = /(?<![\p{L}])(price war|trade war|tariff war|chip war|currency war|bloodbath|meltdown|tsunami of|political earthquake|perfect storm|time bomb|nuclear option|free ?fall|firestorm|Preiskrieg\p{L}*|Handelskrieg\p{L}*|Zollkrieg\p{L}*|Währungskrieg\p{L}*|Blutbad|Kahlschlag|Tsunami (?:an|von)|politische\p{L}* Erdbeben|Zeitbombe|Kernschmelze|freie\p{L}* Fall|perfekte\p{L}* Sturm|ценов\p{L}* войн\p{L}*|торгов\p{L}* войн\p{L}*|тарифн\p{L}* войн\p{L}*|валютн\p{L}* войн\p{L}*|кровав\p{L}* бан\p{L}*|цунами (?:увольнений|банкротств|продаж|исков|жалоб)|политическ\p{L}* землетрясени\p{L}*|бомб\p{L}* замедленного действия|свободн\p{L}* падени\p{L}*|идеальн\p{L}* шторм\p{L}*)(?![\p{L}])/iu;
+// Олпорт и Постман, «Психология слуха» (1947): сила слуха ≈ важность × неясность; Кэнтрил: кто проверял — не паниковал.
+export const GRAVE = /(?<![\p{L}])(war|attack\p{L}*|strikes?|missiles?|explosions?|blasts?|crash\p{L}*|collaps\p{L}*|default\p{L}*|bankrupt\p{L}*|bank run|killed|dead|deaths?|hostages?|nuclear|evacuat\p{L}*|earthquake|flood\p{L}*|terror\p{L}*|shooting|Krieg\p{L}*|Angriff\p{L}*|Rakete\p{L}*|Explosion\p{L}*|Absturz|Einsturz|Pleite|Insolvenz|Tote\p{L}*|Geisel\p{L}*|Anschlag|Evakuierung|Erdbeben|Hochwasser|войн\p{L}*|атак\p{L}*|удар\p{L}*|ракет\p{L}*|взрыв\p{L}*|крушени\p{L}*|обрушени\p{L}*|дефолт\p{L}*|банкротств\p{L}*|погиб\p{L}*|жертв\p{L}*|заложник\p{L}*|ядерн\p{L}*|эвакуац\p{L}*|землетрясени\p{L}*|наводнени\p{L}*|теракт\p{L}*)(?![\p{L}])/iu;
 function actOf(headline, searle) {
   const t = String(headline || "").trim();
   if (/\?\s*$/.test(t)) return "question";
@@ -42,6 +44,9 @@ export function newsPassport(it, now = Date.now()) {
   if (meta) say.push(`The headline uses a metaphor ('${meta}'): say in plain words what actually happened, and do not repeat the metaphor as if it were the fact.`);
   const foundDoc = FOUND_DOC.test(headline);
   if (foundDoc) say.push("The story rests on a leaked or newly found document or recording: say that its date, wording and origin still need checking — a find that suits one side needs double checking, not less.");
+  const grave = GRAVE.test(headline), unclear = chk.class === "nothing_to_check" || chk.class === "hedged" || chk.class === "thin";
+  const rumourRisk = grave && (voices == null || voices <= 1) && unclear;
+  if (rumourRisk) say.push("A grave topic, few outlets and unclear facts: this is how rumours are born (importance × ambiguity). Stick to what is confirmed, say what is not known yet, and point listeners to an independent source.");
   const amp0 = it && it.amplified;
   if (amp0 && amp0.first_source && (voices == null || voices >= 2)) say.push(`First carried by ${amp0.first_source}: if outlets repeat each other, credit the first source, not the number of retellings.`);
   const extraordinary = EXTRAORDINARY.test(headline);
@@ -55,15 +60,15 @@ export function newsPassport(it, now = Date.now()) {
   if (amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first)) say.push(`Retellings spread this story from ${amp.outlets_first} to ${amp.outlets_peak} outlets: repetition is not confirmation and makes it feel truer than it is — stick to what the first source said.`);
   if (it && it.state_media) say.push(`The source is state media (${it.state_media}): name it as such.`);
   say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
-  const low = (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48) || (extraordinary && (voices == null || voices <= 2));
+  const low = rumourRisk || (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48) || (extraordinary && (voices == null || voices <= 2));
   const high = !low && !foundDoc && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
   return {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
-    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta,
+    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, rumour_risk: rumourRisk,
     confidence: high ? "high" : low ? "low" : "medium", say,
-    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

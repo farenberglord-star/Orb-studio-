@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -9114,24 +9114,6 @@ export const CRYSTALS = [
 "needs": {
 "code": "needs_idea",
 "note": "flag headlines that blame a person where the facts point to circumstances; no word rule yet"
-}
-},
-{
-"id": "cohen_j",
-"name": "Jacob Cohen",
-"name_ru": "Джейкоб Коэн",
-"years": "1923–1998",
-"wiki": "https://en.wikipedia.org/wiki/Jacob_Cohen_(statistician)",
-"zone": "measurement_error",
-"idea": {
-"en": "Statistical power and effect size (1962, 1988; 'The Earth is round (p < .05)', 1994): a study too small to detect an effect says nothing when it finds 'no significant effect'.",
-"ru": "Статистическая мощность и величина эффекта (1962, 1988; «Земля круглая (p < .05)», 1994): исследование, слишком малое, чтобы заметить эффект, ничего не говорит, когда находит «незначимый эффект».",
-"de": "Teststärke und Effektgröße (1962, 1988)."
-},
-"rule": "'No significant difference' from small data is not 'no difference'; say how big an effect the data could have shown.",
-"needs": {
-"code": "ready",
-"note": "bridge 'is one more check worth it' (Grok: Cohen + a zone-5 partner, with Howard and Gosset): report the smallest effect each sensor could detect with its current data, so 'not significant' gets its meaning; needs the owner's yes"
 }
 },
 {
