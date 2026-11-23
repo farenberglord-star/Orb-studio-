@@ -1,5 +1,5 @@
 // Датчик «Счёт попаданий» (track record): как часто изменение крипто-радара за сутки совпадало
-// с движением BTC и ETH за следующие сутки. Только прошлое, за последние 30 дней, с честным размером выборки.
+// с движением BTC, ETH и XRP за следующие сутки. Только прошлое, за последние 30 дней, с честным размером выборки.
 // Одна точка в день в один и тот же час (по умолчанию 12:00 UTC), окна не перекрываются.
 // Это измерение прошлого совпадения, не прогноз и не торговый сигнал.
 
@@ -90,7 +90,7 @@ export function trackReport(rows, coins, { now = Date.now(), hourUtc = 12, days 
   const anyN = Math.max(0, ...Object.values(per).map((x) => x.days));
   return {
     sensor: "trackrecord", verdict: anyN < TRACK_MIN ? "collecting" : "measured",
-    question: "When the Orb Studio crypto radar changed over a day, how often did BTC and ETH move the opposite way (or the same way) over the next day?",
+    question: "When the Orb Studio crypto radar changed over a day, how often did BTC, ETH and XRP move the opposite way (or the same way) over the next day?",
     radar_now: cur ? { ...cur, vs_typical: (() => { const nz = radarNoise(rows, now); return nz.verdict === "measured" ? (Math.abs(cur.change) <= nz.typical_24h_change ? "within_typical_daily_move" : Math.abs(cur.change) >= nz.large_24h_change_p90 ? "large_move_top_10pct" : "above_typical") : null; })() } : null,
     radar_noise: radarNoise(rows, now), coins: per, explain: TRACK_EXPLAIN,
     method: `One point per day at ${String(hourUtc).padStart(2, "0")}:00 UTC (query hour=0–23 to match your own check time), last ${days} days: the crypto radar change over the previous 24 hours (stored every 30 minutes) and the next 24-hour change of the Kraken price (close of the last completed hourly candle, EUR pairs XBTEUR and ETHEUR). Windows do not overlap. Days are grouped by the size of the radar change (0, 1–2, 3–5, 6+ points). 'Against' = radar fell and price rose, or radar rose and price fell. The 90 % interval is the Wilson score interval; with fewer than ${TRACK_MIN} days in a group there is no conclusion. Compare with share_days_price_rose: if the price rose on most days anyway, a high 'against' share after radar drops may only reflect that.`,

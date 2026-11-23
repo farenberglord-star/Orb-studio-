@@ -1902,11 +1902,11 @@ async function kaspersonNow(env) { // «Касперсон»: какие ист�
   const r = kaspersonReport(rows, Date.now(), since); await sharedPut(env, "kasperson-v1", r).catch(() => {}); return r;
 }
 async function trackrecordNow(env, args = {}) { // «Счёт попаданий»: совпадало ли изменение крипто-радара с движением BTC/ETH за следующие сутки
-  const hour = Math.min(23, Math.max(0, parseInt(args.hour, 10) >= 0 ? parseInt(args.hour, 10) : 12)), key = "track-v1-" + hour;
+  const hour = Math.min(23, Math.max(0, parseInt(args.hour, 10) >= 0 ? parseInt(args.hour, 10) : 12)), key = "track-v2-" + hour;
   const c = await sharedGet(env, key, 3600e3).catch(() => null); if (c) return c;
   let rows = []; try { rows = (await env.DB.prepare("SELECT ts, k FROM ix_hist WHERE ts > ?1 AND k IS NOT NULL ORDER BY ts").bind(Date.now() - 32 * 864e5).all()).results || []; } catch {}
   const coins = {};
-  await Promise.all(Object.entries({ BTC: "XBTEUR", ETH: "ETHEUR" }).map(async ([c, pair]) => {
+  await Promise.all(Object.entries({ BTC: "XBTEUR", ETH: "ETHEUR", XRP: "XRPEUR" }).map(async ([c, pair]) => {
     try { const j = await sensorsFetchJson(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=60`); const k = Object.keys(j.result || {}).find((x) => x !== "last");
       coins[c] = (j.result[k] || []).map((r) => [r[0] * 1000, +r[4]]); } catch { coins[c] = []; }
   }));
@@ -3377,7 +3377,7 @@ async function expPublic(env, ctx) {
       return { eur: +expValue(sh, px).toFixed(2), start: st.start };
     })() : null,
     // весь счёт Kraken (как в приложении), включая монеты в стейкинге/Earn и другие активы, которыми ИИ не торгует
-    account: account ? { total_eur: account.total_eur, trade_eur: account.trade_eur, not_traded_eur: account.not_traded_eur, assets: account.assets, unpriced: account.unpriced, at: account.at, note: "total = every asset on the Kraken account in EUR at Kraken's last price; the AI trades only spot EUR, SOL, BTC and ETH" } : null,
+    account: account ? { total_eur: account.total_eur, trade_eur: account.trade_eur, not_traded_eur: account.not_traded_eur, assets: account.assets, unpriced: account.unpriced, at: account.at, note: "total = every asset on the Kraken account in EUR at Kraken's last price; the AI trades only spot EUR, SOL, BTC, ETH and XRP" } : null,
     account_error: accountErr,
     learning: await expLearning(env).catch(() => null), impulse: imp, decisions: dec.slice(0, 30), trades: dec.flatMap((d) => (d.orders || []).map((o) => ({ day: d.day, ...o }))).slice(0, 30),
     note: "A public experiment of the Orb Studio author with his own small crypto wallet. Rules are fixed in advance and versioned; every decision is logged with its inputs. Compare wallet with hold_sol to see whether the radar helped.",
@@ -5692,7 +5692,7 @@ async function sensorsCompute(prev, env) {
     attention: async () => {
       if (prev && prev.attention && !prev.attention.stale && Date.now() - Date.parse(prev.attention.at) < 3 * 3600e3) return prev.attention;
       const A = [["Strait_of_Hormuz", "geo"], ["Russo-Ukrainian_war", "geo"], ["Taiwan", "geo"], ["Iran", "geo"], ["Price_of_oil", "energy"], ["OPEC", "energy"],
-        ["Bitcoin", "crypto"], ["Ethereum", "crypto"], ["Binance", "crypto"], ["Inflation", "economy"], ["Federal_Reserve", "economy"], ["European_Central_Bank", "economy"],
+        ["Bitcoin", "crypto"], ["Ethereum", "crypto"], ["XRP_Ledger", "crypto"], ["Ripple_Labs", "crypto"], ["Binance", "crypto"], ["Inflation", "economy"], ["Federal_Reserve", "economy"], ["European_Central_Bank", "economy"],
         ["ChatGPT", "web"], ["Artificial_intelligence", "web"]];
       const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, ""), end = new Date(Date.now() - 864e5), start = new Date(Date.now() - 36 * 864e5);
       const med = (a) => { const b = a.slice().sort((x, y) => x - y); return b.length ? b[Math.floor(b.length / 2)] : 0; };
@@ -8318,7 +8318,7 @@ const MCP_TOOLS = [
     description: "The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_cohen", title: "Cohen sensor: the smallest effect each Orb Studio sensor can detect with its current data (power, 'not significant' is not 'no effect')",
-    description: "For the track record (BTC, ETH), the planned who-leads-whom correlation, the forecast game, the Kasperson amplification share and the Newcomb first-digit test: sample size, the smallest effect detectable at the 5% level with 80% power (or the margin / noise level), and a grade fine / coarse / blind. Read every 'nothing found' with its true resolution. No AI. In honour of Jacob Cohen (1923-1998).",
+    description: "For the track record (BTC, ETH, XRP), the planned who-leads-whom correlation, the forecast game, the Kasperson amplification share and the Newcomb first-digit test: sample size, the smallest effect detectable at the 5% level with 80% power (or the margin / noise level), and a grade fine / coarse / blind. Read every 'nothing found' with its true resolution. No AI. In honour of Jacob Cohen (1923-1998).",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_pearson", title: "Pearson sensor: false alarms versus misses in the Orb Studio forecast game (two kinds of error)",
     description: "Resolved answers of the humans-vs-AI forecast game (90 days): false alarms (said higher, went lower), misses (said lower, went higher), their rates, how often 'higher' is said versus how often it happened, and errors made with 80%+ confidence — for humans, verified and unverified AI agents and per verified agent. No AI. In honour of Egon Pearson (1895-1980), Neyman-Pearson lemma.",
@@ -8332,8 +8332,8 @@ const MCP_TOOLS = [
   { name: "get_kasperson", title: "Kasperson sensor: which radar stories spread far wider than their first source (social amplification of risk)",
     description: "For every Orb Studio radar story of the last 7 days: outlets at first sight and at the peak, growth factor, amplified (3+ outlets and 2x), per radar and per speech act (event, claim, promise, threat, demand), with the most amplified stories. More outlets means wider spread, not more facts. No AI. In honour of Roger Kasperson (1938-2021), author of the social amplification of risk framework.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
-  { name: "get_trackrecord", title: "Track record: how often BTC and ETH moved against (or with) the Orb Studio crypto radar over the next day",
-    description: "Past 30 days, one point per day at a fixed hour (default 12:00 UTC, argument hour 0-23): the crypto radar change over the previous 24 h and the next 24 h change of BTC and ETH (Kraken EUR prices). Grouped by size of the radar change (0, 1-2, 3-5, 6+ points): days, share of days the price moved against the radar and with it, 90% Wilson interval, mean next-day move, and the share of days the price rose anyway. With fewer than 8 days in a group: no conclusion. Also radar_noise: the typical 24-hour change of the crypto radar, the 90th percentile, the share of half-hour jumps of 5+ points and how many come straight back, and whether today's change is within the ordinary daily movement. Past coincidence over a small sample, not a forecast and not a trading signal.",
+  { name: "get_trackrecord", title: "Track record: how often BTC, ETH and XRP moved against (or with) the Orb Studio crypto radar over the next day",
+    description: "Past 30 days, one point per day at a fixed hour (default 12:00 UTC, argument hour 0-23): the crypto radar change over the previous 24 h and the next 24 h change of BTC, ETH and XRP (Kraken EUR prices). Grouped by size of the radar change (0, 1-2, 3-5, 6+ points): days, share of days the price moved against the radar and with it, 90% Wilson interval, mean next-day move, and the share of days the price rose anyway. With fewer than 8 days in a group: no conclusion. Also radar_noise: the typical 24-hour change of the crypto radar, the 90th percentile, the share of half-hour jumps of 5+ points and how many come straight back, and whether today's change is within the ordinary daily movement. Past coincidence over a small sample, not a forecast and not a trading signal.",
     inputSchema: { type: "object", properties: { hour: { type: "integer", minimum: 0, maximum: 23, description: "UTC hour of the daily point (default 12)" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_simpson", title: "Simpson sensor: did an index change inside the radars, or only because the mix of radars changed?",
     description: "For the consensus and hallucination indices, the change over the last 6 hours split into a within-radar effect and a mix effect (one radar now fills more of the feed), with per-radar shares and weights. Verdict paradox (the total moves against every radar) / mix_dominates / consistent / no_change. No AI. In honour of Edward H. Simpson (1922-2019), who described Simpson's paradox.",

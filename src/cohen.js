@@ -23,7 +23,7 @@ const grade = (x, ok, weak) => (x == null ? "no_data" : x <= ok ? "fine" : x <= 
 
 export function cohenReport(src = {}, now = Date.now()) {
   const checks = [];
-  for (const coin of ["BTC", "ETH"]) {
+  for (const coin of ["BTC", "ETH", "XRP"]) {
     const c = src.trackrecord && src.trackrecord.coins && src.trackrecord.coins[coin], n = c ? +c.days || 0 : 0, m = mdeShare(n), r = mdeCorrelation(n);
     checks.push({ sensor: "trackrecord", what: `${coin}: share of days the price went against the crypto radar`, n, unit: "days", smallest_detectable: pp(m), smallest_detectable_unit: "percentage points away from 50%", grade: grade(m, 0.1, 0.25),
       plain: n ? `With ${n} days, only a lean stronger than 50% ± ${pp(m)} points can be seen; anything smaller looks like 'no link'.` : "No days yet." });
