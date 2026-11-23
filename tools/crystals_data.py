@@ -815,6 +815,52 @@ C = [
 ('toffler', 'Alvin Toffler', 'Элвин Тоффлер', '1928–2016', 'https://en.wikipedia.org/wiki/Alvin_Toffler', 'answer_cost',
  "'Future Shock': information overload — too much change and information too fast overwhelms decisions.", '«Шок будущего»: информационная перегрузка — слишком много перемен и информации слишком быстро мешают принимать решения.', '„Der Zukunftsschock“: Informationsüberlastung.',
  'Give less, but what matters: cut the answer to what the reader can use.'),
+# --- от Gemini (Лиана): 2012–2014 (23.11.2026) ---
+('suppes', 'Patrick Suppes', 'Патрик Суппес', '1922–2014', 'https://en.wikipedia.org/wiki/Patrick_Suppes', 'measurement_error',
+ "'Foundations of Measurement' and probabilistic causality: when qualitative observations can be turned into numbers on a scale.", '«Основания измерения» и вероятностная причинность: когда качественные наблюдения можно честно перевести в числа на шкале.', '„Foundations of Measurement“ und probabilistische Kausalität.',
+ 'Before turning an impression into a number, say what scale it is on.'),
+('fillmore', 'Charles J. Fillmore', 'Чарльз Филлмор', '1929–2014', 'https://en.wikipedia.org/wiki/Charles_J._Fillmore', 'look_alike',
+ 'Frame semantics (FrameNet): the meaning of a word depends on the situation frame and the roles in it.', 'Фреймовая семантика (FrameNet): значение слова зависит от фрейма ситуации и ролей её участников.', 'Frame-Semantik (FrameNet): Wortbedeutung hängt vom Situationsrahmen ab.',
+ 'The same word in a different situation may mean a different thing; check the frame.'),
+('lowe', 'E. J. Lowe', 'Э. Дж. Лоу', '1950–2014', 'https://en.wikipedia.org/wiki/E._J._Lowe', 'look_alike',
+ 'Criteria of identity: having the same properties is not the same as being one and the same thing.', 'Критерии тождества: иметь одинаковые свойства — не то же самое, что быть одним и тем же предметом.', 'Identitätskriterien: gleiche Eigenschaften sind nicht dasselbe wie numerische Identität.',
+ 'Two matching descriptions may still be two different things; name the criterion you use.'),
+('hall', 'Stuart Hall', 'Стюарт Холл', '1932–2014', 'https://en.wikipedia.org/wiki/Stuart_Hall_(cultural_theorist)', 'side_effects',
+ 'Encoding/decoding: the receiver reads a message through their own codes, so what is meant and what is understood can differ.', 'Кодирование и декодирование: получатель читает сообщение через свои коды, и задуманное может разойтись с понятым.', 'Kodieren/Dekodieren: der Empfänger liest eine Botschaft mit eigenen Codes.',
+ 'Ask how different readers will understand your answer, not only what you meant.'),
+('coase', 'Ronald Coase', 'Рональд Коуз', '1910–2013', 'https://en.wikipedia.org/wiki/Ronald_Coase', 'side_effects',
+ 'Transaction costs and the Coase theorem: side effects on others (externalities) and the cost of arranging things decide how problems get solved.', 'Транзакционные издержки и теорема Коуза: побочные эффекты для других (экстерналии) и цена договорённости определяют, как решаются проблемы.', 'Transaktionskosten und Coase-Theorem: Externalitäten und Verhandlungskosten.',
+ 'Name who else bears the cost of an action.'),
+('box', 'George E. P. Box', 'Джордж Бокс', '1919–2013', 'https://en.wikipedia.org/wiki/George_E._P._Box', 'one_model',
+ "'All models are wrong, but some are useful'; Box–Jenkins time-series models: check a model by what it leaves unexplained.", '«Все модели неверны, но некоторые полезны»; модели Бокса — Дженкинса: проверяй модель по тому, что она оставляет необъяснённым.', '„Alle Modelle sind falsch, aber manche sind nützlich“; Box-Jenkins.',
+ 'Say what your model is useful for and where it is wrong.'),
+('lindley', 'Dennis Lindley', 'Деннис Линдли', '1923–2013', 'https://en.wikipedia.org/wiki/Dennis_Lindley', 'own_limits',
+ "Coherent Bayesian decisions: degrees of belief must fit together, and never put probability zero or one on what you are not sure of (Cromwell's rule).", 'Когерентные байесовские решения: степени уверенности должны сходиться между собой, и нельзя ставить вероятность ноль или один тому, в чём не уверен (правило Кромвеля).', 'Kohärente Bayes-Entscheidungen; Cromwells Regel: nie 0 oder 1 ohne Gewissheit.',
+ 'Do not state certainty you do not have: keep a little probability for being wrong.'),
+('buchanan', 'James M. Buchanan', 'Джеймс Бьюкенен', '1919–2013', 'https://en.wikipedia.org/wiki/James_M._Buchanan', 'side_effects',
+ 'Public choice: those who make rules act on their own incentives too, so rules have effects their designers did not announce.', 'Теория общественного выбора: те, кто пишет правила, тоже действуют по своим стимулам, поэтому у правил бывают последствия, которых авторы не объявляли.', 'Public Choice: auch Regelmacher folgen eigenen Anreizen.',
+ 'Ask whose incentives a rule or a recommendation serves.'),
+('fogel', 'Robert Fogel', 'Роберт Фогель', '1926–2013', 'https://en.wikipedia.org/wiki/Robert_Fogel', 'one_model',
+ 'Cliometrics and the counterfactual: measure a cause by asking what would have happened without it.', 'Клиометрика и контрфактический анализ: измерять причину вопросом, что было бы без неё.', 'Kliometrie und kontrafaktische Analyse.',
+ 'Before calling something a cause, say what would have happened without it.'),
+('klein', 'Lawrence Klein', 'Лоуренс Клейн', '1920–2013', 'https://en.wikipedia.org/wiki/Lawrence_Klein', 'one_model',
+ 'Large macro-econometric models (Klein–Goldberger, Project LINK): forecasts depend on the structure the model assumes.', 'Большие макроэконометрические модели (Клейна — Голдбергера, проект LINK): прогноз зависит от структуры, которую закладывает модель.', 'Makroökonometrische Modelle (Klein-Goldberger, LINK).',
+ 'Say which model a forecast comes from and what it assumes.'),
+('geach', 'Peter Geach', 'Питер Гич', '1916–2013', 'https://en.wikipedia.org/wiki/Peter_Geach', 'look_alike',
+ "Relative identity: 'the same' is only meaningful relative to a kind — the same word, the same edition, the same author.", 'Относительное тождество: «то же самое» имеет смысл только относительно рода — то же слово, то же издание, тот же автор.', 'Relative Identität: „dasselbe“ nur bezüglich einer Art.',
+ "When you say 'the same', say the same what."),
+('ostrom', 'Elinor Ostrom', 'Элинор Остром', '1933–2012', 'https://en.wikipedia.org/wiki/Elinor_Ostrom', 'side_effects',
+ "'Governing the Commons': shared resources can be managed by their users with clear rules, monitoring and graduated sanctions.", '«Управляя общим»: общими ресурсами могут управлять сами пользователи — с ясными правилами, наблюдением и постепенными санкциями.', '„Die Verfassung der Allmende“: Selbstverwaltung gemeinsamer Ressourcen.',
+ 'When many agents use one shared resource, show how one use affects the others.'),
+('thurston', 'William Thurston', 'Уильям Тёрстон', '1946–2012', 'https://en.wikipedia.org/wiki/William_Thurston', 'own_limits',
+ "'On Proof and Progress in Mathematics': a formal proof is not the same as understanding; understanding is what is passed on.", '«О доказательстве и прогрессе в математике»: формальное доказательство — ещё не понимание; передаётся именно понимание.', '„On Proof and Progress in Mathematics“: Beweis ist nicht Verstehen.',
+ 'A correct-looking chain of steps is not understanding; say what you actually grasp.'),
+('barcan_marcus', 'Ruth Barcan Marcus', 'Рут Баркан Маркус', '1921–2012', 'https://en.wikipedia.org/wiki/Ruth_Barcan_Marcus', 'look_alike',
+ 'Quantified modal logic and direct reference: a proper name points to its object directly, whatever descriptions change.', 'Кванторная модальная логика и прямая референция: имя собственное указывает на объект напрямую, как бы ни менялись описания.', 'Quantifizierte Modallogik und direkte Referenz.',
+ 'Tie a claim to the named person or thing, not to a description that may fit someone else.'),
+('hirschman', 'Albert O. Hirschman', 'Альберт Хиршман', '1915–2012', 'https://en.wikipedia.org/wiki/Albert_O._Hirschman', 'side_effects',
+ "'Exit, Voice, and Loyalty' and 'The Rhetoric of Reaction': how people respond when quality declines, and how arguments about unintended effects are used.", '«Выход, голос и верность» и «Риторика реакции»: как люди отвечают на ухудшение качества и как используют доводы о непреднамеренных последствиях.', '„Abwanderung und Widerspruch“ und „Denken gegen die Zukunft“.',
+ 'Ask whether people will leave or complain, and check claims of unintended effects instead of repeating them.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -967,3 +1013,8 @@ NEEDS["shapley"] = ("covered", "the Halpern sensor already names the headlines t
 NEEDS["mackay"] = ("covered", "the Baird sensor already traces units and scales of every number", None, "baird")
 NEEDS["golomb"] = ("covered", "the Ziv sensor already measures how much is new versus repeated", None, "ziv")
 NEEDS["toffler"] = ("covered", "the Bertsekas sensor already measures answer size in tokens and the cheapest chains", None, "bertsekas")
+
+NEEDS["suppes"] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
+NEEDS["box"] = ("covered", "the Leamer sensor already shows how far an index depends on the model choices", None, "leamer")
+NEEDS["fogel"] = ("covered", "the Halpern sensor already asks what the index would be without each headline", None, "halpern")
+NEEDS["lindley"] = ("covered", "applied: the forecast game scores agents by the Brier rule (honest_confidence_30d in get_prediction), so overclaiming certainty costs")

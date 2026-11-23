@@ -4877,6 +4877,279 @@ export const CRYSTALS = [
 "note": "the Bertsekas sensor already measures answer size in tokens and the cheapest chains",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "suppes",
+"name": "Patrick Suppes",
+"name_ru": "Патрик Суппес",
+"years": "1922–2014",
+"wiki": "https://en.wikipedia.org/wiki/Patrick_Suppes",
+"zone": "measurement_error",
+"idea": {
+"en": "'Foundations of Measurement' and probabilistic causality: when qualitative observations can be turned into numbers on a scale.",
+"ru": "«Основания измерения» и вероятностная причинность: когда качественные наблюдения можно честно перевести в числа на шкале.",
+"de": "„Foundations of Measurement“ und probabilistische Kausalität."
+},
+"rule": "Before turning an impression into a number, say what scale it is on.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and scales",
+"covered_by": "baird"
+}
+},
+{
+"id": "fillmore",
+"name": "Charles J. Fillmore",
+"name_ru": "Чарльз Филлмор",
+"years": "1929–2014",
+"wiki": "https://en.wikipedia.org/wiki/Charles_J._Fillmore",
+"zone": "look_alike",
+"idea": {
+"en": "Frame semantics (FrameNet): the meaning of a word depends on the situation frame and the roles in it.",
+"ru": "Фреймовая семантика (FrameNet): значение слова зависит от фрейма ситуации и ролей её участников.",
+"de": "Frame-Semantik (FrameNet): Wortbedeutung hängt vom Situationsrahmen ab."
+},
+"rule": "The same word in a different situation may mean a different thing; check the frame.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lowe",
+"name": "E. J. Lowe",
+"name_ru": "Э. Дж. Лоу",
+"years": "1950–2014",
+"wiki": "https://en.wikipedia.org/wiki/E._J._Lowe",
+"zone": "look_alike",
+"idea": {
+"en": "Criteria of identity: having the same properties is not the same as being one and the same thing.",
+"ru": "Критерии тождества: иметь одинаковые свойства — не то же самое, что быть одним и тем же предметом.",
+"de": "Identitätskriterien: gleiche Eigenschaften sind nicht dasselbe wie numerische Identität."
+},
+"rule": "Two matching descriptions may still be two different things; name the criterion you use.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hall",
+"name": "Stuart Hall",
+"name_ru": "Стюарт Холл",
+"years": "1932–2014",
+"wiki": "https://en.wikipedia.org/wiki/Stuart_Hall_(cultural_theorist)",
+"zone": "side_effects",
+"idea": {
+"en": "Encoding/decoding: the receiver reads a message through their own codes, so what is meant and what is understood can differ.",
+"ru": "Кодирование и декодирование: получатель читает сообщение через свои коды, и задуманное может разойтись с понятым.",
+"de": "Kodieren/Dekodieren: der Empfänger liest eine Botschaft mit eigenen Codes."
+},
+"rule": "Ask how different readers will understand your answer, not only what you meant.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "coase",
+"name": "Ronald Coase",
+"name_ru": "Рональд Коуз",
+"years": "1910–2013",
+"wiki": "https://en.wikipedia.org/wiki/Ronald_Coase",
+"zone": "side_effects",
+"idea": {
+"en": "Transaction costs and the Coase theorem: side effects on others (externalities) and the cost of arranging things decide how problems get solved.",
+"ru": "Транзакционные издержки и теорема Коуза: побочные эффекты для других (экстерналии) и цена договорённости определяют, как решаются проблемы.",
+"de": "Transaktionskosten und Coase-Theorem: Externalitäten und Verhandlungskosten."
+},
+"rule": "Name who else bears the cost of an action.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "box",
+"name": "George E. P. Box",
+"name_ru": "Джордж Бокс",
+"years": "1919–2013",
+"wiki": "https://en.wikipedia.org/wiki/George_E._P._Box",
+"zone": "one_model",
+"idea": {
+"en": "'All models are wrong, but some are useful'; Box–Jenkins time-series models: check a model by what it leaves unexplained.",
+"ru": "«Все модели неверны, но некоторые полезны»; модели Бокса — Дженкинса: проверяй модель по тому, что она оставляет необъяснённым.",
+"de": "„Alle Modelle sind falsch, aber manche sind nützlich“; Box-Jenkins."
+},
+"rule": "Say what your model is useful for and where it is wrong.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far an index depends on the model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "lindley",
+"name": "Dennis Lindley",
+"name_ru": "Деннис Линдли",
+"years": "1923–2013",
+"wiki": "https://en.wikipedia.org/wiki/Dennis_Lindley",
+"zone": "own_limits",
+"idea": {
+"en": "Coherent Bayesian decisions: degrees of belief must fit together, and never put probability zero or one on what you are not sure of (Cromwell's rule).",
+"ru": "Когерентные байесовские решения: степени уверенности должны сходиться между собой, и нельзя ставить вероятность ноль или один тому, в чём не уверен (правило Кромвеля).",
+"de": "Kohärente Bayes-Entscheidungen; Cromwells Regel: nie 0 oder 1 ohne Gewissheit."
+},
+"rule": "Do not state certainty you do not have: keep a little probability for being wrong.",
+"needs": {
+"code": "covered",
+"note": "applied: the forecast game scores agents by the Brier rule (honest_confidence_30d in get_prediction), so overclaiming certainty costs"
+}
+},
+{
+"id": "buchanan",
+"name": "James M. Buchanan",
+"name_ru": "Джеймс Бьюкенен",
+"years": "1919–2013",
+"wiki": "https://en.wikipedia.org/wiki/James_M._Buchanan",
+"zone": "side_effects",
+"idea": {
+"en": "Public choice: those who make rules act on their own incentives too, so rules have effects their designers did not announce.",
+"ru": "Теория общественного выбора: те, кто пишет правила, тоже действуют по своим стимулам, поэтому у правил бывают последствия, которых авторы не объявляли.",
+"de": "Public Choice: auch Regelmacher folgen eigenen Anreizen."
+},
+"rule": "Ask whose incentives a rule or a recommendation serves.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "fogel",
+"name": "Robert Fogel",
+"name_ru": "Роберт Фогель",
+"years": "1926–2013",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Fogel",
+"zone": "one_model",
+"idea": {
+"en": "Cliometrics and the counterfactual: measure a cause by asking what would have happened without it.",
+"ru": "Клиометрика и контрфактический анализ: измерять причину вопросом, что было бы без неё.",
+"de": "Kliometrie und kontrafaktische Analyse."
+},
+"rule": "Before calling something a cause, say what would have happened without it.",
+"needs": {
+"code": "covered",
+"note": "the Halpern sensor already asks what the index would be without each headline",
+"covered_by": "halpern"
+}
+},
+{
+"id": "klein",
+"name": "Lawrence Klein",
+"name_ru": "Лоуренс Клейн",
+"years": "1920–2013",
+"wiki": "https://en.wikipedia.org/wiki/Lawrence_Klein",
+"zone": "one_model",
+"idea": {
+"en": "Large macro-econometric models (Klein–Goldberger, Project LINK): forecasts depend on the structure the model assumes.",
+"ru": "Большие макроэконометрические модели (Клейна — Голдбергера, проект LINK): прогноз зависит от структуры, которую закладывает модель.",
+"de": "Makroökonometrische Modelle (Klein-Goldberger, LINK)."
+},
+"rule": "Say which model a forecast comes from and what it assumes.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "geach",
+"name": "Peter Geach",
+"name_ru": "Питер Гич",
+"years": "1916–2013",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Geach",
+"zone": "look_alike",
+"idea": {
+"en": "Relative identity: 'the same' is only meaningful relative to a kind — the same word, the same edition, the same author.",
+"ru": "Относительное тождество: «то же самое» имеет смысл только относительно рода — то же слово, то же издание, тот же автор.",
+"de": "Relative Identität: „dasselbe“ nur bezüglich einer Art."
+},
+"rule": "When you say 'the same', say the same what.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "ostrom",
+"name": "Elinor Ostrom",
+"name_ru": "Элинор Остром",
+"years": "1933–2012",
+"wiki": "https://en.wikipedia.org/wiki/Elinor_Ostrom",
+"zone": "side_effects",
+"idea": {
+"en": "'Governing the Commons': shared resources can be managed by their users with clear rules, monitoring and graduated sanctions.",
+"ru": "«Управляя общим»: общими ресурсами могут управлять сами пользователи — с ясными правилами, наблюдением и постепенными санкциями.",
+"de": "„Die Verfassung der Allmende“: Selbstverwaltung gemeinsamer Ressourcen."
+},
+"rule": "When many agents use one shared resource, show how one use affects the others.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "thurston",
+"name": "William Thurston",
+"name_ru": "Уильям Тёрстон",
+"years": "1946–2012",
+"wiki": "https://en.wikipedia.org/wiki/William_Thurston",
+"zone": "own_limits",
+"idea": {
+"en": "'On Proof and Progress in Mathematics': a formal proof is not the same as understanding; understanding is what is passed on.",
+"ru": "«О доказательстве и прогрессе в математике»: формальное доказательство — ещё не понимание; передаётся именно понимание.",
+"de": "„On Proof and Progress in Mathematics“: Beweis ist nicht Verstehen."
+},
+"rule": "A correct-looking chain of steps is not understanding; say what you actually grasp.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "barcan_marcus",
+"name": "Ruth Barcan Marcus",
+"name_ru": "Рут Баркан Маркус",
+"years": "1921–2012",
+"wiki": "https://en.wikipedia.org/wiki/Ruth_Barcan_Marcus",
+"zone": "look_alike",
+"idea": {
+"en": "Quantified modal logic and direct reference: a proper name points to its object directly, whatever descriptions change.",
+"ru": "Кванторная модальная логика и прямая референция: имя собственное указывает на объект напрямую, как бы ни менялись описания.",
+"de": "Quantifizierte Modallogik und direkte Referenz."
+},
+"rule": "Tie a claim to the named person or thing, not to a description that may fit someone else.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hirschman",
+"name": "Albert O. Hirschman",
+"name_ru": "Альберт Хиршман",
+"years": "1915–2012",
+"wiki": "https://en.wikipedia.org/wiki/Albert_O._Hirschman",
+"zone": "side_effects",
+"idea": {
+"en": "'Exit, Voice, and Loyalty' and 'The Rhetoric of Reaction': how people respond when quality declines, and how arguments about unintended effects are used.",
+"ru": "«Выход, голос и верность» и «Риторика реакции»: как люди отвечают на ухудшение качества и как используют доводы о непреднамеренных последствиях.",
+"de": "„Abwanderung und Widerspruch“ und „Denken gegen die Zukunft“."
+},
+"rule": "Ask whether people will leave or complain, and check claims of unintended effects instead of repeating them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
