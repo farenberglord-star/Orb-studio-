@@ -517,6 +517,31 @@ C = [
 ("vuillemin", "Jean Vuillemin", "Жан Вюйемен", "1947–2026", "https://fr.wikipedia.org/wiki/Jean_Vuillemin", "answer_cost",
  "With Rivest, a lower bound on how many queries an algorithm needs to test a graph property (Aanderaa–Karp–Rosenberg conjecture); binomial heaps.", "Вместе с Ривестом — нижняя граница числа запросов, нужных алгоритму, чтобы проверить свойство графа; биномиальные кучи.", "Mit Rivest: untere Schranke für Anfragen beim Testen von Grapheigenschaften.",
  "Some questions cannot be answered without looking at most of the data; recognise them before sampling."),
+# --- итальянская и испанская Википедия, умершие 2020–2026 (23.11.2026); даты 2025–2026 сверены с некрологами ---
+("galves", "Antonio Galves", "Антонио Галвес", "1947–2023", "Antonio_Galves", "stale_data",
+ "Stochastic chains with memory of variable length: models that decide for themselves how far into the past to look.", "Случайные процессы с памятью переменной длины: модели сами решают, насколько далеко в прошлое смотреть.", "Stochastische Ketten mit variabler Gedächtnislänge.",
+ "Use as much of the past as actually helps, no more and no less, and say how far back you looked."),
+("da_costa", "Newton da Costa", "Ньютон да Коста", "1929–2024", "https://es.wikipedia.org/wiki/Newton_da_Costa", "one_model",
+ "Paraconsistent logic and 'Science and Partial Truth': reasoning can stay sound with contradictory information, and theories can be partly true.", "Паранепротиворечивая логика и «Science and Partial Truth»: можно здраво рассуждать при противоречивых данных, а теории бывают частично истинны.", "Parakonsistente Logik und „Science and Partial Truth“.",
+ "When sources contradict, do not conclude anything at all from the contradiction; mark the point as contested and reason around it."),
+("lolli", "Gabriele Lolli", "Габриэле Лолли", "1942–2025", "https://it.wikipedia.org/wiki/Gabriele_Lolli", "one_model",
+ "Foundations of mathematics; a view of science beyond realism and relativism.", "Основания математики; взгляд на науку за пределами реализма и релятивизма.", "Grundlagen der Mathematik; Wissenschaft jenseits von Realismus und Relativismus.",
+ "Avoid both 'the model is reality' and 'every view is equally valid'."),
+("parrini", "Paolo Parrini", "Паоло Паррини", "1943–2020", "https://it.wikipedia.org/wiki/Paolo_Parrini", "rumour_vs_fact",
+ "Epistemology without dogmas ('Una filosofia senza dogmi', 'Conoscenza e realtà').", "Эпистемология без догм («Una filosofia senza dogmi», «Conoscenza e realtà»).", "Erkenntnistheorie ohne Dogmen.",
+ "Hold no source as beyond question, including the ones you usually trust."),
+("torretti", "Roberto Torretti", "Роберто Торретти", "1930–2022", "https://es.wikipedia.org/wiki/Roberto_Torretti", "rumour_vs_fact",
+ "Philosophy of science and the Dictionary of Logic and Philosophy of Science.", "Философия науки и «Словарь логики и философии науки».", "Wissenschaftsphilosophie und Wörterbuch der Logik.",
+ "Define your key terms before you argue with them."),
+("alsina", "Claudi Alsina", "Клауди Алсина", "1952–2025", "https://es.wikipedia.org/wiki/Claudi_Alsina_Catal%C3%A0", "measurement_error",
+ "Functional equations, fuzzy logic and the mathematics of measurement; popularisation of mathematics.", "Функциональные уравнения, нечёткая логика и математика измерений; популяризация математики.", "Funktionalgleichungen, Fuzzy-Logik und Mathematik des Messens.",
+ "Some quantities are a matter of degree; give the degree instead of forcing yes or no."),
+("perez_jimenez", "Mario de Jesús Pérez Jiménez", "Марио Перес Хименес", "1948–2025", "https://es.wikipedia.org/wiki/Mario_de_Jes%C3%BAs_P%C3%A9rez_Jim%C3%A9nez", "answer_cost",
+ "Membrane computing (P systems); founder of the Natural Computing group in Seville.", "Мембранные вычисления (P-системы); основатель группы естественных вычислений в Севилье.", "Membranrechnen (P-Systeme), Gruppe Natural Computing in Sevilla.",
+ "Many small parallel checks can be cheaper than one large sequential one."),
+("gambarelli", "Gianfranco Gambarelli", "Джанфранко Гамбарелли", "1946–2026", "https://it.wikipedia.org/wiki/Gianfranco_Gambarelli", "answer_cost",
+ "Game theory and decision methods (power indices, friend of John Nash).", "Теория игр и методы принятия решений (индексы силы; друг Джона Нэша).", "Spieltheorie und Entscheidungsmethoden (Machtindizes).",
+ "When several actors decide, weigh who can actually tip the outcome."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -602,3 +627,10 @@ for k in ["lecourt"]: NEEDS[k] = ("covered", "the Park sensor already flags warn
 for k in ["chajda"]: NEEDS[k] = ("covered", "the Baird sensor already traces units, sources and cross-checks", None, "baird")
 for k in ["ogryczak"]: NEEDS[k] = ("covered", "the Bertsekas sensor already shows the cost trade-offs of answers", None, "bertsekas")
 for k in ["vuillemin"]: NEEDS[k] = ("covered", "the Trevisan sensor already shows when an index needs almost all headlines", None, "trevisan")
+
+NEEDS["dunn"] = ("covered", "applied: check_headline now returns the Belnap–Dunn value of the outlets found (affirmed / denied / both / neither) as sources_agree", None, "frankfurt")
+for k in ["da_costa"]: NEEDS[k] = ("covered", "applied together with Dunn: check_headline marks contradictory sources as 'both' (sources_agree)", None, "frankfurt")
+for k in ["galves"]: NEEDS[k] = ("covered", "the Polyak sensor already chooses its noise window from the data", None, "polyak")
+for k in ["lolli"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["alsina"]: NEEDS[k] = ("covered", "the Hagenauer sensor already keeps the degree of each label instead of yes or no", None, "hagenauer")
+for k in ["gambarelli"]: NEEDS[k] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")

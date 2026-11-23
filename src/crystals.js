@@ -2586,8 +2586,9 @@ export const CRYSTALS = [
 },
 "rule": "When sources contradict, report 'both' with the sources instead of picking one; when there is no information, say 'neither', not 'false'.",
 "needs": {
-"code": "needs_idea",
-"note": "group headlines by story and mark stories whose sources confirm and deny at once ('both') or say nothing ('neither')"
+"code": "covered",
+"note": "applied: check_headline now returns the Belnap–Dunn value of the outlets found (affirmed / denied / both / neither) as sources_agree",
+"covered_by": "frankfurt"
 }
 },
 {
@@ -3090,6 +3091,155 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the Trevisan sensor already shows when an index needs almost all headlines",
 "covered_by": "trevisan"
+}
+},
+{
+"id": "galves",
+"name": "Antonio Galves",
+"name_ru": "Антонио Галвес",
+"years": "1947–2023",
+"wiki": "https://en.wikipedia.org/wiki/Antonio_Galves",
+"zone": "stale_data",
+"idea": {
+"en": "Stochastic chains with memory of variable length: models that decide for themselves how far into the past to look.",
+"ru": "Случайные процессы с памятью переменной длины: модели сами решают, насколько далеко в прошлое смотреть.",
+"de": "Stochastische Ketten mit variabler Gedächtnislänge."
+},
+"rule": "Use as much of the past as actually helps, no more and no less, and say how far back you looked.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already chooses its noise window from the data",
+"covered_by": "polyak"
+}
+},
+{
+"id": "da_costa",
+"name": "Newton da Costa",
+"name_ru": "Ньютон да Коста",
+"years": "1929–2024",
+"wiki": "https://es.wikipedia.org/wiki/Newton_da_Costa",
+"zone": "one_model",
+"idea": {
+"en": "Paraconsistent logic and 'Science and Partial Truth': reasoning can stay sound with contradictory information, and theories can be partly true.",
+"ru": "Паранепротиворечивая логика и «Science and Partial Truth»: можно здраво рассуждать при противоречивых данных, а теории бывают частично истинны.",
+"de": "Parakonsistente Logik und „Science and Partial Truth“."
+},
+"rule": "When sources contradict, do not conclude anything at all from the contradiction; mark the point as contested and reason around it.",
+"needs": {
+"code": "covered",
+"note": "applied together with Dunn: check_headline marks contradictory sources as 'both' (sources_agree)",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "lolli",
+"name": "Gabriele Lolli",
+"name_ru": "Габриэле Лолли",
+"years": "1942–2025",
+"wiki": "https://it.wikipedia.org/wiki/Gabriele_Lolli",
+"zone": "one_model",
+"idea": {
+"en": "Foundations of mathematics; a view of science beyond realism and relativism.",
+"ru": "Основания математики; взгляд на науку за пределами реализма и релятивизма.",
+"de": "Grundlagen der Mathematik; Wissenschaft jenseits von Realismus und Relativismus."
+},
+"rule": "Avoid both 'the model is reality' and 'every view is equally valid'.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "parrini",
+"name": "Paolo Parrini",
+"name_ru": "Паоло Паррини",
+"years": "1943–2020",
+"wiki": "https://it.wikipedia.org/wiki/Paolo_Parrini",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Epistemology without dogmas ('Una filosofia senza dogmi', 'Conoscenza e realtà').",
+"ru": "Эпистемология без догм («Una filosofia senza dogmi», «Conoscenza e realtà»).",
+"de": "Erkenntnistheorie ohne Dogmen."
+},
+"rule": "Hold no source as beyond question, including the ones you usually trust.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "torretti",
+"name": "Roberto Torretti",
+"name_ru": "Роберто Торретти",
+"years": "1930–2022",
+"wiki": "https://es.wikipedia.org/wiki/Roberto_Torretti",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Philosophy of science and the Dictionary of Logic and Philosophy of Science.",
+"ru": "Философия науки и «Словарь логики и философии науки».",
+"de": "Wissenschaftsphilosophie und Wörterbuch der Logik."
+},
+"rule": "Define your key terms before you argue with them.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "alsina",
+"name": "Claudi Alsina",
+"name_ru": "Клауди Алсина",
+"years": "1952–2025",
+"wiki": "https://es.wikipedia.org/wiki/Claudi_Alsina_Catal%C3%A0",
+"zone": "measurement_error",
+"idea": {
+"en": "Functional equations, fuzzy logic and the mathematics of measurement; popularisation of mathematics.",
+"ru": "Функциональные уравнения, нечёткая логика и математика измерений; популяризация математики.",
+"de": "Funktionalgleichungen, Fuzzy-Logik und Mathematik des Messens."
+},
+"rule": "Some quantities are a matter of degree; give the degree instead of forcing yes or no.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already keeps the degree of each label instead of yes or no",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "perez_jimenez",
+"name": "Mario de Jesús Pérez Jiménez",
+"name_ru": "Марио Перес Хименес",
+"years": "1948–2025",
+"wiki": "https://es.wikipedia.org/wiki/Mario_de_Jes%C3%BAs_P%C3%A9rez_Jim%C3%A9nez",
+"zone": "answer_cost",
+"idea": {
+"en": "Membrane computing (P systems); founder of the Natural Computing group in Seville.",
+"ru": "Мембранные вычисления (P-системы); основатель группы естественных вычислений в Севилье.",
+"de": "Membranrechnen (P-Systeme), Gruppe Natural Computing in Sevilla."
+},
+"rule": "Many small parallel checks can be cheaper than one large sequential one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "gambarelli",
+"name": "Gianfranco Gambarelli",
+"name_ru": "Джанфранко Гамбарелли",
+"years": "1946–2026",
+"wiki": "https://it.wikipedia.org/wiki/Gianfranco_Gambarelli",
+"zone": "answer_cost",
+"idea": {
+"en": "Game theory and decision methods (power indices, friend of John Nash).",
+"ru": "Теория игр и методы принятия решений (индексы силы; друг Джона Нэша).",
+"de": "Spieltheorie und Entscheidungsmethoden (Machtindizes)."
+},
+"rule": "When several actors decide, weigh who can actually tip the outcome.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs when more information pays off",
+"covered_by": "howard"
 }
 }
 ];
