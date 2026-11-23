@@ -8818,6 +8818,378 @@ export const CRYSTALS = [
 "note": "the Baird sensor already traces the unit and scale of every number",
 "covered_by": "baird"
 }
+},
+{
+"id": "popper",
+"name": "Karl Popper",
+"name_ru": "Карл Поппер",
+"years": "1902–1994",
+"wiki": "https://en.wikipedia.org/wiki/Karl_Popper",
+"zone": "one_model",
+"idea": {
+"en": "'The Logic of Scientific Discovery' (1934/1959): a claim is scientific only if some observation could prove it false; confirmations are cheap, a failed risky prediction tells you most.",
+"ru": "«Логика научного открытия» (1934/1959): утверждение научно, только если какое-то наблюдение могло бы его опровергнуть; подтверждения дёшевы, больше всего говорит не сбывшееся рискованное предсказание.",
+"de": "„Logik der Forschung“ (1934): Falsifizierbarkeit."
+},
+"rule": "Ask what would show the claim wrong; a claim that fits every outcome tells nothing.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor scores the radar by predictions that could fail",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "kuhn",
+"name": "Thomas Kuhn",
+"name_ru": "Томас Кун",
+"years": "1922–1996",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Kuhn",
+"zone": "one_model",
+"idea": {
+"en": "'The Structure of Scientific Revolutions' (1962): anomalies pile up unnoticed inside a reigning paradigm until it breaks.",
+"ru": "«Структура научных революций» (1962): аномалии незаметно копятся внутри господствующей парадигмы, пока она не ломается.",
+"de": "„Die Struktur wissenschaftlicher Revolutionen“ (1962)."
+},
+"rule": "Keep a list of facts the usual explanation does not fit instead of filing them as noise.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor flags lasting shifts; radar_noise separates anomalies from noise",
+"covered_by": "polyak"
+}
+},
+{
+"id": "feyerabend",
+"name": "Paul Feyerabend",
+"name_ru": "Пол Фейерабенд",
+"years": "1924–1994",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Feyerabend",
+"zone": "one_model",
+"idea": {
+"en": "'Against Method' (1975): no single method has always produced progress; theories are tested best against rival theories, not only against facts.",
+"ru": "«Против метода» (1975): ни один метод не приводил к прогрессу всегда; теории лучше всего проверяются соперничающими теориями, а не только фактами.",
+"de": "„Wider den Methodenzwang“ (1975)."
+},
+"rule": "Test an explanation against a serious rival, not only against the facts that fit it.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already tests each index against rival model variants",
+"covered_by": "leamer"
+}
+},
+{
+"id": "tinbergen",
+"name": "Jan Tinbergen",
+"name_ru": "Ян Тинберген",
+"years": "1903–1994",
+"wiki": "https://en.wikipedia.org/wiki/Jan_Tinbergen",
+"zone": "side_effects",
+"idea": {
+"en": "The Tinbergen rule ('On the Theory of Economic Policy', 1952): to reach several independent targets you need at least as many independent instruments.",
+"ru": "Правило Тинбергена («О теории экономической политики», 1952): чтобы достичь нескольких независимых целей, нужно не меньше независимых инструментов.",
+"de": "Tinbergen-Regel (1952)."
+},
+"rule": "Be wary of a single measure promised to fix several problems at once.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts name who else gains or pays besides the main actor"
+}
+},
+{
+"id": "tversky",
+"name": "Amos Tversky",
+"name_ru": "Амос Тверски",
+"years": "1937–1996",
+"wiki": "https://en.wikipedia.org/wiki/Amos_Tversky",
+"zone": "look_alike",
+"idea": {
+"en": "'Judgment under Uncertainty: Heuristics and Biases' (1974, with Kahneman): representativeness, availability and anchoring make people misjudge probabilities in predictable ways.",
+"ru": "«Суждение в условиях неопределённости: эвристики и искажения» (1974, с Канеманом): репрезентативность, доступность и якорение предсказуемо искажают оценку вероятностей.",
+"de": "Heuristiken und Verzerrungen (1974, mit Kahneman)."
+},
+"rule": "Before judging how likely something is, check you are not just recalling vivid or recent cases.",
+"needs": {
+"code": "covered",
+"note": "the Kahneman sensor already measures noise between AI judges",
+"covered_by": "kahneman"
+}
+},
+{
+"id": "hempel",
+"name": "Carl Gustav Hempel",
+"name_ru": "Карл Густав Гемпель",
+"years": "1905–1997",
+"wiki": "https://en.wikipedia.org/wiki/Carl_Gustav_Hempel",
+"zone": "one_model",
+"idea": {
+"en": "The raven paradox (1945): if 'all ravens are black', every non-black non-raven (a white shoe) formally confirms it — not all confirmations are worth the same.",
+"ru": "Парадокс ворона (1945): если «все вороны чёрные», то любая нечёрная не-ворона (белый ботинок) формально это подтверждает — не все подтверждения стоят одинаково.",
+"de": "Rabenparadoxon (1945)."
+},
+"rule": "Weigh evidence by how much it could have told against the claim, not by how many items agree.",
+"needs": {
+"code": "covered",
+"note": "check_headline counts independent voices, not reprints",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "goodman",
+"name": "Nelson Goodman",
+"name_ru": "Нельсон Гудмен",
+"years": "1906–1998",
+"wiki": "https://en.wikipedia.org/wiki/Nelson_Goodman",
+"zone": "one_model",
+"idea": {
+"en": "The new riddle of induction ('Fact, Fiction, and Forecast', 1955): 'grue' fits all past emeralds as well as 'green' — past data alone cannot pick the right pattern.",
+"ru": "Новая загадка индукции («Факт, вымысел и прогноз», 1955): «зелубой» подходит ко всем прежним изумрудам так же, как «зелёный», — одни прошлые данные не выбирают верную закономерность.",
+"de": "„Tatsache, Fiktion, Voraussage“ (1955): „grot“."
+},
+"rule": "Many patterns fit the past equally well; say why you extend this one.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor shows how far conclusions depend on the chosen model",
+"covered_by": "leamer"
+}
+},
+{
+"id": "church",
+"name": "Alonzo Church",
+"name_ru": "Алонзо Чёрч",
+"years": "1903–1995",
+"wiki": "https://en.wikipedia.org/wiki/Alonzo_Church",
+"zone": "own_limits",
+"idea": {
+"en": "Church's theorem (1936): there is no general mechanical procedure that decides, for every statement of first-order logic, whether it is provable.",
+"ru": "Теорема Чёрча (1936): нет общей механической процедуры, которая решала бы для каждого утверждения логики первого порядка, доказуемо ли оно.",
+"de": "Satz von Church (1936): Unentscheidbarkeit."
+},
+"rule": "Some questions have no procedure that always answers them; say so instead of looping.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say plainly when something cannot be known yet"
+}
+},
+{
+"id": "asch",
+"name": "Solomon Asch",
+"name_ru": "Соломон Аш",
+"years": "1907–1996",
+"wiki": "https://en.wikipedia.org/wiki/Solomon_Asch",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The conformity experiments (1951–56): many people agreed with a group's plainly wrong judgement of line lengths; one dissenter broke the effect.",
+"ru": "Опыты о конформизме (1951–56): многие соглашались с явно неверным мнением группы о длине линий; один несогласный разрушал эффект.",
+"de": "Konformitätsexperimente (1951–56)."
+},
+"rule": "A unanimous chorus is not evidence; one independent dissent is worth hearing.",
+"needs": {
+"code": "covered",
+"note": "check_headline already merges echoes and counts independent outlets",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "campbell_dt",
+"name": "Donald T. Campbell",
+"name_ru": "Дональд Кэмпбелл",
+"years": "1916–1996",
+"wiki": "https://en.wikipedia.org/wiki/Donald_T._Campbell",
+"zone": "side_effects",
+"idea": {
+"en": "Campbell's law (1976): the more a quantitative indicator is used for social decisions, the more it is corrupted and distorts what it measures.",
+"ru": "Закон Кэмпбелла (1976): чем больше количественный показатель используется для общественных решений, тем сильнее его искажают и тем сильнее он искажает то, что измеряет.",
+"de": "Campbells Gesetz (1976)."
+},
+"rule": "When a number becomes a target, expect it to drift from what it was meant to measure.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'published radar moves the market' (Campbell + Phillips + Rosenthal: an indicator that becomes a target drifts)",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "olson_m",
+"name": "Mancur Olson",
+"name_ru": "Мансур Олсон",
+"years": "1932–1998",
+"wiki": "https://en.wikipedia.org/wiki/Mancur_Olson",
+"zone": "side_effects",
+"idea": {
+"en": "'The Logic of Collective Action' (1965): small groups with concentrated gains organise more easily than large groups with spread-out costs.",
+"ru": "«Логика коллективных действий» (1965): малые группы с сосредоточенной выгодой организуются легче, чем большие группы с рассеянными издержками.",
+"de": "„Die Logik des kollektiven Handelns“ (1965)."
+},
+"rule": "Ask who gains a lot from a decision and who loses a little each; the loud side is not always the larger one.",
+"needs": {
+"code": "needs_idea",
+"note": "say whose concentrated gain and whose spread-out cost a decision has; no measurable form yet"
+}
+},
+{
+"id": "minsky_h",
+"name": "Hyman Minsky",
+"name_ru": "Хайман Мински",
+"years": "1919–1996",
+"wiki": "https://en.wikipedia.org/wiki/Hyman_Minsky",
+"zone": "side_effects",
+"idea": {
+"en": "The financial instability hypothesis (1977–92): long calm periods encourage riskier borrowing, so stability itself breeds instability.",
+"ru": "Гипотеза финансовой нестабильности (1977–92): долгие спокойные периоды поощряют более рискованные займы, так что стабильность сама порождает нестабильность.",
+"de": "Hypothese der finanziellen Instabilität (1977–92)."
+},
+"rule": "Do not read a long calm stretch as safety; ask what risk it is building up.",
+"needs": {
+"code": "covered",
+"note": "the Pareto sensor warns that calm stretches may hide rare big jumps",
+"covered_by": "pareto"
+}
+},
+{
+"id": "vickrey",
+"name": "William Vickrey",
+"name_ru": "Уильям Викри",
+"years": "1914–1996",
+"wiki": "https://en.wikipedia.org/wiki/William_Vickrey",
+"zone": "answer_cost",
+"idea": {
+"en": "The second-price auction (1961): if the winner pays the second-highest bid, bidding your true value becomes the best strategy.",
+"ru": "Аукцион второй цены (1961): если победитель платит вторую по величине ставку, лучшей стратегией становится называть свою настоящую цену.",
+"de": "Vickrey-Auktion (1961)."
+},
+"rule": "Design a question so that the honest answer is the best one to give.",
+"needs": {
+"code": "covered",
+"note": "applied: the forecast game scores by the Brier rule, so the honest probability is the best answer"
+}
+},
+{
+"id": "lotman",
+"name": "Yuri Lotman",
+"name_ru": "Юрий Лотман",
+"years": "1922–1993",
+"wiki": "https://en.wikipedia.org/wiki/Yuri_Lotman",
+"zone": "look_alike",
+"idea": {
+"en": "The semiosphere (1984): a text is understood through the cultural space around it; at the border between cultures, meanings are translated and changed.",
+"ru": "Семиосфера (1984): текст понимается через окружающее его культурное пространство; на границе культур смыслы переводятся и меняются.",
+"de": "Semiosphäre (1984)."
+},
+"rule": "When a story crosses from one culture or language to another, check what its words meant at the source.",
+"needs": {
+"code": "covered",
+"note": "applied: the echo check compares the same story across ru/de/en"
+}
+},
+{
+"id": "winch",
+"name": "Peter Winch",
+"name_ru": "Питер Уинч",
+"years": "1926–1997",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Winch",
+"zone": "look_alike",
+"idea": {
+"en": "'The Idea of a Social Science' (1958): to describe what people do, you must first grasp the rules by which they themselves understand their actions.",
+"ru": "«Идея социальной науки» (1958): чтобы описать, что люди делают, сначала надо понять правила, по которым они сами понимают свои действия.",
+"de": "„Die Idee der Sozialwissenschaft“ (1958)."
+},
+"rule": "Before labelling another group's action, check what it means by their own rules.",
+"needs": {
+"code": "needs_idea",
+"note": "check a label for another group against that group's own terms; no measurable form yet"
+}
+},
+{
+"id": "jones_ee",
+"name": "Edward E. Jones",
+"name_ru": "Эдвард Джонс",
+"years": "1926–1993",
+"wiki": "https://en.wikipedia.org/wiki/Edward_E._Jones",
+"zone": "one_model",
+"idea": {
+"en": "The correspondence bias (1967, with Harris): people explain others' actions by character even when the situation clearly forced them.",
+"ru": "Ошибка соответствия (1967, с Харрисом): люди объясняют поступки других характером, даже когда их явно вынудила ситуация.",
+"de": "Korrespondenzverzerrung (1967)."
+},
+"rule": "Before blaming a person's character, check what the situation forced them to do.",
+"needs": {
+"code": "needs_idea",
+"note": "flag headlines that blame a person where the facts point to circumstances; no word rule yet"
+}
+},
+{
+"id": "cohen_j",
+"name": "Jacob Cohen",
+"name_ru": "Джейкоб Коэн",
+"years": "1923–1998",
+"wiki": "https://en.wikipedia.org/wiki/Jacob_Cohen_(statistician)",
+"zone": "measurement_error",
+"idea": {
+"en": "Statistical power and effect size (1962, 1988; 'The Earth is round (p < .05)', 1994): a study too small to detect an effect says nothing when it finds 'no significant effect'.",
+"ru": "Статистическая мощность и величина эффекта (1962, 1988; «Земля круглая (p < .05)», 1994): исследование, слишком малое, чтобы заметить эффект, ничего не говорит, когда находит «незначимый эффект».",
+"de": "Teststärke und Effektgröße (1962, 1988)."
+},
+"rule": "'No significant difference' from small data is not 'no difference'; say how big an effect the data could have shown.",
+"needs": {
+"code": "ready",
+"note": "bridge 'is one more check worth it' (Grok: Cohen + a zone-5 partner, with Howard and Gosset): report the smallest effect each sensor could detect with its current data, so 'not significant' gets its meaning; needs the owner's yes"
+}
+},
+{
+"id": "robinson_j",
+"name": "Joan Robinson",
+"name_ru": "Джоан Робинсон",
+"years": "1903–1983",
+"wiki": "https://en.wikipedia.org/wiki/Joan_Robinson",
+"zone": "one_model",
+"idea": {
+"en": "'Marx, Marshall and Keynes' (1955): 'The purpose of studying economics is … to learn how to avoid being deceived by economists'; she coined 'monopsony' (1933).",
+"ru": "«Маркс, Маршалл и Кейнс» (1955): «цель изучения экономики — … научиться не давать экономистам себя обмануть»; она ввела понятие «монопсония» (1933).",
+"de": "„Marx, Marshall and Keynes“ (1955)."
+},
+"rule": "Treat an expert's model as a claim to check, not as a fact to repeat.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows how far an index depends on model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "allen_rgd",
+"name": "R. G. D. Allen",
+"name_ru": "Р. Дж. Д. Аллен",
+"years": "1906–1983",
+"wiki": "https://en.wikipedia.org/wiki/R._G._D._Allen",
+"zone": "measurement_error",
+"idea": {
+"en": "'Index Numbers in Theory and Practice' (1975): every index rests on choices of basket, weights and base period, and these choices change the result.",
+"ru": "«Индексы в теории и на практике» (1975): любой индекс опирается на выбор корзины, весов и базового периода, и этот выбор меняет результат.",
+"de": "„Index Numbers in Theory and Practice“ (1975)."
+},
+"rule": "Say which basket, weights and base an index uses before comparing it over time.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces what every number measures and its base",
+"covered_by": "baird"
+}
+},
+{
+"id": "price_dds",
+"name": "Derek de Solla Price",
+"name_ru": "Дерек де Солла Прайс",
+"years": "1922–1983",
+"wiki": "https://en.wikipedia.org/wiki/Derek_J._de_Solla_Price",
+"zone": "stale_data",
+"idea": {
+"en": "'Little Science, Big Science' (1963) and the half-life of literature: scientific knowledge ages, and most citations go to recent work.",
+"ru": "«Малая наука, большая наука» (1963) и период полураспада литературы: научное знание стареет, и большинство ссылок идёт на недавние работы.",
+"de": "„Little Science, Big Science“ (1963): Halbwertszeit der Literatur."
+},
+"rule": "Check how old a source is relative to how fast its field changes.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives the age of every number; the passport flags old news",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
