@@ -29,3 +29,9 @@ test("Grok gets the passport, and the segment shows it", () => {
   assert.equal(d.segments[0].passport.status, "plan_or_promise");
   assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /const passport = newsPassport\(it\)/);
 });
+test("colon speaker, forecast, question", () => {
+  assert.equal(newsPassport({ headline: "Трамп: Иран за неделю выпустил рекордное число ракет" }, now).status, "statement");
+  assert.equal(newsPassport({ headline: "Citi Report: Fed to Raise Rates by 25 BPS in December" }, now).status, "forecast_or_speculation");
+  assert.equal(newsPassport({ headline: "Will It Be Enough to Stop the Rate Hikes?" }, now).status, "question_headline");
+  assert.equal(newsPassport({ headline: "Drones hit fuel depots in three Russian regions" }, now).status, "reported_event");
+});

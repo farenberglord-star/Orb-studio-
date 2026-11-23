@@ -5,14 +5,26 @@
 import { searleHeadline } from "./searle.js";
 import { frankfurtHeadline } from "./frankfurt.js";
 
-export const PASSPORT_STATUS = { event: "reported_event", claim: "statement", promise: "plan_or_promise", threat: "threat_or_warning", demand: "demand" };
+export const PASSPORT_STATUS = { event: "reported_event", claim: "statement", promise: "plan_or_promise", threat: "threat_or_warning", demand: "demand", forecast: "forecast_or_speculation", question: "question_headline" };
+// «Трамп: Иран …», «Kremlin: …» — заявление с двоеточием; прогнозы и догадки; заголовок-вопрос
+const COLON_SPEAKER = /^\s*(?:[\p{Lu}][\p{L}.'’-]*)(?:\s+[\p{Lu}][\p{L}.'’-]*){0,3}\s*:\s+\S/u;
+const FORECAST_RE = /(?<![\p{L}])(forecasts?|predicts?|predicted|expects?|expected|outlook|projects?|projected|sees|could|may|might|likely|odds|prognos\p{L}*|erwartet|rechnet mit|könnte|dürfte|прогноз\p{L}*|ожида\p{L}*|может|могут|вероятн\p{L}*)(?![\p{L}])|(?<![\p{L}])report\s*:|\bto (raise|cut|hike|lower) rates\b/iu;
+function actOf(headline, searle) {
+  const t = String(headline || "").trim();
+  if (/\?\s*$/.test(t)) return "question";
+  if (FORECAST_RE.test(t) && (searle.act === "event" || searle.act === "promise")) return "forecast"; // «X says … could» остаётся заявлением
+  if (searle.act === "event" && COLON_SPEAKER.test(t)) return "claim";
+  return searle.act;
+}
 
 export function newsPassport(it, now = Date.now()) {
-  const headline = String((it && it.headline) || ""), act = searleHeadline(headline), chk = frankfurtHeadline(headline);
+  const headline = String((it && it.headline) || ""), se = searleHeadline(headline), act = { act: actOf(headline, se) }, chk = frankfurtHeadline(headline);
   const pub = it && it.published_at ? Date.parse(it.published_at) : NaN, age = Number.isFinite(pub) ? Math.max(0, (now - pub) / 3600e3) : null;
   const voices = it && Number.isFinite(+it.confirm) && it.confirm !== null ? +it.confirm : null;
   const status = PASSPORT_STATUS[act.act] || "reported_event", say = [];
-  if (act.act === "threat") say.push("This is a threat or warning, not something that happened: do not say it was done.");
+  if (act.act === "question") say.push("The headline asks a question: do not turn it into an answer or a fact.");
+  else if (act.act === "forecast") say.push("This is a forecast or a guess by someone: name whose it is, do not present it as what will happen.");
+  else if (act.act === "threat") say.push("This is a threat or warning, not something that happened: do not say it was done.");
   else if (act.act === "demand") say.push("This is a demand or a call, not a decision: say who wants it.");
   else if (act.act === "promise") say.push("This is a plan, promise or announcement: it has not happened yet.");
   else if (act.act === "claim") say.push("This is someone's statement: attribute it ('X says'), do not present it as the fact itself.");
