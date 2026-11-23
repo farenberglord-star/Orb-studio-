@@ -709,6 +709,58 @@ C = [
 ('fodor', 'Jerry Fodor', 'Джерри Фодор', '1935–2017', 'https://ru.wikipedia.org/wiki/%D0%A4%D0%BE%D0%B4%D0%BE%D1%80%2C_%D0%94%D0%B6%D0%B5%D1%80%D1%80%D0%B8_%D0%90%D0%BB%D0%B0%D0%BD', 'rumour_vs_fact',
  'Modularity of mind and the language of thought: meaning lies beneath the surface of the words.', 'Модульность ума и язык мысли: смысл лежит под поверхностью слов.', 'Modularität des Geistes und Sprache des Denkens: Bedeutung liegt unter der Oberfläche der Wörter.',
  'Do not judge a text by its surface words alone; ask what it actually claims.'),
+# --- немецкая Википедия, 2015–2017 (23.11.2026) ---
+('takacs', 'Lajos Takács', 'Лайош Такач', '1924–2015', 'https://de.wikipedia.org/wiki/Lajos_Tak%C3%A1cs', 'stale_data',
+ 'Queueing theory and random processes: how long items wait in line before they are served.', 'Теория очередей и случайных процессов: сколько заявки ждут в очереди, прежде чем их обработают.', 'Warteschlangentheorie und stochastische Prozesse.',
+ 'Count the waiting time in each queue between the event and your answer.'),
+('gottwald', 'Siegfried Gottwald', 'Зигфрид Готтвальд', '1943–2015', 'https://de.wikipedia.org/wiki/Siegfried_Gottwald', 'one_model',
+ 'Fuzzy sets and many-valued logic.', 'Нечёткие множества и многозначная логика.', 'Unscharfe Mengen und mehrwertige Logik.',
+ 'Keep degrees of truth instead of forcing every label to yes or no.'),
+('weichselberger', 'Kurt Weichselberger', 'Курт Вайхзельбергер', '1929–2016', 'https://de.wikipedia.org/wiki/Kurt_Weichselberger', 'one_model',
+ 'Interval probability: when knowledge is thin, give a probability range, not one exact number.', 'Интервальная вероятность: когда знаний мало, давай диапазон вероятности, а не одно точное число.', 'Intervallwahrscheinlichkeit: bei dünnem Wissen eine Spanne statt einer exakten Zahl.',
+ 'With little data, report a lower and an upper probability.'),
+('vopenka', 'Petr Vopěnka', 'Петр Вопенка', '1935–2015', 'https://de.wikipedia.org/wiki/Petr_Vop%C4%9Bnka', 'one_model',
+ 'Alternative set theory: the same reality can be described by different foundations.', 'Альтернативная теория множеств: одну и ту же реальность можно описать на разных основаниях.', 'Alternative Mengenlehre.',
+ 'Name the framework your answer depends on.'),
+('janich', 'Peter Janich', 'Петер Яних', '1942–2016', 'https://de.wikipedia.org/wiki/Peter_Janich', 'rumour_vs_fact',
+ 'Methodical constructivism: science built up from the procedures of measuring and doing.', 'Методический конструктивизм: наука, выстроенная от процедур измерения и действия.', 'Methodischer Konstruktivismus.',
+ 'Say how a claim was obtained, not only what it says.'),
+('kanitscheider', 'Bernulf Kanitscheider', 'Бернульф Канитшайдер', '1939–2017', 'https://de.wikipedia.org/wiki/Bernulf_Kanitscheider', 'rumour_vs_fact',
+ 'Philosophy of science and naturalism.', 'Теория науки и натурализм.', 'Wissenschaftstheorie und Naturalismus.',
+ 'Prefer claims that can be tested in the world.'),
+('putnam', 'Hilary Putnam', 'Хилари Патнэм', '1926–2016', 'https://de.wikipedia.org/wiki/Hilary_Putnam', 'rumour_vs_fact',
+ 'Scientific realism and philosophy of language: what words refer to is fixed partly by the world and by experts, not by the speaker alone.', 'Научный реализм и философия языка: на что указывают слова, определяют отчасти мир и эксперты, а не только говорящий.', 'Wissenschaftlicher Realismus und Sprachphilosophie.',
+ 'When a term is technical, check what the experts mean by it.'),
+('gy', 'Pierre Gy', 'Пьер Жи', '1924–2015', 'https://de.wikipedia.org/wiki/Pierre_Gy', 'measurement_error',
+ 'Theory of sampling: from a mixed, uneven mass a small sample gives a biased picture unless it is taken correctly.', 'Теория отбора проб: из неоднородной массы маленькая проба даёт искажённую картину, если её взять неправильно.', 'Probenahmetheorie.',
+ 'Ask how the sample was taken from an uneven whole before trusting it.'),
+('rottlaender', 'Rolf C. A. Rottländer', 'Рольф Роттлендер', '1932–2016', 'https://de.wikipedia.org/wiki/Rolf_C._A._Rottl%C3%A4nder', 'measurement_error',
+ 'Ancient units of length: the same unit name meant different lengths in different places.', 'Античные меры длины: одно и то же название меры означало разную длину в разных местах.', 'Antike Längenmaße.',
+ 'Check which definition of a unit a source uses.'),
+('mueller_merbach', 'Heiner Müller-Merbach', 'Хайнер Мюллер-Мербах', '1936–2015', 'https://de.wikipedia.org/wiki/Heiner_M%C3%BCller-Merbach', 'answer_cost',
+ 'Operations research and its use in management.', 'Исследование операций и его применение в управлении.', 'Operations Research.',
+ 'Choose the cheapest procedure that still gives a usable answer.'),
+('krabs', 'Werner Krabs', 'Вернер Крабс', '1934–2017', 'https://de.wikipedia.org/wiki/Werner_Krabs', 'answer_cost',
+ 'Optimal control and game theory.', 'Оптимальное управление и теория игр.', 'Optimale Steuerung und Spieltheorie.',
+ 'Plan the sequence of steps, not only the next one.'),
+('garfield', 'Eugene Garfield', 'Юджин Гарфилд', '1925–2017', 'https://de.wikipedia.org/wiki/Eugene_Garfield', 'rumour_vs_fact',
+ 'Science Citation Index: who cites whom shows how a claim spread and which sources it rests on.', 'Индекс научного цитирования: кто кого цитирует, показывает, как распространилось утверждение и на какие источники оно опирается.', 'Science Citation Index.',
+ 'Follow the citation back to the original source.'),
+('dahlberg', 'Ingetraut Dahlberg', 'Ингетраут Дальберг', '1927–2017', 'https://de.wikipedia.org/wiki/Ingetraut_Dahlberg', 'answer_cost',
+ 'Universal classification of knowledge: subject headings and thesauri instead of flat search.', 'Универсальная классификация знаний: рубрики и тезаурусы вместо плоского поиска.', 'Universale Wissensklassifikation.',
+ 'Narrow the question to the right category before searching.'),
+('dreyfus', 'Hubert Dreyfus', 'Хьюберт Дрейфус', '1929–2017', 'https://de.wikipedia.org/wiki/Hubert_Dreyfus', 'one_model',
+ 'Critique of AI: a formal model is not the same as real skill and understanding.', 'Критика ИИ: формальная модель — не то же самое, что настоящее умение и понимание.', 'KI-Kritik: ein formales Modell ist nicht dasselbe wie echtes Können.',
+ 'Do not mistake a fluent formal answer for real competence; say where your model ends.'),
+('robinson', 'John Alan Robinson', 'Джон Алан Робинсон', '1930–2016', 'https://de.wikipedia.org/wiki/John_Alan_Robinson', 'rumour_vs_fact',
+ 'The resolution principle: the basis of automated logical reasoning.', 'Метод резолюции: основа автоматического логического вывода.', 'Resolutionsprinzip.',
+ 'Make each step of a conclusion explicit so it can be checked.'),
+('wille', 'Rudolf Wille', 'Рудольф Вилле', '1937–2017', 'https://de.wikipedia.org/wiki/Rudolf_Wille', 'one_model',
+ 'Formal concept analysis: concepts as sets of objects that share sets of attributes.', 'Формальный анализ понятий: понятия как множества объектов с общими признаками.', 'Formale Begriffsanalyse.',
+ 'Define a category by the features its members share.'),
+('henrichs', 'Norbert Henrichs', 'Норберт Хенрихс', '1935–2016', 'https://de.wikipedia.org/wiki/Norbert_Henrichs', 'answer_cost',
+ 'Text indexing without a fixed vocabulary.', 'Индексация текстов без заданного словаря.', 'Textindexierung ohne festes Vokabular.',
+ 'Index by the words the texts actually use.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -842,3 +894,11 @@ NEEDS["pushkin"] = ("covered", "the Baird sensor already traces every number to 
 NEEDS["sigal"] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
 NEEDS["arrow"] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
 NEEDS["levenshtein"] = ("needs_idea", "could make echo detection in check_headline tolerant to typos and small rewrites; not a sensor of its own")
+
+NEEDS["takacs"] = ("covered", "the Mikrin sensor already measures how long news waits on each step to the air", None, "mikrin")
+NEEDS["gottwald"] = ("covered", "the Hagenauer sensor already keeps degrees instead of rounding labels", None, "hagenauer")
+NEEDS["weichselberger"] = ("covered", "the Leamer sensor already gives bounds instead of one number; the track record sensor gives intervals", None, "leamer")
+NEEDS["gy"] = ("covered", "the Lyberg sensor already reports coverage gaps of the feed; Trevisan shows how many headlines are enough", None, "lyberg")
+NEEDS["rottlaender"] = ("covered", "the Baird sensor already traces units and scales", None, "baird")
+NEEDS["mueller_merbach"] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
+NEEDS["garfield"] = ("needs_source", "a citation graph for news sources would be needed")

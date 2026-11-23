@@ -4250,6 +4250,318 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "takacs",
+"name": "Lajos Takács",
+"name_ru": "Лайош Такач",
+"years": "1924–2015",
+"wiki": "https://de.wikipedia.org/wiki/Lajos_Tak%C3%A1cs",
+"zone": "stale_data",
+"idea": {
+"en": "Queueing theory and random processes: how long items wait in line before they are served.",
+"ru": "Теория очередей и случайных процессов: сколько заявки ждут в очереди, прежде чем их обработают.",
+"de": "Warteschlangentheorie und stochastische Prozesse."
+},
+"rule": "Count the waiting time in each queue between the event and your answer.",
+"needs": {
+"code": "covered",
+"note": "the Mikrin sensor already measures how long news waits on each step to the air",
+"covered_by": "mikrin"
+}
+},
+{
+"id": "gottwald",
+"name": "Siegfried Gottwald",
+"name_ru": "Зигфрид Готтвальд",
+"years": "1943–2015",
+"wiki": "https://de.wikipedia.org/wiki/Siegfried_Gottwald",
+"zone": "one_model",
+"idea": {
+"en": "Fuzzy sets and many-valued logic.",
+"ru": "Нечёткие множества и многозначная логика.",
+"de": "Unscharfe Mengen und mehrwertige Logik."
+},
+"rule": "Keep degrees of truth instead of forcing every label to yes or no.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor already keeps degrees instead of rounding labels",
+"covered_by": "hagenauer"
+}
+},
+{
+"id": "weichselberger",
+"name": "Kurt Weichselberger",
+"name_ru": "Курт Вайхзельбергер",
+"years": "1929–2016",
+"wiki": "https://de.wikipedia.org/wiki/Kurt_Weichselberger",
+"zone": "one_model",
+"idea": {
+"en": "Interval probability: when knowledge is thin, give a probability range, not one exact number.",
+"ru": "Интервальная вероятность: когда знаний мало, давай диапазон вероятности, а не одно точное число.",
+"de": "Intervallwahrscheinlichkeit: bei dünnem Wissen eine Spanne statt einer exakten Zahl."
+},
+"rule": "With little data, report a lower and an upper probability.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already gives bounds instead of one number; the track record sensor gives intervals",
+"covered_by": "leamer"
+}
+},
+{
+"id": "vopenka",
+"name": "Petr Vopěnka",
+"name_ru": "Петр Вопенка",
+"years": "1935–2015",
+"wiki": "https://de.wikipedia.org/wiki/Petr_Vop%C4%9Bnka",
+"zone": "one_model",
+"idea": {
+"en": "Alternative set theory: the same reality can be described by different foundations.",
+"ru": "Альтернативная теория множеств: одну и ту же реальность можно описать на разных основаниях.",
+"de": "Alternative Mengenlehre."
+},
+"rule": "Name the framework your answer depends on.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "janich",
+"name": "Peter Janich",
+"name_ru": "Петер Яних",
+"years": "1942–2016",
+"wiki": "https://de.wikipedia.org/wiki/Peter_Janich",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Methodical constructivism: science built up from the procedures of measuring and doing.",
+"ru": "Методический конструктивизм: наука, выстроенная от процедур измерения и действия.",
+"de": "Methodischer Konstruktivismus."
+},
+"rule": "Say how a claim was obtained, not only what it says.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "kanitscheider",
+"name": "Bernulf Kanitscheider",
+"name_ru": "Бернульф Канитшайдер",
+"years": "1939–2017",
+"wiki": "https://de.wikipedia.org/wiki/Bernulf_Kanitscheider",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Philosophy of science and naturalism.",
+"ru": "Теория науки и натурализм.",
+"de": "Wissenschaftstheorie und Naturalismus."
+},
+"rule": "Prefer claims that can be tested in the world.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "putnam",
+"name": "Hilary Putnam",
+"name_ru": "Хилари Патнэм",
+"years": "1926–2016",
+"wiki": "https://de.wikipedia.org/wiki/Hilary_Putnam",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Scientific realism and philosophy of language: what words refer to is fixed partly by the world and by experts, not by the speaker alone.",
+"ru": "Научный реализм и философия языка: на что указывают слова, определяют отчасти мир и эксперты, а не только говорящий.",
+"de": "Wissenschaftlicher Realismus und Sprachphilosophie."
+},
+"rule": "When a term is technical, check what the experts mean by it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "gy",
+"name": "Pierre Gy",
+"name_ru": "Пьер Жи",
+"years": "1924–2015",
+"wiki": "https://de.wikipedia.org/wiki/Pierre_Gy",
+"zone": "measurement_error",
+"idea": {
+"en": "Theory of sampling: from a mixed, uneven mass a small sample gives a biased picture unless it is taken correctly.",
+"ru": "Теория отбора проб: из неоднородной массы маленькая проба даёт искажённую картину, если её взять неправильно.",
+"de": "Probenahmetheorie."
+},
+"rule": "Ask how the sample was taken from an uneven whole before trusting it.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports coverage gaps of the feed; Trevisan shows how many headlines are enough",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "rottlaender",
+"name": "Rolf C. A. Rottländer",
+"name_ru": "Рольф Роттлендер",
+"years": "1932–2016",
+"wiki": "https://de.wikipedia.org/wiki/Rolf_C._A._Rottl%C3%A4nder",
+"zone": "measurement_error",
+"idea": {
+"en": "Ancient units of length: the same unit name meant different lengths in different places.",
+"ru": "Античные меры длины: одно и то же название меры означало разную длину в разных местах.",
+"de": "Antike Längenmaße."
+},
+"rule": "Check which definition of a unit a source uses.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and scales",
+"covered_by": "baird"
+}
+},
+{
+"id": "mueller_merbach",
+"name": "Heiner Müller-Merbach",
+"name_ru": "Хайнер Мюллер-Мербах",
+"years": "1936–2015",
+"wiki": "https://de.wikipedia.org/wiki/Heiner_M%C3%BCller-Merbach",
+"zone": "answer_cost",
+"idea": {
+"en": "Operations research and its use in management.",
+"ru": "Исследование операций и его применение в управлении.",
+"de": "Operations Research."
+},
+"rule": "Choose the cheapest procedure that still gives a usable answer.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already gives the cheapest chains of calls",
+"covered_by": "bertsekas"
+}
+},
+{
+"id": "krabs",
+"name": "Werner Krabs",
+"name_ru": "Вернер Крабс",
+"years": "1934–2017",
+"wiki": "https://de.wikipedia.org/wiki/Werner_Krabs",
+"zone": "answer_cost",
+"idea": {
+"en": "Optimal control and game theory.",
+"ru": "Оптимальное управление и теория игр.",
+"de": "Optimale Steuerung und Spieltheorie."
+},
+"rule": "Plan the sequence of steps, not only the next one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "garfield",
+"name": "Eugene Garfield",
+"name_ru": "Юджин Гарфилд",
+"years": "1925–2017",
+"wiki": "https://de.wikipedia.org/wiki/Eugene_Garfield",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Science Citation Index: who cites whom shows how a claim spread and which sources it rests on.",
+"ru": "Индекс научного цитирования: кто кого цитирует, показывает, как распространилось утверждение и на какие источники оно опирается.",
+"de": "Science Citation Index."
+},
+"rule": "Follow the citation back to the original source.",
+"needs": {
+"code": "needs_source",
+"note": "a citation graph for news sources would be needed"
+}
+},
+{
+"id": "dahlberg",
+"name": "Ingetraut Dahlberg",
+"name_ru": "Ингетраут Дальберг",
+"years": "1927–2017",
+"wiki": "https://de.wikipedia.org/wiki/Ingetraut_Dahlberg",
+"zone": "answer_cost",
+"idea": {
+"en": "Universal classification of knowledge: subject headings and thesauri instead of flat search.",
+"ru": "Универсальная классификация знаний: рубрики и тезаурусы вместо плоского поиска.",
+"de": "Universale Wissensklassifikation."
+},
+"rule": "Narrow the question to the right category before searching.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "dreyfus",
+"name": "Hubert Dreyfus",
+"name_ru": "Хьюберт Дрейфус",
+"years": "1929–2017",
+"wiki": "https://de.wikipedia.org/wiki/Hubert_Dreyfus",
+"zone": "one_model",
+"idea": {
+"en": "Critique of AI: a formal model is not the same as real skill and understanding.",
+"ru": "Критика ИИ: формальная модель — не то же самое, что настоящее умение и понимание.",
+"de": "KI-Kritik: ein formales Modell ist nicht dasselbe wie echtes Können."
+},
+"rule": "Do not mistake a fluent formal answer for real competence; say where your model ends.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "robinson",
+"name": "John Alan Robinson",
+"name_ru": "Джон Алан Робинсон",
+"years": "1930–2016",
+"wiki": "https://de.wikipedia.org/wiki/John_Alan_Robinson",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The resolution principle: the basis of automated logical reasoning.",
+"ru": "Метод резолюции: основа автоматического логического вывода.",
+"de": "Resolutionsprinzip."
+},
+"rule": "Make each step of a conclusion explicit so it can be checked.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "wille",
+"name": "Rudolf Wille",
+"name_ru": "Рудольф Вилле",
+"years": "1937–2017",
+"wiki": "https://de.wikipedia.org/wiki/Rudolf_Wille",
+"zone": "one_model",
+"idea": {
+"en": "Formal concept analysis: concepts as sets of objects that share sets of attributes.",
+"ru": "Формальный анализ понятий: понятия как множества объектов с общими признаками.",
+"de": "Formale Begriffsanalyse."
+},
+"rule": "Define a category by the features its members share.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "henrichs",
+"name": "Norbert Henrichs",
+"name_ru": "Норберт Хенрихс",
+"years": "1935–2016",
+"wiki": "https://de.wikipedia.org/wiki/Norbert_Henrichs",
+"zone": "answer_cost",
+"idea": {
+"en": "Text indexing without a fixed vocabulary.",
+"ru": "Индексация текстов без заданного словаря.",
+"de": "Textindexierung ohne festes Vokabular."
+},
+"rule": "Index by the words the texts actually use.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
