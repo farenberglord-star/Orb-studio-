@@ -458,6 +458,37 @@ C = [
 ("caws", "Peter Caws", "Питер Кос", "1931–2020", "Peter_Caws", "rumour_vs_fact",
  "Systematic philosophy of science: how theories, observations and values fit together.", "Систематическая философия науки: как сходятся теории, наблюдения и ценности.", "Systematische Wissenschaftsphilosophie.",
  "Keep observations, theory and value judgements apart in an answer."),
+# --- немецкая Википедия, умершие 2020–2026 (23.11.2026); у семи нет статьи на английском ---
+("freksa", "Christian Freksa", "Кристиан Фрекса", "1950–2020", "https://de.wikipedia.org/wiki/Christian_Freksa", "stale_data",
+ "Qualitative reasoning about time and space from the order of events only (semi-intervals).", "Рассуждение о времени и пространстве, когда известен только порядок событий («полуинтервалы»).", "Qualitatives Schließen über Zeit und Raum aus der Reihenfolge (Semi-Intervalle).",
+ "When exact times are unknown, reason from the order of events and say that you do."),
+("rueger", "Bernhard Rüger", "Бернхард Рюгер", "1942–2025", "https://de.wikipedia.org/wiki/Bernhard_R%C3%BCger", "stale_data",
+ "Separating trend and seasonality in time series.", "Выделение тренда и сезонности во временных рядах.", "Trend- und Saisonzerlegung von Zeitreihen.",
+ "Before calling a change new, remove the usual seasonal pattern."),
+("schloegl", "Christian Schlögl", "Кристиан Шлёгль", "1961–2024", "https://de.wikipedia.org/wiki/Christian_Schl%C3%B6gl", "stale_data",
+ "Bibliometrics and the comparison of data sources (Web of Science versus Scopus).", "Библиометрия и сравнение источников данных (Web of Science и Scopus).", "Bibliometrie und Vergleich von Datenquellen (Web of Science, Scopus).",
+ "The same count from two databases can differ; say which source you counted in."),
+("bunke", "Olaf Bunke", "Олаф Бунке", "1935–2021", "https://de.wikipedia.org/wiki/Olaf_Bunke", "one_model",
+ "Model choice and prediction in regression (a statistician from the GDR).", "Выбор модели и прогноз в регрессии (статистик из ГДР).", "Modellwahl und Vorhersage in der Regression (Statistiker aus der DDR).",
+ "Choose a model by how well it predicts new cases, not by how well it fits the old ones."),
+("kambartel", "Friedrich Kambartel", "Фридрих Камбартель", "1935–2022", "https://de.wikipedia.org/wiki/Friedrich_Kambartel", "rumour_vs_fact",
+ "'Wahrheit und Begründung', 'Erfahrung und Struktur': truth and justification are different things.", "«Wahrheit und Begründung», «Erfahrung und Struktur»: истина и обоснование — разные вещи.", "„Wahrheit und Begründung“, „Erfahrung und Struktur“.",
+ "Say separately whether a claim is well justified and whether it is true."),
+("laitko", "Hubert Laitko", "Хуберт Лайтко", "1935–2024", "https://de.wikipedia.org/wiki/Hubert_Laitko", "rumour_vs_fact",
+ "Methodology of scientific knowledge ('Wege des Erkennens').", "Методология научного познания («Wege des Erkennens»).", "Methodologie wissenschaftlicher Erkenntnis („Wege des Erkennens“).",
+ "Describe the path by which a fact was found, not only the fact."),
+("lahuti", "Delir Lahuti", "Делир Лахути", "1934–2022", "https://de.wikipedia.org/wiki/Delir_Lahuti", "rumour_vs_fact",
+ "Evaluation of information retrieval systems (VINITI, Moscow).", "Оценка информационно-поисковых систем (ВИНИТИ, Москва).", "Bewertung von Informationsrecherchesystemen (WINITI, Moskau).",
+ "A search result is a sample chosen by a system; ask what the system leaves out."),
+("rinne", "Horst Rinne", "Хорст Ринне", "1939–2023", "https://de.wikipedia.org/wiki/Horst_Rinne", "measurement_error",
+ "How inaccurate national accounts are, and how the reliability of data shows in its later revisions.", "Насколько неточно считают национальный продукт и как надёжность данных видна по их пересмотрам.", "Genauigkeit der Volkswirtschaftlichen Gesamtrechnung und Revisionen als Maß der Verlässlichkeit.",
+ "Treat a first release of a statistic as provisional; say whether the number has been revised."),
+("woeginger", "Gerhard Woeginger", "Герхард Вёгингер", "1964–2022", "https://de.wikipedia.org/wiki/Gerhard_Woeginger", "answer_cost",
+ "Approximation and exact exponential algorithms for NP-hard problems.", "Приближённые и точные экспоненциальные алгоритмы для NP-трудных задач.", "Approximations- und exakte Exponentialalgorithmen für NP-schwere Probleme.",
+ "For a hard question, a good approximate answer now can beat an exact one never; say which you give."),
+("schnorr", "Claus Peter Schnorr", "Клаус Петер Шнорр", "1943–2025", "https://de.wikipedia.org/wiki/Claus_Peter_Schnorr", "answer_cost",
+ "Complexity theory, algorithmic randomness and the Schnorr signature.", "Теория сложности, алгоритмическая случайность и подпись Шнорра.", "Komplexitätstheorie, algorithmischer Zufall, Schnorr-Signatur.",
+ "Something that looks random may still have a pattern; test before assuming noise."),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -528,3 +559,10 @@ for k in ["savitch"]: NEEDS[k] = ("covered", "the Bertsekas and Trevisan sensors
 
 for k in ["mellor"]: NEEDS[k] = ("covered", "the Cox and Howard sensors already separate how long stories live from how often they get confirmed", None, "howard")
 for k in ["giere"]: NEEDS[k] = ("covered", "the Lyberg sensor already says from which languages and regions the radars see the world", None, "lyberg")
+
+NEEDS["rinne"] = ("needs_history", "Orb Studio records first and later values of every sensor number since 23.11.2026; how often and how much they are revised (similar idea for macro data: ALFRED vintages of the St. Louis Fed)", "2026-12-21")
+for k in ["rueger"]: NEEDS[k] = ("covered", "the Duckworth sensor already compares with the same time of day", None, "duckworth")
+for k in ["schloegl"]: NEEDS[k] = ("covered", "the Lyberg sensor already compares what the feeds cover", None, "lyberg")
+for k in ["bunke"]: NEEDS[k] = ("covered", "the Leamer sensor already reports bounds over model choices", None, "leamer")
+for k in ["woeginger"]: NEEDS[k] = ("covered", "the Trevisan and Bertsekas sensors already trade accuracy for cost", None, "trevisan")
+for k in ["schnorr"]: NEEDS[k] = ("covered", "the Polyak sensor already separates noise from real shifts", None, "polyak")

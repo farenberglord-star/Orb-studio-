@@ -2736,6 +2736,192 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "freksa",
+"name": "Christian Freksa",
+"name_ru": "Кристиан Фрекса",
+"years": "1950–2020",
+"wiki": "https://de.wikipedia.org/wiki/Christian_Freksa",
+"zone": "stale_data",
+"idea": {
+"en": "Qualitative reasoning about time and space from the order of events only (semi-intervals).",
+"ru": "Рассуждение о времени и пространстве, когда известен только порядок событий («полуинтервалы»).",
+"de": "Qualitatives Schließen über Zeit und Raum aus der Reihenfolge (Semi-Intervalle)."
+},
+"rule": "When exact times are unknown, reason from the order of events and say that you do.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rueger",
+"name": "Bernhard Rüger",
+"name_ru": "Бернхард Рюгер",
+"years": "1942–2025",
+"wiki": "https://de.wikipedia.org/wiki/Bernhard_R%C3%BCger",
+"zone": "stale_data",
+"idea": {
+"en": "Separating trend and seasonality in time series.",
+"ru": "Выделение тренда и сезонности во временных рядах.",
+"de": "Trend- und Saisonzerlegung von Zeitreihen."
+},
+"rule": "Before calling a change new, remove the usual seasonal pattern.",
+"needs": {
+"code": "covered",
+"note": "the Duckworth sensor already compares with the same time of day",
+"covered_by": "duckworth"
+}
+},
+{
+"id": "schloegl",
+"name": "Christian Schlögl",
+"name_ru": "Кристиан Шлёгль",
+"years": "1961–2024",
+"wiki": "https://de.wikipedia.org/wiki/Christian_Schl%C3%B6gl",
+"zone": "stale_data",
+"idea": {
+"en": "Bibliometrics and the comparison of data sources (Web of Science versus Scopus).",
+"ru": "Библиометрия и сравнение источников данных (Web of Science и Scopus).",
+"de": "Bibliometrie und Vergleich von Datenquellen (Web of Science, Scopus)."
+},
+"rule": "The same count from two databases can differ; say which source you counted in.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already compares what the feeds cover",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "bunke",
+"name": "Olaf Bunke",
+"name_ru": "Олаф Бунке",
+"years": "1935–2021",
+"wiki": "https://de.wikipedia.org/wiki/Olaf_Bunke",
+"zone": "one_model",
+"idea": {
+"en": "Model choice and prediction in regression (a statistician from the GDR).",
+"ru": "Выбор модели и прогноз в регрессии (статистик из ГДР).",
+"de": "Modellwahl und Vorhersage in der Regression (Statistiker aus der DDR)."
+},
+"rule": "Choose a model by how well it predicts new cases, not by how well it fits the old ones.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already reports bounds over model choices",
+"covered_by": "leamer"
+}
+},
+{
+"id": "kambartel",
+"name": "Friedrich Kambartel",
+"name_ru": "Фридрих Камбартель",
+"years": "1935–2022",
+"wiki": "https://de.wikipedia.org/wiki/Friedrich_Kambartel",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Wahrheit und Begründung', 'Erfahrung und Struktur': truth and justification are different things.",
+"ru": "«Wahrheit und Begründung», «Erfahrung und Struktur»: истина и обоснование — разные вещи.",
+"de": "„Wahrheit und Begründung“, „Erfahrung und Struktur“."
+},
+"rule": "Say separately whether a claim is well justified and whether it is true.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "laitko",
+"name": "Hubert Laitko",
+"name_ru": "Хуберт Лайтко",
+"years": "1935–2024",
+"wiki": "https://de.wikipedia.org/wiki/Hubert_Laitko",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Methodology of scientific knowledge ('Wege des Erkennens').",
+"ru": "Методология научного познания («Wege des Erkennens»).",
+"de": "Methodologie wissenschaftlicher Erkenntnis („Wege des Erkennens“)."
+},
+"rule": "Describe the path by which a fact was found, not only the fact.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lahuti",
+"name": "Delir Lahuti",
+"name_ru": "Делир Лахути",
+"years": "1934–2022",
+"wiki": "https://de.wikipedia.org/wiki/Delir_Lahuti",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Evaluation of information retrieval systems (VINITI, Moscow).",
+"ru": "Оценка информационно-поисковых систем (ВИНИТИ, Москва).",
+"de": "Bewertung von Informationsrecherchesystemen (WINITI, Moskau)."
+},
+"rule": "A search result is a sample chosen by a system; ask what the system leaves out.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "rinne",
+"name": "Horst Rinne",
+"name_ru": "Хорст Ринне",
+"years": "1939–2023",
+"wiki": "https://de.wikipedia.org/wiki/Horst_Rinne",
+"zone": "measurement_error",
+"idea": {
+"en": "How inaccurate national accounts are, and how the reliability of data shows in its later revisions.",
+"ru": "Насколько неточно считают национальный продукт и как надёжность данных видна по их пересмотрам.",
+"de": "Genauigkeit der Volkswirtschaftlichen Gesamtrechnung und Revisionen als Maß der Verlässlichkeit."
+},
+"rule": "Treat a first release of a statistic as provisional; say whether the number has been revised.",
+"needs": {
+"code": "needs_history",
+"note": "Orb Studio records first and later values of every sensor number since 23.11.2026; how often and how much they are revised (similar idea for macro data: ALFRED vintages of the St. Louis Fed)",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "woeginger",
+"name": "Gerhard Woeginger",
+"name_ru": "Герхард Вёгингер",
+"years": "1964–2022",
+"wiki": "https://de.wikipedia.org/wiki/Gerhard_Woeginger",
+"zone": "answer_cost",
+"idea": {
+"en": "Approximation and exact exponential algorithms for NP-hard problems.",
+"ru": "Приближённые и точные экспоненциальные алгоритмы для NP-трудных задач.",
+"de": "Approximations- und exakte Exponentialalgorithmen für NP-schwere Probleme."
+},
+"rule": "For a hard question, a good approximate answer now can beat an exact one never; say which you give.",
+"needs": {
+"code": "covered",
+"note": "the Trevisan and Bertsekas sensors already trade accuracy for cost",
+"covered_by": "trevisan"
+}
+},
+{
+"id": "schnorr",
+"name": "Claus Peter Schnorr",
+"name_ru": "Клаус Петер Шнорр",
+"years": "1943–2025",
+"wiki": "https://de.wikipedia.org/wiki/Claus_Peter_Schnorr",
+"zone": "answer_cost",
+"idea": {
+"en": "Complexity theory, algorithmic randomness and the Schnorr signature.",
+"ru": "Теория сложности, алгоритмическая случайность и подпись Шнорра.",
+"de": "Komplexitätstheorie, algorithmischer Zufall, Schnorr-Signatur."
+},
+"rule": "Something that looks random may still have a pattern; test before assuming noise.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already separates noise from real shifts",
+"covered_by": "polyak"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

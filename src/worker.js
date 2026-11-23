@@ -4185,6 +4185,16 @@ async function rabinTick(env, ctx) { // «Рабин»: раз в час слу�
   const prev = (await sharedGet(env, "rabin-v1", 1e15).catch(() => null)) || { checks: [] };
   await sharedPut(env, "rabin-v1", { checks: [...(prev.checks || []), ...out].slice(-RABIN_KEEP) });
 }
+async function rinneTick(env, ctx) { // «Ринне» (копим историю): первые и последующие значения чисел датчиков — пересматриваются ли они
+  if (await sharedGet(env, "rinne-slot", 25 * 60e3).catch(() => null)) return; await sharedPut(env, "rinne-slot", { t: Date.now() });
+  const b = bairdReport(await sensorsData(env, ctx).catch(() => null)); if (!b || !b.numbers) return;
+  const st = (await sharedGet(env, "rinne-v1", 1e15).catch(() => null)) || { v: {} }, now = new Date().toISOString();
+  for (const x of b.numbers) { if (x.value == null || !x.measured_at) continue; const k = x.id + "|" + x.measured_at, e = st.v[k];
+    if (!e) st.v[k] = { first: x.value, last: x.value, first_seen: now, last_seen: now, changes: 0 };
+    else { if (e.last !== x.value) { e.changes++; e.last = x.value; } e.last_seen = now; } }
+  const keys = Object.keys(st.v); if (keys.length > 1500) for (const k of keys.sort((a, c) => st.v[a].last_seen.localeCompare(st.v[c].last_seen)).slice(0, keys.length - 1500)) delete st.v[k];
+  await sharedPut(env, "rinne-v1", st);
+}
 async function rabinNow(env) { const d = await sharedGet(env, "rabin-v1", 1e15).catch(() => null); return rabinReport(d && d.checks); }
 async function searleNow(env, ctx) { return searleReport(await allRadars(env, ctx, "https://orbstudio.org").catch(() => [])); } // «Сёрл»: событие или только слова
 async function frankfurtNow(env, ctx) { return frankfurtReport(await allRadars(env, ctx, "https://orbstudio.org").catch(() => [])); } // «Франкфурт»: есть ли в заголовках что проверить
@@ -9011,7 +9021,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rinneTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
