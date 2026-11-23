@@ -6907,6 +6907,98 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "leontief",
+"name": "Wassily Leontief",
+"name_ru": "Василий Леонтьев",
+"years": "1905–1999",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%BE%D0%BD%D1%82%D1%8C%D0%B5%D0%B2%2C_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D0%B8%D0%B9_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "side_effects",
+"idea": {
+"en": "Input–output analysis: a change in one sector spreads through all the others it buys from and sells to.",
+"ru": "Межотраслевой баланс («затраты — выпуск»): изменение в одной отрасли расходится по всем, у кого она покупает и кому продаёт.",
+"de": "Input-Output-Analyse: eine Änderung in einem Sektor breitet sich über alle anderen aus."
+},
+"rule": "Follow a shock past its first stop: ask which other areas it feeds into.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'spill-over between radars' (Leontief + Granger + Haavelmo): only the geo and crypto radar levels are stored, and the geo radar barely moves (70–73 over 11 days); all eight radar levels need to be stored for a few weeks",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "haavelmo",
+"name": "Trygve Haavelmo",
+"name_ru": "Трюгве Ховельмо",
+"years": "1911–1999",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A5%D0%BE%D0%B2%D0%B5%D0%BB%D1%8C%D0%BC%D0%BE%2C_%D0%A2%D1%80%D1%8E%D0%B3%D0%B2%D0%B5",
+"zone": "one_model",
+"idea": {
+"en": "The probability approach to econometrics: economic laws hold only with probability, and a correlation in data does not by itself identify the structure behind it.",
+"ru": "Вероятностный подход в эконометрике: экономические законы верны лишь с вероятностью, а корреляция в данных сама по себе не выявляет стоящую за ней структуру.",
+"de": "Wahrscheinlichkeitsansatz der Ökonometrie."
+},
+"rule": "Do not read a structure off a correlation; say which assumptions identify it.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "griliches",
+"name": "Zvi Griliches",
+"name_ru": "Цви Грилихес",
+"years": "1930–1999",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%93%D1%80%D0%B8%D0%BB%D0%B8%D1%85%D0%B5%D1%81%2C_%D0%A6%D0%B2%D0%B8",
+"zone": "measurement_error",
+"idea": {
+"en": "Errors in data: noisy measurements make real relationships look weaker than they are, and 'the data are the problem' more often than the model.",
+"ru": "Ошибки в данных: шумные измерения делают настоящие связи слабее, чем они есть, и чаще проблема в данных, а не в модели.",
+"de": "Messfehler: verrauschte Daten schwächen echte Zusammenhänge ab."
+},
+"rule": "If a link looks weak, ask first how noisy the measurements are.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already reports intervals; noisy radar readings make real links look weaker",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "lancaster",
+"name": "Kelvin Lancaster",
+"name_ru": "Келвин Ланкастер",
+"years": "1924–1999",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9B%D0%B0%D0%BD%D0%BA%D0%B0%D1%81%D1%82%D0%B5%D1%80%2C_%D0%9A%D0%B5%D0%BB%D0%B2%D0%B8%D0%BD",
+"zone": "side_effects",
+"idea": {
+"en": "The theory of the second best (with Lipsey): removing one distortion while others remain can make things worse.",
+"ru": "Теория второго лучшего (с Липси): если убрать одно искажение, а другие остаются, может стать хуже.",
+"de": "Theorie des Zweitbesten (mit Lipsey)."
+},
+"rule": "Do not assume that fixing one flaw improves the whole while other flaws remain.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "knorozov",
+"name": "Yuri Knorozov",
+"name_ru": "Юрий Кнорозов",
+"years": "1922–1999",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%9A%D0%BD%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%B2%2C_%D0%AE%D1%80%D0%B8%D0%B9_%D0%92%D0%B0%D0%BB%D0%B5%D0%BD%D1%82%D0%B8%D0%BD%D0%BE%D0%B2%D0%B8%D1%87",
+"zone": "look_alike",
+"idea": {
+"en": "Deciphering the Maya script: count the signs and their positions before deciding what kind of writing it is — similar-looking signs may work differently.",
+"ru": "Дешифровка письменности майя: сначала посчитать знаки и их позиции, а потом решать, что это за письмо, — похожие знаки могут работать по-разному.",
+"de": "Entzifferung der Maya-Schrift: erst Zeichen zählen, dann deuten."
+},
+"rule": "Count and compare before you interpret: similar signs may play different roles.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

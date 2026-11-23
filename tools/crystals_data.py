@@ -1157,6 +1157,22 @@ C = [
 ('pike', 'Kenneth Pike', 'Кеннет Пайк', '1912–2000', 'https://en.wikipedia.org/wiki/Kenneth_Lee_Pike', 'look_alike',
  'Emic and etic: outside resemblance of forms is not the same as equal function inside a system.', 'Эмическое и этическое: внешнее сходство форм — не то же, что одинаковая функция внутри системы.', 'Emisch und etisch.',
  'Do not equate things that look alike from outside but work differently inside.'),
+# --- эксперимент Claude: русская Википедия, 1999 год (сырьё — Лиана), 23.11.2026 ---
+('leontief', 'Wassily Leontief', 'Василий Леонтьев', '1905–1999', 'https://ru.wikipedia.org/wiki/%D0%9B%D0%B5%D0%BE%D0%BD%D1%82%D1%8C%D0%B5%D0%B2%2C_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D0%B8%D0%B9_%D0%92%D0%B0%D1%81%D0%B8%D0%BB%D1%8C%D0%B5%D0%B2%D0%B8%D1%87', 'side_effects',
+ 'Input–output analysis: a change in one sector spreads through all the others it buys from and sells to.', 'Межотраслевой баланс («затраты — выпуск»): изменение в одной отрасли расходится по всем, у кого она покупает и кому продаёт.', 'Input-Output-Analyse: eine Änderung in einem Sektor breitet sich über alle anderen aus.',
+ 'Follow a shock past its first stop: ask which other areas it feeds into.'),
+('haavelmo', 'Trygve Haavelmo', 'Трюгве Ховельмо', '1911–1999', 'https://ru.wikipedia.org/wiki/%D0%A5%D0%BE%D0%B2%D0%B5%D0%BB%D1%8C%D0%BC%D0%BE%2C_%D0%A2%D1%80%D1%8E%D0%B3%D0%B2%D0%B5', 'one_model',
+ 'The probability approach to econometrics: economic laws hold only with probability, and a correlation in data does not by itself identify the structure behind it.', 'Вероятностный подход в эконометрике: экономические законы верны лишь с вероятностью, а корреляция в данных сама по себе не выявляет стоящую за ней структуру.', 'Wahrscheinlichkeitsansatz der Ökonometrie.',
+ 'Do not read a structure off a correlation; say which assumptions identify it.'),
+('griliches', 'Zvi Griliches', 'Цви Грилихес', '1930–1999', 'https://ru.wikipedia.org/wiki/%D0%93%D1%80%D0%B8%D0%BB%D0%B8%D1%85%D0%B5%D1%81%2C_%D0%A6%D0%B2%D0%B8', 'measurement_error',
+ "Errors in data: noisy measurements make real relationships look weaker than they are, and 'the data are the problem' more often than the model.", 'Ошибки в данных: шумные измерения делают настоящие связи слабее, чем они есть, и чаще проблема в данных, а не в модели.', 'Messfehler: verrauschte Daten schwächen echte Zusammenhänge ab.',
+ 'If a link looks weak, ask first how noisy the measurements are.'),
+('lancaster', 'Kelvin Lancaster', 'Келвин Ланкастер', '1924–1999', 'https://ru.wikipedia.org/wiki/%D0%9B%D0%B0%D0%BD%D0%BA%D0%B0%D1%81%D1%82%D0%B5%D1%80%2C_%D0%9A%D0%B5%D0%BB%D0%B2%D0%B8%D0%BD', 'side_effects',
+ 'The theory of the second best (with Lipsey): removing one distortion while others remain can make things worse.', 'Теория второго лучшего (с Липси): если убрать одно искажение, а другие остаются, может стать хуже.', 'Theorie des Zweitbesten (mit Lipsey).',
+ 'Do not assume that fixing one flaw improves the whole while other flaws remain.'),
+('knorozov', 'Yuri Knorozov', 'Юрий Кнорозов', '1922–1999', 'https://ru.wikipedia.org/wiki/%D0%9A%D0%BD%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%B2%2C_%D0%AE%D1%80%D0%B8%D0%B9_%D0%92%D0%B0%D0%BB%D0%B5%D0%BD%D1%82%D0%B8%D0%BD%D0%BE%D0%B2%D0%B8%D1%87', 'look_alike',
+ 'Deciphering the Maya script: count the signs and their positions before deciding what kind of writing it is — similar-looking signs may work differently.', 'Дешифровка письменности майя: сначала посчитать знаки и их позиции, а потом решать, что это за письмо, — похожие знаки могут работать по-разному.', 'Entzifferung der Maya-Schrift: erst Zeichen zählen, dann deuten.',
+ 'Count and compare before you interpret: similar signs may play different roles.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1331,3 +1347,6 @@ NEEDS["tukey"] = ("covered", "the Leamer sensor already shows how far each radar
 NEEDS["postman"] = ("covered", "applied: Grok and David must say 'not known yet' instead of covering gaps with smooth words")
 NEEDS["bobbio"] = ("covered", "applied: Orb Studio's method resolves conflicting rules by priority — the more cautious rule wins (/tools/method)")
 NEEDS["salmon_w"] = ("needs_history", "bridge 'who leads whom' with Granger and the track record sensor: cause or shadow?", "2026-12-14")
+
+NEEDS["leontief"] = ("needs_history", "bridge 'spill-over between radars' (Leontief + Granger + Haavelmo): only the geo and crypto radar levels are stored, and the geo radar barely moves (70–73 over 11 days); all eight radar levels need to be stored for a few weeks", "2026-12-21")
+NEEDS["griliches"] = ("covered", "the track record sensor already reports intervals; noisy radar readings make real links look weaker", None, "trackrecord")
