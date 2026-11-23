@@ -41,7 +41,7 @@ test("few days: no conclusion, collecting", () => {
 });
 test("wiring", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /p === "\/api\/v1\/trackrecord"/); assert.match(w, /name: "get_trackrecord"/); assert.match(w, /"tools\/trackrecord"/); assert.match(w, /"simpson", "trackrecord", "kasperson", "method", "timemachine"\]/);
+  assert.match(w, /p === "\/api\/v1\/trackrecord"/); assert.match(w, /name: "get_trackrecord"/); assert.match(w, /"tools\/trackrecord"/); assert.match(w, /"simpson", "trackrecord", "kasperson", "method", "timemachine", "newcomb"\]/);
   for (const f of ["tools/trackrecord.html", "de/tools/trackrecord.html", "en/tools/trackrecord.html"]) {
     const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8");
     assert.match(h, /\/go\/kraken\?from=trackrecord/); assert.match(h, /\/go\/starlink\?from=trackrecord/); assert.match(h, /share-x\.js/); assert.match(h, /fetch\("\/api\/v1\/trackrecord"/); assert.match(h, /page:"trackrecord"/);

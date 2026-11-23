@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -7479,24 +7479,6 @@ export const CRYSTALS = [
 "needs": {
 "code": "covered",
 "note": "applied: hosts say where the known facts stop; the Leamer sensor shows how far an index depends on what the model includes"
-}
-},
-{
-"id": "newcomb",
-"name": "Simon Newcomb",
-"name_ru": "Саймон Ньюкомб",
-"years": "1835–1909",
-"wiki": "https://en.wikipedia.org/wiki/Simon_Newcomb",
-"zone": "measurement_error",
-"idea": {
-"en": "He noticed (1881) that the first pages of logarithm tables were the most worn: in many real data sets the first digit is 1 far more often than 9 — the law later named after Benford.",
-"ru": "Он заметил (1881), что первые страницы таблиц логарифмов истрёпаны сильнее всего: во многих реальных наборах данных первая цифра 1 встречается гораздо чаще, чем 9, — закон, позже названный именем Бенфорда.",
-"de": "Er bemerkte 1881 das Gesetz der ersten Ziffer (später Benford-Gesetz)."
-},
-"rule": "Numbers that span many orders of magnitude should follow the first-digit law; a large set that does not deserves a second look.",
-"needs": {
-"code": "ready",
-"note": "bridge 'first-digit test' (Newcomb + Bessel + Baird + Rabin): collect numbers from radar headlines; with a few hundred spanning orders of magnitude, compare first digits with the Benford law. Analog: Benford tests in forensic accounting (Nigrini)"
 }
 },
 {

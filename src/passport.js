@@ -16,6 +16,8 @@ export const EXTRAORDINARY = /(?<![\p{L}])(record\p{L}*|unprecedented|first[- ]e
 // Деррида, Шлейермахер: слова в кавычках или «X: …» вне контекста могут значить другое. Валла, Добровский, Шаль: найденный или утёкший документ проверяют по дате, словам и происхождению.
 export const QUOTED = /["“”«»„]|‘[^’]{3,}’|(?<![\p{L}])'[^']{3,}'(?![\p{L}])/u; // апостроф в «Trump’s» — не кавычка
 export const FOUND_DOC = /(?<![\p{L}])(leak\p{L}*|unearthed|newly (?:found|discovered|released)|secret (?:letter|memo|files?|documents?|recording|tape)|documents? (?:show|reveal)\p{L}*|(?:audio|video) (?:recording|tape)s?|dossier|geleakt\p{L}*|aufgetaucht\p{L}*|Geheim(?:papier|dokument|akte)\p{L}*|Dokumente? (?:zeig|belegt)\p{L}*|Mitschnitt\p{L}*|утечк\p{L}*|утёкш\p{L}*|рассекреч\p{L}*|секретн\p{L}* (?:документ|письм|запис)\p{L}*|документы показ\p{L}*|аудиозапис\p{L}*|переписк\p{L}*|досье)(?![\p{L}])/iu;
+// Макс Мюллер, «болезнь языка»: метафора, понятая буквально, становится выдуманным событием. Короткий свой список на трёх языках.
+export const METAPHOR = /(?<![\p{L}])(price war|trade war|tariff war|chip war|currency war|bloodbath|meltdown|tsunami of|political earthquake|perfect storm|time bomb|nuclear option|free ?fall|firestorm|Preiskrieg\p{L}*|Handelskrieg\p{L}*|Zollkrieg\p{L}*|Währungskrieg\p{L}*|Blutbad|Kahlschlag|Tsunami (?:an|von)|politische\p{L}* Erdbeben|Zeitbombe|Kernschmelze|freie\p{L}* Fall|perfekte\p{L}* Sturm|ценов\p{L}* войн\p{L}*|торгов\p{L}* войн\p{L}*|тарифн\p{L}* войн\p{L}*|валютн\p{L}* войн\p{L}*|кровав\p{L}* бан\p{L}*|цунами (?:увольнений|банкротств|продаж|исков|жалоб)|политическ\p{L}* землетрясени\p{L}*|бомб\p{L}* замедленного действия|свободн\p{L}* падени\p{L}*|идеальн\p{L}* шторм\p{L}*)(?![\p{L}])/iu;
 function actOf(headline, searle) {
   const t = String(headline || "").trim();
   if (/\?\s*$/.test(t)) return "question";
@@ -36,6 +38,8 @@ export function newsPassport(it, now = Date.now()) {
   else if (act.act === "promise") say.push("This is a plan, promise or announcement: it has not happened yet.");
   else if (act.act === "claim") say.push("This is someone's statement: attribute it ('X says'), do not present it as the fact itself.");
   if (QUOTED.test(headline) || (act.act === "claim" && COLON_SPEAKER.test(headline))) say.push("The headline carries someone's words: out of context they can mean something else — say whose words they are and where they were said, and do not build the story on the quote alone.");
+  const meta = (headline.match(METAPHOR) || [])[0] || null;
+  if (meta) say.push(`The headline uses a metaphor ('${meta}'): say in plain words what actually happened, and do not repeat the metaphor as if it were the fact.`);
   const foundDoc = FOUND_DOC.test(headline);
   if (foundDoc) say.push("The story rests on a leaked or newly found document or recording: say that its date, wording and origin still need checking — a find that suits one side needs double checking, not less.");
   const amp0 = it && it.amplified;
@@ -57,9 +61,9 @@ export function newsPassport(it, now = Date.now()) {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
-    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc,
+    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta,
     confidence: high ? "high" : low ? "low" : "medium", say,
-    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

@@ -76,3 +76,10 @@ test("hosts correct a false premise (Strawson, Schopenhauer)", async () => {
   const { GROK_SYSTEM } = await import("../src/duo.js"); const { rtGuestSystem } = await import("../src/roundtable.js");
   assert.match(GROK_SYSTEM, /false or unverified premise/); assert.match(rtGuestSystem("grok"), /false or unverified premise/);
 });
+test("metaphor is not the fact (Max Müller); hosts name who else pays (Sidgwick)", async () => {
+  const { newsPassport } = await import("../src/passport.js");
+  for (const h of ["Price war hits supermarkets as Aldi cuts 500 prices", "Handelskrieg: EU antwortet auf US-Zölle", "Цунами увольнений в автопроме"]) { const p = newsPassport({ headline: h, confirm: 3 }); assert.ok(p.metaphor, h); assert.ok(p.say.some((x) => /metaphor/.test(x)), h); }
+  for (const h of ["Tsunami warning after earthquake off Japan", "War in Sudan displaces thousands", "Bitcoin falls 5%"]) assert.equal(newsPassport({ headline: h, confirm: 3 }).metaphor, null, h);
+  const { GROK_SYSTEM } = await import("../src/duo.js"); const { rtGuestSystem } = await import("../src/roundtable.js");
+  assert.match(GROK_SYSTEM, /who else gains or pays/); assert.match(rtGuestSystem("grok"), /who else gains or pays/);
+});

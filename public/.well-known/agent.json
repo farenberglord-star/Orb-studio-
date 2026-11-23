@@ -128,6 +128,7 @@
     "simpson": "https://orbstudio.org/api/v1/simpson",
     "trackrecord": "https://orbstudio.org/api/v1/trackrecord",
     "kasperson": "https://orbstudio.org/api/v1/kasperson",
+    "newcomb": "https://orbstudio.org/api/v1/newcomb",
     "method": "https://orbstudio.org/api/v1/method",
     "timemachine": "https://orbstudio.org/api/v1/timemachine",
     "passport": "https://orbstudio.org/api/v1/passport?headline={headline}"
