@@ -125,7 +125,8 @@
     "bertsekas": "https://orbstudio.org/api/v1/bertsekas",
     "rabin": "https://orbstudio.org/api/v1/rabin",
     "searle": "https://orbstudio.org/api/v1/searle",
-    "simpson": "https://orbstudio.org/api/v1/simpson"
+    "simpson": "https://orbstudio.org/api/v1/simpson",
+    "trackrecord": "https://orbstudio.org/api/v1/trackrecord"
   },
   "auth": "none",
   "payments": {

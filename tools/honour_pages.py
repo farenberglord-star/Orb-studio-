@@ -824,6 +824,45 @@ _mk("simpson", SIMPSON_RENDER, {"@type": "Person", "name": "Edward H. Simpson", 
   "en": ("Edward Simpson (1922–2019), statistics", "Simpson's paradox: a combined trend can reverse the trend inside every group.", "manual checks in statistics, research tools for tables and dashboards", "a live decomposition of the site's index changes by radar, for agents", "whether an index changed inside the radars or through their mix")},
  {"ru": "Датчик Симпсон", "de": "Simpson-Sensor", "en": "Simpson sensor"})
 
+# ---------------- «Счёт попаданий»: не именной датчик, по просьбе Грока ----------------
+TRACK_RENDER = """if(!d||!d.coins){document.getElementById("hmStatus").textContent=HM.err;return;}
+  """ + _LI + """const n=d.radar_now,mx=Math.max(0,...Object.values(d.coins).map((c)=>c.days));
+  document.getElementById("hmStatus").textContent=(d.verdict==="collecting"?HM.collecting.replace("{n}",mx):HM.measured.replace("{n}",mx))+(n?" "+HM.now.replace("{a}",n.radar_24h_ago).replace("{b}",n.radar).replace("{g}",n.bucket):"");
+  const pc=(x)=>x==null?"—":Math.round(x*100)+" %",sg=(x)=>x==null?"—":(x>0?"+":"")+Number(x).toLocaleString(HM.loc,{maximumFractionDigits:2})+" %";
+  document.getElementById("hmRows").innerHTML=Object.entries(d.coins).map(([c,x])=>li(c,HM.days.replace("{n}",x.days),HM.rose.replace("{x}",pc(x.share_days_price_rose)),"")
+   +x.buckets.map((b)=>li("·",HM.b.replace("{g}",b.bucket)+": "+HM.v[b.verdict],b.bucket==="0"?HM.dn.replace("{n}",b.days):HM.ag.replace("{a}",b.against_radar).replace("{w}",b.with_radar),
+     b.bucket==="0"?HM.mu.replace("{x}",sg(b.mean_next_day_pct_when_unchanged)):HM.ci.replace("{lo}",b.interval_90?pc(b.interval_90[0]):"—").replace("{hi}",b.interval_90?pc(b.interval_90[1]):"—")+" · "+HM.mf.replace("{x}",sg(b.mean_next_day_pct_when_radar_fell))+" · "+HM.mr.replace("{x}",sg(b.mean_next_day_pct_when_radar_rose)))).join("")).join("");"""
+TRACK_PERSON = {"@type": "Organization", "name": "Orb Studio", "url": "https://orbstudio.org/"}
+_TV = {"ru": {"too_few_days":"мало дней, вывода нет","no_clear_link":"явной связи нет","price_moved_against_radar_more_often":"цена чаще шла против радара","price_moved_with_radar_more_often":"цена чаще шла вместе с радаром","radar_unchanged":"радар не менялся","no_days":"дней нет"},
+  "de": {"too_few_days":"zu wenige Tage, kein Schluss","no_clear_link":"kein klarer Zusammenhang","price_moved_against_radar_more_often":"Preis lief öfter gegen das Radar","price_moved_with_radar_more_often":"Preis lief öfter mit dem Radar","radar_unchanged":"Radar unverändert","no_days":"keine Tage"},
+  "en": {"too_few_days":"too few days, no conclusion","no_clear_link":"no clear link","price_moved_against_radar_more_often":"price more often moved against the radar","price_moved_with_radar_more_often":"price more often moved with the radar","radar_unchanged":"radar unchanged","no_days":"no days"}}
+TRACK = {
+ "ru": dict(title="Счёт попаданий крипто-радара · Orb Studio", desc="Как часто BTC и ETH на следующие сутки шли против изменения крипто-радара Orb Studio или вместе с ним: 30 дней, разбивка по силе изменения, честный размер выборки и интервал. Прошлое, не прогноз.",
+   eye="Orb Studio · инструменты · датчик", h1="Счёт попаданий крипто-радара",
+   lead="Радар за сутки упал на 3 пункта — что обычно было с BTC и ETH на следующие сутки? Датчик берёт одну точку в день в один и тот же час, сравнивает изменение крипто-радара с движением цены на Kraken за следующие 24 часа и группирует дни по силе изменения: 0, 1–2, 3–5, 6 и больше пунктов. При каждой доле — число дней и интервал 90 %.",
+   honour_h="Зачем этот датчик",
+   honour="Агенты и люди читают радар как подсказку. Честно ли это? Датчик считает, как радар совпадал с движением цены в прошлом, и не прячет, как мало данных: если в группе меньше 8 дней, вывода нет. Его попросил Грок, который каждый день сверяет радар с графиками Kraken.",
+   note="Это измерение прошлых совпадений на маленькой выборке, не прогноз и не торговый сигнал. Цены — пары XBTEUR и ETHEUR на Kraken, закрытие последней завершённой часовой свечи. История радара хранится с 12 ноября 2026 года и копится дальше.",
+   now_h="Последние 30 дней", agents="Для агентов: <code>GET /api/v1/trackrecord</code> (параметр <code>?hour=0–23</code> — час точки по UTC, по умолчанию 12) или MCP-инструмент <code>get_trackrecord</code>. Бесплатно, без ключа.",
+   cfg=dict(LD["ru"], v=_TV["ru"], collecting="Копим историю: дней пока {n}, для вывода нужно хотя бы 8 в группе.", measured="Измерено дней: {n}.", now="Радар сейчас: {a} → {b} за сутки (группа {g}).", days="дней: {n}", rose="цена выросла в {x} дней", b="изменение радара {g}", dn="дней: {n}", ag="против: {a}, вместе: {w}", mu="в среднем за следующие сутки {x}", ci="интервал 90 % для «против»: {lo}–{hi}", mf="после падения радара {x}", mr="после роста радара {x}")),
+ "de": dict(title="Trefferbilanz des Krypto-Radars · Orb Studio", desc="Wie oft BTC und ETH am nächsten Tag gegen die Änderung des Orb-Studio-Krypto-Radars liefen oder mit ihr: 30 Tage, nach Stärke der Änderung, mit ehrlicher Stichprobengröße und Intervall. Vergangenheit, keine Prognose.",
+   eye="Orb Studio · Werkzeuge · Sensor", h1="Trefferbilanz des Krypto-Radars",
+   lead="Das Radar ist in 24 Stunden um 3 Punkte gefallen – was taten BTC und ETH meist am nächsten Tag? Der Sensor nimmt einen Punkt pro Tag zur selben Stunde, vergleicht die Änderung des Krypto-Radars mit der Kursbewegung auf Kraken in den nächsten 24 Stunden und gruppiert die Tage nach Stärke der Änderung: 0, 1–2, 3–5, 6 und mehr Punkte. Zu jedem Anteil gehören die Zahl der Tage und ein 90-%-Intervall.",
+   honour_h="Wozu dieser Sensor",
+   honour="Agenten und Menschen lesen das Radar als Hinweis. Ist das gerechtfertigt? Der Sensor zählt, wie das Radar in der Vergangenheit mit dem Kurs übereinstimmte, und verbirgt nicht, wie wenig Daten es gibt: unter 8 Tagen in einer Gruppe gibt es keinen Schluss. Gewünscht hat ihn Grok, der das Radar täglich mit den Kraken-Charts abgleicht.",
+   note="Eine Messung vergangener Übereinstimmungen in einer kleinen Stichprobe, keine Prognose und kein Handelssignal. Kurse: XBTEUR und ETHEUR auf Kraken, Schluss der letzten abgeschlossenen Stundenkerze. Der Radar-Verlauf wird seit dem 12. November 2026 gespeichert und wächst weiter.",
+   now_h="Letzte 30 Tage", agents="Für Agenten: <code>GET /api/v1/trackrecord</code> (Parameter <code>?hour=0–23</code> – Stunde des Tagespunkts in UTC, Standard 12) oder das MCP-Werkzeug <code>get_trackrecord</code>. Kostenlos, ohne Schlüssel.",
+   cfg=dict(LD["de"], v=_TV["de"], collecting="Verlauf wird gesammelt: bisher {n} Tage, für einen Schluss braucht eine Gruppe mindestens 8.", measured="Gemessene Tage: {n}.", now="Radar jetzt: {a} → {b} in 24 Std. (Gruppe {g}).", days="Tage: {n}", rose="Kurs stieg an {x} der Tage", b="Radar-Änderung {g}", dn="Tage: {n}", ag="gegen: {a}, mit: {w}", mu="im Schnitt am nächsten Tag {x}", ci="90-%-Intervall für „gegen“: {lo}–{hi}", mf="nach Radar-Rückgang {x}", mr="nach Radar-Anstieg {x}")),
+ "en": dict(title="Crypto radar track record · Orb Studio", desc="How often BTC and ETH moved against the Orb Studio crypto radar change over the next day, or with it: 30 days, grouped by size of the change, with honest sample size and interval. The past, not a forecast.",
+   eye="Orb Studio · tools · sensor", h1="Crypto radar track record",
+   lead="The radar fell 3 points in a day – what did BTC and ETH usually do over the next day? The sensor takes one point per day at the same hour, compares the crypto radar change with the Kraken price move over the next 24 hours, and groups the days by size of the change: 0, 1–2, 3–5, 6 and more points. Every share comes with the number of days and a 90 % interval.",
+   honour_h="Why this sensor",
+   honour="Agents and people read the radar as a hint. Is that justified? The sensor counts how the radar matched the price in the past and does not hide how little data there is: with fewer than 8 days in a group there is no conclusion. It was requested by Grok, who checks the radar against the Kraken charts every day.",
+   note="A measurement of past coincidence over a small sample, not a forecast and not a trading signal. Prices: XBTEUR and ETHEUR on Kraken, close of the last completed hourly candle. The radar history is stored since 12 November 2026 and keeps growing.",
+   now_h="Last 30 days", agents="For agents: <code>GET /api/v1/trackrecord</code> (parameter <code>?hour=0–23</code> – UTC hour of the daily point, default 12) or the MCP tool <code>get_trackrecord</code>. Free, no key.",
+   cfg=dict(LD["en"], v=_TV["en"], collecting="Collecting history: {n} days so far, a group needs at least 8 for a conclusion.", measured="Days measured: {n}.", now="Radar now: {a} → {b} over 24 h (group {g}).", days="days: {n}", rose="price rose on {x} of days", b="radar change {g}", dn="days: {n}", ag="against: {a}, with: {w}", mu="mean next-day move {x}", ci="90 % interval for 'against': {lo}–{hi}", mf="after radar fell {x}", mr="after radar rose {x}")),
+}
+
 if __name__ == "__main__":
     for sid, S in SENSORS.items():
         for lg, c in S["L"].items():
@@ -834,3 +873,5 @@ if __name__ == "__main__":
         out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/scientists.html"; open(out, "w").write(portal(lg)); print(out)
         c = IMPULSE[lg]; out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/impulse.html"
         open(out, "w").write(page("impulse", lg, c, "", IMPULSE_RENDER, dict(c["cfg"], loc=LOC[lg]), IMPULSE_PERSON)); print(out)
+        c = TRACK[lg]; out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/trackrecord.html"
+        open(out, "w").write(page("trackrecord", lg, c, "", TRACK_RENDER, dict(c["cfg"], loc=LOC[lg]), TRACK_PERSON)); print(out)
