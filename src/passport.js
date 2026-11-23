@@ -1,3 +1,4 @@
+import { toneOf } from "./tone.js";
 // «Паспорт новости»: одна цепочка проверок перед эфиром. Каждая новость проходит шаги в порядке зон библиотеки:
 // 1) свежесть (Микрин/Кокс), 2) факт или слух (независимые голоса, Сёрл — речевой акт, Франкфурт — есть ли что проверить, госСМИ),
 // 3) уверенность и 4) что не говорить (зоны 6–8: Касперсон — не раздувать риск, Линдли — не говорить с уверенностью, которой нет).
@@ -42,6 +43,8 @@ export function newsPassport(it, now = Date.now()) {
   if (QUOTED.test(headline) || (act.act === "claim" && COLON_SPEAKER.test(headline))) say.push("The headline carries someone's words: out of context they can mean something else — say whose words they are and where they were said, and do not build the story on the quote alone.");
   const meta = (headline.match(METAPHOR) || [])[0] || null;
   if (meta) say.push(`The headline uses a metaphor ('${meta}'): say in plain words what actually happened, and do not repeat the metaphor as if it were the fact.`);
+  const tone = toneOf(headline);
+  if (tone && tone.loaded) say.push(`The headline is emotionally loaded ('${tone.words.slice(0, 3).join("', '")}'): report the facts in neutral words — the heat belongs to the outlet, not to the event.`);
   const foundDoc = FOUND_DOC.test(headline);
   if (foundDoc) say.push("The story rests on a leaked or newly found document or recording: say that its date, wording and origin still need checking — a find that suits one side needs double checking, not less.");
   const grave = GRAVE.test(headline), unclear = chk.class === "nothing_to_check" || chk.class === "hedged" || chk.class === "thin";
@@ -66,9 +69,9 @@ export function newsPassport(it, now = Date.now()) {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
-    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, rumour_risk: rumourRisk,
+    first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, tone: tone && tone.loaded ? tone : null, rumour_risk: rumourRisk,
     confidence: high ? "high" : low ? "low" : "medium", say,
-    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
+    steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "loaded words: evaluation, potency, activity (Osgood, Elias)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

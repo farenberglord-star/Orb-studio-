@@ -53,7 +53,7 @@ export const CRYSTAL_BRIDGES = [
   B("spill_over", "Spill-over between radars", "Перенос между радарами", "side_effects", "waiting", ["leontief", "walras", "kahn_r", "quesnay"], { until: "2026-12-21" }),
   B("radar_moves_market", "A published radar moves the market", "Радар меняет рынок", "side_effects", "waiting", ["rosenthal", "keynes", "von_neumann", "wiener", "phillips_w", "campbell_dt"], { until: "2026-12-21" }),
   B("revisions", "How often numbers are revised", "Правки чисел", "stale_data", "waiting", ["rinne", "elmasri"], { until: "2026-12-21" }),
-  B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "source", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { needs: "open evaluation–potency–activity word list in three languages (candidate NRC VAD, licence to check)" }),
+  B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "line", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { line: "news passport: own short loaded-word list (src/tone.js, field tone)" }),
   B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "sensor", ["frege", "geach", "dirichlet", "levenshtein"], { sensor: "frege" }),
   B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "idea", ["schmidt_j", "schleicher", "tarde"], { needs: "time each outlet joined a story (not stored yet)" }),
   B("check_the_die", "Test even the obvious", "Проверь кость", "measurement_error", "idea", ["weldon", "bertrand"]),

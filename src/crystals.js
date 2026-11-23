@@ -6995,8 +6995,8 @@ export const CRYSTALS = [
 },
 "rule": "Separate what a headline says from the emotional charge of its words.",
 "needs": {
-"code": "needs_source",
-"note": "bridge 'tone in three dimensions' (Osgood + Kasperson + news passport): needs an open evaluation–potency–activity word list in English, German and Russian that may be used live"
+"code": "covered",
+"note": "applied: the news passport marks emotionally loaded headlines with Orb Studio's own short word list, each word rated for evaluation, potency and activity (field tone; a 'say' line asks for neutral words)"
 }
 },
 {
@@ -7125,8 +7125,8 @@ export const CRYSTALS = [
 },
 "rule": "Keep the tone of an alarming story from shaping what you claim about it.",
 "needs": {
-"code": "needs_source",
-"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to measure how charged a headline is"
+"code": "covered",
+"note": "applied with Osgood: the news passport flags loaded headlines (field tone) so hosts report the facts without the heat"
 }
 },
 {
@@ -7272,8 +7272,8 @@ export const CRYSTALS = [
 },
 "rule": "Do not take a headline metaphor ('price war', 'tsunami of layoffs') as a literal fact.",
 "needs": {
-"code": "needs_source",
-"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open list of news metaphors in English, German and Russian"
+"code": "covered",
+"note": "applied: the news passport flags news metaphors in English, German and Russian with its own short list (field metaphor)"
 }
 },
 {
@@ -7735,8 +7735,8 @@ export const CRYSTALS = [
 },
 "rule": "Mark which sentence is a fact and which is a judgement; do not slip a judgement in as a fact.",
 "needs": {
-"code": "needs_idea",
-"note": "mark value words in headlines (should, must, scandal, disgrace) apart from facts; joins the 'tone' bridge"
+"code": "covered",
+"note": "applied with Osgood: value words in headlines (scandal, disaster, triumph) are flagged apart from facts (field tone)"
 }
 },
 {
@@ -7959,8 +7959,8 @@ export const CRYSTALS = [
 },
 "rule": "Notice when a headline works by an image or an emotion instead of a claim you can check.",
 "needs": {
-"code": "needs_source",
-"note": "joins the bridge 'tone in three dimensions' (Osgood): needs an open word list to tell an emotional image from a checkable claim"
+"code": "covered",
+"note": "applied with Osgood: the news passport flags emotional images in headlines (field tone) apart from checkable claims"
 }
 },
 {
@@ -8668,8 +8668,8 @@ export const CRYSTALS = [
 },
 "rule": "Notice when a story fits a ready-made stereotype; check the facts that do not fit it.",
 "needs": {
-"code": "needs_source",
-"note": "joins the bridge 'tone' (Osgood): needs an open word list to flag stereotyped framings"
+"code": "covered",
+"note": "applied with Osgood: the news passport flags loaded framings in headlines (field tone)"
 }
 },
 {
