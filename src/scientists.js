@@ -22,6 +22,7 @@ import { SEARLE } from "./searle.js";
 import { SIMPSON } from "./simpson.js";
 import { KASPERSON } from "./kasperson.js";
 import { NEWCOMB } from "./newcomb.js";
+import { PARETO } from "./pareto.js";
 export const SCIENTISTS = [
   { id: "hamilton", honour: HAMILTON, field: "software engineering", tool: "get_hamilton", api: "/api/v1/hamilton",
     principle: "Under overload keep the main work running, set the rest aside and say what was set aside.",
@@ -111,6 +112,10 @@ export const SCIENTISTS = [
     principle: "The first-digit law: in many real data sets the leading digit is 1 about 30% of the time and 9 under 5%.",
     sensor: "First digits of the numbers in radar headlines (30 days) compared with Benford's law, overall and per radar, with Nigrini's fit thresholds.",
     analog_check: { date: "2026-11-23", similar: "Benford's-law tests in forensic accounting (Nigrini), tax and election audits, open-source checkers", difference: "applied live to the numbers in news headlines, per radar, for agents" } },
+  { id: "pareto", honour: PARETO, field: "economics and sociology", tool: "get_pareto", api: "/api/v1/pareto",
+    principle: "Power laws: a small share of cases carries a large share of the total.",
+    sensor: "For the index and each radar: share of all half-hour movement carried by the largest 20% of jumps (30 days), biggest jump versus the median.",
+    analog_check: { date: "2026-11-23", similar: "tail and concentration measures in finance and economics (Pareto and Lorenz curves, Gini, tail indices)", difference: "a simple top-20% share applied live to the site's own radars, for agents" } },
 ];
 // live: { hamilton: report, mikrin: report, polyak: report } — краткая строка состояния для каждого датчика
 export function scientistLine(id, r) {
@@ -122,6 +127,7 @@ export function scientistLine(id, r) {
   if (id === "trevisan") { const c = (r.indices || []).find((x) => x.id === "consensus"); return c ? { enough: c.enough_headlines, of: c.of } : { enough: null }; }
   if (id === "bertsekas") return { tools: (r.tools || []).length, recipes: (r.recipes || []).length };
   if (id === "simpson") { const c = (r.indices || []).find((x) => x.id === "consensus"); return { verdict: r.verdict, change: c ? c.change : null, within: c ? c.within_radars : null }; }
+  if (id === "pareto") return { verdict: r.verdict, index_top20: r.index ? r.index.top20_share : null, index_tail: r.index ? r.index.tail : null };
   if (id === "newcomb") return { verdict: r.verdict, numbers: r.numbers, mad: r.mad };
   if (id === "kasperson") return { verdict: r.verdict, stories: r.stories, amplified: r.amplified, amplified_pct: r.amplified_pct };
   if (id === "searle") return { verdict: r.verdict, not_yet_pct: r.not_yet_happened_pct };

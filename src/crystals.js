@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -7794,24 +7794,6 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the Howard sensor already weighs when one more piece of information pays off",
 "covered_by": "howard"
-}
-},
-{
-"id": "pareto",
-"name": "Vilfredo Pareto",
-"name_ru": "Вильфредо Парето",
-"years": "1848–1923",
-"wiki": "https://en.wikipedia.org/wiki/Vilfredo_Pareto",
-"zone": "measurement_error",
-"idea": {
-"en": "'Cours d'économie politique' (1896–97): incomes follow a power law — a small share of people holds a large share of the total (the Pareto distribution behind the '80/20' rule).",
-"ru": "«Курс политической экономии» (1896–97): доходы подчиняются степенному закону — небольшая доля людей держит большую долю всего (распределение Парето, отсюда «80/20»).",
-"de": "Pareto-Verteilung (1896–97): wenige halten einen großen Teil."
-},
-"rule": "In lopsided data the average misleads; say how much of the total the top few carry.",
-"needs": {
-"code": "ready",
-"note": "bridge 'heavy tails' (Pareto + Mandelbrot + Chebyshev + Lorenz): from ix_hist, what share of all radar movement came from the biggest 20% of half-hour jumps; data exist since 23.11.2026, needs the owner's yes for a sensor"
 }
 },
 {
