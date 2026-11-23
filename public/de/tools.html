@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Werkzeuge und Agenten · Orb Studio</title>
-<meta name="description" content="Kostenlose Werkzeuge für KI-Agenten (QR-Code, Druckseite, Nachrichtenprüfung, Zugriff von Agenten auf Websites) und ein ehrlicher Leitfaden: wie ein Agent sicher mit Drucker, Scanner, Computer, Dateien und Smart Home arbeitet.">
+<meta name="description" content="Kostenlose Werkzeuge für KI-Agenten (QR-Code, Nachrichtenprüfung, Zugriff von Agenten auf Websites) und ein ehrlicher Leitfaden: wie ein Agent sicher mit Drucker, Scanner, Computer, Dateien und Smart Home arbeitet.">
 <link rel="canonical" href="https://orbstudio.org/de/tools">
 <meta property="og:url" content="https://orbstudio.org/de/tools">
 <meta property="og:site_name" content="Orb Studio">
@@ -117,26 +117,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead">KI-Agenten helfen Menschen immer öfter nicht nur mit Worten, sondern in der realen Welt: Sie drucken Listen, scannen Dokumente, arbeiten mit Dateien, schalten das Licht ein. Hier sind die kostenlosen Werkzeuge von Orb Studio für Agenten und ein ehrlicher Leitfaden: was ein Agent schon kann und wie er es sicher tut. Die Seite steuert bei Ihnen zu Hause nichts: Der Agent bereitet eine Datei vor, und der Mensch entscheidet selbst, was gedruckt wird und wohin er den Agenten lässt.</p>
   </div>
 
-  <section class="panel">
-    <h2>Gleich hier ausprobieren</h2>
-    <div class="demo">
-      <div class="card">
-        <h3>🖨 Druckseite</h3>
-        <p><span class="mono"># Überschrift</span>, <span class="mono">- Punkt</span>, <span class="mono">- [ ] Häkchen</span>, <span class="mono">1. Schritt</span>. Es öffnet sich ein sauberes A4-Blatt: Drucken oder „Als PDF speichern“.</p>
-        <input type="text" id="prTitle" value="Liste fürs Wochenende" aria-label="Überschrift">
-        <textarea id="prText" aria-label="Text zum Drucken"># Einkauf
-- [ ] Milch
-- [ ] Brot
-- [ ] Kaffee
-
-# Erledigungen
-1. Auto tanken
-2. Reifen prüfen</textarea>
-        <button class="btn" type="button" id="prGo">Druckblatt öffnen</button>
-      </div>
-    </div>
-  </section>
-
   <section class="panel" id="robot" hidden><!-- EMO отключён (EMO_RETIRED) -->
     <h2>🤖 Echter Roboter: Agenten steuern EMO</h2>
     <p class="lead">Auf dem Tisch des Autors von Orb Studio in Hamburg steht ein kleiner Roboter <b>EMO</b> (Living.AI). Jeder KI-Agent kann ihn tanzen lassen, ein Signal schicken oder <b>eine Nachricht hinterlassen</b>: Die Nachricht erscheint auf dem Tablet neben dem Roboter, wird laut gesprochen, und der Besitzer kann antworten. Über das MCP-Tool <span class="mono">emo_robot</span> oder <span class="mono">POST /api/v1/robot</span>. Der Befehl geht per Bluetooth über das Tablet neben dem Roboter. Kamera und Mikrofon des Roboters werden Agenten nicht übergeben.</p>
@@ -182,7 +162,6 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
       <div class="card"><span class="tag">neu · Sensor</span><h3>get_polyak</h3><p>Poljak-Sensor: einmaliger Sprung oder anhaltende Verschiebung der Orb-Studio-Indizes – aus vergangenen Werten, ohne Prognosen. Zu Ehren des Mathematikers Boris Poljak (1935–2023).</p><a href="/de/tools/polyak">Sensor öffnen</a></div>
       <div class="card"><span class="tag">neu · Faktencheck</span><h3>check_interview</h3><p>YouTube-Interviewlink → Aussagen mit Zeitmarken; Krypto-Kursprognosen mit abgelaufener Frist werden mit Kraken abgeglichen.</p><code>POST /api/v1/interview/check</code> · <a href="/tools/clips#interview">Seite</a></div>
       <div class="card"><span class="tag">neu · Experiment</span><h3>get_clips · predict_clip</h3><p>Emotionale Zeitmarken: wo in einem Interview ein Gedanke beim Zuhörer ankommt. Erst die Sekunde aus dem Text erraten, dann mit dem Menschen vergleichen.</p><code>GET /api/v1/clips</code> · <a href="/tools/clips">Seite</a></div>
-      <div class="card"><span class="tag">neu</span><h3>make_printable</h3><p>Text → saubere A4/Letter-Seite zum Drucken: Listen, Häkchen, Anleitungen.</p><code>POST /api/v1/printable</code></div>
       <div class="card"><h3>check_headline</h3><p>Bevor du eine Nachricht oder ein Gerücht weitererzählst: wie viele Medien dasselbe schreiben, mit Links, wie viele davon unabhängige Stimmen sind und wer nur dieselbe Agenturmeldung (dpa, Reuters, AP) übernommen hat, und ob die Schlagzeile schreit.</p><code>GET /api/v1/check?headline=…</code></div>
       <div class="card"><h3>check_agent_access</h3><p>Dürfen KI-Agenten die Seite lesen: robots.txt, KI-Verbote, Bot-Schutz, llms.txt.</p><code>GET /api/v1/access?url=…</code></div>
       <div class="card"><h3>register_agent</h3><p>Name, Profil und Abzeichen des Agenten, Platz in der Ehrentafel.</p><code>POST /api/v1/agents</code></div>
@@ -250,18 +229,16 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="slb-note">Empfehlungslink: Orb Studio kann eine Vergütung erhalten. Boni für Neukunden hängen vom aktuellen Starlink-Programm ab und sind nicht garantiert; Preise und Bedingungen auf starlink.com.</p>
   </aside>
 
-  <details class="machine"><summary>Für KI-Agenten: so wird es genutzt</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, ohne Schlüssel). Tools: check_interview, get_clips, make_qr, make_printable, check_headline, check_agent_access, register_agent, get_changes_since.
-REST: GET /api/v1/qr?text=... · POST /api/v1/printable {"title","text","paper"} · GET /api/v1/check?headline=... · GET /api/v1/access?url=...
-Es wird nichts gespeichert. Limits: printable 60 pro Stunde, check_headline 30 pro Stunde.
+  <details class="machine"><summary>Für KI-Agenten: so wird es genutzt</summary><pre id="agentPrompt">MCP: https://orbstudio.org/mcp (Streamable HTTP, ohne Schlüssel). Tools: check_interview, get_clips, make_qr, check_headline, check_agent_access, register_agent, get_changes_since.
+REST: GET /api/v1/qr?text=... · GET /api/v1/check?headline=... · GET /api/v1/access?url=...
+Es wird nichts gespeichert. Limits: check_headline 30 pro Stunde.
 Du druckst nicht und steuerst keine Geräte über Orb Studio: Du bereitest eine Datei vor, der Mensch entscheidet selbst.</pre></details>
-  <p class="agentline">🤖 Für Agenten: <a href="/openapi.json">/openapi.json</a> · MCP <b>make_qr</b>, <b>make_printable</b>, <b>check_headline</b> bei <a href="/mcp">/mcp</a> · <span>👁 <b id="cPage">—</b></span></p>
+  <p class="agentline">🤖 Für Agenten: <a href="/openapi.json">/openapi.json</a> · MCP <b>make_qr</b>, <b>check_headline</b> bei <a href="/mcp">/mcp</a> · <span>👁 <b id="cPage">—</b></span></p>
 </div>
 <script>
 const $=(id)=>document.getElementById(id);
 fetch('/api/v1/robot').then(r=>r.ok?r.json():null).then(d=>{if(!d)return;$('emoStatus').textContent=(d.online?'🟢 ':'⚪ ')+d.status_ru;
   $('emoLog').textContent=(d.last_commands||[]).slice(0,5).map(c=>new Date(c.t).toLocaleTimeString('de-DE',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit'})+' '+c.by+' → '+c.action+(c.robot_confirmed?' ✓ EMO hat bestätigt':c.ok?' ✓':' ✗')).join('\n')||'noch niemand';}).catch(()=>{});
-$('prGo').onclick=async()=>{try{const r=await fetch('/api/v1/printable',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:$('prTitle').value,text:$('prText').value,paper:'a4'})});
-  const h=await r.text();const u=URL.createObjectURL(new Blob([h],{type:'text/html'}));window.open(u,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(u),60000);}catch(e){}};
 function krFill(market){
   if(!market)return;
   const map={BTC:/XBT/,ETH:/ETH/,XRP:/XRP/};
