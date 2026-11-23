@@ -9228,6 +9228,250 @@ export const CRYSTALS = [
 "note": "the Bertsekas sensor already shows the cheapest chains of calls, so checks stay cheap",
 "covered_by": "bertsekas"
 }
+},
+{
+"id": "neyman",
+"name": "Jerzy Neyman",
+"name_ru": "Ежи Нейман",
+"years": "1894–1981",
+"wiki": "https://en.wikipedia.org/wiki/Jerzy_Neyman",
+"zone": "measurement_error",
+"idea": {
+"en": "'Outline of a Theory of Statistical Estimation' (1937): the confidence interval — give the range that would catch the true value in most repetitions, not one point.",
+"ru": "«Очерк теории статистического оценивания» (1937): доверительный интервал — укажи диапазон, который в большинстве повторений поймает истинное значение, а не одну точку.",
+"de": "Konfidenzintervall (1937)."
+},
+"rule": "Do not give a single estimate as the whole answer; give the range around it.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already gives Wilson intervals, not single rates",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "mackie",
+"name": "J. L. Mackie",
+"name_ru": "Джон Лесли Маки",
+"years": "1917–1981",
+"wiki": "https://en.wikipedia.org/wiki/J._L._Mackie",
+"zone": "one_model",
+"idea": {
+"en": "'The Cement of the Universe' (1974), the INUS condition: what we call 'the cause' is usually one necessary part of a set of conditions that together suffice.",
+"ru": "«Цемент вселенной» (1974), условие INUS: то, что мы называем «причиной», обычно лишь необходимая часть набора условий, которые вместе достаточны.",
+"de": "INUS-Bedingung (1974)."
+},
+"rule": "Do not present one factor as the whole cause; name the other conditions it needed.",
+"needs": {
+"code": "covered",
+"note": "the Halpern sensor already names the combination of headlines that moved an index",
+"covered_by": "halpern"
+}
+},
+{
+"id": "jenkins_g",
+"name": "Gwilym Jenkins",
+"name_ru": "Гвилим Дженкинс",
+"years": "1932–1982",
+"wiki": "https://en.wikipedia.org/wiki/Gwilym_Jenkins",
+"zone": "one_model",
+"idea": {
+"en": "'Time Series Analysis: Forecasting and Control' (1970, with Box): identify a model, fit it, check its residuals — and repeat when new data arrive.",
+"ru": "«Анализ временных рядов: прогноз и управление» (1970, с Боксом): определи модель, подгони её, проверь остатки — и повтори, когда придут новые данные.",
+"de": "Box-Jenkins-Methode (1970)."
+},
+"rule": "A fitted trend is a model, not a law; re-check it on new data before extending it.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor re-checks shifts on new data",
+"covered_by": "polyak"
+}
+},
+{
+"id": "goffman",
+"name": "Erving Goffman",
+"name_ru": "Ирвинг Гофман",
+"years": "1922–1982",
+"wiki": "https://en.wikipedia.org/wiki/Erving_Goffman",
+"zone": "look_alike",
+"idea": {
+"en": "'Frame Analysis' (1974): the same strip of events reads differently in different frames — a joke, a rehearsal, a real threat.",
+"ru": "«Анализ фреймов» (1974): один и тот же отрезок событий читается по-разному в разных рамках — шутка, репетиция, настоящая угроза.",
+"de": "„Rahmen-Analyse“ (1974)."
+},
+"rule": "Ask which frame a story is told in before treating a similar scene as the same event.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor and passport already tell event, threat, promise and question apart",
+"covered_by": "searle"
+}
+},
+{
+"id": "kendall",
+"name": "Maurice Kendall",
+"name_ru": "Морис Кендалл",
+"years": "1907–1983",
+"wiki": "https://en.wikipedia.org/wiki/Maurice_Kendall",
+"zone": "measurement_error",
+"idea": {
+"en": "'Rank Correlation Methods' (1948), Kendall's tau: measure agreement in order when the sizes of the numbers cannot be trusted.",
+"ru": "«Методы ранговой корреляции» (1948), тау Кендалла: измеряй согласие в порядке, когда самим величинам чисел нельзя доверять.",
+"de": "Rangkorrelation, Kendalls Tau (1948)."
+},
+"rule": "When only the order of values is reliable, compare orders, not amounts.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces what scale each number is on",
+"covered_by": "baird"
+}
+},
+{
+"id": "tarski",
+"name": "Alfred Tarski",
+"name_ru": "Альфред Тарский",
+"years": "1901–1983",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_Tarski",
+"zone": "own_limits",
+"idea": {
+"en": "The semantic theory of truth (1933, 1944): truth for a language cannot be defined inside that same language — only in a richer one above it.",
+"ru": "Семантическая теория истины (1933, 1944): истинность для языка нельзя определить средствами того же языка — только в более богатом языке над ним.",
+"de": "Semantischer Wahrheitsbegriff (1933, 1944)."
+},
+"rule": "A source cannot certify itself; check its claims against something outside it.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor re-checks headlines against outside sources",
+"covered_by": "rabin"
+}
+},
+{
+"id": "de_finetti",
+"name": "Bruno de Finetti",
+"name_ru": "Бруно де Финетти",
+"years": "1906–1985",
+"wiki": "https://en.wikipedia.org/wiki/Bruno_de_Finetti",
+"zone": "own_limits",
+"idea": {
+"en": "'La prévision' (1937): a probability is the price at which you would bet; a set of prices that guarantees a sure loss (a Dutch book) is incoherent.",
+"ru": "«Предвидение» (1937): вероятность — это цена, по которой ты готов поставить; набор цен, гарантирующий верный проигрыш («голландская книга»), несогласован.",
+"de": "„La prévision“ (1937): Dutch Book."
+},
+"rule": "Keep your stated chances consistent: probabilities of all outcomes must add up.",
+"needs": {
+"code": "covered",
+"note": "applied: the forecast game scores by the Brier rule, so incoherent confidence costs"
+}
+},
+{
+"id": "kuznets",
+"name": "Simon Kuznets",
+"name_ru": "Саймон Кузнец",
+"years": "1901–1985",
+"wiki": "https://en.wikipedia.org/wiki/Simon_Kuznets",
+"zone": "measurement_error",
+"idea": {
+"en": "'National Income, 1929–1932' (1934), his report to Congress: 'The welfare of a nation can scarcely be inferred from a measurement of national income.'",
+"ru": "«Национальный доход, 1929–1932» (1934), его доклад Конгрессу: «О благосостоянии нации едва ли можно судить по измерению национального дохода».",
+"de": "Volkseinkommen 1929–1932 (1934)."
+},
+"rule": "Do not read a single headline number (GDP, an index) as how people are doing.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already says what each published number does and does not measure",
+"covered_by": "baird"
+}
+},
+{
+"id": "cramer",
+"name": "Harald Cramér",
+"name_ru": "Харальд Крамер",
+"years": "1893–1985",
+"wiki": "https://en.wikipedia.org/wiki/Harald_Cram%C3%A9r",
+"zone": "measurement_error",
+"idea": {
+"en": "'Mathematical Methods of Statistics' (1946) and the Cramér–Rao bound: no estimate from given data can be more precise than a certain limit.",
+"ru": "«Математические методы статистики» (1946) и граница Крамера — Рао: никакая оценка по данным не может быть точнее определённого предела.",
+"de": "Cramér-Rao-Schranke (1946)."
+},
+"rule": "Do not report more precision than your data can possibly give.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already reports uncertainty that grows with fewer days",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "kolmogorov",
+"name": "Andrey Kolmogorov",
+"name_ru": "Андрей Колмогоров",
+"years": "1903–1987",
+"wiki": "https://en.wikipedia.org/wiki/Andrey_Kolmogorov",
+"zone": "own_limits",
+"idea": {
+"en": "'Grundbegriffe der Wahrscheinlichkeitsrechnung' (1933): the axioms of probability — a number is a probability only if it obeys them.",
+"ru": "«Основные понятия теории вероятностей» (1933): аксиомы вероятности — число является вероятностью, только если подчиняется им.",
+"de": "„Grundbegriffe der Wahrscheinlichkeitsrechnung“ (1933)."
+},
+"rule": "'Likely' is not a probability; give a number only if it is consistent and grounded.",
+"needs": {
+"code": "covered",
+"note": "applied: the forecast game asks for a number, scored by the Brier rule"
+}
+},
+{
+"id": "grice",
+"name": "Paul Grice",
+"name_ru": "Пол Грайс",
+"years": "1913–1988",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Grice",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Logic and Conversation' (1967/1975): implicature — what is suggested goes beyond what is said ('some officials resigned' suggests not all).",
+"ru": "«Логика и речевое общение» (1967/1975): импликатура — подразумеваемое выходит за пределы сказанного («часть чиновников ушла» намекает, что не все).",
+"de": "„Logik und Konversation“ (1967/1975): Implikatur."
+},
+"rule": "Report what a headline says, not what it implies; the hint is not part of the fact.",
+"needs": {
+"code": "needs_idea",
+"note": "flag headlines whose quantifiers (some, several, up to) imply more than they state; joins the Frankfurt checkability rules"
+}
+},
+{
+"id": "festinger",
+"name": "Leon Festinger",
+"name_ru": "Леон Фестингер",
+"years": "1919–1989",
+"wiki": "https://en.wikipedia.org/wiki/Leon_Festinger",
+"zone": "own_limits",
+"idea": {
+"en": "'When Prophecy Fails' (1956) and cognitive dissonance (1957): when a prediction fails, believers often hold it more firmly instead of changing their view.",
+"ru": "«Когда пророчество не сбывается» (1956) и когнитивный диссонанс (1957): когда предсказание проваливается, верящие часто держатся за него крепче, вместо того чтобы изменить взгляд.",
+"de": "„Wenn Prophezeiungen fehlschlagen“ (1956)."
+},
+"rule": "When your forecast fails, say so and update; do not explain the miss away.",
+"needs": {
+"code": "covered",
+"note": "the Pearson sensor and the Brier score keep missed forecasts on record",
+"covered_by": "pearson"
+}
+},
+{
+"id": "kahn_r",
+"name": "Richard Kahn",
+"name_ru": "Ричард Кан",
+"years": "1905–1989",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Kahn,_Baron_Kahn",
+"zone": "side_effects",
+"idea": {
+"en": "'The Relation of Home Investment to Unemployment' (1931): the multiplier — one round of spending sets off further rounds across the economy.",
+"ru": "«Связь внутренних инвестиций с безработицей» (1931): мультипликатор — один круг расходов запускает следующие круги по всей экономике.",
+"de": "Multiplikator (1931)."
+},
+"rule": "Follow a change past its first effect: one spending decision ripples through others.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'spill-over between radars' (Leontief + Walras + Kahn multiplier)",
+"not_before": "2026-12-21"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
