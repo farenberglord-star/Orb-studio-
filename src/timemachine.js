@@ -817,6 +817,481 @@ export const TIME_MACHINE = [
 "en": "The opposite of Kepler: one gave up his model for the data, the other gave up the data for his model.",
 "ru": "Противоположность Кеплеру: тот отказался от модели ради данных, этот — от данных ради модели."
 }
+},
+{
+"id": "kant",
+"name": "Immanuel Kant",
+"name_ru": "Иммануил Кант",
+"years": "1724 – 1804",
+"wiki": "https://en.wikipedia.org/wiki/Immanuel_Kant",
+"zone": "own_limits",
+"idea": {
+"en": "The antinomies of pure reason: beyond experience, reason can prove both a claim and its opposite equally well.",
+"ru": "Антиномии чистого разума: за пределами опыта разум одинаково убедительно доказывает и утверждение, и его противоположность.",
+"de": "Antinomien der reinen Vernunft: jenseits der Erfahrung lassen sich These und Gegenthese gleich gut beweisen."
+},
+"rule": "If two opposite answers sound equally convincing, the question is beyond your data: say so.",
+"era": "1801-1900",
+"bridge": {
+"en": "Lindley and the 'say it is not known' rule; the own_limits zone of the passport.",
+"ru": "Линдли и правило «говори „неизвестно“»; зона 8 паспорта."
+}
+},
+{
+"id": "laplace",
+"name": "Pierre-Simon Laplace",
+"name_ru": "Пьер-Симон Лаплас",
+"years": "1749 – 1827",
+"wiki": "https://en.wikipedia.org/wiki/Pierre-Simon_Laplace",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Philosophical Essay on Probabilities' (1814): the weight of evidence for an extraordinary claim must be proportioned to its strangeness; probability is common sense reduced to calculation.",
+"ru": "«Опыт философии теории вероятностей» (1814): вес доказательств необычного утверждения должен быть соразмерен его странности; вероятность — это здравый смысл, сведённый к расчёту.",
+"de": "„Essai philosophique sur les probabilités“: Belege müssen der Seltsamkeit einer Behauptung entsprechen."
+},
+"rule": "The stranger the claim, the more independent confirmation it needs before you repeat it as fact.",
+"era": "1801-1900",
+"bridge": {
+"en": "Hume's 'Of Miracles' one century earlier; the EXTRAORDINARY line of the news passport.",
+"ru": "Юм «О чудесах» веком раньше; строка EXTRAORDINARY в паспорте новости."
+}
+},
+{
+"id": "fourier",
+"name": "Joseph Fourier",
+"name_ru": "Жозеф Фурье",
+"years": "1768 – 1830",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Fourier",
+"zone": "measurement_error",
+"idea": {
+"en": "Any signal can be split into regular waves of different periods (1822).",
+"ru": "Любой сигнал можно разложить на правильные волны разных периодов (1822).",
+"de": "Jedes Signal lässt sich in regelmäßige Wellen zerlegen (1822)."
+},
+"rule": "Before calling a change news, check whether it is just the usual daily or weekly rhythm.",
+"era": "1801-1900",
+"bridge": {
+"en": "Radar noise in the track record: a half-hour jump may be the daily cycle of news, not an event.",
+"ru": "Шум радара в «Счёте попаданий»: скачок за полчаса может быть суточным ритмом новостей, а не событием."
+}
+},
+{
+"id": "abel",
+"name": "Niels Henrik Abel",
+"name_ru": "Нильс Хенрик Абель",
+"years": "1802 – 1829",
+"wiki": "https://en.wikipedia.org/wiki/Niels_Henrik_Abel",
+"zone": "own_limits",
+"idea": {
+"en": "He proved that the general equation of the fifth degree has no formula in radicals (1824): some searches end with a proof that there is nothing to find.",
+"ru": "Он доказал, что общее уравнение пятой степени не решается в радикалах (1824): иные поиски заканчиваются доказательством, что искать нечего.",
+"de": "Er bewies die Unlösbarkeit der allgemeinen Gleichung fünften Grades durch Radikale."
+},
+"rule": "When an answer cannot exist with the data you have, say that instead of producing one.",
+"era": "1801-1900",
+"bridge": {
+"en": "Arrow's impossibility theorem in the library; Ruffini before him.",
+"ru": "Теорема Эрроу о невозможности в библиотеке; до Абеля — Руффини."
+}
+},
+{
+"id": "dobrovsky",
+"name": "Josef Dobrovský",
+"name_ru": "Йосеф Добровский",
+"years": "1753 – 1829",
+"wiki": "https://en.wikipedia.org/wiki/Josef_Dobrovsk%C3%BD",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "He declared the 'Green Mountain Manuscript', hailed as an ancient Czech treasure, a modern forgery (1824) — against patriotic enthusiasm.",
+"ru": "Он объявил «Зеленогорскую рукопись», которую чтили как древнее чешское сокровище, современной подделкой (1824) — вопреки патриотическому восторгу.",
+"de": "Er erklärte die gefeierte Grünberger Handschrift zur Fälschung (1824)."
+},
+"rule": "A text that flatters what readers want to believe needs more checking, not less.",
+"era": "1801-1900",
+"bridge": {
+"en": "Valla → Casaubon → Dobrovský → Darmesteter: dating a text by its words; Zajonc in the library (the familiar feels true).",
+"ru": "Валла → Казобон → Добровский → Дармстетер: датировка текста по словам; Зайонц в библиотеке (привычное кажется правдой)."
+}
+},
+{
+"id": "bentham",
+"name": "Jeremy Bentham",
+"name_ru": "Иеремия Бентам",
+"years": "1748 – 1832",
+"wiki": "https://en.wikipedia.org/wiki/Jeremy_Bentham",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Book of Fallacies' (1824): a catalogue of arguments used to avoid the question — appeal to authority, to the wisdom of ancestors, to fear of novelty.",
+"ru": "«Книга заблуждений» (1824): каталог доводов, которыми уходят от вопроса, — ссылка на авторитет, на мудрость предков, на страх перед новым.",
+"de": "„Das Buch der Trugschlüsse“ (1824): Argumente, die der Frage ausweichen."
+},
+"rule": "Notice when an argument answers who said it instead of whether it is true.",
+"era": "1801-1900",
+"bridge": {
+"en": "Strawson's 'false premise' bridge and Schopenhauer's stratagems.",
+"ru": "Мостик Стросона «ложная посылка» и уловки Шопенгауэра."
+}
+},
+{
+"id": "malthus",
+"name": "Thomas Robert Malthus",
+"name_ru": "Томас Роберт Мальтус",
+"years": "1766 – 1834",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Robert_Malthus",
+"zone": "one_model",
+"idea": {
+"en": "Population grows geometrically, food arithmetically (1798) — a forecast that failed because farming productivity changed.",
+"ru": "Население растёт в геометрической прогрессии, пища — в арифметической (1798); прогноз не сбылся, потому что изменилась производительность земледелия.",
+"de": "Bevölkerung wächst geometrisch, Nahrung arithmetisch – die Prognose scheiterte."
+},
+"rule": "A trend extended into the future assumes nothing else changes; say that assumption out loud.",
+"era": "1801-1900",
+"bridge": {
+"en": "Lorenz and Mandelbrot in the library; Halley's dated prediction as the opposite test.",
+"ru": "Лоренц и Мандельброт в библиотеке; датированный прогноз Галлея как проверка наоборот."
+}
+},
+{
+"id": "schleiermacher",
+"name": "Friedrich Schleiermacher",
+"name_ru": "Фридрих Шлейермахер",
+"years": "1768 – 1834",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_Schleiermacher",
+"zone": "look_alike",
+"idea": {
+"en": "Hermeneutics: a sentence is understood only through the whole text and the situation of its author — the hermeneutic circle.",
+"ru": "Герменевтика: фразу понимают только через весь текст и положение автора — герменевтический круг.",
+"de": "Hermeneutik: ein Satz versteht sich nur aus dem Ganzen und der Lage des Autors."
+},
+"rule": "Before quoting a sentence, read the paragraph around it.",
+"era": "1801-1900",
+"bridge": {
+"en": "Derrida and Geertz in the library: the 'quote out of context' bridge.",
+"ru": "Деррида и Гирц в библиотеке: мостик «цитата вне контекста»."
+}
+},
+{
+"id": "humboldt_w",
+"name": "Wilhelm von Humboldt",
+"name_ru": "Вильгельм фон Гумбольдт",
+"years": "1767 – 1835",
+"wiki": "https://en.wikipedia.org/wiki/Wilhelm_von_Humboldt",
+"zone": "look_alike",
+"idea": {
+"en": "Each language carries its own view of the world; a translation never maps word to word.",
+"ru": "Каждый язык несёт своё видение мира; перевод никогда не ложится слово в слово.",
+"de": "Jede Sprache trägt eine eigene Weltansicht; Übersetzung ist nie Wort für Wort."
+},
+"rule": "When the same story arrives in several languages, compare meanings, not words.",
+"era": "1801-1900",
+"bridge": {
+"en": "The echo check across ru/de/en and Levenshtein; the radio speaking three languages.",
+"ru": "Проверка эха на трёх языках и Левенштейн; радио на трёх языках."
+}
+},
+{
+"id": "poisson",
+"name": "Siméon Denis Poisson",
+"name_ru": "Симеон Дени Пуассон",
+"years": "1781 – 1840",
+"wiki": "https://en.wikipedia.org/wiki/Sim%C3%A9on_Denis_Poisson",
+"zone": "measurement_error",
+"idea": {
+"en": "'Research on the probability of judgments' (1837): rare independent events still come in clusters by pure chance — the distribution later named after him.",
+"ru": "«Исследования о вероятности приговоров» (1837): редкие независимые события по чистой случайности всё равно идут кучками — распределение, позже названное его именем.",
+"de": "Seltene unabhängige Ereignisse häufen sich zufällig (Poisson-Verteilung)."
+},
+"rule": "Three rare events in one week are not yet a pattern; check how often chance alone gives that.",
+"era": "1801-1900",
+"bridge": {
+"en": "Skinner's 'pigeon superstition' bridge and radar noise.",
+"ru": "Мостик Скиннера «суеверие голубя» и шум радара."
+}
+},
+{
+"id": "bessel",
+"name": "Friedrich Bessel",
+"name_ru": "Фридрих Бессель",
+"years": "1784 – 1846",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_Bessel",
+"zone": "measurement_error",
+"idea": {
+"en": "The 'personal equation' (1823): every observer has a steady bias of his own; it can be measured and removed.",
+"ru": "«Личное уравнение» (1823): у каждого наблюдателя своё постоянное смещение; его можно измерить и вычесть.",
+"de": "Die „persönliche Gleichung“: jeder Beobachter hat seine eigene feste Abweichung."
+},
+"rule": "Know each source's usual lean before comparing what two sources report.",
+"era": "1801-1900",
+"bridge": {
+"en": "Griliches (measurement error) and Lyberg (state media) in the library.",
+"ru": "Грилихес (ошибка измерения) и Люберг (госСМИ) в библиотеке."
+}
+},
+{
+"id": "bastiat",
+"name": "Frédéric Bastiat",
+"name_ru": "Фредерик Бастиа",
+"years": "1801 – 1850",
+"wiki": "https://en.wikipedia.org/wiki/Fr%C3%A9d%C3%A9ric_Bastiat",
+"zone": "side_effects",
+"idea": {
+"en": "'What is seen and what is not seen' (1850): the broken window gives the glazier work — and hides what the money would otherwise have bought.",
+"ru": "«Что видно и чего не видно» (1850): разбитое окно даёт работу стекольщику — и прячет то, на что деньги пошли бы иначе.",
+"de": "„Was man sieht und was man nicht sieht“ (1850)."
+},
+"rule": "For every visible effect, name the unseen one: what did not happen because of it?",
+"era": "1801-1900",
+"bridge": {
+"en": "Smith and Merton (unintended consequences); the side_effects zone; Jevons's paradox.",
+"ru": "Смит и Мёртон (непреднамеренные последствия); зона 6; парадокс Джевонса."
+}
+},
+{
+"id": "lobachevsky",
+"name": "Nikolai Lobachevsky",
+"name_ru": "Николай Лобачевский",
+"years": "1792 – 1856",
+"wiki": "https://en.wikipedia.org/wiki/Nikolai_Lobachevsky",
+"zone": "own_limits",
+"idea": {
+"en": "He accepted the strange consequences that Saccheri had rejected and built a consistent non-Euclidean geometry (1829).",
+"ru": "Он принял странные следствия, которые отверг Саккери, и построил непротиворечивую неевклидову геометрию (1829).",
+"de": "Er nahm an, was Saccheri verworfen hatte: nichteuklidische Geometrie (1829)."
+},
+"rule": "If a strange result follows without contradiction, keep it and test it instead of rejecting it.",
+"era": "1801-1900",
+"bridge": {
+"en": "Saccheri a century earlier; Kepler's choice of data over the beautiful model.",
+"ru": "Саккери веком раньше; выбор Кеплера — данные важнее красивой модели."
+}
+},
+{
+"id": "dirichlet",
+"name": "Peter Gustav Lejeune Dirichlet",
+"name_ru": "Петер Густав Лежён Дирихле",
+"years": "1805 – 1859",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Gustav_Lejeune_Dirichlet",
+"zone": "look_alike",
+"idea": {
+"en": "The pigeonhole principle (1834): put more things into fewer boxes and some box must hold two.",
+"ru": "Принцип ящиков (1834): разложи больше предметов по меньшему числу ящиков — в каком-то окажется два.",
+"de": "Schubfachprinzip (1834)."
+},
+"rule": "Where there are more people than names, namesakes are certain: confirm identity by more than a name.",
+"era": "1801-1900",
+"bridge": {
+"en": "The 'namesakes in the news' bridge (Levenshtein, Geach, Winkler).",
+"ru": "Мостик «тёзки в новостях» (Левенштейн, Гич, Уинклер)."
+}
+},
+{
+"id": "schopenhauer",
+"name": "Arthur Schopenhauer",
+"name_ru": "Артур Шопенгауэр",
+"years": "1788 – 1860",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_Schopenhauer",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Eristic Dialectic': 38 tricks for winning an argument regardless of truth — extending the opponent's claim, shifting the question, appeal to authority.",
+"ru": "«Эристическая диалектика»: 38 уловок, чтобы выиграть спор независимо от истины, — расширить тезис противника, подменить вопрос, сослаться на авторитет.",
+"de": "„Eristische Dialektik“: 38 Kunstgriffe, um recht zu behalten."
+},
+"rule": "In a debate, answer the claim that was made, not a bigger version of it.",
+"era": "1801-1900",
+"bridge": {
+"en": "Bentham's fallacies and Strawson's 'false premise' bridge; the round table.",
+"ru": "Заблуждения Бентама и мостик Стросона «ложная посылка»; круглый стол."
+}
+},
+{
+"id": "schleicher",
+"name": "August Schleicher",
+"name_ru": "Август Шлейхер",
+"years": "1821 – 1868",
+"wiki": "https://en.wikipedia.org/wiki/August_Schleicher",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The family tree of languages (1853): sister languages are traced back to a common ancestor by their shared changes.",
+"ru": "Родословное древо языков (1853): родственные языки возводят к общему предку по общим изменениям.",
+"de": "Stammbaumtheorie (1853): Sprachen auf einen gemeinsamen Vorfahren zurückführen."
+},
+"rule": "When many texts share the same wording, draw their family tree and find the first one.",
+"era": "1801-1900",
+"bridge": {
+"en": "The echo check (agency copies) and radar_life (first count of outlets); Condorcet's independence.",
+"ru": "Проверка эха (копии агентств) и radar_life (первое число изданий); независимость по Кондорсе."
+}
+},
+{
+"id": "dal",
+"name": "Vladimir Dal",
+"name_ru": "Владимир Даль",
+"years": "1801 – 1872",
+"wiki": "https://en.wikipedia.org/wiki/Vladimir_Dal",
+"zone": "stale_data",
+"idea": {
+"en": "The 'Explanatory Dictionary of the Living Great Russian Language' (1863–1866), gathered from speakers in his travels, not from books.",
+"ru": "«Толковый словарь живого великорусского языка» (1863–1866), собранный со слов людей в поездках, а не из книг.",
+"de": "Wörterbuch der lebenden russischen Sprache, aus dem Volksmund gesammelt."
+},
+"rule": "Take how words are used now from current speech, not from an old dictionary.",
+"era": "1801-1900",
+"bridge": {
+"en": "Song Yingxing (describe what you see); Alain Rey and Darmesteter.",
+"ru": "Сун Инсин (описывать увиденное); Ален Рей и Дармстетер."
+}
+},
+{
+"id": "mill",
+"name": "John Stuart Mill",
+"name_ru": "Джон Стюарт Милль",
+"years": "1806 – 1873",
+"wiki": "https://en.wikipedia.org/wiki/John_Stuart_Mill",
+"zone": "one_model",
+"idea": {
+"en": "'A System of Logic' (1843): methods of agreement, difference and concomitant variation for finding causes.",
+"ru": "«Система логики» (1843): методы сходства, различия и сопутствующих изменений для поиска причин.",
+"de": "„System der Logik“: Methoden der Übereinstimmung, des Unterschieds und der Begleitveränderung."
+},
+"rule": "Two things moving together is only concomitant variation; check the case where one moves without the other.",
+"era": "1801-1900",
+"bridge": {
+"en": "Granger and Salmon: the 'who leads whom' bridge of the track record (waits until ~14.12).",
+"ru": "Грейнджер и Сэлмон: мостик «кто кого ведёт» в «Счёте попаданий» (ждёт до ~14.12)."
+}
+},
+{
+"id": "cournot",
+"name": "Antoine Augustin Cournot",
+"name_ru": "Антуан Огюстен Курно",
+"years": "1801 – 1877",
+"wiki": "https://en.wikipedia.org/wiki/Antoine_Augustin_Cournot",
+"zone": "one_model",
+"idea": {
+"en": "Chance is the meeting of independent chains of causes (1843): a coincidence is real but explains nothing.",
+"ru": "Случай — это встреча независимых цепочек причин (1843): совпадение реально, но ничего не объясняет.",
+"de": "Zufall ist das Zusammentreffen unabhängiger Kausalketten (1843)."
+},
+"rule": "Do not read a cause into two events that only happened at the same time.",
+"era": "1801-1900",
+"bridge": {
+"en": "Mill, Granger and Salmon; the 'cause or shadow' bridge.",
+"ru": "Милль, Грейнджер и Сэлмон; мостик «причина или тень»."
+}
+},
+{
+"id": "babbage",
+"name": "Charles Babbage",
+"name_ru": "Чарлз Бэббидж",
+"years": "1791 – 1871",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Babbage",
+"zone": "measurement_error",
+"idea": {
+"en": "He designed calculating engines because printed tables were full of copying errors; asked whether wrong figures put in would give right answers, he could not grasp the confusion of ideas behind the question.",
+"ru": "Он придумал вычислительные машины, потому что печатные таблицы были полны ошибок переписчиков; на вопрос, выйдут ли верные ответы, если ввести неверные числа, он ответил, что не может понять путаницы мыслей, стоящей за таким вопросом.",
+"de": "Rechenmaschinen gegen Fehler in Tafeln; falsche Zahlen ergeben keine richtigen Antworten."
+},
+"rule": "A careful calculation on bad input gives a confident wrong answer: check the input first.",
+"era": "1801-1900",
+"bridge": {
+"en": "Griliches and radar noise; Bayle's errors copied from book to book.",
+"ru": "Грилихес и шум радара; ошибки, которые Бейль находил переписанными из книги в книгу."
+}
+},
+{
+"id": "jevons",
+"name": "William Stanley Jevons",
+"name_ru": "Уильям Стенли Джевонс",
+"years": "1835 – 1882",
+"wiki": "https://en.wikipedia.org/wiki/William_Stanley_Jevons",
+"zone": "one_model",
+"idea": {
+"en": "Two ideas: the Jevons paradox (more efficient coal engines raised coal use, 1865) and his own mistake — tying trade cycles to the sunspot cycle because the periods looked alike.",
+"ru": "Две идеи: парадокс Джевонса (более экономные паровые машины увеличили расход угля, 1865) и его собственная ошибка — связь торговых циклов с солнечными пятнами, потому что периоды казались похожими.",
+"de": "Jevons-Paradoxon und sein Irrtum: Konjunktur und Sonnenflecken."
+},
+"rule": "Two cycles with a similar period are not yet cause and effect.",
+"era": "1801-1900",
+"bridge": {
+"en": "Cournot and Mill in this era; Skinner's pigeon and Granger in the library.",
+"ru": "Курно и Милль в этой эпохе; голубь Скиннера и Грейнджер в библиотеке."
+}
+},
+{
+"id": "chasles",
+"name": "Michel Chasles",
+"name_ru": "Мишель Шаль",
+"years": "1793 – 1880",
+"wiki": "https://en.wikipedia.org/wiki/Michel_Chasles",
+"zone": "own_limits",
+"idea": {
+"en": "A great geometer, he bought some 27,000 forged letters (1861–1869) — Pascal 'anticipating' Newton, even Cleopatra — all written in modern French.",
+"ru": "Великий геометр, он купил около 27 000 поддельных писем (1861–1869) — Паскаль, «опередивший» Ньютона, даже Клеопатра, — и все на современном французском.",
+"de": "Der große Geometer kaufte 27 000 gefälschte Briefe, sogar von Kleopatra – auf Französisch."
+},
+"rule": "Expertise in one field does not protect you in another; a find that flatters your side needs double checking.",
+"era": "1801-1900",
+"bridge": {
+"en": "The anti-example to Valla, Casaubon and Dobrovský: the anachronism was in plain sight.",
+"ru": "Антипример к Валле, Казобону и Добровскому: анахронизм был на виду."
+}
+},
+{
+"id": "fechner",
+"name": "Gustav Fechner",
+"name_ru": "Густав Теодор Фехнер",
+"years": "1801 – 1887",
+"wiki": "https://en.wikipedia.org/wiki/Gustav_Fechner",
+"zone": "measurement_error",
+"idea": {
+"en": "The Weber–Fechner law (1860): we feel changes relative to the level we start from, not in absolute amounts.",
+"ru": "Закон Вебера — Фехнера (1860): мы ощущаем изменение относительно исходного уровня, а не в абсолютных величинах.",
+"de": "Weber-Fechner-Gesetz (1860): wir empfinden relative, nicht absolute Änderungen."
+},
+"rule": "Report a change against its usual size and base, not only as a raw number.",
+"era": "1801-1900",
+"bridge": {
+"en": "radar_now.vs_typical in the track record; Daniel Bernoulli's utility a century earlier.",
+"ru": "radar_now.vs_typical в «Счёте попаданий»; полезность Даниила Бернулли веком раньше."
+}
+},
+{
+"id": "chebyshev",
+"name": "Pafnuty Chebyshev",
+"name_ru": "Пафнутий Чебышёв",
+"years": "1821 – 1894",
+"wiki": "https://en.wikipedia.org/wiki/Pafnuty_Chebyshev",
+"zone": "own_limits",
+"idea": {
+"en": "Chebyshev's inequality (1867): whatever the shape of the distribution, at most 1/k² of values lie more than k standard deviations from the mean.",
+"ru": "Неравенство Чебышёва (1867): какова бы ни была форма распределения, не больше 1/k² значений лежат дальше k стандартных отклонений от среднего.",
+"de": "Tschebyschow-Ungleichung (1867): gilt für jede Verteilung."
+},
+"rule": "When you do not know the shape of the data, use a bound that holds for any shape.",
+"era": "1801-1900",
+"bridge": {
+"en": "Mandelbrot's heavy tails and Lorenz: the 'tails' bridge.",
+"ru": "Тяжёлые хвосты Мандельброта и Лоренц: мостик «хвосты»."
+}
+},
+{
+"id": "verner",
+"name": "Karl Verner",
+"name_ru": "Карл Вернер",
+"years": "1846 – 1896",
+"wiki": "https://en.wikipedia.org/wiki/Karl_Verner",
+"zone": "own_limits",
+"idea": {
+"en": "Verner's law (1875): the exceptions to Grimm's sound law were not noise — they followed the position of the old stress.",
+"ru": "Закон Вернера (1875): исключения из закона Гримма оказались не шумом — они следовали месту древнего ударения.",
+"de": "Vernersches Gesetz (1875): Ausnahmen zu Grimm folgten dem alten Akzent."
+},
+"rule": "Before dismissing exceptions as noise, check whether they follow a rule of their own.",
+"era": "1801-1900",
+"bridge": {
+"en": "Saccheri and Lobachevsky; radar noise (do jumps revert or not).",
+"ru": "Саккери и Лобачевский; шум радара (откатываются ли скачки)."
+}
 }
 ];
 export function timeMachineReport({ era = null, zone = null, q = null } = {}, origin = "https://orbstudio.org") {
