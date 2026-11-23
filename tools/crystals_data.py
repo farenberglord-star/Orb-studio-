@@ -921,7 +921,7 @@ NEEDS["freivalds"] = ("covered", "the Rabin sensor already spot-checks a random 
 NEEDS["pushkin"] = ("covered", "the Baird sensor already traces every number to its source and time", None, "baird")
 NEEDS["sigal"] = ("covered", "the Bertsekas sensor already gives the cheapest chains of calls", None, "bertsekas")
 NEEDS["arrow"] = ("covered", "the Howard sensor already weighs when more information pays off", None, "howard")
-NEEDS["levenshtein"] = ("needs_idea", "could make echo detection in check_headline tolerant to typos and small rewrites; not a sensor of its own")
+NEEDS["levenshtein"] = ("covered", "applied: check_headline now merges headlines that differ only by typos, other transliteration or small rewrites (independent_voices, why = typo_or_small_rewrite)")
 
 NEEDS["takacs"] = ("covered", "the Mikrin sensor already measures how long news waits on each step to the air", None, "mikrin")
 NEEDS["gottwald"] = ("covered", "the Hagenauer sensor already keeps degrees instead of rounding labels", None, "hagenauer")

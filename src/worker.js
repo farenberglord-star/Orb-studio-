@@ -833,7 +833,7 @@ async function checkHeadline(origin, request, raw, env) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v6-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v7-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
   const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";

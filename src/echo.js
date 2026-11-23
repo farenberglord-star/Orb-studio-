@@ -29,16 +29,43 @@ function jaccard(a, b) {
   return k / (a.size + b.size - k);
 }
 export const ECHO_SAME = 0.7; // доля общих слов, начиная с которой два заголовка — один текст
+// Расстояние Левенштейна (Владимир Левенштейн, 1935–2017): сколько замен, вставок и удалений букв превращают одну строку в другую.
+export function levenshtein(a, b, max = Infinity) {
+  a = String(a); b = String(b); if (a === b) return 0;
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]; let best = i;
+    for (let j = 1; j <= b.length; j++) { cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); if (cur[j] < best) best = cur[j]; }
+    if (best > max) return max + 1; prev = cur;
+  }
+  return prev[b.length];
+}
+// слова совпадают, если одинаковы или (от 5 букв) отличаются одной буквой: опечатка, другая транслитерация, окончание
+const near = (x, y) => x === y || (x.length >= 5 && y.length >= 5 && levenshtein(x, y, 1) <= 1);
+function fuzzyJaccard(a, b) {
+  if (!a.size || !b.size) return 0;
+  const rest = [...b]; let k = 0;
+  for (const x of a) { const i = rest.findIndex((y) => near(x, y)); if (i >= 0) { k++; rest.splice(i, 1); } }
+  return k / (a.size + b.size - k);
+}
+export const ECHO_TYPO = 0.85; // похожесть строк по Левенштейну, начиная с которой два заголовка — один текст с опечатками
+function charSim(a, b) {
+  const x = String(a || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim(), y = String(b || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const L = Math.max(x.length, y.length); if (!L) return 0;
+  const cap = Math.floor(L * (1 - ECHO_TYPO)); return 1 - Math.min(levenshtein(x, y, cap), cap + 1) / L;
+}
 
 // outlets: [{outlet, title, description}] → независимые голоса.
 export function echoGroups(outlets) {
   const n = outlets.length, parent = [...Array(n).keys()];
   const find = (i) => (parent[i] === i ? i : (parent[i] = find(parent[i])));
   const join = (a, b) => { parent[find(a)] = find(b); };
-  const ag = outlets.map((o) => agencyOf({ ...o, source: o.outlet })), ws = outlets.map((o) => words(o.title));
+  const ag = outlets.map((o) => agencyOf({ ...o, source: o.outlet })), ws = outlets.map((o) => words(o.title)), why = new Map();
   for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
     if (ag[i] && ag[i] === ag[j]) join(i, j);
     else if (jaccard(ws[i], ws[j]) >= ECHO_SAME) join(i, j);
+    else if (fuzzyJaccard(ws[i], ws[j]) >= ECHO_SAME || charSim(outlets[i].title, outlets[j].title) >= ECHO_TYPO) { join(i, j); why.set(i, 1); why.set(j, 1); }
   }
   const groups = new Map();
   for (let i = 0; i < n; i++) { const r = find(i); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(i); }
@@ -46,7 +73,7 @@ export function echoGroups(outlets) {
   for (const idx of groups.values()) {
     if (idx.length < 2) continue;
     const agency = idx.map((i) => ag[i]).find(Boolean) || null;
-    echoes.push({ agency, why: agency ? "same_agency" : "near_identical_title", outlets: idx.map((i) => outlets[i].outlet), title: outlets[idx[0]].title });
+    echoes.push({ agency, why: agency ? "same_agency" : idx.some((i) => why.has(i)) ? "typo_or_small_rewrite" : "near_identical_title", outlets: idx.map((i) => outlets[i].outlet), title: outlets[idx[0]].title });
   }
   echoes.sort((a, b) => b.outlets.length - a.outlets.length);
   const independent = groups.size;
@@ -58,11 +85,11 @@ export function echoGroups(outlets) {
 export const ECHO_EXPLAIN = {
   none: "no outlets to compare",
   single: "only one outlet",
-  one_voice: "all outlets carry one text (same agency or near-identical headline): this is one source repeated, not independent confirmation",
+  one_voice: "all outlets carry one text (same agency, near-identical headline, or the same headline with typos or small changes): this is one source repeated, not independent confirmation",
   partly_echo: "some outlets repeat the same agency text or headline; count independent_voices, not outlets_found",
   independent: "the outlets wrote their own headlines and no shared agency tag was found",
 };
-export const ECHO_RULE = "Independent voices = groups of outlets after merging those with the same agency tag (dpa, Reuters, AP, AFP, Bloomberg, epd/KNA, APA, TASS, RIA, Interfax) in the source name, the first lines of the snippet or the headline, and those whose headlines share at least 70% of words. It is a lower estimate of copying: an agency text rewritten in new words is not detected, and two outlets quoting the same agency on different points are merged. Idea: Daniel Kahneman's availability heuristic — a story repeated by many outlets feels more certain than one source deserves.";
+export const ECHO_RULE = "Independent voices = groups of outlets after merging those with the same agency tag (dpa, Reuters, AP, AFP, Bloomberg, epd/KNA, APA, TASS, RIA, Interfax) in the source name, the first lines of the snippet or the headline, and those whose headlines share at least 70% of words — counting words that differ by one letter as the same (typos, other transliteration, endings), or whose headlines as strings are at least 85% alike by Levenshtein edit distance (Vladimir Levenshtein, 1935–2017). It is a lower estimate of copying: an agency text rewritten in new words is not detected, and two outlets quoting the same agency on different points are merged. Idea: Daniel Kahneman's availability heuristic — a story repeated by many outlets feels more certain than one source deserves.";
 
 // Четырёхзначная оценка Белнапа–Данна (и паранепротиворечивость да Косты): сведения бывают «подтверждают»,
 // «опровергают», «и то и другое» (источники противоречат) и «ни то ни другое» (сведений нет). По заголовкам изданий.

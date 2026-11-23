@@ -4192,8 +4192,8 @@ export const CRYSTALS = [
 },
 "rule": "Two headlines that differ by a few letters are one story, not two confirmations.",
 "needs": {
-"code": "needs_idea",
-"note": "could make echo detection in check_headline tolerant to typos and small rewrites; not a sensor of its own"
+"code": "covered",
+"note": "applied: check_headline now merges headlines that differ only by typos, other transliteration or small rewrites (independent_voices, why = typo_or_small_rewrite)"
 }
 },
 {

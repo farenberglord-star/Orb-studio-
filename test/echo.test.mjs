@@ -39,7 +39,7 @@ test("check_headline uses independent voices for its verdict", () => {
   assert.match(w, /import \{ echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE, fourValued \} from "\.\/echo\.js"/);
   assert.match(w, /v = echo\.independent_voices, verdict = .*v >= 3 \? "confirmed"/);
   assert.match(w, /independent_voices: echo\.independent_voices/);
-  assert.match(w, /chk-v6-/); assert.match(w, /sources_agree: searched \? fourValued\(raws\)/);
+  assert.match(w, /chk-v7-/); assert.match(w, /sources_agree: searched \? fourValued\(raws\)/);
 });
 
 import { fourValued } from "../src/echo.js";
@@ -49,4 +49,18 @@ test("Belnap-Dunn four values over outlets", () => {
   assert.equal(fourValued([{ outlet: "A", title: "Minister resigns" }, { outlet: "B", title: "Ministry denies minister resigned" }]).value, "both");
   assert.equal(fourValued([{ outlet: "A", title: "Kreml dementiert Bericht" }]).value, "denied");
   assert.equal(fourValued([{ outlet: "A", title: "МИД опроверг сообщения" }, { outlet: "B", title: "Сообщения о встрече" }]).value, "both");
+});
+
+test("Levenshtein: typos and other transliteration are one voice, different stories stay apart", async () => {
+  const { levenshtein } = await import("../src/echo.js");
+  assert.equal(levenshtein("kitten", "sitting"), 3); assert.equal(levenshtein("abc", "abc"), 0); assert.ok(levenshtein("aaaaaaaa", "bbbbbbbb", 2) > 2);
+  const r = echoGroups([
+    { outlet: "A", title: "Selenskyj trifft Macron in Paris zu Gesprächen über Sicherheitsgarantien" },
+    { outlet: "B", title: "Selensky trifft Macron in Paris zu Gesprächen über Sicherheitsgarantie" },
+    { outlet: "C", title: "Zelenskyy meets Macron in Paris for security talks" },
+    { outlet: "D", title: "Bundestag beschließt neues Heizungsgesetz nach langer Debatte" },
+  ]);
+  assert.equal(r.independent_voices, 3); assert.equal(r.echo_groups[0].why, "typo_or_small_rewrite"); assert.deepEqual(r.echo_groups[0].outlets, ["A", "B"]);
+  const ok = echoGroups([{ outlet: "A", title: "Preise für Strom steigen im Januar" }, { outlet: "B", title: "Preise für Gas sinken im Februar" }]);
+  assert.equal(ok.independent_voices, 2);
 });
