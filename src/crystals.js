@@ -8539,6 +8539,303 @@ export const CRYSTALS = [
 "note": "the Baird sensor already gives the unit and time scale of every number",
 "covered_by": "baird"
 }
+},
+{
+"id": "lakatos",
+"name": "Imre Lakatos",
+"name_ru": "Имре Лакатос",
+"years": "1922–1974",
+"wiki": "https://en.wikipedia.org/wiki/Imre_Lakatos",
+"zone": "one_model",
+"idea": {
+"en": "'The Methodology of Scientific Research Programmes' (1970–78): a programme is progressive if it predicts new facts, degenerating if it only patches itself after each failure.",
+"ru": "«Методология научно-исследовательских программ» (1970–78): программа прогрессирует, если предсказывает новые факты, и вырождается, если только латает себя после каждой неудачи.",
+"de": "Methodologie wissenschaftlicher Forschungsprogramme (1970–78)."
+},
+"rule": "If a model needs a new excuse after every miss, say it is patching, not predicting.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor scores the radar by hits, not by explanations after the fact",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "piaget",
+"name": "Jean Piaget",
+"name_ru": "Жан Пиаже",
+"years": "1896–1980",
+"wiki": "https://en.wikipedia.org/wiki/Jean_Piaget",
+"zone": "own_limits",
+"idea": {
+"en": "Assimilation and accommodation ('The Origins of Intelligence in Children', 1936): new facts are first squeezed into old schemes; only when they do not fit is the scheme changed.",
+"ru": "Ассимиляция и аккомодация («Происхождение интеллекта у детей», 1936): новые факты сначала втискивают в старые схемы; схему меняют, лишь когда они не помещаются.",
+"de": "Assimilation und Akkommodation (1936)."
+},
+"rule": "When a new fact does not fit your picture, change the picture instead of bending the fact.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say when a fact does not fit and keep several explanations open"
+}
+},
+{
+"id": "goedel",
+"name": "Kurt Gödel",
+"name_ru": "Курт Гёдель",
+"years": "1906–1978",
+"wiki": "https://en.wikipedia.org/wiki/Kurt_G%C3%B6del",
+"zone": "own_limits",
+"idea": {
+"en": "The incompleteness theorems (1931): any consistent formal system rich enough for arithmetic contains true statements it cannot prove, and cannot prove its own consistency.",
+"ru": "Теоремы о неполноте (1931): любая непротиворечивая формальная система, достаточно богатая для арифметики, содержит истинные утверждения, которые не может доказать, и не может доказать собственную непротиворечивость.",
+"de": "Unvollständigkeitssätze (1931)."
+},
+"rule": "A system cannot fully check itself; for important claims, use a check from outside your own rules.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor re-checks published headlines against outside sources",
+"covered_by": "rabin"
+}
+},
+{
+"id": "savage",
+"name": "Leonard Jimmie Savage",
+"name_ru": "Леонард Джимми Сэвидж",
+"years": "1917–1971",
+"wiki": "https://en.wikipedia.org/wiki/Leonard_Jimmie_Savage",
+"zone": "answer_cost",
+"idea": {
+"en": "'The Foundations of Statistics' (1954): rational choice weighs each outcome by its probability and its value — and works only in a 'small world' where the options and outcomes can be listed.",
+"ru": "«Основания статистики» (1954): разумный выбор взвешивает каждый исход по вероятности и ценности — и работает только в «малом мире», где варианты и исходы можно перечислить.",
+"de": "„The Foundations of Statistics“ (1954): Entscheidung in der „kleinen Welt“."
+},
+"rule": "Weigh outcomes by both chance and cost, and say when the situation is too open to list them all.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs the value of more information",
+"covered_by": "howard"
+}
+},
+{
+"id": "frisch",
+"name": "Ragnar Frisch",
+"name_ru": "Рагнар Фриш",
+"years": "1895–1973",
+"wiki": "https://en.wikipedia.org/wiki/Ragnar_Frisch",
+"zone": "one_model",
+"idea": {
+"en": "'Statistical Confluence Analysis' (1934): when the explaining variables move together, a regression cannot tell which one does the work — its coefficients become meaningless.",
+"ru": "«Статистический анализ слияния» (1934): когда объясняющие величины движутся вместе, регрессия не может сказать, какая из них работает, — её коэффициенты теряют смысл.",
+"de": "Konfluenzanalyse (1934): Multikollinearität."
+},
+"rule": "When several causes rise and fall together, do not credit one of them; say they cannot be separated.",
+"needs": {
+"code": "covered",
+"note": "the Simpson and Halpern sensors already separate what moved an index",
+"covered_by": "halpern"
+}
+},
+{
+"id": "phillips_w",
+"name": "Bill Phillips",
+"name_ru": "Билл Филлипс",
+"years": "1914–1975",
+"wiki": "https://en.wikipedia.org/wiki/William_Phillips_(economist)",
+"zone": "one_model",
+"idea": {
+"en": "The Phillips curve (1958): a stable trade-off between unemployment and wage inflation in a century of data — which broke down in the 1970s once policy tried to exploit it.",
+"ru": "Кривая Филлипса (1958): устойчивая связь безработицы и роста зарплат за столетие данных — которая распалась в 1970-х, когда политика попыталась ею пользоваться.",
+"de": "Phillips-Kurve (1958) und ihr Zusammenbruch in den 1970ern."
+},
+"rule": "A relationship found in past data can vanish once people start acting on it; say so before relying on it.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'published radar moves the market' (Rosenthal + Keynes + Wiener + Phillips: a link breaks once people act on it)",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "pearson_e",
+"name": "Egon Pearson",
+"name_ru": "Эгон Пирсон",
+"years": "1895–1980",
+"wiki": "https://en.wikipedia.org/wiki/Egon_Pearson",
+"zone": "measurement_error",
+"idea": {
+"en": "The Neyman–Pearson lemma (1933): every test makes two kinds of error — a false alarm and a miss — and lowering one raises the other.",
+"ru": "Лемма Неймана — Пирсона (1933): у любой проверки два вида ошибок — ложная тревога и пропуск, и уменьшение одной увеличивает другую.",
+"de": "Neyman-Pearson-Lemma (1933): Fehler erster und zweiter Art."
+},
+"rule": "Say which error is worse here — a false alarm or a miss — and set the threshold for that.",
+"needs": {
+"code": "ready",
+"note": "bridge 'cost of error' (E. Pearson + Savage + Snedecor + Wedderburn, Grok): in the forecast game, report each agent's false alarms and misses separately; data exist, needs the owner's yes"
+}
+},
+{
+"id": "snedecor",
+"name": "George W. Snedecor",
+"name_ru": "Джордж Снедекор",
+"years": "1881–1974",
+"wiki": "https://en.wikipedia.org/wiki/George_W._Snedecor",
+"zone": "measurement_error",
+"idea": {
+"en": "'Statistical Methods' (1937) and the F-distribution (named by him after Fisher): a difference between groups means something only if it is large compared with the spread inside the groups.",
+"ru": "«Статистические методы» (1937) и F-распределение (названное им в честь Фишера): разница между группами что-то значит, только если она велика по сравнению с разбросом внутри групп.",
+"de": "„Statistical Methods“ (1937); F-Verteilung."
+},
+"rule": "Compare a difference between groups with the usual spread within them before calling it real.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already compares changes with the radar's ordinary noise",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "wedderburn_r",
+"name": "Robert Wedderburn",
+"name_ru": "Роберт Уэддерберн",
+"years": "1947–1975",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Wedderburn_(statistician)",
+"zone": "own_limits",
+"idea": {
+"en": "Quasi-likelihood (1974): you can fit and test a model knowing only how the mean and the spread are related, without pretending to know the full distribution.",
+"ru": "Квазиправдоподобие (1974): модель можно подогнать и проверить, зная только связь среднего и разброса, не притворяясь, что знаешь всё распределение.",
+"de": "Quasi-Likelihood (1974)."
+},
+"rule": "Assume only what you actually know about the data; do not invent a full model to look precise.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already gives bounds instead of one assumed model",
+"covered_by": "leamer"
+}
+},
+{
+"id": "lippmann",
+"name": "Walter Lippmann",
+"name_ru": "Уолтер Липпман",
+"years": "1889–1974",
+"wiki": "https://en.wikipedia.org/wiki/Walter_Lippmann",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Public Opinion' (1922): people act on 'the pictures in our heads' — stereotypes and a pseudo-environment built from news — not on the world itself.",
+"ru": "«Общественное мнение» (1922): люди действуют по «картинкам в головах» — стереотипам и псевдосреде из новостей, — а не по самому миру.",
+"de": "„Die öffentliche Meinung“ (1922): Bilder in unseren Köpfen."
+},
+"rule": "Notice when a story fits a ready-made stereotype; check the facts that do not fit it.",
+"needs": {
+"code": "needs_source",
+"note": "joins the bridge 'tone' (Osgood): needs an open word list to flag stereotyped framings"
+}
+},
+{
+"id": "mcluhan",
+"name": "Marshall McLuhan",
+"name_ru": "Маршалл Маклюэн",
+"years": "1911–1980",
+"wiki": "https://en.wikipedia.org/wiki/Marshall_McLuhan",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Understanding Media' (1964): 'the medium is the message' — the channel shapes what can be said and how it is taken.",
+"ru": "«Понимание медиа» (1964): «средство коммуникации есть сообщение» — канал определяет, что можно сказать и как это будет воспринято.",
+"de": "„Die magischen Kanäle“ (1964): Das Medium ist die Botschaft."
+},
+"rule": "Remember what a headline's length and format leave out; a headline is not the full report.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport says when a headline is vague and adds what it leaves out"
+}
+},
+{
+"id": "barthes",
+"name": "Roland Barthes",
+"name_ru": "Ролан Барт",
+"years": "1915–1980",
+"wiki": "https://en.wikipedia.org/wiki/Roland_Barthes",
+"zone": "look_alike",
+"idea": {
+"en": "'Mythologies' (1957): myth turns history into nature — a chosen way of presenting things comes to look like the way things simply are.",
+"ru": "«Мифологии» (1957): миф превращает историю в природу — выбранный способ подачи начинает выглядеть как естественный порядок вещей.",
+"de": "„Mythen des Alltags“ (1957)."
+},
+"rule": "Ask whether something presented as 'natural' or 'inevitable' is in fact someone's framing.",
+"needs": {
+"code": "needs_idea",
+"note": "flag framings that present a choice as 'inevitable' or 'natural'; no tested word list yet"
+}
+},
+{
+"id": "ryle",
+"name": "Gilbert Ryle",
+"name_ru": "Гилберт Райл",
+"years": "1900–1976",
+"wiki": "https://en.wikipedia.org/wiki/Gilbert_Ryle",
+"zone": "look_alike",
+"idea": {
+"en": "'The Concept of Mind' (1949): the category mistake — a visitor sees the colleges and libraries and asks 'but where is the university?'",
+"ru": "«Понятие сознания» (1949): категориальная ошибка — гость осматривает колледжи и библиотеки и спрашивает: «А где же университет?»",
+"de": "„Der Begriff des Geistes“ (1949): Kategorienfehler."
+},
+"rule": "Check that you are not treating a whole (a market, 'the West') as one more thing beside its parts.",
+"needs": {
+"code": "needs_idea",
+"note": "flag headlines that treat a whole ('the market', 'the West') as one actor; no tested rule yet"
+}
+},
+{
+"id": "polanyi_m",
+"name": "Michael Polanyi",
+"name_ru": "Майкл Полани",
+"years": "1891–1976",
+"wiki": "https://en.wikipedia.org/wiki/Michael_Polanyi",
+"zone": "own_limits",
+"idea": {
+"en": "'The Tacit Dimension' (1966): 'we can know more than we can tell' — much expert knowledge cannot be fully written down as rules.",
+"ru": "«Неявное знание» (1966): «мы знаем больше, чем можем сказать» — многое из знания экспертов нельзя полностью записать в правила.",
+"de": "„Implizites Wissen“ (1966)."
+},
+"rule": "Say when a judgement rests on rules you can state and when it rests on a hunch you cannot fully justify.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say where the facts stop and the confidence they really have"
+}
+},
+{
+"id": "bertalanffy",
+"name": "Ludwig von Bertalanffy",
+"name_ru": "Людвиг фон Берталанфи",
+"years": "1901–1972",
+"wiki": "https://en.wikipedia.org/wiki/Ludwig_von_Bertalanffy",
+"zone": "one_model",
+"idea": {
+"en": "'General System Theory' (1968): open systems show equifinality — the same final state can be reached from different starting points and by different paths.",
+"ru": "«Общая теория систем» (1968): открытым системам свойственна эквифинальность — одно и то же конечное состояние достигается из разных начальных точек и разными путями.",
+"de": "„General System Theory“ (1968): Äquifinalität."
+},
+"rule": "Do not infer one cause from an outcome; the same result can have several different paths.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'who leads whom' (Granger + Reichenbach + Bertalanffy: several paths to one outcome)",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "stevens_ss",
+"name": "Stanley Smith Stevens",
+"name_ru": "Стэнли Смит Стивенс",
+"years": "1906–1973",
+"wiki": "https://en.wikipedia.org/wiki/Stanley_Smith_Stevens",
+"zone": "measurement_error",
+"idea": {
+"en": "'On the Theory of Scales of Measurement' (1946): nominal, ordinal, interval and ratio scales — what you may compute depends on the scale (you cannot average ranks as if they were amounts).",
+"ru": "«О теории шкал измерения» (1946): номинальная, порядковая, интервальная и шкала отношений — что можно вычислять, зависит от шкалы (ранги нельзя усреднять как количества).",
+"de": "„On the Theory of Scales of Measurement“ (1946)."
+},
+"rule": "Before averaging or comparing ratios, check what kind of scale the numbers are on.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces the unit and scale of every number",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
