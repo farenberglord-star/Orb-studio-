@@ -7757,6 +7757,25 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "mark value words in headlines (should, must, scandal, disgrace) apart from facts; joins the 'tone' bridge"
 }
+},
+{
+"id": "helmert",
+"name": "Friedrich Robert Helmert",
+"name_ru": "Фридрих Роберт Гельмерт",
+"years": "1843–1917",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_Robert_Helmert",
+"zone": "measurement_error",
+"idea": {
+"en": "Theory of errors in geodesy (1872, 1880): every measurement carries an error that can be estimated; he derived the distribution of the sample variance (the chi-squared family, 1876).",
+"ru": "Теория ошибок в геодезии (1872, 1880): у каждого измерения есть погрешность, которую можно оценить; он вывел распределение выборочной дисперсии (семейство хи-квадрат, 1876).",
+"de": "Fehlertheorie der Geodäsie; Verteilung der Stichprobenvarianz (1876)."
+},
+"rule": "Give a number together with how precise it is; a number without its error looks more certain than it is.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already gives bounds instead of one number; the track record sensor gives intervals",
+"covered_by": "leamer"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
