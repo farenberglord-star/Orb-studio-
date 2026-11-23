@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zeitmaschine · Orb Studio</title>
+<meta name="description" content="Ideen von Forschenden aller Epochen als Regeln für KI-Agenten – und Brücken über die Jahrhunderte zur Kristall-Bibliothek und zu den Live-Sensoren von Orb Studio.">
+<link rel="canonical" href="https://orbstudio.org/de/tools/timemachine">
+<meta property="og:url" content="https://orbstudio.org/de/tools/timemachine">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Zeitmaschine · Orb Studio">
+<meta property="og:description" content="Ideen von Forschenden aller Epochen als Regeln für KI-Agenten – und Brücken über die Jahrhunderte zur Kristall-Bibliothek und zu den Live-Sensoren von Orb Studio.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--warm:#ffb547;--hot:#ff5d7a;--up:#4fd8a4;--violet:#a99bff;
+  --display:"Chakra Petch",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);margin:0}
+a{color:var(--holo)}
+.wrap{max-width:1040px;margin:0 auto;padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+h1{font-family:var(--display);font-size:22px;letter-spacing:.1em;margin:4px 0 0}
+h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;margin:0 0 10px;color:var(--holo)}
+h3{font-family:var(--display);font-size:16px;margin:0 0 4px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.lead{color:var(--dim);font-size:14px;margin:0;max-width:70ch;line-height:1.5}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.card{background:rgba(5,8,16,.6);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
+.card p{margin:4px 0;font-size:13.5px;line-height:1.5;color:#c9d6ee}
+.card .tag{font-family:var(--mono);font-size:11px;color:var(--warm)}
+.card code,.mono{font-family:var(--mono);font-size:12px;color:var(--holo);word-break:break-word}
+.card .safe{font-size:12px;color:var(--up)}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:760px){.demo{grid-template-columns:1fr}}
+input[type=text],textarea{width:100%;background:#03060d;color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:10px;font:14px var(--body)}
+textarea{min-height:130px;font-family:var(--mono);font-size:13px}
+.btn{font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:14px;color:#0b0820;background:linear-gradient(90deg,#6fe6ff,#4f8dff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;margin-top:8px}
+.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.qrbox{margin-top:10px;display:flex;justify-content:center}
+.qrbox img{width:180px;height:180px;background:#fff;border-radius:8px}
+ol.rules{margin:0;padding-left:20px;line-height:1.6;font-size:14px}
+.more{display:flex;gap:8px;flex-wrap:wrap}
+.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+details.machine{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+details.machine summary{cursor:pointer;font-family:var(--mono);font-size:12px;color:var(--holo)}
+details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
+.agentline{font-family:var(--mono);font-size:12px;color:var(--dim);margin:0}
+</style>
+<style>
+.krb{position:relative;overflow:hidden;border-radius:16px;padding:18px;border:1px solid rgba(155,140,255,.45);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(155,140,255,.28) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(95,227,255,.14) 0%,transparent 60%),linear-gradient(160deg,#120f2e 0%,#0b1226 60%,#070b16 100%);color:#e6e9fb}
+.krb-eye{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:#b9aeff;text-transform:uppercase}
+.krb h3{font-family:var(--display);font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:30ch;color:#f4f2ff}
+.krb h3 b{color:#b9aeff}
+.krb-sub{color:#a3a9c9;font-size:13.5px;margin:0;max-width:60ch}
+.krb-px{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 12px}
+.krb-px span{font-family:var(--mono);font-size:12px;background:rgba(7,11,22,.65);border:1px solid rgba(155,140,255,.3);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.krb-px i{font-style:normal;margin-left:6px}.krb-px .up{color:var(--up)}.krb-px .dn{color:var(--hot)}
+.krb-cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.krb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:var(--display);font-weight:700;letter-spacing:.04em;font-size:15px;color:#0b0820;background:linear-gradient(90deg,#b9aeff,#8f7dff);border-radius:10px;padding:11px 16px}
+.krb-go:hover,.krb-go:focus-visible{filter:brightness(1.08);outline:2px solid #e6e1ff;outline-offset:2px}
+.krb-code{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:#e6e1ff;background:rgba(7,11,22,.7);border:1px dashed rgba(185,174,255,.6);border-radius:10px;padding:9px 12px;cursor:pointer}
+.krb-note{color:#8a8fae;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<style>
+.slb{position:relative;overflow:hidden;border-radius:16px;margin-block:18px;padding:18px;border:1px solid rgba(220,228,240,.4);
+  background:radial-gradient(120% 90% at 100% 0%,rgba(220,228,240,.18) 0%,transparent 55%),radial-gradient(90% 80% at 0% 100%,rgba(111,230,255,.10) 0%,transparent 60%),linear-gradient(160deg,#0d1117 0%,#0a0f1a 60%,#05070c 100%);color:#e8edf5}
+.slb::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px)}
+.slb svg.slb-orbit{position:absolute;right:-50px;top:-40px;width:240px;height:240px;opacity:.6;pointer-events:none}
+.slb svg.slb-orbit .sat{transform-origin:120px 120px;animation:slbspin 14s linear infinite}
+@keyframes slbspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.slb svg.slb-orbit .sat{animation:none}}
+.slb>*{position:relative}
+.slb-eye{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.16em;color:#c9d4e6;text-transform:uppercase}
+.slb h3{font-family:"Chakra Petch",system-ui,sans-serif;font-size:clamp(19px,3.4vw,24px);line-height:1.2;margin:6px 0 4px;max-width:28ch;text-wrap:balance;color:#fff}
+.slb h3 b{color:#dfe8f5;letter-spacing:.06em}
+.slb-sub{color:#a7b1c4;font-size:13.5px;margin:0;max-width:60ch}
+.slb-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0;list-style:none}
+@media (max-width:640px){.slb-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.slb-facts li{background:rgba(5,8,14,.6);border:1px solid rgba(220,228,240,.16);border-radius:10px;padding:9px 10px;min-width:0}
+.slb-facts b{display:block;font-family:"Chakra Petch",system-ui,sans-serif;font-size:16px;color:#fff}
+.slb-facts span{font-size:11.5px;color:#a7b1c4}
+.slb-go{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:"Chakra Petch",system-ui,sans-serif;font-weight:700;letter-spacing:.04em;font-size:15px;color:#05070c;background:linear-gradient(90deg,#ffffff,#c9d4e6);border-radius:10px;padding:11px 16px;box-shadow:0 8px 24px -10px rgba(220,228,240,.6)}
+.slb-go:hover,.slb-go:focus-visible{filter:brightness(1.05);outline:2px solid #fff;outline-offset:2px}
+.slb-note{color:#8790a3;font-size:11px;line-height:1.5;margin:12px 0 0;max-width:80ch}
+</style>
+<!--orb-nav-css--><style>
+@view-transition{navigation:auto}
+.onav{position:sticky;top:0;z-index:50;background:rgba(5,8,16,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid rgba(120,160,220,.16);padding-top:env(safe-area-inset-top,0px)}
+.onav-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.onav-brand{font:700 14px/1 "Chakra Petch",system-ui,sans-serif;letter-spacing:.14em;color:#e8f1ff;text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.onav-brand i{width:11px;height:11px;border-radius:50%;background:#5fe3ff;box-shadow:0 0 12px #5fe3ff;display:inline-block}
+.onav-tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;flex:1;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 22px),transparent);padding:0 14px}
+.onav-tabs::-webkit-scrollbar{display:none}
+.onav-tabs a{font:12px/1 "JetBrains Mono",ui-monospace,monospace;white-space:nowrap;text-decoration:none;color:#8b9bb8;padding:8px 11px;border-radius:7px;border:1px solid transparent;scroll-snap-align:center;flex-shrink:0}
+.onav-tabs a:hover,.onav-tabs a:focus-visible{color:#e8f1ff;border-color:rgba(120,160,220,.3);outline:none}
+.onav-tabs a.on{color:#5fe3ff;border-color:rgba(95,227,255,.45);background:rgba(95,227,255,.07)}
+.onav-lang{display:flex;gap:2px;flex-shrink:0;border:1px solid rgba(120,160,220,.22);border-radius:8px;padding:2px}
+.onav-lang a{font:700 11px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.06em;text-decoration:none;color:#8b9bb8;padding:6px 7px;border-radius:6px}
+.onav-lang a:hover,.onav-lang a:focus-visible{color:#e8f1ff;outline:none}
+.onav-lang a.on{color:#05080f;background:#5fe3ff}
+@media (max-width:560px){.onav-brand span{display:none}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
+</style>
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script><!--/orb-nav-css--><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/ru/tools/timemachine">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/timemachine">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/timemachine">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/tools/timemachine">
+<meta property="og:locale" content="de_DE">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Zeitmaschine · Orb Studio", "description": "Ideen von Forschenden aller Epochen als Regeln für KI-Agenten – und Brücken über die Jahrhunderte zur Kristall-Bibliothek und zu den Live-Sensoren von Orb Studio.", "url": "https://orbstudio.org/de/tools/timemachine", "inLanguage": "de", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"}, "about": {"@type": "ItemList", "name": "Zeitmaschine", "numberOfItems": 16, "itemListElement": [{"@type": "Person", "name": "Jean Buridan", "sameAs": ["https://en.wikipedia.org/wiki/Jean_Buridan"]}, {"@type": "Person", "name": "Nicholas of Autrecourt", "sameAs": ["https://en.wikipedia.org/wiki/Nicholas_of_Autrecourt"]}, {"@type": "Person", "name": "Nicole Oresme", "sameAs": ["https://en.wikipedia.org/wiki/Nicole_Oresme"]}, {"@type": "Person", "name": "Madhava of Sangamagrama", "sameAs": ["https://en.wikipedia.org/wiki/Madhava_of_Sangamagrama"]}, {"@type": "Person", "name": "Jamshid al-Kashi", "sameAs": ["https://en.wikipedia.org/wiki/Jamsh%C4%ABd_al-K%C4%81sh%C4%AB"]}, {"@type": "Person", "name": "Lorenzo Valla", "sameAs": ["https://en.wikipedia.org/wiki/Lorenzo_Valla"]}, {"@type": "Person", "name": "Nicholas of Cusa", "sameAs": ["https://en.wikipedia.org/wiki/Nicholas_of_Cusa"]}, {"@type": "Person", "name": "Paolo dal Pozzo Toscanelli", "sameAs": ["https://en.wikipedia.org/wiki/Paolo_dal_Pozzo_Toscanelli"]}, {"@type": "Person", "name": "Luca Pacioli", "sameAs": ["https://en.wikipedia.org/wiki/Luca_Pacioli"]}, {"@type": "Person", "name": "Nicolaus Copernicus", "sameAs": ["https://en.wikipedia.org/wiki/Nicolaus_Copernicus"]}, {"@type": "Person", "name": "Gemma Frisius", "sameAs": ["https://en.wikipedia.org/wiki/Gemma_Frisius"]}, {"@type": "Person", "name": "Gerolamo Cardano", "sameAs": ["https://en.wikipedia.org/wiki/Gerolamo_Cardano"]}, {"@type": "Person", "name": "Michel de Montaigne", "sameAs": ["https://en.wikipedia.org/wiki/Michel_de_Montaigne"]}, {"@type": "Person", "name": "Gerardus Mercator", "sameAs": ["https://en.wikipedia.org/wiki/Gerardus_Mercator"]}, {"@type": "Person", "name": "Jean Bodin", "sameAs": ["https://en.wikipedia.org/wiki/Jean_Bodin"]}, {"@type": "Person", "name": "Arsène Darmesteter", "sameAs": ["https://en.wikipedia.org/wiki/Ars%C3%A8ne_Darmesteter"]}]}, "mainEntity": {"@type": "Dataset", "name": "Zeitmaschine", "description": "Ideen von Forschenden aller Epochen als Regeln für KI-Agenten – und Brücken über die Jahrhunderte zur Kristall-Bibliothek und zu den Live-Sensoren von Orb Studio.", "url": "https://orbstudio.org/api/v1/timemachine", "isAccessibleForFree": true, "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/timemachine"}}}</script>
+<style>.hm-list{list-style:none;padding:0;margin:0}.hm-list li{display:grid;grid-template-columns:1.6rem 1fr auto;gap:.15rem .6rem;padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.12)}.hm-list .n{opacity:.6}.hm-list .s{white-space:nowrap}.hm-list .w{grid-column:2/4;font-size:.92rem;opacity:.85}.hm-list .u{grid-column:2/4;font-size:.8rem;opacity:.6}.hm-st{font-size:1.15rem;margin:.2rem 0 .8rem}.pstrip{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;justify-content:center;margin:1.2rem 0 4.5rem;padding:.45rem .8rem;border:1px solid rgba(155,140,255,.35);border-radius:999px;font-size:.8rem;opacity:.85}.pstrip a{text-decoration:none}.pstrip small{opacity:.6}.crl{list-style:none;padding:0;margin:.4rem 0 1.2rem;display:grid;gap:.6rem}.cr{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:.6rem .8rem}.cr p{margin:.3rem 0}</style>
+</head>
+<body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio – Startseite"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Bereiche von Orb Studio"><a href="/">Start</a><a href="/world">Welt jetzt</a><a href="/ground">Vom Boden</a><a href="/air">Sendung</a><a href="/deck">Brücke</a><a href="/for-agents" class="on" aria-current="page">Für Agenten</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/timemachine" hreflang="ru" lang="ru">RU</a><a href="/de/tools/timemachine" hreflang="de" lang="de" class="on" aria-current="true">DE</a><a href="/en/tools/timemachine" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Orb Studio · Werkzeuge · Zeitmaschine</div>
+    <h1>Zeitmaschine</h1>
+    <p class="lead">Wir springen durch die Jahre – 1888, die Renaissance, bald das 18. Jahrhundert – und fragen jede Epoche nur eins: Gibt die Idee einem KI-Agenten heute eine Regel, und welche Brücke schlägt sie zu unserer Bibliothek? Lorenzo Valla entlarvte 1440 eine Fälschung an Wörtern, die es damals noch nicht gab – genau das braucht ein Agent, der das Datum einer Quelle prüft.</p>
+  </div>
+  <section class="panel" id="now">
+    <h2>Forschende nach Epochen</h2>
+    <p class="hm-st" id="hmStatus">Wird geladen…</p>
+    <div id="hmRows">
+    <h3 id="era-1350-1600">Renaissance und Entdeckungen, 1350–1600</h3>
+    <ul class="crl">
+      <li class="cr" id="buridan"><b>Jean Buridan (c. 1301 – c. 1358)</b><p>„Buridans Esel“: zwischen zwei gleich guten Optionen ist Nichtwählen die schlechteste Wahl.</p><p><small>Regel für Agenten: When options are equally good, pick one and say they were equal instead of stalling.</small></p><p><small>Brücke über die Jahrhunderte: Bertsekas sensor: the cheapest chain that answers well enough.</small> · <small>Kosten der Antwort</small> · <a href="https://en.wikipedia.org/wiki/Jean_Buridan" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="autrecourt"><b>Nicholas of Autrecourt (c. 1299 – 1369)</b><p>Nur der Widerspruch ist gewiss: Ursache lässt sich aus Zusammentreffen nicht beweisen.</p><p><small>Regel für Agenten: Seeing two things together is not proof that one causes the other.</small></p><p><small>Brücke über die Jahrhunderte: Granger, Salmon and Haavelmo in the library: correlation is not structure — 650 years earlier.</small> · <small>Ein Modell statt der Wirklichkeit</small> · <a href="https://en.wikipedia.org/wiki/Nicholas_of_Autrecourt" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="oresme"><b>Nicole Oresme (c. 1320 – 1382)</b><p>Dieselben Beobachtungen passen zu zwei Modellen: Himmel dreht sich oder die Erde.</p><p><small>Regel für Agenten: If the data fit two models equally well, say both; do not present one as the truth.</small></p><p><small>Brücke über die Jahrhunderte: Leamer sensor: report the range over all reasonable models.</small> · <small>Ein Modell statt der Wirklichkeit</small> · <a href="https://en.wikipedia.org/wiki/Nicole_Oresme" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="madhava"><b>Madhava of Sangamagrama (c. 1340 – c. 1425)</b><p>Unendliche Reihen abgebrochen, mit einem Korrekturglied für den Rest.</p><p><small>Regel für Agenten: When you stop early, estimate what you left out.</small></p><p><small>Brücke über die Jahrhunderte: Trevisan sensor: how many headlines are enough, and how big the error is.</small> · <small>Kosten der Antwort</small> · <a href="https://en.wikipedia.org/wiki/Madhava_of_Sangamagrama" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="al_kashi"><b>Jamshid al-Kashi (c. 1380 – 1429)</b><p>Erst die nötige Genauigkeit festlegen, dann genau so viele Stellen rechnen.</p><p><small>Regel für Agenten: Decide how precise the answer must be for its purpose before computing it.</small></p><p><small>Brücke über die Jahrhunderte: Hopper and Bertsekas: show and limit the cost of precision.</small> · <small>Kosten der Antwort</small> · <a href="https://en.wikipedia.org/wiki/Jamsh%C4%ABd_al-K%C4%81sh%C4%AB" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="valla"><b>Lorenzo Valla (c. 1407 – 1457)</b><p>Er entlarvte die „Konstantinische Schenkung“ durch Anachronismen der Sprache.</p><p><small>Regel für Agenten: Check whether a source&#x27;s words fit the date it claims; anachronisms reveal fakes.</small></p><p><small>Brücke über die Jahrhunderte: Koselleck, Alain Rey and Derrida: words carry the time they were written in. Bridge across six centuries: date-checking by language.</small> · <small>Gerücht statt Tatsache</small> · <a href="https://en.wikipedia.org/wiki/Lorenzo_Valla" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="cusa"><b>Nicholas of Cusa (1401 – 1464)</b><p>„Die belehrte Unwissenheit“.</p><p><small>Regel für Agenten: Know and say where your knowledge ends.</small></p><p><small>Brücke über die Jahrhunderte: Weizenbaum, Hayek and the hosts&#x27; rule &#x27;say not known yet&#x27;.</small> · <small>Grenzen des eigenen Könnens</small> · <a href="https://en.wikipedia.org/wiki/Nicholas_of_Cusa" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="toscanelli"><b>Paolo dal Pozzo Toscanelli (1397 – 1482)</b><p>Seine Karte setzte Asien viel zu nah; Kolumbus segelte auf diesem Irrtum.</p><p><small>Regel für Agenten: A confident number is not a correct one: check the measurement behind it before acting.</small></p><p><small>Brücke über die Jahrhunderte: Baird sensor: trace every number to its source and check it independently.</small> · <small>Messfehler</small> · <a href="https://en.wikipedia.org/wiki/Paolo_dal_Pozzo_Toscanelli" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="pacioli"><b>Luca Pacioli (c. 1447 – 1517)</b><p>Doppelte Buchführung: jede Buchung hat eine Gegenbuchung.</p><p><small>Regel für Agenten: Check a figure by a second, independent path; if they disagree, one is wrong.</small></p><p><small>Brücke über die Jahrhunderte: Baird sensor&#x27;s cross-checks of the same number by independent paths.</small> · <small>Messfehler</small> · <a href="https://en.wikipedia.org/wiki/Luca_Pacioli" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="copernicus"><b>Nicolaus Copernicus (1473 – 1543)</b><p>Das heliozentrische Modell ersetzte ein jahrhundertealtes.</p><p><small>Regel für Agenten: A model trusted for a long time can still be wrong; keep checking it against what you observe.</small></p><p><small>Brücke über die Jahrhunderte: Simpson and Polyak sensors: is the index really moving, or is the model fooling us?</small> · <small>Ein Modell statt der Wirklichkeit</small> · <a href="https://en.wikipedia.org/wiki/Nicolaus_Copernicus" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="frisius"><b>Gemma Frisius (1508 – 1555)</b><p>Triangulation und Längenbestimmung mit der Uhr.</p><p><small>Regel für Agenten: Fix a fact from two independent sources, not one.</small></p><p><small>Brücke über die Jahrhunderte: check_headline counts independent voices, not outlets.</small> · <small>Messfehler</small> · <a href="https://en.wikipedia.org/wiki/Gemma_Frisius" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="cardano"><b>Gerolamo Cardano (1501 – 1576)</b><p>„Liber de ludo aleae“: gleich mögliche Fälle zählen.</p><p><small>Regel für Agenten: Count the cases before you call something likely.</small></p><p><small>Brücke über die Jahrhunderte: Track record sensor: count the days before trusting a pattern; Wilson intervals.</small> · <small>Messfehler</small> · <a href="https://en.wikipedia.org/wiki/Gerolamo_Cardano" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="montaigne"><b>Michel de Montaigne (1533 – 1592)</b><p>„Que sais-je?“ – Zweifel als Methode.</p><p><small>Regel für Agenten: Ask what you actually know before you judge.</small></p><p><small>Brücke über die Jahrhunderte: Nozick and Strawson in the library: would I say this if it were false?</small> · <small>Grenzen des eigenen Könnens</small> · <a href="https://en.wikipedia.org/wiki/Michel_de_Montaigne" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="mercator"><b>Gerardus Mercator (1512 – 1594)</b><p>Jede Karte verzerrt etwas – Mercator bewahrt Kurse, verzerrt Flächen.</p><p><small>Regel für Agenten: Know what your representation distorts, and say it when you use it.</small></p><p><small>Brücke über die Jahrhunderte: Lyberg sensor: what the radars do not see; every index is a projection.</small> · <small>Messfehler</small> · <a href="https://en.wikipedia.org/wiki/Gerardus_Mercator" rel="noopener">Wikipedia</a></p></li>
+      <li class="cr" id="bodin"><b>Jean Bodin (1530 – 1596)</b><p>Preisrevolution durch Silberzufluss, nicht durch Gier.</p><p><small>Regel für Agenten: Before blaming a person, check whether the numbers point to a different cause.</small></p><p><small>Brücke über die Jahrhunderte: Halpern and Simpson sensors: what actually moved the index.</small> · <small>Ein Modell statt der Wirklichkeit</small> · <a href="https://en.wikipedia.org/wiki/Jean_Bodin" rel="noopener">Wikipedia</a></p></li>
+    </ul>
+    <h3 id="era-1801-1900">19. Jahrhundert</h3>
+    <ul class="crl">
+      <li class="cr" id="darmesteter"><b>Arsène Darmesteter (1846 – 1888)</b><p>„La vie des mots“: Wörter ändern ihre Bedeutung.</p><p><small>Regel für Agenten: Check what a word meant when the source was written.</small></p><p><small>Brücke über die Jahrhunderte: Koselleck and Alain Rey in the library; with Valla, a bridge of five centuries.</small> · <small>Ähnliches für Gleiches gehalten</small> · <a href="https://en.wikipedia.org/wiki/Ars%C3%A8ne_Darmesteter" rel="noopener">Wikipedia</a></p></li>
+    </ul>
+  </div>
+    <p>Für Agenten: <code>GET /api/v1/timemachine</code> (Filter <code>?era=</code>, <code>?zone=</code>, <code>?q=</code>) oder das MCP-Werkzeug <code>get_time_machine</code>. Kostenlos, ohne Schlüssel.</p>
+  </section>
+  <section class="panel" id="honour">
+    <h2>So arbeitet die Zeitmaschine</h2>
+    <p>Die Rohliste der Verstorbenen eines Jahres oder Zeitraums aus der russischen Wikipedia bringt Liana (Gemini). Claude wählt aus, wessen Werk eine Regel für Agenten ergibt, und sucht die Brücke zu Karten der Kristall-Bibliothek und zu Live-Sensoren. Die Kristall-Bibliothek erinnert an kürzlich verstorbene Forschende; die Zeitmaschine an Ideen, die Jahrhunderte überdauert haben.</p>
+    <p><small>Orb Studio steht in keiner Verbindung zu diesen Forschenden und ihren Erben. Frühe Lebensdaten sind ungefähr, wie in der Wikipedia angegeben.</small></p>
+    <p><a href="/de/tools/crystals">Alle Sensoren zu Ehren von Wissenschaftlern →</a></p>
+  </section>
+  <aside class="pstrip" aria-label="Partner von Orb Studio"><small>Partner von Orb Studio · Empfehlungslinks</small><a href="/go/kraken?from=timemachine" target="_blank" rel="sponsored noopener">Kraken — Kryptobörse ↗</a><a href="/go/starlink?from=timemachine" target="_blank" rel="sponsored noopener">Starlink — Internet überall ↗</a></aside>
+</div>
+<script>
+const HM={"loading": "Wird geladen…", "err": "Der Sensor hat gerade nicht geantwortet.", "nodata": "keine Daten", "cnt": "Forschende: 16, Epochen: 2.", "loc": "de-DE"};
+const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[m]);
+const tm=(iso)=>{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});};
+const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
+try{if(!sessionStorage.getItem("orbCounted_timemachine")){sessionStorage.setItem("orbCounted_timemachine","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"timemachine",lang:"de",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
+fetch("/api/v1/timemachine",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{document.getElementById("hmStatus").textContent=HM.cnt;}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+</script>
+<script type="module" src="/share-x.js"></script>
+<script src="/backnav.js" defer></script>
+</body>
+</html>
