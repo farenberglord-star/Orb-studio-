@@ -8407,6 +8407,138 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "flag headlines whose claim rests on a name's reputation; no word rule yet"
 }
+},
+{
+"id": "buehler",
+"name": "Karl Bühler",
+"name_ru": "Карл Бюлер",
+"years": "1879–1963",
+"wiki": "https://en.wikipedia.org/wiki/Karl_B%C3%BChler",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The organon model ('Sprachtheorie', 1934): every message at once expresses the sender, appeals to the receiver and represents a state of affairs.",
+"ru": "Модель органона («Теория языка», 1934): каждое сообщение одновременно выражает отправителя, обращается к адресату и изображает положение дел.",
+"de": "Organon-Modell („Sprachtheorie“, 1934): Ausdruck, Appell, Darstellung."
+},
+"rule": "Separate what a headline says about the world from what it shows about the sender and what it wants from you.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor and the passport already separate what a headline reports from what it demands or threatens",
+"covered_by": "searle"
+}
+},
+{
+"id": "wiener",
+"name": "Norbert Wiener",
+"name_ru": "Норберт Винер",
+"years": "1894–1964",
+"wiki": "https://en.wikipedia.org/wiki/Norbert_Wiener",
+"zone": "side_effects",
+"idea": {
+"en": "'Cybernetics' (1948): feedback — a system's output returns as its input; negative feedback steadies it, positive feedback can drive it out of control.",
+"ru": "«Кибернетика» (1948): обратная связь — выход системы возвращается на её вход; отрицательная обратная связь её успокаивает, положительная может разогнать до срыва.",
+"de": "„Kybernetik“ (1948): Rückkopplung."
+},
+"rule": "When your output can come back as input (a published signal that moves what it measures), say so and watch for runaway loops.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'published radar moves the market' (Rosenthal + Keynes + von Neumann + Wiener feedback)",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "carnap",
+"name": "Rudolf Carnap",
+"name_ru": "Рудольф Карнап",
+"years": "1891–1970",
+"wiki": "https://en.wikipedia.org/wiki/Rudolf_Carnap",
+"zone": "one_model",
+"idea": {
+"en": "The requirement of total evidence (1947, 'Logical Foundations of Probability', 1950): a probability judgement must use all the relevant evidence available, not a convenient part of it.",
+"ru": "Требование полноты свидетельств (1947, «Логические основания вероятности», 1950): вероятностное суждение должно опираться на все доступные относящиеся к делу данные, а не на удобную часть.",
+"de": "Forderung der totalen Evidenz (1947)."
+},
+"rule": "Do not answer from the evidence that suits you; say what relevant evidence you did not use.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say where the facts stop and check_headline reports all outlets found, not a chosen few"
+}
+},
+{
+"id": "fisher_r",
+"name": "Ronald Fisher",
+"name_ru": "Рональд Фишер",
+"years": "1890–1962",
+"wiki": "https://en.wikipedia.org/wiki/Ronald_Fisher",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Design of Experiments' (1935), the lady tasting tea: decide the test and what counts as success before you look at the results, and randomise to keep chance honest.",
+"ru": "«Планирование экспериментов» (1935), леди, пробующая чай: реши, как будешь проверять и что считать успехом, до того как увидишь результаты, и рандомизируй, чтобы случай был честным.",
+"de": "„The Design of Experiments“ (1935): Teetest der Lady."
+},
+"rule": "Fix the test before looking at the outcome; a test chosen after seeing the data proves little.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor fixed its buckets and threshold before collecting results",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "allport",
+"name": "Gordon Allport",
+"name_ru": "Гордон Олпорт",
+"years": "1897–1967",
+"wiki": "https://en.wikipedia.org/wiki/Gordon_Allport",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Psychology of Rumor' (1947, with Leo Postman): rumour strength grows with how important a matter is times how ambiguous the facts are; retold stories shrink, sharpen and bend to expectations.",
+"ru": "«Психология слуха» (1947, с Лео Постманом): сила слуха растёт с важностью темы, умноженной на неясность фактов; при пересказе история сжимается, заостряется и подгоняется под ожидания.",
+"de": "„The Psychology of Rumor“ (1947): Gerücht = Wichtigkeit × Mehrdeutigkeit."
+},
+"rule": "When a story is important and the facts are unclear, expect rumours: slow down and stick to what is confirmed.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the passport already flag stories that spread wider than their first source",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "cantril",
+"name": "Hadley Cantril",
+"name_ru": "Хэдли Кэнтрил",
+"years": "1906–1969",
+"wiki": "https://en.wikipedia.org/wiki/Hadley_Cantril",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Invasion from Mars' (1940): listeners who checked other stations or sources after the 1938 radio play did not panic; those who did not check believed it.",
+"ru": "«Вторжение с Марса» (1940): слушатели, которые после радиопостановки 1938 года проверили другие станции и источники, не поддались панике; кто не проверил — поверил.",
+"de": "„The Invasion from Mars“ (1940): wer nachprüfte, geriet nicht in Panik."
+},
+"rule": "Before reacting to an alarming report, check one independent source.",
+"needs": {
+"code": "covered",
+"note": "check_headline already looks for independent outlets for any headline",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "richardson_lf",
+"name": "Lewis Fry Richardson",
+"name_ru": "Льюис Фрай Ричардсон",
+"years": "1881–1953",
+"wiki": "https://en.wikipedia.org/wiki/Lewis_Fry_Richardson",
+"zone": "measurement_error",
+"idea": {
+"en": "The coastline paradox (published 1961): the measured length of a coast grows as the ruler gets shorter — some quantities have no single size without a stated scale. He also made the first numerical weather forecast (1922).",
+"ru": "Парадокс береговой линии (опубликован в 1961): измеренная длина побережья растёт, когда линейка становится короче, — у некоторых величин нет одного размера без указанного масштаба. Он же сделал первый численный прогноз погоды (1922).",
+"de": "Küstenlinien-Paradox (1961): die Länge hängt vom Maßstab ab."
+},
+"rule": "State the scale of a measurement; a number without its scale (per day, per hour, per region) cannot be compared.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives the unit and time scale of every number",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
