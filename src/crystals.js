@@ -7535,6 +7535,228 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "flag headlines that judge another country by local norms; no measurable form yet"
 }
+},
+{
+"id": "dilthey",
+"name": "Wilhelm Dilthey",
+"name_ru": "Вильгельм Дильтей",
+"years": "1833–1911",
+"wiki": "https://en.wikipedia.org/wiki/Wilhelm_Dilthey",
+"zone": "look_alike",
+"idea": {
+"en": "'Introduction to the Human Sciences' (1883): nature is explained by causes, human action is understood through meaning — two different kinds of knowing.",
+"ru": "«Введение в науки о духе» (1883): природу объясняют через причины, человеческие поступки понимают через смысл — это два разных способа знать.",
+"de": "„Einleitung in die Geisteswissenschaften“ (1883): Erklären und Verstehen."
+},
+"rule": "Keep 'why it happened' (causes) apart from 'what they meant by it' (interpretation); do not present one as the other.",
+"needs": {
+"code": "needs_idea",
+"note": "tell explanation from interpretation in headlines ('because' vs 'signals'); no measurable form yet"
+}
+},
+{
+"id": "poincare",
+"name": "Henri Poincaré",
+"name_ru": "Анри Пуанкаре",
+"years": "1854–1912",
+"wiki": "https://en.wikipedia.org/wiki/Henri_Poincar%C3%A9",
+"zone": "one_model",
+"idea": {
+"en": "Studying the three-body problem (1890) he found that tiny differences in the starting point can grow into completely different outcomes; 'Science and Hypothesis' (1902) on conventions in theories.",
+"ru": "Изучая задачу трёх тел (1890), он обнаружил, что крошечные различия в начальной точке могут вырасти в совсем разные исходы; «Наука и гипотеза» (1902) — об условностях в теориях.",
+"de": "Dreikörperproblem (1890): kleine Anfangsunterschiede, ganz andere Ergebnisse."
+},
+"rule": "Where small changes in the input can swing the result, do not extend the trend far ahead.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'horizon and tails' (Lorenz + Mandelbrot + Poincaré): how far ahead the radar still tells anything",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "saussure",
+"name": "Ferdinand de Saussure",
+"name_ru": "Фердинанд де Соссюр",
+"years": "1857–1913",
+"wiki": "https://en.wikipedia.org/wiki/Ferdinand_de_Saussure",
+"zone": "look_alike",
+"idea": {
+"en": "'Course in General Linguistics' (1916): the sign is arbitrary; a word gets its value from its place among other words, and the state of a language now differs from its history.",
+"ru": "«Курс общей лингвистики» (1916): знак произволен; слово получает значение от своего места среди других слов, а состояние языка сейчас — не то же, что его история.",
+"de": "„Cours de linguistique générale“ (1916): Zeichen, System, Synchronie und Diachronie."
+},
+"rule": "Do not confuse the word with the thing; check what a term means in this text now, not what it once meant.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport flags metaphors and the echo check compares meanings, not spellings"
+}
+},
+{
+"id": "peirce",
+"name": "Charles Sanders Peirce",
+"name_ru": "Чарльз Сандерс Пирс",
+"years": "1839–1914",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Sanders_Peirce",
+"zone": "own_limits",
+"idea": {
+"en": "Abduction and fallibilism: the best explanation found so far is a hypothesis to test, never a settled fact.",
+"ru": "Абдукция и фаллибилизм: лучшее найденное объяснение — это гипотеза для проверки, а не установленный факт.",
+"de": "Abduktion und Fallibilismus."
+},
+"rule": "Call your best explanation a hypothesis, name at least one alternative and what would tell them apart.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say where the facts stop and the passport keeps statements, forecasts and questions apart from events"
+}
+},
+{
+"id": "duhem",
+"name": "Pierre Duhem",
+"name_ru": "Пьер Дюэм",
+"years": "1861–1916",
+"wiki": "https://en.wikipedia.org/wiki/Pierre_Duhem",
+"zone": "one_model",
+"idea": {
+"en": "'The Aim and Structure of Physical Theory' (1906): a hypothesis is never tested alone but together with auxiliary assumptions; a failed test does not say which one was wrong.",
+"ru": "«Физическая теория, её цель и строение» (1906): гипотезу никогда не проверяют одну — только вместе со вспомогательными допущениями; неудачная проверка не говорит, какое из них ошибочно.",
+"de": "„Ziel und Struktur der physikalischen Theorien“ (1906)."
+},
+"rule": "When a fact contradicts your model, ask which assumption failed before throwing the whole model away.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already shows which model choice moves an index",
+"covered_by": "leamer"
+}
+},
+{
+"id": "lyapunov",
+"name": "Aleksandr Lyapunov",
+"name_ru": "Александр Ляпунов",
+"years": "1857–1918",
+"wiki": "https://en.wikipedia.org/wiki/Aleksandr_Lyapunov",
+"zone": "one_model",
+"idea": {
+"en": "'The General Problem of the Stability of Motion' (1892): a state is stable if small disturbances stay small; he also proved the central limit theorem under general conditions (1901).",
+"ru": "«Общая задача об устойчивости движения» (1892): состояние устойчиво, если малые возмущения остаются малыми; он же доказал центральную предельную теорему в общих условиях (1901).",
+"de": "Stabilität der Bewegung (1892); zentraler Grenzwertsatz (1901)."
+},
+"rule": "Before trusting a conclusion, nudge the inputs a little and see whether it holds.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor already recomputes each index under small changes of the model",
+"covered_by": "leamer"
+}
+},
+{
+"id": "shakhmatov",
+"name": "Aleksey Shakhmatov",
+"name_ru": "Алексей Шахматов",
+"years": "1864–1920",
+"wiki": "https://en.wikipedia.org/wiki/Aleksey_Shakhmatov",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "He showed that the Russian Primary Chronicle is a stack of earlier compilations and reconstructed its layers and their dates.",
+"ru": "Он показал, что «Повесть временных лет» — это наслоение более ранних летописных сводов, и восстановил эти слои и их даты.",
+"de": "Er rekonstruierte die älteren Schichten der Nestorchronik."
+},
+"rule": "A text that combines older sources should be split into its layers before you date or trust any line.",
+"needs": {
+"code": "covered",
+"note": "applied: the news passport names the first source of a story"
+}
+},
+{
+"id": "galton",
+"name": "Francis Galton",
+"name_ru": "Фрэнсис Гальтон",
+"years": "1822–1911",
+"wiki": "https://en.wikipedia.org/wiki/Francis_Galton",
+"zone": "measurement_error",
+"idea": {
+"en": "Regression toward the mean (1886): extreme results tend to be followed by more ordinary ones; 'Vox populi' (1907): the median of 787 independent guesses of an ox's weight was within 1%. (His eugenics is rejected; the statistical ideas stand.)",
+"ru": "Регрессия к среднему (1886): за крайними результатами обычно следуют более обычные; «Глас народа» (1907): медиана 787 независимых догадок о весе быка ошиблась меньше чем на 1 %. (Его евгеника отвергнута; статистические идеи остаются.)",
+"de": "Regression zur Mitte (1886); „Vox populi“ (1907)."
+},
+"rule": "After an extreme reading, expect a return toward normal before calling it a new trend.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already tells a one-off jump from a lasting shift",
+"covered_by": "polyak"
+}
+},
+{
+"id": "binet",
+"name": "Alfred Binet",
+"name_ru": "Альфред Бине",
+"years": "1857–1911",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_Binet",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'La suggestibilité' (1900): leading questions change what witnesses report — the wording of a question shapes the answer.",
+"ru": "«Внушаемость» (1900): наводящие вопросы меняют то, что рассказывают свидетели, — формулировка вопроса формирует ответ.",
+"de": "„La suggestibilité“ (1900): Suggestivfragen verändern Aussagen."
+},
+"rule": "Notice when a question already contains its answer; ask it in neutral words.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts correct a false or leading premise in a question instead of answering yes or no"
+}
+},
+{
+"id": "lexis",
+"name": "Wilhelm Lexis",
+"name_ru": "Вильгельм Лексис",
+"years": "1837–1914",
+"wiki": "https://en.wikipedia.org/wiki/Wilhelm_Lexis",
+"zone": "measurement_error",
+"idea": {
+"en": "The dispersion ratio (1877): compare how much a rate really varies over time with how much it would vary by chance alone.",
+"ru": "Коэффициент дисперсии (1877): сравнивать, насколько показатель на самом деле колеблется во времени, с тем, насколько он колебался бы по чистой случайности.",
+"de": "Dispersionsquotient (1877)."
+},
+"rule": "Before explaining a swing, check whether chance alone would produce swings that big.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already reports the radar's ordinary noise (radar_noise)",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "muensterberg",
+"name": "Hugo Münsterberg",
+"name_ru": "Гуго Мюнстерберг",
+"years": "1863–1916",
+"wiki": "https://en.wikipedia.org/wiki/Hugo_M%C3%BCnsterberg",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'On the Witness Stand' (1908): honest eyewitnesses misremember and fill gaps; confidence does not mean accuracy.",
+"ru": "«На месте свидетеля» (1908): честные очевидцы ошибаются в памяти и заполняют пробелы; уверенность не означает точности.",
+"de": "„On the Witness Stand“ (1908): Zeugenaussagen sind unzuverlässig."
+},
+"rule": "One eyewitness account, however confident, is a report to check, not proof.",
+"needs": {
+"code": "covered",
+"note": "check_headline already counts independent voices; the passport says when only one outlet reports",
+"covered_by": "frankfurt"
+}
+},
+{
+"id": "weber_m",
+"name": "Max Weber",
+"name_ru": "Макс Вебер",
+"years": "1864–1920",
+"wiki": "https://en.wikipedia.org/wiki/Max_Weber",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Science as a Vocation' (1917) and value freedom: keep statements of fact apart from judgements of what ought to be.",
+"ru": "«Наука как призвание и профессия» (1917) и свобода от оценок: отделять утверждения о фактах от суждений о том, как должно быть.",
+"de": "„Wissenschaft als Beruf“ (1917): Werturteilsfreiheit."
+},
+"rule": "Mark which sentence is a fact and which is a judgement; do not slip a judgement in as a fact.",
+"needs": {
+"code": "needs_idea",
+"note": "mark value words in headlines (should, must, scandal, disgrace) apart from facts; joins the 'tone' bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
