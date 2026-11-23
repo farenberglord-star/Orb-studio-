@@ -1059,7 +1059,7 @@ async function askGrok(env, headline, source, facts, retry, ms, question, avoid,
 // Озвучиваются только реплики текущего эфира (по номеру сегмента), произвольный текст сюда не передать.
 const DUO_VOICES = { david: "rex", grok: "sal", gemini: "ara", deepseek: "atlas" }; // голоса гостей радио — те же, что в круглом столе
 const DUO_TTS_DAY_CHARS = 90000; // потолок синтеза в сутки на три языка (~0,9 $ по цене xAI 15 $ за 1 млн знаков)
-const DUO_LANGS = ["de"]; // перевод эфира студии (оригинал — английский): только немецкий, русский снят 22.11.2026
+const DUO_LANGS = ["de", "ru"]; // перевод эфира студии (оригинал — английский): немецкий и русский; английский — оригинал. Русский возвращён 23.11.2026 по просьбе автора
 const RADIO_AIR = "de"; // язык эфира радио
 // Кому голос не синтезируем: роботы и скрипты по подписи, а также любой запрос с ?voice=0
 function quietVoice(request, url) { return url.searchParams.get("voice") === "0" || !!classifyAgent(request.headers.get("user-agent")); }

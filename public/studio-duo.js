@@ -46,8 +46,7 @@ export function boardFor(duo) {
 
 // Очередь реплик: Давид читает → вопрос → ответ Grok → благодарность → пауза.
 // Текст гостя берётся только из guest.text при status "ok". Иначе — табличка (label), без слов от имени гостя и без «спасибо».
-// Эфир студии звучит только по-немецки (решение автора 22.11.2026): подписи страницы остаются на языке посетителя, реплики Давида и Грока — на немецком
-export const AIR_STUDIO = "de";
+// Эфир студии звучит на языке посетителя (русский, немецкий или английский; решение автора 23.11.2026, до этого с 22.11 был только немецкий). Нет перевода выпуска — показывается английский оригинал.
 export function buildQueue(duo, lang) {
   if (boardFor(duo)) return [];
   const q = [];
@@ -274,12 +273,12 @@ function start() {
       if (!ep || ep.episode_id === curId || !(Date.parse(ep.generated_at) >= ARCHIVE_SINCE)) continue;
       // старые сегменты о числе визитов агентов в архиве не проигрываем (убраны из эфира 19.11)
       const ep2 = { ...ep, segments: (ep.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")) };
-      const all = buildQueue(ep2, AIR_STUDIO), skip = new Set();
+      const all = buildQueue(ep2, lang), skip = new Set();
       for (const x of all) if (x.headline && !skip.has(x.headline) && (heard.has(x.headline) || topicHeard(x.headline))) skip.add(x.headline);
       const lines = all.filter((x) => !skip.has(x.headline) && x.kind !== "transition");
       if (!lines.some((x) => x.kind === "read")) continue;
       lines.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
-      const br = ep.bridge && ep.bridge[AIR_STUDIO];
+      const br = ep.bridge && ep.bridge[lang];
       if (br && typeof br.text === "string") q.push({ who: "david", kind: "bridge", text: br.text, audio: typeof br.audio === "string" && /^https:\/\//.test(br.audio) ? br.audio : null, ms: lineMs(br.text), source: null, link: null });
       const from = q.length; q.push(...lines);
       for (let i = br && typeof br.text === "string" ? from - 1 : from; i < q.length; i++) q[i].at = ep.generated_at; // у архивного выпуска своя дата
@@ -328,11 +327,11 @@ function start() {
     if (id !== curId) { curId = id; archived = false; heard.clear(); heardTopics.length = 0; }
     // в эфире только новости; если в выпуске были другие сегменты, убираем и переходы (они вели к убранным темам)
     const newsOnly = (duo.segments || []).filter((x) => x && ["news", "carousel"].includes(x.kind || "news") && !String(x.carousel_id || "").startsWith("bridge:")), cut = newsOnly.length !== (duo.segments || []).length;
-    queue = buildQueue({ ...duo, segments: newsOnly }, AIR_STUDIO).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => { x.at = duo.generated_at; }); setDate(duo.generated_at); queue.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
+    queue = buildQueue({ ...duo, segments: newsOnly }, lang).filter((x) => !(cut && x.kind === "transition")); pos = 0; queue.forEach((x) => { x.at = duo.generated_at; }); setDate(duo.generated_at); queue.forEach((x) => { if (x.headline && !heard.has(x.headline)) { heard.add(x.headline); markTopic(x.headline); } });
     setTimeout(renderProg, 0);
-    const intro = duo.intro && duo.intro[AIR_STUDIO];
+    const intro = duo.intro && duo.intro[lang];
     if (queue.length && intro && typeof intro.text === "string") queue.unshift({ who: "david", kind: "intro", text: intro.text, audio: typeof intro.audio === "string" && /^https:\/\//.test(intro.audio) ? intro.audio : null, ms: lineMs(intro.text), source: null, link: null, headline: "" });
-    const cta = duo.cta && duo.cta[AIR_STUDIO];
+    const cta = duo.cta && duo.cta[lang];
     if (queue.length && cta && typeof cta.text === "string") queue.push({ who: "david", kind: "cta", text: cta.text, audio: typeof cta.audio === "string" && /^https:\/\//.test(cta.audio) ? cta.audio : null, ms: lineMs(cta.text), source: null, link: null, headline: "" }, { who: null, kind: "pause", text: null, ms: 1500, headline: "" }); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");
     if (!queue.length) { showBoard("noLink"); retry = setTimeout(load, 90000); return; }
     step();

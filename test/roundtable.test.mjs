@@ -117,7 +117,7 @@ test("three site languages only: Russian, German, English — Romanian and Turki
   assert.deepEqual(Object.keys(page.T).sort(), ["de", "en", "ru"]); assert.deepEqual(Object.keys(duo.T).sort(), ["de", "en", "ru"]);
   assert.equal(duo.pickLang("?lang=ro", "ru-RU"), "ru"); assert.equal(duo.pickLang("", "tr-TR"), "en");
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /const DUO_LANGS = \["de"\];/); assert.match(w, /Response\.redirect\(url\.origin \+ "\/en\/" \+ \(old\[1\] \|\| ""\) \+ url\.search, 301\)/);
+  assert.match(w, /const DUO_LANGS = \["de", "ru"\];/); assert.match(w, /Response\.redirect\(url\.origin \+ "\/en\/" \+ \(old\[1\] \|\| ""\) \+ url\.search, 301\)/);
   assert.ok(!/RO: "ro"|TR: "tr"/.test(w)); assert.ok(!/5 languages/.test(w + readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8")));
   const aj = JSON.parse(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8")); assert.ok(!JSON.stringify(aj).includes('"ro"') && !JSON.stringify(aj).includes('"tr"'));
 });
