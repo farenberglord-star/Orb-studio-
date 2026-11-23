@@ -212,11 +212,11 @@ export const REGIONS = {
 export function regionFor(country) { const c = String(country || "").toUpperCase(); return c === "US" || c === "CA" ? "us" : EU_CC.includes(c) ? "eu" : null; }
 export const normHead = (h) => String(h || "").toLowerCase().replace(/[^a-zа-яäöüß0-9 ]/gi, " ").replace(/\s+/g, " ").trim().slice(0, 70);
 // Кандидаты региона: заголовки радаров, где упомянут регион; без уже звучавших и без новостей общего выпуска; сначала самые весомые
-export function regionCandidates(radars, region, exclude, n = 8) {
+export function regionCandidates(radars, region, exclude, n = 8, now = Date.now()) {
   const R = REGIONS[region]; if (!R) return [];
   const seen = new Set(exclude instanceof Set ? exclude : (exclude || []).map(normHead)), out = [];
   const all = (radars || []).flatMap((r) => (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => ({ headline: String(f[1] || ""), source: f[2] || null, time: f[0] || null, published_at: Number.isFinite(+f[5]) && +f[5] > 0 ? new Date(+f[5]).toISOString() : null, weight: +f[3] || 0, link: f[4] || null, radar: r.id || null })));
-  const ok = []; for (const x of all.sort((a, b) => b.weight - a.weight)) { const k = normHead(x.headline); if (!k || seen.has(k) || !R.re.test(x.headline)) continue; seen.add(k); ok.push(x); }
+  const ok = []; for (const x of freshFirst(all.filter((x) => R.re.test(x.headline)), now).sort((a, b) => b.weight - a.weight)) { const k = normHead(x.headline); if (!k || seen.has(k) || !R.re.test(x.headline)) continue; seen.add(k); ok.push(x); }
   // сначала по одной самой весомой новости с каждого радара (подкаст идёт по разным радарам), потом остальные по весу
   const radarsSeen = new Set(), first = [], rest = []; for (const x of ok) { if (x.radar && !radarsSeen.has(x.radar)) { radarsSeen.add(x.radar); first.push(x); } else rest.push(x); }
   return [...first, ...rest].slice(0, n);
@@ -293,6 +293,7 @@ export const sensorSystem = (lang) => `You are David, the AI host of Radio Orb S
 Rules:
 - Start by saying that this comes from the Orb Studio sensors; use a different opening for each topic.
 - Tell what the lines say and explain in plain words what each figure is (what a funding rate is, what a mempool is, what an exchange electricity price is). Explaining a mechanism is fine.
+- For a change with a sign, say the direction in words and drop the sign: "fell by 1.53 %" for −1.53 %, "rose by 0.4 %" for +0.4 % (German: "um 1,53 % gesunken", not "um minus 1,53 % gesunken"). Keep the number itself exactly.
 - Copy every number exactly as it is written in the lines, digit for digit. Do not round, convert or recalculate. Do not use any other number written in digits: no years, no "24 hours", no percentages of your own. If you need a small count, write it as a word.
 - Say units as words (for example "euros per megawatt-hour", "cents per kilowatt-hour"), never as symbols or abbreviations with a slash.
 - Name the source the way the line names it.
@@ -330,11 +331,19 @@ export function checkSensorStories(out, facts, lang, strip = (t) => t) {
 export const RADAR_MS = 2 * 3600e3, RADAR_NEWS_MAX = 4;
 export const RADAR_INTRO = { en: "The top stories from the Orb Studio radars.", de: "Die wichtigsten Meldungen der Orb-Studio-Radare.", ru: "Главные новости радаров Orb Studio." };
 // По одному самому весомому заголовку с каждого радара; то, что уже разобрано в интервью, не берём
-export function radarCandidates(radars, exclude) {
+export const RADIO_FRESH_H = 6;
+// Свежесть для эфира (Микрин показал: медиана ~22 ч от публикации до эфира): берём заголовки не старше 6 часов,
+// а старые или без времени — только если свежих нет.
+export function freshFirst(items, now = Date.now(), hours = RADIO_FRESH_H) {
+  const fresh = items.filter((x) => x.published_at && now - Date.parse(x.published_at) <= hours * 3600e3);
+  return fresh.length ? fresh : items;
+}
+export function radarCandidates(radars, exclude, now = Date.now()) {
   const seen = new Set(exclude instanceof Set ? exclude : (exclude || [])), out = [];
   for (const r of radars || []) { if (!r || !Array.isArray(r.feed)) continue;
-    const best = r.feed.slice(0, 8).map((f) => ({ radar: r.id || null, published_at: Number.isFinite(+f[5]) && +f[5] > 0 ? new Date(+f[5]).toISOString() : null, title: r.title || "", headline: String(f[1] || "").replace(/\s+/g, " ").trim(), source: f[2] || null, state: stateMediaOf(f[2], f[4]), link: typeof f[4] === "string" && /^https:\/\/[^\s"'<>]+$/.test(f[4]) ? f[4] : null, weight: +f[3] || 0 }))
-      .filter((x) => x.headline.length >= 15 && !seen.has(normHead(x.headline))).sort((a, b) => b.weight - a.weight)[0];
+    const cand = r.feed.slice(0, 8).map((f) => ({ radar: r.id || null, published_at: Number.isFinite(+f[5]) && +f[5] > 0 ? new Date(+f[5]).toISOString() : null, title: r.title || "", headline: String(f[1] || "").replace(/\s+/g, " ").trim(), source: f[2] || null, state: stateMediaOf(f[2], f[4]), link: typeof f[4] === "string" && /^https:\/\/[^\s"'<>]+$/.test(f[4]) ? f[4] : null, weight: +f[3] || 0 }))
+      .filter((x) => x.headline.length >= 15 && !seen.has(normHead(x.headline)));
+    const best = freshFirst(cand, now).sort((a, b) => b.weight - a.weight)[0];
     if (best) { seen.add(normHead(best.headline)); out.push(best); } }
   return out;
 }

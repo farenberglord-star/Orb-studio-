@@ -589,3 +589,14 @@ test("radio: a state-media headline must name its state outlet on air", () => {
   const ok = _crn({ picks: [{ i: 0, en: "According to the Russian state news agency TASS, the Kremlin says new talks are possible next week.", de: "Laut der russischen staatlichen Nachrichtenagentur TASS hält der Kreml neue Gespräche für nächste Woche für möglich.", ru: "По данным российского государственного агентства ТАСС, Кремль допускает новый раунд переговоров на следующей неделе." }] }, c);
   assert.equal(ok.length, 1); assert.deepEqual(Object.keys(ok[0].text).sort(), ["de", "en", "ru"]);
 });
+
+import { freshFirst as _ff, radarCandidates as _rc2, sensorSystem as _ss } from "../src/radio.js";
+test("radio prefers headlines from the last 6 hours, falls back to older ones", () => {
+  const now = Date.parse("2026-11-23T08:00:00Z"), h = (x) => now - x * 3600e3;
+  const radars = [{ id: "geo", feed: [["1", "Old but heavy headline about talks", "A", 90, "https://a.example/1", h(20)], ["2", "Fresh lighter headline about a strike", "B", 40, "https://b.example/2", h(2)]] }];
+  assert.equal(_rc2(radars, [], now)[0].headline, "Fresh lighter headline about a strike");
+  const old = [{ id: "geo", feed: [["1", "Old but heavy headline about talks", "A", 90, "https://a.example/1", h(20)]] }];
+  assert.equal(_rc2(old, [], now)[0].headline, "Old but heavy headline about talks");
+  assert.equal(_ff([], now).length, 0);
+  assert.match(_ss("de"), /um 1,53 % gesunken/);
+});
