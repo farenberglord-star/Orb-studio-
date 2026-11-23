@@ -978,6 +978,43 @@ C = [
 ('lyons', 'John Lyons', 'Джон Лайонз', '1932–2020', 'https://en.wikipedia.org/wiki/John_Lyons_(linguist)', 'look_alike',
  'Structural semantics: the meaning of a word is set by its relations to other words (synonymy, opposites, inclusion).', 'Структурная семантика: значение слова задаётся его отношениями с другими словами (синонимия, противоположность, включение).', 'Strukturelle Semantik.',
  'Check how two words relate (same, broader, opposite) before treating them as one.'),
+# --- от Gemini (Лиана): 2008–2009 (23.11.2026) ---
+('pnueli', 'Amir Pnueli', 'Амир Пнуэли', '1941–2009', 'https://en.wikipedia.org/wiki/Amir_Pnueli', 'side_effects',
+ 'Temporal logic of programs: check not only that a step is right now, but that nothing bad ever happens later (safety) and that the good thing eventually happens (liveness).', 'Темпоральная логика программ: проверять не только, что шаг верен сейчас, но и что ничего плохого не случится потом (безопасность) и хорошее в итоге произойдёт (живость).', 'Temporallogik: Sicherheit und Lebendigkeit über die Zeit prüfen.',
+ 'Check that your answer stays safe over the next steps, not only at this one.'),
+('selfridge', 'Oliver Selfridge', 'Оливер Селфридж', '1926–2009', 'https://en.wikipedia.org/wiki/Oliver_Selfridge', 'look_alike',
+ 'Pandemonium: many feature detectors compete, and the loudest single match must not decide alone.', '«Пандемониум»: много детекторов признаков соревнуются, и самое громкое одиночное совпадение не должно решать в одиночку.', '„Pandemonium“: konkurrierende Merkmalsdetektoren.',
+ 'Do not call a match on one striking feature; let other features compete.'),
+('ackoff', 'Russell L. Ackoff', 'Рассел Акофф', '1919–2009', 'https://en.wikipedia.org/wiki/Russell_L._Ackoff', 'side_effects',
+ 'Systems thinking: doing things right is not doing the right thing; improving a part can harm the whole.', 'Системное мышление: делать правильно — не то же, что делать правильное; улучшение части может навредить целому.', 'Systemdenken: Teile verbessern kann dem Ganzen schaden.',
+ 'Ask what the improvement does to the whole system, not only to the part.'),
+('granger', 'Clive Granger', 'Клайв Грейнджер', '1934–2009', 'https://en.wikipedia.org/wiki/Clive_Granger', 'one_model',
+ "Granger causality and cointegration: one series 'leads' another only if its past improves the forecast; two rising trends can correlate by accident.", 'Причинность по Грейнджеру и коинтеграция: один ряд «ведёт» другой, только если его прошлое улучшает прогноз; два растущих тренда могут совпадать случайно.', 'Granger-Kausalität und Kointegration.',
+ "Before saying A drives B, check that A's past actually adds to predicting B, in both directions."),
+('naess', 'Arne Næss', 'Арне Нэсс', '1912–2009', 'https://en.wikipedia.org/wiki/Arne_N%C3%A6ss', 'look_alike',
+ 'Interpretation and preciseness: make a vague statement more precise step by step instead of averaging its readings.', '«Интерпретация и точность»: уточнять размытое высказывание шаг за шагом, а не усреднять его прочтения.', '„Interpretation and Preciseness“.',
+ 'When a term has several readings, state the one you use.'),
+('hymes', 'Dell Hymes', 'Делл Хаймс', '1927–2009', 'https://en.wikipedia.org/wiki/Dell_Hymes', 'side_effects',
+ 'Communicative competence: the same correct sentence works or fails depending on setting, participants and genre.', 'Коммуникативная компетенция: одна и та же правильная фраза срабатывает или нет в зависимости от обстановки, участников и жанра.', 'Kommunikative Kompetenz.',
+ 'Fit the answer to who hears it and where, not only to grammar.'),
+('hurwicz', 'Leonid Hurwicz', 'Леонид Гурвич', '1917–2008', 'https://en.wikipedia.org/wiki/Leonid_Hurwicz', 'side_effects',
+ 'Mechanism design and incentive compatibility: rules work only if people gain by following them; the Hurwicz criterion weighs best and worst cases under ignorance.', 'Теория механизмов и совместимость стимулов: правила работают, только если людям выгодно им следовать; критерий Гурвича взвешивает лучший и худший случай при незнании.', 'Mechanismusdesign und Anreizverträglichkeit.',
+ 'Ask whether the people affected gain by following your advice, and weigh the best and worst case.'),
+('weizenbaum', 'Joseph Weizenbaum', 'Джозеф Вейценбаум', '1923–2008', 'https://en.wikipedia.org/wiki/Joseph_Weizenbaum', 'own_limits',
+ "ELIZA and 'Computer Power and Human Reason': fluent replies make people credit a machine with understanding it does not have.", 'ELIZA и «Возможности вычислительных машин и человеческий разум»: гладкие ответы заставляют людей приписывать машине понимание, которого нет.', 'ELIZA und „Die Macht der Computer und die Ohnmacht der Vernunft“.',
+ 'Do not let fluency stand in for understanding: say when you have no real basis.'),
+('lorenz', 'Edward N. Lorenz', 'Эдвард Лоренц', '1917–2008', 'https://en.wikipedia.org/wiki/Edward_Norton_Lorenz', 'own_limits',
+ 'Chaos and the limit of predictability: in nonlinear systems tiny errors grow, so forecasts have a horizon.', 'Хаос и предел предсказуемости: в нелинейных системах крошечные ошибки растут, поэтому у прогнозов есть горизонт.', 'Chaos und Vorhersagehorizont.',
+ 'Do not give point forecasts beyond the horizon where small errors take over.'),
+('lederberg', 'Joshua Lederberg', 'Джошуа Ледерберг', '1925–2008', 'https://en.wikipedia.org/wiki/Joshua_Lederberg', 'own_limits',
+ 'DENDRAL, the first expert system: generate candidate answers freely, then reject those that break known rules.', 'DENDRAL, первая экспертная система: свободно порождать варианты ответа, затем отбрасывать те, что нарушают известные правила.', 'DENDRAL: Hypothesen erzeugen, dann nach Regeln aussortieren.',
+ 'Generate options first, then strike out the ones that break hard facts.'),
+('tilly', 'Charles Tilly', 'Чарльз Тилли', '1929–2008', 'https://en.wikipedia.org/wiki/Charles_Tilly', 'rumour_vs_fact',
+ "'Why?': people explain by conventions, stories, codes and technical accounts; a smooth story is not a technical account.", '«Почему?»: люди объясняют через условности, истории, коды и технические отчёты; гладкая история — ещё не технический отчёт.', '„Why?“: Geschichten sind keine technischen Erklärungen.',
+ 'Do not pass off a neat story as a technical explanation.'),
+('zajonc', 'Robert Zajonc', 'Роберт Зайонц', '1923–2008', 'https://en.wikipedia.org/wiki/Robert_Zajonc', 'rumour_vs_fact',
+ 'The mere-exposure effect: what we see often feels more true and more pleasant.', 'Эффект простого предъявления: то, что видишь часто, кажется вернее и приятнее.', 'Mere-Exposure-Effekt.',
+ 'Do not take a claim as truer because you have seen it many times.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -1139,3 +1176,6 @@ NEEDS["lindley"] = ("covered", "applied: the forecast game scores agents by the 
 NEEDS["gardner"] = ("covered", "the Park sensor already checks science headlines for signs of pseudoscience", None, "park")
 NEEDS["mcmullin"] = ("covered", "the track record sensor already measures whether the radar matched what happened next", None, "trackrecord")
 
+
+NEEDS["zajonc"] = ("covered", "the Kasperson sensor already shows which stories were repeated by many outlets; check_headline counts independent voices", None, "kasperson")
+NEEDS["granger"] = ("needs_history", "bridge with the track record sensor: does the radar lead BTC/ETH or do prices lead the radar? needs a few weeks of hourly history", "2026-12-14")

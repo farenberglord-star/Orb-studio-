@@ -5836,6 +5836,224 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "pnueli",
+"name": "Amir Pnueli",
+"name_ru": "Амир Пнуэли",
+"years": "1941–2009",
+"wiki": "https://en.wikipedia.org/wiki/Amir_Pnueli",
+"zone": "side_effects",
+"idea": {
+"en": "Temporal logic of programs: check not only that a step is right now, but that nothing bad ever happens later (safety) and that the good thing eventually happens (liveness).",
+"ru": "Темпоральная логика программ: проверять не только, что шаг верен сейчас, но и что ничего плохого не случится потом (безопасность) и хорошее в итоге произойдёт (живость).",
+"de": "Temporallogik: Sicherheit und Lebendigkeit über die Zeit prüfen."
+},
+"rule": "Check that your answer stays safe over the next steps, not only at this one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "selfridge",
+"name": "Oliver Selfridge",
+"name_ru": "Оливер Селфридж",
+"years": "1926–2009",
+"wiki": "https://en.wikipedia.org/wiki/Oliver_Selfridge",
+"zone": "look_alike",
+"idea": {
+"en": "Pandemonium: many feature detectors compete, and the loudest single match must not decide alone.",
+"ru": "«Пандемониум»: много детекторов признаков соревнуются, и самое громкое одиночное совпадение не должно решать в одиночку.",
+"de": "„Pandemonium“: konkurrierende Merkmalsdetektoren."
+},
+"rule": "Do not call a match on one striking feature; let other features compete.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "ackoff",
+"name": "Russell L. Ackoff",
+"name_ru": "Рассел Акофф",
+"years": "1919–2009",
+"wiki": "https://en.wikipedia.org/wiki/Russell_L._Ackoff",
+"zone": "side_effects",
+"idea": {
+"en": "Systems thinking: doing things right is not doing the right thing; improving a part can harm the whole.",
+"ru": "Системное мышление: делать правильно — не то же, что делать правильное; улучшение части может навредить целому.",
+"de": "Systemdenken: Teile verbessern kann dem Ganzen schaden."
+},
+"rule": "Ask what the improvement does to the whole system, not only to the part.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "granger",
+"name": "Clive Granger",
+"name_ru": "Клайв Грейнджер",
+"years": "1934–2009",
+"wiki": "https://en.wikipedia.org/wiki/Clive_Granger",
+"zone": "one_model",
+"idea": {
+"en": "Granger causality and cointegration: one series 'leads' another only if its past improves the forecast; two rising trends can correlate by accident.",
+"ru": "Причинность по Грейнджеру и коинтеграция: один ряд «ведёт» другой, только если его прошлое улучшает прогноз; два растущих тренда могут совпадать случайно.",
+"de": "Granger-Kausalität und Kointegration."
+},
+"rule": "Before saying A drives B, check that A's past actually adds to predicting B, in both directions.",
+"needs": {
+"code": "needs_history",
+"note": "bridge with the track record sensor: does the radar lead BTC/ETH or do prices lead the radar? needs a few weeks of hourly history",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "naess",
+"name": "Arne Næss",
+"name_ru": "Арне Нэсс",
+"years": "1912–2009",
+"wiki": "https://en.wikipedia.org/wiki/Arne_N%C3%A6ss",
+"zone": "look_alike",
+"idea": {
+"en": "Interpretation and preciseness: make a vague statement more precise step by step instead of averaging its readings.",
+"ru": "«Интерпретация и точность»: уточнять размытое высказывание шаг за шагом, а не усреднять его прочтения.",
+"de": "„Interpretation and Preciseness“."
+},
+"rule": "When a term has several readings, state the one you use.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hymes",
+"name": "Dell Hymes",
+"name_ru": "Делл Хаймс",
+"years": "1927–2009",
+"wiki": "https://en.wikipedia.org/wiki/Dell_Hymes",
+"zone": "side_effects",
+"idea": {
+"en": "Communicative competence: the same correct sentence works or fails depending on setting, participants and genre.",
+"ru": "Коммуникативная компетенция: одна и та же правильная фраза срабатывает или нет в зависимости от обстановки, участников и жанра.",
+"de": "Kommunikative Kompetenz."
+},
+"rule": "Fit the answer to who hears it and where, not only to grammar.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "hurwicz",
+"name": "Leonid Hurwicz",
+"name_ru": "Леонид Гурвич",
+"years": "1917–2008",
+"wiki": "https://en.wikipedia.org/wiki/Leonid_Hurwicz",
+"zone": "side_effects",
+"idea": {
+"en": "Mechanism design and incentive compatibility: rules work only if people gain by following them; the Hurwicz criterion weighs best and worst cases under ignorance.",
+"ru": "Теория механизмов и совместимость стимулов: правила работают, только если людям выгодно им следовать; критерий Гурвича взвешивает лучший и худший случай при незнании.",
+"de": "Mechanismusdesign und Anreizverträglichkeit."
+},
+"rule": "Ask whether the people affected gain by following your advice, and weigh the best and worst case.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "weizenbaum",
+"name": "Joseph Weizenbaum",
+"name_ru": "Джозеф Вейценбаум",
+"years": "1923–2008",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Weizenbaum",
+"zone": "own_limits",
+"idea": {
+"en": "ELIZA and 'Computer Power and Human Reason': fluent replies make people credit a machine with understanding it does not have.",
+"ru": "ELIZA и «Возможности вычислительных машин и человеческий разум»: гладкие ответы заставляют людей приписывать машине понимание, которого нет.",
+"de": "ELIZA und „Die Macht der Computer und die Ohnmacht der Vernunft“."
+},
+"rule": "Do not let fluency stand in for understanding: say when you have no real basis.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lorenz",
+"name": "Edward N. Lorenz",
+"name_ru": "Эдвард Лоренц",
+"years": "1917–2008",
+"wiki": "https://en.wikipedia.org/wiki/Edward_Norton_Lorenz",
+"zone": "own_limits",
+"idea": {
+"en": "Chaos and the limit of predictability: in nonlinear systems tiny errors grow, so forecasts have a horizon.",
+"ru": "Хаос и предел предсказуемости: в нелинейных системах крошечные ошибки растут, поэтому у прогнозов есть горизонт.",
+"de": "Chaos und Vorhersagehorizont."
+},
+"rule": "Do not give point forecasts beyond the horizon where small errors take over.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lederberg",
+"name": "Joshua Lederberg",
+"name_ru": "Джошуа Ледерберг",
+"years": "1925–2008",
+"wiki": "https://en.wikipedia.org/wiki/Joshua_Lederberg",
+"zone": "own_limits",
+"idea": {
+"en": "DENDRAL, the first expert system: generate candidate answers freely, then reject those that break known rules.",
+"ru": "DENDRAL, первая экспертная система: свободно порождать варианты ответа, затем отбрасывать те, что нарушают известные правила.",
+"de": "DENDRAL: Hypothesen erzeugen, dann nach Regeln aussortieren."
+},
+"rule": "Generate options first, then strike out the ones that break hard facts.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "tilly",
+"name": "Charles Tilly",
+"name_ru": "Чарльз Тилли",
+"years": "1929–2008",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Tilly",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Why?': people explain by conventions, stories, codes and technical accounts; a smooth story is not a technical account.",
+"ru": "«Почему?»: люди объясняют через условности, истории, коды и технические отчёты; гладкая история — ещё не технический отчёт.",
+"de": "„Why?“: Geschichten sind keine technischen Erklärungen."
+},
+"rule": "Do not pass off a neat story as a technical explanation.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "zajonc",
+"name": "Robert Zajonc",
+"name_ru": "Роберт Зайонц",
+"years": "1923–2008",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Zajonc",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "The mere-exposure effect: what we see often feels more true and more pleasant.",
+"ru": "Эффект простого предъявления: то, что видишь часто, кажется вернее и приятнее.",
+"de": "Mere-Exposure-Effekt."
+},
+"rule": "Do not take a claim as truer because you have seen it many times.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor already shows which stories were repeated by many outlets; check_headline counts independent voices",
+"covered_by": "kasperson"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
@@ -5851,7 +6069,7 @@ export function crystalsReport(scientists, { zone = null, q = null } = {}, origi
     needs_summary: needs, ready_to_build: wait.filter((c) => c.needs.code === "ready").map((c) => ({ id: c.id, name: c.name, plan: c.needs.note })),
     history_due: wait.filter((c) => c.needs.code === "needs_history").map((c) => ({ id: c.id, name: c.name, not_before: c.needs.not_before, plan: c.needs.note })),
     crystals: all,
-    about: "Ideas of scientists who died in 2010-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
+    about: "Ideas of scientists who died in 2008-2026, crystallised into rules for AI agents. Facts from open sources (Wikipedia in many languages; 2025-2026 deaths checked against obituaries). The 'rule' is Orb Studio's interpretation, not the scientist's words.",
     similar: "Mental-models MCP servers (thinking-models, Clear Thought) give agents reasoning principles; here each principle is tied to a real person, their article and Orb Studio's live sensors.",
     page: origin + "/tools/crystals" };
 }
