@@ -793,6 +793,28 @@ C = [
 ('schelling', 'Thomas Schelling', 'Томас Шеллинг', '1921–2016', 'https://en.wikipedia.org/wiki/Thomas_Schelling', 'side_effects',
  "'Micromotives and Macrobehavior' and focal points: individually sensible small choices add up to large effects nobody intended, and expectations shape what others do.", '«Микромотивы и макроповедение» и фокальные точки: разумные по отдельности маленькие решения складываются в большие последствия, которых никто не хотел, а ожидания меняют поведение других.', '„Micromotives and Macrobehavior“ und Fokalpunkte: kleine vernünftige Einzelentscheidungen ergeben große, ungewollte Folgen.',
  'Ask what happens when many agents follow the same advice at once.'),
+# --- от Gemini (Лиана): январь–июнь 2016 (23.11.2026) ---
+('naur', 'Peter Naur', 'Петер Наур', '1928–2016', 'https://en.wikipedia.org/wiki/Peter_Naur', 'own_limits',
+ "'Programming as Theory Building': the real program is the theory in the developers' heads; code and documents without that theory cannot be safely changed.", '«Программирование как построение теории»: настоящая программа — это теория в головах разработчиков; код и документы без этой теории нельзя безопасно менять.', '„Programming as Theory Building“: das eigentliche Programm ist die Theorie in den Köpfen der Entwickler.',
+ 'Before changing something you did not build, say what you do not know about why it is the way it is.'),
+('zeeman', 'Christopher Zeeman', 'Кристофер Зиман', '1925–2016', 'https://en.wikipedia.org/wiki/Christopher_Zeeman', 'one_model',
+ 'Catastrophe theory: smooth changes in conditions can cause sudden jumps in the state of a system.', 'Теория катастроф: плавное изменение условий может вызвать скачок в состоянии системы.', 'Katastrophentheorie: glatte Änderungen der Bedingungen können plötzliche Sprünge auslösen.',
+ 'Do not assume a straight line: say where a small change could flip the outcome.'),
+('eco', 'Umberto Eco', 'Умберто Эко', '1932–2016', 'https://en.wikipedia.org/wiki/Umberto_Eco', 'look_alike',
+ 'Semiotics and the limits of interpretation: a text allows many readings, but not any reading.', 'Семиотика и пределы интерпретации: текст допускает много прочтений, но не любое.', 'Semiotik und Grenzen der Interpretation: ein Text erlaubt viele Lesarten, aber nicht jede.',
+ 'Offer readings the text supports, and say which ones it does not.'),
+('shapley', 'Lloyd Shapley', 'Ллойд Шепли', '1923–2016', 'https://en.wikipedia.org/wiki/Lloyd_Shapley', 'one_model',
+ 'The Shapley value: a fair way to share the result among the participants who produced it together (the basis of SHAP explanations in AI).', 'Вектор Шепли: справедливый способ разделить результат между участниками, которые добились его вместе (основа объяснений SHAP в ИИ).', 'Shapley-Wert: faire Aufteilung eines gemeinsamen Ergebnisses (Grundlage von SHAP).',
+ 'When several causes act together, give each its share instead of naming one.'),
+('mackay', 'David J. C. MacKay', 'Дэвид Маккей', '1967–2016', 'https://en.wikipedia.org/wiki/David_J._C._MacKay', 'measurement_error',
+ "Information theory, Bayesian inference and 'Sustainable Energy – without the hot air': check claims by putting honest numbers with units on them.", 'Теория информации, байесовский вывод и «Устойчивая энергия — без пустых слов»: проверять утверждения, подставляя честные числа с единицами.', 'Informationstheorie, Bayes und „Sustainable Energy – without the hot air“: Behauptungen mit ehrlichen Zahlen prüfen.',
+ 'Put a number with a unit on a claim and compare it with the right scale.'),
+('golomb', 'Solomon W. Golomb', 'Соломон Голомб', '1932–2016', 'https://en.wikipedia.org/wiki/Solomon_W._Golomb', 'answer_cost',
+ 'Golomb codes and shift-register sequences: short codes for frequent values.', 'Коды Голомба и последовательности регистров сдвига: короткие коды для частых значений.', 'Golomb-Codes und Schieberegisterfolgen.',
+ 'Give the frequent answer short and spend words only on the unusual.'),
+('toffler', 'Alvin Toffler', 'Элвин Тоффлер', '1928–2016', 'https://en.wikipedia.org/wiki/Alvin_Toffler', 'answer_cost',
+ "'Future Shock': information overload — too much change and information too fast overwhelms decisions.", '«Шок будущего»: информационная перегрузка — слишком много перемен и информации слишком быстро мешают принимать решения.', '„Der Zukunftsschock“: Informationsüberlastung.',
+ 'Give less, but what matters: cut the answer to what the reader can use.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -939,3 +961,9 @@ NEEDS["montagna"] = ("covered", "check_headline already keeps affirmed, denied, 
 NEEDS["bruel"] = ("covered", "the Baird sensor already traces every number to its source and checks it against independent paths", None, "baird")
 NEEDS["matousek"] = ("covered", "the Trevisan sensor already shows how many headlines are enough for the barometer", None, "trevisan")
 NEEDS["lamfalussy"] = ("covered", "the Simpson sensor already checks whether the whole index and its radars move the same way", None, "simpson")
+
+NEEDS["zeeman"] = ("covered", "the Polyak sensor already tells a one-off jump from a lasting shift", None, "polyak")
+NEEDS["shapley"] = ("covered", "the Halpern sensor already names the headlines that moved an index", None, "halpern")
+NEEDS["mackay"] = ("covered", "the Baird sensor already traces units and scales of every number", None, "baird")
+NEEDS["golomb"] = ("covered", "the Ziv sensor already measures how much is new versus repeated", None, "ziv")
+NEEDS["toffler"] = ("covered", "the Bertsekas sensor already measures answer size in tokens and the cheapest chains", None, "bertsekas")

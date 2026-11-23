@@ -4746,6 +4746,137 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "naur",
+"name": "Peter Naur",
+"name_ru": "Петер Наур",
+"years": "1928–2016",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Naur",
+"zone": "own_limits",
+"idea": {
+"en": "'Programming as Theory Building': the real program is the theory in the developers' heads; code and documents without that theory cannot be safely changed.",
+"ru": "«Программирование как построение теории»: настоящая программа — это теория в головах разработчиков; код и документы без этой теории нельзя безопасно менять.",
+"de": "„Programming as Theory Building“: das eigentliche Programm ist die Theorie in den Köpfen der Entwickler."
+},
+"rule": "Before changing something you did not build, say what you do not know about why it is the way it is.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "zeeman",
+"name": "Christopher Zeeman",
+"name_ru": "Кристофер Зиман",
+"years": "1925–2016",
+"wiki": "https://en.wikipedia.org/wiki/Christopher_Zeeman",
+"zone": "one_model",
+"idea": {
+"en": "Catastrophe theory: smooth changes in conditions can cause sudden jumps in the state of a system.",
+"ru": "Теория катастроф: плавное изменение условий может вызвать скачок в состоянии системы.",
+"de": "Katastrophentheorie: glatte Änderungen der Bedingungen können plötzliche Sprünge auslösen."
+},
+"rule": "Do not assume a straight line: say where a small change could flip the outcome.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already tells a one-off jump from a lasting shift",
+"covered_by": "polyak"
+}
+},
+{
+"id": "eco",
+"name": "Umberto Eco",
+"name_ru": "Умберто Эко",
+"years": "1932–2016",
+"wiki": "https://en.wikipedia.org/wiki/Umberto_Eco",
+"zone": "look_alike",
+"idea": {
+"en": "Semiotics and the limits of interpretation: a text allows many readings, but not any reading.",
+"ru": "Семиотика и пределы интерпретации: текст допускает много прочтений, но не любое.",
+"de": "Semiotik und Grenzen der Interpretation: ein Text erlaubt viele Lesarten, aber nicht jede."
+},
+"rule": "Offer readings the text supports, and say which ones it does not.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "shapley",
+"name": "Lloyd Shapley",
+"name_ru": "Ллойд Шепли",
+"years": "1923–2016",
+"wiki": "https://en.wikipedia.org/wiki/Lloyd_Shapley",
+"zone": "one_model",
+"idea": {
+"en": "The Shapley value: a fair way to share the result among the participants who produced it together (the basis of SHAP explanations in AI).",
+"ru": "Вектор Шепли: справедливый способ разделить результат между участниками, которые добились его вместе (основа объяснений SHAP в ИИ).",
+"de": "Shapley-Wert: faire Aufteilung eines gemeinsamen Ergebnisses (Grundlage von SHAP)."
+},
+"rule": "When several causes act together, give each its share instead of naming one.",
+"needs": {
+"code": "covered",
+"note": "the Halpern sensor already names the headlines that moved an index",
+"covered_by": "halpern"
+}
+},
+{
+"id": "mackay",
+"name": "David J. C. MacKay",
+"name_ru": "Дэвид Маккей",
+"years": "1967–2016",
+"wiki": "https://en.wikipedia.org/wiki/David_J._C._MacKay",
+"zone": "measurement_error",
+"idea": {
+"en": "Information theory, Bayesian inference and 'Sustainable Energy – without the hot air': check claims by putting honest numbers with units on them.",
+"ru": "Теория информации, байесовский вывод и «Устойчивая энергия — без пустых слов»: проверять утверждения, подставляя честные числа с единицами.",
+"de": "Informationstheorie, Bayes und „Sustainable Energy – without the hot air“: Behauptungen mit ehrlichen Zahlen prüfen."
+},
+"rule": "Put a number with a unit on a claim and compare it with the right scale.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already traces units and scales of every number",
+"covered_by": "baird"
+}
+},
+{
+"id": "golomb",
+"name": "Solomon W. Golomb",
+"name_ru": "Соломон Голомб",
+"years": "1932–2016",
+"wiki": "https://en.wikipedia.org/wiki/Solomon_W._Golomb",
+"zone": "answer_cost",
+"idea": {
+"en": "Golomb codes and shift-register sequences: short codes for frequent values.",
+"ru": "Коды Голомба и последовательности регистров сдвига: короткие коды для частых значений.",
+"de": "Golomb-Codes und Schieberegisterfolgen."
+},
+"rule": "Give the frequent answer short and spend words only on the unusual.",
+"needs": {
+"code": "covered",
+"note": "the Ziv sensor already measures how much is new versus repeated",
+"covered_by": "ziv"
+}
+},
+{
+"id": "toffler",
+"name": "Alvin Toffler",
+"name_ru": "Элвин Тоффлер",
+"years": "1928–2016",
+"wiki": "https://en.wikipedia.org/wiki/Alvin_Toffler",
+"zone": "answer_cost",
+"idea": {
+"en": "'Future Shock': information overload — too much change and information too fast overwhelms decisions.",
+"ru": "«Шок будущего»: информационная перегрузка — слишком много перемен и информации слишком быстро мешают принимать решения.",
+"de": "„Der Zukunftsschock“: Informationsüberlastung."
+},
+"rule": "Give less, but what matters: cut the answer to what the reader can use.",
+"needs": {
+"code": "covered",
+"note": "the Bertsekas sensor already measures answer size in tokens and the cheapest chains",
+"covered_by": "bertsekas"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
