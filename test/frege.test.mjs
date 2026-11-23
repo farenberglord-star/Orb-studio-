@@ -7,6 +7,8 @@ test("names from headlines, without leading titles", () => {
   assert.deepEqual(extractNames("President Donald Trump meets Friedrich Merz in Berlin"), ["Donald Trump", "Friedrich Merz"]);
   assert.deepEqual(extractNames("Kanzler Friedrich Merz trifft Ursula von der Leyen"), ["Friedrich Merz", "Ursula von der Leyen"]);
   assert.ok(extractNames("Bank collapse in Cyprus").length === 0);
+  assert.deepEqual(extractNames("Bitcoin ETF Exodus Gathers Pace, Removing Key Source of Support"), []);
+  assert.deepEqual(extractNames("Cathie Wood's ARK Invest pulls the plug on two planned crypto ETFs"), ["Cathie Wood"]);
 });
 test("person-like descriptions and namesakes", () => {
   assert.ok(personLike("German politician (born 1955)")); assert.ok(!personLike("city in Germany"));

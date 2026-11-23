@@ -1848,9 +1848,10 @@ async function fregeLookup(env, name) { // Викиданные (CC0): люди 
 }
 async function fregeNow(env, q = {}) { // «Фреге»: тёзки в новостях — сколько людей с ровно таким именем знают Викиданные
   if (q.name) { const n = String(q.name).trim().slice(0, 80); if (n.split(/\s+/).length < 2) return { error: "give a full name, e.g. ?name=John Smith" }; try { return { ...(await fregeLookup(env, n)), source: "Wikidata, CC0", rule: "A name may belong to several people; confirm who is meant by role, country or date." }; } catch (e) { return { name: n, error: "Wikidata not reachable now, try later" }; } }
-  const c = await sharedGet(env, "frege-v1", 6 * 3600e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "frege-v1", 20 * 60e3).catch(() => null); if (c) return c;
   let heads = []; try { heads = (await env.DB.prepare("SELECT headline FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 600").bind(Date.now() - 2 * 864e5).all()).results || []; } catch {}
-  const names = [...new Set(heads.flatMap((h) => extractNames(h.headline)))].slice(0, 150), checked = []; let fetched = 0, busy = false;
+  const cnt = new Map(); for (const h of heads) for (const n of extractNames(h.headline)) cnt.set(n, (cnt.get(n) || 0) + 1);
+  const names = [...cnt.keys()].sort((a, b) => cnt.get(b) - cnt.get(a)).slice(0, 150), checked = []; let fetched = 0, busy = false;
   for (const n of names) {
     const hit = await sharedGet(env, "frege-n:" + n.toLowerCase(), 7 * 864e5).catch(() => null);
     if (hit) { checked.push(hit); continue; }

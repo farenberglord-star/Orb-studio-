@@ -17,9 +17,10 @@ const STOP = /^(the|a|an|new|breaking|live|update|report|watch|why|how|what|who|
 const PERSON_DESC = /(politician|footballer|football|soccer|player|actor|actress|singer|rapper|journalist|presenter|businessman|businesswoman|entrepreneur|executive|economist|banker|scientist|physicist|chemist|engineer|writer|author|novelist|poet|lawyer|judge|diplomat|official|civil servant|minister|president|senator|governor|mayor|general|officer|athlete|tennis|cyclist|boxer|coach|manager|musician|composer|conductor|artist|painter|director|producer|model|activist|priest|bishop|monarch|prince|princess|historian|philosopher|professor|researcher|\b(?:born|died)\b|\(\d{4}|\d{4}\s*[–-]\s*\d{4})/i;
 
 export function extractNames(headline) {
-  const t = String(headline || ""), out = new Set();
+  const t = String(headline || ""), out = new Set(), w = t.split(/\s+/).filter((x) => /^\p{L}/u.test(x));
+  if (w.length >= 5 && w.filter((x) => /^\p{Lu}/u.test(x)).length / w.length > 0.85) return []; // Заголовок В Стиле Title Case — имена не отличить
   for (const m of t.matchAll(NAME_LAT)) {
-    let parts = m[0].split(/\s+/); while (parts.length && STOP.test(parts[0])) parts = parts.slice(1);
+    let parts = m[0].replace(/['’]s$/u, "").split(/\s+/); while (parts.length && STOP.test(parts[0])) parts = parts.slice(1);
     while (parts.length && STOP.test(parts[parts.length - 1])) parts = parts.slice(0, -1);
     if (parts.length >= 2 && parts.length <= 5 && !/[\u0400-\u04ff]/.test(parts.join("")) && parts.every((p) => p.length >= 2)) out.add(parts.join(" "));
   }
