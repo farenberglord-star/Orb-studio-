@@ -99,3 +99,30 @@ test("facts reach Grok only when they match the story", () => {
   assert.deepEqual(relevantFacts(null, "x", "y"), []);
   assert.match(GS2, /If FACTS is empty, give no sensor numbers/); assert.match(GS2, /Never bring up the Strait of Hormuz/);
 });
+import { sameStory, dropSameStory, storyStems } from "../src/duo.js";
+// Выпуск 24.11.2026 09:37: Claude не ответил, запасной путь взял BBC и DW об одном ударе по Запорожью
+const ZBBC = "Война в Украине: двое погибших и более 40 раненых при ударе по Запорожью";
+const ZDW = "В Запорожье в результате атаки РФ погибли два человека, ранены 40";
+const BINANCE = "DOJ moves to recover $1.17 billion from Binance hack, Strategy buys another 457 BTC, and more";
+test("same story: Cyrillic headlines with different endings are one event, a BBC rubric alone is not", () => {
+  assert.ok(storyStems(ZBBC).has("запор") && storyStems(ZDW).has("запор"));
+  assert.ok(sameStory(ZBBC, ZDW));
+  assert.ok(!sameStory(ZBBC, "Война в Украине: Зеленский встретился с премьером Канады в Киеве"));
+  assert.ok(!sameStory(ZBBC, BINANCE));
+  assert.ok(sameStory("Iran strikes tanker near Hormuz, oil jumps", "Oil jumps after Iranian strike on tanker in Strait of Hormuz"));
+});
+test("fallback picks skip a second retelling of an already picked event", () => {
+  const heads = [ZBBC, ZDW, BINANCE, "Fed holds rates steady"];
+  assert.deepEqual(checkPicks(null, 4, (t) => t, heads).map((x) => x.i), [0, 2, 3]);
+  const p = checkPicks({ picks: [{ i: 0, read: "r", question: "Grok, a?" }, { i: 1, read: "r", question: "Grok, b?" }] }, 4, (t) => t, heads);
+  assert.deepEqual(p.map((x) => x.i), [0, 2, 3], "even the host's own pick of the same event twice is dropped");
+});
+test("one event from several outlets: the candidate with the surer passport stays", () => {
+  const c = dropSameStory([
+    { headline: ZBBC, source: "bbci.co.uk", passport: { confidence: "low", voices: 1 } },
+    { headline: ZDW, source: "rss.dw.com", passport: { confidence: "medium", voices: 2 } },
+    { headline: BINANCE, source: "theblock.co", passport: { confidence: "medium", voices: 2 } },
+  ]);
+  assert.deepEqual(c.map((x) => x.source), ["rss.dw.com", "theblock.co"]);
+  assert.deepEqual(c[0].also_reported_by, ["bbci.co.uk"]);
+});

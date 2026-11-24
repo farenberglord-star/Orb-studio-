@@ -47,7 +47,7 @@ import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { GROK_FOLLOW_SYSTEM, grokFollowUser, checkCarousel, GROK_CAROUSEL_SYSTEM, grokCarouselUser } from "./duo.js";
 import { GROK_SENSORS_SYSTEM, grokSensorsUser, describeSignal, sensorsHostLines } from "./duo.js";
 import { GROK_AGENTS_SYSTEM, grokAgentsUser, agentsHostLines, HOST_REACT_SYSTEM, HOST_REACT_TOOL, reactUser, checkReact } from "./duo.js";
-import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES } from "./duo.js";
+import { DUO, buildFacts, grokUser, GROK_SYSTEM, FORECAST_REMINDER, checkReply as duoCheck, assembleDuo, relevantFacts, checkPicks, pickUser, HOST_PICK_SYSTEM, HOST_PICK_TOOL, PICK_CANDIDATES, storyStems, dropSameStory } from "./duo.js";
 import { fetchFrequency, summarizeFrequency, ATTRIBUTION as GRIDFREQ_ATTRIBUTION } from "./gridfreq.js";
 import { fetchAdvisories, summarizeAdvisories, ATTRIBUTION as AGENTSEC_ATTRIBUTION } from "./agentsec.js";
 import { fetchAdsbLol, summarizeSector, detectLandings, EDHI, HAMBURG, NM_PER_KM } from "./aviation.js";
@@ -1212,7 +1212,7 @@ async function duoPick(env, cands, recent, menu, recentCarousel) {
       out = tool && tool.input;
     } catch (e) { await sharedPut(env, "duo-last-error", { at: new Date().toISOString(), error: "host pick: " + String(e && e.message || e).slice(0, 180) }); }
   }
-  const picks = checkPicks(out, cands.length, stripInvisible);
+  const picks = checkPicks(out, cands.length, stripInvisible, cands.map((c) => c.headline));
   const carousel = checkCarousel(out && out.carousel, menu, stripInvisible);
   return { carousel, items: picks.map((p) => ({ ...cands[p.i], question: p.question, thanks: p.thanks })), lines: picks.map((p) => ({ en: p.read || cands[p.i].headline })) };
 }
@@ -1526,7 +1526,7 @@ async function duoWarm(env, ctx) {
   for (let i = cands.length - 1; i >= 0; i--) if ((used[norm(cands[i].headline)] || 0) >= 1 && cands.length > 4) cands.splice(i, 1); // новость, уже звучавшая в архиве выпусков, второй раз не берём (пока есть из чего выбирать)
   // …и одну тему (Ормуз, Nvidia…) не ставить, если она уже была в двух из трёх последних выпусков, даже под другим заголовком
   const STOP = new Set(["about", "after", "with", "from", "that", "this", "their", "will", "news", "says", "über", "nach", "wird", "dass", "eine", "einen", "neue", "tages"]);
-  const kw = (h) => new Set((String(h || "").match(/[A-Za-zÄÖÜäöüß][\wÄÖÜäöüß-]{3,}/g) || []).map((w) => w.toLowerCase()).filter((w) => !STOP.has(w)));
+  const kw = (h) => new Set([...storyStems(h)].filter((w) => !STOP.has(w))); // любой алфавит (раньше кириллица не видна), основы по 5 букв
   const hormuzRe = /hormu[sz]|ормуз|brent|tanker|oil|öl\b|нефт/i;
   const recentEps = arc.episodes.slice(0, 3).map((e) => (e.segments || []).filter((x) => (x.kind || "news") === "news").map((x) => x.headline));
   const sameTopic = (a, b) => { if (hormuzRe.test(a) && hormuzRe.test(b)) return true; const A = kw(a), B = kw(b); let n = 0; for (const w of A) if (B.has(w)) n++; return n >= 2; };
@@ -1549,6 +1549,7 @@ async function duoWarm(env, ctx) {
   }
   const recentCarousel = [...new Set(arc.episodes.slice(0, 6).flatMap((e) => (e.segments || []).filter((x) => x.kind === "carousel" && x.carousel_id).map((x) => x.carousel_id)))];
   for (const c of cands) if (!c.passport) c.passport = newsPassport(c); // паспорт новости для выбора Давида
+  { const merged = dropSameStory(cands); cands.length = 0; cands.push(...merged); } // одно событие у нескольких изданий — один кандидат: тот, у кого паспорт увереннее
   const { items, lines, carousel } = await duoPick(env, cands, recent, menu, recentCarousel);
   const d = await duoBuild(env, ctx, origin, items, lines, 70000, avoid, recent, carousel);
   // Выпуск публикуется только после переводов: иначе слушатель получил бы английский, а потом выпуск «поменялся» бы под ним

@@ -91,6 +91,38 @@ export function hostLines(i, readLine, question, thanks, seed = 0) {
 
 // ---- Ведущий сам выбирает новости и пишет вопросы (Claude). Выбор проверяется, при сбое — первые заголовки и запасные вопросы ----
 export const PICK_CANDIDATES = 10;
+// «Одно событие, два издания» (Шлейхер: первоисточник, а не число пересказов; Кондорсе: повтор — не новый голос).
+// Слова заголовка на любом алфавите (латиница, кириллица, умлауты) → основы из первых 5 букв, чтобы падежи и
+// окончания не мешали: «Запорожью» = «Запорожье», «погибших» = «погибли», «strikes» = «strike».
+const STORY_STOP = new Set(["about", "after", "with", "from", "that", "this", "their", "will", "news", "says", "more", "than", "over", "into", "amid", "what", "über", "nach", "wird", "dass", "eine", "einen", "neue", "tages", "nicht", "sich", "auch", "beim", "более", "после", "также", "может", "было", "будет", "этом", "года", "году", "заявил", "заявила"]);
+export function storyStems(h) {
+  const out = new Set();
+  for (const w of String(h || "").toLowerCase().replace(/ё/g, "е").match(/\p{L}[\p{L}\p{N}-]{3,}/gu) || []) if (!STORY_STOP.has(w)) out.add(w.slice(0, 5));
+  return out;
+}
+// Одно событие: ≥3 общих основы, или ≥2 и это не меньше половины основ короткого заголовка.
+// Две новости рубрики «Война в Украине: …» делят только «войн, украи» — это одна тема, но разные события.
+export function sameStory(a, b) {
+  const A = storyStems(a), B = storyStems(b); let k = 0;
+  for (const w of A) if (B.has(w)) k++;
+  return k >= 3 || (k >= 2 && k >= 0.5 * Math.min(A.size, B.size));
+}
+const CONF_RANK = { high: 3, medium: 2, low: 1 };
+// Из нескольких пересказов одного события в выпуск идёт один: с более высокой уверенностью паспорта, затем с бо́льшим
+// числом независимых изданий, затем стоящий выше в списке радаров. Остальные издания запоминаются в also_reported_by.
+export function dropSameStory(cands) {
+  const rank = (c) => [CONF_RANK[c.passport && c.passport.confidence] || 0, (c.passport && Number.isFinite(c.passport.voices)) ? c.passport.voices : -1];
+  const better = (a, b) => { const x = rank(a), y = rank(b); return x[0] !== y[0] ? x[0] > y[0] : x[1] > y[1]; };
+  const kept = [];
+  for (const c of cands) {
+    const j = kept.findIndex((k) => sameStory(k.headline, c.headline));
+    if (j < 0) { kept.push(c); continue; }
+    const [win, lose] = better(c, kept[j]) ? [c, kept[j]] : [kept[j], c];
+    win.also_reported_by = [...new Set([...(win.also_reported_by || []), ...(lose.also_reported_by || []), lose.source].filter(Boolean))];
+    kept[j] = win;
+  }
+  return kept;
+}
 export const HOST_PICK_SYSTEM = `You are David, the AI host of the Orb Studio news desk. Your style is a modern cyberpunk news host: crisp, confident, a little futuristic (signals, data streams, the neon city at night), never silly and never at the cost of facts. Your guest is Grok. From the candidate headlines choose the ${DUO.maxItems} stories that matter most for the world today (different events, not the same story twice) and prepare each one. Candidates marked "trending" match what people search, read and post about right now (Google Trends, Wikipedia, X): a big world event that is trending (for example a summit of world leaders) should normally be among your picks. A trend is attention, not proof: report only what the headline itself says. Each candidate has a passport (status, outlets, age, confidence): prefer stories with medium or high confidence; pick a question headline, a forecast or a single-outlet story only when it is clearly one of the day's big events. In read, keep the status: a threat, promise, demand or forecast is never told as something that happened.
 For every chosen story write:
 - read: 1 or 2 spoken sentences in English that tell the viewers what the headline says. Only what the headline states: no added facts, names, numbers or causes, no forecasts, no advice.
@@ -111,17 +143,21 @@ export function pickUser(cands, recent, menu, recentCarousel) {
 const clean = (t, strip, max) => { const x = strip(String(t == null ? "" : t)).replace(/\s+/g, " ").trim(); return x.length > max ? "" : x; };
 // Проверка выбора ведущего: номера в пределах списка и без повторов; вопрос — один, с «?», без прогнозов и команд.
 // Плохой вопрос или читка заменяются запасными (null), нехватка выбора добирается первыми заголовками.
-export function checkPicks(out, n, strip = (t) => t) {
+// heads (необязательно) — заголовки кандидатов: тогда второй пересказ уже выбранного события не берётся ни из выбора
+// ведущего, ни из запасного добора (лучше на сегмент меньше, чем одна новость дважды).
+export function checkPicks(out, n, strip = (t) => t, heads = null) {
   const picks = [], used = new Set();
+  const dup = (i) => !!heads && picks.some((p) => sameStory(heads[p.i], heads[i]));
   for (const p of (out && Array.isArray(out.picks) ? out.picks : [])) {
     if (picks.length >= DUO.maxItems) break;
     if (!p || !Number.isInteger(p.i) || p.i < 0 || p.i >= Math.min(n, PICK_CANDIDATES + 5) || used.has(p.i)) continue;
     used.add(p.i);
+    if (dup(p.i)) continue;
     const q = clean(p.question, strip, 280), r = clean(p.read, strip, 360), th = clean(p.thanks, strip, 140);
     const bad = (t) => !t || FORECAST.test(t) || INJECT.test(t);
     picks.push({ i: p.i, question: bad(q) || !/\?\s*$/.test(q) ? null : q, read: bad(r) ? null : r, thanks: bad(th) || th.includes("?") ? null : th });
   }
-  for (let i = 0; i < n && picks.length < Math.min(DUO.maxItems, n); i++) if (!used.has(i)) { used.add(i); picks.push({ i, question: null, read: null }); }
+  for (let i = 0; i < n && picks.length < Math.min(DUO.maxItems, n); i++) if (!used.has(i) && !dup(i)) { used.add(i); picks.push({ i, question: null, read: null }); }
   return picks;
 }
 
