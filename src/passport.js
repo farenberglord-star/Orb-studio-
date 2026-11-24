@@ -65,12 +65,20 @@ export function newsPassport(it, now = Date.now()) {
   say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
   const low = rumourRisk || (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48) || (extraordinary && (voices == null || voices <= 2));
   const high = !low && !foundDoc && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
+  // «Ризон», модель швейцарского сыра: какие слои паспорта подняли тревогу — чтобы потом видеть, какой слой пропустил оспоренную историю
+  const fired = [
+    age != null && age > 24 && "stale", act.act !== "event" && "not_event", voices != null && voices <= 1 && "few_voices",
+    (chk.class === "nothing_to_check" || chk.class === "hedged") && "vague", (QUOTED.test(headline) || (act.act === "claim" && COLON_SPEAKER.test(headline))) && "quoted",
+    foundDoc && "found_document", extraordinary && (voices == null || voices <= 2) && "extraordinary", rumourRisk && "rumour_risk",
+    meta && "metaphor", tone && tone.loaded && "tone", it && it.state_media && "state_media",
+    amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) && "amplified",
+  ].filter(Boolean);
   return {
     what: headline, status, voices, age_hours: age == null ? null : Math.round(age * 10) / 10,
     checkability: chk.class, speech_act: act.act, state_media: (it && it.state_media) || null,
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
     first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, tone: tone && tone.loaded ? tone : null, rumour_risk: rumourRisk,
-    confidence: high ? "high" : low ? "low" : "medium", say,
+    confidence: high ? "high" : low ? "low" : "medium", fired, say,
     steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "loaded words: evaluation, potency, activity (Osgood, Elias)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
 }

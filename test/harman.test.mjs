@@ -24,3 +24,18 @@ test("wiring", () => {
   assert.match(w, /p === "\/api\/v1\/harman"/); assert.match(w, /name: "get_harman"/); assert.match(w, /"tools\/harman"/); assert.match(w, /conf TEXT/);
   for (const f of ["tools/harman.html", "de/tools/harman.html", "en/tools/harman.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"); assert.match(h, /\/go\/kraken\?from=harman/); assert.match(h, /share-x\.js/); assert.match(h, /Gilbert_Harman/); }
 });
+test("holes in the layers (Reason): which passport checks fired on challenged stories", async () => {
+  const { layersReport } = await import("../src/harman.js");
+  const L = [];
+  for (let i = 0; i < 12; i++) L.push({ s: { headline: "h" + i, radar: "geo" }, hit: { headline: "denied " + i }, fired: i < 8 ? ["few_voices"] : [] });
+  for (let i = 0; i < 40; i++) L.push({ s: { headline: "r" + i }, hit: null, fired: i < 4 ? ["few_voices"] : [] });
+  const r = layersReport(L); assert.equal(r.verdict, "measured"); assert.equal(r.passed_all_layers, 4);
+  const c = r.checks.find((x) => x.check === "few_voices"); assert.equal(c.fired_on_challenged_pct, 67); assert.equal(c.fired_on_rest_pct, 10);
+  assert.equal(layersReport(L.slice(0, 5)).verdict, "collecting");
+});
+test("passport lists the checks that fired", async () => {
+  const { newsPassport } = await import("../src/passport.js");
+  const p = newsPassport({ headline: "Leaked memo: minister says 'price war' coming", confirm: 1 });
+  for (const id of ["few_voices", "found_document", "metaphor", "not_event"]) assert.ok(p.fired.includes(id), id);
+  assert.deepEqual(newsPassport({ headline: "Parliament passes budget of 400 billion euros", confirm: 5 }).fired, []);
+});

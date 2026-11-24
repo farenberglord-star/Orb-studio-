@@ -66,7 +66,7 @@ export const CRYSTAL_BRIDGES = [
   B("explanation_vs_understanding", "Explanation ≠ understanding", "Объяснение ≠ понимание", "look_alike", "idea", ["dilthey", "searle"]),
   // Психологи 2023–2026 (Грок, 24.11.2026) × математики и статистики библиотеки
   B("measure_depends_on_set", "The measure depends on the set", "Мерка зависит от набора", "measurement_error", "ready", ["parducci", "fechner", "edgeworth", "naatanen"], { needs: "owner's yes: each radar level as a percentile of its own 30-day range (ix_hist)" }),
-  B("holes_in_layers", "Holes in the layers", "Дыры в слоях", "side_effects", "ready", ["reason_j", "bobbio", "harman"], { needs: "owner's yes: store which passport lines fired at first sight (radar_life), then show which layer let challenged stories through" }),
+  B("holes_in_layers", "Holes in the layers", "Дыры в слоях", "side_effects", "sensor", ["reason_j", "bobbio", "harman"], { sensor: "harman" }),
   B("off_the_question", "Off the question", "Ушёл от вопроса", "own_limits", "ready", ["smallwood", "grice", "weizenbaum"], { needs: "owner's yes: host rule — restate the question in one line, check the answer addresses it" }),
   B("cry_wolf", "Cry wolf: warnings that are too frequent", "Крик «волк»: слишком частые тревоги", "answer_cost", "ready", ["pearson", "harman", "nesselroade"], { needs: "owner's yes: share of live passports with a warning line, and (from Harman) how many warned stories were later challenged; Breznitz card waits for an obituary" }),
   B("one_number_or_several", "One number or several", "Одно число или несколько", "one_model", "waiting", ["das_jp", "goldberg_l", "spearman", "leontief"], { until: "2026-12-21" }),

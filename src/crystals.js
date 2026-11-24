@@ -9673,8 +9673,9 @@ export const CRYSTALS = [
 },
 "rule": "When a check fails, ask which layers let it through, not who is to blame.",
 "needs": {
-"code": "ready",
-"note": "bridge 'holes in the layers' (Reason + Bobbio + Harman): store which passport lines fired at first sight, so a later-challenged story shows which layer let it through"
+"code": "covered",
+"note": "the Harman sensor now shows, for later-challenged stories, which passport checks fired at first sight and which stories passed every layer (block layers)",
+"covered_by": "harman"
 }
 },
 {

@@ -1810,12 +1810,12 @@ async function zivNow(env, ctx) {
 async function coxTick(env, ctx) { // раз в 30 минут: какие заголовки сейчас на радарах (первое и последнее появление)
   if (!env.DB || await sharedGet(env, "cox-slot", 25 * 60e3)) return; await sharedPut(env, "cox-slot", { t: Date.now() });
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_life (k TEXT PRIMARY KEY, radar TEXT NOT NULL, source TEXT, headline TEXT, first_ts INTEGER NOT NULL, last_ts INTEGER NOT NULL)").run();
-  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
+  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
   const rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), now = Date.now(), st = [];
   for (const r of rs || []) for (const [i, f] of (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).entries()) { const k = normHead(f[1]); if (!k) continue;
     const n = r.verify && Number.isFinite(r.verify[i]) ? r.verify[i] : null;
-    let conf = null; try { conf = newsPassport({ headline: f[1], confirm: n, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now).confidence; } catch {} // «Харман»: уверенность паспорта в момент первого появления
-    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf)); }
+    let conf = null, fired = null; try { const pp = newsPassport({ headline: f[1], confirm: n, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); } catch {} // «Харман»: уверенность паспорта в момент первого появления
+    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired)); }
   if (st.length) await env.DB.batch(st);
   await env.DB.prepare("DELETE FROM radar_life WHERE last_ts < ?1").bind(now - 30 * 864e5).run();
 }
@@ -1875,11 +1875,11 @@ async function fregeNow(env, q = {}) { // «Фреге»: тёзки в ново
   await sharedPut(env, "frege-v1", r).catch(() => {}); return r;
 }
 async function harmanNow(env) { // «Харман»: честна ли уверенность паспорта — опровергают ли «высокую» реже «низкой»
-  const c = await sharedGet(env, "harman-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "harman-v2", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
-  try { rows = (await env.DB.prepare("SELECT k, radar, headline, first_ts, n_max, conf FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 17 * 864e5).all()).results || [];
+  try { rows = (await env.DB.prepare("SELECT k, radar, headline, first_ts, n_max, conf, fired FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 17 * 864e5).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
-  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v1", r).catch(() => {}); return r;
+  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v2", r).catch(() => {}); return r;
 }
 async function cohenNow(env) { // «Коэн»: наименьший эффект, который каждый датчик способен заметить на нынешних данных
   const c = await sharedGet(env, "cohen-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -8353,7 +8353,7 @@ const MCP_TOOLS = [
     description: "Person names from radar headlines of the last 48 hours are looked up in Wikidata (CC0); a name counts as ambiguous when two or more people with exactly that name are known. Verdict many / some / few namesakes, list of ambiguous names with examples. Optional 'name' checks one full name. No AI. In honour of Gottlob Frege (1848-1925), 'On Sense and Reference'.",
     inputSchema: { type: "object", properties: { name: { type: "string", description: "optional: one full name to check, e.g. 'John Smith'" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_harman", title: "Harman sensor: is the Orb Studio news passport honest about its own confidence?",
-    description: "The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
+    description: "Also the block 'layers' (Reason's Swiss-cheese model): for later-challenged stories, which passport checks raised a warning at first sight and which stories passed every layer silently. The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_cohen", title: "Cohen sensor: the smallest effect each Orb Studio sensor can detect with its current data (power, 'not significant' is not 'no effect')",
     description: "For the track record (BTC, ETH, XRP), the planned who-leads-whom correlation, the forecast game, the Kasperson amplification share and the Newcomb first-digit test: sample size, the smallest effect detectable at the 5% level with 80% power (or the margin / noise level), and a grade fine / coarse / blind. Read every 'nothing found' with its true resolution. No AI. In honour of Jacob Cohen (1923-1998).",

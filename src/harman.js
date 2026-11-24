@@ -26,19 +26,20 @@ export function harmanReport(rows, now = Date.now(), since = null) {
   const all = (rows || []).filter((r) => r && r.headline && Number.isFinite(+r.first_ts));
   const corr = all.filter((r) => CORRECTION_RE.test(r.headline));
   const done = all.filter((r) => r.conf && +r.first_ts <= now - HARMAN_WINDOW && !CORRECTION_RE.test(r.headline));
-  const levels = {}, examples = [];
+  const levels = {}, examples = [], layered = [];
   for (const s of done) {
     const t0 = +s.first_ts, hit = corr.find((c) => c.k !== s.k && +c.first_ts >= t0 && +c.first_ts <= t0 + HARMAN_WINDOW && sameStory(s.headline, c.headline));
     const L = (levels[s.conf] = levels[s.conf] || { stories: 0, challenged: 0, widened: 0 });
     L.stories++; if (hit) { L.challenged++; if (examples.length < 6) examples.push({ confidence: s.conf, headline: s.headline, radar: s.radar, later: hit.headline }); }
     if (+s.n_max >= 3) L.widened++;
+    if (s.fired != null) layered.push({ s, hit, fired: String(s.fired).split(",").filter(Boolean) });
   }
   const out = ["high", "medium", "low"].map((c) => { const L = levels[c] || { stories: 0, challenged: 0, widened: 0 }; return { confidence: c, ...L, challenged_pct: pct(L.challenged, L.stories), widened_pct: pct(L.widened, L.stories) }; });
   const ready = out.filter((x) => x.stories >= HARMAN_MIN), hi = out[0], lo = out[2];
   const verdict = ready.length < 2 ? "collecting" : hi.stories >= HARMAN_MIN && lo.stories >= HARMAN_MIN && hi.challenged_pct > lo.challenged_pct ? "overconfident"
     : ready.every((x, i, a) => i === 0 || a[i - 1].challenged_pct <= x.challenged_pct + 2) ? "calibrated" : "mixed";
   return {
-    sensor: "harman", verdict, levels: out, examples,
+    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered),
     stories_resolved: done.length, stories_waiting: all.filter((r) => r.conf && +r.first_ts > now - HARMAN_WINDOW).length, corrections_seen: corr.length,
     question: "Is the Orb Studio news passport honest about its own confidence — are stories it rated 'high' challenged less often than those it rated 'low'?",
     method: `The passport's confidence (high / medium / low) is stored when a story first appears on a radar. ${HARMAN_WINDOW / 3600e3} hours later, the story counts as challenged if another radar headline with denial, retraction or correction words (denies, retracts, corrects, dementiert, korrigiert, опроверг, исправ…) appeared in that window and shares at least 40% of its key words. Widened = 3+ outlets at the peak. Calibrated = the challenged share does not fall as confidence rises; overconfident = 'high' is challenged more often than 'low'. A verdict needs ${HARMAN_MIN} resolved stories in at least two levels. Word rules, no AI.`,
@@ -48,5 +49,26 @@ export function harmanReport(rows, now = Date.now(), since = null) {
     history_since: since ? new Date(+since).toISOString() : null,
     honour: HARMAN, similar: "Calibration and reliability diagrams are standard in weather and forecast verification; this sensor checks the calibration of a live news-checking rule set against later corrections, for agents.",
     generated_at: new Date(now).toISOString(),
+  };
+}
+
+// «Ризон» (модель швейцарского сыра): по оспоренным историям — какие проверки паспорта подняли тревогу при первом появлении,
+// а какие истории прошли сквозь все слои молча. Проверка, которая чаще срабатывает на оспоренных, чем на остальных, — работающий слой.
+export const REASON_MIN = 10;
+const LAYER_OF = { stale: "1 freshness", not_event: "3 fact or claim", few_voices: "3 fact or claim", quoted: "3 fact or claim", found_document: "3 fact or claim",
+  extraordinary: "3 fact or claim", rumour_risk: "3 fact or claim", state_media: "3 fact or claim", amplified: "3 fact or claim", vague: "4 checkability", metaphor: "7 look-alike", tone: "7 look-alike" };
+export function layersReport(layered) {
+  const ch = layered.filter((x) => x.hit), rest = layered.filter((x) => !x.hit), share = (a, id) => (a.length ? Math.round((100 * a.filter((x) => x.fired.includes(id)).length) / a.length) : null);
+  const checks = Object.keys(LAYER_OF).map((id) => ({ check: id, layer: LAYER_OF[id], fired_on_challenged_pct: share(ch, id), fired_on_rest_pct: share(rest, id) }))
+    .filter((c) => c.fired_on_challenged_pct || c.fired_on_rest_pct);
+  const passed = ch.filter((x) => !x.fired.length);
+  return {
+    stories_with_layers: layered.length, challenged: ch.length, verdict: ch.length < REASON_MIN ? "collecting" : "measured",
+    passed_all_layers: passed.length, passed_all_layers_pct: ch.length ? Math.round((100 * passed.length) / ch.length) : null,
+    passed_examples: passed.slice(0, 5).map((x) => ({ headline: x.s.headline, radar: x.s.radar, later: x.hit.headline })),
+    checks,
+    rule: "For each later-challenged story, look at which passport checks raised a warning at first sight; a check that fires more often on challenged stories than on the rest is a working layer, and stories that passed every layer silently show the hole to close.",
+    bridge: "Crystal Library bridge 'holes in the layers': Reason ('Human Error', 1990, the Swiss-cheese model) + Bobbio (rule conflicts) + Harman.",
+    since: "2026-11-24 (checks are stored from this day)", min_challenged: REASON_MIN,
   };
 }
