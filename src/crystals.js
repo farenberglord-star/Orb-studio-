@@ -10868,8 +10868,8 @@ export const CRYSTALS = [
 },
 "rule": "When a reward or ban is announced, ask how people can game it before reporting the intended effect.",
 "needs": {
-"code": "ready",
-"note": "host rule: when a reward or ban is announced, ask how it can be gamed (extends 'who else pays') — waits for yes"
+"code": "covered",
+"note": "applied: host rule — when a reward, subsidy, quota, ban or target is announced, ask how it can be gamed before the intended effect"
 }
 },
 {

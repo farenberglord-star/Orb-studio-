@@ -115,7 +115,7 @@ export const CRYSTAL_BRIDGES = [
   B("witness_in_spite", "Witnesses in spite of themselves", "Свидетели поневоле", "rumour_vs_fact", "idea", ["bloch", "osborn"]),
   B("incubation", "Incubation before the 'sudden' crisis", "Инкубация «внезапного» кризиса", "side_effects", "idea", ["turner_ba", "reason_j", "harman"]),
   B("drift_to_edge", "Drift to the edge", "Дрейф к границе", "side_effects", "covered", ["rasmussen_j", "minsky_h", "pareto"], { sensor: "pareto" }),
-  B("cobra_effect", "The cobra effect", "Эффект кобры", "side_effects", "ready", ["siebert_h", "campbell_dt", "sidgwick", "bastiat"]),
+  B("cobra_effect", "The cobra effect", "Эффект кобры", "side_effects", "line", ["siebert_h", "campbell_dt", "sidgwick", "bastiat"], { line: "host rule in GROK_SYSTEM and the round table: how could the reward or ban be gamed" }),
   B("risk_thermostat", "Measure announced ≠ risk reduced", "Мера объявлена ≠ риск снижен", "side_effects", "covered", ["adams_j", "wilde_g", "white_gf", "searle"], { line: "Searle reads announced measures as promises" }),
   B("chosen_vs_imposed", "Chosen or imposed risk", "Риск выбранный или навязанный", "answer_cost", "idea", ["starr_c", "kasperson", "douglas_m", "wildavsky"]),
   B("no_memory", "Organisations have no memory", "У организаций нет памяти", "look_alike", "covered", ["kletz", "tulving", "hume"], { line: "extraordinary-claim and 'first by what definition?' lines" }),
