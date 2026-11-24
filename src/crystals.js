@@ -11583,6 +11583,118 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "Bradford: share of core outlets; Lyberg: coverage of regions"
 }
+},
+{
+"id": "yule_gu",
+"name": "Udny Yule",
+"name_ru": "Юдни Юл",
+"years": "1871–1951",
+"wiki": "https://en.wikipedia.org/wiki/Udny_Yule",
+"zone": "side_effects",
+"idea": {
+"en": "'A Mathematical Theory of Evolution' (1925): the Yule process — the more species a genus already has, the faster it gains new ones, so a few genera grow very large.",
+"ru": "«Математическая теория эволюции» (1925): процесс Юла — чем больше видов уже в роде, тем быстрее он получает новые, поэтому несколько родов вырастают очень крупными.",
+"de": "„A Mathematical Theory of Evolution“ (1925): der Yule-Prozess — je mehr Arten eine Gattung hat, desto schneller kommen neue hinzu."
+},
+"rule": "When the same few sources hold most of the mentions, ask whether they lead because they are right or because they already led.",
+"needs": {
+"code": "covered",
+"note": "Bradford sensor: how concentrated the outlets behind the headlines are (core and tail)",
+"covered_by": "bradford"
+}
+},
+{
+"id": "hurst_he",
+"name": "Harold Edwin Hurst",
+"name_ru": "Гарольд Эдвин Хёрст",
+"years": "1880–1978",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Edwin_Hurst",
+"zone": "one_model",
+"idea": {
+"en": "'Long-term storage capacity of reservoirs' (1951): in 690 records of rivers, rain, temperature and more, runs of high and low values lasted longer than independent values would give — the Hurst phenomenon.",
+"ru": "«Долгосрочная ёмкость водохранилищ» (1951): в 690 рядах рек, осадков, температур и других величин серии высоких и низких значений держались дольше, чем дали бы независимые значения, — феномен Хёрста.",
+"de": "„Long-term storage capacity of reservoirs“ (1951): Phasen hoher und niedriger Werte dauerten länger als bei unabhängigen Werten."
+},
+"rule": "Before treating each new value as independent of the past, check whether the series remembers: a long run on one side may be the normal behaviour of this series.",
+"needs": {
+"code": "needs_history",
+"note": "Hurst exponent over the radar index history, water level and grid frequency; needs long enough records; joins the bridge 'forecast horizon' (Lorenz, Poincare, Mandelbrot)",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "richter_cf",
+"name": "Charles F. Richter",
+"name_ru": "Чарльз Ф. Рихтер",
+"years": "1900–1985",
+"wiki": "https://en.wikipedia.org/wiki/Charles_Richter",
+"zone": "measurement_error",
+"idea": {
+"en": "'An instrumental earthquake magnitude scale' (1935): a logarithmic scale — each whole step of magnitude is ten times the recorded ground amplitude. Not the same person as Michael M. Richter in this library.",
+"ru": "«Инструментальная шкала магнитуд землетрясений» (1935): логарифмическая шкала — каждый целый шаг магнитуды означает десятикратную записанную амплитуду. Не тот Рихтер, что Михаэль М. Рихтер в этой библиотеке.",
+"de": "„An instrumental earthquake magnitude scale“ (1935): logarithmische Skala, jeder ganze Schritt bedeutet die zehnfache Amplitude."
+},
+"rule": "On a logarithmic scale a step is a multiplication: give the ratio, not the difference in points.",
+"needs": {
+"code": "ready",
+"note": "add the energy/amplitude ratio between magnitudes to the Stanley Cohen sensor output (10 times amplitude per step); cheap, data already there"
+}
+},
+{
+"id": "benford_f",
+"name": "Frank Benford",
+"name_ru": "Фрэнк Бенфорд",
+"years": "1883–1948",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Benford",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Law of Anomalous Numbers' (1938): in some 20,000 numbers from 20 kinds of lists, the first digit 1 appeared far more often than 9, by a fixed pattern (Simon Newcomb had noticed it in 1881).",
+"ru": "«Закон аномальных чисел» (1938): примерно в 20 000 чисел из 20 видов списков первая цифра 1 встречалась намного чаще 9 по устойчивой закономерности (Саймон Ньюком заметил её ещё в 1881).",
+"de": "„The Law of Anomalous Numbers“ (1938): Die erste Ziffer 1 kam viel häufiger vor als 9."
+},
+"rule": "Before trusting a list of numbers, check how often each first digit occurs; invented or rounded lists break the pattern.",
+"needs": {
+"code": "covered",
+"note": "the Newcomb sensor already tests the first-digit law (Newcomb 1881, Benford 1938)",
+"covered_by": "newcomb"
+}
+},
+{
+"id": "austin_jl",
+"name": "J. L. Austin",
+"name_ru": "Дж. Л. Остин",
+"years": "1911–1960",
+"wiki": "https://en.wikipedia.org/wiki/J._L._Austin",
+"zone": "look_alike",
+"idea": {
+"en": "'How to Do Things with Words' (lectures 1955, published 1962): some utterances do not describe something, they are the act itself — 'I promise', 'I name this ship'.",
+"ru": "«Как совершать действия при помощи слов» (лекции 1955, издано 1962): некоторые высказывания ничего не описывают, они сами и есть действие — «обещаю», «нарекаю этот корабль».",
+"de": "„How to Do Things with Words“ (Vorlesungen 1955, erschienen 1962): Manche Äußerungen beschreiben nichts, sie sind selbst die Handlung."
+},
+"rule": "Separate a statement that describes from a statement that is itself the act (a ruling, a ban, a promise); say which one the headline is.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already separates claims, promises, threats and events (speech acts)",
+"covered_by": "searle"
+}
+},
+{
+"id": "knight_fh",
+"name": "Frank H. Knight",
+"name_ru": "Фрэнк Х. Найт",
+"years": "1885–1972",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Knight",
+"zone": "own_limits",
+"idea": {
+"en": "'Risk, Uncertainty and Profit' (1921): risk means the odds are known from many similar cases and can be insured; uncertainty means they are not known.",
+"ru": "«Риск, неопределённость и прибыль» (1921): риск — когда шансы известны по многим похожим случаям и их можно застраховать; неопределённость — когда шансы неизвестны.",
+"de": "„Risk, Uncertainty and Profit“ (1921): Risiko heißt bekannte Wahrscheinlichkeiten, Ungewissheit heißt unbekannte."
+},
+"rule": "Say whether the odds are known: a number built on no record of past cases is not a risk figure but a guess.",
+"needs": {
+"code": "needs_idea",
+"note": "risk vs uncertainty: no number yet that says how many of our indices rest on too short a record"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
