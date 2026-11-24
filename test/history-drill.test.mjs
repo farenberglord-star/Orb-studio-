@@ -13,9 +13,9 @@ const DRILL = [
   { h: "Hitler opens Olympic Games in Berlin before 100,000", v: 5, then: "the opening happened (the showcase is beyond the headline)", ok: (p) => p.speech_act === "event" },
   { h: "About 5,000 Maori marchers reach Parliament in Wellington", v: 3, then: "true; Waitangi Tribunal the same year", ok: (p) => p.confidence !== "low" },
   { h: "Treasury releases first dollar coin without silver", v: 2, then: "true by specification", ok: (p) => p.confidence !== "low" },
-  { h: "France declares neutrality in Spanish Civil War", v: 4, then: "a declaration; non-intervention was broken by others", ok: (p) => p.fired.includes("not_event"), todo: "'declares' is not yet read as a statement" },
-  { h: "Trudeau announces wage and price controls to fight inflation", v: 5, then: "in force 1975–1978, effect disputed", ok: (p) => p.fired.includes("not_event"), todo: "'announces' a measure is not yet read as a plan" },
-  { h: "Sudden crisis in Berlin: Chancellor Brüning resigns", v: 5, then: "built up over months", ok: (p) => p.fired.includes("tone") || p.fired.includes("extraordinary"), todo: "'sudden crisis' is not in the loaded-word list" },
-  { h: "Al Jolson signed for The Jazz Singer, the first talking picture", v: 3, then: "'first' only by one definition", ok: (p) => p.say.some((s) => /definition/i.test(s)), todo: "no line asks 'first by which definition?'" },
+  { h: "France declares neutrality in Spanish Civil War", v: 4, then: "a declaration; non-intervention was broken by others", ok: (p) => p.fired.includes("not_event") },
+  { h: "Trudeau announces wage and price controls to fight inflation", v: 5, then: "in force 1975–1978, effect disputed", ok: (p) => p.fired.includes("not_event") },
+  { h: "Sudden crisis in Berlin: Chancellor Brüning resigns", v: 5, then: "built up over months", ok: (p) => p.fired.includes("tone") || p.fired.includes("extraordinary") },
+  { h: "Al Jolson signed for The Jazz Singer, the first talking picture", v: 3, then: "'first' only by one definition", ok: (p) => p.say.some((s) => /definition/i.test(s)) },
 ];
 for (const d of DRILL) test(`history drill: ${d.h}`, d.todo ? { todo: d.todo } : {}, () => assert.ok(d.ok(P(d.h, d.v)), `${d.then}`));

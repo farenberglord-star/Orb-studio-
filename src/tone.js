@@ -12,18 +12,18 @@ export const TONE_WORDS = [
   W("scandal\\p{L}*", -1, 1, 1), W("brutal\\p{L}*|savage\\p{L}*", -1, 2, 2), W("slam|slams|slammed|slamming", -1, 1, 2), W("plunge|plunges|plunged|plunging|plummet\\p{L}*", -1, 1, 2),
   W("soar|soars|soared|soaring|skyrocket\\p{L}*", 1, 1, 2), W("frenzy|frenzied", -1, 1, 2), W("explosive", 0, 2, 2), W("dramatic\\p{L}*", 0, 1, 2),
   W("massive|huge|gigantic", 0, 1, 1), W("historic", 1, 1, 1), W("humiliat\\p{L}*", -1, 2, 1), W("crushing", -1, 2, 2),
-  W("triumph\\p{L}*", 1, 2, 2), W("miracle\\p{L}*", 1, 2, 1), W("sensational\\p{L}*|stunning", 1, 2, 2), W("euphori\\p{L}*", 1, 2, 2),
+  W("sudden\\p{L}*", 0, 2, 2), W("triumph\\p{L}*", 1, 2, 2), W("miracle\\p{L}*", 1, 2, 1), W("sensational\\p{L}*|stunning", 1, 2, 2), W("euphori\\p{L}*", 1, 2, 2),
   // Deutsch
   W("Katastroph\\p{L}*", -1, 2, 2), W("Chaos|chaotisch\\p{L}*", -1, 2, 2), W("Horror\\p{L}*", -1, 2, 1), W("Schock\\p{L}*|schockier\\p{L}*", -1, 2, 2),
   W("Panik\\p{L}*", -1, 2, 2), W("Wut\\p{L}*|wütend\\p{L}*|Empörung|empört\\p{L}*", -1, 2, 2), W("Skandal\\p{L}*", -1, 1, 1), W("Drama|dramatisch\\p{L}*", 0, 1, 2),
   W("brutal\\p{L}*", -1, 2, 2), W("massiv\\p{L}*|gigantisch\\p{L}*", 0, 1, 1), W("Albtraum\\p{L}*|Alptraum\\p{L}*", -1, 2, 1), W("Desaster\\p{L}*|Debakel\\p{L}*|Fiasko\\p{L}*", -1, 2, 1),
-  W("Klatsche|Ohrfeige", -1, 1, 2), W("Eklat\\p{L}*", -1, 1, 2), W("Triumph\\p{L}*", 1, 2, 2), W("Sensation\\p{L}*|sensationell\\p{L}*", 1, 2, 2),
+  W("Klatsche|Ohrfeige", -1, 1, 2), W("Eklat\\p{L}*", -1, 1, 2), W("plötzlich\\p{L}*", 0, 2, 2), W("Triumph\\p{L}*", 1, 2, 2), W("Sensation\\p{L}*|sensationell\\p{L}*", 1, 2, 2),
   W("Wahnsinn\\p{L}*|irre[nrs]?", 0, 2, 2), W("explodier\\p{L}*", 0, 1, 2), W("Horrorzahlen|Hammer", 0, 2, 2),
   // Русский
   W("катастроф\\p{L}*", -1, 2, 2), W("хаос\\p{L}*", -1, 2, 2), W("ужас\\p{L}*", -1, 2, 1), W("шок|шока|шоке|шоком|шокир\\p{L}*", -1, 2, 2),
   W("паник\\p{L}*", -1, 2, 2), W("ярост\\p{L}*|возмущ\\p{L}*", -1, 2, 2), W("скандал\\p{L}*", -1, 1, 1), W("драматич\\p{L}*", 0, 1, 2),
   W("кошмар\\p{L}*", -1, 2, 1), W("разгром\\p{L}*", -1, 2, 2), W("провал\\p{L}*|фиаско", -1, 2, 1), W("обвал\\p{L}*|рухн\\p{L}*", -1, 1, 2),
-  W("взл[её]т\\p{L}*|взлетел\\p{L}*", 1, 1, 2), W("триумф\\p{L}*", 1, 2, 2), W("сенсаци\\p{L}*", 1, 2, 2), W("беспредел\\p{L}*|истери\\p{L}*", -1, 2, 2),
+  W("взл[её]т\\p{L}*|взлетел\\p{L}*", 1, 1, 2), W("внезапн\\p{L}*", 0, 2, 2), W("триумф\\p{L}*", 1, 2, 2), W("сенсаци\\p{L}*", 1, 2, 2), W("беспредел\\p{L}*|истери\\p{L}*", -1, 2, 2),
 ];
 export function toneOf(headline) {
   const t = String(headline || ""), hits = [];
