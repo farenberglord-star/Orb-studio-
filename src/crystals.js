@@ -11507,8 +11507,8 @@ export const CRYSTALS = [
 },
 "rule": "Do not expect words, topics or sources to be evenly spread; judge a rise against the word's own usual rank, not against an average.",
 "needs": {
-"code": "ready",
-"note": "with Firth and Luhn: a word that jumps in rank against its own 30-day frequency in radar_life, with its neighbours — waits for the owner's yes"
+"code": "covered",
+"note": "applied 24.11.2026: /api/v1/zipf — words above their own usual share in the radar headlines, with neighbours"
 }
 },
 {
@@ -11525,8 +11525,8 @@ export const CRYSTALS = [
 },
 "rule": "Read a key word through its neighbours in the same headline before deciding what it means; the same word in different company may be a different story.",
 "needs": {
-"code": "needs_idea",
-"note": "use collocates to separate two stories sharing one word (Reiss, duo sameStory)"
+"code": "covered",
+"note": "applied 24.11.2026: /api/v1/zipf — neighbours today vs usually (new_company / usual_company)"
 }
 },
 {

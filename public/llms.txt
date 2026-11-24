@@ -7,6 +7,7 @@ Site: https://orbstudio.org
 ## New this week (24.11.2026)
 - [Crypto market passport](https://orbstudio.org/api/v1/crypto-passport) (MCP get_crypto_passport): regime calm / nervous / storm for a trader on Kraken, the share of a planned trade to open, order type, capital left after losing streaks. Never a direction, not advice.
 - [One story in three languages](https://orbstudio.org/api/v1/reiss) (get_reiss): do English, German and Russian headlines of the same story agree on event or statement, numbers and tone.
+- [Words that climbed their own rank](https://orbstudio.org/api/v1/zipf) (get_zipf): words far above their usual share in today's radar headlines, with their neighbours — a new story or the same topic, louder.
 - [Core and long tail of outlets](https://orbstudio.org/api/v1/bradford) (get_bradford): how concentrated the outlets behind the radars are, and what only small outlets carried.
 - [Is our confidence honest](https://orbstudio.org/api/v1/harman) (get_harman): which passport checks caught later-challenged stories, cry-wolf rate, stories that keep circulating after a correction.
 - [Namesakes in the news](https://orbstudio.org/api/v1/frege) (get_frege): names shared by several people in Wikidata, Latin and Cyrillic.
