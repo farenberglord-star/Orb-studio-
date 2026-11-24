@@ -127,6 +127,11 @@ export const CRYSTAL_BRIDGES = [
   B("loss_off_target", "Loss starts off target", "Потери начинаются у цели", "measurement_error", "covered", ["taguchi", "parducci", "fechner"], { line: "level_vs_30d in /api/v1/radars" }),
   B("catch_at_source", "Catch it at the source", "Лови у источника", "rumour_vs_fact", "covered", ["shingo", "schleicher", "tannery"], { line: "first-source line of the news passport" }),
   B("proxy_not_need", "A metric is not the need", "Показатель ≠ потребность", "side_effects", "waiting", ["akao", "campbell_dt", "deci"], { until: "2026-12-21" }),
+  B("bradford_scatter", "Core and long tail of outlets", "Ядро и хвост изданий", "own_limits", "ready", ["bradford_sc", "lotka", "pareto", "lyberg"]),
+  B("rare_anchor_weighs", "A rare shared word weighs more", "Редкое общее слово весит больше", "look_alike", "ready", ["sparck_jones", "salton", "luhn", "reiss"]),
+  B("recall_vs_precision", "Miss little or alarm little", "Меньше пропусков или меньше ложных тревог", "answer_cost", "covered", ["cleverdon", "lancaster_fw", "pearson"], { sensor: "pearson" }),
+  B("fact_with_source", "A fact keeps its source", "Факт хранит свой источник", "rumour_vs_fact", "covered", ["otlet", "baird", "tannery"], { sensor: "baird" }),
+  B("facets_not_tree", "Facets, not one tree", "Фасеты, а не одно дерево", "one_model", "idea", ["ranganathan", "chamberlin", "goffman"]),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

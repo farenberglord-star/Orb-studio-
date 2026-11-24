@@ -11090,6 +11090,153 @@ export const CRYSTALS = [
 "note": "with the Campbell-law bridge: does a published metric drift from what it was meant to show",
 "not_before": "2026-12-21"
 }
+},
+{
+"id": "bradford_sc",
+"name": "Samuel C. Bradford",
+"name_ru": "Сэмюэл Брэдфорд",
+"years": "1878–1948",
+"wiki": "https://en.wikipedia.org/wiki/Samuel_C._Bradford",
+"zone": "own_limits",
+"idea": {
+"en": "Bradford's law of scattering ('Documentation', 1948): articles on a subject sit in a small core of journals and a long tail of many others.",
+"ru": "Закон рассеяния Брэдфорда («Документация», 1948): статьи по теме собраны в небольшом ядре журналов и длинном хвосте из множества других.",
+"de": "Bradfordsches Streuungsgesetz („Documentation“, 1948): Kern weniger Zeitschriften, langer Schwanz vieler."
+},
+"rule": "Reading only the core outlets misses part of a subject; say how much of the long tail you did not read.",
+"needs": {
+"code": "ready",
+"note": "Bradford test on radar_life: share of radar headlines from the top outlets, and which stories only the tail carried — waits for yes"
+}
+},
+{
+"id": "ranganathan",
+"name": "S. R. Ranganathan",
+"name_ru": "Ш. Р. Ранганатан",
+"years": "1892–1972",
+"wiki": "https://en.wikipedia.org/wiki/S._R._Ranganathan",
+"zone": "one_model",
+"idea": {
+"en": "'Colon Classification' (1933), faceted classification: describe a subject by several independent facets instead of one fixed tree.",
+"ru": "«Классификация двоеточием» (1933), фасетная классификация: описывай предмет по нескольким независимым признакам, а не одним жёстким деревом.",
+"de": "„Colon Classification“ (1933): Facetten statt eines starren Baums."
+},
+"rule": "Do not force a story into one category; tag it by several independent facets (place, actor, kind of event).",
+"needs": {
+"code": "needs_idea",
+"note": "facets for stories (place, actor, kind of event) instead of one radar each"
+}
+},
+{
+"id": "otlet",
+"name": "Paul Otlet",
+"name_ru": "Поль Отле",
+"years": "1868–1944",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Otlet",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Traité de documentation' (1934): break documents into single facts on cards, each kept with the source it came from.",
+"ru": "«Трактат о документации» (1934): разбирай документы на отдельные факты-карточки, и у каждого храни источник.",
+"de": "„Traité de documentation“ (1934): einzelne Fakten mit ihrer Quelle festhalten."
+},
+"rule": "Keep every fact together with where it came from; a fact without its source cannot be checked later.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor keeps the source and time of every sensor number",
+"covered_by": "baird"
+}
+},
+{
+"id": "lotka",
+"name": "Alfred J. Lotka",
+"name_ru": "Альфред Лотка",
+"years": "1880–1949",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_J._Lotka",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Frequency Distribution of Scientific Productivity' (1926), Lotka's law: about 1/n² as many authors write n papers as write one.",
+"ru": "«Частотное распределение научной продуктивности» (1926), закон Лотки: авторов с n статьями примерно в n² раз меньше, чем авторов с одной.",
+"de": "„The Frequency Distribution of Scientific Productivity“ (1926), Lotkasches Gesetz."
+},
+"rule": "A few very active voices produce much of the volume; do not take their share for the whole picture.",
+"needs": {
+"code": "ready",
+"note": "with the Bradford test: how much of the radar volume comes from the most active outlets"
+}
+},
+{
+"id": "cleverdon",
+"name": "Cyril Cleverdon",
+"name_ru": "Сирил Клевердон",
+"years": "1914–1997",
+"wiki": "https://en.wikipedia.org/wiki/Cyril_Cleverdon",
+"zone": "answer_cost",
+"idea": {
+"en": "The Cranfield experiments and 'On the Inverse Relationship of Recall and Precision' (1972): finding more of what is relevant usually brings more of what is not.",
+"ru": "Крэнфилдские эксперименты и «Об обратной связи полноты и точности» (1972): чем больше находишь нужного, тем больше попадает и ненужного.",
+"de": "Cranfield-Experimente (1972): Vollständigkeit und Genauigkeit stehen im Gegensatz."
+},
+"rule": "Say whether a check was tuned to miss little or to raise few false alarms; it cannot do both at once.",
+"needs": {
+"code": "covered",
+"note": "the Pearson sensor counts false alarms and misses separately",
+"covered_by": "pearson"
+}
+},
+{
+"id": "salton",
+"name": "Gerard Salton",
+"name_ru": "Джерард Солтон",
+"years": "1927–1995",
+"wiki": "https://en.wikipedia.org/wiki/Gerard_Salton",
+"zone": "look_alike",
+"idea": {
+"en": "The SMART system and the vector space model (1960s–1970s): documents are compared by weighted shared terms.",
+"ru": "Система SMART и векторная модель (1960–1970-е): документы сравнивают по взвешенным общим словам.",
+"de": "SMART-System und Vektorraummodell: Vergleich über gewichtete gemeinsame Begriffe."
+},
+"rule": "Shared words show similar wording, not the same event; check the who, where and when before merging two stories.",
+"needs": {
+"code": "covered",
+"note": "applied: one story across outlets needs shared who/where, not just shared words (duo sameStory, Reiss)"
+}
+},
+{
+"id": "luhn",
+"name": "Hans Peter Luhn",
+"name_ru": "Ханс Петер Лун",
+"years": "1896–1964",
+"wiki": "https://en.wikipedia.org/wiki/Hans_Peter_Luhn",
+"zone": "look_alike",
+"idea": {
+"en": "'The Automatic Creation of Literature Abstracts' (1958): the words that carry a text's topic are of middle frequency; the most common and the rarest say little.",
+"ru": "«Автоматическое создание рефератов» (1958): тему текста несут слова средней частоты; самые частые и самые редкие говорят мало.",
+"de": "„The Automatic Creation of Literature Abstracts“ (1958): Wörter mittlerer Häufigkeit tragen das Thema."
+},
+"rule": "Judge what a set of headlines is about by its middle-frequency words, not by the most common ones.",
+"needs": {
+"code": "needs_idea",
+"note": "middle-frequency words for the topic of a radar day"
+}
+},
+{
+"id": "lancaster_fw",
+"name": "F. Wilfrid Lancaster",
+"name_ru": "Ф. Уилфрид Ланкастер",
+"years": "1933–2013",
+"wiki": "https://en.wikipedia.org/wiki/F._Wilfrid_Lancaster",
+"zone": "own_limits",
+"idea": {
+"en": "'Information Retrieval Systems' (1968): analyse each search failure by its cause — indexing, the query, or the system.",
+"ru": "«Системы информационного поиска» (1968): разбирай каждый промах поиска по причине — индексирование, запрос или сама система.",
+"de": "„Information Retrieval Systems“ (1968): Fehlschläge nach Ursache analysieren."
+},
+"rule": "When a check misses, name which part failed — the input, the question, or the method — before changing the method.",
+"needs": {
+"code": "covered",
+"note": "the Harman layers block shows which passport check missed a challenged story",
+"covered_by": "harman"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
