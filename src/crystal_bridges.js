@@ -119,6 +119,14 @@ export const CRYSTAL_BRIDGES = [
   B("risk_thermostat", "Measure announced ≠ risk reduced", "Мера объявлена ≠ риск снижен", "side_effects", "covered", ["adams_j", "wilde_g", "white_gf", "searle"], { line: "Searle reads announced measures as promises" }),
   B("chosen_vs_imposed", "Chosen or imposed risk", "Риск выбранный или навязанный", "answer_cost", "idea", ["starr_c", "kasperson", "douglas_m", "wildavsky"]),
   B("no_memory", "Organisations have no memory", "У организаций нет памяти", "look_alike", "covered", ["kletz", "tulving", "hume"], { line: "extraordinary-claim and 'first by what definition?' lines" }),
+  B("special_cause", "Noise or a special cause", "Шум или особая причина", "measurement_error", "covered", ["shewhart", "griliches", "polyak", "trackrecord"], { sensor: "trackrecord" }),
+  B("run_rule", "A long run is a signal too", "Длинная серия — тоже сигнал", "measurement_error", "ready", ["nelson_ls", "shewhart", "nesselroade"]),
+  B("tampering", "Tampering widens the spread", "Подкрутка растит разброс", "side_effects", "covered", ["deming", "campbell_dt", "polyak"], { line: "radar jump counts only if held 2 hours; thresholds fixed in advance" }),
+  B("vital_few", "The vital few", "Немногие важные", "answer_cost", "covered", ["juran", "pareto", "mandelbrot"], { sensor: "pareto" }),
+  B("cause_classes", "Several classes of causes", "Несколько классов причин", "one_model", "covered", ["ishikawa", "chamberlin", "duhem"], { line: "several working hypotheses rule" }),
+  B("loss_off_target", "Loss starts off target", "Потери начинаются у цели", "measurement_error", "covered", ["taguchi", "parducci", "fechner"], { line: "level_vs_30d in /api/v1/radars" }),
+  B("catch_at_source", "Catch it at the source", "Лови у источника", "rumour_vs_fact", "covered", ["shingo", "schleicher", "tannery"], { line: "first-source line of the news passport" }),
+  B("proxy_not_need", "A metric is not the need", "Показатель ≠ потребность", "side_effects", "waiting", ["akao", "campbell_dt", "deci"], { until: "2026-12-21" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

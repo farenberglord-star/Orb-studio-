@@ -10943,6 +10943,153 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "applied: 'who else pays' rule names the losses outside the intended effect"
 }
+},
+{
+"id": "shewhart",
+"name": "Walter A. Shewhart",
+"name_ru": "Уолтер Шухарт",
+"years": "1891–1967",
+"wiki": "https://en.wikipedia.org/wiki/Walter_A._Shewhart",
+"zone": "measurement_error",
+"idea": {
+"en": "'Economic Control of Quality of Manufactured Product' (1931), the control chart: tell the chance variation of a stable process from an assignable (special) cause.",
+"ru": "«Экономический контроль качества продукции» (1931), контрольная карта: отличай случайный разброс стабильного процесса от особой причины.",
+"de": "„Economic Control of Quality“ (1931): zufällige Streuung von besonderen Ursachen unterscheiden."
+},
+"rule": "A reading inside the usual band is not yet a signal; name the band before calling a change.",
+"needs": {
+"code": "covered",
+"note": "radar_noise in the track record names the usual daily band of the crypto radar",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "deming",
+"name": "W. Edwards Deming",
+"name_ru": "Уильям Эдвардс Деминг",
+"years": "1900–1993",
+"wiki": "https://en.wikipedia.org/wiki/W._Edwards_Deming",
+"zone": "side_effects",
+"idea": {
+"en": "'The New Economics' (1993), the funnel experiment: adjusting a stable process after every deviation makes the spread larger, not smaller.",
+"ru": "«Новая экономика» (1993), эксперимент с воронкой: если подкручивать стабильный процесс после каждого отклонения, разброс растёт, а не падает.",
+"de": "„The New Economics“ (1993), Trichterexperiment: Nachjustieren nach jeder Abweichung vergrößert die Streuung."
+},
+"rule": "Do not change a threshold or a position after every single deviation; fix the rule in advance.",
+"needs": {
+"code": "covered",
+"note": "applied: a radar jump counts only if it holds for 2 hours; alarm thresholds are fixed in advance"
+}
+},
+{
+"id": "juran",
+"name": "Joseph M. Juran",
+"name_ru": "Джозеф Джуран",
+"years": "1904–2008",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_M._Juran",
+"zone": "answer_cost",
+"idea": {
+"en": "'Quality Control Handbook' (1951): he applied the Pareto principle to quality — the vital few causes behind most of the defects.",
+"ru": "«Справочник по контролю качества» (1951): применил принцип Парето к качеству — немногие важные причины дают большую часть брака.",
+"de": "„Quality Control Handbook“ (1951): die „lebenswichtigen Wenigen“ verursachen die meisten Fehler."
+},
+"rule": "Spend checking effort on the few sources that cause most of the errors, not equally on all.",
+"needs": {
+"code": "covered",
+"note": "the Pareto sensor shows the share of movement from the biggest jumps",
+"covered_by": "pareto"
+}
+},
+{
+"id": "ishikawa",
+"name": "Kaoru Ishikawa",
+"name_ru": "Каору Исикава",
+"years": "1915–1989",
+"wiki": "https://en.wikipedia.org/wiki/Kaoru_Ishikawa",
+"zone": "one_model",
+"idea": {
+"en": "'Guide to Quality Control' (1968), the cause-and-effect (fishbone) diagram: lay a symptom out across several classes of possible causes.",
+"ru": "«Руководство по контролю качества» (1968), диаграмма «рыбья кость»: раскладывай симптом по нескольким классам возможных причин.",
+"de": "„Guide to Quality Control“ (1968), Ursache-Wirkungs-Diagramm."
+},
+"rule": "Before naming the cause of a move, list several classes of causes and do not stop at the first plausible one.",
+"needs": {
+"code": "covered",
+"note": "applied: several working hypotheses rule for the hosts"
+}
+},
+{
+"id": "taguchi",
+"name": "Genichi Taguchi",
+"name_ru": "Гэнити Тагути",
+"years": "1924–2012",
+"wiki": "https://en.wikipedia.org/wiki/Genichi_Taguchi",
+"zone": "measurement_error",
+"idea": {
+"en": "'Introduction to Quality Engineering' (1986), the loss function: loss grows as soon as a value leaves its target, even inside the tolerance.",
+"ru": "«Введение в инженерию качества» (1986), функция потерь: потери растут, как только значение уходит от цели, даже внутри допуска.",
+"de": "„Introduction to Quality Engineering“ (1986), Verlustfunktion."
+},
+"rule": "'Within limits' is not 'on target'; say how far a reading sits from its usual level.",
+"needs": {
+"code": "covered",
+"note": "applied: level_vs_30d shows where a radar sits in its own 30-day range"
+}
+},
+{
+"id": "shingo",
+"name": "Shigeo Shingo",
+"name_ru": "Сигео Синго",
+"years": "1909–1990",
+"wiki": "https://en.wikipedia.org/wiki/Shigeo_Shingo",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Zero Quality Control: Source Inspection and the Poka-yoke System' (1986): catch an error at the step where it arises; final inspection is not enough.",
+"ru": "«Нулевой контроль качества: проверка у источника и система пока-ёкэ» (1986): ошибку ловят на шаге, где она возникает; финальной приёмки недостаточно.",
+"de": "„Zero Quality Control“ (1986): Fehler an der Quelle abfangen, Endkontrolle reicht nicht."
+},
+"rule": "Check a claim at its first source, not at the last retelling.",
+"needs": {
+"code": "covered",
+"note": "applied: first-source line of the news passport"
+}
+},
+{
+"id": "nelson_ls",
+"name": "Lloyd S. Nelson",
+"name_ru": "Ллойд Нельсон",
+"years": "1922–2013",
+"wiki": "https://en.wikipedia.org/wiki/Lloyd_S._Nelson",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Shewhart Control Chart — Tests for Special Causes' (Journal of Quality Technology, 1984): a long run on one side of the mean is a signal even when no point leaves the limits.",
+"ru": "«Контрольная карта Шухарта — тесты на особые причины» (1984): длинная серия по одну сторону среднего — сигнал, даже если ни одна точка не вышла за границы.",
+"de": "„Tests for Special Causes“ (1984): lange Serien auf einer Seite des Mittels sind ein Signal."
+},
+"rule": "A slow drift can hide inside the usual band; count how long a reading has stayed on one side of its mean.",
+"needs": {
+"code": "ready",
+"note": "run rule on ix_hist: how many half-hours a radar has stayed on one side of its 30-day mean — waits for yes"
+}
+},
+{
+"id": "akao",
+"name": "Yoji Akao",
+"name_ru": "Ёдзи Акао",
+"years": "1928–2016",
+"wiki": "https://en.wikipedia.org/wiki/Yoji_Akao",
+"zone": "side_effects",
+"idea": {
+"en": "Quality function deployment (with Shigeru Mizuno, 1978): first spell out what users need, then choose the measurable characteristic.",
+"ru": "Развёртывание функции качества (с Сигэру Мидзуно, 1978): сначала разложи, что нужно пользователю, потом выбирай измеримую характеристику.",
+"de": "Quality Function Deployment (1978): erst den Bedarf, dann die Messgröße."
+},
+"rule": "Do not let a convenient internal metric stand in for what people actually need.",
+"needs": {
+"code": "needs_history",
+"note": "with the Campbell-law bridge: does a published metric drift from what it was meant to show",
+"not_before": "2026-12-21"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
