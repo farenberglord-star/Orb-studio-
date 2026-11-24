@@ -4487,9 +4487,11 @@ async function agentIndices(env, ctx, origin) {
   const hwiText = HW[hwiK][0];
   // 2. Согласие: доля «договорились» среди «договорились + поругались»
   const agree = heads.filter((h) => AGREE_RE.test(h.title)), fight = heads.filter((h) => FIGHT_RE.test(h.title));
-  const cons = clamp(100 * agree.length / Math.max(1, agree.length + fight.length));
-  const consK = cons < 25 ? 0 : cons < 50 ? 1 : cons < 75 ? 2 : 3;
-  const CT = [[`Мир спорит: ${fight.length} конфликтов на ${agree.length} согласий. Поддакивать некому.`, `Die Welt streitet: ${fight.length} Konflikte auf ${agree.length} Einigungen. Niemand nickt mit.`, `The world is arguing: ${fight.length} conflicts to ${agree.length} agreements. Nobody to nod along.`], ["Больше споров, чем согласия. Обычный рабочий день планеты.", "Mehr Streit als Einigkeit. Ein ganz normaler Arbeitstag des Planeten.", "More dispute than agreement. An ordinary working day for the planet."], ["Все понемногу договариваются. Подозрительно мило.", "Alle einigen sich allmählich. Verdächtig nett.", "Everyone is slowly agreeing. Suspiciously nice."], ["Тревожное единодушие: все со всеми согласны. Обычно это перед бурей.", "Beunruhigende Einigkeit: alle stimmen allen zu. Meist ist das die Ruhe vor dem Sturm.", "Worrying unanimity: everyone agrees with everyone. Usually that comes before a storm."]];
+  // Кодд: «нет данных» ≠ 0. Без единого заголовка «договорились» или «поругались» индекса нет (null), а не «все спорят».
+  const consNone = agree.length + fight.length === 0;
+  const cons = consNone ? null : clamp(100 * agree.length / (agree.length + fight.length));
+  const consK = consNone ? 4 : cons < 25 ? 0 : cons < 50 ? 1 : cons < 75 ? 2 : 3;
+  const CT = [[`Мир спорит: ${fight.length} конфликтов на ${agree.length} согласий. Поддакивать некому.`, `Die Welt streitet: ${fight.length} Konflikte auf ${agree.length} Einigungen. Niemand nickt mit.`, `The world is arguing: ${fight.length} conflicts to ${agree.length} agreements. Nobody to nod along.`], ["Больше споров, чем согласия. Обычный рабочий день планеты.", "Mehr Streit als Einigkeit. Ein ganz normaler Arbeitstag des Planeten.", "More dispute than agreement. An ordinary working day for the planet."], ["Все понемногу договариваются. Подозрительно мило.", "Alle einigen sich allmählich. Verdächtig nett.", "Everyone is slowly agreeing. Suspiciously nice."], ["Тревожное единодушие: все со всеми согласны. Обычно это перед бурей.", "Beunruhigende Einigkeit: alle stimmen allen zu. Meist ist das die Ruhe vor dem Sturm.", "Worrying unanimity: everyone agrees with everyone. Usually that comes before a storm."], ["Сегодня в заголовках нет ни согласий, ни конфликтов — барометр молчит (нет данных, а не ноль).", "Heute keine Einigungen und keine Konflikte in den Schlagzeilen — das Barometer schweigt (keine Daten, nicht null).", "No agreements and no conflicts in today's headlines — the barometer is silent (no data, not zero)."]];
   const consText = CT[consK][0];
   // 3. Токеновый голод: сколько токенов нужно, чтобы понять сегодняшний мир
   const avg = radars.reduce((a, r) => a + r.lvl, 0) / Math.max(1, radars.length);
@@ -4508,7 +4510,7 @@ async function agentIndices(env, ctx, origin) {
     headlines_scanned: heads.length + weird.length, weird_feed_items: weird.length,
     indices: [
       { id: "hallucination", name_ru: "Индекс галлюцинаций мира", name_en: "World Hallucination Index", value: hwi, scale: "0 = boring logical day, 100 = reality sounds like a hallucinating model", text_ru: hwiText, text_de: HW[hwiK][1], text_en: HW[hwiK][2], name_de: "Welt-Halluzinationsindex", weirdest: top },
-      { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, scale: "0 = everyone argues, 100 = suspicious unanimity", text_ru: consText, text_de: CT[consK][1], text_en: CT[consK][2], name_de: "Barometer „Du hast völlig recht!“", agree: agree.length, conflict: fight.length },
+      { id: "consensus", name_ru: "Барометр «Ты абсолютно прав!»", name_en: "You're Absolutely Right Barometer", value: cons, no_signal: consNone, scale: "0 = everyone argues, 100 = suspicious unanimity; null = no agree/conflict headlines at all (no data, not 0)", text_ru: consText, text_de: CT[consK][1], text_en: CT[consK][2], name_de: "Barometer „Du hast völlig recht!“", agree: agree.length, conflict: fight.length },
       { id: "token_hunger", name_ru: "Токеновый голод", name_en: "Token Hunger Index", value: tokens, unit: "tokens", sky: sky.id, sky_ru: sky.ru, scale: "<2000 clear, 2000-5000 cloudy, >5000 storm", text_ru: forecastRu, text_de: forecastDe, text_en: forecastEn, name_de: "Token-Hunger-Index", hot_radars: hot },
     ],
     forecast: { ru: forecastRu, de: forecastDe, en: forecastEn },
@@ -4536,7 +4538,7 @@ async function ixExtras(env, d) {
   const target = Date.now() - 864e5;
   let base = null;
   for (const r of rows) if (Math.abs(r.ts - target) <= 3 * 36e5 && (!base || Math.abs(r.ts - target) < Math.abs(base.ts - target))) base = r;
-  const delta = base ? { hallucination: cur.hallucination - base.h, consensus: cur.consensus - base.c, token_hunger: cur.token_hunger - base.t, vs: new Date(base.ts).toISOString() } : null;
+  const delta = base ? { hallucination: cur.hallucination - base.h, consensus: cur.consensus == null || base.c == null ? null : cur.consensus - base.c, token_hunger: cur.token_hunger - base.t, vs: new Date(base.ts).toISOString() } : null;
   return { delta_24h: delta, history_7d: rows.map((r) => ({ t: new Date(r.ts).toISOString(), hallucination: r.h, consensus: r.c, token_hunger: r.t })), history_since: rows[0] ? new Date(rows[0].ts).toISOString() : null, history_step: "30 min", radar_7d: rows.filter((r) => r.g != null).map((r) => ({ t: new Date(r.ts).toISOString(), geo: r.g, crypto: r.k })) };
 }
 const IX_L = {
@@ -4565,7 +4567,7 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
   const h = by.hallucination, c = by.consensus, t = by.token_hunger;
   const txt = (i) => i[`text_${lang}`] || i.text_ru;
   const meta = (id, key) => {
-    const vals = x.history_7d.map((p) => p[id]);
+    const vals = x.history_7d.map((p) => p[id]).filter((v) => v != null);
     const dv = x.delta_24h && x.delta_24h[id];
     const dl = typeof dv === "number" ? `<span class="ixd ${dv > 0 ? "up" : dv < 0 ? "dn" : ""}">${dv > 0 ? "▲ +" : dv < 0 ? "▼ −" : "± "}${nf(Math.abs(dv))} ${L.day}</span>` : "";
     const ok = vals.length >= 4 && Date.now() - Date.parse(x.history_since) > 6 * 36e5;
@@ -4597,10 +4599,10 @@ async function ixRewrite(rw, env, ctx, origin, radars, lang) {
   const panel = `<div class="ixrow">${card(lang === "de" ? h.name_de : lang === "en" ? h.name_en : h.name_ru, h.value, 100, x.delta_24h ? x.delta_24h.hallucination : null, hok ? hv : null, "var(--violet)", "#hal", "hallucination")}${rcard("geo", "var(--holo)")}${rcard("crypto", "var(--warm)")}</div>`;
   rw = rw
     .on("#hV", { element(e) { e.setInnerContent(String(h.value)); } })
-    .on("#cV", { element(e) { e.setInnerContent(String(c.value)); } })
+    .on("#cV", { element(e) { e.setInnerContent(c.value == null ? "—" : String(c.value)); } })
     .on("#tV", { element(e) { e.setInnerContent(`${nf(t.value)}<small>${L.tok}</small>`, { html: true }); } })
     .on("#hB", { element(e) { e.setAttribute("style", `width:${h.value}%`); } })
-    .on("#cB", { element(e) { e.setAttribute("style", `width:${c.value}%`); } })
+    .on("#cB", { element(e) { e.setAttribute("style", `width:${c.value ?? 0}%`); } })
     .on("#hT", { element(e) { e.setInnerContent(txt(h)); } })
     .on("#cT", { element(e) { e.setInnerContent(txt(c)); } })
     .on("#tT", { element(e) { e.setInnerContent(txt(t)); } })

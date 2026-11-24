@@ -11420,6 +11420,78 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "applied: level_vs_30d gives min and max of the 30-day range, so a reading outside it is visible"
 }
+},
+{
+"id": "codd",
+"name": "Edgar F. Codd",
+"name_ru": "Эдгар Кодд",
+"years": "1923–2003",
+"wiki": "https://en.wikipedia.org/wiki/Edgar_F._Codd",
+"zone": "measurement_error",
+"idea": {
+"en": "'A Relational Model of Data for Large Shared Data Banks' (1970) and his later rules: a missing value (NULL) is not zero and not an empty string — any comparison with it is 'unknown', a third truth value.",
+"ru": "«Реляционная модель данных для больших общих банков данных» (1970) и поздние правила Кодда: отсутствующее значение (NULL) — не ноль и не пустая строка; любое сравнение с ним даёт «неизвестно», третье значение истинности.",
+"de": "„A Relational Model of Data…“ (1970): ein fehlender Wert (NULL) ist weder Null noch leer — jeder Vergleich damit ergibt „unbekannt“."
+},
+"rule": "Never turn 'no data' into 0: say the value is unknown, and do not let it pull an average or trip a threshold.",
+"needs": {
+"code": "covered",
+"note": "applied 24.11.2026: consensus index returns null (no_signal), not 0, when there are no agree/conflict headlines; Leamer ignores empty specifications"
+}
+},
+{
+"id": "gray_j",
+"name": "Jim Gray",
+"name_ru": "Джим Грей",
+"years": "1944–2007",
+"wiki": "https://en.wikipedia.org/wiki/Jim_Gray_(computer_scientist)",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Notes on Data Base Operating Systems' (1978) and 'The Transaction Concept' (1981): a change is committed whole or rolled back without a trace — a half-written fact is worse than none.",
+"ru": "«Заметки об операционных системах баз данных» (1978) и «Понятие транзакции» (1981): изменение фиксируется целиком или откатывается без следа — полузаписанный факт хуже, чем никакой.",
+"de": "„The Transaction Concept“ (1981): Eine Änderung wird ganz festgeschrieben oder spurlos zurückgerollt — ein halb geschriebener Fakt ist schlimmer als keiner."
+},
+"rule": "Do not report half of a story as the whole: a headline without its source and time is not yet a fact to pass on.",
+"needs": {
+"code": "covered",
+"note": "radar_life writes each story in one INSERT … ON CONFLICT statement; passport needs source and time"
+}
+},
+{
+"id": "newcombe_h",
+"name": "Howard B. Newcombe",
+"name_ru": "Говард Ньюкомб",
+"years": "1914–2005",
+"wiki": "https://en.wikipedia.org/wiki/Record_linkage",
+"zone": "look_alike",
+"idea": {
+"en": "'Automatic Linkage of Vital Records' (Science, 1959, with Kennedy, Axford and James): two records without a shared key are the same entity only with a probability built from several agreeing and disagreeing attributes.",
+"ru": "«Автоматическое связывание записей актов гражданского состояния» (Science, 1959, с Кеннеди, Аксфордом и Джеймсом): две записи без общего ключа — одно и то же лицо лишь с вероятностью, сложенной из нескольких совпавших и несовпавших признаков.",
+"de": "„Automatic Linkage of Vital Records“ (Science, 1959): Zwei Datensätze ohne gemeinsamen Schlüssel sind nur mit einer Wahrscheinlichkeit dieselbe Person — aus mehreren Merkmalen."
+},
+"rule": "Before merging two mentions as one person or one event, weigh several attributes; a matching name alone is not a match.",
+"needs": {
+"code": "covered",
+"note": "Frege (namesakes) and Reiss/duo sameStory weigh several attributes, not a name alone"
+}
+},
+{
+"id": "mendelzon",
+"name": "Alberto O. Mendelzon",
+"name_ru": "Альберто Мендельсон",
+"years": "1951–2005",
+"wiki": "https://en.wikipedia.org/wiki/Alberto_O._Mendelzon",
+"zone": "own_limits",
+"idea": {
+"en": "Work on incomplete information and answering queries using views (1990s): with gaps in the data, separate 'certain answers' — true in every possible completion — from answers that depend on what is missing.",
+"ru": "Работы о неполной информации и ответах на запросы через представления (1990-е): при пропусках в данных отделяй «достоверные ответы», верные при любом допустимом заполнении, от ответов, которые зависят от пропущенного.",
+"de": "Arbeiten zu unvollständiger Information (1990er): „sichere Antworten“, wahr in jeder möglichen Ergänzung, von solchen trennen, die vom Fehlenden abhängen."
+},
+"rule": "When data has gaps, say which conclusions hold whatever fills them and which ones depend on the missing part.",
+"needs": {
+"code": "covered",
+"note": "say-what-is-missing rule; Lyberg nonresponse"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

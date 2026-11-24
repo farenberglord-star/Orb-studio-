@@ -201,7 +201,7 @@ fetch('/api/v1/indices').then(r=>r.ok?r.json():null).then(d=>{
   const h=by.hallucination,c=by.consensus,t=by.token_hunger;
   if(h){$('hV').textContent=h.value;$('hT').textContent=h.text_ru;requestAnimationFrame(()=>$('hB').style.width=h.value+'%');
     if(h.weirdest)$('hS').innerHTML='Самая «галлюцинаторная» новость: '+(h.weirdest.link?`<a href="${esc(h.weirdest.link)}" rel="nofollow noopener" target="_blank">${esc(h.weirdest.title)}</a>`:esc(h.weirdest.title))+(h.weirdest.source?' — '+esc(h.weirdest.source):'');}
-  if(c){$('cV').textContent=c.value;$('cT').textContent=c.text_ru;requestAnimationFrame(()=>$('cB').style.width=c.value+'%');}
+  if(c){$('cV').textContent=c.value==null?'—':c.value;$('cT').textContent=c.text_ru;requestAnimationFrame(()=>$('cB').style.width=(c.value||0)+'%');}
   if(t){$('tV').innerHTML=Number(t.value).toLocaleString('ru-RU')+'<small>токенов</small>';$('tT').textContent=t.text_ru;
     document.querySelectorAll('[data-sky]').forEach(s=>s.classList.toggle('on',s.dataset.sky===t.sky));}
   $('nScan').textContent=d.headlines_scanned;

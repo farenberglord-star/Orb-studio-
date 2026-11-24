@@ -552,7 +552,7 @@ fetch('/api/v1/indices').then(function(r){return r.ok?r.json():null}).then(funct
 var tx=function(x){return x['text_'+L]||x.text_ru},h=by.hallucination,c=by.consensus,t=by.token_hunger;
 if(h){$('hV').textContent=h.value;$('hT').textContent=tx(h);requestAnimationFrame(function(){$('hB').style.width=h.value+'%'});
  if(h.weirdest)$('hS').innerHTML='Самая «галлюцинаторная» новость: '+(h.weirdest.link?'<a href="'+esc(h.weirdest.link)+'" rel="nofollow noopener" target="_blank">'+esc(h.weirdest.title)+'</a>':esc(h.weirdest.title));}
-if(c){$('cV').textContent=c.value;$('cT').textContent=tx(c);requestAnimationFrame(function(){$('cB').style.width=c.value+'%'});}
+if(c){$('cV').textContent=c.value==null?'—':c.value;$('cT').textContent=tx(c);requestAnimationFrame(function(){$('cB').style.width=(c.value||0)+'%'});}
 if(t){$('tV').innerHTML=Number(t.value).toLocaleString(loc)+'<small>токенов</small>';$('tT').textContent=tx(t);document.querySelectorAll('#indices [data-sky]').forEach(function(s){s.classList.toggle('on',s.dataset.sky===t.sky)});}
 if($('nScan'))$('nScan').textContent=d.headlines_scanned;}).catch(function(){});})();</script><!--/orb-indices-->
   <details class="machine" id="machineBox"><summary>Текстовая версия · для людей и ИИ-агентов</summary><section id="machine-feed"><p>Живые данные подставляются сервером. Машинные данные: <a href="/api/v1/sensors">/api/v1/sensors</a>, <a href="/api/v1/roads">/api/v1/roads</a>, <a href="/api/v1/radars">/api/v1/radars</a>.</p></section></details>

@@ -19,7 +19,7 @@ export function leamerSpecs(heads, res, weirdSerious = 0) {
     let a = 0, f = 0;
     for (const h of set) { const ha = h.a.some((w) => w !== drop), hf = h.f.some((w) => w !== drop);
       if (ha && hf) { if (both === "both") { a++; f++; } else if (both === "fight") f++; else if (both === "agree") a++; } else { if (ha) a++; if (hf) f++; } }
-    return clamp(100 * a / Math.max(1, a + f));
+    return a + f ? clamp(100 * a / (a + f)) : null; // Кодд: нет ни одного слова — нет данных, а не 0
   };
   const hall = (set, drop = null, ws = weirdSerious) => clamp(8 + set.filter((h) => h.o.some((w) => w !== drop)).length / Math.max(1, set.length) * 250 + ws * 4);
   const radars = [...new Set(H.map((h) => h.radar))], top = H.filter((h) => h.rank < LEAMER_TOP);
@@ -33,6 +33,8 @@ export function leamerSpecs(heads, res, weirdSerious = 0) {
   return { base: { consensus: cons(H), hallucination: hall(H) }, specs, headlines: H.length, radars: radars.length };
 }
 export function leamerBounds(base, specs) {
+  specs = specs.filter((s) => s.value != null);
+  if (base == null) return { value: null, low: null, high: null, median: null, range: null, verdict: "no_data", specifications: specs.length, drivers: [] };
   const vals = [base, ...specs.map((s) => s.value)].sort((x, y) => x - y), lo = vals[0], hi = vals[vals.length - 1];
   const med = vals.length % 2 ? vals[vals.length >> 1] : Math.round((vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2);
   const range = hi - lo, verdict = range <= LEAMER_ROBUST ? "robust" : range <= LEAMER_FRAGILE ? "sensitive" : "fragile";
@@ -43,7 +45,7 @@ export function leamerReport(heads, res, weirdSerious, now = Date.now()) {
   if (!heads || !heads.length) return { sensor: "leamer", verdict: "no_data", indices: [], generated_at: new Date(now).toISOString() };
   const s = leamerSpecs(heads, res, weirdSerious);
   const indices = ["consensus", "hallucination"].map((id) => ({ id, ...leamerBounds(s.base[id], s.specs[id]) }));
-  const order = { robust: 0, sensitive: 1, fragile: 2 }, worst = indices.reduce((a, b) => (order[b.verdict] > order[a.verdict] ? b : a));
+  const order = { no_data: -1, robust: 0, sensitive: 1, fragile: 2 }, worst = indices.reduce((a, b) => (order[b.verdict] > order[a.verdict] ? b : a));
   return {
     sensor: "leamer", verdict: worst.verdict, headlines: s.headlines, radars: s.radars, indices,
     question: "How much would an Orb Studio index change under other reasonable choices of how it is computed?",

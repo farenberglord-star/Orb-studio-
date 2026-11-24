@@ -141,6 +141,10 @@ export const CRYSTAL_BRIDGES = [
   B("ruin_vs_share", "Ruin grows with the share at risk", "Разорение растёт с долей под риском", "answer_cost", "line", ["lundberg_f", "cramer", "borch"], { line: "ruin block in /api/v1/crypto-passport" }),
   B("longer_record_bigger_extreme", "A longer record, a bigger extreme", "Длиннее история — больше крайний случай", "measurement_error", "covered", ["gumbel", "mandelbrot", "pareto"], { sensor: "pareto" }),
   B("edge_of_the_table", "The edge of the table", "Край таблицы", "measurement_error", "covered", ["steffensen", "parducci", "leamer"], { line: "level_vs_30d min and max" }),
+  B("null_not_zero", "No data is not zero", "Нет данных ≠ ноль", "measurement_error", "covered", ["codd", "baird", "kelvin", "lyberg"], { line: "consensus index: value null + no_signal when agree + conflict = 0 (69 false zeros in 30 days before the fix); Leamer drops empty specifications" }),
+  B("all_or_nothing", "All or nothing", "Всё или ничего", "rumour_vs_fact", "covered", ["gray_j", "otlet", "wigmore"], { line: "radar_life: one atomic INSERT per story; evidence chain names the missing link" }),
+  B("record_linkage", "Same name, same record?", "Та же запись или похожая?", "look_alike", "covered", ["newcombe_h", "frege", "levenshtein"], { line: "Frege namesakes; Reiss and duo sameStory need several shared anchors" }),
+  B("certain_answers", "Certain answers", "Достоверный ответ", "own_limits", "covered", ["mendelzon", "belnap", "carnap"], { line: "rule: say what is missing from the calculation" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
