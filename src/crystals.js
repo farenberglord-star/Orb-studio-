@@ -9808,6 +9808,338 @@ export const CRYSTALS = [
 "note": "bridge 'one number or several' (Goldberg + Das + Spearman)",
 "not_before": "2026-12-21"
 }
+},
+{
+"id": "bartlett",
+"name": "Frederic Bartlett",
+"name_ru": "Фредерик Бартлетт",
+"years": "1886–1969",
+"wiki": "https://en.wikipedia.org/wiki/Frederic_Bartlett",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Remembering' (1932), serial reproduction: passed from person to person, a story is shortened and reshaped to fit what the teller expects.",
+"ru": "«Воспоминание» (1932), серийное воспроизведение: передаваясь от человека к человеку, история укорачивается и подгоняется под ожидания рассказчика.",
+"de": "„Remembering“ (1932), serielle Reproduktion."
+},
+"rule": "Check a retold story against its first version, not against the latest copy.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the first-source line check retellings against the first version",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "stern_w",
+"name": "William Stern",
+"name_ru": "Вильям Штерн",
+"years": "1871–1938",
+"wiki": "https://en.wikipedia.org/wiki/William_Stern_(psychologist)",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Zur Psychologie der Aussage' (1902): honest, confident witnesses still err in details; confidence does not guarantee accuracy.",
+"ru": "«К психологии показаний» (1902): честный и уверенный свидетель всё равно ошибается в деталях; уверенность не гарантирует точности.",
+"de": "„Zur Psychologie der Aussage“ (1902)."
+},
+"rule": "Treat an eyewitness detail as one report, however confident the witness sounds.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor checks whether confident passports are challenged less",
+"covered_by": "harman"
+}
+},
+{
+"id": "ebbinghaus",
+"name": "Hermann Ebbinghaus",
+"name_ru": "Герман Эббингауз",
+"years": "1850–1909",
+"wiki": "https://en.wikipedia.org/wiki/Hermann_Ebbinghaus",
+"zone": "stale_data",
+"idea": {
+"en": "'Über das Gedächtnis' (1885), the forgetting curve: without rehearsal most detail is lost within hours and days.",
+"ru": "«О памяти» (1885), кривая забывания: без повторения большая часть деталей теряется за часы и дни.",
+"de": "„Über das Gedächtnis“ (1885), Vergessenskurve."
+},
+"rule": "A late retelling is not the original record; go back to what was written at the time.",
+"needs": {
+"code": "covered",
+"note": "passport freshness checks (stale after 24 h) and the first-source line"
+}
+},
+{
+"id": "neisser",
+"name": "Ulric Neisser",
+"name_ru": "Ульрик Найссер",
+"years": "1928–2012",
+"wiki": "https://en.wikipedia.org/wiki/Ulric_Neisser",
+"zone": "own_limits",
+"idea": {
+"en": "'Phantom flashbulbs' (Neisser and Harsch, 1992): vivid, confident memories of how one heard shocking news are often wrong.",
+"ru": "«Фантомные вспышки» (Найссер и Харш, 1992): яркие уверенные воспоминания о том, как человек узнал шокирующую новость, часто ошибочны.",
+"de": "„Phantom flashbulbs“ (1992)."
+},
+"rule": "Do not take vividness or certainty of a memory as evidence that it is accurate.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor: confidence is checked against later corrections",
+"covered_by": "harman"
+}
+},
+{
+"id": "brown_r",
+"name": "Roger Brown",
+"name_ru": "Роджер Браун",
+"years": "1925–1997",
+"wiki": "https://en.wikipedia.org/wiki/Roger_Brown_(psychologist)",
+"zone": "own_limits",
+"idea": {
+"en": "'Flashbulb memories' (Brown and Kulik, 1977): shocking news leaves memories that feel photographic.",
+"ru": "«Память-вспышка» (Браун и Кулик, 1977): шокирующая новость оставляет воспоминание, которое кажется фотографическим.",
+"de": "„Flashbulb memories“ (1977)."
+},
+"rule": "The feeling of remembering exactly is not a check; compare with records from the time.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor: confidence is checked against later corrections",
+"covered_by": "harman"
+}
+},
+{
+"id": "schachter",
+"name": "Stanley Schachter",
+"name_ru": "Стэнли Шехтер",
+"years": "1922–1997",
+"wiki": "https://en.wikipedia.org/wiki/Stanley_Schachter",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'A field experiment on rumor transmission and distortion' (Schachter and Burdick, 1955): a hint without explanation in an unclear, important situation starts rumours.",
+"ru": "«Полевой эксперимент о передаче и искажении слухов» (Шехтер и Бёрдик, 1955): намёк без объяснения в неясной и важной ситуации запускает слухи.",
+"de": "Feldexperiment zur Gerüchteübertragung (1955)."
+},
+"rule": "When a story hints at something without saying what, say what is actually known and what is not.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport's rumour-risk and vague-headline lines"
+}
+},
+{
+"id": "cartwright_d",
+"name": "Dorwin Cartwright",
+"name_ru": "Дорвин Картрайт",
+"years": "1915–2008",
+"wiki": "https://en.wikipedia.org/wiki/Dorwin_Cartwright",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'A study of a rumor: its origin and spread' (Festinger, Cartwright and others, 1948): rumours grow from uncertainty and travel among people who share one worry.",
+"ru": "«Исследование слуха: происхождение и распространение» (Фестингер, Картрайт и др., 1948): слух растёт из неясности и идёт среди людей с одной тревогой.",
+"de": "„A study of a rumor“ (1948)."
+},
+"rule": "Before repeating an alarming claim, look for an official answer; name it if there is one.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport's rumour-risk line asks for confirmed facts and an independent source"
+}
+},
+{
+"id": "einhorn",
+"name": "Hillel J. Einhorn",
+"name_ru": "Хиллел Эйнхорн",
+"years": "1941–1987",
+"wiki": "https://en.wikipedia.org/wiki/Hillel_J._Einhorn",
+"zone": "own_limits",
+"idea": {
+"en": "'Confidence in judgment: persistence of the illusion of validity' (Einhorn and Hogarth, 1978): confidence persists when there is no feedback about accuracy.",
+"ru": "«Уверенность в суждении: стойкость иллюзии обоснованности» (Эйнхорн и Хогарт, 1978): уверенность держится, когда нет обратной связи о точности.",
+"de": "Illusion der Validität (1978)."
+},
+"rule": "Keep a record of how often your confident calls were right; without it confidence is not evidence.",
+"needs": {
+"code": "covered",
+"note": "the Pearson sensor and Brier scores keep confident calls on record",
+"covered_by": "pearson"
+}
+},
+{
+"id": "brunswik",
+"name": "Egon Brunswik",
+"name_ru": "Эгон Брунсвик",
+"years": "1903–1955",
+"wiki": "https://en.wikipedia.org/wiki/Egon_Brunswik",
+"zone": "measurement_error",
+"idea": {
+"en": "The lens model ('Perception and the Representative Design of Psychological Experiments', 1956): judge cues by how strongly each is actually tied to the fact.",
+"ru": "Модель линзы («Восприятие и репрезентативный план экспериментов», 1956): оценивай признаки по тому, насколько каждый на деле связан с фактом.",
+"de": "Linsenmodell (1956)."
+},
+"rule": "Weigh each warning sign by how often it has really gone with a later correction.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor's layers block weighs each passport check by how often it fired on later-challenged stories",
+"covered_by": "harman"
+}
+},
+{
+"id": "bruner",
+"name": "Jerome Bruner",
+"name_ru": "Джером Брунер",
+"years": "1915–2016",
+"wiki": "https://en.wikipedia.org/wiki/Jerome_Bruner",
+"zone": "one_model",
+"idea": {
+"en": "'Interference in visual recognition' (Bruner and Potter, 1964): an early guess from blurred data makes the right answer harder to see once the data clear.",
+"ru": "«Интерференция при зрительном узнавании» (Брунер и Поттер, 1964): ранняя догадка по размытым данным мешает увидеть верный ответ, когда данные проясняются.",
+"de": "Interferenz beim Erkennen (1964)."
+},
+"rule": "Hold early readings of a breaking story loosely; revisit them when fuller reports arrive.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts keep several working hypotheses (Chamberlin rule)"
+}
+},
+{
+"id": "wegner",
+"name": "Daniel Wegner",
+"name_ru": "Дэниел Вегнер",
+"years": "1948–2013",
+"wiki": "https://en.wikipedia.org/wiki/Daniel_Wegner",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Incrimination through innuendo' (Wegner and others, 1981): a question or denial in a headline ('Is X guilty?') still leaves belief in X.",
+"ru": "«Обвинение через намёк» (Вегнер и др., 1981): вопрос или отрицание в заголовке («Виновен ли X?») всё равно оставляет веру в X.",
+"de": "„Incrimination through innuendo“ (1981)."
+},
+"rule": "Do not repeat a question headline as if the question itself were information.",
+"needs": {
+"code": "covered",
+"note": "applied: the passport's question-headline line ('do not turn it into an answer')"
+}
+},
+{
+"id": "ross_l",
+"name": "Lee Ross",
+"name_ru": "Ли Росс",
+"years": "1942–2021",
+"wiki": "https://en.wikipedia.org/wiki/Lee_Ross",
+"zone": "own_limits",
+"idea": {
+"en": "'Perseverance in self-perception and social perception' (Ross, Lepper and Hubbard, 1975): a belief survives the discrediting of the evidence it was built on.",
+"ru": "«Стойкость самовосприятия и социального восприятия» (Росс, Леппер, Хаббард, 1975): убеждение переживает опровержение тех доказательств, на которых построено.",
+"de": "Überzeugungs-Persistenz (1975)."
+},
+"rule": "When a story is corrected, say so plainly and drop the claim; do not keep the conclusion without its evidence.",
+"needs": {
+"code": "ready",
+"note": "bridge 'a correction does not erase': for later-challenged stories, does the original keep being carried after the correction appeared (radar_life last_ts) — data in hand"
+}
+},
+{
+"id": "kunda",
+"name": "Ziva Kunda",
+"name_ru": "Зива Кунда",
+"years": "1955–2004",
+"wiki": "https://en.wikipedia.org/wiki/Ziva_Kunda",
+"zone": "own_limits",
+"idea": {
+"en": "'The case for motivated reasoning' (1990): when a conclusion is wanted, supporting evidence is accepted easily and opposing evidence is checked harder.",
+"ru": "«Аргументы в пользу мотивированного рассуждения» (1990): когда вывод желанен, доводы «за» принимаются легко, а «против» проверяются строже.",
+"de": "„The case for motivated reasoning“ (1990)."
+},
+"rule": "Apply the same standard of proof to welcome and unwelcome news.",
+"needs": {
+"code": "covered",
+"note": "applied: one standard of proof for all news (rule conflict: the cautious rule wins)"
+}
+},
+{
+"id": "milgram",
+"name": "Stanley Milgram",
+"name_ru": "Стэнли Милгрэм",
+"years": "1933–1984",
+"wiki": "https://en.wikipedia.org/wiki/Stanley_Milgram",
+"zone": "look_alike",
+"idea": {
+"en": "'Note on the drawing power of crowds of different size' (Milgram, Bickman and Berkowitz, 1969): the more people look one way, the more join them.",
+"ru": "«Заметка о притягательности толп разного размера» (Милгрэм, Бикман, Берковиц, 1969): чем больше людей смотрит в одну сторону, тем больше присоединяется.",
+"de": "Anziehungskraft von Menschenmengen (1969)."
+},
+"rule": "The number of people or outlets repeating a story is not evidence that it is true.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the echo check: repetition is not confirmation",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "darley",
+"name": "John M. Darley",
+"name_ru": "Джон Дарли",
+"years": "1938–2018",
+"wiki": "https://en.wikipedia.org/wiki/John_M._Darley",
+"zone": "side_effects",
+"idea": {
+"en": "'Bystander intervention in emergencies' (Darley and Latané, 1968): with many witnesses each feels less responsible.",
+"ru": "«Вмешательство свидетелей в чрезвычайных ситуациях» (Дарли и Латане, 1968): при многих свидетелях каждый меньше чувствует ответственность.",
+"de": "Zuschauereffekt (1968)."
+},
+"rule": "When a story counts witnesses, ask who counted them and from which source.",
+"needs": {
+"code": "covered",
+"note": "applied: few-voices line — a striking count from one outlet stays unconfirmed"
+}
+},
+{
+"id": "moscovici",
+"name": "Serge Moscovici",
+"name_ru": "Серж Московичи",
+"years": "1925–2014",
+"wiki": "https://en.wikipedia.org/wiki/Serge_Moscovici",
+"zone": "one_model",
+"idea": {
+"en": "'The group as a polarizer of attitudes' (Moscovici and Zavalloni, 1969): discussion in a group shifts the shared view towards the extreme.",
+"ru": "«Группа как поляризатор установок» (Московичи и Заваллони, 1969): обсуждение в группе сдвигает общее мнение к краю.",
+"de": "Gruppenpolarisierung (1969)."
+},
+"rule": "In a panel discussion, check whether the shared view moved further than the evidence did.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'the panel drifts to the edge' (Moscovici + Asch + round table): does the AI round table end further than its sources"
+}
+},
+{
+"id": "allport_f",
+"name": "Floyd Henry Allport",
+"name_ru": "Флойд Олпорт",
+"years": "1890–1979",
+"wiki": "https://en.wikipedia.org/wiki/Floyd_Henry_Allport",
+"zone": "look_alike",
+"idea": {
+"en": "Pluralistic ignorance ('Students' Attitudes', Katz and Allport, 1931): people wrongly believe that most others think differently from them.",
+"ru": "Плюралистическое невежество («Установки студентов», Кац и Олпорт, 1931): люди ошибочно считают, что большинство думает иначе, чем они.",
+"de": "Pluralistische Ignoranz (1931)."
+},
+"rule": "Do not say what 'most people think' without a survey that measured it.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'what most people think' (F. Allport + Lee Ross): flag 'most people think' claims without a survey"
+}
+},
+{
+"id": "white_dm",
+"name": "David Manning White",
+"name_ru": "Дэвид Мэннинг Уайт",
+"years": "1917–1993",
+"wiki": "https://en.wikipedia.org/wiki/David_Manning_White",
+"zone": "stale_data",
+"idea": {
+"en": "'The \"Gate Keeper\": A Case Study in the Selection of News' (1950): one wire editor's choices decided which stories readers ever saw.",
+"ru": "«„Привратник“: изучение отбора новостей» (1950): выбор одного редактора ленты решал, какие истории читатели вообще увидят.",
+"de": "„The Gate Keeper“ (1950)."
+},
+"rule": "Say which sources and filters chose the stories you show; what was left out is part of the picture.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor shows which feeds and regions chose the stories",
+"covered_by": "lyberg"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

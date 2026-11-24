@@ -19,3 +19,19 @@ const DRILL = [
   { h: "Al Jolson signed for The Jazz Singer, the first talking picture", v: 3, then: "'first' only by one definition", ok: (p) => p.say.some((s) => /definition/i.test(s)) },
 ];
 for (const d of DRILL) test(`history drill: ${d.h}`, d.todo ? { todo: d.todo } : {}, () => assert.ok(d.ok(P(d.h, d.v)), `${d.then}`));
+// Партия Грока 24.11.2026: подлинные заголовки из газетных архивов (дата, газета), исход известен
+const ARCHIVE = [
+  { h: "PASSENGERS ARE REPORTED SAFE", v: 5, src: "Eugene Daily Guard, 15.04.1912 — Titanic; ~1500 died, two radio messages merged (Bartlett)", ok: (p) => p.confidence !== "high" && p.fired.includes("not_event") },
+  { h: "Windshield Vandals Reported in Seattle", v: 2, src: "Seattle P-I, 15.04.1954 — ordinary wear (Sherif)", ok: (p) => p.fired.includes("not_event") },
+  { h: "AMUNDSEN STANDS BY COOK; Believes He Was Honest", v: 2, src: "NYT 22.12.1909 — Cook's claim rejected (Lee Ross)", ok: (p) => p.fired.includes("not_event") },
+  { h: "Is Beatle Paul McCartney Dead?", v: 1, src: "Times-Delphic 17.09.1969 — alive (Cartwright, Wegner)", ok: (p) => p.speech_act === "question" && p.confidence === "low" },
+  { h: "HAS MAN REACHED THE POLE?", v: 3, src: "NYT 02.09.1909 — no proof found (Wegner)", ok: (p) => p.speech_act === "question" },
+  { h: "DEWEY DEFEATS TRUMAN", v: 1, src: "Chicago Daily Tribune 03.11.1948 — Truman won (Einhorn)", ok: (p) => p.confidence === "low" },
+  { h: "37 Who Saw Murder Didn't Call the Police", v: 1, src: "NYT 27.03.1964 — greatly exaggerated (Darley)", ok: (p) => p.confidence !== "high" },
+  { h: '"ANESTHETIC PROWLER" ON LOOSE', v: 1, src: "Mattoon Journal-Gazette 02.09.1944 — no gas, no culprit (Schachter)", ok: (p) => p.confidence === "low" },
+  { h: "Berlin's Wonderful Horse; He Can Do Almost Everything but Talk", v: 1, src: "NYT 04.09.1904 — Clever Hans read cues (Heider)", ok: (p) => p.confidence !== "high" },
+  { h: "Radio Listeners in Panic, Taking War Drama as Fact", v: 5, src: "NYT 31.10.1938 — panic exaggerated (Milgram)", ok: (p) => p.fired.includes("tone") },
+  { h: "DARWIN THEORY IS PROVED TRUE; English Scientists Say the Skull Found in Sussex Establishes Human Descent from Apes", v: 3, src: "NYT 22.12.1912 — Piltdown hoax, exposed 1953 (Kunda)", ok: (p) => p.fired.includes("not_event") },
+  { h: "The Shuttle Explodes; 6 in Crew and High-School Teacher Are Killed 74 Seconds After Liftoff", v: 5, src: "NYT 29.01.1986 — true (Neisser: the memories, not the headline, went wrong)", ok: (p) => p.speech_act === "event" && p.confidence !== "low" },
+];
+for (const d of ARCHIVE) test(`archive drill: ${d.h}`, () => assert.ok(d.ok(P(d.h, d.v)), d.src));

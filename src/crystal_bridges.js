@@ -83,6 +83,17 @@ export const CRYSTAL_BRIDGES = [
   B("rule_without_words", "A rule without words", "Правило без слов", "own_limits", "line", ["reber", "polanyi_m", "shulman"]),
   B("worth_checking", "Is the check worth it", "Стоит ли проверка усилий", "answer_cost", "covered", ["vroom", "mooers", "cohen"], { sensor: "cohen" }),
   B("neighbour_not_same", "A neighbour is not the same", "Соседнее ≠ то же", "look_alike", "idea", ["collins_am", "harris_z", "kilgarriff"]),
+  // Психологи 1900–2026 по паспорту (Грок, 24.11.2026)
+  B("correction_not_erase", "A correction does not erase", "Опровержение не стирает", "own_limits", "ready", ["ross_l", "kunda", "festinger", "harman"], { needs: "owner's yes: for later-challenged stories, does the original keep being carried after the correction (radar_life last_ts)" }),
+  B("confidence_not_accuracy", "Confidence is not accuracy", "Уверенность ≠ точность", "own_limits", "covered", ["brown_r", "neisser", "stern_w", "einhorn"], { sensor: "harman" }),
+  B("lens_of_warnings", "Weigh each warning by its record", "Линза тревог", "measurement_error", "covered", ["brunswik", "reason_j", "harman"], { sensor: "harman" }),
+  B("chain_retelling", "The chain reshapes the story", "Цепочка пересказа", "rumour_vs_fact", "covered", ["bartlett", "schleicher", "kasperson"], { sensor: "kasperson" }),
+  B("hint_starts_rumour", "A hint starts a rumour", "Намёк запускает слух", "rumour_vs_fact", "line", ["schachter", "cartwright_d", "allport", "cantril"]),
+  B("question_innuendo", "A question headline still accuses", "Вопрос в заголовке обвиняет", "rumour_vs_fact", "line", ["wegner", "strawson"]),
+  B("crowd_draws_crowd", "A crowd draws a crowd", "Толпа притягивает толпу", "look_alike", "covered", ["milgram", "asch", "darley"], { sensor: "kasperson" }),
+  B("who_chose_the_news", "Who chose the news", "Кто выбрал новости", "stale_data", "covered", ["white_dm", "lyberg", "eddington"], { sensor: "lyberg" }),
+  B("panel_drifts", "The panel drifts to the edge", "Обсуждение сползает к краю", "one_model", "idea", ["moscovici", "asch"]),
+  B("what_most_think", "'Most people think' needs a survey", "«Большинство считает» — нужен опрос", "look_alike", "idea", ["allport_f", "ross_l"]),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
