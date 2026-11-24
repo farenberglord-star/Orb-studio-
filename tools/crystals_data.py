@@ -1855,5 +1855,5 @@ NEEDS["juran"] = ('covered', 'the Pareto sensor shows the share of movement from
 NEEDS["ishikawa"] = ('covered', 'applied: several working hypotheses rule for the hosts')
 NEEDS["taguchi"] = ('covered', 'applied: level_vs_30d shows where a radar sits in its own 30-day range')
 NEEDS["shingo"] = ('covered', 'applied: first-source line of the news passport')
-NEEDS["nelson_ls"] = ('ready', 'run rule on ix_hist: how many half-hours a radar has stayed on one side of its 30-day mean — waits for yes')
+NEEDS["nelson_ls"] = ('covered', 'applied: run_vs_mean in /api/v1/radars — half-hours in a row on one side of the 30-day mean against past runs')
 NEEDS["akao"] = ('needs_history', 'with the Campbell-law bridge: does a published metric drift from what it was meant to show', '2026-12-21')

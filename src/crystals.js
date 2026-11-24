@@ -11068,8 +11068,8 @@ export const CRYSTALS = [
 },
 "rule": "A slow drift can hide inside the usual band; count how long a reading has stayed on one side of its mean.",
 "needs": {
-"code": "ready",
-"note": "run rule on ix_hist: how many half-hours a radar has stayed on one side of its 30-day mean — waits for yes"
+"code": "covered",
+"note": "applied: run_vs_mean in /api/v1/radars — half-hours in a row on one side of the 30-day mean against past runs"
 }
 },
 {

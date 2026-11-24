@@ -120,7 +120,7 @@ export const CRYSTAL_BRIDGES = [
   B("chosen_vs_imposed", "Chosen or imposed risk", "Риск выбранный или навязанный", "answer_cost", "idea", ["starr_c", "kasperson", "douglas_m", "wildavsky"]),
   B("no_memory", "Organisations have no memory", "У организаций нет памяти", "look_alike", "covered", ["kletz", "tulving", "hume"], { line: "extraordinary-claim and 'first by what definition?' lines" }),
   B("special_cause", "Noise or a special cause", "Шум или особая причина", "measurement_error", "covered", ["shewhart", "griliches", "polyak", "trackrecord"], { sensor: "trackrecord" }),
-  B("run_rule", "A long run is a signal too", "Длинная серия — тоже сигнал", "measurement_error", "ready", ["nelson_ls", "shewhart", "nesselroade"]),
+  B("run_rule", "A long run is a signal too", "Длинная серия — тоже сигнал", "measurement_error", "line", ["nelson_ls", "shewhart", "nesselroade"], { line: "run_vs_mean in /api/v1/radars" }),
   B("tampering", "Tampering widens the spread", "Подкрутка растит разброс", "side_effects", "covered", ["deming", "campbell_dt", "polyak"], { line: "radar jump counts only if held 2 hours; thresholds fixed in advance" }),
   B("vital_few", "The vital few", "Немногие важные", "answer_cost", "covered", ["juran", "pareto", "mandelbrot"], { sensor: "pareto" }),
   B("cause_classes", "Several classes of causes", "Несколько классов причин", "one_model", "covered", ["ishikawa", "chamberlin", "duhem"], { line: "several working hypotheses rule" }),

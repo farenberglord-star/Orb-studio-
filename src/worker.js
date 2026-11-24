@@ -93,6 +93,7 @@ import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
 import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
+import { runsVs30d, NELSON_NOTE } from "./nelson.js";
 import { reissReport } from "./reiss.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
@@ -1914,9 +1915,11 @@ async function reissNow(env) { // «Одна новость на трёх язы
   const r = reissReport(rows); if (rows.length) await sharedPut(env, "reiss-v1", r).catch(() => {}); return r;
 }
 async function levelsNow(env) { // «Мерка зависит от набора» (Пардуччи): место каждого радара среди своих 30 дней
-  const c = await sharedGet(env, "levels-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "levels-v2", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = []; try { rows = (await env.DB.prepare("SELECT ts, c, g, k, b, p, e, n, j, w FROM ix_hist WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 30 * 864e5).all()).results || []; } catch {}
-  const r = levelVs30d(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "levels-v1", r).catch(() => {}); return r;
+  const r = levelVs30d(rows, PARETO_SERIES), runs = runsVs30d(rows, PARETO_SERIES); // + «длинная серия» (Нельсон)
+  for (const id of Object.keys(r)) if (r[id] && runs[id]) r[id].run_vs_mean = runs[id];
+  if (rows.length) await sharedPut(env, "levels-v2", r).catch(() => {}); return r;
 }
 async function paretoNow(env) { // «Парето»: доля движения радаров от 20 % крупнейших получасовых скачков (30 дней)
   const c = await sharedGet(env, "pareto-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -4014,8 +4017,8 @@ function clickLabel(request, from) {
     const full = url.searchParams.get("full") === "1";
     return json({
       generated_at: new Date().toISOString(),
-      radars: full ? data.map((r) => ({ ...r, ...radarI18n(r, true, RADAR_TITLE_I18N) })) : data.map((r) => ({ id: r.id, title: r.title, ...radarI18n(r, false, RADAR_TITLE_I18N), anchor: r.anchor, risk_index: r.lvl, delta_24h: r.lvl - r.prev, updated_at: r.updated_at, level_vs_30d: lv[r.id] || null })),
-      level_vs_30d_note: PARDUCCI_NOTE, consensus_vs_30d: lv.consensus || null,
+      radars: full ? data.map((r) => ({ ...r, ...radarI18n(r, true, RADAR_TITLE_I18N) })) : data.map((r) => ({ id: r.id, title: r.title, ...radarI18n(r, false, RADAR_TITLE_I18N), anchor: r.anchor, risk_index: r.lvl, delta_24h: r.lvl - r.prev, updated_at: r.updated_at, level_vs_30d: lv[r.id] || null, run_vs_mean: (lv[r.id] || {}).run_vs_mean || null })),
+      level_vs_30d_note: PARDUCCI_NOTE, consensus_vs_30d: lv.consensus || null, run_vs_mean_note: NELSON_NOTE,
       ways_out: waysForAgents(await waysLatest(env).catch(() => null), data.filter((r) => r.lvl >= 70).map((r) => r.id)),
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, "api-radars"),
