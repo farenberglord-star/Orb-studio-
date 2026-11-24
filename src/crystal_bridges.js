@@ -1,7 +1,7 @@
 // Мостики Библиотеки кристаллов: связки двух-четырёх идей, которые вместе дают то, чего нет ни у одной по отдельности.
 // Покрытие меряем не только по карточкам, но и по мостикам: сколько связок уже работают (датчик, строка паспорта, правило ведущих
 // или закрыты существующим датчиком), сколько ждут истории и сколько ждут источника или идеи. Источник списка — CLAUDE.md.
-// status: sensor | line (строка паспорта или правило ведущих) | covered (закрыто существующим датчиком) | waiting (копится история) | source (нужен открытый источник) | idea (нужна идея измерения)
+// status: ready (данные есть, ждёт «да» владельца) | sensor | line (строка паспорта или правило ведущих) | covered (закрыто существующим датчиком) | waiting (копится история) | source (нужен открытый источник) | idea (нужна идея измерения)
 const B = (id, en, ru, zone, status, cards, extra = {}) => ({ id, name: { en, ru }, zone, status, cards, ...extra });
 export const CRYSTAL_BRIDGES = [
   B("amplification", "Amplification by retelling", "Усиление при пересказе", "side_effects", "sensor", ["kasperson", "toffler", "howard", "searle"], { sensor: "kasperson" }),
@@ -64,15 +64,34 @@ export const CRYSTAL_BRIDGES = [
   B("context_not_meaning", "Similar context ≠ same meaning", "Контекст ≠ смысл", "look_alike", "idea", ["harris_z", "kilgarriff", "levenshtein"]),
   B("word_hides_danger", "A word hides the danger", "Слово прячет опасность", "look_alike", "idea", ["whorf", "max_mueller"]),
   B("explanation_vs_understanding", "Explanation ≠ understanding", "Объяснение ≠ понимание", "look_alike", "idea", ["dilthey", "searle"]),
+  // Психологи 2023–2026 (Грок, 24.11.2026) × математики и статистики библиотеки
+  B("measure_depends_on_set", "The measure depends on the set", "Мерка зависит от набора", "measurement_error", "ready", ["parducci", "fechner", "edgeworth", "naatanen"], { needs: "owner's yes: each radar level as a percentile of its own 30-day range (ix_hist)" }),
+  B("holes_in_layers", "Holes in the layers", "Дыры в слоях", "side_effects", "ready", ["reason_j", "bobbio", "harman"], { needs: "owner's yes: store which passport lines fired at first sight (radar_life), then show which layer let challenged stories through" }),
+  B("off_the_question", "Off the question", "Ушёл от вопроса", "own_limits", "ready", ["smallwood", "grice", "weizenbaum"], { needs: "owner's yes: host rule — restate the question in one line, check the answer addresses it" }),
+  B("cry_wolf", "Cry wolf: warnings that are too frequent", "Крик «волк»: слишком частые тревоги", "answer_cost", "ready", ["pearson", "harman", "nesselroade"], { needs: "owner's yes: share of live passports with a warning line, and (from Harman) how many warned stories were later challenged; Breznitz card waits for an obituary" }),
+  B("one_number_or_several", "One number or several", "Одно число или несколько", "one_model", "waiting", ["das_jp", "goldberg_l", "spearman", "leontief"], { until: "2026-12-21" }),
+  B("reward_changes_answer", "The reward changes the answer", "Награда меняет ответ", "side_effects", "waiting", ["deci", "campbell_dt", "burkov"], { until: "2026-12-21" }),
+  B("carrier_or_condition", "Carrier or condition", "Через что или при каком условии", "look_alike", "waiting", ["baron_r", "reichenbach", "granger"], { until: "2026-12-14" }),
+  B("not_found_not_absent", "Not found ≠ not there", "Не найдено ≠ нет", "own_limits", "idea", ["tulving", "frege", "levenshtein"]),
+  B("mixture_not_source", "A mixture is not one source", "Смесь — не один источник", "rumour_vs_fact", "covered", ["bregman", "schleicher", "condorcet"], { sensor: "kasperson" }),
+  B("flicker_or_shift", "Flicker or shift", "Колебание или сдвиг", "measurement_error", "covered", ["nesselroade", "griliches", "lexis", "galton"], { sensor: "trackrecord" }),
+  B("one_turn_not_end", "One statement is one turn", "Реплика, а не конец разговора", "rumour_vs_fact", "covered", ["markova_i", "harman"], { sensor: "harman" }),
+  B("gist_drifts", "Retelling drifts to the script", "Пересказ сползает к сценарию", "rumour_vs_fact", "covered", ["mandler_j", "kasperson", "derrida"], { sensor: "kasperson" }),
+  B("age_or_generation", "Age or generation", "Возраст или поколение", "stale_data", "covered", ["schaie", "simpson"], { sensor: "simpson" }),
+  B("many_readings", "Many readings first", "Сначала много прочтений", "one_model", "line", ["kintsch", "klahr", "chamberlin"]),
+  B("looks_vs_is", "Looks ≠ is", "Видимость ≠ суть", "look_alike", "line", ["flavell", "max_mueller", "osgood"]),
+  B("rule_without_words", "A rule without words", "Правило без слов", "own_limits", "line", ["reber", "polanyi_m", "shulman"]),
+  B("worth_checking", "Is the check worth it", "Стоит ли проверка усилий", "answer_cost", "covered", ["vroom", "mooers", "cohen"], { sensor: "cohen" }),
+  B("neighbour_not_same", "A neighbour is not the same", "Соседнее ≠ то же", "look_alike", "idea", ["collins_am", "harris_z", "kilgarriff"]),
 ];
-export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting"], blocked: ["source", "idea"] };
+export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
   const by = (st) => CRYSTAL_BRIDGES.filter((b) => b.status === st).length, n = CRYSTAL_BRIDGES.length;
   const zones = {}; for (const b of CRYSTAL_BRIDGES) { const z = (zones[b.zone] = zones[b.zone] || { bridges: 0, working: 0, waiting: 0, blocked: 0 }); z.bridges++; z[Object.keys(BRIDGE_GROUPS).find((g) => BRIDGE_GROUPS[g].includes(b.status))]++; }
   const working = by("sensor") + by("line") + by("covered");
   return {
     library: "crystal_bridges", bridges: n,
-    counts: { sensor: by("sensor"), line: by("line"), covered: by("covered"), waiting: by("waiting"), source: by("source"), idea: by("idea") },
+    counts: { sensor: by("sensor"), line: by("line"), covered: by("covered"), waiting: by("waiting"), ready: by("ready"), source: by("source"), idea: by("idea") },
     working, working_pct: Math.round((100 * working) / n), zones, list: CRYSTAL_BRIDGES,
     about: "Bridges are combinations of two to six ideas from the Crystal Library that together give something none gives alone. Status: sensor (a live sensor), line (a news-passport line or host rule), covered (closed by an existing sensor), waiting (history is accumulating, with a date), source (needs an open data source), idea (needs a way to measure).",
     generated_at: new Date(now).toISOString(),

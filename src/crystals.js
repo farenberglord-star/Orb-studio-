@@ -9417,6 +9417,396 @@ export const CRYSTALS = [
 "note": "bridge 'spill-over between radars' (Leontief + Walras + Kahn multiplier)",
 "not_before": "2026-12-21"
 }
+},
+{
+"id": "tulving",
+"name": "Endel Tulving",
+"name_ru": "Эндель Тульвинг",
+"years": "1927–2023",
+"wiki": "https://en.wikipedia.org/wiki/Endel_Tulving",
+"zone": "own_limits",
+"idea": {
+"en": "Encoding specificity (Tulving and Thomson, 1973): a memory is found only by a cue that matches how it was stored; a failed search does not prove the memory is absent.",
+"ru": "Принцип специфичности кодирования (Тульвинг и Томсон, 1973): запись находится только по ключу, совпадающему с тем, как её записали; неудачный поиск не доказывает, что её нет.",
+"de": "Prinzip der Enkodierungsspezifität (1973)."
+},
+"rule": "When a search finds nothing, say which key you searched with; try the form in which the record was likely stored before calling it absent.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'not found ≠ not there' (Tulving + Frege + Levenshtein): look names up in the form they were stored — e.g. Russian names in the nominative for the Frege sensor"
+}
+},
+{
+"id": "naatanen",
+"name": "Risto Näätänen",
+"name_ru": "Ристо Наатанен",
+"years": "1939–2023",
+"wiki": "https://en.wikipedia.org/wiki/Risto_N%C3%A4%C3%A4t%C3%A4nen",
+"zone": "measurement_error",
+"idea": {
+"en": "Mismatch negativity (1978): perception flags a deviation from the standard it has just learned, even without attention — change is judged against the recent baseline.",
+"ru": "Негативность рассогласования (1978): восприятие отмечает отклонение от только что выученного стандарта даже без внимания — изменение судят по недавнему фону.",
+"de": "Mismatch Negativity (1978)."
+},
+"rule": "Judge a change against the recent ordinary level of the same series, not against an absolute number.",
+"needs": {
+"code": "covered",
+"note": "the radar noise block and vs_typical already judge a change against the radar's recent ordinary level",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "schaie",
+"name": "K. Warner Schaie",
+"name_ru": "К. Уорнер Шайи",
+"years": "1928–2023",
+"wiki": "https://en.wikipedia.org/wiki/K._Warner_Schaie",
+"zone": "stale_data",
+"idea": {
+"en": "Seattle Longitudinal Study (from 1956): a cross-section of ages at one moment confounds age with generation; following the same people over time separates them.",
+"ru": "Сиэтлское лонгитюдное исследование (с 1956): срез по возрастам в один момент путает возраст с поколением; разделить их можно, только следя за одними и теми же людьми.",
+"de": "Seattle-Längsschnittstudie (ab 1956)."
+},
+"rule": "Do not read a difference between groups at one moment as a change over time; compare the same units across time.",
+"needs": {
+"code": "covered",
+"note": "the Simpson sensor already separates change within radars from change in composition",
+"covered_by": "simpson"
+}
+},
+{
+"id": "kintsch",
+"name": "Walter Kintsch",
+"name_ru": "Вальтер Кинч",
+"years": "1932–2023",
+"wiki": "https://en.wikipedia.org/wiki/Walter_Kintsch",
+"zone": "one_model",
+"idea": {
+"en": "Construction–integration model (1988): comprehension first builds many candidate readings, then keeps those that fit together.",
+"ru": "Модель построения и интеграции (1988): понимание сначала строит много вариантов прочтения, потом оставляет согласованные.",
+"de": "Konstruktions-Integrations-Modell (1988)."
+},
+"rule": "Before settling on one reading of a headline, list the plausible readings and keep the one the other facts support.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts keep several working hypotheses (Chamberlin rule)"
+}
+},
+{
+"id": "vroom",
+"name": "Victor Vroom",
+"name_ru": "Виктор Врум",
+"years": "1932–2023",
+"wiki": "https://en.wikipedia.org/wiki/Victor_Vroom",
+"zone": "answer_cost",
+"idea": {
+"en": "'Work and Motivation' (1964), expectancy theory: effort follows expectancy × instrumentality × value — people act when they expect the action to work and the result to matter.",
+"ru": "«Работа и мотивация» (1964), теория ожиданий: усилие = ожидание × инструментальность × ценность — человек действует, если верит, что действие сработает и результат важен.",
+"de": "„Work and Motivation“ (1964), Erwartungstheorie."
+},
+"rule": "Offer a check only when it is likely to change the answer and the answer matters; say when a check is not worth its cost.",
+"needs": {
+"code": "covered",
+"note": "the Cohen sensor and Mooers' law: a check is shown with the effect it can detect",
+"covered_by": "cohen"
+}
+},
+{
+"id": "parducci",
+"name": "Allen Parducci",
+"name_ru": "Аллен Пардуччи",
+"years": "1925–2023",
+"wiki": "https://en.wikipedia.org/wiki/Allen_Parducci",
+"zone": "measurement_error",
+"idea": {
+"en": "Range–frequency theory (1963, 1965): a judged value depends on the range and the distribution of the whole set it is compared with.",
+"ru": "Теория диапазона и частоты (1963, 1965): оценка зависит от диапазона и распределения всего набора, с которым сравнивают.",
+"de": "Bereichs-Häufigkeits-Theorie (1963, 1965)."
+},
+"rule": "When you call a level high or low, say against which set and range — the same number can be high in a quiet month and low in a busy one.",
+"needs": {
+"code": "ready",
+"note": "bridge 'the measure depends on the set' (Parducci + Fechner + Edgeworth): give each radar level as a percentile of its own 30-day range — ix_hist has the data"
+}
+},
+{
+"id": "baron_r",
+"name": "Reuben M. Baron",
+"name_ru": "Рубен М. Барон",
+"years": "1936–2023",
+"wiki": "https://en.wikipedia.org/wiki/Reuben_M._Baron",
+"zone": "look_alike",
+"idea": {
+"en": "The moderator–mediator distinction (Baron and Kenny, 1986): 'through what' an effect works and 'under which condition' it holds are different roles.",
+"ru": "Различие медиатора и модератора (Барон и Кенни, 1986): «через что» действует влияние и «при каком условии» оно есть — разные роли.",
+"de": "Moderator–Mediator-Unterscheidung (1986)."
+},
+"rule": "Say whether a factor carries an effect or only changes when the effect appears; do not call a condition a cause.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'who leads whom' (Baron + Reichenbach + Granger: carrier vs condition)",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "bregman",
+"name": "Albert Bregman",
+"name_ru": "Альберт Брегман",
+"years": "1936–2023",
+"wiki": "https://en.wikipedia.org/wiki/Albert_Bregman",
+"zone": "look_alike",
+"idea": {
+"en": "'Auditory Scene Analysis' (1990): a mixture of signals is not one source; perception must separate the streams before naming them.",
+"ru": "«Анализ слуховой сцены» (1990): смесь сигналов — не один источник; сначала разделить потоки, потом называть.",
+"de": "„Auditory Scene Analysis“ (1990)."
+},
+"rule": "Before counting voices for a story, separate the independent sources from copies of one source.",
+"needs": {
+"code": "covered",
+"note": "the echo check and first_source already separate independent outlets from copies",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "markova_i",
+"name": "Ivana Marková",
+"name_ru": "Ивана Маркова",
+"years": "1938–2024",
+"wiki": "https://en.wikipedia.org/wiki/Ivana_Markova",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Dialogicality and Social Representations' (2003): knowledge lives in dialogue; one statement is a turn, not the end of the conversation.",
+"ru": "«Диалогичность и социальные представления» (2003): знание живёт в диалоге; одно утверждение — реплика, а не конец разговора.",
+"de": "„Dialogicality and Social Representations“ (2003)."
+},
+"rule": "Treat a first statement as one turn; look for the reply, the correction or the denial before calling the matter settled.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor waits 72 hours for replies and corrections",
+"covered_by": "harman"
+}
+},
+{
+"id": "shulman",
+"name": "Lee Shulman",
+"name_ru": "Ли Шулман",
+"years": "1938–2024",
+"wiki": "https://en.wikipedia.org/wiki/Lee_Shulman",
+"zone": "look_alike",
+"idea": {
+"en": "Pedagogical content knowledge (1986): knowing a subject and knowing how to explain it are different kinds of knowledge.",
+"ru": "Педагогическое знание предмета (1986): знать предмет и уметь его объяснить — разные знания.",
+"de": "Fachdidaktisches Wissen (1986)."
+},
+"rule": "A clear explanation is not proof of correct content, and correct content may still be explained badly; check them separately.",
+"needs": {
+"code": "covered",
+"note": "applied: rule 'smoothness ≠ understanding' (Weizenbaum) in the host prompts"
+}
+},
+{
+"id": "nesselroade",
+"name": "John Nesselroade",
+"name_ru": "Джон Несселроуд",
+"years": "1936–2024",
+"wiki": "https://en.wikipedia.org/wiki/John_Nesselroade",
+"zone": "measurement_error",
+"idea": {
+"en": "Intraindividual variability and change (1970, 1991): short-term fluctuation within one unit, lasting change over time, differences between units and measurement noise are four different things.",
+"ru": "Внутрииндивидуальная изменчивость и изменение (1970, 1991): колебания внутри одной единицы, устойчивое изменение во времени, различия между единицами и шум измерения — четыре разные вещи.",
+"de": "Intraindividuelle Variabilität (1970, 1991)."
+},
+"rule": "Before calling a move a shift, check whether it is the series' ordinary flicker, a lasting change, a difference between series or noise.",
+"needs": {
+"code": "covered",
+"note": "the radar noise block separates flicker from a shift",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "flavell",
+"name": "John H. Flavell",
+"name_ru": "Джон Х. Флейвелл",
+"years": "1928–2025",
+"wiki": "https://en.wikipedia.org/wiki/John_H._Flavell",
+"zone": "look_alike",
+"idea": {
+"en": "Appearance–reality distinction and false belief (1986, 1993): how a thing looks is not what it is, and knowing this is itself a skill.",
+"ru": "Различие видимости и реальности, ложное убеждение (1986, 1993): как вещь выглядит — ещё не то, какова она; знать это — отдельное умение.",
+"de": "Schein und Wirklichkeit (1986, 1993)."
+},
+"rule": "Report what a headline or a chart looks like and what it actually shows as two separate statements.",
+"needs": {
+"code": "covered",
+"note": "applied: passport lines 'metaphor ≠ fact' and 'loaded words' separate how a headline looks from what it states"
+}
+},
+{
+"id": "reber",
+"name": "Arthur S. Reber",
+"name_ru": "Артур С. Ребер",
+"years": "1940–2025",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_S._Reber",
+"zone": "own_limits",
+"idea": {
+"en": "Implicit learning of artificial grammars (1967): people can follow a rule they cannot state.",
+"ru": "Неявное научение искусственным грамматикам (1967): человек может следовать правилу, которое не умеет назвать.",
+"de": "Implizites Lernen künstlicher Grammatiken (1967)."
+},
+"rule": "If you cannot state the rule behind a judgement, say that it is a pattern you cannot fully explain.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts say when a judgement rests on a pattern they cannot fully state (Polanyi rule)"
+}
+},
+{
+"id": "reason_j",
+"name": "James Reason",
+"name_ru": "Джеймс Ризон",
+"years": "1938–2025",
+"wiki": "https://en.wikipedia.org/wiki/James_Reason",
+"zone": "side_effects",
+"idea": {
+"en": "'Human Error' (1990), the layered-defence ('Swiss cheese') model: a failure usually passes through holes lined up in several layers, not one culprit.",
+"ru": "«Ошибка человека» (1990), модель «швейцарского сыра»: сбой обычно проходит через выстроившиеся дыры в нескольких слоях защиты, а не по вине одного.",
+"de": "„Human Error“ (1990), Schweizer-Käse-Modell."
+},
+"rule": "When a check fails, ask which layers let it through, not who is to blame.",
+"needs": {
+"code": "ready",
+"note": "bridge 'holes in the layers' (Reason + Bobbio + Harman): store which passport lines fired at first sight, so a later-challenged story shows which layer let it through"
+}
+},
+{
+"id": "mandler_j",
+"name": "Jean Mandler",
+"name_ru": "Джин Мандлер",
+"years": "1929–2025",
+"wiki": "https://en.wikipedia.org/wiki/Jean_Mandler",
+"zone": "one_model",
+"idea": {
+"en": "'Stories, Scripts, and Scenes' (1984): memory keeps the schema, not the exact words; retellings drift toward the expected script.",
+"ru": "«Истории, сценарии и сцены» (1984): память хранит схему, а не дословный текст; пересказ сползает к ожидаемому сценарию.",
+"de": "„Stories, Scripts, and Scenes“ (1984)."
+},
+"rule": "When a retelling fits a familiar script too neatly, go back to the exact original words.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor and the quote-out-of-context line catch retellings that drift",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "smallwood",
+"name": "Jonathan Smallwood",
+"name_ru": "Джонатан Смоллвуд",
+"years": "1975–2025",
+"wiki": "https://en.wikipedia.org/wiki/Jonathan_Smallwood",
+"zone": "own_limits",
+"idea": {
+"en": "'The Restless Mind' (Smallwood and Schooler, 2006): attention drifts from the task while the work seems to continue.",
+"ru": "«Беспокойный ум» (Смоллвуд и Скулер, 2006): внимание уходит с задачи, пока кажется, что работа идёт.",
+"de": "„The Restless Mind“ (2006)."
+},
+"rule": "Before finishing an answer, check that it still answers the question that was asked.",
+"needs": {
+"code": "ready",
+"note": "bridge 'off the question' (Smallwood + Grice + Weizenbaum): host rule — restate the question in one line before answering and check the answer addresses it"
+}
+},
+{
+"id": "das_jp",
+"name": "J. P. Das",
+"name_ru": "Джаганнатх Прасад Дас",
+"years": "1931–2025",
+"wiki": "https://en.wikipedia.org/wiki/Jagannath_Prasad_Das_(psychologist)",
+"zone": "one_model",
+"idea": {
+"en": "PASS theory (Das, Naglieri and Kirby, 1994): intelligence is several processes — planning, attention, simultaneous and successive — not one number.",
+"ru": "Теория PASS (Дас, Наглиери, Кирби, 1994): интеллект — несколько процессов (планирование, внимание, одновременная и последовательная обработка), а не одно число.",
+"de": "PASS-Theorie (1994)."
+},
+"rule": "Do not compress several measures into one number without showing the parts it hides.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'one number or several' (Das + Goldberg + Spearman + Leontief): how many independent dimensions the 8 radars have — ix_hist keeps all 8 since 23.11",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "collins_am",
+"name": "Allan M. Collins",
+"name_ru": "Аллан М. Коллинз",
+"years": "1937–2026",
+"wiki": "https://en.wikipedia.org/wiki/Allan_M._Collins",
+"zone": "look_alike",
+"idea": {
+"en": "Spreading activation (Collins and Loftus, 1975): thinking of one concept activates its neighbours; nearness in memory is not identity.",
+"ru": "Распространяющаяся активация (Коллинз и Лофтус, 1975): мысль о понятии будит соседние; близость в памяти — не тождество.",
+"de": "Aktivierungsausbreitung (1975)."
+},
+"rule": "A related word in a headline is not the same story; check that two items share the facts, not only the associations.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'similar context ≠ same meaning' (Collins + Harris + Kilgarriff)"
+}
+},
+{
+"id": "deci",
+"name": "Edward L. Deci",
+"name_ru": "Эдвард Л. Деси",
+"years": "1942–2026",
+"wiki": "https://en.wikipedia.org/wiki/Edward_L._Deci",
+"zone": "side_effects",
+"idea": {
+"en": "'Intrinsic Motivation and Self-Determination' (Deci and Ryan, 1985): an external reward can weaken the motive it was meant to support.",
+"ru": "«Внутренняя мотивация и самодетерминация» (Деси и Райан, 1985): внешняя награда может ослабить тот мотив, который должна была поддержать.",
+"de": "„Intrinsic Motivation and Self-Determination“ (1985)."
+},
+"rule": "When points or rankings are attached to answers, check whether they changed what is being answered.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'the reward changes the answer' (Deci + Campbell + Burkov): does scoring change agents' answers in the forecast game",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "klahr",
+"name": "David Klahr",
+"name_ru": "Дэвид Клар",
+"years": "1940–2026",
+"wiki": "https://en.wikipedia.org/wiki/David_Klahr",
+"zone": "one_model",
+"idea": {
+"en": "Dual-space search (Klahr and Dunbar, 1988): scientific discovery searches both a space of hypotheses and a space of experiments.",
+"ru": "Поиск в двух пространствах (Клар и Данбар, 1988): открытие ищет и в пространстве гипотез, и в пространстве опытов.",
+"de": "Suche in zwei Räumen (1988)."
+},
+"rule": "Name the hypothesis and the observation that would test it together; a hypothesis without a test is not yet a finding.",
+"needs": {
+"code": "covered",
+"note": "applied: Fisher rule 'state the test before the data' in the track record and forecast game",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "goldberg_l",
+"name": "Lewis Goldberg",
+"name_ru": "Льюис Голдберг",
+"years": "1932–2026",
+"wiki": "https://en.wikipedia.org/wiki/Lewis_Goldberg",
+"zone": "one_model",
+"idea": {
+"en": "The Big-Five factor structure (1990): personality description needs several independent dimensions, not one scale.",
+"ru": "Структура «Большой пятёрки» (1990): описание личности требует нескольких независимых измерений, а не одной шкалы.",
+"de": "Fünf-Faktoren-Struktur (1990)."
+},
+"rule": "Check how many independent dimensions a set of indicators really has before summing them.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'one number or several' (Goldberg + Das + Spearman)",
+"not_before": "2026-12-21"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
