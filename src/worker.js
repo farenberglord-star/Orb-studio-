@@ -1615,14 +1615,17 @@ async function radioAskGuest(env, g, headline, source, facts, question, retry) {
   throw new Error("unknown guest");
 }
 // ---- Интервью ближе к слушателю: раз в 4 часа на регион, готовит cron; запрос только отдаёт готовое ----
-async function radioClaudeTool(env, system, user, tool, maxTokens) {
-  if (!env.ANTHROPIC_API_KEY) return null;
+async function radioClaudeTool(env, system, user, tool, maxTokens, diag = null) { // diag.why — почему нет ответа (код HTTP, обрыв, нет tool_use)
+  if (!env.ANTHROPIC_API_KEY) { if (diag) diag.why = "no_key"; return null; }
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(30000),
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: maxTokens, system, messages: [{ role: "user", content: user }], tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
-    if (!res.ok) return null; const t = ((await res.json()).content || []).find((c) => c.type === "tool_use"); return t ? t.input : null;
-  } catch { return null; }
+    if (!res.ok) { if (diag) diag.why = "http_" + res.status; return null; }
+    const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
+    if (!t && diag) diag.why = "no_tool_use:" + (j.stop_reason || "?"); else if (t && j.stop_reason === "max_tokens" && diag) diag.why = "max_tokens";
+    return t ? t.input : null; // как раньше: ответ отдаём, проверку чисел делает вызывающий; max_tokens только помечаем
+  } catch (e) { if (diag) diag.why = e && e.name === "TimeoutError" ? "timeout" : "error"; return null; }
 }
 async function radioRegionBuild(env, ctx, origin, region) {
   const radars = await allRadars(env, ctx, origin);
@@ -1695,7 +1698,12 @@ async function radioHealthRun(env, ctx, origin) {
   const files = await Promise.all(RADIO_TRACKS.map(async (t) => { try { const r = await env.ASSETS.fetch(new Request(origin + t.path, { method: "HEAD" })); return r.ok; } catch { return false; } }));
   RADIO_TRACKS.forEach((t, i) => { if (!files[i]) problems.push("track_missing:" + t.id); }); info.tracks = RADIO_TRACKS.length;
   try { const dj = await radioDj(q, ctx, origin, RADIO_AIR), links = Object.values((dj && dj.links) || {}); info.dj_links = links.length; info.dj_voiced = links.filter((x) => x && x.audio).length;
-    if (!links.length) problems.push("dj_no_links"); else if (info.dj_voiced < links.length) problems.push("dj_unvoiced:" + (links.length - info.dj_voiced)); } catch { problems.push("dj_error"); }
+    if (!links.length) problems.push("dj_no_links");
+    else if (info.dj_voiced < links.length) { // связки озвучиваются при первом живом слушателе (экономия голоса) — это не поломка, если голоса на сегодня хватает
+      const need = links.filter((x) => x && !x.audio).reduce((n, x) => n + String(x.text || "").length, 0);
+      const used = ((await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first().catch(() => null)) || { c: Infinity }).c;
+      if (env.XAI_API_KEY && used + need <= DUO_TTS_DAY_CHARS) info.dj_on_demand = links.length - info.dj_voiced; else problems.push("dj_unvoiced:" + (links.length - info.dj_voiced));
+    } } catch { problems.push("dj_error"); }
   try { const s = await radioSensors(q, origin, RADIO_AIR); info.sensor_stories = (s.stories || []).length; if (s.status !== "ok") problems.push("sensors_" + s.status); if (s.not_aired) info.sensors_not_aired = s.not_aired; } catch { problems.push("sensors_error"); }
   try { const r = await radioRadar(q, origin, RADIO_AIR); if (r.status !== "ok") problems.push("radar_" + r.status); } catch { problems.push("radar_error"); }
   try { const used = (await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM tts_cache WHERE day=?1").bind(today()).first()) || { c: 0 }; info.voice_used = used.c; info.voice_limit = DUO_TTS_DAY_CHARS;
@@ -1720,6 +1728,8 @@ async function hamiltonNow(env) {
   const rows = env.DB ? ((await env.DB.prepare("SELECT k, ts FROM shared WHERE k IN ('radio-radar-v1','radio-region-v5-eu','radio-health-v1','radio-sens-v2')").all().catch(() => null)) || {}).results || [] : [];
   const ts = Object.fromEntries(rows.map((r) => [r.k, +r.ts]));
   const health = await sharedGet(env, RADIO_HEALTH_KEY, 1e15).catch(() => null), sens = await sharedGet(env, "radio-sens-v2", 1e15).catch(() => null);
+  const rj = await sharedGet(env, "radio-sens-rej", 24 * 3600e3).catch(() => null); // неудачная попытка новее выпуска: Гамильтон покажет её причину
+  if (sens && rj && rj.rejected && Date.parse(rj.at) > (ts["radio-sens-v2"] || 0)) sens.rejected = { ...(sens.rejected || {}), ...rj.rejected };
   let listeners = null; try { const rs = (await env.DB.prepare("SELECT name, n FROM hits WHERE page='radio-air' AND day=?1").bind(today()).all()).results || []; listeners = Object.fromEntries(rs.map((r) => [r.name, r.n])); } catch {}
   return hamiltonReport({ health, sens: sens ? { stories: sens.stories, rejected: sens.rejected, ts: ts["radio-sens-v2"] } : null, radarTs: ts["radio-radar-v1"], regionTs: ts["radio-region-v5-eu"], healthTs: ts["radio-health-v1"], air: RADIO_AIR, listeners });
 }
@@ -1964,11 +1974,16 @@ async function radioSensorsWarm(env, ctx) {
   const out = { generated_at: new Date().toISOString(), stories: { ...((cur && cur.stories) || {}) }, at_lang: { ...((cur && cur.at_lang) || {}) } }; // ru/en пишет radioSensorsLang по запросу слушателя
   await Promise.all([RADIO_AIR].map(async (lg) => { try { // по расписанию — только язык эфира по умолчанию
     const sm = await sensorsMachine(env, ctx, [], lg), facts = sensorFacts(sm.html, SENS_W[lg]); if (!Object.keys(facts).length) return;
-    const raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800).catch(() => null);
-    if (!raw) { (out.rejected = out.rejected || {})[lg] = { all: "claude_no_answer" }; return; } // Claude не ответил: причина видна в not_aired
+    const d1 = {}, d2 = {};
+    let raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 1800, d1).catch(() => null);
+    if (!raw) raw = await radioClaudeTool(env, sensorSystem(lg), JSON.stringify(facts), SENSOR_TOOL, 3000, d2).catch(() => null); // вторая попытка — с запасом длины
+    if (!raw) { (out.failed = out.failed || {})[lg] = { all: "claude_no_answer:" + [d1.why, d2.why].filter(Boolean).join("+") }; return; } // причина видна в not_aired и у Гамильтона
     const st = checkSensorStories(raw, facts, lg, stripInvisible);
     out.stories[lg] = st; out.at_lang[lg] = out.generated_at; if (st._rejected) (out.rejected = out.rejected || {})[lg] = st._rejected; // причины отказа храним рядом: видно, что и почему не вышло в эфир
   } catch {} }));
+  // Claude не ответил: старый выпуск НЕ переписываем с новым временем (иначе старые цифры выглядят свежими и повтор ждёт 4 часа) —
+  // храним только причину; следующая попытка — после снятия замка (20 минут)
+  if (out.failed) { await sharedPut(env, "radio-sens-rej", { at: out.generated_at, rejected: out.failed }); return; }
   if (Object.values(out.stories).some((x) => x && Object.keys(x).length)) await sharedPut(env, "radio-sens-v2", out);
   else await sharedPut(env, "radio-sens-rej", { at: out.generated_at, rejected: out.rejected || { [RADIO_AIR]: { all: "no_sensor_lines" } } }); // ничего не прошло: причины храним, чтобы было видно почему
 }
@@ -1987,7 +2002,8 @@ async function radioSensors(env, origin, lang) {
   const lg = DJ_LANGS.includes(lang) ? lang : "en", ep = await sharedGet(env, "radio-sens-v2", 3 * SENSOR_MS), mine = ep && ep.stories && ep.stories[lg];
   const ids = mine ? Object.keys(SENSOR_TOPICS).filter((k) => mine[k] && mine[k].text) : [];
   let rejected = (ep && ep.rejected && ep.rejected[lg]) || null;
-  if (!(ep && ep.stories && ep.stories[lg])) { const rj = await sharedGet(env, "radio-sens-rej", 24 * 3600e3).catch(() => null); if (rj && rj.rejected && rj.rejected[lg]) rejected = { ...rj.rejected[lg], at: rj.at }; }
+  { const rj = await sharedGet(env, "radio-sens-rej", 24 * 3600e3).catch(() => null); // последняя неудачная попытка новее выпуска — показываем её причину
+    if (rj && rj.rejected && rj.rejected[lg] && (!(ep && ep.stories && ep.stories[lg]) || Date.parse(rj.at) > Date.parse(ep.generated_at))) rejected = { ...rj.rejected[lg], at: rj.at }; }
   if (!ids.length) return { status: "preparing", language: lg, not_aired: rejected };
   const audio = await Promise.all(ids.map((k) => radioVoice(env, origin, mine[k].text, lg)));
   return { status: "ok", language: lg, generated_at: ep.generated_at, not_aired: rejected, stories: ids.map((k, i) => ({ id: k, key: "sens:" + k + ":" + ep.generated_at, text: mine[k].text, audio: audio[i], sensor_lines: mine[k].facts })),

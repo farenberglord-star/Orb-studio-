@@ -579,7 +579,13 @@ test("sensor news are rewritten at once when the air language changes", () => {
 
 test("sensor news: when nothing passes, the reasons are kept and shown as not_aired", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
-  assert.match(w, /all: "claude_no_answer"/); assert.match(w, /else await sharedPut\(env, "radio-sens-rej"/); assert.match(w, /sharedGet\(env, "radio-sens-rej", 24 \* 3600e3\)/);
+  assert.match(w, /all: "claude_no_answer:" \+/); assert.match(w, /else await sharedPut\(env, "radio-sens-rej"/); assert.match(w, /sharedGet\(env, "radio-sens-rej", 24 \* 3600e3\)/);
+});
+test("sensor news: a failed Claude call is retried, keeps the old episode time and says why", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /SENSOR_TOOL, 3000, d2\)/, "second attempt with more room");
+  assert.match(w, /if \(out\.failed\) \{ await sharedPut\(env, "radio-sens-rej", \{ at: out\.generated_at, rejected: out\.failed \}\); return; \}/, "old episode is not re-stamped");
+  assert.match(w, /diag\.why = "http_" \+ res\.status/);
 });
 
 import { radarCandidates as _rc, radarNewsUser as _rnu, checkRadarNews as _crn } from "../src/radio.js";

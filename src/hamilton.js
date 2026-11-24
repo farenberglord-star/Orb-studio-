@@ -22,7 +22,9 @@ export function hamiltonReport(inp) {
   const used = +info.voice_used, lim = +info.voice_limit;
   add("voice", !(lim > 0) ? "unknown" : used >= lim ? "down" : used >= 0.9 * lim ? "degraded" : "full", used >= 0.9 * lim ? ["speech_audio"] : [], used >= 0.9 * lim ? ["voice_budget_low"] : [], inp.healthTs);
   const links = +info.dj_links || 0, voiced = +info.dj_voiced || 0;
-  add("dj", !links ? (probs.includes("dj_no_links") ? "down" : "unknown") : voiced < links ? "degraded" : "full", voiced < links ? ["dj_audio:" + (links - voiced)] : [], voiced < links ? ["dj_unvoiced"] : [], inp.healthTs);
+  // dj_on_demand: связки ещё не озвучены, но голоса хватает — они озвучатся при первом слушателе (~10 с), это норма, а не поломка
+  const lack = voiced < links && !(+info.dj_on_demand > 0);
+  add("dj", !links ? (probs.includes("dj_no_links") ? "down" : "unknown") : lack ? "degraded" : "full", lack ? ["dj_audio:" + (links - voiced)] : [], lack ? ["dj_unvoiced"] : voiced < links ? ["voiced_on_first_listener"] : [], inp.healthTs);
   const s = inp.sens || {}, st = (s.stories && s.stories[inp.air]) || {}, rj = (s.rejected && s.rejected[inp.air]) || {};
   const dropped = Object.keys(rj), sa = age(s.ts, now);
   add("sensor_news", !Object.keys(st).length ? (dropped.length ? "down" : "unknown") : sa != null && sa > HAMILTON_STALE.sensor_news ? "stale" : dropped.length ? "degraded" : "full", dropped, dropped.map((k) => String(rj[k]).split(":")[0]), s.ts);
