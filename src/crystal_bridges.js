@@ -57,6 +57,8 @@ export const CRYSTAL_BRIDGES = [
   B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "sensor", ["frege", "geach", "dirichlet", "levenshtein"], { sensor: "frege" }),
   B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "sensor", ["schmidt_j", "schleicher", "tarde"], { sensor: "schmidt", number: "share of radar stories whose outlets arrived as a chain or as a wave (publication times per outlet, from the feeds, every 30 minutes)" }),
   B("log_step", "A step on a log scale is a ratio", "Шаг на логарифмической шкале — это кратность", "measurement_error", "ready", ["richter_cf", "cohen_s"], { number: "ratio of recorded amplitude between two USGS magnitudes (10 per step); added to the Stanley Cohen sensor output" }),
+  B("extra_pass", "The price of one more check", "Цена лишнего прохода", "answer_cost", "covered", ["stigler_gj", "raiffa", "coase", "howard"], { sensor: "howard", line: "partial: Howard answers retell-now-or-wait; the curve of new facts per publication read is not defined on our data" }),
+  B("exit_or_voice", "Exit or voice: silence is not consent", "Выход или голос: молчание — не согласие", "own_limits", "idea", ["hirschman", "watzlawick", "campbell_dt"], { needs: "no source in our data for exit signs (drop in activity, withdrawal); headlines only show voice" }),
   B("check_the_die", "Test even the obvious", "Проверь кость", "measurement_error", "idea", ["weldon", "bertrand"]),
   B("reference_class", "Every percentage has a group", "Референтный класс", "one_model", "idea", ["venn", "bertrand", "weldon"]),
   B("own_yardstick", "Judging by one's own yardstick", "Своя мерка", "look_alike", "idea", ["sumner", "bessel", "winch"]),

@@ -11695,6 +11695,43 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "risk vs uncertainty: no number yet that says how many of our indices rest on too short a record"
 }
+},
+{
+"id": "stigler_gj",
+"name": "George J. Stigler",
+"name_ru": "Джордж Дж. Стиглер",
+"years": "1911–1991",
+"wiki": "https://en.wikipedia.org/wiki/George_Stigler",
+"zone": "answer_cost",
+"idea": {
+"en": "'The Economics of Information' (1961): buyers do not search for ever, because each further look costs time, so prices for the same good stay scattered; the sensible search stops when one more look is expected to add less than it costs.",
+"ru": "«Экономика информации» (1961): покупатели не ищут бесконечно, потому что каждый следующий взгляд стоит времени, поэтому цены на один и тот же товар остаются разными; разумный поиск прекращается, когда ещё один взгляд, как ожидается, даст меньше, чем стоит.",
+"de": "„The Economics of Information“ (1961): Käufer suchen nicht endlos, weil jeder weitere Blick Zeit kostet."
+},
+"rule": "Say how far you looked and why you stopped: the next check was expected to add less than it costs.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already answers whether to retell now or wait for more outlets; the curve of new facts per publication read is not defined on our data",
+"covered_by": "howard"
+}
+},
+{
+"id": "weick_ke",
+"name": "Karl E. Weick",
+"name_ru": "Карл Э. Вейк",
+"years": "1936–2026",
+"wiki": "https://en.wikipedia.org/wiki/Karl_E._Weick",
+"zone": "one_model",
+"idea": {
+"en": "'The collapse of sensemaking in organizations: the Mann Gulch disaster' (1993): under surprise people reach for the first plausible story, and it can stop them from noticing the cues that do not fit.",
+"ru": "«Крах осмысления в организациях: катастрофа в Манн-Галч» (1993): под давлением неожиданности люди хватаются за первую правдоподобную историю, и она может мешать замечать сигналы, которые в неё не вписываются.",
+"de": "„The collapse of sensemaking in organizations: the Mann Gulch disaster“ (1993): Unter Überraschung greifen Menschen zur ersten plausiblen Geschichte."
+},
+"rule": "When a plausible story forms fast, look for the cues that do not fit it before you lock it in.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'first plausible story' (Weick + Festinger + Kunda): a number for how long the first account of an event stays unchanged in the radar headlines; not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
