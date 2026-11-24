@@ -12,6 +12,7 @@ import { radioTextBlock, radioJsonLd, RADIO_TRACKS } from "./radio.js";
 import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData, RT_ARCHIVE, RT_GUESTS } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
+import { radarJumpSignals } from "./radar-jump.js";
 import { hourlyFromPoints, strompreisModel, strompreisHtml } from "./strompreis.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { radarI18n, headlinesDe, HL_DE_NOTE } from "./radar-i18n.js";
@@ -4169,9 +4170,9 @@ async function anomalySensors(env) {
     }
   }
   if (gas && gas.ok && typeof gas.trend_pp_day === "number" && gas.trend_pp_day <= -0.45) out.push({ type: "value_gas_withdrawal", sensor: "/api/v1/gas/storage", gas_day: gas.gas_day, full_percent: gas.full_percent, trend_pp_day: gas.trend_pp_day, change_7d_pp: (gas.observed_change_7d || {}).change_pp, rule: "German storage falling >= 0.45 percentage points in one gas day (AGSI+)" });
-  if (hist && hist.risk_index_history) for (const [id, ser] of Object.entries(hist.risk_index_history)) {
-    if (!ser || ser.length < 2) continue; const a = ser[ser.length - 2], b = ser[ser.length - 1];
-    if (a && b && a.risk_index != null && b.risk_index != null && Math.abs(b.risk_index - a.risk_index) >= 10) out.push({ type: "value_radar_jump", sensor: `/api/v1/radar/${id}`, radar: id, from: a.risk_index, to: b.risk_index, from_day: a.day, to_day: b.day, rule: "radar risk index moved >= 10 points between two daily snapshots" });
+  if (hist && hist.risk_index_history) { // скачок радара — только если держится 2 часа (src/radar-jump.js), мигание внутри дня не в счёт
+    let ix = []; try { ix = (await env.DB.prepare("SELECT ts, g, k, b, p, e, n, j, w FROM ix_hist WHERE ts > ?1 ORDER BY ts").bind(now - 3 * 3600e3).all()).results || []; } catch (e) {}
+    out.push(...radarJumpSignals(hist, ix, now));
   }
   return out;
 }
