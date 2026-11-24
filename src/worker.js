@@ -94,6 +94,7 @@ import { harmanReport } from "./harman.js";
 import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { runsVs30d, NELSON_NOTE } from "./nelson.js";
+import { cryptoPassport, regimeHistory } from "./crypto-passport.js";
 import { reissReport } from "./reiss.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
@@ -1908,6 +1909,22 @@ async function pearsonNow(env) { // «Пирсон»: ложные тревог�
   try { rows = (await env.DB.prepare("SELECT a.who, a.name, a.kind, a.verified, a.dir, a.prob, q.result FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE q.result IN ('up','down') AND a.day >= ?1").bind(dayAdd(berlinParts().day, -90)).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(day) m FROM pred_q WHERE result IN ('up','down')").first()) || {}).m || null; } catch {}
   const r = pearsonReport(rows, Date.now(), since ? Date.parse(since + "T08:00:00Z") : null); await sharedPut(env, "pearson-v1", r).catch(() => {}); return r;
+}
+async function cryptoPassportNow(env, ctx, fresh = false) { // паспорт крипторынка: режим спокойно / нервно / шторм для криптофинансиста
+  if (!fresh) { const c = await sharedGet(env, "crypto-passport-v1", 5 * 60e3).catch(() => null); if (c) return c; }
+  const origin = "https://orbstudio.org";
+  const [radars, sensors, anomalies, track] = await Promise.all([allRadars(env, ctx, origin).catch(() => []), sensorsData(env, ctx).catch(() => null), anomalyDetect(env).catch(() => null), trackrecordNow(env).catch(() => null)]);
+  let hist = []; try { hist = (await env.DB.prepare("SELECT ts, k FROM ix_hist WHERE ts > ?1 AND k IS NOT NULL ORDER BY ts").bind(Date.now() - 26 * 3600e3).all()).results || []; } catch {}
+  const p = cryptoPassport({ radar: (radars || []).find((r) => r.id === "crypto"), sensors, anomalies, noise: track && track.radar_noise, radarHist: hist });
+  let rows = []; try { rows = (await env.DB.prepare("SELECT ts, regime FROM crypto_passport WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch {}
+  p.history = regimeHistory([...rows, { ts: Date.now(), regime: p.regime }]);
+  await sharedPut(env, "crypto-passport-v1", p).catch(() => {});
+  return p;
+}
+async function cryptoPassportRecord(env, ctx) { // сохраняем паспорт на сервере (D1) раз в получас — история режимов для журнала
+  const p = await cryptoPassportNow(env, ctx, true);
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS crypto_passport (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, regime TEXT, size INTEGER, body TEXT)").run();
+  await env.DB.prepare("INSERT OR REPLACE INTO crypto_passport (slot, ts, regime, size, body) VALUES (?1, ?2, ?3, ?4, ?5)").bind(Math.floor(Date.now() / 18e5), Date.now(), p.regime, p.new_trade_size_pct_of_plan, JSON.stringify({ ...p, history: undefined })).run();
 }
 async function reissNow(env) { // «Одна новость на трёх языках» (Райс + Найда): совпадают ли языковые версии одной истории
   const c = await sharedGet(env, "reiss-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -3839,6 +3856,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/crystal-bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/reiss") return json(await reissNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/crypto-passport") return json(await cryptoPassportNow(env, ctx), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/frege") return json(await fregeNow(env, { name: url.searchParams.get("name") }), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/harman") return json(await harmanNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/cohen") return json(await cohenNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
@@ -8379,6 +8397,9 @@ const MCP_TOOLS = [
   { name: "get_crystal_bridges", title: "Crystal Library bridges: which combinations of scientists' ideas already work as sensors or rules, and which wait for history, a source or an idea",
     description: "Every bridge of the Orb Studio Crystal Library (two to six scientists' ideas that together give something none gives alone) with its zone, cards and status: sensor, line (news-passport line or host rule), covered (closed by an existing sensor), waiting (with the date history will suffice), source (needs an open data source) or idea; plus counts per zone. Read-only, no AI.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_crypto_passport", title: "Crypto market passport: calm, nervous or storm right now — how much and how to trade, never which direction",
+    description: "One record for a crypto trader on Kraken: six checks of the Orb Studio sensors (BTC/ETH/XRP volatility vs 30 days and spikes, crypto radar move vs its usual noise, hacks and regulators factors with confirmed grave headlines, Kraken Futures open interest and funding, USDC peg, sharp sensor shifts) give the regime calm / nervous / storm by the worst check (an unread check counts as nervous), the share of a planned trade to open (100 / 50 / 0%), the maximum risk per trade and the order type, plus the history of regime changes (saved every 30 minutes). Not a buy or sell signal, not a forecast, not financial advice. Read-only, no AI.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_reiss", title: "One story in three languages: do the English, German and Russian headlines of the same story on the Orb Studio radars tell it the same way",
     description: "Pairs of radar headlines in different languages (last 48 hours) about the same story, matched by shared countries, cities, people, institutions, topics and numbers from a three-language list; each pair compared by the news passport: event or statement, numbers, loaded words, metaphor, quotes. Share of pairs whose versions differ, examples. No machine translation, no AI. Crystal Library bridge: Katharina Reiss + Eugene Nida + Condorcet.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8778,6 +8799,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_news_passport") return { ...(await passportOf(env, ctx, origin, args.headline)), referral: ref };
   if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
   if (name === "get_crystal_bridges") return { ...bridgesReport(), page: origin + "/tools/crystals", referral: ref };
+  if (name === "get_crypto_passport") return { ...(await cryptoPassportNow(env, ctx)), referral: ref };
   if (name === "get_reiss") return { ...(await reissNow(env)), referral: ref };
   if (name === "get_frege") return { ...(await fregeNow(env, { name: args && args.name })), page: origin + "/tools/frege", referral: ref };
   if (name === "get_harman") return { ...(await harmanNow(env)), page: origin + "/tools/harman", referral: ref };
@@ -9305,7 +9327,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rinneTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(cryptoPassportRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rinneTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов
