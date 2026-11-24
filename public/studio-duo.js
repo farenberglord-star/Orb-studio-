@@ -44,6 +44,20 @@ export function boardFor(duo) {
   return null;
 }
 
+// Реплика должна быть на языке эфира: русский — кириллица, немецкий — без английских служебных слов (то же правило, что на сервере, src/langcheck.js)
+const EN_W = new Set("the and of to in is are was were that with for has have had from this it its as at by on be been will would their they he she we you not but which who about after over into more than also his her our your said says".split(" "));
+const DE_W = new Set("der die das und ist sind war nicht von mit den dem des zu ein eine einen einem einer auf für im es sich auch aus bei nach wie über oder dass wird werden hat haben ich du wir ihr sie aber noch nur schon wenn dann so".split(" "));
+export function langOk(text, lg) {
+  const s = String(text || "").trim(); if (!s) return true;
+  const letters = (s.match(/\p{L}/gu) || []).length; if (letters < 25) return true;
+  if (lg === "ru") return (s.match(/[\u0400-\u04FF]/g) || []).length / letters >= 0.6;
+  if (lg === "de" || lg === "en") {
+    let e = 0, d = 0; for (const x of (s.toLowerCase().match(/[a-zäöüß]+/g) || [])) { if (EN_W.has(x)) e++; if (DE_W.has(x)) d++; }
+    if (e + d < 3) return true; return lg === "de" ? d >= e : e >= d;
+  }
+  return true;
+}
+
 // Очередь реплик: Давид читает → вопрос → ответ Grok → благодарность → пауза.
 // Текст гостя берётся только из guest.text при status "ok". Иначе — табличка (label), без слов от имени гостя и без «спасибо».
 // Эфир студии звучит на языке посетителя (русский, немецкий или английский; решение автора 23.11.2026, до этого с 22.11 был только немецкий). Нет перевода выпуска — показывается английский оригинал.
@@ -53,6 +67,12 @@ export function buildQueue(duo, lang) {
   for (const s of duo.segments) {
     if (!s || !s.host || typeof s.host.read !== "string" || !s.host.read.trim()) continue;
     const tr = lang && lang !== "en" && duo.translations && duo.translations[lang] && duo.translations[lang].segments ? duo.translations[lang].segments[s.i] : null;
+    // Язык эфира не смешиваем: нет перевода на этот язык (или реплика осталась на другом) — сегмент пропускаем, а не читаем по-английски
+    if (lang && lang !== "en") {
+      const g0 = s.guest || {};
+      const need = ["read", s.host.question ? "question" : null, g0.status === "ok" ? "answer" : null].filter(Boolean);
+      if (!tr || need.some((k) => typeof tr[k] !== "string" || !tr[k].trim()) || ["read", "question", "thanks", "answer", "follow_up", "follow_answer", "transition"].some((k) => !langOk(tr[k], lang))) continue;
+    }
     const pick = (k, en) => (tr && typeof tr[k] === "string" && tr[k].trim() ? tr[k].trim() : en);
     const au = tr ? (tr.audio && typeof tr.audio === "object" ? tr.audio : {}) : (s.audio && typeof s.audio === "object" ? s.audio : {});
     const aud = (k) => (typeof au[k] === "string" && /^https:\/\/[^\s"'<>]+$/.test(au[k]) ? au[k] : null);
@@ -333,7 +353,7 @@ function start() {
     if (queue.length && intro && typeof intro.text === "string") queue.unshift({ who: "david", kind: "intro", text: intro.text, audio: typeof intro.audio === "string" && /^https:\/\//.test(intro.audio) ? intro.audio : null, ms: lineMs(intro.text), source: null, link: null, headline: "" });
     const cta = duo.cta && duo.cta[lang];
     if (queue.length && cta && typeof cta.text === "string") queue.push({ who: "david", kind: "cta", text: cta.text, audio: typeof cta.audio === "string" && /^https:\/\//.test(cta.audio) ? cta.audio : null, ms: lineMs(cta.text), source: null, link: null, headline: "" }, { who: null, kind: "pause", text: null, ms: 1500, headline: "" }); vn.textContent = t.voices + (queue.some((x) => x.tr) ? " " + t.trNote : "");
-    if (!queue.length) { showBoard("noLink"); retry = setTimeout(load, 90000); return; }
+    if (!queue.length) { if (lang !== "en") { showBoard("preparing"); retry = setTimeout(load, 60000); return; } showBoard("noLink"); retry = setTimeout(load, 90000); return; }
     step();
   }
   $("next").addEventListener("click", () => { if (queue.length) step(); });

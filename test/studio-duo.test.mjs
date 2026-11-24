@@ -109,3 +109,18 @@ test("no music bed under the conversation: only the voices are heard", () => {
   assert.match(js, /const BED_ON = false;/); assert.match(js, /if \(BED_ON && !still\) \{ bed = makeBed\(\); duck\(false\); \}/);
   assert.equal((js.match(/makeBed\(\)/g) || []).length, 2, "the bed is created in one guarded place only");
 });
+
+test("studio: a line in the wrong language is never played (ru needs Cyrillic, de no English)", async () => {
+  const { langOk, buildQueue } = await import("../public/studio-duo.js");
+  const sv = await import("../src/langcheck.js");
+  const en = "Lithuanian SIM cards have shown up in Russian drones, and the story has spread to other outlets over the past day.";
+  assert.equal(langOk(en, "ru"), false); assert.equal(sv.langOk(en, "ru"), false);
+  assert.equal(langOk("Литовские сим-карты нашли в российских беспилотниках, и история разошлась по другим изданиям.", "ru"), true);
+  assert.equal(langOk(en, "de"), false); assert.equal(sv.langOk(en, "de"), false);
+  assert.equal(langOk("Litauische SIM-Karten wurden in russischen Drohnen gefunden, und die Geschichte ist nicht neu.", "de"), true);
+  const duo = { status: "ok", segments: [{ i: 0, host: { read: "Headline", question: "Q?" }, guest: { status: "ok", text: en } }],
+    translations: { ru: { segments: { 0: { read: "Заголовок новости про дроны", question: "Grok, что здесь происходит в большом плане?", answer: en, thanks: "", transition: "", follow_up: "", follow_answer: "" } } } } };
+  assert.deepEqual(buildQueue(duo, "ru"), [], "an untranslated answer drops the whole segment in ru");
+  duo.translations.ru.segments[0].answer = "Литовские сим-карты нашли в российских беспилотниках, и это уже не первая такая история.";
+  assert.ok(buildQueue(duo, "ru").some((x) => x.kind === "answer"));
+});
