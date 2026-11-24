@@ -1292,6 +1292,25 @@ export const TIME_MACHINE = [
 "en": "Saccheri and Lobachevsky; radar noise (do jumps revert or not).",
 "ru": "Саккери и Лобачевский; шум радара (откатываются ли скачки)."
 }
+},
+{
+"id": "milescu",
+"name": "Nicolae Milescu Spătarul",
+"name_ru": "Николае Милеску Спэтарул (Николай Спафарий)",
+"years": "1636 – 1708",
+"wiki": "https://en.wikipedia.org/wiki/Nicolae_Milescu",
+"zone": "own_limits",
+"idea": {
+"en": "Envoy of the Russian tsar to Beijing (1675–1678). He kept travel notes along the road and later wrote a separate 'Description of China'; in it he tells the reader that the full picture is in the Jesuit books and in the Dutch envoys' account, and that his own pages do not replace them.",
+"ru": "Посол русского царя в Пекине (1675–1678). Он вёл путевые заметки в дороге и потом написал отдельное «Описание Китая»; в нём он сам отсылает читателя за полной картиной к иезуитским книгам и к рассказу голландских послов и говорит, что его страницы их не заменяют.",
+"de": "Gesandter des russischen Zaren in Peking (1675–1678): Reisenotizen und eine getrennte „Beschreibung Chinas“; für das volle Bild verweist er selbst auf bessere Quellen."
+},
+"rule": "Say where your own account ends and name the better source; keep what you saw on the road apart from what you wrote up later.",
+"era": "1601-1700",
+"bridge": {
+"en": "First-source line of the news passport (Tannery, Stephen, Bayle, Schleicher): credit the original, not the retellings; Harman sensor: say what is outside your knowledge.",
+"ru": "Строка «кто первым сообщил» в паспорте новости (Таннери, Л. Стивен, Бейль, Шлейхер): называть оригинал, а не пересказы; датчик Хармана: сказать, чего ты не знаешь."
+}
 }
 ];
 export function timeMachineReport({ era = null, zone = null, q = null } = {}, origin = "https://orbstudio.org") {
