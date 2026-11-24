@@ -91,7 +91,7 @@ import { paretoReport, PARETO_SERIES } from "./pareto.js";
 import { pearsonReport } from "./pearson.js";
 import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
-import { extractNames, namesakes, fregeReport } from "./frege.js";
+import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
@@ -1853,21 +1853,30 @@ async function methodNow(env, ctx, origin) { // «Как Orb Studio провер
   const r = methodReport(items.map((it) => ({ radar: it.radar, source: it.source, link: it.link, ...newsPassport({ ...it, amplified: amp[it.headline] || null }) })));
   await sharedPut(env, "method-v1", r).catch(() => {}); return r;
 }
-async function fregeLookup(env, name) { // Викиданные (CC0): люди с ровно таким именем; кэш 7 дней
-  const key = "frege-n:" + name.toLowerCase(); const c = await sharedGet(env, key, 7 * 864e5).catch(() => null); if (c) return c;
-  const u = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=en&uselang=en&type=item&limit=20&maxlag=5&search=" + encodeURIComponent(name);
+async function fregeLookup(env, name, lang = "en") { // Викиданные (CC0): люди с ровно таким именем; кэш 7 дней
+  const key = "frege-n:" + (lang === "en" ? "" : lang + ":") + name.toLowerCase(); const c = await sharedGet(env, key, 7 * 864e5).catch(() => null); if (c) return c;
+  const u = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=" + lang + "&uselang=en&type=item&limit=20&maxlag=5&search=" + encodeURIComponent(name);
   const res = await fetch(u, { headers: { "User-Agent": "OrbStudioBot/1.0 (https://orbstudio.org; sensor frege)", "Accept": "application/json" }, signal: AbortSignal.timeout(6000) });
   if (res.status === 429 || res.status === 503) throw new Error("wikidata busy");
   if (!res.ok) throw new Error("wikidata " + res.status);
   const r = namesakes(name, ((await res.json()) || {}).search || []); r.checked_at = Date.now(); await sharedPut(env, key, r).catch(() => {}); return r;
 }
 async function fregeNow(env, q = {}) { // «Фреге»: тёзки в новостях — сколько людей с ровно таким именем знают Викиданные
-  if (q.name) { const n = String(q.name).trim().slice(0, 80); if (n.split(/\s+/).length < 2) return { error: "give a full name, e.g. ?name=John Smith" }; try { return { ...(await fregeLookup(env, n)), source: "Wikidata, CC0", rule: "A name may belong to several people; confirm who is meant by role, country or date." }; } catch (e) { return { name: n, error: "Wikidata not reachable now, try later" }; } }
+  if (q.name) { const n = String(q.name).trim().slice(0, 80); if (n.split(/\s+/).length < 2) return { error: "give a full name, e.g. ?name=John Smith" }; try { if (/[\u0400-\u04ff]/.test(n)) { for (const cand of ruNominative(n)) { const r = await fregeLookup(env, cand, "ru"); if (r.people >= 1 || cand === ruNominative(n).slice(-1)[0]) return { ...r, as_written: n, source: "Wikidata, CC0" }; } } return { ...(await fregeLookup(env, n)), source: "Wikidata, CC0", rule: "A name may belong to several people; confirm who is meant by role, country or date." }; } catch (e) { return { name: n, error: "Wikidata not reachable now, try later" }; } }
   const c = await sharedGet(env, "frege-v1", 20 * 60e3).catch(() => null); if (c) return c;
   let heads = []; try { heads = (await env.DB.prepare("SELECT headline FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 600").bind(Date.now() - 2 * 864e5).all()).results || []; } catch {}
-  const cnt = new Map(); for (const h of heads) for (const n of extractNames(h.headline)) cnt.set(n, (cnt.get(n) || 0) + 1);
+  const cnt = new Map(); for (const h of heads) { for (const n of extractNames(h.headline)) cnt.set(n, (cnt.get(n) || 0) + 1); for (const n of extractNamesRu(h.headline)) cnt.set("ru:" + n, (cnt.get("ru:" + n) || 0) + 1); }
   const names = [...cnt.keys()].sort((a, b) => cnt.get(b) - cnt.get(a)).slice(0, 150), checked = []; let fetched = 0, busy = false;
   for (const n of names) {
+    if (n.startsWith("ru:")) { // русское имя: исходная форма, потом догадки об именительном падеже (Тульвинг: ищи ключом той формы, в какой записано)
+      const orig = n.slice(3), done = await sharedGet(env, "frege-ru:" + orig.toLowerCase(), 7 * 864e5).catch(() => null);
+      if (done) { checked.push(done); continue; }
+      if (busy || fetched >= 12) continue;
+      let best = null;
+      for (const cand of ruNominative(orig)) { if (fetched >= 12) break; fetched++; try { const r = await fregeLookup(env, cand, "ru"); if (r.people >= 1) { best = { ...r, as_written: orig }; break; } if (!best) best = { ...r, as_written: orig }; } catch { busy = true; break; } }
+      if (best) { checked.push(best); await sharedPut(env, "frege-ru:" + orig.toLowerCase(), best).catch(() => {}); }
+      continue;
+    }
     const hit = await sharedGet(env, "frege-n:" + n.toLowerCase(), 7 * 864e5).catch(() => null);
     if (hit) { checked.push(hit); continue; }
     if (busy || fetched >= 12) continue; fetched++;

@@ -26,6 +26,25 @@ export function extractNames(headline) {
   }
   return [...out];
 }
+// Русские имена в заголовках стоят в падежах («с Си Цзиньпином», «Путину»). Мостик «не найдено ≠ нет» (Тульвинг):
+// запись находится ключом той формы, в какой её записали, — поэтому пробуем исходную форму и две догадки об именительном падеже.
+const NAME_CYR = /(?<![\p{L}])[А-ЯЁ][а-яё-]+(?:\s+[А-ЯЁ][а-яё-]+){1,2}(?![\p{L}])/gu;
+const STOP_RU = /^(под|над|при|из|для|у|о|об|от|до|за|власти|жители|война|глава|президент|премьер|министр|канцлер|новый|новая|новые|главное|срочно|видео|фото|итоги|онлайн|в|на|и|после|россия|украина|сша|германия|европа|ес|нато|минфин|минобороны|мид|госдума|кремль|киев|москва|берлин)$/i;
+const masc = (w) => (/(ск|цк)(ому|ого|им|ом)$/u.test(w) ? w.replace(/(ск|цк)(ому|ого|им|ом)$/u, "$1ий") : w.length > 3 ? w.replace(/(ыми|ими|ого|его|ому|ему|ым|им|ом|ем|у|ю|а|е)$/u, "") : w);
+const fem = (w) => (/(ск|цк)(ой|ую)$/u.test(w) ? w.replace(/(ск|цк)(ой|ую)$/u, "$1ая") : w.length > 3 ? w.replace(/ией$/u, "ия").replace(/ии$/u, "ия").replace(/ой$/u, "а").replace(/ей$/u, "я").replace(/(у|е|ы)$/u, "а") : w);
+export function ruNominative(name) {
+  const p = String(name).split(/\s+/);
+  return [...new Set([p.join(" "), p.map(masc).join(" "), p.map(fem).join(" ")])].filter((x) => x.split(" ").every((w) => w.length >= 2));
+}
+export function extractNamesRu(headline) {
+  const t = String(headline || ""), out = new Set();
+  for (const m of t.matchAll(NAME_CYR)) {
+    let parts = m[0].split(/\s+/); while (parts.length && STOP_RU.test(parts[0])) parts = parts.slice(1);
+    while (parts.length && STOP_RU.test(parts[parts.length - 1])) parts = parts.slice(0, -1);
+    if (parts.length >= 2 && parts.length <= 3) out.add(parts.join(" "));
+  }
+  return [...out];
+}
 export function personLike(desc) { return PERSON_DESC.test(String(desc || "")); }
 // результат поиска Викиданных → люди с ровно таким именем (или таким же псевдонимом)
 export function namesakes(name, results) {

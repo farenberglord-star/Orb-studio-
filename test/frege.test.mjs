@@ -25,3 +25,15 @@ test("wiring", () => {
   assert.match(w, /p === "\/api\/v1\/frege"/); assert.match(w, /name: "get_frege"/); assert.match(w, /"tools\/frege"/); assert.match(w, /wbsearchentities/);
   for (const f of ["tools/frege.html", "de/tools/frege.html", "en/tools/frege.html"]) { const h = readFileSync(new URL("../public/" + f, import.meta.url), "utf8"); assert.match(h, /\/go\/kraken\?from=frege/); assert.match(h, /share-x\.js/); assert.match(h, /Gottlob_Frege/); }
 });
+test("Russian names: nominative guesses (Tulving: search with the key it was stored under)", async () => {
+  const { extractNamesRu, ruNominative } = await import("../src/frege.js");
+  assert.deepEqual(extractNamesRu("Путин встретился с Си Цзиньпином в Пекине"), ["Си Цзиньпином"]);
+  assert.ok(ruNominative("Си Цзиньпином").includes("Си Цзиньпин"));
+  assert.ok(ruNominative("Владимиру Зеленскому").includes("Владимир Зеленский"));
+  assert.ok(ruNominative("Марией Захаровой").includes("Мария Захарова"));
+  assert.deepEqual(extractNamesRu("Война в Украине: Еврокомиссия предложила новые санкции"), []);
+});
+test("Russian speech-act signals: alleged, according to, reported", async () => {
+  const { newsPassport } = await import("../src/passport.js");
+  for (const h of ["Минобороны якобы сбило 40 дронов над Курском", "По данным Росстата, инфляция замедлилась", "МИД опроверг сообщения о переговорах", "Песков сообщил о звонке"]) assert.ok(newsPassport({ headline: h, confirm: 3 }).fired.includes("not_event"), h);
+});
