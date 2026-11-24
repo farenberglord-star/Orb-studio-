@@ -136,6 +136,7 @@
     "cohen": "https://orbstudio.org/api/v1/cohen",
     "harman": "https://orbstudio.org/api/v1/harman",
     "frege": "https://orbstudio.org/api/v1/frege",
+    "reiss": "https://orbstudio.org/api/v1/reiss",
     "crystal_bridges": "https://orbstudio.org/api/v1/crystal-bridges",
     "method": "https://orbstudio.org/api/v1/method",
     "timemachine": "https://orbstudio.org/api/v1/timemachine",

@@ -10630,8 +10630,8 @@ export const CRYSTALS = [
 },
 "rule": "When language versions of a story differ, find the original and compare.",
 "needs": {
-"code": "needs_idea",
-"note": "bridge 'one story, three languages' (Reiss + Nida + echo check): compare the same story's headlines in en/de/ru"
+"code": "covered",
+"note": "applied: /api/v1/reiss and get_reiss compare the English, German and Russian headlines of one story (speech act, numbers, loaded words)"
 }
 },
 {

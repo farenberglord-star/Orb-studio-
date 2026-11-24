@@ -108,7 +108,7 @@ export const CRYSTAL_BRIDGES = [
   B("impossible_at_date", "Impossible at the claimed date", "Невозможно на заявленную дату", "stale_data", "line", ["mccrone", "valla", "casaubon", "langlois"], { line: "news passport: found-document line now catches dated artefacts and found diaries" }),
   B("remains_vs_tradition", "Document or retelling", "Документ или пересказ", "rumour_vs_fact", "line", ["bernheim", "bartlett", "schleicher"]),
   B("translation_shift", "Meaning shifts in translation", "Смысл сдвигается при переводе", "look_alike", "line", ["nida", "newmark", "chukovsky"], { line: "news passport: translation line — quote the original, compare language versions" }),
-  B("one_story_three_languages", "One story in three languages", "Одна новость на трёх языках", "look_alike", "idea", ["reiss", "nida", "condorcet"]),
+  B("one_story_three_languages", "One story in three languages", "Одна новость на трёх языках", "look_alike", "line", ["reiss", "nida", "condorcet"], { line: "/api/v1/reiss and get_reiss: language versions of one story compared by the passport" }),
   B("self_declared_sound", "'Declared sound' is a claim", "«Признано надёжным» — это заявление", "measurement_error", "line", ["montgomery_rh", "ripley", "briloff"]),
   B("skill_not_hits", "Skill, not the share of hits", "Мастерство, а не доля попаданий", "answer_cost", "covered", ["gilbert_gk", "burkov", "pearson"], { sensor: "pearson" }),
   B("chart_honesty", "Where is zero on the chart", "Где ноль на графике", "measurement_error", "covered", ["brinton", "bertin", "stevens_ss"], { sensor: "baird" }),

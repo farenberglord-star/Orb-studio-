@@ -93,6 +93,7 @@ import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
 import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
+import { reissReport } from "./reiss.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
@@ -1904,6 +1905,11 @@ async function pearsonNow(env) { // «Пирсон»: ложные тревог�
   try { rows = (await env.DB.prepare("SELECT a.who, a.name, a.kind, a.verified, a.dir, a.prob, q.result FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE q.result IN ('up','down') AND a.day >= ?1").bind(dayAdd(berlinParts().day, -90)).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(day) m FROM pred_q WHERE result IN ('up','down')").first()) || {}).m || null; } catch {}
   const r = pearsonReport(rows, Date.now(), since ? Date.parse(since + "T08:00:00Z") : null); await sharedPut(env, "pearson-v1", r).catch(() => {}); return r;
+}
+async function reissNow(env) { // «Одна новость на трёх языках» (Райс + Найда): совпадают ли языковые версии одной истории
+  const c = await sharedGet(env, "reiss-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  let rows = []; try { rows = (await env.DB.prepare("SELECT k, radar, source, headline, first_ts FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 800").bind(Date.now() - 2 * 864e5).all()).results || []; } catch {}
+  const r = reissReport(rows); if (rows.length) await sharedPut(env, "reiss-v1", r).catch(() => {}); return r;
 }
 async function levelsNow(env) { // «Мерка зависит от набора» (Пардуччи): место каждого радара среди своих 30 дней
   const c = await sharedGet(env, "levels-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -3827,6 +3833,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/crystal-bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/reiss") return json(await reissNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/frege") return json(await fregeNow(env, { name: url.searchParams.get("name") }), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/harman") return json(await harmanNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/cohen") return json(await cohenNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
@@ -8367,6 +8374,9 @@ const MCP_TOOLS = [
   { name: "get_crystal_bridges", title: "Crystal Library bridges: which combinations of scientists' ideas already work as sensors or rules, and which wait for history, a source or an idea",
     description: "Every bridge of the Orb Studio Crystal Library (two to six scientists' ideas that together give something none gives alone) with its zone, cards and status: sensor, line (news-passport line or host rule), covered (closed by an existing sensor), waiting (with the date history will suffice), source (needs an open data source) or idea; plus counts per zone. Read-only, no AI.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_reiss", title: "One story in three languages: do the English, German and Russian headlines of the same story on the Orb Studio radars tell it the same way",
+    description: "Pairs of radar headlines in different languages (last 48 hours) about the same story, matched by shared countries, cities, people, institutions, topics and numbers from a three-language list; each pair compared by the news passport: event or statement, numbers, loaded words, metaphor, quotes. Share of pairs whose versions differ, examples. No machine translation, no AI. Crystal Library bridge: Katharina Reiss + Eugene Nida + Condorcet.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_frege", title: "Frege sensor: namesakes in the news — how many people in the Orb Studio radar headlines share their exact name with other people in Wikidata",
     description: "Person names from radar headlines of the last 48 hours are looked up in Wikidata (CC0); a name counts as ambiguous when two or more people with exactly that name are known. Verdict many / some / few namesakes, list of ambiguous names with examples. Optional 'name' checks one full name. No AI. In honour of Gottlob Frege (1848-1925), 'On Sense and Reference'.",
     inputSchema: { type: "object", properties: { name: { type: "string", description: "optional: one full name to check, e.g. 'John Smith'" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
@@ -8763,6 +8773,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_news_passport") return { ...(await passportOf(env, ctx, origin, args.headline)), referral: ref };
   if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
   if (name === "get_crystal_bridges") return { ...bridgesReport(), page: origin + "/tools/crystals", referral: ref };
+  if (name === "get_reiss") return { ...(await reissNow(env)), referral: ref };
   if (name === "get_frege") return { ...(await fregeNow(env, { name: args && args.name })), page: origin + "/tools/frege", referral: ref };
   if (name === "get_harman") return { ...(await harmanNow(env)), page: origin + "/tools/harman", referral: ref };
   if (name === "get_cohen") return { ...(await cohenNow(env)), page: origin + "/tools/cohen", referral: ref };
