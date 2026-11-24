@@ -710,6 +710,7 @@ PAGES["sensors"] = [
  ('Эксперимент', 'Experiment', 'Experiment'),
  ('Эксперимент · ИИ торгует по радару', 'Experiment · KI handelt nach dem Radar', 'Experiment · AI trades by the radar'),
  ('Электричество · биржа DE-LU, без сетей и налогов', 'Strom · Börse DE-LU, ohne Netze und Steuern', 'Electricity · DE-LU exchange, without grid fees and taxes'),
+ ('все часы на завтра', 'alle Stunden morgen', 'all hours tomorrow (in German)'),
  ('Эльба · PEGELONLINE (уровень воды)', 'Elbe · PEGELONLINE (Wasserstand)', 'Elbe · PEGELONLINE (water level)'),
  ('Эльбтоннель (A7): ${etJam?', 'Elbtunnel (A7): ${etJam?', 'Elbe tunnel (A7): ${etJam?'),
  ('Энергия', 'Energie', 'Energy'),
