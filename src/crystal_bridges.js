@@ -113,6 +113,12 @@ export const CRYSTAL_BRIDGES = [
   B("skill_not_hits", "Skill, not the share of hits", "Мастерство, а не доля попаданий", "answer_cost", "covered", ["gilbert_gk", "burkov", "pearson"], { sensor: "pearson" }),
   B("chart_honesty", "Where is zero on the chart", "Где ноль на графике", "measurement_error", "covered", ["brinton", "bertin", "stevens_ss"], { sensor: "baird" }),
   B("witness_in_spite", "Witnesses in spite of themselves", "Свидетели поневоле", "rumour_vs_fact", "idea", ["bloch", "osborn"]),
+  B("incubation", "Incubation before the 'sudden' crisis", "Инкубация «внезапного» кризиса", "side_effects", "idea", ["turner_ba", "reason_j", "harman"]),
+  B("drift_to_edge", "Drift to the edge", "Дрейф к границе", "side_effects", "covered", ["rasmussen_j", "minsky_h", "pareto"], { sensor: "pareto" }),
+  B("cobra_effect", "The cobra effect", "Эффект кобры", "side_effects", "ready", ["siebert_h", "campbell_dt", "sidgwick", "bastiat"]),
+  B("risk_thermostat", "Measure announced ≠ risk reduced", "Мера объявлена ≠ риск снижен", "side_effects", "covered", ["adams_j", "wilde_g", "white_gf", "searle"], { line: "Searle reads announced measures as promises" }),
+  B("chosen_vs_imposed", "Chosen or imposed risk", "Риск выбранный или навязанный", "answer_cost", "idea", ["starr_c", "kasperson", "douglas_m", "wildavsky"]),
+  B("no_memory", "Organisations have no memory", "У организаций нет памяти", "look_alike", "covered", ["kletz", "tulving", "hume"], { line: "extraordinary-claim and 'first by what definition?' lines" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

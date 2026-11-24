@@ -10780,6 +10780,169 @@ export const CRYSTALS = [
 "note": "the Baird sensor checks scale and units",
 "covered_by": "baird"
 }
+},
+{
+"id": "turner_ba",
+"name": "Barry A. Turner",
+"name_ru": "Барри Тёрнер",
+"years": "1937–1995",
+"wiki": "https://en.wikipedia.org/wiki/Barry_Turner_(sociologist)",
+"zone": "side_effects",
+"idea": {
+"en": "'Man-made Disasters' (1978): a disaster has an incubation period — small signals that contradict the accepted picture pile up unnoticed for months or years.",
+"ru": "«Рукотворные катастрофы» (1978): у катастрофы есть инкубационный период — мелкие сигналы, противоречащие привычной картине, месяцами и годами копятся незамеченными.",
+"de": "„Man-made Disasters“ (1978): Katastrophen haben eine Inkubationszeit unbemerkter Warnsignale."
+},
+"rule": "A 'sudden' crisis usually had earlier signals; look for them before calling it sudden.",
+"needs": {
+"code": "needs_idea",
+"note": "incubation: look back in radar_life for earlier headlines that hinted at a later crisis"
+}
+},
+{
+"id": "rasmussen_j",
+"name": "Jens Rasmussen",
+"name_ru": "Йенс Расмуссен",
+"years": "1926–2018",
+"wiki": "https://en.wikipedia.org/wiki/Jens_Rasmussen_(human_factors_expert)",
+"zone": "side_effects",
+"idea": {
+"en": "'Risk management in a dynamic society' (1997): pressure for efficiency and less effort makes a system drift, step by step, toward the edge of safe operation.",
+"ru": "«Управление риском в динамичном обществе» (1997): давление экономии и меньших усилий шаг за шагом сдвигает систему к границе безопасной работы.",
+"de": "„Risk management in a dynamic society“ (1997): Effizienzdruck lässt Systeme schrittweise an die Sicherheitsgrenze driften."
+},
+"rule": "A long calm under cost pressure is not proof of safety; ask how close to the edge the system has drifted.",
+"needs": {
+"code": "covered",
+"note": "the Pareto sensor and radar noise show that long calm does not exclude big jumps",
+"covered_by": "pareto"
+}
+},
+{
+"id": "wildavsky",
+"name": "Aaron Wildavsky",
+"name_ru": "Аарон Уилдавски",
+"years": "1930–1993",
+"wiki": "https://en.wikipedia.org/wiki/Aaron_Wildavsky",
+"zone": "side_effects",
+"idea": {
+"en": "'Searching for Safety' (1988): safety comes both from anticipation and from resilience; removing every small failure can weaken the ability to cope with a large one.",
+"ru": "«В поисках безопасности» (1988): безопасность даёт и предупреждение, и устойчивость; устранив все мелкие сбои, можно ослабить способность справиться с крупным.",
+"de": "„Searching for Safety“ (1988): Vorbeugung und Widerstandskraft; wer jeden kleinen Fehler ausschließt, schwächt die Anpassung."
+},
+"rule": "When a measure promises to remove a risk entirely, ask what it does to the system's ability to recover.",
+"needs": {
+"code": "needs_idea",
+"note": "resilience vs anticipation: host rule candidate"
+}
+},
+{
+"id": "starr_c",
+"name": "Chauncey Starr",
+"name_ru": "Чонси Старр",
+"years": "1912–2007",
+"wiki": "https://en.wikipedia.org/wiki/Chauncey_Starr",
+"zone": "answer_cost",
+"idea": {
+"en": "'Social Benefit versus Technological Risk' (Science, 1969): people accept far higher risks they choose themselves than risks imposed on them, at similar benefit.",
+"ru": "«Общественная польза против технологического риска» (Science, 1969): риск, выбранный самим человеком, люди принимают в разы охотнее, чем навязанный, при сопоставимой пользе.",
+"de": "„Social Benefit versus Technological Risk“ (1969): Freiwillige Risiken werden weit eher akzeptiert als auferlegte."
+},
+"rule": "Compare risks per hour of exposure, and say whether a risk is chosen or imposed — the public reaction depends on it.",
+"needs": {
+"code": "needs_idea",
+"note": "chosen vs imposed risk: could split the Kasperson amplification by risk type"
+}
+},
+{
+"id": "siebert_h",
+"name": "Horst Siebert",
+"name_ru": "Хорст Зиберт",
+"years": "1938–2009",
+"wiki": "https://de.wikipedia.org/wiki/Horst_Siebert",
+"zone": "side_effects",
+"idea": {
+"en": "'Der Kobra-Effekt' (2001): an incentive or ban designed without regard to how people respond invites them to game the rule and can worsen the original problem.",
+"ru": "«Эффект кобры» (2001): стимул или запрет, придуманный без учёта того, как ответят люди, побуждает обыгрывать само правило и может усугубить исходную проблему.",
+"de": "„Der Kobra-Effekt“ (2001): Anreize ohne Blick auf das Verhalten verschlimmern das Problem."
+},
+"rule": "When a reward or ban is announced, ask how people can game it before reporting the intended effect.",
+"needs": {
+"code": "ready",
+"note": "host rule: when a reward or ban is announced, ask how it can be gamed (extends 'who else pays') — waits for yes"
+}
+},
+{
+"id": "adams_j",
+"name": "John Adams",
+"name_ru": "Джон Адамс",
+"years": "1938–2024",
+"wiki": "https://en.wikipedia.org/wiki/John_Adams_(geographer)",
+"zone": "side_effects",
+"idea": {
+"en": "'Risk' (1995), the risk thermostat: people adjust their behaviour to the risk they feel, so a safety measure can be partly used up by riskier behaviour.",
+"ru": "«Риск» (1995), «термостат риска»: люди подстраивают поведение под ощущаемую опасность, и защитная мера может частично «съедаться» более рискованным поведением.",
+"de": "„Risk“ (1995), Risiko-Thermostat: Schutzmaßnahmen werden teils durch riskanteres Verhalten aufgezehrt."
+},
+"rule": "An announced safety measure is not yet a result; wait for outcomes and ask how behaviour changed.",
+"needs": {
+"code": "covered",
+"note": "applied: Searle reads 'announces measures/controls/bans' as a promise, not a result"
+}
+},
+{
+"id": "wilde_g",
+"name": "Gerald J. S. Wilde",
+"name_ru": "Джеральд Уайлд",
+"years": "1932–2019",
+"wiki": "https://en.wikipedia.org/wiki/Gerald_J._S._Wilde",
+"zone": "side_effects",
+"idea": {
+"en": "Risk homeostasis ('Target Risk', 1994): people keep a target level of risk; better technology alone shifts behaviour rather than accident rates.",
+"ru": "Гомеостаз риска («Целевой риск», 1994): люди держат свой целевой уровень риска; одна лишь лучшая техника меняет поведение, а не частоту аварий.",
+"de": "Risikohomöostase („Target Risk“, 1994): Technik allein senkt die Unfallrate kaum."
+},
+"rule": "Judge a safety measure by outcomes per unit of exposure, not by its intention.",
+"needs": {
+"code": "covered",
+"note": "applied: an announced measure is read as a promise, not an outcome"
+}
+},
+{
+"id": "kletz",
+"name": "Trevor Kletz",
+"name_ru": "Тревор Клетц",
+"years": "1922–2013",
+"wiki": "https://en.wikipedia.org/wiki/Trevor_Kletz",
+"zone": "look_alike",
+"idea": {
+"en": "'What Went Wrong?' and 'Lessons from Disaster' (1993): organisations have no memory — when people leave, old accidents recur for the same reasons.",
+"ru": "«Что пошло не так?» и «Уроки катастроф» (1993): у организаций нет памяти — когда люди уходят, старые аварии повторяются по тем же причинам.",
+"de": "„Lessons from Disaster“ (1993): Organisationen haben kein Gedächtnis — alte Unfälle wiederholen sich."
+},
+"rule": "Before calling an accident new or unprecedented, look for the earlier one with the same cause.",
+"needs": {
+"code": "covered",
+"note": "applied: extraordinary-claim and 'first by what definition?' lines"
+}
+},
+{
+"id": "white_gf",
+"name": "Gilbert F. White",
+"name_ru": "Гилберт Уайт",
+"years": "1911–2006",
+"wiki": "https://en.wikipedia.org/wiki/Gilbert_F._White",
+"zone": "side_effects",
+"idea": {
+"en": "'Human Adjustment to Floods' (1945): levees give a sense of safety, building moves into the floodplain, and losses from the rarer big flood grow (the levee effect).",
+"ru": "«Приспособление человека к наводнениям» (1945): дамбы дают чувство безопасности, застройка идёт в пойму, и ущерб от редкого большого паводка растёт («эффект дамбы»).",
+"de": "„Human Adjustment to Floods“ (1945): Deiche locken Bebauung in die Aue — der seltene große Schaden wächst."
+},
+"rule": "Protection against frequent small losses can raise the rare large one; report both.",
+"needs": {
+"code": "covered",
+"note": "applied: 'who else pays' rule names the losses outside the intended effect"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
