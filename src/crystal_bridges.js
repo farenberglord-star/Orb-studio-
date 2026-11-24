@@ -55,7 +55,7 @@ export const CRYSTAL_BRIDGES = [
   B("revisions", "How often numbers are revised", "Правки чисел", "stale_data", "waiting", ["rinne", "elmasri"], { until: "2026-12-21" }),
   B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "line", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { line: "news passport: own short loaded-word list (src/tone.js, field tone)" }),
   B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "sensor", ["frege", "geach", "dirichlet", "levenshtein"], { sensor: "frege" }),
-  B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "idea", ["schmidt_j", "schleicher", "tarde"], { needs: "time each outlet joined a story (not stored yet)" }),
+  B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "sensor", ["schmidt_j", "schleicher", "tarde"], { sensor: "schmidt", number: "share of radar stories whose outlets arrived as a chain or as a wave (publication times per outlet, from the feeds, every 30 minutes)" }),
   B("check_the_die", "Test even the obvious", "Проверь кость", "measurement_error", "idea", ["weldon", "bertrand"]),
   B("reference_class", "Every percentage has a group", "Референтный класс", "one_model", "idea", ["venn", "bertrand", "weldon"]),
   B("own_yardstick", "Judging by one's own yardstick", "Своя мерка", "look_alike", "idea", ["sumner", "bessel", "winch"]),
@@ -101,7 +101,7 @@ export const CRYSTAL_BRIDGES = [
   B("frame_choice", "Which frame was chosen", "Какую рамку выбрали", "one_model", "line", ["gitlin", "gamson", "goffman", "chamberlin"]),
   B("relay_of_influence", "Influence travels through relays", "Влияние идёт через передатчиков", "side_effects", "covered", ["lazarsfeld", "katz_e", "greenberg_b", "bartlett"], { sensor: "kasperson" }),
   B("correction_prominence", "Was the correction as loud as the claim", "Поправка так же громко, как ошибка", "own_limits", "covered", ["macdougall", "ross_l", "harman"], { sensor: "harman" }),
-  B("moral_panic", "Size of the incident vs size of the alarm", "Размер случая и размер тревоги", "side_effects", "idea", ["cohen_s", "kasperson", "osgood"]),
+  B("moral_panic", "Size of the incident vs size of the alarm", "Размер случая и размер тревоги", "side_effects", "sensor", ["cohen_s", "kasperson", "osgood"], { sensor: "cohen_s", number: "share of measured earthquake headlines that are loud while USGS magnitude is below 5.5; earthquakes only so far" }),
   B("pseudo_event", "Staged for the cameras", "Устроено для камер", "rumour_vs_fact", "idea", ["boorstin", "searle"]),
   B("mean_world", "The stream feels more dangerous than the base rate", "Поток кажется опаснее, чем по статистике", "measurement_error", "idea", ["gerbner", "pareto", "laplace"]),
   // Профессии проверки 1900–2026 (Грок, 24.11.2026)

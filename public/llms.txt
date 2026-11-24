@@ -5,6 +5,8 @@ Site: https://orbstudio.org
 > News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
 ## New this week (24.11.2026)
+- [Tree or wave](https://orbstudio.org/api/v1/schmidt) (get_schmidt): whether outlets join a radar story one after another (chain of retellings) or almost all at once (wave, possibly one wire feed); outlets are not independent confirmations.
+- [Size of the quake vs size of the alarm](https://orbstudio.org/api/v1/cohen-s) (get_cohen_s): how loud radar earthquake headlines are compared with the magnitude USGS recorded.
 - [Crypto market passport](https://orbstudio.org/api/v1/crypto-passport) (MCP get_crypto_passport): regime calm / nervous / storm for a trader on Kraken, the share of a planned trade to open, order type, capital left after losing streaks. Never a direction, not advice.
 - [One story in three languages](https://orbstudio.org/api/v1/reiss) (get_reiss): do English, German and Russian headlines of the same story agree on event or statement, numbers and tone.
 - [Words that climbed their own rank](https://orbstudio.org/api/v1/zipf) (get_zipf): words far above their usual share in today's radar headlines, with their neighbours — a new story or the same topic, louder.

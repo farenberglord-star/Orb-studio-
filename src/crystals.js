@@ -1,6 +1,6 @@
 // СГЕНЕРИРОВАНО tools/crystals.py из tools/crystals_data.py — правьте данные там.
 export const CRYSTAL_ZONES = ["stale_data", "one_model", "rumour_vs_fact", "measurement_error", "answer_cost", "side_effects", "look_alike", "own_limits"];
-export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error", "harman": "own_limits", "frege": "look_alike"};
+export const CRYSTAL_BUILT_ZONE = {"simpson": "one_model", "searle": "rumour_vs_fact", "duckworth": "stale_data", "trevisan": "answer_cost", "bertsekas": "answer_cost", "rabin": "measurement_error", "frankfurt": "rumour_vs_fact", "hamilton": "answer_cost", "mikrin": "stale_data", "polyak": "measurement_error", "park": "rumour_vs_fact", "kahneman": "measurement_error", "ziv": "stale_data", "cox": "stale_data", "halpern": "one_model", "howard": "answer_cost", "leamer": "one_model", "baird": "measurement_error", "lyberg": "measurement_error", "hagenauer": "measurement_error", "kasperson": "side_effects", "schmidt": "rumour_vs_fact", "cohen_s": "side_effects", "newcomb": "measurement_error", "pareto": "measurement_error", "pearson": "measurement_error", "cohen": "measurement_error", "harman": "own_limits", "frege": "look_alike"};
 export const CRYSTALS = [
 {
 "id": "belnap",
@@ -7290,9 +7290,9 @@ export const CRYSTALS = [
 },
 "rule": "A shared wording may come from neighbours copying each other, not from one common source; check both.",
 "needs": {
-"code": "needs_history",
-"note": "bridge 'tree or wave' (Schmidt + Schleicher + Tarde): radar_life keeps only the first source of a story; the times when each outlet joined are needed",
-"not_before": "2026-12-21"
+"code": "covered",
+"note": "the Schmidt sensor now shows whether outlets join a radar story as a chain of retellings or as a wave",
+"covered_by": "schmidt"
 }
 },
 {
@@ -10267,8 +10267,9 @@ export const CRYSTALS = [
 },
 "rule": "Compare the size of the incident with the size of the alarm; report the incident, not the panic.",
 "needs": {
-"code": "needs_idea",
-"note": "bridge 'size of the incident vs size of the alarm' (S. Cohen + Kasperson + tone): a loaded headline about a small count — needs a way to read the size of the incident"
+"code": "covered",
+"note": "the Stanley Cohen sensor now compares how loud radar earthquake headlines are with the magnitude USGS recorded (earthquakes only so far)",
+"covered_by": "cohen_s"
 }
 },
 {
