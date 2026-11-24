@@ -4,7 +4,8 @@
 // Цель — люди из поиска («Strompreis morgen», «günstigste Stunden Strom»), а не только агенты.
 
 const TZ = "Europe/Berlin";
-const dayOf = (t) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(t));
+const DAY_FMT = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }); // один форматтер: в датчике сотни точек
+const dayOf = (t) => DAY_FMT.format(new Date(t));
 const hm = (t) => new Date(t).toLocaleTimeString("de-DE", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 const nextDay = (day) => new Date(Date.parse(day + "T12:00:00Z") + 864e5).toISOString().slice(0, 10);
 const longDay = (day) => new Date(Date.parse(day + "T12:00:00Z")).toLocaleDateString("de-DE", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" });
