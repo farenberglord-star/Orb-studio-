@@ -81,6 +81,8 @@
     "violin": "https://orbstudio.org/api/v1/violin",
     "brief": "https://orbstudio.org/api/v1/brief",
     "brief_fresh_paid": "https://orbstudio.org/api/v1/brief/fresh",
+    "crypto_history": "https://orbstudio.org/api/v1/crypto-history",
+    "crypto_history_paid": "https://orbstudio.org/api/v1/crypto-history/full",
     "check_deep_paid": "https://orbstudio.org/api/v1/check/deep?headline={headline}",
     "violin_midi_paid": "https://orbstudio.org/api/v1/violin/midi?date={YYYY-MM-DD}",
     "followups": "https://orbstudio.org/api/v1/followups",
@@ -142,7 +144,7 @@
   "auth": "none",
   "payments": {
     "protocol": "x402 v2",
-    "note": "Everything is free except one optional paid file: the violin piece of the day as MIDI. No accounts, no API keys; payment is a signed USDC transfer from the buyer's own wallet. Answers 503 until the sale is open.",
+    "note": "Everything is free except the optional paid items below; each has a free alternative. No accounts, no API keys; payment is a signed USDC transfer from the buyer's own wallet. Answers 503 until the sale is open.",
     "items": [
       {
         "resource": "https://orbstudio.org/api/v1/violin/midi",
@@ -157,6 +159,13 @@
         "network": "eip155:8453 (Base)",
         "mime": "application/json",
         "free_alternative": "https://orbstudio.org/api/v1/brief"
+      },
+      {
+        "resource": "https://orbstudio.org/api/v1/crypto-history/full",
+        "price": "0.01 USDC",
+        "network": "eip155:8453 (Base)",
+        "mime": "application/json",
+        "free_alternative": "https://orbstudio.org/api/v1/crypto-history"
       },
       {
         "resource": "https://orbstudio.org/api/v1/check/deep",

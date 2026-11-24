@@ -23,6 +23,7 @@ import RESVG_WASM from "@resvg/resvg-wasm/index_bg.wasm";
 import { handleViolinMidi, saleConfig, saleInfo, cdpCheck } from "./violin-sale.js";
 import { handleAuthorMessage, inboxPush, inboxPatch } from "./author-message.js";
 import { handleBrief, buildBrief, BRIEF_FREE_MAX_AGE_MS } from "./brief.js";
+import { handleCryptoHistory, buildCryptoHistory, CH_COINS, CH_MAX_DAYS } from "./crypto-history.js";
 import { handleDeepCheck, mergeDeep, parseTranslations, langOf, LANGS, DEEP_RULE, DEEP_WINDOW_DAYS, DEEP_PRICE_USD, DEEP_RESOURCE } from "./deep-check.js";
 import { handleRobotPaid, robotPaidMode, ROBOT_FREE_ACTIONS, priceFor } from "./robot-paywall.js";
 import { agentWallet } from "./agent-wallet.js";
@@ -1902,6 +1903,21 @@ async function kaspersonNow(env) { // «Касперсон»: какие ист�
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE n_first IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = kaspersonReport(rows, Date.now(), since); await sharedPut(env, "kasperson-v1", r).catch(() => {}); return r;
 }
+// История крипто-радара (/api/v1/crypto-history, платная полная версия): ix_hist.k + часовые свечи Kraken за 30 дней
+async function cryptoHistoryData(env, tier, days = CH_MAX_DAYS) {
+  const now = Date.now(), span = (tier === "full" ? days : 1) * 864e5;
+  let rows = [], since = null;
+  try { rows = (await env.DB.prepare("SELECT ts, k FROM ix_hist WHERE ts > ?1 AND k IS NOT NULL ORDER BY ts").bind(now - span).all()).results || [];
+    since = ((await env.DB.prepare("SELECT MIN(ts) m FROM ix_hist WHERE k IS NOT NULL").first()) || {}).m || null; } catch {}
+  const candles = {};
+  await Promise.all(Object.entries(CH_COINS).map(async ([c, pair]) => {
+    try { const j = await sensorsFetchJson(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=60`); const k = Object.keys(j.result || {}).find((x) => x !== "last");
+      candles[c] = (j.result[k] || []).slice(0, -1); } catch { /* монета без свечей: в ответе просто нет её всплесков и движения */ }
+  }));
+  const h = buildCryptoHistory({ rows, candles, since, days, tier, now });
+  if (tier === "full" && !h.radar.length) throw new Error("no radar history"); // нечего отдавать — деньги не списываются
+  return h;
+}
 async function trackrecordNow(env, args = {}) { // «Счёт попаданий»: совпадало ли изменение крипто-радара с движением BTC/ETH за следующие сутки
   const hour = Math.min(23, Math.max(0, parseInt(args.hour, 10) >= 0 ? parseInt(args.hour, 10) : 12)), key = "track-v2-" + hour;
   const c = await sharedGet(env, key, 3600e3).catch(() => null); if (c) return c;
@@ -3506,6 +3522,8 @@ const OA_GET = [
   ["/api/v1/promises", "getPromises", "Said → did: what the ECB and the Fed signalled in their official statements (exact quote, link) and what they did at the next rate decision (official data).", []],
   ["/api/v1/brief", "getBrief", "World brief for LLM agents: all radars (risk, 24h change, top headlines with how many outlets confirm each), markets, power price, networks, attention, earthquakes, sanctions in ~1-2k tokens. Free, up to 1 hour old. ?format=text returns markdown only.", [OA_Q("format", "json (default) or text", { enum: ["json", "text"] })]],
   ["/api/v1/brief/fresh", "buyFreshBrief", "Paid fresh world brief built at request time with a wide headline check (news search, 2 days): 0.01 USDC via x402 v2 (HTTP 402, Base).", [OA_Q("format", "json (default) or text", { enum: ["json", "text"] })]],
+  ["/api/v1/crypto-history", "getCryptoHistory", "Crypto radar history, free part: radar level every 30 minutes for the last 24 hours and the volatility spikes of the day (Kraken). Full version: /api/v1/crypto-history/full.", []],
+  ["/api/v1/crypto-history/full", "buyCryptoHistory", "Paid crypto radar history for up to 30 days: radar every 30 minutes, daily radar vs BTC/ETH/XRP/SOL moves, all volatility spikes: 0.01 USDC via x402 v2 (HTTP 402, Base).", [OA_Q("days", "1-30, default 30")]],
   ["/api/v1/violin/midi", "buyViolinMidi", "Paid MIDI file of the violin of the day: 0.01 USDC via x402 v2 (HTTP 402, Base). Returns audio/midi.", [OA_Q("date", "YYYY-MM-DD")]],
   ["/api/v1/spatial/scene", "getSpatialScene", "Schematic spatial scene of the Orb Studio node (WebXR-friendly JSON): nodes on a circle around a centre, real status values (EMO, court activity, agent visits, score points of the violin). Positions are schematic, not measured.", []],
   ["/api/v1/violin", "getViolin", "Violin of the day: Claude turns the sensors into a solo violin piece once a day — ABC score, note list, sensor → music mapping, listen link.", [OA_Q("date", "YYYY-MM-DD, default latest")]],
@@ -9335,6 +9353,19 @@ async function handleRequest(request, env, ctx) {
           log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return paidSaleLog(env, kind, data); },
         });
       } catch (e) { return json({ error: "deep check error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
+    }
+    // История крипто-радара: сутки бесплатно, до 30 дней за 0,01 USDC (x402). Модулю передаются только настройки продажи.
+    if (url.pathname === "/api/v1/crypto-history" || url.pathname === "/api/v1/crypto-history/full") {
+      try {
+        return await handleCryptoHistory(request, saleConfig(env), {
+          ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
+          free: async () => { const c = await sharedGet(env, "crypto-history-free-v1", 5 * 60e3).catch(() => null); if (c) return c;
+            const h = await cryptoHistoryData(env, "free"); ctx.waitUntil(sharedPut(env, "crypto-history-free-v1", h).catch(() => {})); return h; },
+          full: (days) => cryptoHistoryData(env, "full", days),
+          hit: (page, kind, name) => recordHit(env, page, kind, name),
+          log: (kind, data) => { if (kind === "sale") ctx.waitUntil(emoSaleReact(env, data)); return paidSaleLog(env, kind, data); },
+        });
+      } catch (e) { return json({ error: "crypto history error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     // Сводка для LLM: бесплатно до часа давности, свежая за 0,01 USDC (x402). Модулю передаются только настройки продажи.
     if (url.pathname === "/api/v1/brief" || url.pathname === "/api/v1/brief/fresh") {
