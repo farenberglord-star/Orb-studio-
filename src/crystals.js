@@ -11492,6 +11492,96 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "say-what-is-missing rule; Lyberg nonresponse"
 }
+},
+{
+"id": "zipf",
+"name": "George Kingsley Zipf",
+"name_ru": "Джордж Кингсли Ципф",
+"years": "1902–1950",
+"wiki": "https://en.wikipedia.org/wiki/George_Kingsley_Zipf",
+"zone": "measurement_error",
+"idea": {
+"en": "'Human Behavior and the Principle of Least Effort' (1949): word frequency falls steeply with rank — a few words fill most of any text, most words are rare.",
+"ru": "«Поведение человека и принцип наименьшего усилия» (1949): частота слова круто падает с его рангом — немногие слова заполняют почти весь текст, большинство слов редки.",
+"de": "„Human Behavior and the Principle of Least Effort“ (1949): Die Worthäufigkeit fällt steil mit dem Rang — wenige Wörter füllen fast jeden Text."
+},
+"rule": "Do not expect words, topics or sources to be evenly spread; judge a rise against the word's own usual rank, not against an average.",
+"needs": {
+"code": "ready",
+"note": "with Firth and Luhn: a word that jumps in rank against its own 30-day frequency in radar_life, with its neighbours — waits for the owner's yes"
+}
+},
+{
+"id": "firth",
+"name": "John Rupert Firth",
+"name_ru": "Джон Руперт Фёрс",
+"years": "1890–1960",
+"wiki": "https://en.wikipedia.org/wiki/John_Rupert_Firth",
+"zone": "look_alike",
+"idea": {
+"en": "'A Synopsis of Linguistic Theory 1930–1955' (1957): 'You shall know a word by the company it keeps' — meaning shows in collocations and the situation of use.",
+"ru": "«Очерк лингвистической теории 1930–1955» (1957): «слово узнают по компании, которую оно водит» — значение видно в сочетаниях и в ситуации употребления.",
+"de": "„A Synopsis of Linguistic Theory 1930–1955“ (1957): „Man erkennt ein Wort an der Gesellschaft, die es hält“ — Bedeutung zeigt sich in Kollokationen."
+},
+"rule": "Read a key word through its neighbours in the same headline before deciding what it means; the same word in different company may be a different story.",
+"needs": {
+"code": "needs_idea",
+"note": "use collocates to separate two stories sharing one word (Reiss, duo sameStory)"
+}
+},
+{
+"id": "paul_h",
+"name": "Hermann Paul",
+"name_ru": "Герман Пауль",
+"years": "1846–1921",
+"wiki": "https://en.wikipedia.org/wiki/Hermann_Paul",
+"zone": "stale_data",
+"idea": {
+"en": "'Prinzipien der Sprachgeschichte' (1880) and 'Deutsches Wörterbuch' (1897): word meanings drift with use, generation by generation; old texts must be read with the meanings of their own time.",
+"ru": "«Принципы истории языка» (1880) и «Немецкий словарь» (1897): значения слов дрейфуют с употреблением, от поколения к поколению; старый текст читают со значениями его времени.",
+"de": "„Prinzipien der Sprachgeschichte“ (1880) und „Deutsches Wörterbuch“ (1897): Wortbedeutungen wandeln sich im Gebrauch; alte Texte mit der Bedeutung ihrer Zeit lesen."
+},
+"rule": "When an old quote or document resurfaces, read its words with the meaning they had then, and say so if today's meaning differs.",
+"needs": {
+"code": "covered",
+"note": "quoted-out-of-context and found-document lines in the passport"
+}
+},
+{
+"id": "murray_jah",
+"name": "James A. H. Murray",
+"name_ru": "Джеймс Мюррей",
+"years": "1837–1915",
+"wiki": "https://en.wikipedia.org/wiki/James_Murray_(lexicographer)",
+"zone": "stale_data",
+"idea": {
+"en": "Editor of 'A New English Dictionary on Historical Principles' (OED, from 1884): every sense is dated by real quotations; the earliest quotation is the earliest found, and readers kept finding earlier ones.",
+"ru": "Редактор «Нового словаря английского языка на исторических принципах» (OED, с 1884): каждое значение датировано настоящими цитатами; самая ранняя цитата — самая ранняя из найденных, и читатели продолжали находить более ранние.",
+"de": "Herausgeber des „New English Dictionary on Historical Principles“ (OED, ab 1884): Jede Bedeutung ist durch echte Zitate datiert; der früheste Beleg ist nur der früheste gefundene."
+},
+"rule": "Treat 'first ever' as 'earliest found so far': ask who searched and how far back.",
+"needs": {
+"code": "covered",
+"note": "passport line 'first by what definition?' (FIRST_CLAIM)"
+}
+},
+{
+"id": "kucera",
+"name": "Henry Kučera and W. Nelson Francis",
+"name_ru": "Генри Кучера и У. Нельсон Фрэнсис",
+"years": "1925–2010",
+"wiki": "https://en.wikipedia.org/wiki/Henry_Ku%C4%8Dera",
+"zone": "one_model",
+"idea": {
+"en": "'Computational Analysis of Present-Day American English' (1967, with W. Nelson Francis, 1910–2002): the Brown Corpus — a million words sampled across 15 genres, because word frequencies differ from genre to genre.",
+"ru": "«Компьютерный анализ современного американского английского» (1967, с У. Нельсоном Фрэнсисом, 1910–2002): Брауновский корпус — миллион слов из 15 жанров, потому что частоты слов от жанра к жанру разные.",
+"de": "„Computational Analysis of Present-Day American English“ (1967, mit W. Nelson Francis): das Brown-Korpus — eine Million Wörter aus 15 Genres."
+},
+"rule": "Before saying how common something is, check which kinds of sources the count came from; one genre or one outlet type is not the language or the news.",
+"needs": {
+"code": "covered",
+"note": "Bradford: share of core outlets; Lyberg: coverage of regions"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
