@@ -95,6 +95,7 @@ import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } fr
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { runsVs30d, NELSON_NOTE } from "./nelson.js";
 import { cryptoPassport, regimeHistory } from "./crypto-passport.js";
+import { bradfordReport } from "./bradford.js";
 import { reissReport } from "./reiss.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
@@ -1925,6 +1926,11 @@ async function cryptoPassportRecord(env, ctx) { // сохраняем паспо
   const p = await cryptoPassportNow(env, ctx, true);
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS crypto_passport (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, regime TEXT, size INTEGER, body TEXT)").run();
   await env.DB.prepare("INSERT OR REPLACE INTO crypto_passport (slot, ts, regime, size, body) VALUES (?1, ?2, ?3, ?4, ?5)").bind(Math.floor(Date.now() / 18e5), Date.now(), p.regime, p.new_trade_size_pct_of_plan, JSON.stringify({ ...p, history: undefined })).run();
+}
+async function bradfordNow(env) { // «Ядро и хвост изданий» (Брэдфорд + Лотка): сколько изданий дают заголовки радаров и что нёс только хвост
+  const c = await sharedGet(env, "bradford-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  let rows = []; try { rows = (await env.DB.prepare("SELECT radar, source, headline FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 3000").bind(Date.now() - 7 * 864e5).all()).results || []; } catch {}
+  const r = bradfordReport(rows); if (rows.length) await sharedPut(env, "bradford-v1", r).catch(() => {}); return r;
 }
 async function reissNow(env) { // «Одна новость на трёх языках» (Райс + Найда): совпадают ли языковые версии одной истории
   const c = await sharedGet(env, "reiss-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -3855,6 +3861,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/crystal-bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/bradford") return json(await bradfordNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/reiss") return json(await reissNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/crypto-passport") return json(await cryptoPassportNow(env, ctx), { "Cache-Control": "public, max-age=120", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/frege") return json(await fregeNow(env, { name: url.searchParams.get("name") }), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
@@ -8400,6 +8407,9 @@ const MCP_TOOLS = [
   { name: "get_crypto_passport", title: "Crypto market passport: calm, nervous or storm right now — how much and how to trade, never which direction",
     description: "One record for a crypto trader on Kraken: six checks of the Orb Studio sensors (BTC/ETH/XRP volatility vs 30 days and spikes, crypto radar move vs its usual noise, hacks and regulators factors with confirmed grave headlines, Kraken Futures open interest and funding, USDC peg, sharp sensor shifts) give the regime calm / nervous / storm by the worst check (an unread check counts as nervous), the share of a planned trade to open (100 / 50 / 0%), the maximum risk per trade and the order type, plus the history of regime changes (saved every 30 minutes). Not a buy or sell signal, not a forecast, not financial advice. Read-only, no AI.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
+  { name: "get_bradford", title: "Core and long tail of outlets: how concentrated are the outlets behind the Orb Studio radar headlines, and what only the small outlets carried",
+    description: "Radar headlines of the last 7 days counted per outlet: share of the 5 and 10 largest outlets, Bradford zones (outlets giving each third of the headlines) and their multiplier, and the headlines from tail outlets that no core outlet carried, by radar, with examples. Verdict core_heavy / spread. No AI. Crystal Library bridge: Samuel C. Bradford (law of scattering, 1948) + Alfred J. Lotka.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_reiss", title: "One story in three languages: do the English, German and Russian headlines of the same story on the Orb Studio radars tell it the same way",
     description: "Pairs of radar headlines in different languages (last 48 hours) about the same story, matched by shared countries, cities, people, institutions, topics and numbers from a three-language list; each pair compared by the news passport: event or statement, numbers, loaded words, metaphor, quotes. Share of pairs whose versions differ, examples. No machine translation, no AI. Crystal Library bridge: Katharina Reiss + Eugene Nida + Condorcet.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -8800,6 +8810,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   if (name === "get_method") return { ...(await methodNow(env, ctx, origin)), page: origin + "/tools/method", referral: ref };
   if (name === "get_crystal_bridges") return { ...bridgesReport(), page: origin + "/tools/crystals", referral: ref };
   if (name === "get_crypto_passport") return { ...(await cryptoPassportNow(env, ctx)), referral: ref };
+  if (name === "get_bradford") return { ...(await bradfordNow(env)), referral: ref };
   if (name === "get_reiss") return { ...(await reissNow(env)), referral: ref };
   if (name === "get_frege") return { ...(await fregeNow(env, { name: args && args.name })), page: origin + "/tools/frege", referral: ref };
   if (name === "get_harman") return { ...(await harmanNow(env)), page: origin + "/tools/harman", referral: ref };

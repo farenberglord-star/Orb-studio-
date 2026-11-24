@@ -103,9 +103,15 @@ export function storyStems(h) {
 }
 // Одно событие: ≥3 общих основы, или ≥2 и это не меньше половины основ короткого заголовка.
 // Две новости рубрики «Война в Украине: …» делят только «войн, украи» — это одна тема, но разные события.
-export function sameStory(a, b) {
+// Мостик «редкое общее слово весит больше» (Спарк Джонс + Солтон + Лун): основа, которая стоит в четверти заголовков выпуска
+// и чаще («войн», «украи», «трамп»), весит половину — она говорит о рубрике, а не о событии.
+export function commonStems(headlines, share = 0.25, min = 3) {
+  const df = {}, hs = headlines || []; for (const h of hs) for (const w of storyStems(h)) df[w] = (df[w] || 0) + 1;
+  const cut = Math.max(min, share * hs.length); return new Set(Object.keys(df).filter((w) => df[w] >= cut));
+}
+export function sameStory(a, b, common = null) {
   const A = storyStems(a), B = storyStems(b); let k = 0;
-  for (const w of A) if (B.has(w)) k++;
+  for (const w of A) if (B.has(w)) k += common && common.has(w) ? 0.5 : 1;
   return k >= 3 || (k >= 2 && k >= 0.5 * Math.min(A.size, B.size));
 }
 const CONF_RANK = { high: 3, medium: 2, low: 1 };
@@ -114,9 +120,9 @@ const CONF_RANK = { high: 3, medium: 2, low: 1 };
 export function dropSameStory(cands) {
   const rank = (c) => [CONF_RANK[c.passport && c.passport.confidence] || 0, (c.passport && Number.isFinite(c.passport.voices)) ? c.passport.voices : -1];
   const better = (a, b) => { const x = rank(a), y = rank(b); return x[0] !== y[0] ? x[0] > y[0] : x[1] > y[1]; };
-  const kept = [];
+  const kept = [], common = commonStems((cands || []).map((c) => c.headline));
   for (const c of cands) {
-    const j = kept.findIndex((k) => sameStory(k.headline, c.headline));
+    const j = kept.findIndex((k) => sameStory(k.headline, c.headline, common));
     if (j < 0) { kept.push(c); continue; }
     const [win, lose] = better(c, kept[j]) ? [c, kept[j]] : [kept[j], c];
     win.also_reported_by = [...new Set([...(win.also_reported_by || []), ...(lose.also_reported_by || []), lose.source].filter(Boolean))];

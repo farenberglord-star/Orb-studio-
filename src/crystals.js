@@ -11105,8 +11105,8 @@ export const CRYSTALS = [
 },
 "rule": "Reading only the core outlets misses part of a subject; say how much of the long tail you did not read.",
 "needs": {
-"code": "ready",
-"note": "Bradford test on radar_life: share of radar headlines from the top outlets, and which stories only the tail carried — waits for yes"
+"code": "covered",
+"note": "applied: /api/v1/bradford — outlet zones of the radar headlines and the stories only the tail carried"
 }
 },
 {
@@ -11160,8 +11160,8 @@ export const CRYSTALS = [
 },
 "rule": "A few very active voices produce much of the volume; do not take their share for the whole picture.",
 "needs": {
-"code": "ready",
-"note": "with the Bradford test: how much of the radar volume comes from the most active outlets"
+"code": "covered",
+"note": "applied: /api/v1/bradford — share of the 5 and 10 most active outlets"
 }
 },
 {
@@ -11198,7 +11198,7 @@ export const CRYSTALS = [
 "rule": "Shared words show similar wording, not the same event; check the who, where and when before merging two stories.",
 "needs": {
 "code": "covered",
-"note": "applied: one story across outlets needs shared who/where, not just shared words (duo sameStory, Reiss)"
+"note": "applied: Reiss and the duo dedupe weigh shared words by rarity — common ones count half"
 }
 },
 {

@@ -22,7 +22,7 @@ export const ANCHORS = [
   C("trump", "trump", "трамп"), C("putin", "putin", "путин"), C("zelensky", "zelensk", "selensk", "зеленск"), C("merz", "merz", "мерц"),
   C("macron", "macron", "макрон"), C("xi", "xi jinping", "си цзиньпин"), C("netanyahu", "netanyahu", "netanjahu", "нетаньях"), C("erdogan", "erdogan", "erdoğan", "эрдоган"),
   T("drone", "drone", "drohne", "дрон", "беспилотн"), T("missile", "missile", "rakete", "ракет"), T("refinery", "refiner", "raffinerie", "нпз", "нефтеперераб"),
-  T("ship", "ship", "vessel", "tanker", "schiff", "tanker", "судн", "корабл", "танкер"), T("sanctions", "sanction", "sanktion", "санкци"), T("ceasefire", "ceasefire", "truce", "waffenruhe", "waffenstillstand", "перемири"),
+  T("ship", "ship", "warship", "vessel", "tanker", "schiff", "tanker", "судн", "корабл", "танкер"), T("sanctions", "sanction", "sanktion", "санкци"), T("ceasefire", "ceasefire", "truce", "waffenruhe", "waffenstillstand", "перемири"),
   T("killed", "killed", "dead", "death", "tote", "getötet", "погиб", "убит"), T("injured", "injur", "wounded", "verletzt", "ранен", "пострада"),
   T("inflation", "inflation", "инфляц"), T("interest", "interest rate", "leitzins", "zins", "ставк"), T("oil", "oil", "öl", "нефт"), T("gas", "gas", "газ"),
   T("election", "election", "wahl", "выбор"), T("budget", "budget", "haushalt", "бюджет"), T("strike_labour", "strike", "streik", "забастовк"),
@@ -37,18 +37,29 @@ export function langOf(h) {
 export function anchorsOf(h, kind = "all") {
   const t = norm(h), words = t.match(/[\p{L}\p{N}.]+/gu) || [], out = new Set();
   for (const a of ANCHORS) { if ((kind === "entity" && a.topic) || (kind === "topic" && !a.topic)) continue; for (const s of a.stems) {
-    if (s.includes(" ") || s.includes(".") ? t.includes(s) : words.some((w) => w.startsWith(s) && (s.length >= 4 || w === s || w.length <= s.length + 3))) { out.add(a.id); break; }
+    if (s.includes(" ") || s.includes(".") ? t.includes(s) : words.some((w) => (s.length >= 4 ? w.startsWith(s) : w === s))) { out.add(a.id); break; }
   } }
+  if (kind !== "topic") for (const [child, parent] of PARENT) if (out.has(child)) out.add(parent); // Бенгази → Ливия: город называет и страну
   return out;
 }
+const PARENT = [["benghazi", "libya"]]; // столица Киев/Москва часто значит «правительство», поэтому только однозначные города
 export function numbersOf(h) { return new Set((String(h || "").match(/\d[\d.,]*\d|\d/g) || []).map((x) => x.replace(/[.,]/g, "")).filter((x) => x.length >= 1 && !/^(19|20)\d\d$/.test(x))); }
 // одна история на разных языках: общие «кто и где» (страны, города, люди, ведомства) плюс общая тема или число.
 // Одни темы (инфляция, ставка) без общих «кто и где» — это разные новости одной рубрики.
-const shared = (A, B) => { let k = 0; for (const x of A) if (B.has(x)) k++; return k; };
-export function sameStoryAcross(a, b) {
-  const e = shared(anchorsOf(a, "entity"), anchorsOf(b, "entity")), t = shared(anchorsOf(a, "topic"), anchorsOf(b, "topic"));
+// Мостик «редкое общее слово весит больше» (Спарк Джонс 1972 + Солтон + Лун): якорь, который стоит в каждом двадцатом заголовке
+// набора и чаще (ФРС, Россия, инфляция), почти ничего не говорит о том, одна ли это история, — он весит половину.
+export const COMMON_SHARE = 0.05, COMMON_MIN = 10;
+export function commonAnchors(headlines) {
+  const df = {}, hs = headlines || []; for (const h of hs) for (const a of anchorsOf(h)) df[a] = (df[a] || 0) + 1;
+  const cut = Math.max(COMMON_MIN, COMMON_SHARE * hs.length);
+  return new Set(Object.keys(df).filter((a) => df[a] >= cut));
+}
+const shared = (A, B, common) => { let k = 0; for (const x of A) if (B.has(x)) k += common && common.has(x) ? 0.5 : 1; return k; };
+export function sameStoryAcross(a, b, common = null) {
+  const e = shared(anchorsOf(a, "entity"), anchorsOf(b, "entity"), common), t = shared(anchorsOf(a, "topic"), anchorsOf(b, "topic"), common);
   const n = shared(new Set([...numbersOf(a)].filter((x) => x.length >= 2)), new Set([...numbersOf(b)].filter((x) => x.length >= 2)));
-  return e >= 3 || (e >= 2 && (t >= 1 || n >= 1)) || (e >= 1 && t >= 1 && n >= 1);
+  // счёт: «кто и где» по 1 (частые — по ½), тема — по ½ (частая — по ¼), общее число — 1; нужна хотя бы одна общая сущность, общая тема или число (или три сущности) и счёт ≥ 2
+  return e >= 1 && (t > 0 || n >= 1 || e >= 3) && e + 0.5 * t + (n >= 1 ? 1 : 0) >= 2;
 }
 export function compareVersions(a, b) {
   const pa = newsPassport({ headline: a.headline, confirm: 3 }), pb = newsPassport({ headline: b.headline, confirm: 3 }), diffs = [];
@@ -63,12 +74,12 @@ export function compareVersions(a, b) {
 export function reissReport(rows, now = Date.now()) {
   const items = (rows || []).filter((r) => r && r.headline).map((r) => ({ ...r, lang: langOf(r.headline) }));
   const langs = { en: 0, de: 0, ru: 0 }; for (const r of items) langs[r.lang]++;
-  const pairs = [], used = new Set();
+  const pairs = [], used = new Set(), common = commonAnchors(items.map((r) => r.headline));
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
     const a = items[i], b = items[j];
     if (a.lang === b.lang || Math.abs(+a.first_ts - +b.first_ts) > 36 * 3600e3) continue;
     const key = [a.k, b.lang].join("|"); if (used.has(key)) continue;
-    if (!sameStoryAcross(a.headline, b.headline)) continue;
+    if (!sameStoryAcross(a.headline, b.headline, common)) continue;
     used.add(key); const c = compareVersions(a, b);
     pairs.push({ a: { lang: a.lang, headline: a.headline, source: a.source || null, radar: a.radar || null }, b: { lang: b.lang, headline: b.headline, source: b.source || null, radar: b.radar || null }, ...c });
   }
@@ -76,11 +87,11 @@ export function reissReport(rows, now = Date.now()) {
   for (const p of withDiff) for (const d of p.diffs) by[d] = (by[d] || 0) + 1;
   return {
     sensor: "reiss", verdict: pairs.length < REISS_MIN ? "collecting" : withDiff.length / pairs.length >= 0.3 ? "versions_often_differ" : "versions_mostly_agree",
-    headlines: items.length, by_language: langs, cross_language_pairs: pairs.length, pairs_with_differences: withDiff.length,
+    headlines: items.length, by_language: langs, common_anchors: [...common].sort(), cross_language_pairs: pairs.length, pairs_with_differences: withDiff.length,
     differences_pct: pairs.length ? Math.round((100 * withDiff.length) / pairs.length) : null, by_difference: by,
     examples: withDiff.slice(0, 10),
     question: "When the same story appears on the Orb Studio radars in English, German and Russian headlines, do the versions tell it the same way — event or statement, the same numbers, the same heat?",
-    method: `Headlines of the last 48 hours are tagged by language (Cyrillic → ru; German letters or function words → de; otherwise en). Two headlines in different languages, first seen within 36 hours of each other, count as one story when they share anchors from a three-language list (countries, cities, people, institutions, topics such as drones or sanctions) — at least three, or two in short headlines, or one plus the same number. Each pair is compared with the news passport: speech act, numbers, loaded words, metaphor, quotes. Verdict from ${REISS_MIN} pairs. No machine translation, no AI.`,
+    method: `Headlines of the last 48 hours are tagged by language (Cyrillic → ru; German letters or function words → de; otherwise en). Two headlines in different languages, first seen within 36 hours of each other, count as one story when they share anchors from a three-language list (countries, cities, people, institutions, topics such as drones or sanctions) — at least three, or two plus a shared topic or number, or one plus a topic and a number. Anchors found in at least 5% of the headlines (such as the Fed, Russia, inflation) count half, because a word that is everywhere says little about whether two headlines tell the same story (Spärck Jones, 1972). Each pair is compared with the news passport: speech act, numbers, loaded words, metaphor, quotes. Verdict from ${REISS_MIN} pairs. No machine translation, no AI.`,
     rule: "When language versions of a story differ — event in one, statement in another; different numbers; heat in only one — name the difference and the outlets instead of picking one version.",
     caveat: "Anchor matching is coarse: two different events in the same place on the same day can pair up, and a story told with no shared anchor is missed. Differences may come from the outlets, not from translation.",
     bridge: "Crystal Library bridge 'one story in three languages': Katharina Reiss (translation criticism needs the original) + Eugene Nida (meaning, not words) + Condorcet (independent voices).",
