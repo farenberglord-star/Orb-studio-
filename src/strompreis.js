@@ -44,7 +44,9 @@ export function strompreisModel(power, now = Date.now()) {
   const isTomorrow = tom.length >= 20 || (!all.length && power.tomorrow_published && !!power.tomorrow);
   const day = isTomorrow ? tomorrow : today, hours = isTomorrow ? tom : tod;
   const st = isTomorrow ? power.tomorrow : power.today;
-  const { cheap, dear } = hours.length >= WINDOW_H ? windows(hours, WINDOW_H) : { cheap: null, dear: null };
+  // сегодня: окна только из оставшихся часов (прошедшее дешёвое окно никому не поможет)
+  const ahead = isTomorrow ? hours : hours.filter((h) => Date.parse(h.t) + 3600e3 > now);
+  const { cheap, dear } = ahead.length >= WINDOW_H ? windows(ahead, WINDOW_H) : { cheap: null, dear: null };
   const vs = isTomorrow && power.tomorrow && power.today && power.today.avg_eur_mwh > 0
     ? +((power.tomorrow.avg_eur_mwh / power.today.avg_eur_mwh - 1) * 100).toFixed(1) : null;
   return { mode: isTomorrow ? "tomorrow" : "today", day, day_label: longDay(day), hours, stats: st || null, cheap, dear, vs_today_pct: vs,
@@ -71,8 +73,9 @@ export function strompreisHtml(m, origin = "https://orbstudio.org", updated = ne
     const sub = m.mode === "tomorrow" ? esc(m.day_label) : `${esc(m.day_label)} · die Preise für morgen erscheinen meist gegen 13 Uhr`;
     parts.push(`<header><div class="eyebrow">Börse · Day-Ahead · Deutschland/Luxemburg</div><h1>${h1}</h1><p class="lead">${sub}</p></header>`);
     const tiles = [];
-    if (m.cheap) tiles.push(`<div class="tile good"><div class="k">Günstigste 3 Stunden</div><div class="v">${hm(m.cheap.from)}–${hm(m.cheap.to)}</div><div class="s">Ø ${ct(m.cheap.avg_eur_mwh)} ct/kWh · ${eurF(m.cheap.avg_eur_mwh)} €/MWh</div></div>`);
-    if (m.dear) tiles.push(`<div class="tile bad"><div class="k">Teuerste 3 Stunden</div><div class="v">${hm(m.dear.from)}–${hm(m.dear.to)}</div><div class="s">Ø ${ct(m.dear.avg_eur_mwh)} ct/kWh · ${eurF(m.dear.avg_eur_mwh)} €/MWh</div></div>`);
+    const rest = m.mode === "today" ? " (ab jetzt)" : "";
+    if (m.cheap) tiles.push(`<div class="tile good"><div class="k">Günstigste 3 Stunden${rest}</div><div class="v">${hm(m.cheap.from)}–${hm(m.cheap.to)}</div><div class="s">Ø ${ct(m.cheap.avg_eur_mwh)} ct/kWh · ${eurF(m.cheap.avg_eur_mwh)} €/MWh</div></div>`);
+    if (m.dear) tiles.push(`<div class="tile bad"><div class="k">Teuerste 3 Stunden${rest}</div><div class="v">${hm(m.dear.from)}–${hm(m.dear.to)}</div><div class="s">Ø ${ct(m.dear.avg_eur_mwh)} ct/kWh · ${eurF(m.dear.avg_eur_mwh)} €/MWh</div></div>`);
     if (m.stats) tiles.push(`<div class="tile"><div class="k">Tagesmittel</div><div class="v">${ct(m.stats.avg_eur_mwh)} ct/kWh</div><div class="s">${m.vs_today_pct != null ? `${m.vs_today_pct > 0 ? "+" : ""}${m.vs_today_pct.toLocaleString("de-DE")} % gegenüber heute` : `min ${ct(m.stats.min_eur_mwh)} · max ${ct(m.stats.max_eur_mwh)} ct/kWh`}</div></div>`);
     tiles.push(`<div class="tile"><div class="k">Jetzt (${hm(m.now_at)})</div><div class="v">${ct(m.now_eur_mwh)} ct/kWh</div><div class="s">${m.renewable_share_pct != null ? `Wind, Sonne & Co.: ${m.renewable_share_pct} %` : `${eurF(m.now_eur_mwh)} €/MWh`}</div></div>`);
     parts.push(`<div class="tiles">${tiles.join("")}</div>`);

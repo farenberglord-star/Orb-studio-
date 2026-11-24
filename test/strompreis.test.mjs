@@ -27,6 +27,7 @@ test("tomorrow: cheapest and dearest 3-hour windows, change against today", () =
 test("before publication the page shows today and says when tomorrow comes", () => {
   const m = strompreisModel({ ...power(hoursOf("2026-11-23T23:00:00Z", TOM)), tomorrow: null, tomorrow_published: false }, NOW);
   assert.equal(m.mode, "today");
+  assert.ok(Date.parse(m.cheap.from) >= Date.parse("2026-11-24T14:00:00Z"), "today: windows only from the remaining hours");
   assert.match(strompreisHtml(m), /gegen 13 Uhr/);
   assert.equal(strompreisModel(null), null);
   assert.match(strompreisHtml(null), /nicht erreichbar/);
