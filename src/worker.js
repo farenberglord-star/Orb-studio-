@@ -1875,11 +1875,12 @@ async function fregeNow(env, q = {}) { // «Фреге»: тёзки в ново
   await sharedPut(env, "frege-v1", r).catch(() => {}); return r;
 }
 async function harmanNow(env) { // «Харман»: честна ли уверенность паспорта — опровергают ли «высокую» реже «низкой»
-  const c = await sharedGet(env, "harman-v2", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "harman-v3", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
-  try { rows = (await env.DB.prepare("SELECT k, radar, headline, first_ts, n_max, conf, fired FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 17 * 864e5).all()).results || [];
+  try { const q = (cols) => env.DB.prepare(`SELECT ${cols} FROM radar_life WHERE first_ts > ?1`).bind(Date.now() - 17 * 864e5).all();
+    rows = ((await q("k, radar, headline, first_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
-  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v2", r).catch(() => {}); return r;
+  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v3", r).catch(() => {}); return r;
 }
 async function cohenNow(env) { // «Коэн»: наименьший эффект, который каждый датчик способен заметить на нынешних данных
   const c = await sharedGet(env, "cohen-v1", 30 * 60e3).catch(() => null); if (c) return c;
