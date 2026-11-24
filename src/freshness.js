@@ -41,7 +41,8 @@ export const CATALOG = [
     name: { ru: "Вспышки болезней (ВОЗ)", de: "Krankheitsausbrüche (WHO)", en: "Disease outbreaks (WHO)" }, get: (d) => d && d.latest_published },
   { id: "displacement", src: "displacement", endpoint: "/api/v1/displacement", expect_h: 365 * 24, kind: "measure", source: "UNHCR Refugee Data Finder",
     name: { ru: "Вынужденно перемещённые (УВКБ)", de: "Vertriebene (UNHCR)", en: "Forcibly displaced (UNHCR)" }, get: (d) => d && d.ok !== false && d.as_of },
-  { id: "chokepoints", src: "chokepoints", endpoint: "/api/v1/chokepoints", expect_h: 12 * 24, kind: "measure", source: "IMF PortWatch (via HDX)",
+  { id: "chokepoints", src: "chokepoints", endpoint: "/api/v1/chokepoints", expect_h: 17 * 24, // файл HDX раз в неделю + опоздание данных ~9 дней: нормальный возраст 9–16 дней
+    kind: "measure", source: "IMF PortWatch (via HDX)",
     name: { ru: "Морские узкие места (Ормуз и др.)", de: "Meerengen (Hormus u. a.)", en: "Maritime chokepoints (Hormuz etc.)" }, get: (d) => d && d.ok !== false && d.data_through },
   { id: "space_weather", src: "space", endpoint: "/api/v1/space", expect_h: 1, kind: "measure", source: "NOAA SWPC",
     name: { ru: "Космическая погода", de: "Weltraumwetter", en: "Space weather" }, get: (d) => d && d.solar_wind && d.solar_wind.time },

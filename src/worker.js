@@ -2250,10 +2250,12 @@ async function displacementData() {
 // ================= Морские узкие места (IMF PortWatch через HDX): /api/v1/chokepoints, MCP get_chokepoints =================
 // Файл обновляется раз в неделю. Скачиваем не чаще раза в 7 дней из ежедневной задачи (одна загрузка, не в каждом дата-центре), читаем только начало файла
 // (он идёт от новых дат к старым), храним сводку в D1. Сайт и агенты читают только сохранённую сводку.
-const CP_KEY = "chokepoints-v1", CP_EVERY_MS = 7 * 864e5;
+const CP_KEY = "chokepoints-v1", CP_EVERY_MS = 7 * 864e5, CP_RETRY_AFTER_MS = 10 * 864e5;
 async function chokepointsRefresh(env, force = false) {
   const old = await sharedGet(env, CP_KEY, 1e13);
-  if (!force && old && Date.now() - old.fetched_ms < CP_EVERY_MS) return old;
+  // обычно раз в 7 дней; если данные в сводке старше 10 дней (файл HDX выходит с опозданием), пробуем раз в сутки, пока не придёт свежий
+  const dataAge = old && old.data_through ? Date.now() - Date.parse(old.data_through + "T23:59:59Z") : Infinity, every = dataAge > CP_RETRY_AFTER_MS ? 864e5 : CP_EVERY_MS;
+  if (!force && old && Date.now() - old.fetched_ms < every) return old;
   const r = await fetch(CP_CSV, { signal: AbortSignal.timeout(25000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/sensors; weekly)" } });
   if (!r.ok || !r.body) throw new Error("HDX " + r.status);
   const reader = r.body.pipeThrough(new TextDecoderStream()).getReader();
@@ -2273,11 +2275,11 @@ async function chokepointsData(env, ctx) {
     if (!tried && ctx) { await sharedPut(env, CP_KEY + ":try", { at: Date.now() }); ctx.waitUntil(chokepointsRefresh(env, true).catch(() => null)); }
   }
   const note = { source: CP_ATTR, source_url: "https://data.humdata.org/organization/portwatch",
-    scope_note: "Daily transit counts of vessels through maritime chokepoints, estimated by IMF PortWatch from satellite AIS (UN Global Platform). The file is updated weekly and the data lag a few days; Orb Studio downloads it at most once a week and shows only aggregates: average ships and tankers per day over the last 7 days of data vs the same 7 days one year earlier. Ships that switch off AIS are not counted; tonnage is not shown. Not an official traffic count and not a forecast.",
+    scope_note: "Daily transit counts of vessels through maritime chokepoints, estimated by IMF PortWatch from satellite AIS (UN Global Platform). The file is updated weekly and the data lag a few days; Orb Studio downloads it once a week (daily while the data are older than 10 days) and shows only aggregates: average ships and tankers per day over the last 7 days of data vs the same 7 days one year earlier. Ships that switch off AIS are not counted; tonnage is not shown. Not an official traffic count and not a forecast.",
     page: "https://orbstudio.org/api/v1/chokepoints" };
   if (!d) return { ok: false, status: "no_data", note: "The weekly PortWatch file has not been read yet. Nothing is estimated.", ...note };
-  const { fetched_ms, ...rest } = d;
-  return { status: "ok", ...rest, ...note };
+  const { fetched_ms, ...rest } = d, err = await sharedGet(env, CP_KEY + ":err", 3 * 864e5).catch(() => null);
+  return { status: "ok", ...rest, ...(err && Date.parse(err.at) > fetched_ms ? { last_refresh_error: err } : {}), ...note };
 }
 // ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
 // Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
@@ -9280,7 +9282,7 @@ export default {
     }
     ctx.waitUntil(saveSensorsDigest(env, ctx));
     ctx.waitUntil(safeworldNoiseRefresh(env).catch(() => null)); // раз в неделю: внутри проверка возраста копии
-    ctx.waitUntil(chokepointsRefresh(env).catch(() => null)); // узкие места: не чаще раза в 7 дней
+    ctx.waitUntil(chokepointsRefresh(env).catch((e) => sharedPut(env, CP_KEY + ":err", { at: new Date().toISOString(), why: String(e && e.message || e).slice(0, 120) }).catch(() => null))); // узкие места: раз в 7 дней, при старых данных — раз в сутки; ошибка видна в last_refresh_error
     ctx.waitUntil(violinDaily(env, ctx).catch(() => null));
     ctx.waitUntil(interviewDaily(env).catch(() => null)); // проверка интервью: у прогнозов наступил срок → события
     ctx.waitUntil(waysOutCompute(env, ctx).catch(() => null));

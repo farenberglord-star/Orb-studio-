@@ -28,3 +28,10 @@ test("too few days → no average; broken input", () => {
   const s = summarize(c.by, c.newest); assert.equal(s.focus[0].ships_per_day_7d, null);
   assert.equal(summarize(null, null).ok, false); assert.equal(collect(["junk", "1,2,3"]).newest, null);
 });
+
+test("chokepoints: weekly download, daily retry while the data are older than 10 days; refresh errors are shown", async () => {
+  const { readFileSync } = await import("node:fs");
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /CP_RETRY_AFTER_MS = 10 \* 864e5/); assert.match(w, /every = dataAge > CP_RETRY_AFTER_MS \? 864e5 : CP_EVERY_MS/);
+  assert.match(w, /last_refresh_error: err/);
+});
