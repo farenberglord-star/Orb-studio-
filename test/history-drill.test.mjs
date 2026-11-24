@@ -35,3 +35,15 @@ const ARCHIVE = [
   { h: "The Shuttle Explodes; 6 in Crew and High-School Teacher Are Killed 74 Seconds After Liftoff", v: 5, src: "NYT 29.01.1986 — true (Neisser: the memories, not the headline, went wrong)", ok: (p) => p.speech_act === "event" && p.confidence !== "low" },
 ];
 for (const d of ARCHIVE) test(`archive drill: ${d.h}`, () => assert.ok(d.ok(P(d.h, d.v)), d.src));
+// Партия Грока «исследователи новостей» 24.11.2026: подлинные заголовки
+const MEDIA = [
+  { h: "LANDON LEADS 4-3 IN LAST DIGEST POLL; Final Tabulation Gives Him 370 Electoral Votes to 161 for President Roosevelt", v: 3, src: "NYT 30.10.1936 — Roosevelt won 523 to 8 (Huff)", ok: (p) => p.confidence !== "high" && p.fired.includes("poll") && p.say.some((s) => /margin of error/.test(s)) },
+  { h: "Radiation Is Released in Accident At Nuclear Plant in Pennsylvania", v: 5, src: "NYT 29.03.1979 — Three Mile Island, true (Gamson); English 'plant' must not read as German 'plant' (plans)", ok: (p) => p.speech_act === "event" },
+  { h: "News Deliverers to Strike At Midnight on 11 Papers", v: 3, src: "NYT 30.06.1945 — a planned strike, not yet begun (Berelson)", ok: (p) => p.fired.includes("not_event") },
+  { h: 'Group of Girls Puff at Cigarettes as a Gesture of "Freedom"', v: 2, src: "NYT 01.04.1929 — staged by Bernays for American Tobacco (Boorstin)", ok: (p) => p.fired.includes("quoted") },
+];
+for (const d of MEDIA) test(`media drill: ${d.h}`, () => assert.ok(d.ok(P(d.h, d.v)), d.src));
+test("German 'plant' still reads as a plan, English 'drones to strike two ships' stays an event", () => {
+  assert.ok(P("Regierung plant neue Steuer auf Kerosin", 3).fired.includes("not_event"));
+  assert.equal(P("Ukraine used naval drones to strike two Russian ships", 3).speech_act, "event");
+});

@@ -56,7 +56,7 @@ export function harmanReport(rows, now = Date.now(), since = null) {
 // а какие истории прошли сквозь все слои молча. Проверка, которая чаще срабатывает на оспоренных, чем на остальных, — работающий слой.
 export const REASON_MIN = 10;
 const LAYER_OF = { stale: "1 freshness", not_event: "3 fact or claim", few_voices: "3 fact or claim", quoted: "3 fact or claim", found_document: "3 fact or claim",
-  extraordinary: "3 fact or claim", rumour_risk: "3 fact or claim", state_media: "3 fact or claim", amplified: "3 fact or claim", vague: "4 checkability", metaphor: "7 look-alike", tone: "7 look-alike" };
+  extraordinary: "3 fact or claim", rumour_risk: "3 fact or claim", state_media: "3 fact or claim", amplified: "3 fact or claim", vague: "4 checkability", poll: "4 number", metaphor: "7 look-alike", tone: "7 look-alike" };
 export function layersReport(layered) {
   const ch = layered.filter((x) => x.hit), rest = layered.filter((x) => !x.hit), share = (a, id) => (a.length ? Math.round((100 * a.filter((x) => x.fired.includes(id)).length) / a.length) : null);
   const checks = Object.keys(LAYER_OF).map((id) => ({ check: id, layer: LAYER_OF[id], fired_on_challenged_pct: share(ch, id), fired_on_rest_pct: share(rest, id) }))

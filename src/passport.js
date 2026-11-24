@@ -13,6 +13,8 @@ const COLON_SPEAKER = /^\s*(?:[\p{Lu}][\p{L}.'’-]*)(?:\s+[\p{Lu}][\p{L}.'’-]
 const FORECAST_RE = /(?<![\p{L}])(forecasts?|predicts?|predicted|expects?|expected|outlook|projects?|projected|sees|could|may|might|likely|odds|prognos\p{L}*|erwartet|rechnet mit|könnte|dürfte|прогноз\p{L}*|ожида\p{L}*|может|могут|вероятн\p{L}*)(?![\p{L}])|(?<![\p{L}])report\s*:|\bto (raise|cut|hike|lower) rates\b/iu;
 const SPEAKERS = /trump|putin|selensk|zelensk|merz|macron|scholz|starmer|xi\b|erdo|netan|biden|vance|lavrov|peskov|kremlin|white house|трамп|путин|зеленск|мерц|макрон|эрдоган|нетаньях|лавров|песков|кремл|белый дом/i;
 // Юм, «О чудесах»: чем необычнее утверждение, тем сильнее нужны доказательства. Слова «рекорд», «беспрецедентный», «впервые», «шок» на трёх языках.
+// Хафф («Как лгать при помощи статистики», 1954) и Мейер («Точная журналистика», 1973): цифра опроса — оценка, а не результат
+export const POLL = /(?<![\p{L}])(polls?|polling|survey|surveys|umfrage\p{L}*|опрос\p{L}*)(?![\p{L}])/iu;
 export const FIRST_CLAIM = /(?<![\p{L}])(the first|world's first|first[- ]ever|der erste|die erste|das erste|erstmals|впервые|первый в мире|первым в)(?![\p{L}])/iu;
 export const EXTRAORDINARY = /(?<![\p{L}])(record\p{L}*|unprecedented|first[- ]ever|historic|never before|biggest ever|shock\p{L}*|bombshell|rekord\p{L}*|beispiellos\p{L}*|erstmals|noch nie|historisch\p{L}*|schock\p{L}*|рекорд\p{L}*|беспрецедентн\p{L}*|впервые|никогда (?:ещё|прежде)|историческ\p{L}*|шок\p{L}*|сенсаци\p{L}*)(?![\p{L}])/iu;
 // Деррида, Шлейермахер: слова в кавычках или «X: …» вне контекста могут значить другое. Валла, Добровский, Шаль: найденный или утёкший документ проверяют по дате, словам и происхождению.
@@ -55,6 +57,8 @@ export function newsPassport(it, now = Date.now()) {
   if (amp0 && amp0.first_source && (voices == null || voices >= 2)) say.push(`First carried by ${amp0.first_source}: if outlets repeat each other, credit the first source, not the number of retellings.`);
   const extraordinary = EXTRAORDINARY.test(headline);
   // тренировка на прошлом: «первый звуковой фильм» был первым лишь по одному определению — спроси, по какому (уверенность не трогаем)
+  const poll = POLL.test(headline);
+  if (poll) say.push("The figure comes from a poll or survey: say who was asked, how many, when and with what margin of error — a poll is an estimate, not the result (Literary Digest 1936: 2.4 million answers, the wrong winner).");
   if (FIRST_CLAIM.test(headline)) say.push("The headline calls something 'the first': say by which definition it is first — many 'firsts' hold only for one way of counting.");
   if (extraordinary && (voices == null || voices <= 2)) say.push("The headline makes an extraordinary claim (record, unprecedented, first ever) and few outlets carry it: the more extraordinary the claim, the stronger the evidence must be — present it as reported, not as established.");
   if (voices === 1) say.push("Only one outlet carries it so far: say so.");
@@ -67,13 +71,13 @@ export function newsPassport(it, now = Date.now()) {
   if (it && it.state_media) say.push(`The source is state media (${it.state_media}): name it as such.`);
   say.push("Do not make the risk sound bigger than the source says, and say plainly where the known facts stop.");
   const low = rumourRisk || (voices != null && voices <= 1) || chk.class === "nothing_to_check" || (age != null && age > 48) || (extraordinary && (voices == null || voices <= 2));
-  const high = !low && !foundDoc && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
+  const high = !low && !foundDoc && !poll && act.act === "event" && voices != null && voices >= 3 && chk.class === "checkable" && (age == null || age <= 24);
   // «Ризон», модель швейцарского сыра: какие слои паспорта подняли тревогу — чтобы потом видеть, какой слой пропустил оспоренную историю
   const fired = [
     age != null && age > 24 && "stale", act.act !== "event" && "not_event", voices != null && voices <= 1 && "few_voices",
     (chk.class === "nothing_to_check" || chk.class === "hedged") && "vague", (QUOTED.test(headline) || (act.act === "claim" && COLON_SPEAKER.test(headline))) && "quoted",
     foundDoc && "found_document", extraordinary && (voices == null || voices <= 2) && "extraordinary", rumourRisk && "rumour_risk",
-    meta && "metaphor", tone && tone.loaded && "tone", it && it.state_media && "state_media",
+    poll && "poll", meta && "metaphor", tone && tone.loaded && "tone", it && it.state_media && "state_media",
     amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) && "amplified",
   ].filter(Boolean);
   return {

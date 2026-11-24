@@ -94,6 +94,16 @@ export const CRYSTAL_BRIDGES = [
   B("who_chose_the_news", "Who chose the news", "Кто выбрал новости", "stale_data", "covered", ["white_dm", "lyberg", "eddington"], { sensor: "lyberg" }),
   B("panel_drifts", "The panel drifts to the edge", "Обсуждение сползает к краю", "one_model", "idea", ["moscovici", "asch"]),
   B("what_most_think", "'Most people think' needs a survey", "«Большинство считает» — нужен опрос", "look_alike", "idea", ["allport_f", "ross_l"]),
+  // Исследователи новостей 1900–2026 (Грок, 24.11.2026)
+  B("poll_is_estimate", "A poll is an estimate", "Опрос — оценка, а не результат", "measurement_error", "line", ["huff", "meyer_p", "bowley", "gosset"], { line: "news passport: poll line — who was asked, how many, margin of error; never 'high' confidence" }),
+  B("news_filter", "The radar shows the news filter", "Радар показывает фильтр новостей", "stale_data", "covered", ["galtung", "luhmann", "gans", "white_dm", "lyberg"], { sensor: "lyberg" }),
+  B("coverage_not_importance", "Coverage is not importance", "Охват ≠ важность", "look_alike", "covered", ["mccombs", "merton", "milgram"], { sensor: "kasperson" }),
+  B("frame_choice", "Which frame was chosen", "Какую рамку выбрали", "one_model", "line", ["gitlin", "gamson", "goffman", "chamberlin"]),
+  B("relay_of_influence", "Influence travels through relays", "Влияние идёт через передатчиков", "side_effects", "covered", ["lazarsfeld", "katz_e", "greenberg_b", "bartlett"], { sensor: "kasperson" }),
+  B("correction_prominence", "Was the correction as loud as the claim", "Поправка так же громко, как ошибка", "own_limits", "covered", ["macdougall", "ross_l", "harman"], { sensor: "harman" }),
+  B("moral_panic", "Size of the incident vs size of the alarm", "Размер случая и размер тревоги", "side_effects", "idea", ["cohen_s", "kasperson", "osgood"]),
+  B("pseudo_event", "Staged for the cameras", "Устроено для камер", "rumour_vs_fact", "idea", ["boorstin", "searle"]),
+  B("mean_world", "The stream feels more dangerous than the base rate", "Поток кажется опаснее, чем по статистике", "measurement_error", "idea", ["gerbner", "pareto", "laplace"]),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

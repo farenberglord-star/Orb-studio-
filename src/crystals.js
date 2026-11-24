@@ -10140,6 +10140,373 @@ export const CRYSTALS = [
 "note": "the Lyberg sensor shows which feeds and regions chose the stories",
 "covered_by": "lyberg"
 }
+},
+{
+"id": "galtung",
+"name": "Johan Galtung",
+"name_ru": "Йохан Галтунг",
+"years": "1930–2024",
+"wiki": "https://en.wikipedia.org/wiki/Johan_Galtung",
+"zone": "stale_data",
+"idea": {
+"en": "'The Structure of Foreign News' (Galtung and Ruge, 1965): the more negative, unexpected and close to elite nations and people an event is, the likelier it becomes news.",
+"ru": "«Структура зарубежных новостей» (Галтунг и Руге, 1965): чем событие негативнее, неожиданнее и ближе к «элитным» странам и людям, тем вероятнее оно станет новостью.",
+"de": "„The Structure of Foreign News“ (1965)."
+},
+"rule": "The radars show what passed the news filter, not a sample of the world; say what kind of event the filter leaves out.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor shows which regions and feeds the radars hear and which stay silent",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "gans",
+"name": "Herbert J. Gans",
+"name_ru": "Герберт Ганс",
+"years": "1927–2025",
+"wiki": "https://en.wikipedia.org/wiki/Herbert_J._Gans",
+"zone": "stale_data",
+"idea": {
+"en": "'Deciding What's News' (1979): what reaches the news is what known, authoritative sources supply within newsroom routine, not everything that matters.",
+"ru": "«Как решают, что считать новостью» (1979): в новости попадает то, что дают знакомые авторитетные источники в рамках рутины редакции, а не всё важное.",
+"de": "„Deciding What's News“ (1979)."
+},
+"rule": "Ask whose sources the story rests on; an official source makes a story easy to get, not necessarily true.",
+"needs": {
+"code": "covered",
+"note": "applied: the first-source and state-media lines name who supplied the story"
+}
+},
+{
+"id": "luhmann",
+"name": "Niklas Luhmann",
+"name_ru": "Никлас Луман",
+"years": "1927–1998",
+"wiki": "https://en.wikipedia.org/wiki/Niklas_Luhmann",
+"zone": "one_model",
+"idea": {
+"en": "'Die Realität der Massenmedien' (1996): mass media select by their own selectors — novelty, conflict, numbers, locality, norm violation.",
+"ru": "«Реальность массмедиа» (1996): СМИ отбирают по своим селекторам — новизна, конфликт, числа, близость, нарушение норм.",
+"de": "„Die Realität der Massenmedien“ (1996)."
+},
+"rule": "Treat a news item as the result of selection; ask which selector picked it.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor and the first-source line show selection",
+"covered_by": "lyberg"
+}
+},
+{
+"id": "mccombs",
+"name": "Maxwell McCombs",
+"name_ru": "Максвелл Маккомбс",
+"years": "1938–2024",
+"wiki": "https://en.wikipedia.org/wiki/Maxwell_McCombs",
+"zone": "look_alike",
+"idea": {
+"en": "'The Agenda-Setting Function of Mass Media' (McCombs and Shaw, 1972): what media cover more often and more prominently, audiences rank as most important.",
+"ru": "«Функция установления повестки дня» (Маккомбс и Шоу, 1972): то, что СМИ подают чаще и крупнее, аудитория считает самым важным.",
+"de": "„The Agenda-Setting Function of Mass Media“ (1972)."
+},
+"rule": "Do not take the volume of coverage as a measure of importance.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor: retellings are not confirmation",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "gitlin",
+"name": "Todd Gitlin",
+"name_ru": "Тодд Гитлин",
+"years": "1943–2022",
+"wiki": "https://en.wikipedia.org/wiki/Todd_Gitlin",
+"zone": "one_model",
+"idea": {
+"en": "'The Whole World Is Watching' (1980): once chosen, a media frame is reproduced and decides what counts as the main point.",
+"ru": "«Весь мир смотрит» (1980): однажды выбранная рамка воспроизводится и решает, что считать главным.",
+"de": "„The Whole World Is Watching“ (1980)."
+},
+"rule": "Notice the frame a story arrives in and ask what another frame would make the main point.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts keep several working hypotheses (Chamberlin rule)"
+}
+},
+{
+"id": "lang_k",
+"name": "Kurt Lang and Gladys Engel Lang",
+"name_ru": "Курт и Глэдис Ланг",
+"years": "1924–2019",
+"wiki": "https://en.wikipedia.org/wiki/Kurt_Lang_and_Gladys_Engel_Lang",
+"zone": "look_alike",
+"idea": {
+"en": "'The Unique Perspective of Television and Its Effect' (1953): observers on the street saw a calm crowd while the broadcast showed constant enthusiasm — coverage is an assembly, not the event.",
+"ru": "«Особая перспектива телевидения и её влияние» (1953): наблюдатели на улице видели спокойную толпу, а эфир показывал сплошной восторг — репортаж это монтаж, а не само событие.",
+"de": "„The Unique Perspective of Television“ (1953)."
+},
+"rule": "Separate what the coverage shows from what witnesses on the spot report.",
+"needs": {
+"code": "covered",
+"note": "applied: passport line 'looks ≠ is' (metaphor, loaded words)"
+}
+},
+{
+"id": "cohen_s",
+"name": "Stanley Cohen",
+"name_ru": "Стэнли Коэн",
+"years": "1942–2013",
+"wiki": "https://en.wikipedia.org/wiki/Stanley_Cohen_(sociologist)",
+"zone": "side_effects",
+"idea": {
+"en": "'Folk Devils and Moral Panics' (1972): a small incident, amplified by stereotyped coverage, becomes a 'threat to society'.",
+"ru": "«Народные дьяволы и моральные паники» (1972): небольшой инцидент, раздутый стереотипной подачей, превращается в «угрозу обществу».",
+"de": "„Folk Devils and Moral Panics“ (1972)."
+},
+"rule": "Compare the size of the incident with the size of the alarm; report the incident, not the panic.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'size of the incident vs size of the alarm' (S. Cohen + Kasperson + tone): a loaded headline about a small count — needs a way to read the size of the incident"
+}
+},
+{
+"id": "gamson",
+"name": "William A. Gamson",
+"name_ru": "Уильям Гэмсон",
+"years": "1934–2021",
+"wiki": "https://en.wikipedia.org/wiki/William_A._Gamson",
+"zone": "one_model",
+"idea": {
+"en": "'Media Discourse and Public Opinion on Nuclear Power' (Gamson and Modigliani, 1989): one event is told through competing frames.",
+"ru": "«Медийный дискурс и мнение о ядерной энергетике» (Гэмсон и Модильяни, 1989): одно событие подают через конкурирующие рамки.",
+"de": "Medien-Frames (1989)."
+},
+"rule": "Name the competing frames of a story instead of adopting the first one.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts name competing readings (Chamberlin rule)"
+}
+},
+{
+"id": "boorstin",
+"name": "Daniel J. Boorstin",
+"name_ru": "Дэниел Бурстин",
+"years": "1914–2004",
+"wiki": "https://en.wikipedia.org/wiki/Daniel_J._Boorstin",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Image' (1961), pseudo-events: many 'events' are staged in order to be reported.",
+"ru": "«Образ» (1961), псевдособытия: многие «события» устроены ради того, чтобы о них написали.",
+"de": "„The Image“ (1961), Pseudo-Ereignisse."
+},
+"rule": "Ask who organised an event and why; a staged event is still worth reporting as staged.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'staged for the cameras' (Boorstin + Searle): flag announced photo-ops, launches and ceremonies as pseudo-events"
+}
+},
+{
+"id": "epstein_ej",
+"name": "Edward Jay Epstein",
+"name_ru": "Эдвард Джей Эпстайн",
+"years": "1935–2024",
+"wiki": "https://en.wikipedia.org/wiki/Edward_Jay_Epstein",
+"zone": "side_effects",
+"idea": {
+"en": "'News from Nowhere' (1973): television news is shaped by budgets, crew logistics and a pre-set story line, not only by the event.",
+"ru": "«Новости из ниоткуда» (1973): телевизионную новость формируют бюджет, логистика съёмочных групп и заранее заданная «история», а не только событие.",
+"de": "„News from Nowhere“ (1973)."
+},
+"rule": "Where only one crew or outlet was present, say that the picture depends on where they could be.",
+"needs": {
+"code": "covered",
+"note": "applied: few-voices line — one crew, one picture"
+}
+},
+{
+"id": "rosten",
+"name": "Leo Rosten",
+"name_ru": "Лео Ростен",
+"years": "1908–1997",
+"wiki": "https://en.wikipedia.org/wiki/Leo_Rosten",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Washington Correspondents' (1937): capital news depends heavily on official sources and the outlet's own stance.",
+"ru": "«Вашингтонские корреспонденты» (1937): столичная новость сильно зависит от чиновников-источников и позиции своей редакции.",
+"de": "„The Washington Correspondents“ (1937)."
+},
+"rule": "Name the official source behind a capital story and look for a non-official one.",
+"needs": {
+"code": "covered",
+"note": "applied: first-source and state-media lines"
+}
+},
+{
+"id": "merton",
+"name": "Robert K. Merton",
+"name_ru": "Роберт Мертон",
+"years": "1910–2003",
+"wiki": "https://en.wikipedia.org/wiki/Robert_K._Merton",
+"zone": "look_alike",
+"idea": {
+"en": "'Mass Communication, Popular Taste and Organized Social Action' (Lazarsfeld and Merton, 1948): media coverage itself confers status — being covered makes something look important.",
+"ru": "«Массовая коммуникация, вкусы и организованное действие» (Лазарсфельд и Мертон, 1948): само освещение придаёт статус — то, о чём пишут, кажется важным.",
+"de": "Statuszuweisung durch Medien (1948)."
+},
+"rule": "Coverage is not proof of significance; say what makes the story matter apart from being covered.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor: coverage is not proof",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "lazarsfeld",
+"name": "Paul Lazarsfeld",
+"name_ru": "Пол Лазарсфельд",
+"years": "1901–1976",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Lazarsfeld",
+"zone": "one_model",
+"idea": {
+"en": "'The People's Choice' (Lazarsfeld, Berelson and Gaudet, 1944): campaigns mostly reinforce existing views; influence flows through opinion leaders.",
+"ru": "«Выбор народа» (Лазарсфельд, Берелсон, Годе, 1944): кампании чаще укрепляют сложившиеся взгляды; влияние идёт через лидеров мнений.",
+"de": "„The People's Choice“ (1944)."
+},
+"rule": "Do not assume a headline changes minds; say who repeats it and to whom.",
+"needs": {
+"code": "covered",
+"note": "the first-source line and the Kasperson sensor",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "katz_e",
+"name": "Elihu Katz",
+"name_ru": "Элиху Кац",
+"years": "1926–2021",
+"wiki": "https://en.wikipedia.org/wiki/Elihu_Katz",
+"zone": "side_effects",
+"idea": {
+"en": "'Personal Influence' (Katz and Lazarsfeld, 1955): messages reach people through personal opinion leaders, not only directly.",
+"ru": "«Личное влияние» (Кац и Лазарсфельд, 1955): сообщение доходит до людей через знакомых лидеров мнений, а не только напрямую.",
+"de": "„Personal Influence“ (1955)."
+},
+"rule": "A story's reach includes retellings by trusted people; track the first source, not the loudest relay.",
+"needs": {
+"code": "covered",
+"note": "the first-source line and the Kasperson sensor",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "berelson",
+"name": "Bernard Berelson",
+"name_ru": "Бернард Берелсон",
+"years": "1912–1979",
+"wiki": "https://en.wikipedia.org/wiki/Bernard_Berelson",
+"zone": "own_limits",
+"idea": {
+"en": "'What \"Missing the Newspaper\" Means' (1949): people read papers partly out of ritual — reading is not the same as learning.",
+"ru": "«Что значит „скучать по газете“» (1949): газету читают и по привычке, как ритуал — прочитать ещё не значит узнать.",
+"de": "„What Missing the Newspaper Means“ (1949)."
+},
+"rule": "Do not assume the audience took in the facts because it saw the headline; repeat the key fact plainly.",
+"needs": {
+"code": "covered",
+"note": "applied: hosts repeat the key fact plainly"
+}
+},
+{
+"id": "gerbner",
+"name": "George Gerbner",
+"name_ru": "Джордж Гербнер",
+"years": "1919–2005",
+"wiki": "https://en.wikipedia.org/wiki/George_Gerbner",
+"zone": "measurement_error",
+"idea": {
+"en": "'Living with Television: The Violence Profile' (Gerbner and Gross, 1976): heavy viewers see the world as more dangerous than statistics show.",
+"ru": "«Жизнь с телевидением: профиль насилия» (Гербнер и Гросс, 1976): кто много смотрит, видит мир опаснее, чем по статистике.",
+"de": "„Living with Television“ (1976)."
+},
+"rule": "Check the feeling of danger a news stream creates against base-rate statistics.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'the stream feels more dangerous' (Gerbner + Pareto + base rates): compare radar alarm levels with base-rate statistics"
+}
+},
+{
+"id": "greenberg_b",
+"name": "Bradley S. Greenberg",
+"name_ru": "Брэдли Гринберг",
+"years": "1934–2018",
+"wiki": "https://en.wikipedia.org/wiki/Bradley_S._Greenberg",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Person-to-Person Communication in the Diffusion of News Events' (1964): for the biggest stories many people first hear from others, with distortions.",
+"ru": "«Межличностная передача в распространении новостей» (1964): о самых громких событиях многие узнают сначала от людей, с искажениями.",
+"de": "Nachrichtendiffusion (1964)."
+},
+"rule": "For a big breaking story, expect early retellings to be distorted; anchor on the first written report.",
+"needs": {
+"code": "covered",
+"note": "the first-source line anchors on the first written report"
+}
+},
+{
+"id": "huff",
+"name": "Darrell Huff",
+"name_ru": "Даррелл Хафф",
+"years": "1913–2001",
+"wiki": "https://en.wikipedia.org/wiki/Darrell_Huff",
+"zone": "measurement_error",
+"idea": {
+"en": "'How to Lie with Statistics' (1954): a sample with built-in bias gives a confident but wrong figure.",
+"ru": "«Как лгать при помощи статистики» (1954): выборка со встроенным смещением даёт уверенную, но неверную цифру.",
+"de": "„How to Lie with Statistics“ (1954)."
+},
+"rule": "Before repeating a poll figure, ask who was sampled and how.",
+"needs": {
+"code": "covered",
+"note": "applied: passport poll line (who was asked, how many, margin of error)"
+}
+},
+{
+"id": "meyer_p",
+"name": "Philip Meyer",
+"name_ru": "Филип Мейер",
+"years": "1930–2023",
+"wiki": "https://en.wikipedia.org/wiki/Philip_Meyer",
+"zone": "measurement_error",
+"idea": {
+"en": "'Precision Journalism' (1973): a number in the news must be checked by its method — when, how and whom, and with what margin of error.",
+"ru": "«Точная журналистика» (1973): цифру в новости проверяют методом — когда, как и кого опрашивали, какова погрешность.",
+"de": "„Precision Journalism“ (1973)."
+},
+"rule": "Report a survey figure together with its method and margin of error.",
+"needs": {
+"code": "covered",
+"note": "applied: passport poll line (method and margin of error)"
+}
+},
+{
+"id": "macdougall",
+"name": "Curtis D. MacDougall",
+"name_ru": "Кёртис Макдугалл",
+"years": "1903–1985",
+"wiki": "https://en.wikipedia.org/wiki/Curtis_D._MacDougall",
+"zone": "own_limits",
+"idea": {
+"en": "'Hoaxes' (1940): the press confidently prints falsehoods and seldom corrects them loudly.",
+"ru": "«Мистификации» (1940): пресса уверенно печатает ложное и редко громко исправляет.",
+"de": "„Hoaxes“ (1940)."
+},
+"rule": "Look for whether a correction was published, and give it the same prominence as the claim.",
+"needs": {
+"code": "covered",
+"note": "the Harman sensor looks for corrections after 72 hours",
+"covered_by": "harman"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
