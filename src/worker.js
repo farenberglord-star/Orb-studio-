@@ -1761,7 +1761,7 @@ async function polyakNow(env) {
   return polyakReport({ now, series: { hallucination: col("h"), consensus: col("c"), token_hunger: col("t"), geo_radar: col("g") } });
 }
 async function scientistsNow(env, origin) {
-  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin, searle, simpson, kasperson, newcomb, pareto, pearson, cohen, harman, frege] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v2", 1e15).catch(() => null), rabinNow(env).catch(() => null), searleNow(env, {}).catch(() => null), simpsonNow(env).catch(() => null), kaspersonNow(env).catch(() => null), newcombNow(env).catch(() => null), paretoNow(env).catch(() => null), pearsonNow(env).catch(() => null), cohenNow(env).catch(() => null), harmanNow(env).catch(() => null), sharedGet(env, "frege-v1", 1e15).catch(() => null)]);
+  const [hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin, searle, simpson, kasperson, newcomb, pareto, pearson, cohen, harman, frege] = await Promise.all([hamiltonNow(env).catch(() => null), mikrinNow(env).catch(() => null), polyakNow(env).catch(() => null), parkNow(env).catch(() => null), kahnemanNow(env).catch(() => null), zivNow(env, {}).catch(() => null), coxNow(env, {}).catch(() => null), halpernNow(env).catch(() => null), howardNow(env).catch(() => null), leamerNow(env, {}).catch(() => null), bairdNow(env, {}).catch(() => null), lybergNow(env, {}).catch(() => null), hagenauerNow(env, {}).catch(() => null), frankfurtNow(env, {}).catch(() => null), duckworthNow(env).catch(() => null), trevisanNow(env, {}).catch(() => null), sharedGet(env, "bertsekas-v2", 1e15).catch(() => null), rabinNow(env).catch(() => null), searleNow(env, {}).catch(() => null), simpsonNow(env).catch(() => null), kaspersonNow(env).catch(() => null), newcombNow(env).catch(() => null), paretoNow(env).catch(() => null), pearsonNow(env).catch(() => null), cohenNow(env).catch(() => null), harmanNow(env).catch(() => null), sharedGet(env, "frege-v2", 1e15).catch(() => null)]);
   return scientistsIndex(origin, { hamilton, mikrin, polyak, park, kahneman, ziv, cox, halpern, howard, leamer, baird, lyberg, hagenauer, frankfurt, duckworth, trevisan, bertsekas, rabin, searle, simpson, kasperson, newcomb, pareto, pearson, cohen, harman, frege });
 }
 // Научные заголовки для датчика Парка: тот же Google News, что у радаров, два поисковых запроса (en, de)
@@ -1854,7 +1854,7 @@ async function methodNow(env, ctx, origin) { // «Как Orb Studio провер
   await sharedPut(env, "method-v1", r).catch(() => {}); return r;
 }
 async function fregeLookup(env, name, lang = "en") { // Викиданные (CC0): люди с ровно таким именем; кэш 7 дней
-  const key = "frege-n:" + (lang === "en" ? "" : lang + ":") + name.toLowerCase(); const c = await sharedGet(env, key, 7 * 864e5).catch(() => null); if (c) return c;
+  const key = "frege-n2:" + (lang === "en" ? "" : lang + ":") + name.toLowerCase(); const c = await sharedGet(env, key, 7 * 864e5).catch(() => null); if (c) return c;
   const u = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json&language=" + lang + "&uselang=en&type=item&limit=20&maxlag=5&search=" + encodeURIComponent(name);
   const res = await fetch(u, { headers: { "User-Agent": "OrbStudioBot/1.0 (https://orbstudio.org; sensor frege)", "Accept": "application/json" }, signal: AbortSignal.timeout(6000) });
   if (res.status === 429 || res.status === 503) throw new Error("wikidata busy");
@@ -1863,27 +1863,27 @@ async function fregeLookup(env, name, lang = "en") { // Викиданные (CC
 }
 async function fregeNow(env, q = {}) { // «Фреге»: тёзки в новостях — сколько людей с ровно таким именем знают Викиданные
   if (q.name) { const n = String(q.name).trim().slice(0, 80); if (n.split(/\s+/).length < 2) return { error: "give a full name, e.g. ?name=John Smith" }; try { if (/[\u0400-\u04ff]/.test(n)) { for (const cand of ruNominative(n)) { const r = await fregeLookup(env, cand, "ru"); if (r.people >= 1 || cand === ruNominative(n).slice(-1)[0]) return { ...r, as_written: n, source: "Wikidata, CC0" }; } } return { ...(await fregeLookup(env, n)), source: "Wikidata, CC0", rule: "A name may belong to several people; confirm who is meant by role, country or date." }; } catch (e) { return { name: n, error: "Wikidata not reachable now, try later" }; } }
-  const c = await sharedGet(env, "frege-v1", 20 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "frege-v2", 20 * 60e3).catch(() => null); if (c) return c;
   let heads = []; try { heads = (await env.DB.prepare("SELECT headline FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 600").bind(Date.now() - 2 * 864e5).all()).results || []; } catch {}
   const cnt = new Map(); for (const h of heads) { for (const n of extractNames(h.headline)) cnt.set(n, (cnt.get(n) || 0) + 1); for (const n of extractNamesRu(h.headline)) cnt.set("ru:" + n, (cnt.get("ru:" + n) || 0) + 1); }
   const names = [...cnt.keys()].sort((a, b) => cnt.get(b) - cnt.get(a)).slice(0, 150), checked = []; let fetched = 0, busy = false;
   for (const n of names) {
     if (n.startsWith("ru:")) { // русское имя: исходная форма, потом догадки об именительном падеже (Тульвинг: ищи ключом той формы, в какой записано)
-      const orig = n.slice(3), done = await sharedGet(env, "frege-ru:" + orig.toLowerCase(), 7 * 864e5).catch(() => null);
+      const orig = n.slice(3), done = await sharedGet(env, "frege-ru2:" + orig.toLowerCase(), 7 * 864e5).catch(() => null);
       if (done) { checked.push(done); continue; }
       if (busy || fetched >= 12) continue;
       let best = null;
       for (const cand of ruNominative(orig)) { if (fetched >= 12) break; fetched++; try { const r = await fregeLookup(env, cand, "ru"); if (r.people >= 1) { best = { ...r, as_written: orig }; break; } if (!best) best = { ...r, as_written: orig }; } catch { busy = true; break; } }
-      if (best) { checked.push(best); await sharedPut(env, "frege-ru:" + orig.toLowerCase(), best).catch(() => {}); }
+      if (best) { checked.push(best); await sharedPut(env, "frege-ru2:" + orig.toLowerCase(), best).catch(() => {}); }
       continue;
     }
-    const hit = await sharedGet(env, "frege-n:" + n.toLowerCase(), 7 * 864e5).catch(() => null);
+    const hit = await sharedGet(env, "frege-n2:" + n.toLowerCase(), 7 * 864e5).catch(() => null);
     if (hit) { checked.push(hit); continue; }
     if (busy || fetched >= 12) continue; fetched++;
     try { checked.push(await fregeLookup(env, n)); } catch { busy = true; }
   }
   const r = fregeReport(checked, Date.now(), { headlines: heads.length, names_waiting: names.length - checked.length });
-  await sharedPut(env, "frege-v1", r).catch(() => {}); return r;
+  await sharedPut(env, "frege-v2", r).catch(() => {}); return r;
 }
 async function harmanNow(env) { // «Харман»: честна ли уверенность паспорта — опровергают ли «высокую» реже «низкой»
   const c = await sharedGet(env, "harman-v4", 30 * 60e3).catch(() => null); if (c) return c;
