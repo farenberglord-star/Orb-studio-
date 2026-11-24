@@ -49,7 +49,7 @@ export function personLike(desc) { return PERSON_DESC.test(String(desc || "")); 
 // результат поиска Викиданных → люди с ровно таким именем (или таким же псевдонимом)
 export function namesakes(name, results) {
   const n = String(name).toLowerCase();
-  const people = (results || []).filter((r) => r && (String(r.label || "").toLowerCase() === n || (r.match && r.match.type === "alias" && String(r.match.text || "").toLowerCase() === n)) && personLike(r.description));
+  const people = (results || []).filter((r) => r && (String(r.label || "").toLowerCase() === n || (r.match && String(r.match.text || "").toLowerCase() === n)) && personLike(r.description));
   return { name, people: people.length, examples: people.slice(0, 4).map((r) => ({ id: r.id, description: r.description || "" })) };
 }
 export function fregeReport(checked, now = Date.now(), meta = {}) {
