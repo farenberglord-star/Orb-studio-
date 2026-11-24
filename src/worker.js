@@ -1624,7 +1624,9 @@ async function radioClaudeTool(env, system, user, tool, maxTokens, diag = null) 
     const res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: AbortSignal.timeout(30000),
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({ model: env.ANTHROPIC_MODEL || "claude-haiku-5-5", max_tokens: maxTokens, system, messages: [{ role: "user", content: user }], tools: [tool], tool_choice: { type: "tool", name: tool.name } }) });
-    if (!res.ok) { if (diag) diag.why = "http_" + res.status; return null; }
+    if (!res.ok) { // тип и начало сообщения ошибки API — без них «400» не разобрать (баланс, модель, запрос)
+      if (diag) { let m = ""; try { const e = (await res.json()).error || {}; m = [e.type, e.message].filter(Boolean).join(" ").replace(/[^\w .,:%()\-]/g, " ").slice(0, 140); } catch {} diag.why = "http_" + res.status + (m ? " " + m : ""); }
+      return null; }
     const j = await res.json(), t = (j.content || []).find((c) => c.type === "tool_use");
     if (!t && diag) diag.why = "no_tool_use:" + (j.stop_reason || "?"); else if (t && j.stop_reason === "max_tokens" && diag) diag.why = "max_tokens";
     return t ? t.input : null; // как раньше: ответ отдаём, проверку чисел делает вызывающий; max_tokens только помечаем
