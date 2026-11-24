@@ -18,7 +18,7 @@ const GRAVE = /\b(hack|hacked|exploit|drained|stolen|ban|bans|banned|delist|inso
 const worst = (a) => a.reduce((w, x) => (RANK[x] > RANK[w] ? x : w), "calm");
 const r2 = (x) => (x == null || !Number.isFinite(+x) ? null : Math.round(+x * 100) / 100);
 
-export function cryptoPassport({ radar, sensors, anomalies, noise, radarHist, now = Date.now() } = {}) {
+export function cryptoPassport({ radar, sensors, anomalies, noise, radarHist, streaks, now = Date.now() } = {}) {
   const checks = [], add = (id, level, value, ru, en) => checks.push({ id, level, value, say_ru: ru, say_en: en });
   const s = sensors || {};
   // 1. волатильность BTC/ETH/XRP за 24 ч против 30 дней и всплески за 6 ч
@@ -68,7 +68,7 @@ export function cryptoPassport({ radar, sensors, anomalies, noise, radarHist, no
     sensor: "crypto_passport", generated_at: new Date(now).toISOString(), valid_minutes: 30,
     regime, regime_ru: RU[regime], drivers,
     new_trade_size_pct_of_plan: SIZE_PCT[regime], max_risk_per_trade_pct_of_capital: RISK_PCT[regime], order: ORDER[regime],
-    checks, top_crypto_headlines: top,
+    checks, top_crypto_headlines: top, ruin: ruinTable(streaks || {}),
     rule: "Regime = the worst of six checks; an unread check counts as nervous (the more cautious rule wins). The passport changes only the size of a new trade and the order type, never the direction.",
     not_a_signal: "Not a buy or sell signal and not a forecast. Whether the crypto radar leads prices is not yet measurable (see /api/v1/cohen, /api/v1/trackrecord). Not financial advice.",
     thresholds: { volatility: "calm < 1.3× the 30-day level, nervous 1.3–2×, storm > 2× or a spike (z ≥ 4) in the last 6 h", radar: `calm within the usual 24-h move, nervous above it, storm only if a large move (> p90) held for the last 2 hours`, hacks_regulators: "calm < 60, nervous 60–80 or above, storm > 80 with a grave headline confirmed by 3+ outlets in 6 h", derivatives: "calm OI < +5%/24 h, nervous +5–10%, storm > +10% with |funding| ≥ 0.01", stablecoin_peg: "calm ≤ 0.1%, nervous 0.1–0.5%, storm > 0.5%", anomalies: "calm none, nervous one value_* signal, storm two or more", assumption: "Factor, derivatives and stablecoin thresholds are working assumptions, to be reviewed against the trade journal after four weeks." },
@@ -81,4 +81,27 @@ export function regimeHistory(rows) {
   for (const r of list) if (!changes.length || changes[changes.length - 1].regime !== r.regime) changes.push({ at: new Date(+r.ts).toISOString(), regime: r.regime });
   const hours = { calm: 0, nervous: 0, storm: 0 }; for (const r of list) hours[r.regime] += 0.5;
   return { since: list.length ? new Date(+list[0].ts).toISOString() : null, changes: changes.slice(-20).reverse(), last_change: changes.length ? changes[changes.length - 1].at : null, hours_by_regime_7d: hours };
+}
+
+// «Разорение растёт с долей под риском» — мостик Библиотеки кристаллов: Филип Лундберг (коллективная теория риска, 1903:
+// вероятность разорения падает экспоненциально с ростом резерва относительно риска) + Харальд Крамер + Карл Борх.
+// Не прогноз и не сигнал: сколько капитала останется после серии убыточных сделок подряд при разной доле риска,
+// и самая длинная серия падающих дней подряд у BTC / ETH / XRP на Kraken — как напоминание, что серии бывают длинными.
+export const RUIN_RISKS = [0.5, 1, 2, 5], RUIN_STREAKS = [5, 10, 20];
+export function longestDownStreak(closes) {
+  let best = 0, cur = 0; const c = (closes || []).map(Number).filter(Number.isFinite);
+  for (let i = 1; i < c.length; i++) { if (c[i] < c[i - 1]) { cur++; if (cur > best) best = cur; } else cur = 0; }
+  return c.length > 1 ? best : null;
+}
+export function ruinTable(streaks = {}, risks = RUIN_RISKS, lens = RUIN_STREAKS) {
+  const left = (r, k) => Math.round(1000 * Math.pow(1 - r / 100, k)) / 10;
+  const longest = Math.max(0, ...Object.values(streaks).filter(Number.isFinite));
+  const ks = [...new Set([...lens, ...(longest ? [longest] : [])])].sort((a, b) => a - b);
+  return {
+    capital_left_pct: risks.map((r) => ({ risk_per_trade_pct: r, ...Object.fromEntries(ks.map((k) => [`after_${k}_losses`, left(r, k)])) })),
+    longest_down_day_streaks: streaks,
+    rule: "Ruin depends on the share of capital at risk: the same losing streak costs ten times more at 5% per trade than at 0.5%. Losing streaks as long as the longest run of falling days do happen.",
+    caveat: "A falling day is not a losing trade; the streaks show that long runs occur, not how a strategy will do. Not a forecast, not advice.",
+    bridge: "Crystal Library bridge 'ruin grows with the share at risk': Filip Lundberg (1903) + Harald Cramér + Karl Borch.",
+  };
 }

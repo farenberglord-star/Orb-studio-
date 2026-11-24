@@ -89,7 +89,24 @@ export function newsPassport(it, now = Date.now()) {
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
     first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, tone: tone && tone.loaded ? tone : null, rumour_risk: rumourRisk,
     confidence: high ? "high" : low ? "low" : "medium", fired, say,
+    chain: evidenceChain({ act: act.act, voices, age, check: chk.class, first: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), metaphor: !!meta, tone: !!(tone && tone.loaded) }),
     steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "loaded words: evaluation, potency, activity (Osgood, Elias)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };
+}
+// «Цепочка от увиденного до сказанного» — мостик Библиотеки кристаллов: Уигмор (схемы доказательств, 1913) + Джером Фрэнк
+// («Суды под судом», 1949: факт держится на восприятии, памяти и пересказе) + Бернгейм + Отле. Звенья паспорта в порядке
+// от события к заголовку; самое слабое звено называется отдельно. Уверенность паспорта цепочка не меняет — она её объясняет.
+const LINK_ORDER = ["voices", "event", "checkable", "fresh", "wording"];
+export function evidenceChain({ act, voices, age, check, first, quoted, metaphor, tone } = {}) {
+  const links = [
+    { link: "event", ru: "что произошло", value: act || null, weak: !!act && act !== "event", why: act && act !== "event" ? `the headline reports a ${act}, not an event` : null },
+    { link: "first_source", ru: "кто первым сообщил", value: first || null, weak: false, why: first ? null : "first source not known" },
+    { link: "voices", ru: "сколько независимых изданий", value: voices ?? null, weak: voices != null && voices <= 1, why: voices != null && voices <= 1 ? `only ${voices} outlet${voices === 1 ? "" : "s"}` : voices == null ? "not counted" : null },
+    { link: "checkable", ru: "можно ли проверить", value: check || null, weak: check === "nothing_to_check", why: check === "nothing_to_check" ? "nothing in the headline can be checked" : null },
+    { link: "fresh", ru: "насколько свежее", value: age == null ? null : Math.round(age * 10) / 10, weak: age != null && age > 24, why: age != null && age > 24 ? `${Math.round(age)} hours old` : null },
+    { link: "wording", ru: "слова заголовка", value: [quoted && "quote", metaphor && "metaphor", tone && "loaded"].filter(Boolean), weak: !!(quoted || metaphor || tone), why: quoted || metaphor || tone ? "wording may shift the meaning" : null },
+  ];
+  const weak = LINK_ORDER.map((id) => links.find((l) => l.link === id)).find((l) => l && l.weak) || null;
+  return { links, weakest: weak ? { link: weak.link, ru: weak.ru, why: weak.why } : null, note: "Chain from event to headline (Wigmore, Jerome Frank). The weakest link is the first reason to doubt; it does not change the confidence." };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";

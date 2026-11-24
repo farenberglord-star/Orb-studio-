@@ -42,3 +42,28 @@ test("regime history and wiring", () => {
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /\/api\/v1\/crypto-passport/); assert.match(w, /get_crypto_passport/); assert.match(w, /cryptoPassportRecord/);
 });
+import { ruinTable, longestDownStreak } from "../src/crypto-passport.js";
+import { newsPassport } from "../src/passport.js";
+import { afterCorrectionReport, CORRECTION_RE } from "../src/harman.js";
+test("ruin grows with the share at risk (Lundberg): 10 losses cost ~10x more at 5% than at 0.5%", () => {
+  assert.equal(longestDownStreak([5, 4, 3, 4, 3, 2, 1, 0]), 4);
+  const t = ruinTable({ BTC: 7, ETH: 9, XRP: null });
+  const r05 = t.capital_left_pct.find((x) => x.risk_per_trade_pct === 0.5), r5 = t.capital_left_pct.find((x) => x.risk_per_trade_pct === 5);
+  assert.equal(r05.after_10_losses, 95.1); assert.equal(r5.after_10_losses, 59.9); assert.ok("after_9_losses" in r5);
+  assert.match(t.caveat, /Not a forecast/);
+  assert.ok(cryptoPassport({ ...base(), streaks: { BTC: 7 } }).ruin.capital_left_pct.length === 4);
+});
+test("evidence chain names the weakest link and does not change confidence (Wigmore, Jerome Frank)", () => {
+  const p = newsPassport({ headline: "Minister says new tax plan will cut prices", confirm: 1 });
+  assert.equal(p.chain.weakest.link, "voices"); assert.equal(p.chain.links.length, 6);
+  const q = newsPassport({ headline: "Earthquake of magnitude 6.1 hits central Italy", confirm: 5, published_at: new Date().toISOString() });
+  assert.ok(!q.chain.weakest || q.chain.weakest.link !== "voices");
+});
+test("a correction does not erase (Lee Ross): story still seen 6 h after the correction counts as kept going", () => {
+  const now = Date.parse("2026-11-24T12:00:00Z"), h = 3600e3;
+  const st = { k: "a", headline: "Exchange reports massive hack of customer wallets overnight", first_ts: now - 40 * h, last_ts: now - 2 * h };
+  const c = { k: "b", headline: "Exchange denies massive hack of customer wallets, says funds safe", first_ts: now - 30 * h, last_ts: now - 30 * h };
+  assert.ok(CORRECTION_RE.test(c.headline));
+  const r = afterCorrectionReport([st, c], [c], now);
+  assert.equal(r.stories_with_correction, 1); assert.equal(r.kept_going_after, 1); assert.equal(r.verdict, "collecting");
+});

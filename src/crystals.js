@@ -10027,8 +10027,9 @@ export const CRYSTALS = [
 },
 "rule": "When a story is corrected, say so plainly and drop the claim; do not keep the conclusion without its evidence.",
 "needs": {
-"code": "ready",
-"note": "bridge 'a correction does not erase': for later-challenged stories, does the original keep being carried after the correction appeared (radar_life last_ts) — data in hand"
+"code": "covered",
+"note": "applied: after_correction block of get_harman — does the original story keep circulating 6 h after a denial or correction",
+"covered_by": "harman"
 }
 },
 {
@@ -11252,8 +11253,8 @@ export const CRYSTALS = [
 },
 "rule": "Show the chain from what someone saw to what the headline says, and name the weakest link.",
 "needs": {
-"code": "ready",
-"note": "evidence chain in the news passport: event or claim → first source → retellings → confidence, with the weakest link named — waits for yes"
+"code": "covered",
+"note": "applied: chain block of the news passport — links from event to headline and the weakest one"
 }
 },
 {
@@ -11361,8 +11362,8 @@ export const CRYSTALS = [
 },
 "rule": "Ruin depends on the share of capital at risk, not on being right on average; a larger share raises it far faster than linearly.",
 "needs": {
-"code": "ready",
-"note": "crypto passport block: loss after a streak of k losing trades at 0.5 / 1 / 2 / 5% risk per trade, against the longest losing streak of daily BTC/ETH/XRP moves — waits for yes"
+"code": "covered",
+"note": "applied: ruin block of /api/v1/crypto-passport — capital left after k losses at 0.5 / 1 / 2 / 5% risk and the longest run of falling days"
 }
 },
 {

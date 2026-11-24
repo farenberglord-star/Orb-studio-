@@ -94,7 +94,7 @@ import { harmanReport } from "./harman.js";
 import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { runsVs30d, NELSON_NOTE } from "./nelson.js";
-import { cryptoPassport, regimeHistory } from "./crypto-passport.js";
+import { cryptoPassport, regimeHistory, longestDownStreak } from "./crypto-passport.js";
 import { bradfordReport } from "./bradford.js";
 import { reissReport } from "./reiss.js";
 import { bridgesReport } from "./crystal_bridges.js";
@@ -1892,12 +1892,12 @@ async function fregeNow(env, q = {}) { // «Фреге»: тёзки в ново
   await sharedPut(env, "frege-v3", r).catch(() => {}); return r;
 }
 async function harmanNow(env) { // «Харман»: честна ли уверенность паспорта — опровергают ли «высокую» реже «низкой»
-  const c = await sharedGet(env, "harman-v4", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "harman-v5", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
   try { const q = (cols) => env.DB.prepare(`SELECT ${cols} FROM radar_life WHERE first_ts > ?1`).bind(Date.now() - 17 * 864e5).all();
-    rows = ((await q("k, radar, headline, first_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
+    rows = ((await q("k, radar, headline, first_ts, last_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, last_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
-  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v4", r).catch(() => {}); return r;
+  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v5", r).catch(() => {}); return r;
 }
 async function cohenNow(env) { // «Коэн»: наименьший эффект, который каждый датчик способен заметить на нынешних данных
   const c = await sharedGet(env, "cohen-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -1912,14 +1912,19 @@ async function pearsonNow(env) { // «Пирсон»: ложные тревог�
   const r = pearsonReport(rows, Date.now(), since ? Date.parse(since + "T08:00:00Z") : null); await sharedPut(env, "pearson-v1", r).catch(() => {}); return r;
 }
 async function cryptoPassportNow(env, ctx, fresh = false) { // паспорт крипторынка: режим спокойно / нервно / шторм для криптофинансиста
-  if (!fresh) { const c = await sharedGet(env, "crypto-passport-v1", 5 * 60e3).catch(() => null); if (c) return c; }
+  if (!fresh) { const c = await sharedGet(env, "crypto-passport-v2", 5 * 60e3).catch(() => null); if (c) return c; }
   const origin = "https://orbstudio.org";
   const [radars, sensors, anomalies, track] = await Promise.all([allRadars(env, ctx, origin).catch(() => []), sensorsData(env, ctx).catch(() => null), anomalyDetect(env).catch(() => null), trackrecordNow(env).catch(() => null)]);
   let hist = []; try { hist = (await env.DB.prepare("SELECT ts, k FROM ix_hist WHERE ts > ?1 AND k IS NOT NULL ORDER BY ts").bind(Date.now() - 26 * 3600e3).all()).results || []; } catch {}
-  const p = cryptoPassport({ radar: (radars || []).find((r) => r.id === "crypto"), sensors, anomalies, noise: track && track.radar_noise, radarHist: hist });
+  let streaks = await sharedGet(env, "down-streaks-v1", 6 * 3600e3).catch(() => null);
+  if (!streaks) { streaks = {}; await Promise.all(Object.entries({ BTC: "XBTEUR", ETH: "ETHEUR", XRP: "XRPEUR" }).map(async ([c, pair]) => {
+      try { const j = await sensorsFetchJson(`https://api.kraken.com/0/public/OHLC?pair=${pair}&interval=1440`); const k = Object.keys(j.result || {}).find((x) => x !== "last");
+        streaks[c] = longestDownStreak((j.result[k] || []).map((r) => +r[4])); } catch { streaks[c] = null; } }));
+    if (Object.values(streaks).some((x) => x != null)) await sharedPut(env, "down-streaks-v1", streaks).catch(() => {}); }
+  const p = cryptoPassport({ radar: (radars || []).find((r) => r.id === "crypto"), sensors, anomalies, noise: track && track.radar_noise, radarHist: hist, streaks });
   let rows = []; try { rows = (await env.DB.prepare("SELECT ts, regime FROM crypto_passport WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch {}
   p.history = regimeHistory([...rows, { ts: Date.now(), regime: p.regime }]);
-  await sharedPut(env, "crypto-passport-v1", p).catch(() => {});
+  await sharedPut(env, "crypto-passport-v2", p).catch(() => {});
   return p;
 }
 async function cryptoPassportRecord(env, ctx) { // сохраняем паспорт на сервере (D1) раз в получас — история режимов для журнала

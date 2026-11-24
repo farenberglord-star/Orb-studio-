@@ -39,7 +39,7 @@ export function harmanReport(rows, now = Date.now(), since = null) {
   const verdict = ready.length < 2 ? "collecting" : hi.stories >= HARMAN_MIN && lo.stories >= HARMAN_MIN && hi.challenged_pct > lo.challenged_pct ? "overconfident"
     : ready.every((x, i, a) => i === 0 || a[i - 1].challenged_pct <= x.challenged_pct + 2) ? "calibrated" : "mixed";
   return {
-    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered), cry_wolf: cryWolfReport(all.filter((r) => r.fired != null && !CORRECTION_RE.test(r.headline)), layered),
+    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered), after_correction: afterCorrectionReport(all, corr, now), cry_wolf: cryWolfReport(all.filter((r) => r.fired != null && !CORRECTION_RE.test(r.headline)), layered),
     stories_resolved: done.length, stories_waiting: all.filter((r) => r.conf && +r.first_ts > now - HARMAN_WINDOW).length, corrections_seen: corr.length,
     question: "Is the Orb Studio news passport honest about its own confidence — are stories it rated 'high' challenged less often than those it rated 'low'?",
     method: `The passport's confidence (high / medium / low) is stored when a story first appears on a radar. ${HARMAN_WINDOW / 3600e3} hours later, the story counts as challenged if another radar headline with denial, retraction or correction words (denies, retracts, corrects, dementiert, korrigiert, опроверг, исправ…) appeared in that window and shares at least 40% of its key words. Widened = 3+ outlets at the peak. Calibrated = the challenged share does not fall as confidence rises; overconfident = 'high' is challenged more often than 'low'. A verdict needs ${HARMAN_MIN} resolved stories in at least two levels. Word rules, no AI.`,
@@ -89,5 +89,28 @@ export function cryWolfReport(stored, layered) {
     verdict: ch < REASON_MIN ? "collecting" : rate(w) > rate(q) ? "warnings_informative" : "warnings_not_informative",
     rule: `If most passports carry a warning, warnings stop being noticed (cry wolf). Keep warnings for the stories that are later challenged more often; a check that fires on most stories but not more often on challenged ones should be narrowed. crying_wolf = warnings on ${WOLF_HIGH}% or more of at least 50 stories.`,
     bridge: "Crystal Library bridge 'cry wolf': E. Pearson (cost of a false alarm) + Harman + Nesselroade; Breznitz's 'Cry Wolf: The Psychology of False Alarms' (1984) joins when his death is confirmed by an obituary.",
+  };
+}
+
+// «Опровержение не стирает» — мостик Библиотеки кристаллов: Ли Росс (упорство убеждений после опровержения, 1975) + Зива Кунда
+// (мотивированное рассуждение) + Фестингер + Харман. По каждой истории, к которой на радарах вышло опровержение или поправка:
+// продолжала ли исходная версия появляться в лентах через 6 часов и позже после опровержения.
+export const AFTER_MIN = 10, AFTER_GAP = 6 * 3600e3;
+export function afterCorrectionReport(all, corr, now = Date.now()) {
+  const pairs = [];
+  for (const st of all || []) {
+    if (CORRECTION_RE.test(st.headline) || !Number.isFinite(+st.last_ts)) continue;
+    const t0 = +st.first_ts, c = (corr || []).find((x) => x.k !== st.k && +x.first_ts >= t0 && +x.first_ts <= t0 + HARMAN_WINDOW && sameStory(st.headline, x.headline));
+    if (!c || now - +c.first_ts < AFTER_GAP) continue; // ещё рано судить
+    pairs.push({ headline: st.headline, radar: st.radar || null, correction: c.headline, kept_going: +st.last_ts > +c.first_ts + AFTER_GAP, hours_after: Math.max(0, Math.round((+st.last_ts - +c.first_ts) / 3600e3)) });
+  }
+  const kept = pairs.filter((x) => x.kept_going);
+  return {
+    stories_with_correction: pairs.length, kept_going_after: kept.length, kept_going_pct: pairs.length ? Math.round((100 * kept.length) / pairs.length) : null,
+    verdict: pairs.length < AFTER_MIN ? "collecting" : kept.length / pairs.length >= 0.5 ? "corrections_rarely_stop_stories" : "corrections_usually_stop_stories",
+    examples: kept.slice(0, 6),
+    rule: "A denial or correction does not erase the first version: when it keeps circulating after the correction, tell the correction together with the story, as loudly as the story.",
+    bridge: "Crystal Library bridge 'a correction does not erase': Lee Ross (belief perseverance) + Ziva Kunda + Leon Festinger + Harman.",
+    method: `For every radar story that a denial or correction headline followed within ${HARMAN_WINDOW / 3600e3} hours (same story by shared key words), the original version 'kept going' when it was still seen in the feeds more than ${AFTER_GAP / 3600e3} hours after the correction first appeared. Verdict from ${AFTER_MIN} corrected stories.`,
   };
 }
