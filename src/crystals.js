@@ -11237,6 +11237,115 @@ export const CRYSTALS = [
 "note": "the Harman layers block shows which passport check missed a challenged story",
 "covered_by": "harman"
 }
+},
+{
+"id": "wigmore",
+"name": "John Henry Wigmore",
+"name_ru": "Джон Генри Уигмор",
+"years": "1863–1943",
+"wiki": "https://en.wikipedia.org/wiki/John_Henry_Wigmore",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Problem of Proof' (1913) and his evidence charts: lay out every step from what was observed to the conclusion, so each link can be checked.",
+"ru": "«Проблема доказывания» (1913) и схемы доказательств: разложи путь от наблюдения до вывода по звеньям, чтобы проверить каждое.",
+"de": "„The Problem of Proof“ (1913), Beweisdiagramme: jeden Schritt vom Beobachteten zum Schluss sichtbar machen."
+},
+"rule": "Show the chain from what someone saw to what the headline says, and name the weakest link.",
+"needs": {
+"code": "ready",
+"note": "evidence chain in the news passport: event or claim → first source → retellings → confidence, with the weakest link named — waits for yes"
+}
+},
+{
+"id": "toulmin",
+"name": "Stephen Toulmin",
+"name_ru": "Стивен Тулмин",
+"years": "1922–2009",
+"wiki": "https://en.wikipedia.org/wiki/Stephen_Toulmin",
+"zone": "own_limits",
+"idea": {
+"en": "'The Uses of Argument' (1958): an argument has data, a warrant, a qualifier and conditions of rebuttal under which it no longer holds.",
+"ru": "«Способы аргументации» (1958): у довода есть данные, основание, оговорка и условия, при которых он перестаёт действовать.",
+"de": "„The Uses of Argument“ (1958): Daten, Schlussregel, Einschränkung, Ausnahmen."
+},
+"rule": "State the qualifier and what would make the conclusion fail, not only the conclusion.",
+"needs": {
+"code": "covered",
+"note": "applied: host rule 'say what is not in the calculation' and the passport's say lines"
+}
+},
+{
+"id": "cohen_lj",
+"name": "L. Jonathan Cohen",
+"name_ru": "Л. Джонатан Коэн",
+"years": "1923–2006",
+"wiki": "https://en.wikipedia.org/wiki/L._Jonathan_Cohen",
+"zone": "own_limits",
+"idea": {
+"en": "'The Probable and the Provable' (1977): besides a probability, ask how many relevant tests a claim has survived — its weight of support.",
+"ru": "«Вероятное и доказуемое» (1977): кроме вероятности, спроси, сколько относящихся к делу проверок утверждение выдержало.",
+"de": "„The Probable and the Provable“ (1977): wie viele einschlägige Prüfungen eine Behauptung überstanden hat."
+},
+"rule": "A plausible claim that faced no independent check is weakly supported; count the checks it survived.",
+"needs": {
+"code": "covered",
+"note": "passport confidence uses independent outlets (voices), not repetition",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "jeffreys",
+"name": "Harold Jeffreys",
+"name_ru": "Гарольд Джеффрис",
+"years": "1891–1989",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Jeffreys",
+"zone": "measurement_error",
+"idea": {
+"en": "'Theory of Probability' (1939): how much evidence shifts the odds between two hypotheses, on a fixed scale — a factor below about 3 is barely worth mentioning.",
+"ru": "«Теория вероятностей» (1939): насколько свидетельство меняет шансы двух гипотез, по постоянной шкале — множитель меньше примерно 3 едва стоит упоминания.",
+"de": "„Theory of Probability“ (1939): Bayes-Faktor auf fester Skala — unter etwa 3 kaum erwähnenswert."
+},
+"rule": "Say how strongly new evidence favours one explanation over another, and call weak evidence weak.",
+"needs": {
+"code": "needs_idea",
+"note": "a fixed verbal scale for how strongly a sensor reading favours one reading over another"
+}
+},
+{
+"id": "frank_j",
+"name": "Jerome Frank",
+"name_ru": "Джером Фрэнк",
+"years": "1889–1957",
+"wiki": "https://en.wikipedia.org/wiki/Jerome_Frank",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Courts on Trial' (1949), fact-skepticism: a finding of fact rests on what witnesses perceived, remembered and told, and each step can err.",
+"ru": "«Суды под судом» (1949), скептицизм фактов: установленный факт держится на том, что свидетели увидели, запомнили и рассказали, и ошибиться можно на каждом шаге.",
+"de": "„Courts on Trial“ (1949): Tatsachenfeststellung hängt an Wahrnehmung, Gedächtnis und Bericht."
+},
+"rule": "Separate what happened, what a witness perceived and what was later reported.",
+"needs": {
+"code": "covered",
+"note": "applied: Searle speech act separates event from statement; first-source line"
+}
+},
+{
+"id": "polya",
+"name": "George Pólya",
+"name_ru": "Дьёрдь Пойа",
+"years": "1887–1985",
+"wiki": "https://en.wikipedia.org/wiki/George_P%C3%B3lya",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Mathematics and Plausible Reasoning' (1954): a verified consequence makes a conjecture more credible — much more if that consequence was unlikely without it.",
+"ru": "«Математика и правдоподобные рассуждения» (1954): подтверждённое следствие делает догадку правдоподобнее — намного больше, если без неё оно было бы маловероятным.",
+"de": "„Mathematik und plausibles Schließen“ (1954): eine überraschende bestätigte Folgerung wiegt mehr."
+},
+"rule": "A confirmation that was expected anyway adds little; an unlikely one that came true adds much.",
+"needs": {
+"code": "needs_idea",
+"note": "surprising confirmations: a story confirmed by an outlet that usually disagrees weighs more"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

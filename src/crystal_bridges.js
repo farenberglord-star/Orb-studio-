@@ -132,6 +132,12 @@ export const CRYSTAL_BRIDGES = [
   B("recall_vs_precision", "Miss little or alarm little", "Меньше пропусков или меньше ложных тревог", "answer_cost", "covered", ["cleverdon", "lancaster_fw", "pearson"], { sensor: "pearson" }),
   B("fact_with_source", "A fact keeps its source", "Факт хранит свой источник", "rumour_vs_fact", "covered", ["otlet", "baird", "tannery"], { sensor: "baird" }),
   B("facets_not_tree", "Facets, not one tree", "Фасеты, а не одно дерево", "one_model", "idea", ["ranganathan", "chamberlin", "goffman"]),
+  B("evidence_chain", "The chain from seen to said", "Цепочка от увиденного до сказанного", "rumour_vs_fact", "ready", ["wigmore", "frank_j", "bernheim", "otlet"]),
+  B("qualifier_and_rebuttal", "Qualifier and rebuttal", "Оговорка и опровержение", "own_limits", "covered", ["toulmin", "chamberlin", "popper"], { line: "host rule: say what is not in the calculation" }),
+  B("tests_survived", "Tests survived, not repetitions", "Выдержанные проверки, а не повторы", "own_limits", "covered", ["cohen_lj", "popper", "rabin"], { line: "passport voices count independent outlets" }),
+  B("evidence_scale", "Weak evidence is called weak", "Слабое свидетельство называй слабым", "measurement_error", "idea", ["jeffreys", "lindley", "harman"]),
+  B("conflicting_sources", "Who supports which version", "Кто за какую версию", "one_model", "covered", ["rescher", "condorcet", "reiss"], { line: "Reiss names differing versions and outlets" }),
+  B("surprising_confirmation", "A surprising confirmation weighs more", "Неожиданное подтверждение весит больше", "rumour_vs_fact", "idea", ["polya", "hume", "bayes"]),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
