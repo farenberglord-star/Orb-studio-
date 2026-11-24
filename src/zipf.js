@@ -5,7 +5,7 @@
 export const ZIPF_MIN_BASE_DAYS = 7, ZIPF_MIN_BASE = 300, ZIPF_MIN_TODAY = 40, ZIPF_MIN_DF = 3, ZIPF_RATIO = 3;
 const DAY = 864e5;
 const STOP = new Set(("the and for with from that this into over after about amid says said will would could have has were been their they them than more most what when where which while your just also only very year years week new news live update video photos "
-  + "der die das und mit von für auf den dem des ein eine einer einem nicht sich auch noch nach über unter wird werden wurde sind ist bei aus zum zur wie was wer neue neuer neues jahr "
+  + "der die das und mit von für auf den dem des ein eine einer einem weitere weiteren mehr heute gibt nicht sich auch noch nach über unter wird werden wurde sind ist bei aus zum zur wie was wer neue neuer neues jahr "
   + "это как что для его она они при над под без или уже еще ещё был была были будет после году года").split(/\s+/));
 export function zipfWords(title) {
   const out = new Set();
