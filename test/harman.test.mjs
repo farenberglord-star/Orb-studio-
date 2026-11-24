@@ -39,3 +39,10 @@ test("passport lists the checks that fired", async () => {
   for (const id of ["few_voices", "found_document", "metaphor", "not_event"]) assert.ok(p.fired.includes(id), id);
   assert.deepEqual(newsPassport({ headline: "Parliament passes budget of 400 billion euros", confirm: 5 }).fired, []);
 });
+test("cry wolf: alarm rate and whether warned stories are challenged more", async () => {
+  const { cryWolfReport } = await import("../src/harman.js");
+  const stored = []; for (let i = 0; i < 60; i++) stored.push({ fired: i < 48 ? "few_voices" : "" });
+  const L = []; for (let i = 0; i < 12; i++) L.push({ hit: {}, fired: ["few_voices"] }); for (let i = 0; i < 40; i++) L.push({ hit: i < 2 ? {} : null, fired: i < 20 ? ["vague"] : [] });
+  const r = cryWolfReport(stored, L); assert.equal(r.alarm_rate_pct, 80); assert.equal(r.crying_wolf, true); assert.equal(r.verdict, "warnings_informative");
+  assert.equal(r.by_check_pct.few_voices, 80); assert.equal(cryWolfReport(stored.slice(0, 10), []).crying_wolf, false);
+});

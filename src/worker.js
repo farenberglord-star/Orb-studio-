@@ -87,11 +87,12 @@ import { simpsonReport } from "./simpson.js";
 import { trackReport } from "./trackrecord.js";
 import { kaspersonReport } from "./kasperson.js";
 import { newcombReport } from "./newcomb.js";
-import { paretoReport } from "./pareto.js";
+import { paretoReport, PARETO_SERIES } from "./pareto.js";
 import { pearsonReport } from "./pearson.js";
 import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
 import { extractNames, namesakes, fregeReport } from "./frege.js";
+import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
@@ -1893,6 +1894,11 @@ async function pearsonNow(env) { // «Пирсон»: ложные тревог�
   try { rows = (await env.DB.prepare("SELECT a.who, a.name, a.kind, a.verified, a.dir, a.prob, q.result FROM pred_a a JOIN pred_q q ON q.day=a.day WHERE q.result IN ('up','down') AND a.day >= ?1").bind(dayAdd(berlinParts().day, -90)).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(day) m FROM pred_q WHERE result IN ('up','down')").first()) || {}).m || null; } catch {}
   const r = pearsonReport(rows, Date.now(), since ? Date.parse(since + "T08:00:00Z") : null); await sharedPut(env, "pearson-v1", r).catch(() => {}); return r;
+}
+async function levelsNow(env) { // «Мерка зависит от набора» (Пардуччи): место каждого радара среди своих 30 дней
+  const c = await sharedGet(env, "levels-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  let rows = []; try { rows = (await env.DB.prepare("SELECT ts, c, g, k, b, p, e, n, j, w FROM ix_hist WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 30 * 864e5).all()).results || []; } catch {}
+  const r = levelVs30d(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "levels-v1", r).catch(() => {}); return r;
 }
 async function paretoNow(env) { // «Парето»: доля движения радаров от 20 % крупнейших получасовых скачков (30 дней)
   const c = await sharedGet(env, "pareto-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -3985,11 +3991,12 @@ function clickLabel(request, from) {
   }
 
   if (p === "/api/v1/radars") {
-    const data = await allRadars(env, ctx, origin);
+    const data = await allRadars(env, ctx, origin), lv = await levelsNow(env).catch(() => ({}));
     const full = url.searchParams.get("full") === "1";
     return json({
       generated_at: new Date().toISOString(),
-      radars: full ? data.map((r) => ({ ...r, ...radarI18n(r, true, RADAR_TITLE_I18N) })) : data.map((r) => ({ id: r.id, title: r.title, ...radarI18n(r, false, RADAR_TITLE_I18N), anchor: r.anchor, risk_index: r.lvl, delta_24h: r.lvl - r.prev, updated_at: r.updated_at })),
+      radars: full ? data.map((r) => ({ ...r, ...radarI18n(r, true, RADAR_TITLE_I18N) })) : data.map((r) => ({ id: r.id, title: r.title, ...radarI18n(r, false, RADAR_TITLE_I18N), anchor: r.anchor, risk_index: r.lvl, delta_24h: r.lvl - r.prev, updated_at: r.updated_at, level_vs_30d: lv[r.id] || null })),
+      level_vs_30d_note: PARDUCCI_NOTE, consensus_vs_30d: lv.consensus || null,
       ways_out: waysForAgents(await waysLatest(env).catch(() => null), data.filter((r) => r.lvl >= 70).map((r) => r.id)),
       disclaimer: "Indicator, not advice. No orders are sent.",
       referral: referral(env, "api-radars"),
@@ -8354,7 +8361,7 @@ const MCP_TOOLS = [
     description: "Person names from radar headlines of the last 48 hours are looked up in Wikidata (CC0); a name counts as ambiguous when two or more people with exactly that name are known. Verdict many / some / few namesakes, list of ambiguous names with examples. Optional 'name' checks one full name. No AI. In honour of Gottlob Frege (1848-1925), 'On Sense and Reference'.",
     inputSchema: { type: "object", properties: { name: { type: "string", description: "optional: one full name to check, e.g. 'John Smith'" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_harman", title: "Harman sensor: is the Orb Studio news passport honest about its own confidence?",
-    description: "Also the block 'layers' (Reason's Swiss-cheese model): for later-challenged stories, which passport checks raised a warning at first sight and which stories passed every layer silently. The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
+    description: "Block 'cry_wolf': how often the passport warns and whether warned stories are later challenged more often than silent ones. Also the block 'layers' (Reason's Swiss-cheese model): for later-challenged stories, which passport checks raised a warning at first sight and which stories passed every layer silently. The passport rates every radar story high / medium / low confidence when it first appears. 72 hours later the sensor checks whether a denial, retraction or correction of the same story appeared, and compares the challenged share per confidence level: calibrated, mixed or overconfident. Checks our own rules, not the news. No AI. In honour of Gilbert Harman (1938-2021), 'Change in View'.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
   { name: "get_cohen", title: "Cohen sensor: the smallest effect each Orb Studio sensor can detect with its current data (power, 'not significant' is not 'no effect')",
     description: "For the track record (BTC, ETH, XRP), the planned who-leads-whom correlation, the forecast game, the Kasperson amplification share and the Newcomb first-digit test: sample size, the smallest effect detectable at the 5% level with 80% power (or the margin / noise level), and a grade fine / coarse / blind. Read every 'nothing found' with its true resolution. No AI. In honour of Jacob Cohen (1923-1998).",

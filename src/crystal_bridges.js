@@ -65,10 +65,10 @@ export const CRYSTAL_BRIDGES = [
   B("word_hides_danger", "A word hides the danger", "Слово прячет опасность", "look_alike", "idea", ["whorf", "max_mueller"]),
   B("explanation_vs_understanding", "Explanation ≠ understanding", "Объяснение ≠ понимание", "look_alike", "idea", ["dilthey", "searle"]),
   // Психологи 2023–2026 (Грок, 24.11.2026) × математики и статистики библиотеки
-  B("measure_depends_on_set", "The measure depends on the set", "Мерка зависит от набора", "measurement_error", "ready", ["parducci", "fechner", "edgeworth", "naatanen"], { needs: "owner's yes: each radar level as a percentile of its own 30-day range (ix_hist)" }),
+  B("measure_depends_on_set", "The measure depends on the set", "Мерка зависит от набора", "measurement_error", "line", ["parducci", "fechner", "edgeworth", "naatanen"], { line: "/api/v1/radars: level_vs_30d — each radar level as a percentile of its own 30 days" }),
   B("holes_in_layers", "Holes in the layers", "Дыры в слоях", "side_effects", "sensor", ["reason_j", "bobbio", "harman"], { sensor: "harman" }),
-  B("off_the_question", "Off the question", "Ушёл от вопроса", "own_limits", "ready", ["smallwood", "grice", "weizenbaum"], { needs: "owner's yes: host rule — restate the question in one line, check the answer addresses it" }),
-  B("cry_wolf", "Cry wolf: warnings that are too frequent", "Крик «волк»: слишком частые тревоги", "answer_cost", "ready", ["pearson", "harman", "nesselroade"], { needs: "owner's yes: share of live passports with a warning line, and (from Harman) how many warned stories were later challenged; Breznitz card waits for an obituary" }),
+  B("off_the_question", "Off the question", "Ушёл от вопроса", "own_limits", "line", ["smallwood", "grice", "weizenbaum"], { line: "host rule: answer the question in the first sentence; if you drift, come back or say which part you cannot answer (Grok, David, round table)" }),
+  B("cry_wolf", "Cry wolf: warnings that are too frequent", "Крик «волк»: слишком частые тревоги", "answer_cost", "sensor", ["pearson", "harman", "nesselroade"], { sensor: "harman" }),
   B("one_number_or_several", "One number or several", "Одно число или несколько", "one_model", "waiting", ["das_jp", "goldberg_l", "spearman", "leontief"], { until: "2026-12-21" }),
   B("reward_changes_answer", "The reward changes the answer", "Награда меняет ответ", "side_effects", "waiting", ["deci", "campbell_dt", "burkov"], { until: "2026-12-21" }),
   B("carrier_or_condition", "Carrier or condition", "Через что или при каком условии", "look_alike", "waiting", ["baron_r", "reichenbach", "granger"], { until: "2026-12-14" }),

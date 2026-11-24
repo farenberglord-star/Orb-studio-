@@ -9525,8 +9525,8 @@ export const CRYSTALS = [
 },
 "rule": "When you call a level high or low, say against which set and range — the same number can be high in a quiet month and low in a busy one.",
 "needs": {
-"code": "ready",
-"note": "bridge 'the measure depends on the set' (Parducci + Fechner + Edgeworth): give each radar level as a percentile of its own 30-day range — ix_hist has the data"
+"code": "covered",
+"note": "applied: /api/v1/radars gives each radar level as a percentile of its own 30-day half-hourly values (level_vs_30d)"
 }
 },
 {
@@ -9711,8 +9711,8 @@ export const CRYSTALS = [
 },
 "rule": "Before finishing an answer, check that it still answers the question that was asked.",
 "needs": {
-"code": "ready",
-"note": "bridge 'off the question' (Smallwood + Grice + Weizenbaum): host rule — restate the question in one line before answering and check the answer addresses it"
+"code": "covered",
+"note": "applied: host rule — answer the question in the first sentence, come back if you drift (Grok, David, round table)"
 }
 },
 {

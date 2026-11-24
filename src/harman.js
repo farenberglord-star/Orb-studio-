@@ -39,7 +39,7 @@ export function harmanReport(rows, now = Date.now(), since = null) {
   const verdict = ready.length < 2 ? "collecting" : hi.stories >= HARMAN_MIN && lo.stories >= HARMAN_MIN && hi.challenged_pct > lo.challenged_pct ? "overconfident"
     : ready.every((x, i, a) => i === 0 || a[i - 1].challenged_pct <= x.challenged_pct + 2) ? "calibrated" : "mixed";
   return {
-    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered),
+    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered), cry_wolf: cryWolfReport(all.filter((r) => r.fired != null && !CORRECTION_RE.test(r.headline)), layered),
     stories_resolved: done.length, stories_waiting: all.filter((r) => r.conf && +r.first_ts > now - HARMAN_WINDOW).length, corrections_seen: corr.length,
     question: "Is the Orb Studio news passport honest about its own confidence — are stories it rated 'high' challenged less often than those it rated 'low'?",
     method: `The passport's confidence (high / medium / low) is stored when a story first appears on a radar. ${HARMAN_WINDOW / 3600e3} hours later, the story counts as challenged if another radar headline with denial, retraction or correction words (denies, retracts, corrects, dementiert, korrigiert, опроверг, исправ…) appeared in that window and shares at least 40% of its key words. Widened = 3+ outlets at the peak. Calibrated = the challenged share does not fall as confidence rises; overconfident = 'high' is challenged more often than 'low'. A verdict needs ${HARMAN_MIN} resolved stories in at least two levels. Word rules, no AI.`,
@@ -70,5 +70,24 @@ export function layersReport(layered) {
     rule: "For each later-challenged story, look at which passport checks raised a warning at first sight; a check that fires more often on challenged stories than on the rest is a working layer, and stories that passed every layer silently show the hole to close.",
     bridge: "Crystal Library bridge 'holes in the layers': Reason ('Human Error', 1990, the Swiss-cheese model) + Bobbio (rule conflicts) + Harman.",
     since: "2026-11-24 (checks are stored from this day)", min_challenged: REASON_MIN,
+  };
+}
+
+// «Крик „волк“» — мостик Пирсон (цена ложной тревоги) + Харман + Несселроуд; опора — Брезниц, «Cry Wolf» (1984), карточка ждёт некролога.
+// Если тревожная строка стоит почти в каждом паспорте, её перестают замечать. Считаем, как часто паспорт тревожит,
+// и (когда накопятся оспоренные истории) — оспаривают ли предупреждённые истории чаще, чем молчаливые.
+export const WOLF_HIGH = 70;
+export function cryWolfReport(stored, layered) {
+  const n = stored.length, warned = stored.filter((r) => String(r.fired).length > 0).length;
+  const per = {}; for (const r of stored) for (const id of String(r.fired).split(",").filter(Boolean)) per[id] = (per[id] || 0) + 1;
+  const w = layered.filter((x) => x.fired.length), q = layered.filter((x) => !x.fired.length), rate = (a) => (a.length ? Math.round((100 * a.filter((x) => x.hit).length) / a.length) : null);
+  const ch = layered.filter((x) => x.hit).length, alarm = n ? Math.round((100 * warned) / n) : null;
+  return {
+    stories: n, warned, alarm_rate_pct: alarm, crying_wolf: alarm != null && n >= 50 && alarm >= WOLF_HIGH,
+    by_check_pct: Object.fromEntries(Object.entries(per).sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, Math.round((100 * v) / n)])),
+    challenged_when_warned_pct: rate(w), challenged_when_silent_pct: rate(q),
+    verdict: ch < REASON_MIN ? "collecting" : rate(w) > rate(q) ? "warnings_informative" : "warnings_not_informative",
+    rule: `If most passports carry a warning, warnings stop being noticed (cry wolf). Keep warnings for the stories that are later challenged more often; a check that fires on most stories but not more often on challenged ones should be narrowed. crying_wolf = warnings on ${WOLF_HIGH}% or more of at least 50 stories.`,
+    bridge: "Crystal Library bridge 'cry wolf': E. Pearson (cost of a false alarm) + Harman + Nesselroade; Breznitz's 'Cry Wolf: The Psychology of False Alarms' (1984) joins when his death is confirmed by an obituary.",
   };
 }
