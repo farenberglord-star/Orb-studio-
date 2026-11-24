@@ -4,6 +4,12 @@ Site: https://orbstudio.org
 
 > News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
+## Start here: live numbers agents use most
+- [Market and network sensors](https://orbstudio.org/api/v1/sensors): one call, open sources, refreshed every 5 minutes — German day-ahead electricity price with hourly prices for today and tomorrow (block power, field hourly) and the cheapest/most expensive 3-hour window, hourly crypto volatility spikes on Kraken (BTC, ETH, XRP, SOL; block volatility), BTC funding rate and open interest, Bitcoin fees, ECB rate, euro area inflation, stablecoin supply, internet outages, sanctioned ships. Each block has source and time. MCP tool get_sensors.
+- [Crypto radar](https://orbstudio.org/api/v1/radar/crypto) and [prediction game](https://orbstudio.org/api/v1/predict): the two most used endpoints by AI agents.
+- [Electricity price tomorrow (German page)](https://orbstudio.org/de/strompreis-morgen): the same power sensor as a server-rendered page for people — all hours of tomorrow in ct/kWh, cheapest and most expensive 3 hours, change against today.
+- [Anomalies](https://orbstudio.org/api/v1/anomalies): sharp changes in sensor readings and unusual agent interest, with the rule for each signal.
+
 ## Site structure (since 2026-11-19)
 The site is organised in five sections, in the order of the analysis:
 - [World now](https://orbstudio.org/world): everything that comes from outside — live world sensors with a data-freshness map, 8 news radars, news impulses, archive.

@@ -12,6 +12,7 @@ import { radioTextBlock, radioJsonLd, RADIO_TRACKS } from "./radio.js";
 import { REMARK_SYSTEM, REMARK_TOOL, remarkUser, checkRemarks, RADAR_MS, RADAR_INTRO, radarCandidates, RADAR_NEWS_SYSTEM, RADAR_NEWS_TOOL, radarNewsUser, checkRadarNews, SENSOR_TOPICS, SENSOR_MS, sensorFacts, sensorSystem, SENSOR_TOOL, checkSensorStories, DJ_VARIED, introFor, parseCandles, MARKETS, marketById, candlesUrl, futuresQuote, CANDLES_SOURCE, radioCard, DJ_LANGS, DJ_PARTS, DJ_DAYPARTS, DJ_GREETINGS, DJ_SYSTEM, DJ_TOOL, djUser, checkDj, WEATHER_SOURCE, weatherUrl, cleanCity, summarizeWeather, weatherText, REGIONS, REGION_MS, regionFor, normHead, regionCandidates, regionPickSystem, REGION_TOOL, regionUser, checkRegionPicks, TRANSLATE_SYSTEM, TRANSLATE_TOOL, checkTranslations, regionalInterviews, RADIO_GUESTS, GUEST_ORDER, guestTurns, guestOfEpisode, guestSystem, withGuest } from "./radio.js";
 import { rtHandle, rtWarm, rtAgentData, RT_ARCHIVE, RT_GUESTS } from "./roundtable.js";
 import { langDecision } from "./langredir.js";
+import { hourlyFromPoints, strompreisModel, strompreisHtml } from "./strompreis.js";
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { radarI18n, headlinesDe, HL_DE_NOTE } from "./radar-i18n.js";
 import qrcodeGen from "qrcode-generator";
@@ -5798,7 +5799,7 @@ async function sensorsCompute(prev, env) {
       return { source: "Energy-Charts (Fraunhofer ISE), data Bundesnetzagentur | SMARD.de, CC BY 4.0", source_url: "https://www.energy-charts.info", zone: "DE-LU", unit: "EUR/MWh",
         note: "Wholesale day-ahead exchange price without grid fees, taxes and levies — not the household tariff. 10 EUR/MWh = 1 ct/kWh.",
         now_eur_mwh: cur.p, now_ct_kwh: +(cur.p / 10).toFixed(2), now_at: new Date(cur.t).toISOString(), today: stats(today), tomorrow: stats(tomorrow), tomorrow_published: !!stats(tomorrow),
-        cheapest_3h: win(cheap), most_expensive_3h: win(dear), renewables: ren };
+        cheapest_3h: win(cheap), most_expensive_3h: win(dear), renewables: ren, hourly: hourlyFromPoints(pts, [today, tomorrow]) };
     },
     internet: async () => {
       // сбои интернета по странам — IODA (Georgia Tech), события за последние сутки; блокировки — OONI (измерения добровольцев), за сутки
@@ -9661,6 +9662,13 @@ async function handleRequest(request, env, ctx) {
       } catch (e) {
         return json({ error: "Server error", detail: String(e && e.message || e).slice(0, 200) }, {}, 500);
       }
+    }
+    // «Strompreis morgen»: биржевая цена на завтра по часам, страница целиком на сервере (для людей из поиска; данные — датчик power)
+    if (/^\/(?:de\/)?strompreis-morgen(?:\.html)?\/?$/.test(url.pathname)) {
+      if (url.pathname !== "/de/strompreis-morgen") return Response.redirect(url.origin + "/de/strompreis-morgen" + url.search, 301);
+      let pw = null;
+      try { const sn = await Promise.race([sensorsData(env, ctx), new Promise((r) => setTimeout(() => r(null), 6000))]) || await sharedGet(env, "sensors-v8", 2 * 86400e3); pw = sn && sn.power; } catch (e) {}
+      return new Response(strompreisHtml(strompreisModel(pw), url.origin), { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Language": "de", "Cache-Control": pw ? "public, max-age=300" : "no-store" } });
     }
     // страницы, слитые в другие при наведении порядка (19.11.2026): старый адрес ведёт на новое место, язык сохраняется
     { const mv = url.pathname.replace(/\.html$/, "").match(/^(\/(?:ru|de|en))?(\/[a-z0-9/-]+)$/);
