@@ -10507,6 +10507,279 @@ export const CRYSTALS = [
 "note": "the Harman sensor looks for corrections after 72 hours",
 "covered_by": "harman"
 }
+},
+{
+"id": "osborn",
+"name": "Albert S. Osborn",
+"name_ru": "Альберт Осборн",
+"years": "1855–1946",
+"wiki": "https://en.wikipedia.org/wiki/Albert_S._Osborn",
+"zone": "measurement_error",
+"idea": {
+"en": "'Questioned Documents' (1910): disputed handwriting is compared with enough known genuine samples, allowing for their natural variation — one similar sample is not enough.",
+"ru": "«Спорные документы» (1910): спорный почерк сравнивают с достаточным числом заведомо подлинных образцов с учётом их изменчивости — одного похожего мало.",
+"de": "„Questioned Documents“ (1910)."
+},
+"rule": "Check a quote against several verified statements of the source, not against one that sounds similar.",
+"needs": {
+"code": "covered",
+"note": "applied: quote-out-of-context line asks whose words and where they are from"
+}
+},
+{
+"id": "mccrone",
+"name": "Walter McCrone",
+"name_ru": "Уолтер Маккроун",
+"years": "1916–2002",
+"wiki": "https://en.wikipedia.org/wiki/Walter_McCrone",
+"zone": "stale_data",
+"idea": {
+"en": "Analysis of the Vinland Map for Yale (1974): the ink contained anatase, a pigment made only from the 1920s — material that could not exist at the claimed date.",
+"ru": "Анализ «Карты Винланда» для Йеля (1974): в чернилах нашёлся анатаз, пигмент 1920-х годов, — материал, которого не могло быть на заявленную дату.",
+"de": "Analyse der Vinland-Karte (1974)."
+},
+"rule": "Ask whether every detail of a found document — material, term, format — was possible at its claimed date.",
+"needs": {
+"code": "covered",
+"note": "applied: found-document line (date, wording, origin); passport now flags dated artefacts such as '1440 map'"
+}
+},
+{
+"id": "langlois",
+"name": "Charles-Victor Langlois and Charles Seignobos",
+"name_ru": "Шарль-Виктор Ланглуа и Шарль Сеньобос",
+"years": "1863–1929",
+"wiki": "https://en.wikipedia.org/wiki/Charles-Victor_Langlois",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Introduction aux études historiques' (1898): first external criticism — who made the document, when and where it came from — then criticism of its content.",
+"ru": "«Введение в изучение истории» (1898): сначала внешняя критика — кто, когда и откуда, — потом критика содержания.",
+"de": "„Introduction aux études historiques“ (1898)."
+},
+"rule": "Before retelling a 'find', establish where the document came from and the chain it passed through.",
+"needs": {
+"code": "covered",
+"note": "applied: found-document and first-source lines"
+}
+},
+{
+"id": "bernheim",
+"name": "Ernst Bernheim",
+"name_ru": "Эрнст Бернгейм",
+"years": "1850–1942",
+"wiki": "https://en.wikipedia.org/wiki/Ernst_Bernheim",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Lehrbuch der historischen Methode' (1889): remains of an event (documents, objects) are distinguished from traditions about it (retellings); a retelling is weaker evidence.",
+"ru": "«Учебник исторического метода» (1889): остатки события (документы, вещи) отличают от преданий о нём (пересказов); пересказ — более слабое свидетельство.",
+"de": "„Lehrbuch der historischen Methode“ (1889)."
+},
+"rule": "'According to someone' is weaker than 'according to the document'; say which one the story rests on.",
+"needs": {
+"code": "covered",
+"note": "applied: 'according to' and 'reportedly' read as claims (Searle)"
+}
+},
+{
+"id": "bloch",
+"name": "Marc Bloch",
+"name_ru": "Марк Блок",
+"years": "1886–1944",
+"wiki": "https://en.wikipedia.org/wiki/Marc_Bloch",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Historian's Craft' (published 1949): the most reliable witnesses are 'witnesses in spite of themselves' — sources that did not set out to tell anything.",
+"ru": "«Ремесло историка» (издано в 1949): надёжнее всего «свидетели поневоле» — источники, которые не собирались ничего сообщать.",
+"de": "„Apologie pour l'histoire“ (1949)."
+},
+"rule": "Give more weight to incidental traces — data, timetables, logs — than to statements made for effect.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'witnesses in spite of themselves' (Bloch + Wikipedia attention + volatility): incidental data traces as a check on statements"
+}
+},
+{
+"id": "nida",
+"name": "Eugene Nida",
+"name_ru": "Юджин Найда",
+"years": "1914–2011",
+"wiki": "https://en.wikipedia.org/wiki/Eugene_Nida",
+"zone": "look_alike",
+"idea": {
+"en": "'Toward a Science of Translating' (1964): word-for-word correspondence can shift the meaning; translate the meaning.",
+"ru": "«К науке о переводе» (1964): дословное соответствие может сдвинуть смысл; переводить нужно смысл.",
+"de": "„Toward a Science of Translating“ (1964)."
+},
+"rule": "In a translated story, check what the original term meant in the source language.",
+"needs": {
+"code": "covered",
+"note": "applied: passport translation line (quote the original, compare language versions)"
+}
+},
+{
+"id": "reiss",
+"name": "Katharina Reiss",
+"name_ru": "Катарина Райс",
+"years": "1923–2018",
+"wiki": "https://en.wikipedia.org/wiki/Katharina_Reiss",
+"zone": "look_alike",
+"idea": {
+"en": "'Möglichkeiten und Grenzen der Übersetzungskritik' (1971): a translation can only be judged against the original, allowing for the type and purpose of the text.",
+"ru": "«Возможности и границы критики перевода» (1971): перевод оценивают только сравнением с оригиналом, с учётом типа и цели текста.",
+"de": "„Möglichkeiten und Grenzen der Übersetzungskritik“ (1971)."
+},
+"rule": "When language versions of a story differ, find the original and compare.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'one story, three languages' (Reiss + Nida + echo check): compare the same story's headlines in en/de/ru"
+}
+},
+{
+"id": "newmark",
+"name": "Peter Newmark",
+"name_ru": "Питер Ньюмарк",
+"years": "1916–2011",
+"wiki": "https://en.wikipedia.org/wiki/Peter_Newmark",
+"zone": "look_alike",
+"idea": {
+"en": "'Approaches to Translation' (1981): semantic translation stays with the original, communicative translation with the reader.",
+"ru": "«Подходы к переводу» (1981): семантический перевод держится оригинала, коммуникативный — читателя.",
+"de": "„Approaches to Translation“ (1981)."
+},
+"rule": "A close quote and a reader-friendly paraphrase are different things; the second is already an interpretation.",
+"needs": {
+"code": "covered",
+"note": "applied: passport translation line"
+}
+},
+{
+"id": "chukovsky",
+"name": "Korney Chukovsky",
+"name_ru": "Корней Чуковский",
+"years": "1882–1969",
+"wiki": "https://en.wikipedia.org/wiki/Korney_Chukovsky",
+"zone": "look_alike",
+"idea": {
+"en": "'Высокое искусство' (1941; 'Принципы художественного перевода', 1919): literalism distorts meaning, and translators write their own style into the text.",
+"ru": "«Высокое искусство» (1941; «Принципы художественного перевода», 1919): буквализм искажает смысл, а переводчик вписывает в текст свой стиль.",
+"de": "„Hohe Kunst“ (1941)."
+},
+"rule": "Compare the tone and evaluative words of a translation with the original.",
+"needs": {
+"code": "covered",
+"note": "applied: loaded-word line in three languages (tone)"
+}
+},
+{
+"id": "montgomery_rh",
+"name": "Robert H. Montgomery",
+"name_ru": "Роберт Монтгомери",
+"years": "1872–1953",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Hiester_Montgomery",
+"zone": "measurement_error",
+"idea": {
+"en": "'Auditing Theory and Practice' (1912): assets are verified independently, not only from the company's own papers.",
+"ru": "«Теория и практика аудита» (1912): активы проверяют независимо, а не только по бумагам компании.",
+"de": "„Auditing Theory and Practice“ (1912)."
+},
+"rule": "Confirm a figure a company gives about itself with an independent source.",
+"needs": {
+"code": "covered",
+"note": "applied: company self-claims ('declared sound') read as claims"
+}
+},
+{
+"id": "ripley",
+"name": "William Z. Ripley",
+"name_ru": "Уильям Рипли",
+"years": "1867–1941",
+"wiki": "https://en.wikipedia.org/wiki/William_Z._Ripley",
+"zone": "measurement_error",
+"idea": {
+"en": "'Main Street and Wall Street' (1927): holding structures without full audited accounts hide the real position.",
+"ru": "«Мейн-стрит и Уолл-стрит» (1927): холдинговые схемы без полной проверенной отчётности скрывают настоящее положение.",
+"de": "„Main Street and Wall Street“ (1927)."
+},
+"rule": "'Sound' without published audited accounts is a claim, not a fact.",
+"needs": {
+"code": "covered",
+"note": "applied: 'declared sound / solvent' read as a claim, not a fact"
+}
+},
+{
+"id": "briloff",
+"name": "Abraham J. Briloff",
+"name_ru": "Абрахам Брилофф",
+"years": "1917–2013",
+"wiki": "https://en.wikipedia.org/wiki/Abraham_J._Briloff",
+"zone": "measurement_error",
+"idea": {
+"en": "'Unaccountable Accounting' (1972): profit can be 'drawn' by lawful choices of accounting methods.",
+"ru": "«Неподотчётный учёт» (1972): прибыль можно «нарисовать» законным выбором учётных приёмов.",
+"de": "„Unaccountable Accounting“ (1972)."
+},
+"rule": "In 'record profit' news, look for the accounting standard and one-off items.",
+"needs": {
+"code": "covered",
+"note": "applied: extraordinary-claim line (record profit + few outlets)"
+}
+},
+{
+"id": "gilbert_gk",
+"name": "Grove Karl Gilbert",
+"name_ru": "Гроув Карл Гилберт",
+"years": "1843–1918",
+"wiki": "https://en.wikipedia.org/wiki/Grove_Karl_Gilbert",
+"zone": "answer_cost",
+"idea": {
+"en": "'Finley's Tornado Predictions' (1884): a forecaster who always says 'no tornado' scores a high hit rate; skill must be measured against chance.",
+"ru": "«Прогнозы торнадо Финли» (1884): прогноз «торнадо не будет» всегда даёт высокий процент попаданий; мастерство надо мерить с поправкой на случайность.",
+"de": "„Finley's Tornado Predictions“ (1884)."
+},
+"rule": "Judge a forecaster by skill above chance over the whole record, not by the share of hits.",
+"needs": {
+"code": "covered",
+"note": "the Pearson sensor and Brier score judge forecasts by skill, not hit share",
+"covered_by": "pearson"
+}
+},
+{
+"id": "brinton",
+"name": "Willard C. Brinton",
+"name_ru": "Уиллард Бринтон",
+"years": "1880–1957",
+"wiki": "https://en.wikipedia.org/wiki/Willard_C._Brinton",
+"zone": "measurement_error",
+"idea": {
+"en": "'Graphic Methods for Presenting Facts' (1914): a scale starts at zero; comparing areas instead of lengths exaggerates differences.",
+"ru": "«Графические методы представления фактов» (1914): шкала начинается с нуля; сравнение площадями вместо длин преувеличивает разницу.",
+"de": "„Graphic Methods for Presenting Facts“ (1914)."
+},
+"rule": "Check where the zero is on a chart and whether areas stand in for lengths.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor checks scale and units",
+"covered_by": "baird"
+}
+},
+{
+"id": "bertin",
+"name": "Jacques Bertin",
+"name_ru": "Жак Бертен",
+"years": "1918–2010",
+"wiki": "https://en.wikipedia.org/wiki/Jacques_Bertin",
+"zone": "measurement_error",
+"idea": {
+"en": "'Sémiologie graphique' (1967): size is for quantity, hue for difference in kind — not for 'more or less'.",
+"ru": "«Графическая семиология» (1967): размер — для количества, оттенок цвета — для различия по роду, а не для «больше-меньше».",
+"de": "„Sémiologie graphique“ (1967)."
+},
+"rule": "If a map uses hue to mean 'more or less', ask for the numbers.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor checks scale and units",
+"covered_by": "baird"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

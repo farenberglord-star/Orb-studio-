@@ -47,3 +47,13 @@ test("German 'plant' still reads as a plan, English 'drones to strike two ships'
   assert.ok(P("Regierung plant neue Steuer auf Kerosin", 3).fired.includes("not_event"));
   assert.equal(P("Ukraine used naval drones to strike two Russian ships", 3).speech_act, "event");
 });
+// Партия Грока «профессии проверки» 24.11.2026: подлинные заголовки
+const CHECKERS = [
+  { h: "1440 Map Depicts the New World", v: 3, src: "NYT 11.10.1965 — Vinland Map, anatase ink from the 1920s (McCrone)", ok: (p) => p.fired.includes("found_document") && p.confidence !== "high" },
+  { h: "THE DIARIES OF HITLER ARE REPORTED FOUND BY GERMAN WEEKLY", v: 4, src: "NYT 23.04.1983 — forged (Langlois and Seignobos)", ok: (p) => p.fired.includes("found_document") && p.fired.includes("not_event") },
+  { h: "SALES RISE RAPIDLY IN KREUGER STOCK; CONCERNS DECLARED SOUND", v: 3, src: "NYT 13.03.1932 — books 'grossly wrong' three weeks later (Ripley)", ok: (p) => p.fired.includes("not_event") },
+  { h: "Polish and U.S. Translations Differ", v: 2, src: "NYT 01.01.1978 — Carter's Warsaw interpreter (Reiss)", ok: (p) => p.say.some((s) => /translation/.test(s)) },
+  { h: "MARTIANS BUILD TWO IMMENSE CANALS IN TWO YEARS", v: 1, src: "NYT 27.08.1911 — 'canali' mistranslated, optical illusion (Nida)", ok: (p) => p.confidence === "low" },
+  { h: "STORM MOVES ON JERSEY; It Will Hit Southern Part of State by Tonight, Bureau Reports", v: 4, src: "NYT 21.09.1938 — the hurricane hit Long Island and New England (G. K. Gilbert)", ok: (p) => p.fired.includes("not_event") },
+];
+for (const d of CHECKERS) test(`checkers drill: ${d.h}`, () => assert.ok(d.ok(P(d.h, d.v)), d.src));

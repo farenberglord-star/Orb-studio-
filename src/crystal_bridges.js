@@ -104,6 +104,15 @@ export const CRYSTAL_BRIDGES = [
   B("moral_panic", "Size of the incident vs size of the alarm", "Размер случая и размер тревоги", "side_effects", "idea", ["cohen_s", "kasperson", "osgood"]),
   B("pseudo_event", "Staged for the cameras", "Устроено для камер", "rumour_vs_fact", "idea", ["boorstin", "searle"]),
   B("mean_world", "The stream feels more dangerous than the base rate", "Поток кажется опаснее, чем по статистике", "measurement_error", "idea", ["gerbner", "pareto", "laplace"]),
+  // Профессии проверки 1900–2026 (Грок, 24.11.2026)
+  B("impossible_at_date", "Impossible at the claimed date", "Невозможно на заявленную дату", "stale_data", "line", ["mccrone", "valla", "casaubon", "langlois"], { line: "news passport: found-document line now catches dated artefacts and found diaries" }),
+  B("remains_vs_tradition", "Document or retelling", "Документ или пересказ", "rumour_vs_fact", "line", ["bernheim", "bartlett", "schleicher"]),
+  B("translation_shift", "Meaning shifts in translation", "Смысл сдвигается при переводе", "look_alike", "line", ["nida", "newmark", "chukovsky"], { line: "news passport: translation line — quote the original, compare language versions" }),
+  B("one_story_three_languages", "One story in three languages", "Одна новость на трёх языках", "look_alike", "idea", ["reiss", "nida", "condorcet"]),
+  B("self_declared_sound", "'Declared sound' is a claim", "«Признано надёжным» — это заявление", "measurement_error", "line", ["montgomery_rh", "ripley", "briloff"]),
+  B("skill_not_hits", "Skill, not the share of hits", "Мастерство, а не доля попаданий", "answer_cost", "covered", ["gilbert_gk", "burkov", "pearson"], { sensor: "pearson" }),
+  B("chart_honesty", "Where is zero on the chart", "Где ноль на графике", "measurement_error", "covered", ["brinton", "bertin", "stevens_ss"], { sensor: "baird" }),
+  B("witness_in_spite", "Witnesses in spite of themselves", "Свидетели поневоле", "rumour_vs_fact", "idea", ["bloch", "osborn"]),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
