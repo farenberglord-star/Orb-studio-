@@ -138,6 +138,9 @@ export const CRYSTAL_BRIDGES = [
   B("evidence_scale", "Weak evidence is called weak", "Слабое свидетельство называй слабым", "measurement_error", "idea", ["jeffreys", "lindley", "harman"]),
   B("conflicting_sources", "Who supports which version", "Кто за какую версию", "one_model", "covered", ["rescher", "condorcet", "reiss"], { line: "Reiss names differing versions and outlets" }),
   B("surprising_confirmation", "A surprising confirmation weighs more", "Неожиданное подтверждение весит больше", "rumour_vs_fact", "idea", ["polya", "hume", "bayes"]),
+  B("ruin_vs_share", "Ruin grows with the share at risk", "Разорение растёт с долей под риском", "answer_cost", "ready", ["lundberg_f", "cramer", "borch"]),
+  B("longer_record_bigger_extreme", "A longer record, a bigger extreme", "Длиннее история — больше крайний случай", "measurement_error", "covered", ["gumbel", "mandelbrot", "pareto"], { sensor: "pareto" }),
+  B("edge_of_the_table", "The edge of the table", "Край таблицы", "measurement_error", "covered", ["steffensen", "parducci", "leamer"], { line: "level_vs_30d min and max" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

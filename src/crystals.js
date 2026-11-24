@@ -11346,6 +11346,79 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "surprising confirmations: a story confirmed by an outlet that usually disagrees weighs more"
 }
+},
+{
+"id": "lundberg_f",
+"name": "Filip Lundberg",
+"name_ru": "Филип Лундберг",
+"years": "1876–1965",
+"wiki": "https://en.wikipedia.org/wiki/Filip_Lundberg",
+"zone": "answer_cost",
+"idea": {
+"en": "Collective risk theory (1903), the Lundberg inequality: the probability of ruin falls exponentially as the reserve grows relative to the risk taken — and rises sharply as the share of capital at risk grows.",
+"ru": "Коллективная теория риска (1903), неравенство Лундберга: вероятность разорения падает экспоненциально с ростом резерва относительно принятого риска — и резко растёт с долей капитала под риском.",
+"de": "Kollektive Risikotheorie (1903), Lundberg-Ungleichung: Ruinwahrscheinlichkeit fällt exponentiell mit der Reserve."
+},
+"rule": "Ruin depends on the share of capital at risk, not on being right on average; a larger share raises it far faster than linearly.",
+"needs": {
+"code": "ready",
+"note": "crypto passport block: loss after a streak of k losing trades at 0.5 / 1 / 2 / 5% risk per trade, against the longest losing streak of daily BTC/ETH/XRP moves — waits for yes"
+}
+},
+{
+"id": "gumbel",
+"name": "Emil Julius Gumbel",
+"name_ru": "Эмиль Юлиус Гумбель",
+"years": "1891–1966",
+"wiki": "https://en.wikipedia.org/wiki/Emil_Julius_Gumbel",
+"zone": "measurement_error",
+"idea": {
+"en": "'Statistics of Extremes' (1958): extremes follow their own laws; the longer the period, the larger the largest value to expect (return periods).",
+"ru": "«Статистика экстремальных значений» (1958): у крайних значений свои законы; чем длиннее период, тем больше ожидаемый максимум (периоды повторяемости).",
+"de": "„Statistics of Extremes“ (1958): je länger der Zeitraum, desto größer das zu erwartende Maximum."
+},
+"rule": "The worst move in a short history is not the worst case; say how long the record is.",
+"needs": {
+"code": "covered",
+"note": "the Pareto sensor reports the largest jump against the median; crypto history starts 12.11.2026",
+"covered_by": "pareto"
+}
+},
+{
+"id": "borch",
+"name": "Karl Borch",
+"name_ru": "Карл Борх",
+"years": "1919–1986",
+"wiki": "https://en.wikipedia.org/wiki/Karl_H._Borch",
+"zone": "answer_cost",
+"idea": {
+"en": "'The Economics of Uncertainty' (1968) and Borch's theorem on reinsurance: a large risk is best shared among several holders so that no single one carries a loss it cannot survive.",
+"ru": "«Экономика неопределённости» (1968) и теорема Борха о перестраховании: крупный риск лучше разделить между несколькими держателями, чтобы ни один не нёс убытка, которого не переживёт.",
+"de": "„The Economics of Uncertainty“ (1968), Borch-Theorem: große Risiken auf mehrere Träger verteilen."
+},
+"rule": "Do not let one position or one source carry a loss the whole cannot survive.",
+"needs": {
+"code": "needs_idea",
+"note": "concentration of exposure across coins in the crypto passport"
+}
+},
+{
+"id": "steffensen",
+"name": "Johan Frederik Steffensen",
+"name_ru": "Йохан Фредерик Стеффенсен",
+"years": "1873–1961",
+"wiki": "https://en.wikipedia.org/wiki/Johan_Frederik_Steffensen",
+"zone": "measurement_error",
+"idea": {
+"en": "'Interpolation' (1927): the error of an interpolation formula grows towards the edges of the table and beyond them.",
+"ru": "«Интерполяция» (1927): ошибка формулы интерполяции растёт к краям таблицы и за ними.",
+"de": "„Interpolation“ (1927): der Fehler wächst zu den Rändern der Tafel hin."
+},
+"rule": "Estimates at the edge of the data are the least reliable; say when a reading lies outside the range seen so far.",
+"needs": {
+"code": "covered",
+"note": "applied: level_vs_30d gives min and max of the 30-day range, so a reading outside it is visible"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
