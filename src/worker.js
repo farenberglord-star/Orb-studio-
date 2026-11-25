@@ -112,6 +112,7 @@ import { bridgesReport } from "./crystal_bridges.js";
 import { rabinReport, rabinPick, rabinMatch, pageTitles, RABIN_PER_HOUR, RABIN_KEEP } from "./rabin.js"; // «Халперн»: какие заголовки сдвинули индекс // «Кокс»: сколько живёт новость на радарах // «Импульс»: чьи датчики реально используют внешние агенты
 import { PARK_SYSTEM, PARK_TOOL, PARK_MS, PARK_MAX, parkUser, checkPark, parkReport } from "./park.js"; // датчик «Парк»: признаки лженауки в научных заголовках // портал датчиков в честь учёных // датчик «Поляк»: разовый скачок или устойчивый сдвиг индексов // датчик «Микрин»: путь новости от источника до эфира // датчик «Гамильтон»: что работает, что отброшено ради главного и почему
 import { interviewGate, INTERVIEW_TOOLS, checkInterview, listChecks, interviewDaily, interviewEvents, clipQueue, clipAccuracy } from "./interview.js"; // Проверка интервью (/tools/interview)
+import { FEED_COLS, newFeedStats, failReason, feedReport } from "./feedlog.js"; // журнал исходов лент по слотам (/api/v1/feed-health)
 import { INBOX, receiveInbox, listInbox, ackInbox, purgeInbox, tokenOk } from "./inbox.js"; // Входящие от внешних агентов (/api/v1/inbox)
 import { clipsGate, CLIPS_TOOLS, getClips, predictClip, findCandidates, normalizeSegments } from "./clips.js"; // Эмоциональные тайм-коды (/tools/clips)
 import { courtGate, INVESTIGATE_TOOL, investigateThreat, courtOnCase, setRadarProvider, setCourtLangPicker } from "./court.js"; // Суд агентов (/tools/court) — отдельный модуль раздела «Инструменты»
@@ -318,7 +319,7 @@ function withSlot(fn) {
 // Если лента не ответила, берём её прошлую копию (до 48 часов). За один запуск — не больше 30 сетевых запросов к лентам.
 const feedKey = (u) => "feed:" + u.replace(/^https?:\/\//, "").slice(0, 300);
 async function loadFeedCache(env, urls) {
-  const fc = { map: new Map(), writes: [], budget: 30 };
+  const fc = { map: new Map(), writes: [], budget: 30, st: newFeedStats() };
   if (!env || !env.DB || !urls.length) return fc;
   try {
     const keys = urls.map(feedKey);
@@ -336,24 +337,30 @@ async function saveFeedCache(env, fc) {
 }
 async function fetchFeed(url, env, fc) {
   if (!fc) return withSlot(() => fetchFeedNow(url));
-  const k = feedKey(url), c = fc.map.get(k);
+  const k = feedKey(url), c = fc.map.get(k), st = fc.st;
   const fresh = url.includes("news.google.com") ? 20 * 60e3 : 10 * 60e3;
-  if (c && Date.now() - c.ts < fresh) return c.items;
+  if (st) st.asked++;
+  if (c && Date.now() - c.ts < fresh) { if (st) st.fresh++; return c.items; }
   if (fc.budget > 0) {
     fc.budget--;
-    const items = await withSlot(() => fetchFeedNow(url));
-    if (items.length) { fc.writes.push([k, items]); return items; }
-  }
-  return c && Date.now() - c.ts < 48 * 3600e3 ? c.items : [];
+    const out = {};
+    if (st) st.fetched++;
+    const items = await withSlot(() => fetchFeedNow(url, out));
+    if (items.length) { if (st) st.ok++; fc.writes.push([k, items]); return items; }
+    if (st) st[out.reason || "empty"]++;
+  } else if (st) st.skipped++;
+  const old = c && Date.now() - c.ts < 48 * 3600e3;
+  if (st) { if (old) st.stale++; else st.none++; }
+  return old ? c.items : [];
 }
-async function fetchFeedNow(url) {
+async function fetchFeedNow(url, out) {
   try {
     const r = await fetch(url, {
       signal: AbortSignal.timeout(7000), // медленная лента пропускается, а не тормозит весь радар
       headers: { "User-Agent": "OrbStudio/1.0 (+news radar)" },
       cf: { cacheTtl: 300, cacheEverything: true },
     });
-    if (!r.ok) return [];
+    if (!r.ok) { if (out) out.reason = "http"; return []; }
     const xml = await r.text();
     const items = xml.split(/<item[\s>]/i).slice(1, 25);
     return items.map((b) => {
@@ -366,7 +373,28 @@ async function fetchFeedNow(url) {
       const pub = Date.parse(tag(b, "pubDate")) || Date.now();
       return { title: stripInvisible(title).replace(/\s+/g, " ").trim(), source: stripInvisible(source), url: tag(b, "link"), ts: pub };
     }).filter((x) => x.title);
-  } catch { return []; }
+  } catch (e) { if (out) out.reason = failReason(e); return []; }
+}
+// Журнал исходов лент: строка на 30-минутный слот, счётчики складываются (feed_log)
+let feedLogReady = false;
+async function feedLogWrite(env, fc, data) {
+  if (!env || !env.DB || !fc || !fc.st) return;
+  try {
+    if (!feedLogReady) {
+      await env.DB.prepare("CREATE TABLE IF NOT EXISTS feed_log (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL" + FEED_COLS.map((c) => ", " + c + " INTEGER NOT NULL DEFAULT 0").join("") + ")").run();
+      feedLogReady = true;
+    }
+    const now = Date.now(), slot = Math.floor(now / 18e5), st = fc.st;
+    const vals = { runs: 1, ...st, empty_radars: (data || []).filter((r) => !r.feed.length).length };
+    const cols = FEED_COLS;
+    await env.DB.prepare(`INSERT INTO feed_log (slot, ts, ${cols.join(", ")}) VALUES (?1, ?2, ${cols.map((_, i) => "?" + (i + 3)).join(", ")}) ON CONFLICT(slot) DO UPDATE SET ${cols.map((c) => c + " = " + c + " + excluded." + c).join(", ")}`).bind(slot, now, ...cols.map((c) => vals[c] || 0)).run();
+    if (slot % 48 === 0) await env.DB.prepare("DELETE FROM feed_log WHERE ts < ?1").bind(now - 35 * 864e5).run();
+  } catch (e) {}
+}
+async function feedHealthNow(env) {
+  let rows = [];
+  try { rows = (await env.DB.prepare("SELECT * FROM feed_log WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 7 * 864e5).all()).results || []; } catch (e) {}
+  return { day: feedReport(rows, Date.now(), 24), week: feedReport(rows, Date.now(), 168) };
 }
 
 // ---------- Kraken ----------
@@ -503,6 +531,7 @@ async function allRadars(env, ctx, origin) {
       const fc = await loadFeedCache(env, [...new Set(RADARS.flatMap((d) => d.feeds))]);
       let data = await Promise.all(RADARS.map((d) => buildRadar(d, env, fc)));
       await saveFeedCache(env, fc);
+      await feedLogWrite(env, fc, data);
       // если лента радара не ответила вовремя, оставляем его прошлые заголовки, а не пустой радар
       if (data.some((r) => !r.feed.length)) {
         const prevResp = await cache.match(stale);
@@ -9765,6 +9794,7 @@ async function handleRequest(request, env, ctx) {
       const { http, ...d } = await bafinData();
       return json(d, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" }, http || 200);
     }
+    if (url.pathname === "/api/v1/feed-health") return json(await feedHealthNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
     if (url.pathname === "/api/v1/scheler") return json(await schelerNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
     if (url.pathname === "/api/v1/weather/warnings-de") {
       const { http, ...d } = await dwdWarnData(env, url.searchParams.get("state"));

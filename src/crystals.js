@@ -13704,8 +13704,8 @@ export const CRYSTALS = [
 },
 "rule": "Do not read a delay or a dropped request as a fact about the world; first ask how close the channel was to full load at that moment.",
 "needs": {
-"code": "needs_idea",
-"note": "share of cron slots where the fetch budget (30) or the 7 s timeout was hit; needs a per-slot journal of feed outcomes, which we do not keep today (it would also have shown the 23-25.11 radar dips directly)"
+"code": "needs_history",
+"note": "share of cron slots where the fetch budget (30) or the 7 s timeout was hit; the journal feed_log (/api/v1/feed-health) runs since 25.11.2026, a week of data is needed"
 }
 },
 {
