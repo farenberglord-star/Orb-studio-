@@ -359,3 +359,8 @@
 - Поляк: к verdict shift/jump у «галлюцинаций» и «согласия» добавлено `contributors` (до 5 заголовков, вошедших за 3 часа или выпавших, со ссылками из живых лент; считаем по словам, не по смыслу). У token_hunger и geo_radar вклад не считается (нет слов, на которых построен индекс).
 - Новый вход `/api/v1/ask?q=` и MCP `ask_orb`: свободный вопрос → живые заголовки радаров со ссылками и список инструментов дальше. Без ИИ, это указатель, не ответ. Словесный ответ — по-прежнему ask_david. Строка в llms.txt, NEW_TOOLS, MCP_INSTRUCTIONS.
 - `/api/v1/bridges` — второй адрес каталога мостиков (то же, что /api/v1/crystal-bridges).
+
+## 2026-11-25 — «Паспорт новости — главный ответ»: новости по теме с паспортом (превью, ветка preview/bridges-catalog)
+- `/api/v1/news?topic=` и MCP `get_news_by_topic` (src/news.js): радарные заголовки по теме, у каждой строки паспорта датчик и кристаллы (PASSPORT_TABLE); `/api/v1/news-passport-table`; таблица и разбор кандидатов — docs/passport-sensor-table.md.
+- Первой строкой в llms.txt, в endpoints agent.json (файл и AGENT_JSON), в NEW_TOOLS и MCP_INSTRUCTIONS. Строки Schmidt (по radar_life.joins), Cohen_S, Park, Polyak (contributors) — в ответе; Bradford не подключён; «правки после публикации» не измеряются (null).
+- Текущие паспорта, карточки и датчики не менялись; `newsPassport` не тронут.

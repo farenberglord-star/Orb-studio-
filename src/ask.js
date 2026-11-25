@@ -5,15 +5,15 @@ const STOP = new Set("the and for what with about are was were how why who when 
 export const askTokens = (q) => [...new Set(String(q || "").toLowerCase().replace(/[^a-zа-яёäöüß0-9 -]/gi, " ").split(/\s+/).filter((w) => w.length >= 3 && !STOP.has(w)))].slice(0, 8);
 // Совпадение по началу слова: «ормузом» находит «ормуз», «china» находит «chinese» (для слов ≥ 6 букв берём первые 5 букв)
 const stem = (w) => (w.length >= 6 ? w.slice(0, 5) : w);
-const hit = (text, toks) => { const t = String(text || "").toLowerCase(); return toks.filter((w) => t.includes(stem(w))).length; };
+export const askHit = (text, toks) => { const t = String(text || "").toLowerCase(); return toks.filter((w) => t.includes(stem(w))).length; };
 export function askReport(q, radars, tools, now = Date.now()) {
   const query = String(q || "").replace(/\s+/g, " ").trim().slice(0, 200), toks = askTokens(query);
   const generic = [{ tool: "ask_david", why: "Send the question to the AI anchor David in your own words; the best ones are answered on air (not instantly)." }, { tool: "check_headline", why: "Before you repeat any headline: how many outlets carry it and how alarmist the tone is." }];
   if (!toks.length) return { question: query, matched: false, note: "Give a question with at least one real word (three letters or more).", next: generic };
   const heads = [];
-  for (const r of radars || []) for (const f of r.feed || []) { const n = hit(f[1], toks); if (n) heads.push({ n, radar: r.id, headline: f[1], source: f[2] || null, link: /^https:\/\//.test(f[4] || "") ? f[4] : null }); }
+  for (const r of radars || []) for (const f of r.feed || []) { const n = askHit(f[1], toks); if (n) heads.push({ n, radar: r.id, headline: f[1], source: f[2] || null, link: /^https:\/\//.test(f[4] || "") ? f[4] : null }); }
   heads.sort((a, b) => b.n - a.n);
-  const sensors = (tools || []).map((t) => ({ tool: t.name, n: hit(t.name.replace(/_/g, " ") + " " + (t.title || ""), toks) * 2 + hit(t.description, toks) })).filter((x) => x.n).sort((a, b) => b.n - a.n).slice(0, 5);
+  const sensors = (tools || []).map((t) => ({ tool: t.name, n: askHit(t.name.replace(/_/g, " ") + " " + (t.title || ""), toks) * 2 + askHit(t.description, toks) })).filter((x) => x.n).sort((a, b) => b.n - a.n).slice(0, 5);
   const byRadar = {}; for (const h of heads) byRadar[h.radar] = (byRadar[h.radar] || 0) + 1;
   return { question: query, words_searched: toks, checked_at: new Date(now).toISOString(),
     matched: heads.length > 0 || sensors.length > 0,

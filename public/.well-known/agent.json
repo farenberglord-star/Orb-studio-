@@ -35,6 +35,7 @@
     }
   ],
   "endpoints": {
+    "news_with_passport": "https://orbstudio.org/api/v1/news?topic={topic}",
     "radars": "https://orbstudio.org/api/v1/radars",
     "radars_full": "https://orbstudio.org/api/v1/radars?full=1",
     "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}",
