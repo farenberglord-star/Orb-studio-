@@ -7,6 +7,7 @@ Site: https://orbstudio.org
 ## New this week (24.11.2026)
 - [Check a claim before you repeat it](https://orbstudio.org/api/v1/check-claim?claim=) (check_claim): should you repeat this claim as a fact and how to word it. One free call: status (event, statement, promise, threat, forecast, question), checkability, tone, outlets and age if it is on the radars, confidence and plain 'say' lines. Word rules, no AI; it does not decide what is true.
 - [Which sensors to rely on now](https://orbstudio.org/api/v1/freshness) (get_freshness): now opens with an answer block: sensors to use now, to check the age of first, and not to rely on (timeliness only).
+- [Measured but not reported](https://orbstudio.org/api/v1/scheler) (get_scheler): share of official DWD level 3+ warnings with no matching headline on our radars within 24 h; collecting first, not a statement about all media.
 - [German weather warnings](https://orbstudio.org/api/v1/weather/warnings-de) (get_dwd_warnings): official DWD warnings now by level and state with the level 3+ groups; passed through, no rating or forecast; optional ?state=Hamburg.
 - [Flow and response](https://orbstudio.org/api/v1/simmel) (get_simmel): whether the radar indices move less when many new stories arrive within 30 minutes; a link between two series, not a cause.
 - [Where the passport is silent](https://orbstudio.org/api/v1/ashby) (get_ashby): the share of radar stories on which the news passport has no line about what the headline says; silent means no rule matched, not that the story was checked.
