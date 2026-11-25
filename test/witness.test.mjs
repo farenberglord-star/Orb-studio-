@@ -71,3 +71,9 @@ test("worker registers brief, witness, get_brief, page stamps, sitemap and llms-
   const ap = JSON.parse(readFileSync(new URL("../public/.well-known/ai-plugin.json", import.meta.url), "utf8"));
   assert.equal(ap.api.url, "https://orbstudio.org/openapi.json"); assert.equal(ap.auth.type, "none");
 });
+
+test("assembleBrief: same slot and content give the same id even at another second", async () => {
+  const d = newsBrief(items, radars, NOW);
+  const a = await assembleBrief("news", d, NOW), b = await assembleBrief("news", d, NOW + 7000);
+  assert.equal(a.passport_id, b.passport_id);
+});

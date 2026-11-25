@@ -54,7 +54,8 @@ export function cryptoBrief(cp, sensors) {
 export async function assembleBrief(topic, data, now = Date.now()) {
   const slot = slotStart(now);
   const body = { schema: "orb.brief.v1", topic, slot: new Date(slot).toISOString(), generated_at: new Date(now).toISOString(), valid_minutes: 30, language: "en", ...data, rule: BRIEF_RULE };
-  const id = `orb-wit-${ymd(slot)}-${hm(slot)}-${(await sha256hex(canonicalJson(body))).slice(0, 6)}`;
+  const { generated_at, ...stable } = body; // номер не зависит от секунды генерации: два запроса в один слот с одним содержимым дают один номер
+  const id = `orb-wit-${ymd(slot)}-${hm(slot)}-${(await sha256hex(canonicalJson(stable))).slice(0, 6)}`;
   return { ...body, passport_id: id, witness_url: `${ORIGIN}/api/v1/agents/witness/${id}` };
 }
 
