@@ -12044,6 +12044,264 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "state the question a sensor or headline check answers, next to its number; no measurable form yet"
 }
+},
+{
+"id": "rittel_h",
+"name": "Horst Rittel",
+"name_ru": "Хорст Риттель",
+"years": "1930–1990",
+"wiki": "https://en.wikipedia.org/wiki/Horst_Rittel",
+"zone": "side_effects",
+"idea": {
+"en": "'Dilemmas in a General Theory of Planning' (1973, with Webber): wicked problems have no definitive formulation and no stopping rule, and every attempted solution is a one-shot act that leaves traces.",
+"ru": "«Дилеммы общей теории планирования» (1973, с Уэббером): у «злых» проблем нет окончательной формулировки и правила остановки, а каждая попытка решения — разовое действие, которое оставляет следы.",
+"de": "„Dilemmas in a General Theory of Planning“ (1973, mit Webber): Bösartige Probleme haben keine endgültige Formulierung und keine Stoppregel, und jede Lösung ist eine einmalige Handlung mit Spuren."
+},
+"rule": "Do not promise a final fix for a problem with no stopping rule; name the traces an intervention leaves.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'spill-over between radars': how many neighbouring radars change trend within 90 minutes after a jump; all eight radar levels are stored since 23.11.2026",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "lindblom_c",
+"name": "Charles E. Lindblom",
+"name_ru": "Чарльз Линдблом",
+"years": "1917–2018",
+"wiki": "https://en.wikipedia.org/wiki/Charles_E._Lindblom",
+"zone": "answer_cost",
+"idea": {
+"en": "'The Science of \"Muddling Through\"' (1959): in complex decisions people compare a few alternatives close to the present state in small steps instead of waiting for a full analysis.",
+"ru": "«Наука „выкручиваться“» (1959): в сложных решениях люди сравнивают несколько близких к нынешнему состоянию вариантов малыми шагами, а не ждут полного анализа.",
+"de": "„The Science of ‚Muddling Through‘“ (1959): Bei komplexen Entscheidungen vergleichen Menschen wenige, dem Ist-Zustand nahe Alternativen in kleinen Schritten, statt eine Vollanalyse abzuwarten."
+},
+"rule": "Compare close alternatives in small steps and re-check after each; do not wait for a full analysis.",
+"needs": {
+"code": "needs_idea",
+"note": "how many half-hour recalculations a story needs before its radar value settles; not defined yet"
+}
+},
+{
+"id": "burke_k",
+"name": "Kenneth Burke",
+"name_ru": "Кеннет Берк",
+"years": "1897–1993",
+"wiki": "https://en.wikipedia.org/wiki/Kenneth_Burke",
+"zone": "own_limits",
+"idea": {
+"en": "'Permanence and Change' (1935): a way of seeing is also a way of not seeing; attention fixed on one aspect hides the others (trained incapacity).",
+"ru": "«Постоянство и перемена» (1935): способ видеть — это и способ не видеть; внимание, прикованное к одной стороне, скрывает остальные («натренированная неспособность»).",
+"de": "„Permanence and Change“ (1935): Eine Sichtweise ist auch eine Art, etwas nicht zu sehen; Aufmerksamkeit auf einen Aspekt verdeckt die übrigen."
+},
+"rule": "Say which aspect the frame of your answer leaves out.",
+"needs": {
+"code": "needs_idea",
+"note": "list what a dominant headline hides: share of sensors unrelated to it that are silent at that time; no tested rule yet"
+}
+},
+{
+"id": "innis_h",
+"name": "Harold Innis",
+"name_ru": "Гарольд Иннис",
+"years": "1894–1952",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Innis",
+"zone": "stale_data",
+"idea": {
+"en": "'The Bias of Communication' (1951): each medium favours either lasting through time or reaching across space, so the channel shapes what the message can carry.",
+"ru": "«Смещение коммуникации» (1951): каждый носитель выигрывает либо в долговечности во времени, либо в охвате в пространстве, поэтому канал определяет, что сообщение способно нести.",
+"de": "„The Bias of Communication“ (1951): Jedes Medium begünstigt entweder Dauer in der Zeit oder Reichweite im Raum, und der Kanal prägt, was die Botschaft tragen kann."
+},
+"rule": "Ask whether the channel favours speed and reach or durability, and what that cost the message.",
+"needs": {
+"code": "needs_idea",
+"note": "compare how long a headline stays in the feeds with how often the matching sensor refreshes; not defined yet"
+}
+},
+{
+"id": "mach_e",
+"name": "Ernst Mach",
+"name_ru": "Эрнст Мах",
+"years": "1838–1916",
+"wiki": "https://en.wikipedia.org/wiki/Ernst_Mach",
+"zone": "answer_cost",
+"idea": {
+"en": "'Die Mechanik in ihrer Entwicklung' (1883): science is an economy of thought; many observations are described by the simplest relation that still fits.",
+"ru": "«Механика в её развитии» (1883): наука — экономия мышления; множество наблюдений описывают простейшей зависимостью, которая всё ещё подходит.",
+"de": "„Die Mechanik in ihrer Entwicklung“ (1883): Wissenschaft ist Denkökonomie; viele Beobachtungen werden durch die einfachste noch passende Beziehung beschrieben."
+},
+"rule": "Use the fewest numbers that still reproduce what you see.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'how many numbers do we need' (Mach + Das + Spearman): share of variance in the first component of the 8 radar series; ix_hist keeps all 8 since 23.11.2026",
+"not_before": "2026-12-21"
+}
+},
+{
+"id": "donnellan_k",
+"name": "Keith Donnellan",
+"name_ru": "Кит Доннеллан",
+"years": "1931–2015",
+"wiki": "https://en.wikipedia.org/wiki/Keith_Donnellan",
+"zone": "own_limits",
+"idea": {
+"en": "'Reference and Definite Descriptions' (1966): a description used to point at something can still pick out the right thing even when the description is wrong about it.",
+"ru": "«Референция и определённые дескрипции» (1966): описание, которым указывают на предмет, может попадать в нужный предмет, даже если само описание о нём ошибочно.",
+"de": "„Reference and Definite Descriptions“ (1966): Eine Beschreibung, mit der man auf etwas zeigt, kann das Richtige treffen, auch wenn sie falsch ist."
+},
+"rule": "A wrong detail does not always mean a wrong event; check what the report points at.",
+"needs": {
+"code": "needs_idea",
+"note": "count headlines whose numbers are wrong but which point at the right measured event; check_headline could report it, no rule yet"
+}
+},
+{
+"id": "febvre_l",
+"name": "Lucien Febvre",
+"name_ru": "Люсьен Февр",
+"years": "1878–1956",
+"wiki": "https://en.wikipedia.org/wiki/Lucien_Febvre",
+"zone": "stale_data",
+"idea": {
+"en": "'Le problème de l'incroyance au XVIe siècle' (1942): anachronism means reading the past in the categories of another age; sixteenth-century people could not hold unbelief as we mean it.",
+"ru": "«Проблема неверия в XVI веке» (1942): анахронизм — это чтение прошлого категориями другой эпохи; люди XVI века не могли быть неверующими в нашем смысле.",
+"de": "„Le problème de l’incroyance au XVIe siècle“ (1942): Anachronismus heißt, die Vergangenheit mit den Kategorien einer anderen Zeit zu lesen."
+},
+"rule": "Read an old number or text in the categories of its own time.",
+"needs": {
+"code": "needs_idea",
+"note": "gap between publication time of a headline and the timestamp of the measured event; the Baird sensor gives age of numbers, not of categories"
+}
+},
+{
+"id": "braudel_f",
+"name": "Fernand Braudel",
+"name_ru": "Фернан Бродель",
+"years": "1902–1985",
+"wiki": "https://en.wikipedia.org/wiki/Fernand_Braudel",
+"zone": "stale_data",
+"idea": {
+"en": "'La Méditerranée et le monde méditerranéen à l'époque de Philippe II' (1949): history runs at several speeds, from quick events through medium cycles to slow structures (longue durée).",
+"ru": "«Средиземное море и средиземноморский мир в эпоху Филиппа II» (1949): история идёт с несколькими скоростями — от быстрых событий через средние циклы к медленным структурам (долгая длительность).",
+"de": "„La Méditerranée“ (1949): Geschichte läuft in mehreren Geschwindigkeiten, vom schnellen Ereignis über mittlere Zyklen bis zu langsamen Strukturen (longue durée)."
+},
+"rule": "Separate fast ripples from slow shifts before calling something a turning point.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already tells a one-off jump from a lasting shift in noisy indices",
+"covered_by": "polyak"
+}
+},
+{
+"id": "polanyi_k",
+"name": "Karl Polanyi",
+"name_ru": "Карл Поланьи",
+"years": "1886–1964",
+"wiki": "https://en.wikipedia.org/wiki/Karl_Polanyi",
+"zone": "side_effects",
+"idea": {
+"en": "'The Great Transformation' (1944): treating land, labour and money as pure market goods provokes a protective countermovement (the double movement).",
+"ru": "«Великая трансформация» (1944): попытка считать землю, труд и деньги чисто рыночными товарами вызывает защитное встречное движение («двойное движение»).",
+"de": "„The Great Transformation“ (1944): Land, Arbeit und Geld als reine Marktgüter zu behandeln, ruft eine Schutzgegenbewegung hervor (Doppelbewegung)."
+},
+"rule": "When a basic good is fully priced, look for a protective reaction.",
+"needs": {
+"code": "needs_idea",
+"note": "count protest and restriction headlines after sharp rises in energy prices; no open source tied to our data yet"
+}
+},
+{
+"id": "mises_l",
+"name": "Ludwig von Mises",
+"name_ru": "Людвиг фон Мизес",
+"years": "1881–1973",
+"wiki": "https://en.wikipedia.org/wiki/Ludwig_von_Mises",
+"zone": "own_limits",
+"idea": {
+"en": "'Die Wirtschaftsrechnung im sozialistischen Gemeinwesen' (1920): without market prices for goods planners cannot compare costs, so rational calculation fails.",
+"ru": "«Экономический расчёт в социалистическом обществе» (1920): без рыночных цен на товары плановики не могут сравнивать затраты, и рациональный расчёт невозможен.",
+"de": "„Die Wirtschaftsrechnung im sozialistischen Gemeinwesen“ (1920): Ohne Marktpreise für Güter können Planer Kosten nicht vergleichen, rationale Rechnung scheitert."
+},
+"rule": "Without a real price or measurement a comparison is a guess; flag frozen or administered values.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives the age of every published number, so a frozen value shows as an old one",
+"covered_by": "baird"
+}
+},
+{
+"id": "kornai_j",
+"name": "János Kornai",
+"name_ru": "Янош Корнаи",
+"years": "1928–2021",
+"wiki": "https://en.wikipedia.org/wiki/J%C3%A1nos_Kornai",
+"zone": "side_effects",
+"idea": {
+"en": "'Economics of Shortage' (1980): soft budget constraints, where firms expect to be rescued, produce chronic shortage and distort the signals of demand.",
+"ru": "«Экономика дефицита» (1980): мягкие бюджетные ограничения, при которых предприятия ждут спасения, порождают хронический дефицит и искажают сигналы спроса.",
+"de": "„Economics of Shortage“ (1980): Weiche Budgetbeschränkungen, bei denen Firmen Rettung erwarten, erzeugen chronische Knappheit und verzerren Nachfragesignale."
+},
+"rule": "A signal that costs the sender nothing says little; ask who bears the cost of being wrong.",
+"needs": {
+"code": "needs_idea",
+"note": "who pays for a wrong alarm: a number for how often loud headlines are followed by no measured event; joins the Cohen sensor, not defined yet"
+}
+},
+{
+"id": "myrdal_g",
+"name": "Gunnar Myrdal",
+"name_ru": "Гуннар Мюрдаль",
+"years": "1898–1987",
+"wiki": "https://en.wikipedia.org/wiki/Gunnar_Myrdal",
+"zone": "side_effects",
+"idea": {
+"en": "'An American Dilemma' (1944): circular and cumulative causation; a change sets off effects that reinforce it, so gaps widen instead of settling.",
+"ru": "«Американская дилемма» (1944): круговая и кумулятивная причинность; изменение запускает эффекты, которые его усиливают, поэтому разрывы растут, а не успокаиваются.",
+"de": "„An American Dilemma“ (1944): Zirkuläre und kumulative Verursachung; eine Änderung löst Wirkungen aus, die sie verstärken, so dass Abstände wachsen."
+},
+"rule": "Do not assume a shift fades by itself; check whether its effects feed back and reinforce it.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'spiral or bounce' (Myrdal + Hurst + Mandelbrot): lag-1 autocorrelation of half-hour increments per radar; needs weeks of history",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "kantorovich_l",
+"name": "Leonid Kantorovich",
+"name_ru": "Леонид Канторович",
+"years": "1912–1986",
+"wiki": "https://en.wikipedia.org/wiki/Leonid_Kantorovich",
+"zone": "answer_cost",
+"idea": {
+"en": "'Mathematical methods of organizing and planning production' (1939): the best use of scarce resources is set by objectively determined valuations of the bottlenecks (later called shadow prices).",
+"ru": "«Математические методы организации и планирования производства» (1939): лучшее использование ограниченных ресурсов задаётся объективно обусловленными оценками узких мест (позже — теневые цены).",
+"de": "„Mathematical Methods of Organizing and Planning Production“ (1939): Die beste Nutzung knapper Ressourcen bestimmen objektiv bedingte Bewertungen der Engpässe (später Schattenpreise)."
+},
+"rule": "Name the bottleneck and what one more unit of it is worth.",
+"needs": {
+"code": "needs_idea",
+"note": "name the bottleneck sensor of an index: which single sensor's outage moves the index most; the Halpern sensor does it for headlines, not for sensors"
+}
+},
+{
+"id": "maturana_h",
+"name": "Humberto Maturana",
+"name_ru": "Умберто Матурана",
+"years": "1928–2021",
+"wiki": "https://en.wikipedia.org/wiki/Humberto_Maturana",
+"zone": "own_limits",
+"idea": {
+"en": "'Autopoiesis and Cognition' (1980, with Varela): in the moment of experience an observer cannot tell illusion from perception; the difference is drawn afterwards.",
+"ru": "«Автопоэзис и познание» (1980, с Варелой): в момент переживания наблюдатель не отличает иллюзию от восприятия; различие проводится потом.",
+"de": "„Autopoiesis and Cognition“ (1980, mit Varela): Im Moment des Erlebens kann ein Beobachter Illusion nicht von Wahrnehmung unterscheiden."
+},
+"rule": "A feeling of seeing it clearly is not a check; test against an outside source.",
+"needs": {
+"code": "covered",
+"note": "the Rabin sensor already re-checks random published headlines against outside sources",
+"covered_by": "rabin"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
