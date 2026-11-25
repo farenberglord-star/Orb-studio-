@@ -115,3 +115,14 @@ export function llmsFull(base, tools = []) {
   for (const t of tools) if (t && t.name) L.push(`- ${t.name}: ${String(t.description || "").replace(/\s+/g, " ").trim()}`);
   return L.join("\n") + "\n";
 }
+
+// IndexNow (Bing, Яндекс и др.; Google его не поддерживает): раз в день сообщаем адреса страниц, у которых данные меняются каждый день или чаще
+export const INDEXNOW_KEY = "9f7a29feb0b46c2f7ff48d8c3a7ce7ff"; // не секрет: ключ лежит открытым файлом /<ключ>.txt
+export function indexNowPayload(xml, host = "orbstudio.org", key = INDEXNOW_KEY) {
+  const urls = [];
+  for (const blk of String(xml).match(/<url>[\s\S]*?<\/url>/g) || []) {
+    if (!/<changefreq>(hourly|daily)<\/changefreq>/.test(blk)) continue;
+    const m = blk.match(/<loc>([^<]+)<\/loc>/); if (m && m[1].startsWith("https://" + host + "/")) urls.push(m[1]);
+  }
+  return { host, key, keyLocation: `https://${host}/${key}.txt`, urlList: urls.slice(0, 1000) };
+}

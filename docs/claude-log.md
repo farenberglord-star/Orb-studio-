@@ -247,3 +247,9 @@
 - Штамп: одна строка видимого текста в начале `/indices`, `/studio`, `/roundtable` (ru/de/en по языку страницы), id в первых 200 знаках, без слов «проверено/цитируй». JSON-LD — стандартный schema.org `Dataset` (свои значения в `additionalProperty`, без `orb:`). Штамп ждёт не дольше 1,2 с, иначе страница уходит без него.
 - `/sitemap.xml` собирается на лету: lastmod hourly-страниц = текущий слот, daily = сегодня, остальные без изменений. `/llms-full.txt` = llms.txt + раздел про проверку + полные описания всех MCP-инструментов. `/.well-known/ai-plugin.json` без contact_email (чужой адрес не придумываем).
 - Что проверить через несколько дней: берут ли агенты `get_brief` и `/agents/witness`, растут ли заходы Googlebot/Bingbot на `/indices`, `/studio`.
+
+## Заголовки по задаче и IndexNow (25.11.2026, по «да» владельца)
+- Вопрос владельца: найдёт ли человек или его агент страницу датчика через Google, Яндекс, ИИ-поиск. Данные: Googlebot за неделю 36 визитов на 3 страницы, Яндекс 5, Bing 3; ИИ-краулеры читают шире (Applebot 73 страницы, Meta-AI 134, Claude-Agent 47, GPTBot 55). Названия страниц были по имени учёного, люди и агенты ищут по задаче.
+- `tools/honour_pages.py`: `TASK_TITLE` для 27 датчиков на трёх языках, заголовок = задача · имя · Orb Studio; пересобраны 81 страница (в каждой изменены только title, og:title и name в JSON-LD).
+- IndexNow: `public/9f7a29feb0b46c2f7ff48d8c3a7ce7ff.txt`, `indexNowPayload` (witness.js), `indexNowDaily` (worker.js) раз в день в ежедневном cron; результат в `shared` под ключом `indexnow-last`. Google IndexNow не поддерживает.
+- Проверить через неделю: растут ли заходы Googlebot/Bingbot/YandexBot на страницы датчиков; статус последнего пинга в `indexnow-last`.

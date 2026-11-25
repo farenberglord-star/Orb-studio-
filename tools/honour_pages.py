@@ -64,6 +64,42 @@ fetch("/api/v1/{sid}",{{headers:{{accept:"application/json"}}}}).then((r)=>r.ok?
     return head + body
 
 # ---------------- Датчики ----------------
+# Заголовки по задаче: поисковик и агент ищут по вопросу, а не по имени учёного; имя остаётся в заголовке после задачи.
+TASK_TITLE = {
+    'hamilton': {'en': 'What works and what is paused on the site', 'ru': 'Что работает и что отложено на сайте', 'de': 'Was auf der Seite läuft und was pausiert'},
+    'mikrin': {'en': 'How fast news reaches the broadcast', 'ru': 'Как быстро новость доходит до эфира', 'de': 'Wie schnell Nachrichten im Sendebetrieb ankommen'},
+    'polyak': {'en': 'One-off jump or lasting shift in an index', 'ru': 'Разовый скачок или устойчивый сдвиг индекса', 'de': 'Einmaliger Sprung oder dauerhafte Verschiebung eines Index'},
+    'park': {'en': 'Warning signs of bogus science in headlines', 'ru': 'Признаки псевдонауки в заголовках', 'de': 'Warnzeichen für Pseudowissenschaft in Schlagzeilen'},
+    'kahneman': {'en': 'Do AI models judge the same news alike?', 'ru': 'Одинаково ли ИИ оценивают одну новость', 'de': 'Bewerten KI-Modelle dieselbe Nachricht gleich?'},
+    'ziv': {'en': "How much of today's news is really new", 'ru': 'Сколько в новостях сегодня действительно нового', 'de': 'Wie viel an den Nachrichten heute wirklich neu ist'},
+    'cox': {'en': 'How long a news story lives', 'ru': 'Сколько живёт новость', 'de': 'Wie lange eine Nachricht lebt'},
+    'halpern': {'en': 'Why an index moved: which headlines caused it', 'ru': 'Почему сдвинулся индекс: какие заголовки', 'de': 'Warum sich ein Index bewegt hat: welche Meldungen'},
+    'howard': {'en': 'Retell a story now or wait for confirmation?', 'ru': 'Пересказывать новость сейчас или ждать подтверждения', 'de': 'Jetzt weitererzählen oder auf Bestätigung warten?'},
+    'leamer': {'en': 'How fragile is an index?', 'ru': 'Насколько хрупок индекс', 'de': 'Wie fragil ist ein Index?'},
+    'baird': {'en': 'Source, age and cross-checks for every sensor number', 'ru': 'Источник, возраст и перекрёстная проверка каждой цифры', 'de': 'Quelle, Alter und Gegenprüfung für jede Sensorzahl'},
+    'lyberg': {'en': 'What the news radars do not see', 'ru': 'Чего не видят новостные радары', 'de': 'Was die Nachrichten-Radare nicht sehen'},
+    'hagenauer': {'en': 'How close a published label is to flipping', 'ru': 'Насколько близка метка к смене на противоположную', 'de': 'Wie nah ein veröffentlichtes Label am Umkippen ist'},
+    'frankfurt': {'en': 'Is there anything to check in a headline?', 'ru': 'Есть ли в заголовке что проверять', 'de': 'Gibt es in einer Schlagzeile etwas zu prüfen?'},
+    'duckworth': {'en': 'Is an index really higher or lower than usual?', 'ru': 'Индекс действительно выше или ниже обычного?', 'de': 'Ist ein Index wirklich höher oder niedriger als üblich?'},
+    'trevisan': {'en': 'How few headlines give the same index', 'ru': 'Сколько заголовков хватит для того же индекса', 'de': 'Wie wenige Schlagzeilen reichen für denselben Index'},
+    'bertsekas': {'en': 'Token cost of each tool answer', 'ru': 'Сколько токенов стоит ответ каждого инструмента', 'de': 'Token-Kosten jeder Tool-Antwort'},
+    'rabin': {'en': 'Spot checks: does the headline match its source?', 'ru': 'Выборочная проверка: совпадает ли заголовок с источником', 'de': 'Stichprobe: stimmt die Schlagzeile mit der Quelle überein?'},
+    'searle': {'en': 'Did it happen, or is it a promise, threat or demand?', 'ru': 'Случилось или это обещание, угроза, требование', 'de': 'Passiert, oder nur Versprechen, Drohung, Forderung?'},
+    'simpson': {'en': 'Did an index change, or only the mix?', 'ru': 'Изменился индекс или только состав', 'de': 'Hat sich der Index geändert oder nur die Mischung?'},
+    'kasperson': {'en': 'Which stories spread far beyond their source', 'ru': 'Какие истории расходятся далеко от первоисточника', 'de': 'Welche Meldungen sich weit über ihre Quelle hinaus verbreiten'},
+    'newcomb': {'en': "Do numbers in headlines follow Benford's law?", 'ru': 'Подчиняются ли цифры в заголовках закону Бенфорда', 'de': 'Folgen Zahlen in Schlagzeilen dem Benford-Gesetz?'},
+    'pareto': {'en': 'Do a few rare jumps carry most of the movement?', 'ru': 'Несколько редких скачков дают почти всё движение?', 'de': 'Tragen wenige seltene Sprünge fast die ganze Bewegung?'},
+    'pearson': {'en': 'False alarms and missed warnings in the forecast game', 'ru': 'Ложные тревоги и пропущенные предупреждения в игре-прогнозе', 'de': 'Fehlalarme und verpasste Warnungen im Prognosespiel'},
+    'cohen': {'en': 'The smallest change a sensor can detect', 'ru': 'Наименьшее изменение, которое видит датчик', 'de': 'Die kleinste Änderung, die ein Sensor erkennt'},
+    'harman': {'en': 'Is the news passport honest about its confidence?', 'ru': 'Честна ли уверенность паспорта новости', 'de': 'Ist das Nachrichten-Passport ehrlich bei seiner Sicherheit?'},
+    'frege': {'en': 'Namesakes in the news: who is meant?', 'ru': 'Тёзки в новостях: о ком речь', 'de': 'Namensvetter in den Nachrichten: wer ist gemeint?'},
+}
+def task_title(sid, lg, c):
+    t = TASK_TITLE.get(sid)
+    if not t: return c
+    base = c['title'].rsplit(' · Orb Studio', 1)[0]
+    return {**c, 'title': t[lg] + ' · ' + base + ' · Orb Studio'}
+
 HAMILTON_RENDER = '''if(!d||!Array.isArray(d.components)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=HM.status_h[d.status]||d.status;
   document.getElementById("hmRows").innerHTML=d.components.map((c)=>{const what=(c.dropped||[]).map((x)=>HM.topic[x]||x).join(", "),why=(c.why||[]).map((x)=>HM.why[x]||x).join("; ");
@@ -1078,6 +1114,7 @@ TRACK = {
 if __name__ == "__main__":
     for sid, S in SENSORS.items():
         for lg, c in S["L"].items():
+            c = task_title(sid, lg, c)
             cfg = dict(c["cfg"], loc=LOC[lg]); wiki = S["wiki"].get(lg) or S["wiki"]["ru"]
             out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/" + sid + ".html"
             open(out, "w").write(page(sid, lg, c, wiki, S["render"], cfg, S["person"])); print(out)

@@ -59,7 +59,7 @@ import { API as UNHCR_API, summarize as unhcrSummarize, ATTRIBUTION as UNHCR_ATT
 import { HDX_CSV as CP_CSV, collect as cpCollect, summarize as cpSummarize, ATTRIBUTION as CP_ATTR } from "./chokepoints.js"; // морские узкие места (IMF PortWatch через HDX)
 import { GDACS_URL, summarize as gdacsSummarize, ATTRIBUTION as GDACS_ATTR } from "./gdacs.js"; // катастрофы по миру
 import { signedBody } from "./court-signing.js"; // подпись Ed25519 для брифов
-import { TOPICS as BRIEF_TOPICS, SLOT_MS as BRIEF_SLOT_MS, ID_RE as WIT_ID_RE, slotStart as briefSlotStart, newsBrief, cryptoBrief, assembleBrief, stampHtml, datasetLd, briefMarkdown, sitemapFresh, llmsFull } from "./witness.js"; // бриф и свидетельство
+import { TOPICS as BRIEF_TOPICS, SLOT_MS as BRIEF_SLOT_MS, ID_RE as WIT_ID_RE, slotStart as briefSlotStart, newsBrief, cryptoBrief, assembleBrief, stampHtml, datasetLd, briefMarkdown, sitemapFresh, llmsFull, indexNowPayload } from "./witness.js"; // бриф и свидетельство
 import { buildFromObs as freshnessBuild, observe as frObserve, CATALOG as FR_CATALOG } from "./freshness.js"; // «Карта задержек реальности»
 import { GDELT_TOPICS as SW_TOPICS, GDELT_SCOPES as SW_SCOPES, WIKI_ARTICLES as SW_WIKI, GDELT_PAUSE_MS as SW_PAUSE, NOISE_KEY as SW_KEY, NOISE_MAX_AGE_MS as SW_MAX_AGE, UA as SW_UA, weeks as swWeeks, gdeltUrl as swGdeltUrl, wikiUrl as swWikiUrl, gdeltRow as swGdeltRow, wikiRow as swWikiRow, buildNoise as swBuildNoise } from "./safeworld.js"; // «Безопасный мир»: шум СМИ и Википедии
 import { hamiltonReport } from "./hamilton.js";
@@ -1875,6 +1875,12 @@ async function howardNow(env) {
   try { rows = (await env.DB.prepare("SELECT first_ts, last_ts, n_first, n_max, t3 FROM radar_life WHERE n_first IS NOT NULL AND first_ts > ?1").bind(Date.now() - HOWARD_DAYS * 864e5).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE n_first IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = howardReport(rows, Date.now(), since); await sharedPut(env, "howard-v1", r).catch(() => {}); return r;
+}
+async function indexNowDaily(env) { // раз в день: IndexNow о страницах, где данные меняются ежедневно или чаще (Bing, Яндекс и др.)
+  const r = await env.ASSETS.fetch(new Request("https://orbstudio.org/sitemap.xml")); if (!r.ok) return;
+  const body = indexNowPayload(await r.text()); if (!body.urlList.length) return;
+  const res = await fetch("https://api.indexnow.org/IndexNow", { method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" }, body: JSON.stringify(body), signal: AbortSignal.timeout(10000) });
+  await sharedPut(env, "indexnow-last", { at: new Date().toISOString(), status: res.status, urls: body.urlList.length });
 }
 async function briefData(env, ctx, origin, topic) { // подписанный бриф на 30-минутный слот: кэш в D1, номер = хэш содержимого
   const t = BRIEF_TOPICS.includes(topic) ? topic : "news", now = Date.now(), key = "brief-v1-" + t;
@@ -9566,6 +9572,7 @@ export default {
       return;
     }
     ctx.waitUntil(saveSensorsDigest(env, ctx));
+    ctx.waitUntil(indexNowDaily(env).catch(() => null)); // IndexNow: раз в день вместе с ежедневными задачами
     ctx.waitUntil(safeworldNoiseRefresh(env).catch(() => null)); // раз в неделю: внутри проверка возраста копии
     ctx.waitUntil(chokepointsRefresh(env).catch((e) => sharedPut(env, CP_KEY + ":err", { at: new Date().toISOString(), why: String(e && e.message || e).slice(0, 120) }).catch(() => null))); // узкие места: раз в 7 дней, при старых данных — раз в сутки; ошибка видна в last_refresh_error
     ctx.waitUntil(violinDaily(env, ctx).catch(() => null));

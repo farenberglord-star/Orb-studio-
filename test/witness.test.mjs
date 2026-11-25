@@ -77,3 +77,22 @@ test("assembleBrief: same slot and content give the same id even at another seco
   const a = await assembleBrief("news", d, NOW), b = await assembleBrief("news", d, NOW + 7000);
   assert.equal(a.passport_id, b.passport_id);
 });
+
+import { indexNowPayload, INDEXNOW_KEY } from "../src/witness.js";
+import { existsSync } from "node:fs";
+test("IndexNow: only hourly/daily URLs of our host, key file exists and matches", () => {
+  const xml = `<urlset><url><loc>https://orbstudio.org/live</loc><changefreq>hourly</changefreq></url><url><loc>https://orbstudio.org/de/live</loc><changefreq>daily</changefreq></url><url><loc>https://orbstudio.org/old</loc><changefreq>monthly</changefreq></url><url><loc>https://evil.test/x</loc><changefreq>daily</changefreq></url></urlset>`;
+  const p = indexNowPayload(xml);
+  assert.deepEqual(p.urlList, ["https://orbstudio.org/live", "https://orbstudio.org/de/live"]);
+  assert.equal(p.keyLocation, `https://orbstudio.org/${INDEXNOW_KEY}.txt`);
+  assert.match(INDEXNOW_KEY, /^[0-9a-f]{32}$/);
+  const f = new URL(`../public/${INDEXNOW_KEY}.txt`, import.meta.url); assert.ok(existsSync(f));
+  assert.equal(readFileSync(f, "utf8"), INDEXNOW_KEY);
+  assert.match(readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"), /indexNowDaily\(env\)\.catch/);
+});
+test("task-first titles: sensor pages start with the question, then the name", () => {
+  const h = readFileSync(new URL("../public/tools/hamilton.html", import.meta.url), "utf8");
+  assert.match(h, /<title>Что работает и что отложено на сайте · Датчик Гамильтон · Orb Studio<\/title>/);
+  const e = readFileSync(new URL("../public/en/tools/howard.html", import.meta.url), "utf8");
+  assert.match(e, /<title>Retell a story now or wait for confirmation\? · Howard sensor · Orb Studio<\/title>/);
+});
