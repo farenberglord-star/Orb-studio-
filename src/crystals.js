@@ -13509,6 +13509,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "spread of the speech-act reading (Searle line) of one story between outlet groups; needs an outlet-group tag (country or sector) and a check of what radar_life keeps"
 }
+},
+{
+"id": "langer_sk",
+"name": "Susanne K. Langer",
+"name_ru": "Сьюзен Лангер",
+"years": "1895–1985",
+"wiki": "https://en.wikipedia.org/wiki/Susanne_Langer",
+"zone": "look_alike",
+"idea": {
+"en": "'Philosophy in a New Key' (1942): words state things one after another (discursive symbols), while images and music present a whole at once (presentational symbols); the two kinds mean in different ways.",
+"ru": "«Философия в новом ключе» (1942): слова излагают по порядку (дискурсивные символы), а образ и музыка подают целое сразу (презентационные символы); два вида знаков значат по-разному.",
+"de": "„Philosophy in a New Key“ (1942): Wörter sagen etwas nacheinander (diskursive Symbole), Bild und Musik zeigen ein Ganzes auf einmal (präsentative Symbole); beide Arten bedeuten auf verschiedene Weise."
+},
+"rule": "Do not read an image, a tone or a colour as a statement of fact; ask which kind of sign it is before you compare it with a sentence.",
+"needs": {
+"code": "needs_idea",
+"note": "pairs of headlines about one subject whose speech act (Searle line) differs; same data need as hall_et, check what radar_life keeps for the speech act"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
