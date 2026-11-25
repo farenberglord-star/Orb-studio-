@@ -4061,7 +4061,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/timemachine") return json(timeMachineReport({ era: url.searchParams.get("era"), zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }, url.origin), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/promises") return json(await promisesNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/promise-ledger") return json(await promisesNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/verdict-report") return json(await verdictReportNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/brief") {
