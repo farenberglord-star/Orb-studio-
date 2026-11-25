@@ -76,7 +76,7 @@ import { leamerReport } from "./leamer.js";
 import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
-import { newsPassport, PASSPORT_RULE } from "./passport.js";
+import { newsPassport, PASSPORT_RULE, mergeVoices, sigSimilar } from "./passport.js";
 import { measuredCrypto, finalVerdict, isDebunkText, hostOf as verdictHost } from "./verdict.js";
 import { methodReport } from "./method.js";
 import { timeMachineReport } from "./timemachine.js";
@@ -872,7 +872,7 @@ async function confirmWide(origin, title, source) {
     if (r.ok) items = (await r.text()).split(/<item[\s>]/i).slice(1, 30).map((b) => ({ title: tag(b, "title"), source: tag(b, "News:Source"), ts: Date.parse(tag(b, "pubDate")) || 0 }))
       .filter((x) => x.title && (!x.ts || Date.now() - x.ts < 2.5 * 864e5));
   } catch (e) {}
-  const sig = sigOf(title), names = new Set([srcKey(source)]);
+  const sig = sigOf(title), names = new Set(srcKey(source) ? [srcKey(source)] : []);
   for (const it of items) { const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++; if (k >= 2 && it.source) names.add(srcKey(it.source)); }
   const n = items.length ? names.size : null;
   if (n != null) await caches.default.put(key, new Response(JSON.stringify({ n }), { headers: { "Cache-Control": "max-age=10800" } }));
@@ -882,7 +882,15 @@ async function confirmWide(origin, title, source) {
 async function confirmMany(origin, list, force = false) {
   if (!VERIFY_ON && !force) return list.map((x) => x.n ?? null);
   const wide = await Promise.race([Promise.all(list.map((x) => confirmWide(origin, x.title, x.source).catch(() => null))), new Promise((r) => setTimeout(() => r(list.map(() => null)), 3500))]);
-  return list.map((x, i) => Math.max(x.n || 0, wide[i] || 0) || null);
+  return list.map((x, i) => mergeVoices(x.n, wide[i]));
+}
+// Единый счёт изданий для паспорта: узкий (наши ленты) и широкий (confirmWide, кэш 3 ч), итог — max, как в confirmMany.
+// Учитывает VERIFY_ON; при таймауте (3,5 с) или сбое остаётся узкий счёт (или null).
+async function voicesFor(origin, narrow, headline, source, force = false) {
+  const nar = Number.isFinite(narrow) ? narrow : null;
+  if (!VERIFY_ON && !force) return nar;
+  const wide = await Promise.race([confirmWide(origin, headline, source).catch(() => null), new Promise((r) => setTimeout(() => r(null), 3500))]);
+  return mergeVoices(nar, wide);
 }
 // Тон заголовка: кричащие слова, восклицания, КАПС. Новость не меняем — только помечаем.
 const TONE_RE = /(?<!\p{L})(breaking|urgent|shock(ing)?|panic|catastroph\p{L}*|collapse[sd]?|meltdown|apocalyp\p{L}*|plunge[sd]?|crash(es|ed)?|chaos|horror|terrifying|doom\p{L}*|eilmeldung|schock\p{L}*|panik|katastroph\p{L}*|zusammenbruch|absturz|chaos|срочно|шок\p{L}*|паник\p{L}*|катастроф\p{L}*|обвал\p{L}*|крах\p{L}*|хаос|ужас\p{L}*|апокалипс\p{L}*)(?!\p{L})/giu;
@@ -1886,11 +1894,19 @@ async function coxTick(env, ctx) { // раз в 30 минут: какие заг
   for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT", "joins TEXT", "conf_l TEXT", "fired_l TEXT", "verd TEXT", "verd_l TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
   const t0 = Date.now(), rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), now = Date.now(), st = [], cyc = { ms: now - t0, stories: 0, nulls: 0, outlets: new Set(), fresh: [] };
   for (const r of rs || []) { const pubs = (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => f[5]).filter((x) => Number.isFinite(x) && x > 0); if (pubs.length) cyc.fresh.push((now - Math.max(...pubs)) / 60e3); }
+  await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN n_wide INTEGER").run().catch(() => {}); // широкий счёт изданий при первом появлении (с 25.11.2026)
+  await verifyOn(env).catch(() => {});
+  const known = new Map(); try { for (const x of (await env.DB.prepare("SELECT k, n_wide FROM radar_life WHERE last_ts > ?1").bind(now - 3 * 36e5).all()).results || []) known.set(x.k, x.n_wide); } catch {}
+  const fresh = []; // новые заголовки: широкий счёт берём только для них (первое появление), в withSlot через confirmWide
+  for (const r of rs || []) for (const [i, f] of (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).entries()) { const k = normHead(f[1]); if (k && !known.has(r.id + "|" + k) && !fresh.some((x) => x.key === r.id + "|" + k)) fresh.push({ key: r.id + "|" + k, n: r.verify && Number.isFinite(r.verify[i]) ? r.verify[i] : null, title: f[1], source: f[2] }); }
+  const wideOf = new Map((await Promise.all(fresh.map(async (x) => [x.key, await voicesFor("https://orbstudio.org", x.n, x.title, x.source).catch(() => x.n)]))));
   for (const r of rs || []) for (const [i, f] of (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).entries()) { const k = normHead(f[1]); if (!k) continue;
     const n = r.verify && Number.isFinite(r.verify[i]) ? r.verify[i] : null;
+    const nw = wideOf.has(r.id + "|" + k) ? wideOf.get(r.id + "|" + k) : mergeVoices(n, known.get(r.id + "|" + k)); // для старых строк — узкий и сохранённый широкий
+    const nwStore = wideOf.has(r.id + "|" + k) ? nw : null;
     cyc.stories++; if (n == null) cyc.nulls++; if (f[2]) cyc.outlets.add(f[2]); for (const j of (r.joins && r.joins[i]) || []) if (j && j[0]) cyc.outlets.add(j[0]); // «Пенроуз»: сколько изданий и сколько пропусков в этом круге
-    let conf = null, fired = null, verd = null; try { const pp = newsPassport({ headline: f[1], confirm: n, link: f[4], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); verd = pp.verdict.color + ":" + pp.verdict.kind; } catch {} // «Харман»: уверенность паспорта в момент первого появления
-    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins, conf_l, fired_l, verd, verd_l) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9, ?7, ?8, ?10, ?10) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, verd_l = COALESCE(excluded.verd_l, verd_l), conf_l = COALESCE(excluded.conf_l, conf_l), fired_l = COALESCE(excluded.fired_l, fired_l), joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null, verd)); }
+    let conf = null, fired = null, verd = null; try { const pp = newsPassport({ headline: f[1], confirm: nw, link: f[4], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); verd = pp.verdict.color + ":" + pp.verdict.kind; } catch {} // «Харман»: уверенность паспорта в момент первого появления
+    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins, conf_l, fired_l, verd, verd_l, n_wide) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9, ?7, ?8, ?10, ?10, ?11) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, verd_l = COALESCE(excluded.verd_l, verd_l), conf_l = COALESCE(excluded.conf_l, conf_l), fired_l = COALESCE(excluded.fired_l, fired_l), joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null, verd, nwStore)); }
   if (st.length) await env.DB.batch(st);
   try { // «Пенроуз»: круг радаров — время сборки, число историй, изданий и пропусков, свежесть самой новой статьи (медиана по радарам); для мостика «рост обгоняет управление»
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_cycle (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, ms INTEGER, stories INTEGER, outlets INTEGER, nulls INTEGER, fresh_min INTEGER)").run();
@@ -1939,17 +1955,22 @@ async function passportOf(env, ctx, origin, headline) { // паспорт люб
   const norm = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim(), nh = norm(h);
   const all = [];
   for (const r of await allRadars(env, ctx, origin).catch(() => [])) (r.feed || []).forEach((f, j) => all.push({ headline: f[1], source: f[2], link: f[4], radar: r.id, confirm: r.verify ? r.verify[j] : null, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, ...stateTag(f[2], f[4]) }));
-  const hit = all.find((x) => norm(x.headline) === nh) || all.find((x) => { const a = norm(x.headline); return a.length > 20 && (a.includes(nh) || nh.includes(a)); });
+  const hsig = sigOf(h);
+  const hit = all.find((x) => norm(x.headline) === nh) || all.find((x) => { const a = norm(x.headline); return a.length > 20 && (a.includes(nh) || nh.includes(a)); })
+    || all.find((x) => sigSimilar(hsig, sigOf(x.headline))); // слегка переписанный заголовок: ≥ 70 % общих значимых слов
+  await verifyOn(env).catch(() => {});
   let amp = null;
   if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   let measured = null; try { measured = measureClaim(h, await sensorsData(env, ctx)).find((x) => x.result) || null; } catch {}
-  const p = newsPassport(hit ? { ...hit, amplified: amp, measured } : { headline: h, measured });
+  const p = newsPassport(hit ? { ...hit, confirm: await voicesFor(origin, hit.confirm, hit.headline, hit.source), amplified: amp, measured } : { headline: h, measured, confirm: await voicesFor(origin, null, h, null) });
   return { ...p, on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
     rule: PASSPORT_RULE, page: origin + "/tools/method" };
 }
 async function methodNow(env, ctx, origin) { // «Как Orb Studio проверяет новости»: три слоя и живые паспорта главных заголовков
   const c = await sharedGet(env, "method-v1", 10 * 60e3).catch(() => null); if (c) return c;
   const items = broadcastItems(await allRadars(env, ctx, origin).catch(() => [])).slice(0, 6), amp = {};
+  await verifyOn(env).catch(() => {});
+  await Promise.all(items.map(async (it) => { it.confirm = await voicesFor(origin, it.confirm, it.headline, it.source).catch(() => it.confirm); })); // тот же счёт изданий, что в паспорте и на радаре
   try { const hs = items.map((x) => x.headline).filter(Boolean);
     if (hs.length) for (const r of (await env.DB.prepare("SELECT headline, MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline IN (" + hs.map((_, i) => "?" + (i + 1)).join(",") + ") GROUP BY headline").bind(...hs).all()).results || []) amp[r.headline] = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   const r = methodReport(items.map((it) => ({ radar: it.radar, source: it.source, link: it.link, ...newsPassport({ ...it, amplified: amp[it.headline] || null }) })));
@@ -1987,13 +2008,19 @@ async function fregeNow(env, q = {}) { // «Фреге»: тёзки в ново
   const r = fregeReport(checked, Date.now(), { headlines: heads.length, names_waiting: names.length - checked.length });
   await sharedPut(env, "frege-v3", r).catch(() => {}); return r;
 }
+// Момент первой строки radar_life с широким счётом изданий (n_wide). До него паспорта считали только по нашим лентам.
+async function sinceWide(env) {
+  try { const m = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE n_wide IS NOT NULL").first()) || {}).m; if (m) return { ts: m, iso: new Date(m).toISOString() }; } catch {}
+  return { ts: null, iso: null };
+}
 async function harmanNow(env) { // «Харман»: честна ли уверенность паспорта — опровергают ли «высокую» реже «низкой»
-  const c = await sharedGet(env, "harman-v5", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "harman-v6", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
-  try { const q = (cols) => env.DB.prepare(`SELECT ${cols} FROM radar_life WHERE first_ts > ?1`).bind(Date.now() - 17 * 864e5).all();
+  const sw = await sinceWide(env); // счёт изданий сменился на широкий: уровни считаем только после этой даты, иначе узкие и широкие паспорта смешались бы
+  try { const q = (cols) => env.DB.prepare(`SELECT ${cols} FROM radar_life WHERE first_ts > ?1 AND first_ts >= ?2`).bind(Date.now() - 17 * 864e5, sw.ts || 0).all();
     rows = ((await q("k, radar, headline, first_ts, last_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, last_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
-    since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
-  const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v5", r).catch(() => {}); return r;
+    since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL AND first_ts >= ?1").bind(sw.ts || 0).first()) || {}).m || null; } catch {}
+  const r = { ...harmanReport(rows, Date.now(), since), since_wide: sw.iso, since_wide_note: "From this moment a headline's outlet count is the larger of our feeds and Bing News (2 days), so passports are no longer 'few voices' by construction. Rows before it counted our feeds only and are left out, so levels stay comparable." }; await sharedPut(env, "harman-v6", r).catch(() => {}); return r;
 }
 async function auditGate(origin, request) { // не больше 60 проверок в час с одного адреса
   const ip = request.headers.get("cf-connecting-ip") || "x", rk = new Request(`${origin}/__cache/audit-rate-${await sha(ip + new Date().toISOString().slice(0, 13))}`);
@@ -2106,11 +2133,12 @@ async function cohenSNow(env) { // «Стэнли Коэн»: громкость
   const r = cohenSReport(rows, events, Date.now(), since, ok); if (ok) await sharedPut(env, "cohen-s-v1", r).catch(() => {}); return r;
 }
 async function ashbyNow(env) { // «Эшби»: на какую долю историй радаров у паспорта нет ни одной строки о содержании заголовка
-  const c = await sharedGet(env, "ashby-v1", 10 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "ashby-v2", 10 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
-  try { rows = (await env.DB.prepare("SELECT radar, headline, first_ts, fired FROM radar_life WHERE fired IS NOT NULL AND first_ts > ?1").bind(Date.now() - ASHBY_DAYS * 864e5).all()).results || [];
-    since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE fired IS NOT NULL").first()) || {}).m || null; } catch {}
-  const r = ashbyReport(rows, Date.now(), since); await sharedPut(env, "ashby-v1", r).catch(() => {}); return r;
+  const sw = await sinceWide(env);
+  try { rows = (await env.DB.prepare("SELECT radar, headline, first_ts, fired FROM radar_life WHERE fired IS NOT NULL AND first_ts > ?1 AND first_ts >= ?2").bind(Date.now() - ASHBY_DAYS * 864e5, sw.ts || 0).all()).results || [];
+    since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE fired IS NOT NULL AND first_ts >= ?1").bind(sw.ts || 0).first()) || {}).m || null; } catch {}
+  const r = { ...ashbyReport(rows, Date.now(), since), since_wide: sw.iso }; await sharedPut(env, "ashby-v2", r).catch(() => {}); return r;
 }
 // ================= Штормовые предупреждения DWD: /api/v1/weather/warnings-de, MCP get_dwd_warnings =================
 // Копия 5 минут, запасная 6 часов, последняя копия ещё и в общем хранилище. Источник не ответил и копии нет: честное «unavailable».

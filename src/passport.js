@@ -112,3 +112,17 @@ export function evidenceChain({ act, voices, age, check, first, quoted, metaphor
   return { links, weakest: weak ? { link: weak.link, ru: weak.ru, why: weak.why } : null, note: "Chain from event to headline (Wigmore, Jerome Frank). The weakest link is the first reason to doubt; it does not change the confidence." };
 }
 export const PASSPORT_RULE = "News passport: every headline passes one chain of word rules before air — age, independent outlets, speech act (event / statement / promise / threat / demand), checkability, state media — and gets a confidence (high / medium / low) and plain 'say' lines for the host. No AI in the passport itself.";
+
+// Один счёт изданий для паспорта: узкий (только наши ленты) и широкий (Bing News за 2 дня); берём больший.
+// null — счёта нет вообще (не ноль). Так же считает confirmMany.
+export function mergeVoices(narrow, wide) {
+  const n = Number.isFinite(narrow) ? narrow : 0, w = Number.isFinite(wide) ? wide : 0;
+  return Math.max(n, w) || null;
+}
+// Слегка переписанный заголовок: доля общих значимых слов (Жаккар) не ниже 70 %, как ECHO_SAME в echo.js. a, b — Set слов (sigOf).
+export const PASSPORT_SAME = 0.7;
+export function sigSimilar(a, b, min = PASSPORT_SAME) {
+  if (!a || !b || a.size < 3 || b.size < 3) return false;
+  let k = 0; for (const x of a) if (b.has(x)) k++;
+  return k / (a.size + b.size - k) >= min;
+}

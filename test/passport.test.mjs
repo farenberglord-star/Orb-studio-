@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { newsPassport } from "../src/passport.js";
+import { newsPassport, mergeVoices, sigSimilar } from "../src/passport.js";
 import { grokUser, GROK_SYSTEM, assembleDuo } from "../src/duo.js";
 
 const now = Date.UTC(2026, 10, 23, 12);
@@ -97,4 +97,22 @@ test("check_claim: MCP tool, REST route and announcements are registered", () =>
   assert.match(w, /tool: "check_claim", url:/); // NEW_TOOLS
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\(check_claim\)/);
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"check_claim"/);
+});
+
+test("one outlet count: narrow 1, wide 5 gives 5 and no few_voices", () => {
+  const voices = mergeVoices(1, 5);
+  const p = newsPassport({ headline: "Germany's Bundestag passes 2027 budget on Friday", confirm: voices, published_at: new Date(now - 2 * 3600e3).toISOString() }, now);
+  assert.equal(p.voices, 5); assert.ok(!p.fired.includes("few_voices")); assert.notEqual(p.verdict.kind, "few_outlets");
+  const narrow = newsPassport({ headline: "Germany's Bundestag passes 2027 budget on Friday", confirm: 1, published_at: new Date(now - 2 * 3600e3).toISOString() }, now);
+  assert.ok(narrow.fired.includes("few_voices"));
+});
+test("mergeVoices: max of the two, null only when there is no count", () => {
+  assert.equal(mergeVoices(1, 5), 5); assert.equal(mergeVoices(null, null), null); assert.equal(mergeVoices(2, null), 2);
+  assert.equal(mergeVoices(null, 3), 3); assert.equal(mergeVoices(0, 0), null); assert.equal(mergeVoices(4, 2), 4);
+});
+test("slightly rewritten headline is still found (70% shared significant words)", () => {
+  const w = (t) => new Set(t.toLowerCase().split(/\s+/));
+  assert.ok(sigSimilar(w("poland creates nofly zone ukrainian border drones"), w("poland creates nofly zone ukrainian border amid drones")));
+  assert.ok(!sigSimilar(w("poland creates nofly zone ukrainian border drones"), w("bundestag passes budget friday vote")));
+  assert.ok(!sigSimilar(w("poland ukraine"), w("poland ukraine")), "too short to match by words");
 });
