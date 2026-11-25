@@ -139,8 +139,15 @@ export function buildFromObs(obs, now = Date.now()) {
   const summary = Object.fromEntries(STATUSES.map((s) => [s, rows.filter((r) => r.status === s).length]));
   const byCad = Object.fromEntries(["minutes", "days", "months", "years", "irregular"].map((k) => [k, rows.filter((r) => r.cadence === k).length]));
   rows.sort((a, b) => (a.age_h == null) - (b.age_h == null) || (a.age_h || 0) - (b.age_h || 0));
+  // Готовый ответ на вопрос агента «какие датчики можно брать прямо сейчас»: только по времени данных, не по точности
+  const ids = (f) => rows.filter(f).map((r) => r.id);
+  const answer = { question: "Which Orb Studio sensors can I rely on right now?",
+    use_now: ids((r) => r.status === "on_time" || r.status === "event"),
+    check_age_first: ids((r) => r.status === "late"),
+    do_not_rely_on: ids((r) => r.status === "stale" || r.status === "no_data" || r.status === "unknown"),
+    note: "Timeliness only: on_time and event sensors are fresh for their own source; late sensors are up to twice their normal age; stale, unknown and no_data have no trustworthy time. Fresh does not mean accurate." };
   return {
-    schema: "orb.freshness.v1", checked_at: new Date(now).toISOString(), summary, by_cadence: byCad, sensors: rows,
+    schema: "orb.freshness.v1", checked_at: new Date(now).toISOString(), answer, summary, by_cadence: byCad, sensors: rows,
     rule: "Sources are re-checked in turns (a few per call and every 6 minutes by a scheduled job). age_h is measured at checked_at, the moment Orb Studio last asked the source. If a source does not answer, its last time stamp stays and checked_at moves on, so the age keeps growing. data_precision says what the source gave (time, day, month or year); source_value is that label as published. data_time is the time the source's data refers to (a date alone = end of that day UTC, a month = end of month, a year = end of year). age_h = hours since data_time. expect_h = the age that is normal for this source when it runs on schedule (update interval plus usual publication delay). on_time: age <= expect_h; late: up to 2x; stale: more; unknown: the source does not say when its data was measured; no_data: the source did not answer; event: event feed or manual input, age only, no lateness.",
     note: "Read every Orb Studio number together with its age: a live price, a daily gas day and a yearly crime statistic describe different moments. This map judges timeliness only, not accuracy.",
     page: "https://orbstudio.org/sensors#freshness",

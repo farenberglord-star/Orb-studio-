@@ -69,3 +69,13 @@ test("age is measured at the moment of the check, not at page view", async () =>
   const o = { responded: true, raw: "2026-11-17T08:00:00Z", checked: Date.parse("2026-11-17T08:30:00Z") };
   const r = rowFrom(c("radiation_de"), o, NOW + 10 * 3600e3); assert.equal(r.age_h, 0.5); assert.equal(r.status, "on_time"); assert.equal(r.checked_at, "2026-11-17T08:30:00.000Z");
 });
+
+test("buildFromObs gives a ready answer: use_now, check_age_first, do_not_rely_on", async () => {
+  const { buildFromObs, CATALOG: C } = await import("../src/freshness.js");
+  const out = buildFromObs({}, Date.now());
+  assert.equal(out.answer.question, "Which Orb Studio sensors can I rely on right now?");
+  const all = [...out.answer.use_now, ...out.answer.check_age_first, ...out.answer.do_not_rely_on];
+  assert.equal(all.length, C.length); // каждый датчик попадает ровно в один список
+  assert.equal(new Set(all).size, C.length);
+  assert.ok(out.answer.do_not_rely_on.length > 0); // пустые наблюдения = no_data
+});

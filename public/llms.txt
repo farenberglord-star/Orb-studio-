@@ -5,6 +5,8 @@ Site: https://orbstudio.org
 > News radars with AI news anchor David (video episodes on TikTok) for humans and a structured feed for AI agents. Read-only. Indicator, not financial advice.
 
 ## New this week (24.11.2026)
+- [Check a claim before you repeat it](https://orbstudio.org/api/v1/check-claim?claim=) (check_claim): should you repeat this claim as a fact and how to word it. One free call: status (event, statement, promise, threat, forecast, question), checkability, tone, outlets and age if it is on the radars, confidence and plain 'say' lines. Word rules, no AI; it does not decide what is true.
+- [Which sensors to rely on now](https://orbstudio.org/api/v1/freshness) (get_freshness): now opens with an answer block: sensors to use now, to check the age of first, and not to rely on (timeliness only).
 - [Flow and response](https://orbstudio.org/api/v1/simmel) (get_simmel): whether the radar indices move less when many new stories arrive within 30 minutes; a link between two series, not a cause.
 - [Where the passport is silent](https://orbstudio.org/api/v1/ashby) (get_ashby): the share of radar stories on which the news passport has no line about what the headline says; silent means no rule matched, not that the story was checked.
 - [Tree or wave](https://orbstudio.org/api/v1/schmidt) (get_schmidt): whether outlets join a radar story one after another (chain of retellings) or almost all at once (wave, possibly one wire feed); outlets are not independent confirmations.

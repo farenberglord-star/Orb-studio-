@@ -90,3 +90,11 @@ test("rumour risk: grave topic + few outlets + unclear facts (Allport, Cantril)"
   assert.equal(newsPassport({ headline: "Explosion at chemical plant in Ludwigshafen kills 3, police say", confirm: 5 }).rumour_risk, false);
   assert.equal(newsPassport({ headline: "Rumours swirl about new phone, experts say", confirm: 1 }).rumour_risk, false);
 });
+
+test("check_claim: MCP tool, REST route and announcements are registered", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /name: "check_claim"/); assert.match(w, /p === "\/api\/v1\/check-claim"/); assert.match(w, /name === "check_claim"/);
+  assert.match(w, /tool: "check_claim", url:/); // NEW_TOOLS
+  assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\(check_claim\)/);
+  assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"check_claim"/);
+});
