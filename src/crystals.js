@@ -13527,6 +13527,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "pairs of headlines about one subject whose speech act (Searle line) differs; same data need as hall_et, check what radar_life keeps for the speech act"
 }
+},
+{
+"id": "scherba_lv",
+"name": "Lev Shcherba",
+"name_ru": "Лев Щерба",
+"years": "1880–1944",
+"wiki": "https://en.wikipedia.org/wiki/Lev_Shcherba",
+"zone": "look_alike",
+"idea": {
+"en": "'On the threefold aspect of linguistic phenomena' (1931): speech material (what was actually said), language system (the norm behind it) and speech activity (the act of saying it) are three different things; the same form can sit in different layers.",
+"ru": "«О трояком аспекте языковых явлений и об эксперименте в языкознании» (1931): речевой материал (что сказано), языковая система (норма за ним) и речевая деятельность (сам акт речи) — три разные вещи; одна и та же форма может лежать в разных слоях.",
+"de": "„Über den dreifachen Aspekt der sprachlichen Erscheinungen“ (1931): Sprachmaterial (was gesagt wurde), Sprachsystem (die Norm dahinter) und Sprechtätigkeit (der Akt des Sagens) sind drei verschiedene Dinge; dieselbe Form kann in verschiedenen Schichten liegen."
+},
+"rule": "Do not treat two identical-looking phrases as one message; ask whether each is a norm (what the phrase usually means) or an act (what this speaker does with it now).",
+"needs": {
+"code": "needs_idea",
+"note": "pairs of headlines with the same form but a different speech act (Searle line); same data need as langer_sk and hall_et, one number covers all three"
+}
+},
+{
+"id": "vinogradov_vv",
+"name": "Viktor Vinogradov",
+"name_ru": "Виктор Виноградов",
+"years": "1895–1969",
+"wiki": "https://en.wikipedia.org/wiki/Viktor_Vinogradov",
+"zone": "look_alike",
+"idea": {
+"en": "'On the main types of lexical meaning of a word' (1953): a word has a directly naming meaning, a phraseologically bound meaning and a meaning fixed only by its syntactic surroundings; the same word in these uses is a different meaning.",
+"ru": "«Об основных типах лексических значений слова» (1953): у слова есть прямо номинативное значение, фразеологически связанное и синтаксически обусловленное; одно и то же слово в этих употреблениях — разные значения.",
+"de": "„Über die Haupttypen der lexikalischen Bedeutung des Wortes“ (1953): ein Wort hat eine direkt benennende, eine phraseologisch gebundene und eine nur durch den syntaktischen Zusammenhang bestimmte Bedeutung; dasselbe Wort ist in diesen Verwendungen eine andere Bedeutung."
+},
+"rule": "Before you merge two headlines because they share a word, check which kind of meaning the word has in each: naming a thing, a set phrase, or a sense that only this sentence gives it.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headline pairs that share a content word but fall into different event categories; needs headline texts and an event category from radar_life, check what it keeps"
+}
+},
+{
+"id": "chernykh_py",
+"name": "Pavel Chernykh",
+"name_ru": "Павел Черных",
+"years": "1896–1970",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%A7%D0%B5%D1%80%D0%BD%D1%8B%D1%85,_%D0%9F%D0%B0%D0%B2%D0%B5%D0%BB_%D0%AF%D0%BA%D0%BE%D0%B2%D0%BB%D0%B5%D0%B2%D0%B8%D1%87",
+"zone": "stale_data",
+"idea": {
+"en": "'Historical-Etymological Dictionary of Modern Russian' (published 1993, written over about 20 years): for each of 13,560 words, when it first appears, where it comes from and how its meaning changed.",
+"ru": "«Историко-этимологический словарь современного русского языка» (издан в 1993, писался около 20 лет): для 13 560 слов — когда слово появилось, откуда оно и как менялось его значение.",
+"de": "„Historisch-etymologisches Wörterbuch der modernen russischen Sprache“ (1993 erschienen, in rund 20 Jahren geschrieben): für 13 560 Wörter — wann es erstmals auftaucht, woher es kommt und wie sich seine Bedeutung verändert hat."
+},
+"rule": "Before you trust a term as current, ask when it first appeared and whether its meaning has shifted since; an old word in a new sense is not the old news.",
+"needs": {
+"code": "needs_source",
+"note": "an open list of first-attestation dates of words (for example a corpus with first-use years); none in our data, so no number yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
