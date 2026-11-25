@@ -13253,6 +13253,208 @@ export const CRYSTALS = [
 "note": "the Schmidt sensor already shows whether outlets join a story as a chain or a wave",
 "covered_by": "schmidt"
 }
+},
+{
+"id": "overton_jp",
+"name": "Joseph P. Overton",
+"name_ru": "Джозеф П. Овертон",
+"years": "1960–2003",
+"wiki": "https://en.wikipedia.org/wiki/Joseph_Overton",
+"zone": "side_effects",
+"idea": {
+"en": "The 'Overton window' (mid-1990s; named after his death): at any moment only a range of policies is acceptable to the public, and what lies outside it cannot be won yet.",
+"ru": "«Окно Овертона» (середина 1990-х; имя дано после его смерти): в каждый момент общество считает приемлемым лишь некоторый диапазон решений, а то, что лежит за ним, пока нельзя провести.",
+"de": "Das „Overton-Fenster“ (Mitte der 1990er; erst nach seinem Tod so benannt): Zu jedem Zeitpunkt hält die Öffentlichkeit nur eine Spanne von Maßnahmen für annehmbar; was außerhalb liegt, ist noch nicht durchsetzbar."
+},
+"rule": "A cold reaction to an idea may mean it lies outside what the audience will consider at all; do not read it as a verdict on the idea.",
+"needs": {
+"code": "needs_idea",
+"note": "the window is a range of acceptable positions; we have no measure of acceptability, only headlines; the later claim that extreme demands shift the range is not Overton's own and is not used"
+}
+},
+{
+"id": "anderson_b",
+"name": "Benedict Anderson",
+"name_ru": "Бенедикт Андерсон",
+"years": "1936–2015",
+"wiki": "https://en.wikipedia.org/wiki/Benedict_Anderson",
+"zone": "side_effects",
+"idea": {
+"en": "'Imagined Communities' (1983): a nation is imagined because its members never meet; printed news read by many at the same time lets strangers picture each other doing the same thing.",
+"ru": "«Воображаемые сообщества» (1983): нация воображаема, потому что её члены никогда не встречаются; печатные новости, которые многие читают одновременно, позволяют незнакомым людям представлять, что они делают одно и то же.",
+"de": "„Imagined Communities“ (1983): Eine Nation ist vorgestellt, weil ihre Mitglieder einander nie begegnen; gleichzeitig gelesene gedruckte Nachrichten lassen Fremde sich beim selben Tun vorstellen."
+},
+"rule": "Many people reading the same item at the same moment look like one shared opinion; check whether they react alike or only read alike.",
+"needs": {
+"code": "needs_history",
+"note": "synchrony of radar-index jumps across independent outlets within one 30-minute window; overlaps the waiting bridge same_story_pull (share of stories carried by at least 80% of outlets)",
+"not_before": "2026-12-07"
+}
+},
+{
+"id": "parfit_d",
+"name": "Derek Parfit",
+"name_ru": "Дерек Парфит",
+"years": "1942–2017",
+"wiki": "https://en.wikipedia.org/wiki/Derek_Parfit",
+"zone": "side_effects",
+"idea": {
+"en": "'Reasons and Persons' (1984), on 'moral mathematics': many acts that each make no noticeable difference can together cause a large harm.",
+"ru": "«Причины и личности» (1984), о «моральной математике»: множество действий, каждое из которых ничего заметного не меняет, вместе могут причинить большой вред.",
+"de": "„Reasons and Persons“ (1984), zur „moralischen Mathematik“: Viele Handlungen, die einzeln nichts Merkliches ändern, können zusammen großen Schaden anrichten."
+},
+"rule": "A change too small to notice at each step can be large in sum; watch the running total, not only the last step.",
+"needs": {
+"code": "ready",
+"note": "share of the 24-hour net move of a radar index that came in 30-minute steps all below the jump threshold (10 points held 2 hours); ix_hist has the data, thresholds to confirm"
+}
+},
+{
+"id": "fuller_ll",
+"name": "Lon L. Fuller",
+"name_ru": "Лон Фуллер",
+"years": "1902–1978",
+"wiki": "https://en.wikipedia.org/wiki/Lon_L._Fuller",
+"zone": "side_effects",
+"idea": {
+"en": "'The Morality of Law' (1964): a legal order fails when its rules are missing, unpublished, retroactive, unclear, contradictory, impossible to follow, changed too often, or not applied as written.",
+"ru": "«Мораль права» (1964): правопорядок разрушается, когда правил нет, они не опубликованы, действуют задним числом, неясны, противоречат друг другу, невыполнимы, слишком часто меняются или применяются не так, как написаны.",
+"de": "„The Morality of Law“ (1964): Eine Rechtsordnung scheitert, wenn Regeln fehlen, unveröffentlicht, rückwirkend, unklar, widersprüchlich, unerfüllbar, zu oft geändert oder nicht wie geschrieben angewandt werden."
+},
+"rule": "Before you rely on a rule, ask whether it is published, clear, consistent, stable and actually applied as written.",
+"needs": {
+"code": "covered",
+"note": "the promises sensor tracks the last of his eight tests (action matches the stated rule); the other seven are a checklist for rules an agent is handed",
+"covered_by": "promises"
+}
+},
+{
+"id": "hobsbawm_e",
+"name": "Eric Hobsbawm",
+"name_ru": "Эрик Хобсбаум",
+"years": "1917–2012",
+"wiki": "https://en.wikipedia.org/wiki/Eric_Hobsbawm",
+"zone": "stale_data",
+"idea": {
+"en": "'The Invention of Tradition' (1983, edited with Terence Ranger): traditions that look old are often recent, made up to give a sense of continuity.",
+"ru": "«Изобретение традиции» (1983, под редакцией с Теренсом Рейнджером): традиции, которые кажутся древними, часто недавние, их придумали, чтобы создать чувство преемственности.",
+"de": "„The Invention of Tradition“ (1983, mit Terence Ranger herausgegeben): Traditionen, die alt wirken, sind oft jung und wurden erfunden, um Kontinuität zu stiften."
+},
+"rule": "When a text calls something 'traditional' or 'always so', ask when it began.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headlines that call a thing 'traditional' or 'usual' while our own series show it began recently; needs a phrase list and a series with a start date, not defined yet"
+}
+},
+{
+"id": "prior_an",
+"name": "Arthur N. Prior",
+"name_ru": "Артур Прайор",
+"years": "1914–1969",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_Prior",
+"zone": "stale_data",
+"idea": {
+"en": "'Time and Modality' (1957): tense logic. Whether a statement is true depends on when it is said; 'it is raining' is true at one time and false at another.",
+"ru": "«Время и модальность» (1957): логика времён. Истинность высказывания зависит от того, когда оно сказано: «идёт дождь» в одно время верно, в другое нет.",
+"de": "„Time and Modality“ (1957): Zeitlogik. Ob eine Aussage wahr ist, hängt davon ab, wann sie gemacht wird; „es regnet“ ist zu einer Zeit wahr und zu einer anderen falsch."
+},
+"rule": "A statement without a time has no truth value yet; ask 'as of when' before asking 'is it true'.",
+"needs": {
+"code": "needs_history",
+"note": "median gap between the first sighting of a measured event (measured_events, Scheler sensor) and the first matching headline, and the share of those headlines in the present tense",
+"not_before": "2026-12-09"
+}
+},
+{
+"id": "manne_hg",
+"name": "Henry G. Manne",
+"name_ru": "Генри Мэнн",
+"years": "1928–2015",
+"wiki": "https://en.wikipedia.org/wiki/Henry_Manne",
+"zone": "answer_cost",
+"idea": {
+"en": "'Insider Trading and the Stock Market' (1966): trading by informed people moves a price toward its true value before the public announcement.",
+"ru": "«Инсайдерская торговля и фондовый рынок» (1966): сделки осведомлённых людей сдвигают цену к истинной ещё до публичного объявления.",
+"de": "„Insider Trading and the Stock Market“ (1966): Geschäfte Informierter bewegen den Preis schon vor der öffentlichen Mitteilung zum wahren Wert."
+},
+"rule": "A price or a sensor may move before the announcement; do not take the headline as the moment the information appeared.",
+"needs": {
+"code": "needs_history",
+"note": "how long a price sensor leads the first headline on the same topic; belongs to the waiting bridge who_leads_whom (Granger)",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "waismann_f",
+"name": "Friedrich Waismann",
+"name_ru": "Фридрих Вайсман",
+"years": "1896–1959",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_Waismann",
+"zone": "own_limits",
+"idea": {
+"en": "'Verifiability' (1945): even a carefully defined empirical term has open texture: a case can always turn up that the definition did not foresee.",
+"ru": "«Верифицируемость» (1945): даже у тщательно определённого эмпирического понятия есть открытая текстура: всегда может найтись случай, которого определение не предвидело.",
+"de": "„Verifiability“ (1945): Selbst ein sorgfältig definierter empirischer Begriff hat offene Textur: Es kann immer ein Fall auftauchen, den die Definition nicht vorhergesehen hat."
+},
+"rule": "Expect a case the definition did not foresee; put it in 'unclear' instead of forcing it into a class.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headlines the speech-act line cannot place, per day; check what the passport returns for unplaced headlines before counting"
+}
+},
+{
+"id": "hart_hla",
+"name": "H. L. A. Hart",
+"name_ru": "Х. Л. А. Харт",
+"years": "1907–1992",
+"wiki": "https://en.wikipedia.org/wiki/H._L._A._Hart",
+"zone": "own_limits",
+"idea": {
+"en": "'The Concept of Law' (1961): a rule has a core of clear cases and a penumbra of doubt, where the rule gives out and someone must decide.",
+"ru": "«Понятие права» (1961): у правила есть ядро ясных случаев и полутень сомнения, где правило кончается и кто-то должен решать.",
+"de": "„The Concept of Law“ (1961): Eine Regel hat einen Kern klarer Fälle und einen Halbschatten des Zweifels, wo die Regel endet und jemand entscheiden muss."
+},
+"rule": "Say which cases are core and which are doubtful; do not present a judgement call as a plain application of the rule.",
+"needs": {
+"code": "needs_idea",
+"note": "which of the passport lines are core (clear word rule) and which are penumbra (judgement); a labelled list for the method page first, no live number yet"
+}
+},
+{
+"id": "ross_wd",
+"name": "W. D. Ross",
+"name_ru": "У. Д. Росс",
+"years": "1877–1971",
+"wiki": "https://en.wikipedia.org/wiki/W._D._Ross",
+"zone": "own_limits",
+"idea": {
+"en": "'The Right and the Good' (1930): duties are prima facie: each holds unless a stronger one conflicts, and there is no fixed ranking.",
+"ru": "«Право и благо» (1930): обязанности действуют prima facie, то есть при прочих равных: каждая держится, пока не столкнётся с более сильной, и твёрдой иерархии нет.",
+"de": "„The Right and the Good“ (1930): Pflichten gelten prima facie: Jede gilt, bis eine stärkere dagegensteht, und eine feste Rangordnung gibt es nicht."
+},
+"rule": "When two valid rules conflict, name both and weigh them in the case; do not pretend one always wins.",
+"needs": {
+"code": "needs_idea",
+"note": "our method uses a fixed tie-break (the more careful rule wins) while Ross says there is no fixed ranking; keep as a note on the method page, no sensor possible"
+}
+},
+{
+"id": "gellner_e",
+"name": "Ernest Gellner",
+"name_ru": "Эрнест Геллнер",
+"years": "1925–1995",
+"wiki": "https://en.wikipedia.org/wiki/Ernest_Gellner",
+"zone": "own_limits",
+"idea": {
+"en": "'Nations and Nationalism' (1983): an industrial society needs one standard language and schooling, so it wears down local differences.",
+"ru": "«Нации и национализм» (1983): индустриальному обществу нужны единый язык и школа, поэтому оно стирает местные различия.",
+"de": "„Nations and Nationalism“ (1983): Eine Industriegesellschaft braucht eine Standardsprache und Schulbildung und schleift daher lokale Unterschiede ab."
+},
+"rule": "One standard measure hides local differences; look at the places before trusting the average.",
+"needs": {
+"code": "needs_idea",
+"note": "per-region series now exist (DWD warnings by state, measured_events since 2026-11-25) but the radar index to compare with is not chosen yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

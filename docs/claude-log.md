@@ -253,3 +253,9 @@
 - `tools/honour_pages.py`: `TASK_TITLE` для 27 датчиков на трёх языках, заголовок = задача · имя · Orb Studio; пересобраны 81 страница (в каждой изменены только title, og:title и name в JSON-LD).
 - IndexNow: `public/9f7a29feb0b46c2f7ff48d8c3a7ce7ff.txt`, `indexNowPayload` (witness.js), `indexNowDaily` (worker.js) раз в день в ежедневном cron; результат в `shared` под ключом `indexnow-last`. Google IndexNow не поддерживает.
 - Проверить через неделю: растут ли заходы Googlebot/Bingbot/YandexBot на страницы датчиков; статус последнего пинга в `indexnow-last`.
+
+## 2026-11-25 — партия 16 (Лиана; Овертон … Мэнн)
+- Прислано 24 строки. Взято 11 карточек (библиотека 718 → 729): overton_jp, anderson_b, parfit_d, fuller_ll (side_effects); hobsbawm_e, prior_an (stale_data); manne_hg (answer_cost); waismann_f, hart_hla, ross_wd, gellner_e (own_limits). Все даты смерти сверены по источнику.
+- Не взяты: дубли Уильямс (williams_b), фон Вригт (von_wright), Мэки; живы Гидденс, Батлер, Тейлор, Калабрези; сверены, но отложены из-за предела 4 на зону: Макинтайр (†2025-05-21), Блум, Фрай, К. И. Льюис, Дворкин (в следующую партию).
+- Ошибки Лианы: Мэнн умер в 2015 (не в 2016), Вайсман пишется Waismann, Овертону нельзя приписывать «радикальные вбросы» (поздняя надстройка, не его слова; в карточке только его окно). Проверка `scanner_names.py check` не ловит кириллические имена: дубли Уильямса и фон Вригта нашла только сверка grep.
+- Мостики: новые small_steps_large_sum (ready: ix_hist, число — доля суточного сдвига индекса радара из шагов ниже порога скачка), present_tense_past_event (waiting до 2026-12-09, данные Шелера), core_and_penumbra (idea). Расширены: who_leads_whom (+manne_hg), same_story_pull (+anderson_b), said_then_did_otherwise (+fuller_ll), copy_has_no_time (+hobsbawm_e), one_index_hides_places (+gellner_e; региональный ряд теперь есть — DWD по землям).
