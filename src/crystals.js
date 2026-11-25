@@ -11860,6 +11860,43 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "do outlets move toward the same story? the Schmidt sensor holds the join times; a number for how many radar stories are carried by nearly all outlets is not defined yet"
 }
+},
+{
+"id": "ashby_wr",
+"name": "W. Ross Ashby",
+"name_ru": "У. Росс Эшби",
+"years": "1903–1972",
+"wiki": "https://en.wikipedia.org/wiki/W._Ross_Ashby",
+"zone": "own_limits",
+"idea": {
+"en": "'An Introduction to Cybernetics' (1956), law of requisite variety: a regulator can cope with a disturbance only if it has at least as many distinct responses as the environment has distinct disturbances.",
+"ru": "«Введение в кибернетику» (1956), закон необходимого разнообразия: регулятор справляется с возмущением, только если у него не меньше различных ответов, чем различных возмущений в среде.",
+"de": "„An Introduction to Cybernetics“ (1956), Gesetz der notwendigen Varietät: Ein Regler bewältigt Störungen nur, wenn er mindestens so viele unterscheidbare Antworten hat wie die Umgebung Störungen."
+},
+"rule": "Check that the answer has at least as many kinds as the case has; a one-size answer to many kinds of cases will miss some.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'enough variety' (Ashby + Beer + Luhmann): a number for how many distinct kinds of event the passport can tell apart against how many kinds the headlines contain; not defined yet"
+}
+},
+{
+"id": "bateson_g",
+"name": "Gregory Bateson",
+"name_ru": "Грегори Бейтсон",
+"years": "1904–1980",
+"wiki": "https://en.wikipedia.org/wiki/Gregory_Bateson",
+"zone": "own_limits",
+"idea": {
+"en": "'Form, Substance and Difference' (1970 lecture, reprinted in 'Steps to an Ecology of Mind', 1972): the map is not the territory; what gets onto a map is difference, so whatever stays uniform never appears on it.",
+"ru": "«Форма, субстанция и различие» (лекция 1970, в сборнике «Шаги к экологии разума», 1972): карта — не территория; на карту попадает различие, поэтому всё, что остаётся однородным, на ней не появляется.",
+"de": "„Form, Substance and Difference“ (Vortrag 1970, in „Steps to an Ecology of Mind“, 1972): Die Karte ist nicht das Gebiet; auf die Karte gelangt Unterschied, also erscheint nichts, was gleichförmig bleibt."
+},
+"rule": "Say what your measure can only see as a change; a quiet stretch means no change seen, not nothing there.",
+"needs": {
+"code": "covered",
+"note": "the Lyberg sensor already reports what the feeds cannot see; the Polyak sensor shows only changes, so a flat stretch is flagged as no change seen",
+"covered_by": "lyberg"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
