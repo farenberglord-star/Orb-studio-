@@ -13455,6 +13455,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per-region series now exist (DWD warnings by state, measured_events since 2026-11-25) but the radar index to compare with is not chosen yet"
 }
+},
+{
+"id": "korzybski_a",
+"name": "Alfred Korzybski",
+"name_ru": "Альфред Коржибски",
+"years": "1879–1950",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_Korzybski",
+"zone": "look_alike",
+"idea": {
+"en": "'Science and Sanity' (1933): the word is not the thing and the map is not the territory; taking a label for the object hides the differences between things that carry the same name.",
+"ru": "«Наука и здравомыслие» (1933): слово не есть вещь, а карта не есть территория; если принять ярлык за предмет, пропадают различия между вещами с одним именем.",
+"de": "„Science and Sanity“ (1933): Das Wort ist nicht die Sache und die Karte nicht das Gebiet; wer die Bezeichnung mit dem Gegenstand gleichsetzt, übersieht Unterschiede zwischen Dingen mit demselben Namen."
+},
+"rule": "Two things with the same name are not the same thing: compare their attributes before treating them as one.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headlines merged into one story by sameStory (src/duo.js) whose numbers or dates differ; needs headline texts from radar_life and a number/date extractor; check what sameStory merges first"
+}
+},
+{
+"id": "ogden_ck",
+"name": "Charles Kay Ogden",
+"name_ru": "Чарльз Кей Огден",
+"years": "1889–1957",
+"wiki": "https://en.wikipedia.org/wiki/C._K._Ogden",
+"zone": "look_alike",
+"idea": {
+"en": "'The Meaning of Meaning' (1923, with I. A. Richards): a word does not point at a thing directly; a thought stands between the sign and the thing, so the same word can point at different things.",
+"ru": "«Значение значения» (1923, вместе с А. Ричардсом): слово указывает на предмет не напрямую, между знаком и предметом стоит мысль, поэтому одно слово может указывать на разные вещи.",
+"de": "„The Meaning of Meaning“ (1923, mit I. A. Richards): Ein Wort zeigt nicht direkt auf einen Gegenstand; zwischen Zeichen und Gegenstand steht ein Gedanke, daher kann dasselbe Wort auf Verschiedenes zeigen."
+},
+"rule": "Do not assume that the same words in two reports mean the same event; check what each one points to.",
+"needs": {
+"code": "needs_idea",
+"note": "same count as korzybski_a: report pairs with shared words but different dates or measurements; one number covers both cards"
+}
+},
+{
+"id": "hall_et",
+"name": "Edward T. Hall",
+"name_ru": "Эдвард Т. Холл",
+"years": "1914–2009",
+"wiki": "https://en.wikipedia.org/wiki/Edward_T._Hall",
+"zone": "look_alike",
+"idea": {
+"en": "'The Silent Language' (1959): culture works unseen; space and time carry messages, and the same behaviour (waiting, distance, punctuality) means different things in different cultures.",
+"ru": "«Безмолвный язык» (1959): культура действует незаметно для человека; пространство и время передают сообщения, и одно и то же поведение (ожидание, дистанция, точность) в разных культурах значит разное.",
+"de": "„The Silent Language“ (1959): Kultur wirkt unbemerkt; Raum und Zeit übermitteln Botschaften, und dasselbe Verhalten (Warten, Abstand, Pünktlichkeit) bedeutet in verschiedenen Kulturen Verschiedenes."
+},
+"rule": "Do not treat similar behaviour in two sources as the same act before you know each one's setting.",
+"needs": {
+"code": "needs_idea",
+"note": "spread of the speech-act reading (Searle line) of one story between outlet groups; needs an outlet-group tag (country or sector) and a check of what radar_life keeps"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
