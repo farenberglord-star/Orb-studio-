@@ -1,0 +1,24 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { dealPressure, labCheck } from "../src/passport-lab.js";
+import { newsPassport } from "../src/passport.js";
+
+test("lab: deal pressure needs two signals, real headlines stay clean", () => {
+  assert.equal(dealPressure("Boeing jet deliveries drop 14% in October").push, false);
+  assert.equal(dealPressure("Smart ring maker Oura to acquire Counsel Health for $625 million").push, false);
+  assert.equal(dealPressure("Инсайд: Amazon начнет принимать PEPE уже завтра — рост на 5000%. Успейте купить до пресс-релиза!").push, true);
+  assert.equal(dealPressure("СРОЧНО: переведите от 0.05 до 2 BTC до 23:59, гарантированно 200% прибыли").push, true);
+});
+test("lab: debunk articles are not confirmations", () => {
+  const r = labCheck("FBI found 20,000 fraudulent ballots in Houston", [
+    { source: "mediabiasfactcheck.com", title: "Fact Check: Did the FBI find ... ballots", text: "BLATANT LIE" },
+    { source: "mimikama.org", title: "Die erfundene FBI-Razzia", text: "Falsch" },
+  ]);
+  assert.equal(r.verdict, "debunked"); assert.equal(r.independent_outlets, 0);
+});
+test("lab: wide independent coverage is reported, the passport confidence follows the count", () => {
+  const res = ["a.com", "b.com", "c.com", "d.com"].map((s) => ({ source: s, title: "Oura to buy Counsel", text: "" }));
+  const r = labCheck("Oura to acquire Counsel Health for $625 million", res);
+  assert.equal(r.verdict, "reported");
+  assert.equal(newsPassport({ headline: "Oura to acquire Counsel Health for $625 million", confirm: r.confirm_for_passport }).confidence, "high");
+});
