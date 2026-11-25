@@ -22,3 +22,13 @@ test("lab: wide independent coverage is reported, the passport confidence follow
   assert.equal(r.verdict, "reported");
   assert.equal(newsPassport({ headline: "Oura to acquire Counsel Health for $625 million", confirm: r.confirm_for_passport }).confidence, "high");
 });
+
+import { namedSource } from "../src/passport-lab.js";
+test("lab step 1: named source is found, headlines without one give null", () => {
+  assert.equal(namedSource("Orb Studio сообщает, что курс биткоина сейчас $70 000 за один биткоин"), "Orb Studio");
+  assert.equal(namedSource("По данным Reuters, поставки Boeing упали на 14%"), "Reuters");
+  assert.equal(namedSource("Reuters reports that Boeing deliveries fell"), "Reuters");
+  assert.equal(namedSource("laut Tagesschau steigt der Strompreis"), "Tagesschau");
+  assert.equal(namedSource("Boeing jet deliveries drop 14% in October"), null);
+  assert.equal(namedSource("Smart ring maker Oura to acquire Counsel Health for $625 million"), null);
+});

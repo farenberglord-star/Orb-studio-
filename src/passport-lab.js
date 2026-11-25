@@ -34,3 +34,16 @@ export function labCheck(headline, results = []) {
   else if (independent >= 3) { verdict = "reported"; why = `${independent} independent outlets, no debunk`; }
   return { verdict, why, independent_outlets: independent, debunk_items: debunk.length, deal_pressure: money.hits, confirm_for_passport: independent };
 }
+
+// Шаг 1 правила «названный источник» (Wilson: авторитет по теме): кто назван автором сообщения.
+// Только находит имя; ничего не проверяет и не влияет на паспорт.
+const NAME = "([\\p{Lu}][\\p{L}\\p{N}.&'’-]*(?:\\s+[\\p{Lu}][\\p{L}\\p{N}.&'’-]*){0,3})";
+const SRC_PATTERNS = [
+  new RegExp(`^${NAME}\\s+(?:сообщает|сообщили|сообщил|заявляет|заявила|заявил|пишет|пишут|публикует|опубликовал\\p{L}*|report(?:s|ed)|says|said|announces?|announced|publishes|published|meldet|berichtet|schreibt)(?![\\p{L}])`, "u"),
+  new RegExp(`(?:[Пп]о данным|[Пп]о информации|[Aa]ccording to|[Ll]aut|[Nn]ach Angaben von|[Кк]ак сообщает|[Aa]s reported by)\\s+${NAME}`, "u"),
+];
+export function namedSource(text) {
+  const t = String(text || "").trim().replace(/^["«„“]+/, "");
+  for (const re of SRC_PATTERNS) { const m = t.match(re); if (m && m[1]) return m[1].replace(/[.,;:]+$/, "").trim(); }
+  return null;
+}
