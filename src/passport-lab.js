@@ -47,3 +47,24 @@ export function namedSource(text) {
   for (const re of SRC_PATTERNS) { const m = t.match(re); if (m && m[1]) return m[1].replace(/[.,;:]+$/, "").trim(); }
   return null;
 }
+
+// Шаг 2: что Orb Studio действительно публикует (по public/llms.txt и коду /api/v1/sensors).
+// Если заметка называет Orb Studio источником, тема должна быть из этого списка. Чужие источники здесь не описываются.
+export const ORB_PUBLISHES = [
+  { id: "electricity_de", where: "/api/v1/sensors (power)", re: /электроэнерг|strompreis|day-ahead|electricity price|цена на электричество/iu },
+  { id: "crypto_volatility", where: "/api/v1/sensors (volatility): hourly close in EUR from Kraken for BTC, ETH, XRP, SOL, 24h move, volume vs week", re: /волатильн|volatil|всплеск|spike/iu },
+  { id: "crypto_price_eur", where: "/api/v1/sensors (volatility.coins.*.price_eur): hourly close in EUR, not USD", re: /курс|цена|price|kurs|стоит|\$\s?\d|\d\s?(?:usd|eur|€|\$)/iu, needs: /биткоин|bitcoin|btc|ethereum|\beth\b|xrp|solana|\bsol\b/iu },
+  { id: "btc_derivatives", where: "/api/v1/sensors: BTC funding rate and open interest (Kraken Futures)", re: /funding|фандинг|открыт\p{L}* интерес|open interest/iu },
+  { id: "btc_network", where: "/api/v1/sensors: Bitcoin fees, mempool, hashrate (mempool.space)", re: /комисси\p{L}* биткоин|bitcoin fees?|mempool|hashrate|хешрейт/iu },
+  { id: "ecb_inflation", where: "/api/v1/sensors: ECB deposit rate, EUR/USD reference, euro area HICP", re: /ЕЦБ|ecb|eur\/usd|инфляци|inflation|hicp/iu },
+  { id: "stablecoins", where: "/api/v1/sensors: total stablecoin supply (DefiLlama)", re: /стейблкоин|stablecoin/iu },
+  { id: "outages_sanctions", where: "/api/v1/sensors: internet outages (IODA), web blocking (OONI), sanctioned ships", re: /отключени\p{L}* интернет|internet outage|ooni|ioda|санкционн\p{L}* (?:судн|корабл)|sanctioned ships?/iu },
+  { id: "crypto_passport", where: "/api/v1/crypto-passport: regime calm/nervous/storm", re: /крипто-?паспорт|crypto passport|режим (?:рынка|крипто)|calm|nervous|storm/iu },
+  { id: "radars", where: "/api/v1/radars: eight news radars and indices (level, level_vs_30d)", re: /радар|radar|индекс|index|barometer|барометр/iu },
+  { id: "dwd_warnings", where: "/api/v1/weather/warnings-de: DWD warnings passed through", re: /dwd|unwetterwarnung|штормов\p{L}* предупрежд|weather warning/iu },
+  { id: "headline_checks", where: "passport, check_headline, check_claim: speech act, checkability, outlets", re: /паспорт новост|news passport|check_headline|проверк\p{L}* заголовк/iu },
+];
+export function orbTopics(text) {
+  const t = String(text || "");
+  return ORB_PUBLISHES.filter((x) => x.re.test(t) && (!x.needs || x.needs.test(t))).map((x) => x.id);
+}

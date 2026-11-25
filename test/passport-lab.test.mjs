@@ -32,3 +32,12 @@ test("lab step 1: named source is found, headlines without one give null", () =>
   assert.equal(namedSource("Boeing jet deliveries drop 14% in October"), null);
   assert.equal(namedSource("Smart ring maker Oura to acquire Counsel Health for $625 million"), null);
 });
+
+import { orbTopics, ORB_PUBLISHES } from "../src/passport-lab.js";
+test("lab step 2: registry of what Orb Studio publishes", () => {
+  assert.ok(orbTopics("Orb Studio сообщает, что курс биткоина сейчас $70 000 за один биткоин").includes("crypto_price_eur"));
+  assert.ok(orbTopics("Orb Studio: цена электроэнергии в Германии на завтра снизится").includes("electricity_de"));
+  assert.deepEqual(orbTopics("Orb Studio сообщает, что Amazon примет PEPE"), []);
+  assert.deepEqual(orbTopics("Orb Studio покупает Counsel Health за 625 млн"), []);
+  assert.ok(ORB_PUBLISHES.every((x) => x.id && x.where && x.re));
+});
