@@ -1880,14 +1880,14 @@ async function zivNow(env, ctx) {
 async function coxTick(env, ctx) { // раз в 30 минут: какие заголовки сейчас на радарах (первое и последнее появление)
   if (!env.DB || await sharedGet(env, "cox-slot", 25 * 60e3)) return; await sharedPut(env, "cox-slot", { t: Date.now() });
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_life (k TEXT PRIMARY KEY, radar TEXT NOT NULL, source TEXT, headline TEXT, first_ts INTEGER NOT NULL, last_ts INTEGER NOT NULL)").run();
-  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT", "joins TEXT", "conf_l TEXT", "fired_l TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
+  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT", "joins TEXT", "conf_l TEXT", "fired_l TEXT", "verd TEXT", "verd_l TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
   const t0 = Date.now(), rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), now = Date.now(), st = [], cyc = { ms: now - t0, stories: 0, nulls: 0, outlets: new Set(), fresh: [] };
   for (const r of rs || []) { const pubs = (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => f[5]).filter((x) => Number.isFinite(x) && x > 0); if (pubs.length) cyc.fresh.push((now - Math.max(...pubs)) / 60e3); }
   for (const r of rs || []) for (const [i, f] of (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).entries()) { const k = normHead(f[1]); if (!k) continue;
     const n = r.verify && Number.isFinite(r.verify[i]) ? r.verify[i] : null;
     cyc.stories++; if (n == null) cyc.nulls++; if (f[2]) cyc.outlets.add(f[2]); for (const j of (r.joins && r.joins[i]) || []) if (j && j[0]) cyc.outlets.add(j[0]); // «Пенроуз»: сколько изданий и сколько пропусков в этом круге
-    let conf = null, fired = null; try { const pp = newsPassport({ headline: f[1], confirm: n, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); } catch {} // «Харман»: уверенность паспорта в момент первого появления
-    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins, conf_l, fired_l) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9, ?7, ?8) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, conf_l = COALESCE(excluded.conf_l, conf_l), fired_l = COALESCE(excluded.fired_l, fired_l), joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null)); }
+    let conf = null, fired = null, verd = null; try { const pp = newsPassport({ headline: f[1], confirm: n, link: f[4], published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); verd = pp.verdict.color + ":" + pp.verdict.kind; } catch {} // «Харман»: уверенность паспорта в момент первого появления
+    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins, conf_l, fired_l, verd, verd_l) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9, ?7, ?8, ?10, ?10) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, verd_l = COALESCE(excluded.verd_l, verd_l), conf_l = COALESCE(excluded.conf_l, conf_l), fired_l = COALESCE(excluded.fired_l, fired_l), joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null, verd)); }
   if (st.length) await env.DB.batch(st);
   try { // «Пенроуз»: круг радаров — время сборки, число историй, изданий и пропусков, свежесть самой новой статьи (медиана по радарам); для мостика «рост обгоняет управление»
     await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_cycle (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, ms INTEGER, stories INTEGER, outlets INTEGER, nulls INTEGER, fresh_min INTEGER)").run();
@@ -1991,6 +1991,19 @@ async function harmanNow(env) { // «Харман»: честна ли увер�
     rows = ((await q("k, radar, headline, first_ts, last_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, last_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v5", r).catch(() => {}); return r;
+}
+async function verdictReportNow(env) { // отчёт по вердикту паспорта: сколько зелёных / красных / серых и как часто их потом оспаривали (метод «Хармана»)
+  let rows = []; try { rows = ((await env.DB.prepare("SELECT k, radar, headline, first_ts, last_ts, n_max, conf, verd, verd_l FROM radar_life WHERE verd IS NOT NULL AND first_ts > ?1").bind(Date.now() - 7 * 864e5).all()).results) || []; } catch {}
+  const since = rows.length ? Math.min(...rows.map((r) => r.first_ts)) : null, day = Date.now() - 864e5;
+  const by = (list) => { const c = { green: 0, red: 0, grey: 0 }, kinds = {}; for (const r of list) { const [col, kind] = String(r.verd).split(":"); if (c[col] != null) c[col]++; kinds[col + ":" + kind] = (kinds[col + ":" + kind] || 0) + 1; } return { stories: list.length, ...c, kinds }; };
+  const MAP = { green: "high", grey: "medium", red: "low" }; // harmanReport знает три уровня: подставляем цвет вердикта вместо confidence
+  const hr = harmanReport(rows.map((r) => ({ ...r, conf: MAP[String(r.verd).split(":")[0]] || "medium" })), Date.now(), since);
+  const lvl = Object.fromEntries((hr.levels || []).map((x) => [Object.keys(MAP).find((k) => MAP[k] === x.confidence), { stories: x.stories, challenged: x.challenged, challenged_pct: x.challenged_pct }]));
+  const flips = rows.filter((r) => r.verd_l && r.verd !== r.verd_l).slice(0, 12).map((r) => ({ headline: r.headline, first: r.verd, last: r.verd_l }));
+  return { sensor: "verdict_report", generated_at: new Date().toISOString(), since: since ? new Date(since).toISOString() : null,
+    last_24h: by(rows.filter((r) => r.first_ts > day)), last_7d: by(rows), challenged_by_color: lvl, harman_verdict_on_colors: hr.verdict, changed_verdict: flips,
+    read: "Green should be challenged less often than grey, red least trusted. challenged is a floor (most corrections never reach a headline). Radar items carry the outlet count only, so red here mostly means satire host, money push, false attribution; debunks and sensor checks apply in check_headline and the passport endpoint.",
+    rule: "Confidence is unchanged; verdict is stored next to it." };
 }
 async function cohenNow(env) { // «Коэн»: наименьший эффект, который каждый датчик способен заметить на нынешних данных
   const c = await sharedGet(env, "cohen-v1", 30 * 60e3).catch(() => null); if (c) return c;
@@ -4042,6 +4055,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/timemachine") return json(timeMachineReport({ era: url.searchParams.get("era"), zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }, url.origin), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/verdict-report") return json(await verdictReportNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/brief") {
     const t = url.searchParams.get("topic") || "news", H = { "Access-Control-Allow-Origin": "*" };
