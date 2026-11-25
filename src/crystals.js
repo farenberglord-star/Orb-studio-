@@ -13852,6 +13852,96 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "rule only: a first-impression check in the passport; no number, no sensor; philosophy of science, not psychoanalytic practice"
 }
+},
+{
+"id": "jaccard_p",
+"name": "Paul Jaccard",
+"name_ru": "Поль Жаккар",
+"years": "1868–1944",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Jaccard",
+"zone": "look_alike",
+"idea": {
+"en": "'Étude comparative de la distribution florale…' (1901): two areas are alike by the share of species they have in common out of all species found in either, not by the count of shared species alone.",
+"ru": "«Сравнительное изучение флоры…» (1901): два участка похожи по доле общих видов среди всех видов обоих, а не по числу общих видов.",
+"de": "„Étude comparative de la distribution florale…“ (1901): zwei Gebiete sind ähnlich nach dem Anteil gemeinsamer Arten an allen Arten beider, nicht nach der bloßen Zahl gemeinsamer Arten."
+},
+"rule": "Call two stories the same event by shared facts over all facts named, not by one shared word.",
+"needs": {
+"code": "needs_idea",
+"note": "share of word overlap (shared / all words) between headline pairs of different outlets in one cycle; part of the bridge same_story_measures; a threshold is a working assumption, to be checked against hand-labelled pairs"
+}
+},
+{
+"id": "dice_lr",
+"name": "Lee R. Dice",
+"name_ru": "Ли Р. Дайс",
+"years": "1887–1977",
+"wiki": "https://en.wikipedia.org/wiki/Lee_R._Dice",
+"zone": "look_alike",
+"idea": {
+"en": "'Measures of the Amount of Ecologic Association Between Species' (1945): association is twice the shared part over the sum of both sets, so full overlap of a small set scores as high as of a large one.",
+"ru": "«Меры степени экологической связи между видами» (1945): связь — удвоенная общая часть, делённая на сумму обоих наборов; полное совпадение малого набора оценивается так же высоко, как большого.",
+"de": "„Measures of the Amount of Ecologic Association Between Species“ (1945): Assoziation ist der doppelte gemeinsame Teil geteilt durch die Summe beider Mengen; volle Überdeckung einer kleinen Menge zählt so hoch wie die einer großen."
+},
+"rule": "Say which similarity measure you used; short texts score high on overlap measures.",
+"needs": {
+"code": "needs_idea",
+"note": "same pairs as jaccard_p with the Dice weighting (2 x shared / sum); useful only if it ranks pairs differently from Jaccard"
+}
+},
+{
+"id": "hamming_rw",
+"name": "Richard W. Hamming",
+"name_ru": "Ричард Хэмминг",
+"years": "1915–1998",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Hamming",
+"zone": "look_alike",
+"idea": {
+"en": "'Error detecting and error correcting codes' (1950): the distance between two words is the number of positions where they differ; a small distance means a probable error, not a different message.",
+"ru": "«Коды, обнаруживающие и исправляющие ошибки» (1950): расстояние между словами — число позиций, где они различаются; малое расстояние означает вероятную ошибку, а не другое сообщение.",
+"de": "„Error detecting and error correcting codes“ (1950): der Abstand zweier Wörter ist die Zahl der Stellen, an denen sie sich unterscheiden; ein kleiner Abstand bedeutet wahrscheinlich einen Fehler, nicht eine andere Nachricht."
+},
+"rule": "When two versions differ in a few places, suspect a copying error before a new fact.",
+"needs": {
+"code": "needs_idea",
+"note": "number of differing positions between two versions of the same headline after alignment; close to Levenshtein, which already merges typo-only pairs, so only a bridge member"
+}
+},
+{
+"id": "mahalanobis_pc",
+"name": "Prasanta Chandra Mahalanobis",
+"name_ru": "Прасанта Чандра Махаланобис",
+"years": "1893–1972",
+"wiki": "https://en.wikipedia.org/wiki/Prasanta_Chandra_Mahalanobis",
+"zone": "look_alike",
+"idea": {
+"en": "'On the Generalised Distance in Statistics' (1936): how far a case lies from a group depends on how its features vary together; the distance does not depend on the units of measurement.",
+"ru": "«Об обобщённом расстоянии в статистике» (1936): насколько случай далёк от группы, зависит от того, как признаки меняются вместе; расстояние не зависит от единиц измерения.",
+"de": "„On the Generalised Distance in Statistics“ (1936): wie weit ein Fall von einer Gruppe entfernt liegt, hängt davon ab, wie die Merkmale gemeinsam schwanken; der Abstand hängt nicht von den Maßeinheiten ab."
+},
+"rule": "Judge how unusual an item is by several signs together, not each sign alone.",
+"needs": {
+"code": "needs_idea",
+"note": "distance of a headline from the usual picture of its outlet over several signs at once (length, hour, topic share); needs a stored per-outlet history, not yet collected"
+}
+},
+{
+"id": "brookes_bc",
+"name": "Bertram C. Brookes",
+"name_ru": "Бертрам К. Брукс",
+"years": "1910–1991",
+"wiki": "https://en.wikipedia.org/wiki/B._(Bertram)_C._Brookes",
+"zone": "stale_data",
+"idea": {
+"en": "'The growth, utility and obsolescence of scientific periodical literature' (1970): the use of older items falls with age at a rate that has to be measured for each body of literature, and the sample can mislead.",
+"ru": "«Рост, полезность и устаревание научной периодики» (1970): использование старых материалов падает с возрастом со скоростью, которую надо измерять для каждого массива, а выборка может обмануть.",
+"de": "„The growth, utility and obsolescence of scientific periodical literature“ (1970): die Nutzung älterer Stücke sinkt mit dem Alter in einer Rate, die für jeden Bestand gemessen werden muss; die Stichprobe kann täuschen."
+},
+"rule": "Do not weigh an old source like a fresh one; measure how fast this kind of source goes stale.",
+"needs": {
+"code": "needs_idea",
+"note": "age of the items behind a news story; a rate of going stale needs a stored history of first-seen times, so far only a passport line idea"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

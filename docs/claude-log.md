@@ -364,3 +364,9 @@
 - `/api/v1/news?topic=` и MCP `get_news_by_topic` (src/news.js): радарные заголовки по теме, у каждой строки паспорта датчик и кристаллы (PASSPORT_TABLE); `/api/v1/news-passport-table`; таблица и разбор кандидатов — docs/passport-sensor-table.md.
 - Первой строкой в llms.txt, в endpoints agent.json (файл и AGENT_JSON), в NEW_TOOLS и MCP_INSTRUCTIONS. Строки Schmidt (по radar_life.joins), Cohen_S, Park, Polyak (contributors) — в ответе; Bradford не подключён; «правки после публикации» не измеряются (null).
 - Текущие паспорта, карточки и датчики не менялись; `newsPassport` не тронут.
+
+## 25.11.2026 — партия DeepSeek (Жаккар, Хэмминг, Махаланобис, Дайс, Брукс) и Башляр
+- Приняты после сверки смерти по источникам: Jaccard 1868–1944, Hamming 1915–1998, Mahalanobis 1893–1972, Dice 1887–1977, Brookes 1910–1991; Башляр (1884–1962) возвращён после перебазирования ветки на main (Коржибски, Огден, Холл уже были в main).
+- Отклонён Вальд (1902–1950): последовательный анализ вырос из военной задачи, слой 1 исключает.
+- Мостик same_story_measures (idea): Jaccard + Dice + Hamming + Mahalanobis + Levenshtein; ждёт размеченную выборку пар заголовков. Брукс — одиночная карточка stale_data (число «возраст источников» требует истории первых показов).
+- look_alike в партии: 4 карточки (лимит).
