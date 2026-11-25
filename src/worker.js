@@ -1842,13 +1842,21 @@ async function zivNow(env, ctx) {
 async function coxTick(env, ctx) { // раз в 30 минут: какие заголовки сейчас на радарах (первое и последнее появление)
   if (!env.DB || await sharedGet(env, "cox-slot", 25 * 60e3)) return; await sharedPut(env, "cox-slot", { t: Date.now() });
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_life (k TEXT PRIMARY KEY, radar TEXT NOT NULL, source TEXT, headline TEXT, first_ts INTEGER NOT NULL, last_ts INTEGER NOT NULL)").run();
-  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT", "joins TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
-  const rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), now = Date.now(), st = [];
+  for (const c of ["n_first INTEGER", "n_max INTEGER", "t3 INTEGER", "conf TEXT", "fired TEXT", "joins TEXT", "conf_l TEXT", "fired_l TEXT"]) await env.DB.prepare("ALTER TABLE radar_life ADD COLUMN " + c).run().catch(() => {}); // «Ховард»: сколько изданий в лентах и когда стало 3+
+  const t0 = Date.now(), rs = await allRadars(env, ctx, "https://orbstudio.org").catch(() => []), now = Date.now(), st = [], cyc = { ms: now - t0, stories: 0, nulls: 0, outlets: new Set(), fresh: [] };
+  for (const r of rs || []) { const pubs = (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).map((f) => f[5]).filter((x) => Number.isFinite(x) && x > 0); if (pubs.length) cyc.fresh.push((now - Math.max(...pubs)) / 60e3); }
   for (const r of rs || []) for (const [i, f] of (r && Array.isArray(r.feed) ? r.feed.slice(0, 8) : []).entries()) { const k = normHead(f[1]); if (!k) continue;
     const n = r.verify && Number.isFinite(r.verify[i]) ? r.verify[i] : null;
+    cyc.stories++; if (n == null) cyc.nulls++; if (f[2]) cyc.outlets.add(f[2]); for (const j of (r.joins && r.joins[i]) || []) if (j && j[0]) cyc.outlets.add(j[0]); // «Пенроуз»: сколько изданий и сколько пропусков в этом круге
     let conf = null, fired = null; try { const pp = newsPassport({ headline: f[1], confirm: n, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null }, now); conf = pp.confidence; fired = pp.fired.join(","); } catch {} // «Харман»: уверенность паспорта в момент первого появления
-    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null)); }
+    st.push(env.DB.prepare("INSERT INTO radar_life (k, radar, source, headline, first_ts, last_ts, n_first, n_max, t3, conf, fired, joins, conf_l, fired_l) VALUES (?1, ?2, ?3, ?4, ?5, ?5, ?6, ?6, CASE WHEN ?6 >= 3 THEN ?5 END, ?7, ?8, ?9, ?7, ?8) ON CONFLICT(k) DO UPDATE SET last_ts = excluded.last_ts, conf_l = COALESCE(excluded.conf_l, conf_l), fired_l = COALESCE(excluded.fired_l, fired_l), joins = CASE WHEN length(COALESCE(excluded.joins, '')) > length(COALESCE(joins, '')) THEN excluded.joins ELSE joins END, n_max = MAX(COALESCE(n_max, 0), COALESCE(excluded.n_max, 0)), t3 = COALESCE(t3, CASE WHEN excluded.n_max >= 3 THEN excluded.last_ts END)").bind(r.id + "|" + k, r.id, f[2] || null, String(f[1]).slice(0, 300), now, n, conf, fired, r.joins && r.joins[i] && r.joins[i].length >= 3 ? JSON.stringify(r.joins[i]) : null)); }
   if (st.length) await env.DB.batch(st);
+  try { // «Пенроуз»: круг радаров — время сборки, число историй, изданий и пропусков, свежесть самой новой статьи (медиана по радарам); для мостика «рост обгоняет управление»
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS radar_cycle (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, ms INTEGER, stories INTEGER, outlets INTEGER, nulls INTEGER, fresh_min INTEGER)").run();
+    const fr = [...cyc.fresh].sort((a, b) => a - b), fm = fr.length ? Math.round(fr[fr.length >> 1]) : null;
+    await env.DB.prepare("INSERT OR IGNORE INTO radar_cycle (slot, ts, ms, stories, outlets, nulls, fresh_min) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)").bind(Math.floor(now / 18e5), now, cyc.ms, cyc.stories, cyc.outlets.size, cyc.nulls, fm).run();
+    await env.DB.prepare("DELETE FROM radar_cycle WHERE ts < ?1").bind(now - 60 * 864e5).run();
+  } catch {}
   await env.DB.prepare("DELETE FROM radar_life WHERE last_ts < ?1").bind(now - 30 * 864e5).run();
 }
 async function coxNow(env, ctx) {

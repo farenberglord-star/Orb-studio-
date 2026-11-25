@@ -12006,8 +12006,9 @@ export const CRYSTALS = [
 },
 "rule": "When the case does not fit the model, say so and rebuild the approach in the open.",
 "needs": {
-"code": "needs_idea",
-"note": "bridge 'learning loops' (Schön + Argyris + March + Weick): how often the class of one story changes in the first hours; first and later classifications are not stored yet"
+"code": "needs_history",
+"note": "bridge 'learning loops' (Schön + Argyris + March + Weick): share of stories whose passport lines at last sight differ from first sight; stored from 25.11 (radar_life.fired_l)",
+"not_before": "2026-12-02"
 }
 },
 {
@@ -12481,8 +12482,9 @@ export const CRYSTALS = [
 },
 "rule": "When you add sources or tasks, say what you changed in how they are coordinated.",
 "needs": {
-"code": "needs_idea",
-"note": "update delay of the radar cycle against the number of tracked outlets; not logged together yet"
+"code": "needs_history",
+"note": "bridge 'growth outruns control' (Chandler + Penrose + Ashby): rank correlation of outlet count with freshness lag per 30-minute cycle; radar_cycle logging started 25.11",
+"not_before": "2026-12-09"
 }
 },
 {
@@ -12499,8 +12501,9 @@ export const CRYSTALS = [
 },
 "rule": "A system that adds inputs faster than it can absorb them shows gaps; flag the gaps.",
 "needs": {
-"code": "needs_idea",
-"note": "share of null values in a 30-minute window when many new topics appear at once; needs a topic count per window, not defined yet"
+"code": "needs_history",
+"note": "bridge 'growth outruns control' (Chandler + Penrose + Ashby): null share and freshness lag against outlet count; radar_cycle logging started 25.11",
+"not_before": "2026-12-09"
 }
 },
 {
@@ -12681,7 +12684,7 @@ export const CRYSTALS = [
 "rule": "When a headline fits no known class, say 'unclassified' instead of forcing a label.",
 "needs": {
 "code": "needs_idea",
-"note": "burst of unclassifiable speech acts and nulls at a sharp radar turn; needs the unclassified share per window, not defined yet"
+"note": "burst of nulls at a sharp radar turn; there is no 'unclassified' speech act (searle.js calls everything without a rule an event), so the share of silent passport stories (Ashby sensor) is the nearest number"
 }
 },
 {
