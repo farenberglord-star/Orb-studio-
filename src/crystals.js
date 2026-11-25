@@ -11875,8 +11875,9 @@ export const CRYSTALS = [
 },
 "rule": "Check that the answer has at least as many kinds as the case has; a one-size answer to many kinds of cases will miss some.",
 "needs": {
-"code": "needs_idea",
-"note": "bridge 'enough variety' (Ashby + Beer + Luhmann): a number for how many distinct kinds of event the passport can tell apart against how many kinds the headlines contain; not defined yet"
+"code": "covered",
+"note": "the Ashby sensor now shows on what share of radar stories the news passport has no line about what the headline says",
+"covered_by": "ashby"
 }
 },
 {

@@ -168,3 +168,10 @@
 - Замечания к Лиане: строки 22–37 повторяют 1–21; Джона Бёрка прислала снова, хотя его просили не брать; у Уолда лаг «фиксированный» — формулировка не из его работы, правило переписано как «порядок причин».
 - Мостики (все idea): price_next_to_cost, order_before_cause, growth_outruns_control, sure_thing_weight, view_from_inside; пополнены cheap_to_say_dear_to_check (+richardson_gb), spiral_or_bounce (+kaldor_n), fast_ripple_slow_tide (+hicks_jr, simon_j).
 - Библиотека: 688 карточек.
+
+## Датчик «Эшби» (25.11.2026, по «да» владельца)
+- Мостик enough_variety → sensor ashby; карточка ashby_wr → covered. src/ashby.js, /api/v1/ashby, MCP get_ashby, анонс (NEW_TOOLS, llms.txt, MCP_INSTRUCTIONS, agent.json), тест test/ashby.test.mjs.
+- Число: доля историй радара, у которых при первом показе паспорт не сработал ни одной строкой о содержании (radar_life.fired). Строки few_voices и stale не считаются: это состояние истории, и без этой поправки «молчание» было бы около 10 % вместо около 62 %.
+- Живая проверка (D1, 14 дней): 240 историй с fired, 23 пустых, 125 только few_voices/stale → молчит около 62 % → verdict passport_silent_on_many. Пороги 40 и 70 % — рабочие допущения.
+- Ограничение: молчание ≠ слепота (обычное событие не требует предупреждения). Отчёт говорит об этом в limit и rule.
+- Обзор 41 мостика idea (25.11): число из наших таблиц считалось сегодня только у enough_variety и copy_of_copy; same_story_pull и sure_thing_weight созреют ≈ 7.12; learning_loops, view_from_inside, growth_outruns_control требуют новой записи в базу (второй проход классификации через сутки; время обновления радара рядом с числом изданий). В searle.js нет класса «не распознано»: всё без правил считается event.
