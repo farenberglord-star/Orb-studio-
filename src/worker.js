@@ -102,6 +102,7 @@ import { paretoReport, PARETO_SERIES } from "./pareto.js";
 import { pearsonReport } from "./pearson.js";
 import { cohenReport } from "./cohen.js";
 import { harmanReport } from "./harman.js";
+import { promiseReport } from "./promises.js";
 import { extractNames, extractNamesRu, ruNominative, namesakes, fregeReport } from "./frege.js";
 import { levelVs30d, PARDUCCI_NOTE } from "./parducci.js";
 import { runsVs30d, NELSON_NOTE } from "./nelson.js";
@@ -1991,6 +1992,11 @@ async function harmanNow(env) { // «Харман»: честна ли увер�
     rows = ((await q("k, radar, headline, first_ts, last_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, last_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL").first()) || {}).m || null; } catch {}
   const r = harmanReport(rows, Date.now(), since); await sharedPut(env, "harman-v5", r).catch(() => {}); return r;
+}
+async function promisesNow(env) { // реестр обещаний: чем кончились истории-обещания радаров за 30 дней
+  const c = await sharedGet(env, "promises-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  let rows = []; try { rows = ((await env.DB.prepare("SELECT k, radar, source, headline, first_ts, last_ts, n_max FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 30 * 864e5).all()).results) || []; } catch {}
+  const r = promiseReport(rows, Date.now()); await sharedPut(env, "promises-v1", r).catch(() => {}); return r;
 }
 async function verdictReportNow(env) { // отчёт по вердикту паспорта: сколько зелёных / красных / серых и как часто их потом оспаривали (метод «Хармана»)
   let rows = []; try { rows = ((await env.DB.prepare("SELECT k, radar, headline, first_ts, last_ts, n_max, conf, verd, verd_l FROM radar_life WHERE verd IS NOT NULL AND first_ts > ?1").bind(Date.now() - 7 * 864e5).all()).results) || []; } catch {}
@@ -4055,6 +4061,7 @@ async function handleApi(url, request, env, ctx) {
   if (p === "/api/v1/trevisan") return json(await trevisanNow(env, ctx), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bertsekas") return json(await bertsekasNow(env, ctx, url.origin, request), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/timemachine") return json(timeMachineReport({ era: url.searchParams.get("era"), zone: url.searchParams.get("zone"), q: url.searchParams.get("q") }, url.origin), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/promises") return json(await promisesNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/verdict-report") return json(await verdictReportNow(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/passport") return json(await passportOf(env, ctx, url.origin, url.searchParams.get("headline")), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/brief") {
