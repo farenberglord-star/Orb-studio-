@@ -12851,6 +12851,96 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "age of the readings still repeated in headlines after a base sensor updated; no list of retired readings yet"
 }
+},
+{
+"id": "schutz_a",
+"name": "Alfred Schütz",
+"name_ru": "Альфред Шюц",
+"years": "1899–1959",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_Sch%C3%BCtz",
+"zone": "own_limits",
+"idea": {
+"en": "'Der sinnhafte Aufbau der sozialen Welt' (1932): what counts as relevant depends on the observer's own situation and stock of knowledge, so the same event looks different from different positions.",
+"ru": "«Смысловое строение социального мира» (1932): что считается существенным, зависит от собственной ситуации наблюдателя и его запаса знаний, поэтому одно и то же событие выглядит по-разному с разных позиций.",
+"de": "„Der sinnhafte Aufbau der sozialen Welt“ (1932): Was als relevant gilt, hängt von der Situation und dem Wissensvorrat des Beobachters ab; dasselbe Ereignis sieht von verschiedenen Standpunkten verschieden aus."
+},
+"rule": "Say from whose position a report was written and what a reader elsewhere would find relevant.",
+"needs": {
+"code": "needs_idea",
+"note": "difference in the top headlines of local and federal outlets over 30 minutes; needs a local or federal tag per outlet, not defined yet"
+}
+},
+{
+"id": "mead_gh",
+"name": "George Herbert Mead",
+"name_ru": "Джордж Герберт Мид",
+"years": "1863–1931",
+"wiki": "https://en.wikipedia.org/wiki/George_Herbert_Mead",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Mind, Self and Society' (1934, compiled by his students from lecture notes after his death): the meaning of a gesture lies in the response it draws from the other party.",
+"ru": "«Дух, самость и общество» (1934, составлена студентами по конспектам лекций после его смерти): значение жеста заключено в ответе, который он вызывает у другой стороны.",
+"de": "„Mind, Self and Society“ (1934, von Studenten nach seinem Tod aus Vorlesungsnotizen zusammengestellt): Die Bedeutung einer Geste liegt in der Antwort, die sie beim anderen hervorruft."
+},
+"rule": "Look for the reply before calling a statement a threat or a promise; the act is settled by what follows.",
+"needs": {
+"code": "needs_idea",
+"note": "share of threat and promise headlines followed within an hour by a reply story from another outlet; needs story matching and the speech act per headline, not defined yet"
+}
+},
+{
+"id": "thomas_wi",
+"name": "William I. Thomas",
+"name_ru": "Уильям Айзек Томас",
+"years": "1863–1947",
+"wiki": "https://en.wikipedia.org/wiki/W._I._Thomas",
+"zone": "side_effects",
+"idea": {
+"en": "'The Child in America' (1928, with Dorothy Thomas): if people define a situation as real, it is real in its consequences.",
+"ru": "«Ребёнок в Америке» (1928, с Дороти Томас): если люди определяют ситуацию как реальную, она реальна по своим последствиям.",
+"de": "„The Child in America“ (1928, mit Dorothy Thomas): Wenn Menschen eine Situation als wirklich definieren, ist sie in ihren Folgen wirklich."
+},
+"rule": "A false report that many believe can still move behaviour; keep 'is it true' apart from 'do people act on it'.",
+"needs": {
+"code": "needs_idea",
+"note": "size of a price or load move after an unconfirmed story is widely repeated; correlation only, not defined yet"
+}
+},
+{
+"id": "crozier_m",
+"name": "Michel Crozier",
+"name_ru": "Мишель Крозье",
+"years": "1922–2013",
+"wiki": "https://en.wikipedia.org/wiki/Michel_Crozier",
+"zone": "side_effects",
+"idea": {
+"en": "'Le Phénomène bureaucratique' (1963): in a bureaucratic vicious circle rigid impersonal rules leave gaps, failures bring more rules, and the organisation corrects itself slowly.",
+"ru": "«Бюрократическое явление» (1963): в бюрократическом порочном круге жёсткие безличные правила оставляют пробелы, сбои приводят к новым правилам, и организация исправляется медленно.",
+"de": "„Le Phénomène bureaucratique“ (1963): Im bürokratischen Teufelskreis lassen starre unpersönliche Regeln Lücken, Pannen führen zu mehr Regeln, und die Organisation korrigiert sich langsam."
+},
+"rule": "After a failure, say what the new rule leaves uncovered before adding it.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'more rules, new gaps' (Crozier + Argyris + Ashby): daily silent share (Ashby sensor) and null share across dated passport changes; needs the dated list of passport changes (git history of src/passport.js), not defined yet"
+}
+},
+{
+"id": "bales_rf",
+"name": "Robert F. Bales",
+"name_ru": "Роберт Бейлз",
+"years": "1916–2004",
+"wiki": "https://en.wikipedia.org/wiki/Robert_F._Bales",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Interaction Process Analysis' (1950): each act in a group can be coded as task (giving or asking for information and opinion) or as social-emotional (showing solidarity or tension), and groups swing between the two.",
+"ru": "«Анализ процесса взаимодействия» (1950): каждое действие в группе можно закодировать как задачу (сообщить или спросить сведения и мнение) или как социально-эмоциональное (показать солидарность или напряжение), и группы колеблются между ними.",
+"de": "„Interaction Process Analysis“ (1950): Jede Handlung in einer Gruppe lässt sich als Aufgabe (Information und Meinung geben oder erfragen) oder als sozial-emotional (Solidarität oder Spannung zeigen) kodieren; Gruppen pendeln zwischen beiden."
+},
+"rule": "Mark each sentence as information or as feeling, and keep the two apart.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headlines that carry feeling words against plain information, per day; the tone line of the passport exists, a daily share is not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
