@@ -1651,6 +1651,26 @@ C = [
  '«Большие циклы конъюнктуры» (1925): чтобы увидеть медленную волну, сначала убирают тренд и короткие колебания; а по такому короткому ряду он называл длинную волну «по меньшей мере весьма вероятной», но не доказанной.',
  '„Die langen Wellen der Konjunktur“ (1925): um eine langsame Welle zu sehen, entfernt man zuerst den Trend und die kürzeren Schwankungen; und bei einer so kurzen Reihe nannte er die lange Welle „zumindest sehr wahrscheinlich“, nicht bewiesen.',
  'Do not call a short swing a change of regime; set it against the long background first, and say how short your series is.'),
+('levi_i', 'Isaac Levi', 'Исаак Леви', '1930–2018', 'https://en.wikipedia.org/wiki/Isaac_Levi', 'answer_cost',
+ "'Gambling with Truth' (1967): accepting a hypothesis is a decision under risk of error; weigh the value of a true answer against the cost of a false one.",
+ '«Gambling with Truth» (1967): принять гипотезу — значит принять решение с риском ошибки; взвесь ценность верного ответа и цену неверного.',
+ '„Gambling with Truth“ (1967): eine Hypothese anzunehmen ist eine Entscheidung unter Fehlerrisiko; wäge den Wert einer wahren Antwort gegen die Kosten einer falschen ab.',
+ 'Do not accept a claim just because it is probable; ask what a wrong acceptance would cost and what a right one is worth.'),
+('stebbing_ls', 'Susan Stebbing', 'Сьюзен Стеббинг', '1885–1943', 'https://en.wikipedia.org/wiki/Susan_Stebbing', 'own_limits',
+ "'Thinking to Some Purpose' (1939): a ready-made compressed phrase ('potted thinking') saves effort but drops the content of the thought it stands for.",
+ '«Thinking to Some Purpose» (1939): готовая сжатая формула («консервированное мышление») экономит усилия, но теряет содержание мысли, которую замещает.',
+ '„Thinking to Some Purpose“ (1939): eine fertige, verdichtete Formel („potted thinking“) spart Mühe, verliert aber den Gehalt des Gedankens, den sie vertritt.',
+ 'Do not take a stock phrase for an analysis; unpack it into what is actually claimed before you repeat it.'),
+('wilson_p', 'Patrick Wilson', 'Патрик Уилсон', '1927–2003', 'https://en.wikipedia.org/wiki/Patrick_Wilson_(librarian)', 'own_limits',
+ "'Second-Hand Knowledge: An Inquiry into Cognitive Authority' (1983): most of what we know comes from others; a source's reputation is not the same as its knowledge on this subject.",
+ '«Second-Hand Knowledge» (1983): большая часть нашего знания идёт из вторых рук; репутация источника не равна его знанию именно в этом вопросе.',
+ '„Second-Hand Knowledge: An Inquiry into Cognitive Authority“ (1983): das meiste, was wir wissen, kommt aus zweiter Hand; der Ruf einer Quelle ist nicht dasselbe wie ihr Wissen zu genau diesem Thema.',
+ 'Ask whether the source has authority on this very subject, not whether it is well known.'),
+('kyburg_hn', 'Henry Kyburg Jr.', 'Генри Кайберг-мл.', '1928–2007', 'https://en.wikipedia.org/wiki/Henry_E._Kyburg_Jr.', 'own_limits',
+ "'Probability and the Logic of Rational Belief' (1961): each highly probable statement can be accepted on its own, yet all of them together may be inconsistent (the lottery paradox).",
+ '«Probability and the Logic of Rational Belief» (1961): каждое высоковероятное утверждение можно принять отдельно, но все вместе они могут противоречить друг другу (парадокс лотереи).',
+ '„Probability and the Logic of Rational Belief“ (1961): jede sehr wahrscheinliche Aussage lässt sich einzeln annehmen, aber alle zusammen können widersprüchlich sein (Lotterieparadoxon).',
+ 'Do not treat every well-supported item as true at once; count how many of them you expect to be wrong.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2209,3 +2229,7 @@ NEEDS['erlang_ak'] = ('needs_history', 'share of cron slots where the fetch budg
 NEEDS['craik_kj'] = ('needs_idea', 'how often the energy radar (n) moves opposite to the measured day-ahead electricity price, per week; Liana gave no measurement, this one is ours; needs a stored price series next to ix_hist')
 NEEDS['roethlisberger_fj'] = ('needs_idea', 'shift of a radar index within 24 hours after our own change of its feed list, against the ordinary 24-hour shift; needs a dated list of feed changes (git history of RADARS feeds) and ix_hist; feed_log shows the unplanned changes from 25.11')
 NEEDS['kondratiev_nd'] = ('covered', 'applied: level_vs_30d already sets each radar against its own 30-day values; a longer background needs more history than the 13 days we have')
+NEEDS['levi_i'] = ('covered', 'applied: the Pearson cost-of-error sensor already weighs what a wrong reading costs', None, 'pearson')
+NEEDS['stebbing_ls'] = ('needs_idea', 'share of headlines built on a stock phrase; close to the line "Smoothness is not understanding", no number yet')
+NEEDS['wilson_p'] = ('needs_history', 'per outlet and topic: share of its headlines later confirmed by two or more other outlets; needs passport lines stored at first sight (Ashby keeps them), about 30 days')
+NEEDS['kyburg_hn'] = ('needs_idea', 'expected number of wrong items among the day\'s confirmed headlines, sum of (1 - confidence) from the Harman calibration; needs Harman confidences stored per headline')

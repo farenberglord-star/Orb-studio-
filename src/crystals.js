@@ -13761,6 +13761,79 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "applied: level_vs_30d already sets each radar against its own 30-day values; a longer background needs more history than the 13 days we have"
 }
+},
+{
+"id": "levi_i",
+"name": "Isaac Levi",
+"name_ru": "Исаак Леви",
+"years": "1930–2018",
+"wiki": "https://en.wikipedia.org/wiki/Isaac_Levi",
+"zone": "answer_cost",
+"idea": {
+"en": "'Gambling with Truth' (1967): accepting a hypothesis is a decision under risk of error; weigh the value of a true answer against the cost of a false one.",
+"ru": "«Gambling with Truth» (1967): принять гипотезу — значит принять решение с риском ошибки; взвесь ценность верного ответа и цену неверного.",
+"de": "„Gambling with Truth“ (1967): eine Hypothese anzunehmen ist eine Entscheidung unter Fehlerrisiko; wäge den Wert einer wahren Antwort gegen die Kosten einer falschen ab."
+},
+"rule": "Do not accept a claim just because it is probable; ask what a wrong acceptance would cost and what a right one is worth.",
+"needs": {
+"code": "covered",
+"note": "applied: the Pearson cost-of-error sensor already weighs what a wrong reading costs",
+"covered_by": "pearson"
+}
+},
+{
+"id": "stebbing_ls",
+"name": "Susan Stebbing",
+"name_ru": "Сьюзен Стеббинг",
+"years": "1885–1943",
+"wiki": "https://en.wikipedia.org/wiki/Susan_Stebbing",
+"zone": "own_limits",
+"idea": {
+"en": "'Thinking to Some Purpose' (1939): a ready-made compressed phrase ('potted thinking') saves effort but drops the content of the thought it stands for.",
+"ru": "«Thinking to Some Purpose» (1939): готовая сжатая формула («консервированное мышление») экономит усилия, но теряет содержание мысли, которую замещает.",
+"de": "„Thinking to Some Purpose“ (1939): eine fertige, verdichtete Formel („potted thinking“) spart Mühe, verliert aber den Gehalt des Gedankens, den sie vertritt."
+},
+"rule": "Do not take a stock phrase for an analysis; unpack it into what is actually claimed before you repeat it.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headlines built on a stock phrase; close to the line \"Smoothness is not understanding\", no number yet"
+}
+},
+{
+"id": "wilson_p",
+"name": "Patrick Wilson",
+"name_ru": "Патрик Уилсон",
+"years": "1927–2003",
+"wiki": "https://en.wikipedia.org/wiki/Patrick_Wilson_(librarian)",
+"zone": "own_limits",
+"idea": {
+"en": "'Second-Hand Knowledge: An Inquiry into Cognitive Authority' (1983): most of what we know comes from others; a source's reputation is not the same as its knowledge on this subject.",
+"ru": "«Second-Hand Knowledge» (1983): большая часть нашего знания идёт из вторых рук; репутация источника не равна его знанию именно в этом вопросе.",
+"de": "„Second-Hand Knowledge: An Inquiry into Cognitive Authority“ (1983): das meiste, was wir wissen, kommt aus zweiter Hand; der Ruf einer Quelle ist nicht dasselbe wie ihr Wissen zu genau diesem Thema."
+},
+"rule": "Ask whether the source has authority on this very subject, not whether it is well known.",
+"needs": {
+"code": "needs_history",
+"note": "per outlet and topic: share of its headlines later confirmed by two or more other outlets; needs passport lines stored at first sight (Ashby keeps them), about 30 days"
+}
+},
+{
+"id": "kyburg_hn",
+"name": "Henry Kyburg Jr.",
+"name_ru": "Генри Кайберг-мл.",
+"years": "1928–2007",
+"wiki": "https://en.wikipedia.org/wiki/Henry_E._Kyburg_Jr.",
+"zone": "own_limits",
+"idea": {
+"en": "'Probability and the Logic of Rational Belief' (1961): each highly probable statement can be accepted on its own, yet all of them together may be inconsistent (the lottery paradox).",
+"ru": "«Probability and the Logic of Rational Belief» (1961): каждое высоковероятное утверждение можно принять отдельно, но все вместе они могут противоречить друг другу (парадокс лотереи).",
+"de": "„Probability and the Logic of Rational Belief“ (1961): jede sehr wahrscheinliche Aussage lässt sich einzeln annehmen, aber alle zusammen können widersprüchlich sein (Lotterieparadoxon)."
+},
+"rule": "Do not treat every well-supported item as true at once; count how many of them you expect to be wrong.",
+"needs": {
+"code": "needs_idea",
+"note": "expected number of wrong items among the day's confirmed headlines, sum of (1 - confidence) from the Harman calibration; needs Harman confidences stored per headline"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
