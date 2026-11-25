@@ -13689,6 +13689,42 @@ export const CRYSTALS = [
 "code": "needs_history",
 "note": "median ratio of successive 30-minute shifts of a radar index after a shift of 10 points or more (below 1 means the shock dies away); needs a history without feed-failure points, about 30 days (see the 25.11 episode)"
 }
+},
+{
+"id": "erlang_ak",
+"name": "Agner Krarup Erlang",
+"name_ru": "Агнер Краруп Эрланг",
+"years": "1878–1929",
+"wiki": "https://en.wikipedia.org/wiki/Agner_Krarup_Erlang",
+"zone": "answer_cost",
+"idea": {
+"en": "'Solution of some problems in the theory of probabilities of significance in automatic telephone exchanges' (1917): how many callers must wait or are turned away depends on the offered load against the number of lines; near full load, waiting grows very fast (Erlang's formula).",
+"ru": "«Решение некоторых задач теории вероятностей, важных для автоматических телефонных станций» (1917): сколько абонентов ждут или получают отказ, зависит от нагрузки относительно числа линий; у полной загрузки ожидание растёт очень быстро (формула Эрланга).",
+"de": "„Lösung einiger Probleme der Wahrscheinlichkeitsrechnung, die für automatische Telefonämter wichtig sind“ (1917): wie viele Anrufer warten müssen oder abgewiesen werden, hängt von der angebotenen Last im Verhältnis zur Zahl der Leitungen ab; nahe der Volllast wächst das Warten sehr schnell (Erlangsche Formel)."
+},
+"rule": "Do not read a delay or a dropped request as a fact about the world; first ask how close the channel was to full load at that moment.",
+"needs": {
+"code": "needs_idea",
+"note": "share of cron slots where the fetch budget (30) or the 7 s timeout was hit; needs a per-slot journal of feed outcomes, which we do not keep today (it would also have shown the 23-25.11 radar dips directly)"
+}
+},
+{
+"id": "craik_kj",
+"name": "Kenneth Craik",
+"name_ru": "Кеннет Крейк",
+"years": "1914–1945",
+"wiki": "https://en.wikipedia.org/wiki/Kenneth_Craik",
+"zone": "own_limits",
+"idea": {
+"en": "'The Nature of Explanation' (1943): the mind builds a small-scale model of reality and uses it to predict events; a model is only as good as its match to the events it stands for.",
+"ru": "«Природа объяснения» (1943): ум строит малую модель действительности и с её помощью предсказывает события; модель хороша ровно настолько, насколько совпадает с событиями, которые она замещает.",
+"de": "„The Nature of Explanation“ (1943): der Geist baut ein kleines Modell der Wirklichkeit und sagt damit Ereignisse voraus; ein Modell ist nur so gut wie seine Übereinstimmung mit den Ereignissen, die es vertritt."
+},
+"rule": "Check an internal model against what it stands for whenever the surroundings change; do not trust it only because it worked before.",
+"needs": {
+"code": "needs_idea",
+"note": "how often the energy radar (n) moves opposite to the measured day-ahead electricity price, per week; Liana gave no measurement, this one is ours; needs a stored price series next to ix_hist"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

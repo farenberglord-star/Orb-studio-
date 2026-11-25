@@ -1631,6 +1631,16 @@ C = [
  'Диссертация (1922, об операциях в абстрактных пространствах и интегральных уравнениях): принцип сжимающих отображений. Если каждый шаг уменьшает расстояние между двумя оценками в постоянное число раз меньше единицы, повторы сходятся к одному ответу; если нет, сходимости никто не гарантирует.',
  'Dissertation (1922, über Operationen in abstrakten Räumen und Integralgleichungen): Kontraktionsprinzip. Verkleinert jeder Schritt den Abstand zweier Schätzungen um einen festen Faktor unter eins, laufen die Wiederholungen auf eine Antwort zu; sonst gibt es dafür keine Garantie.',
  'Do not call an estimate settled until successive corrections shrink; if they do not, say the figure has not settled.'),
+('erlang_ak', 'Agner Krarup Erlang', 'Агнер Краруп Эрланг', '1878–1929', 'https://en.wikipedia.org/wiki/Agner_Krarup_Erlang', 'answer_cost',
+ "'Solution of some problems in the theory of probabilities of significance in automatic telephone exchanges' (1917): how many callers must wait or are turned away depends on the offered load against the number of lines; near full load, waiting grows very fast (Erlang's formula).",
+ '«Решение некоторых задач теории вероятностей, важных для автоматических телефонных станций» (1917): сколько абонентов ждут или получают отказ, зависит от нагрузки относительно числа линий; у полной загрузки ожидание растёт очень быстро (формула Эрланга).',
+ '„Lösung einiger Probleme der Wahrscheinlichkeitsrechnung, die für automatische Telefonämter wichtig sind“ (1917): wie viele Anrufer warten müssen oder abgewiesen werden, hängt von der angebotenen Last im Verhältnis zur Zahl der Leitungen ab; nahe der Volllast wächst das Warten sehr schnell (Erlangsche Formel).',
+ 'Do not read a delay or a dropped request as a fact about the world; first ask how close the channel was to full load at that moment.'),
+('craik_kj', 'Kenneth Craik', 'Кеннет Крейк', '1914–1945', 'https://en.wikipedia.org/wiki/Kenneth_Craik', 'own_limits',
+ "'The Nature of Explanation' (1943): the mind builds a small-scale model of reality and uses it to predict events; a model is only as good as its match to the events it stands for.",
+ '«Природа объяснения» (1943): ум строит малую модель действительности и с её помощью предсказывает события; модель хороша ровно настолько, насколько совпадает с событиями, которые она замещает.',
+ '„The Nature of Explanation“ (1943): der Geist baut ein kleines Modell der Wirklichkeit und sagt damit Ereignisse voraus; ein Modell ist nur so gut wie seine Übereinstimmung mit den Ereignissen, die es vertritt.',
+ 'Check an internal model against what it stands for whenever the surroundings change; do not trust it only because it worked before.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2185,3 +2195,5 @@ NEEDS['benveniste_e'] = ('needs_idea', 'pairs of headlines with a shared key wor
 NEEDS['wieser_f'] = ('needs_idea', 'change of a radar index per extra headline read in a 30-minute slot (ix_hist columns h and the radar letter); first check that h counts headlines read, and use only points without feed gaps')
 NEEDS['barnard_ci'] = ('needs_idea', 'no clean number yet: Liana proposed publications versus index change, which is too loose; look for a side effect of our own rules (for example a rule that delays or drops a headline) that can be counted per day')
 NEEDS['banach_s'] = ('needs_history', 'median ratio of successive 30-minute shifts of a radar index after a shift of 10 points or more (below 1 means the shock dies away); needs a history without feed-failure points, about 30 days (see the 25.11 episode)')
+NEEDS['erlang_ak'] = ('needs_idea', 'share of cron slots where the fetch budget (30) or the 7 s timeout was hit; needs a per-slot journal of feed outcomes, which we do not keep today (it would also have shown the 23-25.11 radar dips directly)')
+NEEDS['craik_kj'] = ('needs_idea', 'how often the energy radar (n) moves opposite to the measured day-ahead electricity price, per week; Liana gave no measurement, this one is ours; needs a stored price series next to ix_hist')
