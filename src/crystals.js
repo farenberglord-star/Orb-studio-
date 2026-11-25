@@ -11732,6 +11732,134 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "bridge 'first plausible story' (Weick + Festinger + Kunda): a number for how long the first account of an event stays unchanged in the radar headlines; not defined yet"
 }
+},
+{
+"id": "march_jg",
+"name": "James G. March",
+"name_ru": "Джеймс Г. Марч",
+"years": "1928–2018",
+"wiki": "https://en.wikipedia.org/wiki/James_G._March",
+"zone": "stale_data",
+"idea": {
+"en": "'The Uncertainty of the Past: Organizational Learning Under Ambiguity' (1975, with Olsen): the past is not a clean record; what an organization remembers is rebuilt afterwards from outcomes and is ambiguous.",
+"ru": "«Неопределённость прошлого: обучение организаций в условиях неоднозначности» (1975, с Улсеном): прошлое — не чистая запись; то, что организация помнит, достраивается задним числом по результатам и неоднозначно.",
+"de": "„The Uncertainty of the Past“ (1975, mit Olsen): Die Vergangenheit ist keine saubere Aufzeichnung; was erinnert wird, wird nachträglich aus Ergebnissen rekonstruiert."
+},
+"rule": "When you cite what happened before, say it is a reconstruction and give the date it was written down.",
+"needs": {
+"code": "needs_idea",
+"note": "how the same event is described later versus first (headline rewrites, corrections); joins the version-history cards Rinne and Elmasri, waits for the history since 23.11.2026"
+}
+},
+{
+"id": "cyert_rm",
+"name": "Richard M. Cyert",
+"name_ru": "Ричард М. Сайерт",
+"years": "1921–1998",
+"wiki": "https://en.wikipedia.org/wiki/Richard_Cyert",
+"zone": "own_limits",
+"idea": {
+"en": "'A Behavioral Theory of the Firm' (1963, with March): firms do not maximise; they look for a 'good enough' level (an aspiration level) that moves up and down with recent results.",
+"ru": "«Поведенческая теория фирмы» (1963, с Марчем): фирмы не максимизируют, а ищут «достаточно хороший» уровень (уровень притязаний), который сдвигается вслед за недавними результатами.",
+"de": "„A Behavioral Theory of the Firm“ (1963, mit March): Firmen maximieren nicht, sie suchen ein „gut genug“-Niveau, das den jüngsten Ergebnissen folgt."
+},
+"rule": "Say what counts as good enough, who set it, and that it moves with recent results.",
+"needs": {
+"code": "needs_idea",
+"note": "list the thresholds Orb Studio itself uses (alert, jump, verdict cut-offs) and check whether any was moved after recent results; no number yet"
+}
+},
+{
+"id": "marschak_j",
+"name": "Jacob Marschak",
+"name_ru": "Джейкоб Маршак",
+"years": "1898–1977",
+"wiki": "https://en.wikipedia.org/wiki/Jacob_Marschak",
+"zone": "answer_cost",
+"idea": {
+"en": "'Economics of Information Systems' (1971): information is worth what it adds to the expected result of a decision it can change, minus the cost of getting it.",
+"ru": "«Экономика информационных систем» (1971): информация стоит столько, сколько она добавляет к ожидаемому результату решения, которое она может изменить, за вычетом цены её получения.",
+"de": "„Economics of Information Systems“ (1971): Information ist so viel wert, wie sie dem erwarteten Ergebnis einer Entscheidung hinzufügt, die sie ändern kann, abzüglich ihrer Kosten."
+},
+"rule": "Ask for another answer only if it could change the decision and is worth its price.",
+"needs": {
+"code": "covered",
+"note": "the Howard sensor already weighs when one more piece of information pays off",
+"covered_by": "howard"
+}
+},
+{
+"id": "meadows_d",
+"name": "Donella Meadows",
+"name_ru": "Донелла Медоуз",
+"years": "1941–2001",
+"wiki": "https://en.wikipedia.org/wiki/Donella_Meadows",
+"zone": "side_effects",
+"idea": {
+"en": "'Leverage Points: Places to Intervene in a System': changing a number (a tax, a quota, a subsidy) is the weakest place to intervene; rules, information flows and goals change behaviour far more.",
+"ru": "«Точки рычага: где вмешиваться в систему»: менять число (налог, квоту, субсидию) — самое слабое место вмешательства; правила, потоки информации и цели меняют поведение куда сильнее.",
+"de": "„Leverage Points: Places to Intervene in a System“: Eine Zahl zu ändern (Steuer, Quote, Subvention) ist der schwächste Hebel; Regeln, Informationsflüsse und Ziele verändern Verhalten viel stärker."
+},
+"rule": "Before proposing a fix that only changes a number, ask whether it changes who sees what or the rules; if not, expect little change.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'where a fix bites' (Meadows + Stigler + Campbell): classify each proposed rule in a story as a number, a rule, or an information flow; no measurable form yet"
+}
+},
+{
+"id": "boulding_ke",
+"name": "Kenneth E. Boulding",
+"name_ru": "Кеннет Э. Боулдинг",
+"years": "1910–1993",
+"wiki": "https://en.wikipedia.org/wiki/Kenneth_E._Boulding",
+"zone": "stale_data",
+"idea": {
+"en": "'The Image: Knowledge in Life and Society' (1956): what we do follows our image of the world, and that image is built from past messages and changes only slowly.",
+"ru": "«Образ: знание в жизни и обществе» (1956): наши действия следуют образу мира, а он складывается из прошлых сообщений и меняется медленно.",
+"de": "„The Image: Knowledge in Life and Society“ (1956): Handeln folgt dem Bild von der Welt, und dieses Bild entsteht aus früheren Botschaften und ändert sich nur langsam."
+},
+"rule": "Say how old the picture of the world is that your answer rests on.",
+"needs": {
+"code": "covered",
+"note": "the Baird sensor already gives the age of every published number",
+"covered_by": "baird"
+}
+},
+{
+"id": "beer_s",
+"name": "Stafford Beer",
+"name_ru": "Стаффорд Бир",
+"years": "1926–2002",
+"wiki": "https://en.wikipedia.org/wiki/Stafford_Beer",
+"zone": "side_effects",
+"idea": {
+"en": "POSIWID, 'the purpose of a system is what it does' (Beer's address, Valladolid 2001; from his management cybernetics, 'Brain of the Firm' 1972): judge a system by what it does, not by what it is meant to do.",
+"ru": "POSIWID: «цель системы — то, что она делает» (выступление Бира в Вальядолиде, 2001; из его управленческой кибернетики, «Мозг фирмы», 1972): судить о системе по тому, что она делает, а не по заявленной цели.",
+"de": "POSIWID: „Der Zweck eines Systems ist, was es tut“ (Beer, Valladolid 2001; Managementkybernetik, „Brain of the Firm“ 1972): ein System nach seinem Tun beurteilen, nicht nach der erklärten Absicht."
+},
+"rule": "Judge a tool by what it actually does in use, not by its stated purpose.",
+"needs": {
+"code": "needs_idea",
+"note": "compare what each sensor is meant for with how agents actually use it (tool-call counts per tool); needs usage logs that are not kept yet"
+}
+},
+{
+"id": "hotelling_h",
+"name": "Harold Hotelling",
+"name_ru": "Гарольд Хотеллинг",
+"years": "1895–1973",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Hotelling",
+"zone": "look_alike",
+"idea": {
+"en": "'Stability in Competition' (1929): two sellers on one street each move toward the middle to win customers, and end up offering almost the same thing.",
+"ru": "«Устойчивость в конкуренции» (1929): два продавца на одной улице каждый сдвигаются к середине, чтобы взять покупателей, и в итоге предлагают почти одно и то же.",
+"de": "„Stability in Competition“ (1929): Zwei Anbieter an einer Straße rücken beide zur Mitte und bieten am Ende fast dasselbe an."
+},
+"rule": "When many sources say the same thing, ask whether they moved toward each other, not whether they each found it.",
+"needs": {
+"code": "needs_idea",
+"note": "do outlets move toward the same story? the Schmidt sensor holds the join times; a number for how many radar stories are carried by nearly all outlets is not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
