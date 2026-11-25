@@ -12302,6 +12302,169 @@ export const CRYSTALS = [
 "note": "the Rabin sensor already re-checks random published headlines against outside sources",
 "covered_by": "rabin"
 }
+},
+{
+"id": "janis_il",
+"name": "Irving Janis",
+"name_ru": "Ирвинг Джанис",
+"years": "1918–1990",
+"wiki": "https://en.wikipedia.org/wiki/Irving_Janis",
+"zone": "side_effects",
+"idea": {
+"en": "'Victims of Groupthink' (1972): in a close, cohesive group the wish for agreement overrides realistic appraisal, so doubts go unspoken and the group looks more certain than it is.",
+"ru": "«Жертвы группового мышления» (1972): в сплочённой группе желание согласия вытесняет трезвую оценку, сомнения не звучат, и группа выглядит увереннее, чем есть.",
+"de": "„Victims of Groupthink“ (1972): In einer geschlossenen, zusammenhaltenden Gruppe verdrängt der Wunsch nach Einigkeit die nüchterne Bewertung; Zweifel bleiben unausgesprochen."
+},
+"rule": "Agreement among many sources can come from cohesion, not from checking; ask whether they checked or copied.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'same story pull' (Janis + Hotelling + Schmidt + Asch): share of radar stories carried by at least 80% of outlets, per week; needs weeks of history",
+"not_before": "2026-12-07"
+}
+},
+{
+"id": "boudon_r",
+"name": "Raymond Boudon",
+"name_ru": "Реймон Будон",
+"years": "1934–2013",
+"wiki": "https://en.wikipedia.org/wiki/Raymond_Boudon",
+"zone": "side_effects",
+"idea": {
+"en": "'Effets pervers et ordre social' (1977): many social outcomes are perverse effects, results nobody intended that arise from many people acting on reasonable motives.",
+"ru": "«Извращённые эффекты и социальный порядок» (1977): многие социальные результаты — «извращённые эффекты», то есть то, чего никто не хотел и что возникает, когда многие действуют по разумным мотивам.",
+"de": "„Effets pervers et ordre social“ (1977): Viele soziale Ergebnisse sind perverse Effekte, die niemand wollte und die aus vernünftigen Motiven vieler entstehen."
+},
+"rule": "Do not read an outcome as proof of intent; look for the sum of reasonable individual choices.",
+"needs": {
+"code": "needs_idea",
+"note": "count follow-up headlines about an opposite or unintended effect after a rule or measure headline; no open source tied to our data yet"
+}
+},
+{
+"id": "downs_a",
+"name": "Anthony Downs",
+"name_ru": "Энтони Даунс",
+"years": "1930–2021",
+"wiki": "https://en.wikipedia.org/wiki/Anthony_Downs",
+"zone": "answer_cost",
+"idea": {
+"en": "'An Economic Theory of Democracy' (1957): when finding out costs more than one person's vote can change, staying uninformed is rational (rational ignorance).",
+"ru": "«Экономическая теория демократии» (1957): когда выяснить дороже, чем может изменить один голос, оставаться неосведомлённым рационально («рациональное неведение»).",
+"de": "„An Economic Theory of Democracy“ (1957): Wenn Informieren mehr kostet, als eine Stimme ändern kann, ist Unwissen rational (rationale Ignoranz)."
+},
+"rule": "Say what it would cost the reader to check this, and do not assume they will.",
+"needs": {
+"code": "needs_idea",
+"note": "price of checking: a number for how long or how costly it is to verify one published figure against a primary source; joins the 'cheap to say, dear to check' bridge, not defined yet"
+}
+},
+{
+"id": "becker_gs",
+"name": "Gary Becker",
+"name_ru": "Гэри Беккер",
+"years": "1930–2014",
+"wiki": "https://en.wikipedia.org/wiki/Gary_Becker",
+"zone": "answer_cost",
+"idea": {
+"en": "'A Theory of the Allocation of Time' (1965): time is a scarce input; the full price of an activity is its money cost plus the value of the time it takes.",
+"ru": "«Теория распределения времени» (1965): время — дефицитный ресурс; полная цена занятия — денежные затраты плюс стоимость затраченного времени.",
+"de": "„A Theory of the Allocation of Time“ (1965): Zeit ist ein knapper Input; der volle Preis einer Tätigkeit ist Geldkosten plus der Wert der aufgewendeten Zeit."
+},
+"rule": "Count the reader's time in the price of an answer; shorter is not always cheaper if it forces a second look.",
+"needs": {
+"code": "needs_idea",
+"note": "reader's time: seconds to read an answer against how often the reader asks again; we log no second questions yet"
+}
+},
+{
+"id": "alchian_a",
+"name": "Armen Alchian",
+"name_ru": "Арман Алчиан",
+"years": "1914–2013",
+"wiki": "https://en.wikipedia.org/wiki/Armen_Alchian",
+"zone": "look_alike",
+"idea": {
+"en": "'Uncertainty, Evolution, and Economic Theory' (1950): under uncertainty the firms that survive look as if they optimised, but selection by survival can explain this without any foresight.",
+"ru": "«Неопределённость, эволюция и экономическая теория» (1950): при неопределённости выжившие фирмы выглядят так, будто оптимизировали, но отбор выживанием объясняет это без всякого предвидения.",
+"de": "„Uncertainty, Evolution, and Economic Theory“ (1950): Unter Unsicherheit wirken überlebende Firmen wie Optimierer, doch Selektion durch Überleben erklärt das ohne Voraussicht."
+},
+"rule": "A source that was right several times may only have survived; ask how many similar sources were wrong and dropped out.",
+"needs": {
+"code": "needs_idea",
+"note": "survivor count: how many sources that were right in one week are silent or wrong in the next; needs the track record of every source, not only the winners"
+}
+},
+{
+"id": "demsetz_h",
+"name": "Harold Demsetz",
+"name_ru": "Гарольд Демсец",
+"years": "1930–2019",
+"wiki": "https://en.wikipedia.org/wiki/Harold_Demsetz",
+"zone": "one_model",
+"idea": {
+"en": "'Information and Efficiency: Another Viewpoint' (1969): the 'nirvana approach' compares a real arrangement with an ideal one nobody can have; the fair test is against the real alternatives.",
+"ru": "«Информация и эффективность: другая точка зрения» (1969): «подход нирваны» сравнивает реальное устройство с идеалом, которого ни у кого нет; честная проверка — против реальных альтернатив.",
+"de": "„Information and Efficiency: Another Viewpoint“ (1969): Der „Nirwana-Ansatz“ vergleicht eine reale Lösung mit einem Ideal, das niemand haben kann; fair ist der Vergleich mit realen Alternativen."
+},
+"rule": "Compare a result with the realistic alternatives, not with a perfect one.",
+"needs": {
+"code": "needs_idea",
+"note": "name the realistic alternative next to every comparison; no number, a line for the news passport"
+}
+},
+{
+"id": "williamson_oe",
+"name": "Oliver Williamson",
+"name_ru": "Оливер Уильямсон",
+"years": "1932–2020",
+"wiki": "https://en.wikipedia.org/wiki/Oliver_E._Williamson",
+"zone": "answer_cost",
+"idea": {
+"en": "'Markets and Hierarchies' (1975): every exchange has transaction costs of finding, checking and enforcing, and with limited attention and some cheating these costs decide how it is organised.",
+"ru": "«Рынки и иерархии» (1975): у любого обмена есть трансакционные издержки поиска, проверки и принуждения к исполнению; при ограниченном внимании и возможном обмане они решают, как обмен устроен.",
+"de": "„Markets and Hierarchies“ (1975): Jeder Austausch hat Transaktionskosten für Suchen, Prüfen und Durchsetzen; bei begrenzter Aufmerksamkeit und etwas Täuschung bestimmen sie die Organisation."
+},
+"rule": "Give the price of a claim together with the cost of verifying it.",
+"needs": {
+"code": "needs_idea",
+"note": "cost of verifying a claim per outlet: time to a primary source; joins the 'cheap to say, dear to check' bridge, not defined yet"
+}
+},
+{
+"id": "north_dc",
+"name": "Douglass North",
+"name_ru": "Дуглас Норт",
+"years": "1920–2015",
+"wiki": "https://en.wikipedia.org/wiki/Douglass_North",
+"zone": "stale_data",
+"idea": {
+"en": "'Institutions, Institutional Change and Economic Performance' (1990): formal rules can be changed by decree, but informal constraints (habits, norms) change slowly, so behaviour lags the rule.",
+"ru": "«Институты, институциональные изменения и функционирование экономики» (1990): формальные правила можно сменить указом, а неформальные ограничения (привычки, нормы) меняются медленно, поэтому поведение отстаёт от правила.",
+"de": "„Institutions, Institutional Change and Economic Performance“ (1990): Formale Regeln lassen sich per Beschluss ändern, informelle Beschränkungen (Gewohnheiten, Normen) nur langsam; Verhalten hinkt der Regel nach."
+},
+"rule": "A new rule in the news is not yet new behaviour; look for a measured change before saying it took effect.",
+"needs": {
+"code": "needs_idea",
+"note": "gap between a rule headline and a measured change: days from announcement to a first change in the open number it should move; no source tied to our data yet"
+}
+},
+{
+"id": "baudrillard_j",
+"name": "Jean Baudrillard",
+"name_ru": "Жан Бодрийяр",
+"years": "1929–2007",
+"wiki": "https://en.wikipedia.org/wiki/Jean_Baudrillard",
+"zone": "own_limits",
+"idea": {
+"en": "'Simulacres et Simulation' (1981): signs can come to refer only to other signs, copies without an original, until the picture replaces the thing it was meant to show.",
+"ru": "«Симулякры и симуляция» (1981): знаки могут ссылаться лишь на другие знаки — копии без оригинала, пока картинка не заменит то, что должна была показывать.",
+"de": "„Simulacres et Simulation“ (1981): Zeichen können nur noch auf andere Zeichen verweisen, Kopien ohne Original, bis das Bild die Sache ersetzt."
+},
+"rule": "Ask whether a claim points to an event or only to other claims about it; say when your own sources are all copies.",
+"needs": {
+"code": "needs_idea",
+"note": "share of radar headlines whose text cites another headline or report rather than an event or a number; text count over radar_life, not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

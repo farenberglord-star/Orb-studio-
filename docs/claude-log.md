@@ -150,3 +150,12 @@
 - Держу до решения владельца: Foucault (обвинения в насилии над несовершеннолетними, 2021, как у Hardin).
 - Мостики: how_many_numbers (waiting до 21.12; число: доля дисперсии первой компоненты 8 радаров), spiral_or_bounce (waiting до 14.12; число: автокорреляция лаг 1 приращений за 30 минут), fast_ripple_slow_tide (covered, polyak), wicked_steps (idea).
 - Библиотека: 666 карточек.
+
+## Партия 9 (Лиана, 15 имён; 25.11.2026)
+- Принято (9): Janis (†1990-11-15), Boudon (†2013-04-10), Downs (†2021-10-02), Becker (†2014-05-03), Alchian (†2013-02-19), Demsetz (†2019-01-04), Williamson (†2020-05-21), North (†2015-11-23), Baudrillard (†2007-03-06). Даты сверены по Википедии, у Downs ещё некролог (Social Choice and Welfare).
+- Зоны поменял: Alchian → look_alike (выживший выглядит оптимизатором), Demsetz → one_model («подход нирваны» 1969, а не права собственности 1967).
+- Отклонены: Wallerstein и Arrighi (правило — циклы и «сигнал кризиса», ближе к прогнозу, зона stale_data не подтверждена), Bauman («текучая современность» — метафора, числа нет), Virilio (книги выросли из военной темы), Paul David (дубль paul_david, 1935), «Джон Бёрк/Connections» (это James Burke, жив).
+- Держу до решения владельца: Zimbardo (†2024-10-14; Стэнфордский тюремный эксперимент сильно оспорен, правило «ситуация сильнее человека» держится на нём).
+- Замечания к Лиане: Demsetz дан по 1967, нужное правило — из статьи 1969; строки повторялись, упомянут «scanner1-known-names.txt» (такого файла в задании нет).
+- Мостики: sum_of_reasonable_choices, survivors_look_wise, rule_vs_behaviour, copy_of_copy, real_alternative (все idea); same_story_pull получил janis_il, cheap_to_say_dear_to_check — downs_a и williamson_oe.
+- Библиотека: 675 карточек.
