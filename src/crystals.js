@@ -12026,6 +12026,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "bridge 'learning loops': when a sensor finds an error, log which rule produced it; no error log with causes yet"
 }
+},
+{
+"id": "dewey_j",
+"name": "John Dewey",
+"name_ru": "Джон Дьюи",
+"years": "1859–1952",
+"wiki": "https://en.wikipedia.org/wiki/John_Dewey",
+"zone": "own_limits",
+"idea": {
+"en": "'Logic: The Theory of Inquiry' (1938): inquiry starts from a problematic situation, the problem has to be set before it can be solved, and the result is only a warranted assertion, open to later inquiry.",
+"ru": "«Логика: теория исследования» (1938): исследование начинается с проблемной ситуации, проблему нужно сначала поставить, а результат — лишь обоснованное утверждение, открытое для дальнейшего исследования.",
+"de": "„Logic: The Theory of Inquiry“ (1938): Forschung beginnt mit einer problematischen Situation, das Problem muss erst gestellt werden, und das Ergebnis ist nur eine begründete Behauptung."
+},
+"rule": "Name the problem you are answering before the answer, and say what would reopen it.",
+"needs": {
+"code": "needs_idea",
+"note": "state the question a sensor or headline check answers, next to its number; no measurable form yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
