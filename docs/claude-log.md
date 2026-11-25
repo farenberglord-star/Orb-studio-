@@ -159,3 +159,12 @@
 - Замечания к Лиане: Demsetz дан по 1967, нужное правило — из статьи 1969; строки повторялись, упомянут «scanner1-known-names.txt» (такого файла в задании нет).
 - Мостики: sum_of_reasonable_choices, survivors_look_wise, rule_vs_behaviour, copy_of_copy, real_alternative (все idea); same_story_pull получил janis_il, cheap_to_say_dear_to_check — downs_a и williamson_oe.
 - Библиотека: 675 карточек.
+
+## Партия 10 (Лиана, 16 строк с повторами; 25.11.2026)
+- Принято (13): Chandler (†2007-05-09), Penrose (†1996-10-11), G. B. Richardson (†2019-07-02), Sraffa (†1983-09-03), Kaldor (†1986-09-30), Lerner (†1982-10-27), Koopmans (†1985-02-26), Wold (†1992-02-16), Julian Simon (†1998-02-08), Allais (†2010-10-09), Hicks (†1989-05-20), Victor Turner (†1983-12-18), Aron (†1983-10-17). Даты сверены по Википедии.
+- Зоны поменял: Sraffa, Lerner, Koopmans → measurement_error (это про измерение), Wold → look_alike (порядок причин против корреляции).
+- Отклонены: Bennis (правило «рутина вытесняет планирование» — закон Гресэма в планировании, из March и Simon, атрибуция Беннису не подтверждена), Joan Robinson (дубль robinson_j), «Джон Бёрк» (James Burke, жив; в третий раз), Owen и List (до 1900), Mintzberg (жив), Douglas и Geertz (дубли).
+- Id-тёзки: simon_j (не simon_ha), turner_v (не turner_ba), richardson_gb (не richardson_lf).
+- Замечания к Лиане: строки 22–37 повторяют 1–21; Джона Бёрка прислала снова, хотя его просили не брать; у Уолда лаг «фиксированный» — формулировка не из его работы, правило переписано как «порядок причин».
+- Мостики (все idea): price_next_to_cost, order_before_cause, growth_outruns_control, sure_thing_weight, view_from_inside; пополнены cheap_to_say_dear_to_check (+richardson_gb), spiral_or_bounce (+kaldor_n), fast_ripple_slow_tide (+hicks_jr, simon_j).
+- Библиотека: 688 карточек.

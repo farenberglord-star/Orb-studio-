@@ -12465,6 +12465,241 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "share of radar headlines whose text cites another headline or report rather than an event or a number; text count over radar_life, not defined yet"
 }
+},
+{
+"id": "chandler_ad",
+"name": "Alfred D. Chandler Jr.",
+"name_ru": "Альфред Чандлер",
+"years": "1918–2007",
+"wiki": "https://en.wikipedia.org/wiki/Alfred_D._Chandler_Jr.",
+"zone": "side_effects",
+"idea": {
+"en": "'Strategy and Structure' (1962): structure follows strategy; when an organisation grows in scale without changing how it is managed, coordination breaks down.",
+"ru": "«Стратегия и структура» (1962): структура следует за стратегией; когда организация растёт, а управление остаётся прежним, согласованность рушится.",
+"de": "„Strategy and Structure“ (1962): Die Struktur folgt der Strategie; wächst eine Organisation, ohne ihre Steuerung zu ändern, bricht die Abstimmung zusammen."
+},
+"rule": "When you add sources or tasks, say what you changed in how they are coordinated.",
+"needs": {
+"code": "needs_idea",
+"note": "update delay of the radar cycle against the number of tracked outlets; not logged together yet"
+}
+},
+{
+"id": "penrose_e",
+"name": "Edith Penrose",
+"name_ru": "Эдит Пенроуз",
+"years": "1914–1996",
+"wiki": "https://en.wikipedia.org/wiki/Edith_Penrose",
+"zone": "side_effects",
+"idea": {
+"en": "'The Theory of the Growth of the Firm' (1959): the speed at which a firm can grow is limited by the managerial capacity to plan and absorb new activity.",
+"ru": "«Теория роста фирмы» (1959): скорость, с которой фирма может расти, ограничена управленческой способностью планировать и осваивать новое.",
+"de": "„The Theory of the Growth of the Firm“ (1959): Das Wachstumstempo einer Firma ist durch die Führungskapazität begrenzt, Neues zu planen und aufzunehmen."
+},
+"rule": "A system that adds inputs faster than it can absorb them shows gaps; flag the gaps.",
+"needs": {
+"code": "needs_idea",
+"note": "share of null values in a 30-minute window when many new topics appear at once; needs a topic count per window, not defined yet"
+}
+},
+{
+"id": "richardson_gb",
+"name": "George B. Richardson",
+"name_ru": "Джордж Ричардсон",
+"years": "1924–2019",
+"wiki": "https://en.wikipedia.org/wiki/George_Barclay_Richardson",
+"zone": "answer_cost",
+"idea": {
+"en": "'Information and Investment' (1960): a firm invests only if it can learn what others will do, and learning about complementary activities takes effort that perfect-information models leave out.",
+"ru": "«Информация и инвестиции» (1960): фирма инвестирует, только если может узнать, что сделают другие, а выяснение дополняющих действий требует усилий, которые модели с полной информацией не учитывают.",
+"de": "„Information and Investment“ (1960): Eine Firma investiert nur, wenn sie erfahren kann, was andere tun; das Lernen über ergänzende Tätigkeiten kostet Mühe, die Modelle mit voller Information auslassen."
+},
+"rule": "Say how much confirming this took, and that full transparency is never free.",
+"needs": {
+"code": "needs_idea",
+"note": "how many independent outlets it takes to confirm one promise or threat; joins the 'cheap to say, dear to check' bridge, not defined yet"
+}
+},
+{
+"id": "sraffa_p",
+"name": "Piero Sraffa",
+"name_ru": "Пьеро Сраффа",
+"years": "1898–1983",
+"wiki": "https://en.wikipedia.org/wiki/Piero_Sraffa",
+"zone": "measurement_error",
+"idea": {
+"en": "'Production of Commodities by Means of Commodities' (1960): to compare values over time you need a standard that does not itself change when the shares change (the 'standard commodity').",
+"ru": "«Производство товаров посредством товаров» (1960): чтобы сравнивать стоимости во времени, нужна мера, которая сама не меняется при перераспределении долей («стандартный товар»).",
+"de": "„Production of Commodities by Means of Commodities“ (1960): Um Werte über die Zeit zu vergleichen, braucht man einen Maßstab, der sich bei veränderten Anteilen nicht selbst ändert."
+},
+"rule": "Name the fixed yardstick of a comparison, and say if the yardstick itself moved.",
+"needs": {
+"code": "needs_idea",
+"note": "distance of the normalised radar index from raw readings of the base physical sensors; needs a fixed reference set, not defined yet"
+}
+},
+{
+"id": "kaldor_n",
+"name": "Nicholas Kaldor",
+"name_ru": "Николас Калдор",
+"years": "1908–1986",
+"wiki": "https://en.wikipedia.org/wiki/Nicholas_Kaldor",
+"zone": "side_effects",
+"idea": {
+"en": "'The Irrelevance of Equilibrium Economics' (1972): increasing returns and cumulative causation push a system away from balance instead of back to it.",
+"ru": "«Неуместность равновесной экономики» (1972): возрастающая отдача и кумулятивная причинность уводят систему от баланса, а не возвращают к нему.",
+"de": "„The Irrelevance of Equilibrium Economics“ (1972): Zunehmende Skalenerträge und kumulative Verursachung treiben ein System vom Gleichgewicht weg statt zurück."
+},
+"rule": "Do not assume a run returns to normal by itself; check what keeps feeding it.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'spiral or bounce' (Myrdal + Kaldor + Hurst + Mandelbrot): lag-1 autocorrelation of half-hour increments per radar; needs weeks of history",
+"not_before": "2026-12-14"
+}
+},
+{
+"id": "lerner_a",
+"name": "Abba P. Lerner",
+"name_ru": "Абба Лернер",
+"years": "1903–1982",
+"wiki": "https://en.wikipedia.org/wiki/Abba_P._Lerner",
+"zone": "measurement_error",
+"idea": {
+"en": "'The Concept of Monopoly and the Measurement of Monopoly Power' (1934): market power can be read from one number, the gap between price and marginal cost relative to price.",
+"ru": "«Понятие монополии и измерение монопольной власти» (1934): рыночную власть можно прочесть по одному числу — разрыву между ценой и предельными издержками относительно цены.",
+"de": "„The Concept of Monopoly and the Measurement of Monopoly Power“ (1934): Marktmacht lässt sich an einer Zahl ablesen, dem Abstand zwischen Preis und Grenzkosten im Verhältnis zum Preis."
+},
+"rule": "Put a price move next to the cost or physical quantity behind it before calling it a shock.",
+"needs": {
+"code": "needs_idea",
+"note": "gap between price jumps in headlines and the physical quantity behind them; needs a consumption series paired to each price sensor, not defined yet"
+}
+},
+{
+"id": "koopmans_t",
+"name": "Tjalling Koopmans",
+"name_ru": "Тьяллинг Купманс",
+"years": "1910–1985",
+"wiki": "https://en.wikipedia.org/wiki/Tjalling_Koopmans",
+"zone": "measurement_error",
+"idea": {
+"en": "'Measurement Without Theory' (1947): counting and fitting without a theory of how the pieces connect cannot tell a stable relation from a coincidence.",
+"ru": "«Измерение без теории» (1947): подсчёт и подгонка без теории того, как части связаны, не отличают устойчивую связь от совпадения.",
+"de": "„Measurement Without Theory“ (1947): Zählen und Anpassen ohne Theorie darüber, wie die Teile zusammenhängen, kann stabile Beziehung und Zufall nicht unterscheiden."
+},
+"rule": "Say why two numbers should move together, not only that they did.",
+"needs": {
+"code": "needs_idea",
+"note": "share of sharp radar jumps with no support in speech acts or physical sensors; the radar jump rule exists, the support check is not defined yet"
+}
+},
+{
+"id": "wold_h",
+"name": "Herman Wold",
+"name_ru": "Герман Уолд",
+"years": "1908–1992",
+"wiki": "https://en.wikipedia.org/wiki/Herman_Wold",
+"zone": "look_alike",
+"idea": {
+"en": "'Causal Inference from Observational Data' (1956): causal claims from observation need an ordered chain in which each cause comes before its effect; plain correlation gives no such order.",
+"ru": "«Причинный вывод из данных наблюдений» (1956): причинные утверждения по наблюдениям требуют упорядоченной цепочки, где причина идёт перед следствием; простая корреляция такого порядка не даёт.",
+"de": "„Causal Inference from Observational Data“ (1956): Kausale Aussagen aus Beobachtungen brauchen eine geordnete Kette, in der die Ursache vor der Wirkung liegt; Korrelation allein liefert keine Ordnung."
+},
+"rule": "Show which thing came first before saying one caused the other.",
+"needs": {
+"code": "needs_idea",
+"note": "time between a published demand or threat and a move in the open price or grid number; needs a list of dated claims, not defined yet"
+}
+},
+{
+"id": "simon_j",
+"name": "Julian Simon",
+"name_ru": "Джулиан Саймон",
+"years": "1932–1998",
+"wiki": "https://en.wikipedia.org/wiki/Julian_Simon",
+"zone": "stale_data",
+"idea": {
+"en": "'The Ultimate Resource' (1981): a shortage estimate made today assumes today's methods and materials; price rises set off substitution and new supply, so the estimate ages fast.",
+"ru": "«Главный ресурс» (1981): оценка дефицита, сделанная сегодня, исходит из сегодняшних методов и материалов; рост цен запускает замещение и новое предложение, поэтому оценка быстро стареет.",
+"de": "„The Ultimate Resource“ (1981): Eine heutige Knappheitsschätzung setzt heutige Methoden und Stoffe voraus; Preisanstiege lösen Substitution und neues Angebot aus, die Schätzung altert schnell."
+},
+"rule": "A panic about a shortage describes today's substitutes only; date it and watch whether the price falls back.",
+"needs": {
+"code": "needs_idea",
+"note": "speed of return of prices and the radar index to baseline after a panic headline; needs flagged panic events, not defined yet"
+}
+},
+{
+"id": "allais_m",
+"name": "Maurice Allais",
+"name_ru": "Морис Алле",
+"years": "1911–2010",
+"wiki": "https://en.wikipedia.org/wiki/Maurice_Allais",
+"zone": "own_limits",
+"idea": {
+"en": "'Le comportement de l'homme rationnel devant le risque' (1953): people give a sure outcome far more weight than its probability warrants, so choices near certainty break the expected-utility rule.",
+"ru": "«Поведение рационального человека перед лицом риска» (1953): люди придают гарантированному исходу гораздо больший вес, чем даёт его вероятность, поэтому выбор рядом с уверенностью нарушает правило ожидаемой полезности.",
+"de": "„Le comportement de l’homme rationnel devant le risque“ (1953): Menschen gewichten ein sicheres Ergebnis weit stärker, als seine Wahrscheinlichkeit rechtfertigt; Entscheidungen nahe der Gewissheit brechen die Erwartungsnutzenregel."
+},
+"rule": "'Almost certain' and 'certain' are not neighbours for a reader; state the remaining doubt in plain numbers.",
+"needs": {
+"code": "needs_idea",
+"note": "behaviour of the radar index when outlet agreement nears 100%; waits for the 'same story pull' history"
+}
+},
+{
+"id": "hicks_jr",
+"name": "John Hicks",
+"name_ru": "Джон Хикс",
+"years": "1904–1989",
+"wiki": "https://en.wikipedia.org/wiki/John_Hicks",
+"zone": "stale_data",
+"idea": {
+"en": "'Capital and Growth' (1965): fixprice markets adjust by quantities and flexprice markets by prices, so some indicators react to a shock at once and others only after a delay.",
+"ru": "«Капитал и рост» (1965): рынки с фиксированными ценами подстраиваются количествами, а с гибкими — ценами, поэтому одни показатели реагируют на шок сразу, а другие с задержкой.",
+"de": "„Capital and Growth“ (1965): Fixpreismärkte passen sich über Mengen an, Flexpreismärkte über Preise; manche Indikatoren reagieren sofort auf einen Schock, andere erst verzögert."
+},
+"rule": "Say whether a number reacts fast or slowly before reading a quiet one as 'no change'.",
+"needs": {
+"code": "needs_idea",
+"note": "reaction-time gap between fast sensors (grid frequency) and slow price indicators; the Polyak lag idea is related, not defined yet"
+}
+},
+{
+"id": "turner_v",
+"name": "Victor Turner",
+"name_ru": "Виктор Тёрнер",
+"years": "1920–1983",
+"wiki": "https://en.wikipedia.org/wiki/Victor_Turner",
+"zone": "own_limits",
+"idea": {
+"en": "'The Ritual Process' (1969): in a threshold phase (liminality) the old categories no longer apply and the new ones are not yet formed, so things fit no class.",
+"ru": "«Ритуальный процесс» (1969): в пороговой фазе (лиминальности) старые категории уже не действуют, а новые ещё не сложились, поэтому вещи не вписываются ни в один класс.",
+"de": "„The Ritual Process“ (1969): In der Schwellenphase (Liminalität) gelten die alten Kategorien nicht mehr und die neuen sind noch nicht gebildet, so dass Dinge in keine Klasse passen."
+},
+"rule": "When a headline fits no known class, say 'unclassified' instead of forcing a label.",
+"needs": {
+"code": "needs_idea",
+"note": "burst of unclassifiable speech acts and nulls at a sharp radar turn; needs the unclassified share per window, not defined yet"
+}
+},
+{
+"id": "aron_r",
+"name": "Raymond Aron",
+"name_ru": "Раймон Арон",
+"years": "1905–1983",
+"wiki": "https://en.wikipedia.org/wiki/Raymond_Aron",
+"zone": "own_limits",
+"idea": {
+"en": "'Introduction à la philosophie de l'histoire' (1938): an observer inside events sees them from one position and cannot see how they will be read once their outcome is known.",
+"ru": "«Введение в философию истории» (1938): наблюдатель внутри событий видит их с одной позиции и не может знать, как их будут читать, когда исход станет известен.",
+"de": "„Introduction à la philosophie de l’histoire“ (1938): Wer mitten im Geschehen steht, sieht es von einem Standpunkt und kann nicht wissen, wie es nach bekanntem Ausgang gelesen wird."
+},
+"rule": "Mark a first report as a view from inside the event, and expect the later summary to differ.",
+"needs": {
+"code": "needs_idea",
+"note": "difference in speech-act type between first headlines and the digest 24 hours later; needs both stored, not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
