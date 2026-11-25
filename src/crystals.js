@@ -13581,6 +13581,60 @@ export const CRYSTALS = [
 "code": "needs_source",
 "note": "an open list of first-attestation dates of words (for example a corpus with first-use years); none in our data, so no number yet"
 }
+},
+{
+"id": "vasmer_m",
+"name": "Max Vasmer",
+"name_ru": "Макс Фасмер",
+"years": "1886–1962",
+"wiki": "https://en.wikipedia.org/wiki/Max_Vasmer",
+"zone": "look_alike",
+"idea": {
+"en": "'Russisches etymologisches Wörterbuch' (1950–1958): a word's origin, not its look, tells whether two similar words are the same word, a borrowing or an accidental likeness.",
+"ru": "«Russisches etymologisches Wörterbuch» (1950–1958): происхождение слова, а не его вид, говорит, одно ли это слово, заимствование или случайное созвучие.",
+"de": "„Russisches etymologisches Wörterbuch“ (1950–1958): die Herkunft eines Wortes, nicht sein Aussehen, entscheidet, ob zwei ähnliche Wörter dasselbe Wort, ein Lehnwort oder ein zufälliger Gleichklang sind."
+},
+"rule": "Do not call two similar-looking words one thing; ask where each comes from before you treat them as the same.",
+"needs": {
+"code": "needs_source",
+"note": "an open etymology source (word to root) to tell a shared root from a chance likeness; none in our data, so no number yet"
+}
+},
+{
+"id": "ushakov_dn",
+"name": "Dmitry Ushakov",
+"name_ru": "Дмитрий Ушаков",
+"years": "1873–1942",
+"wiki": "https://en.wikipedia.org/wiki/Dmitry_Ushakov",
+"zone": "stale_data",
+"idea": {
+"en": "'Explanatory Dictionary of the Russian Language' (1935–1940, chief editor): every word carries a style label, such as obsolete, colloquial or bookish, so that a dated or informal word is not read as neutral.",
+"ru": "«Толковый словарь русского языка» (1935–1940, главный редактор): у каждого слова стилистическая помета — устарелое, разговорное, книжное, чтобы устаревшее или просторечное слово не читали как нейтральное.",
+"de": "„Erklärendes Wörterbuch der russischen Sprache“ (1935–1940, Chefredakteur): jedes Wort trägt eine Stilmarkierung wie veraltet, umgangssprachlich oder buchsprachlich, damit ein altes oder lockeres Wort nicht als neutral gelesen wird."
+},
+"rule": "Before you take a word as a plain fact, ask whether it is dated or colloquial; an archaism or a stock phrase carries a tone, not a measurement.",
+"needs": {
+"code": "needs_source",
+"note": "the 1935-1940 dictionary with style labels as a machine-readable list (public domain, author died 1942); with it, share of headline words labelled obsolete or colloquial per day"
+}
+},
+{
+"id": "benveniste_e",
+"name": "Émile Benveniste",
+"name_ru": "Эмиль Бенвенист",
+"years": "1902–1976",
+"wiki": "https://en.wikipedia.org/wiki/%C3%89mile_Benveniste",
+"zone": "look_alike",
+"idea": {
+"en": "'Problèmes de linguistique générale' (1966): the one who speaks, the act of speaking and the thing spoken about are different; the 'I' of a sentence is the speaker of this instance, not the thing described.",
+"ru": "«Проблемы общей лингвистики» (1966): говорящий, сам акт речи и предмет речи — разные вещи; «я» во фразе — тот, кто говорит сейчас, а не описываемый предмет.",
+"de": "„Probleme der allgemeinen Sprachwissenschaft“ (1966): der Sprecher, der Sprechakt und der besprochene Gegenstand sind verschieden; das „Ich“ eines Satzes ist der Sprecher dieses Mal, nicht der beschriebene Gegenstand."
+},
+"rule": "Keep apart who speaks, what act they perform and what they speak about; do not fold the three into one reading of a headline.",
+"needs": {
+"code": "needs_idea",
+"note": "pairs of headlines with a shared key word but a different speech act (Searle line); same number as scherba_lv, vinogradov_vv, langer_sk"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
