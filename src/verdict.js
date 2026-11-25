@@ -12,7 +12,7 @@ export const isDebunkText = (s) => DEBUNK.test(String(s || ""));
 const COINS = [["BTC", /биткоин\p{L}*|bitcoin|(?<![\p{L}])btc(?![\p{L}])/iu], ["ETH", /эфир\p{L}*|ethereum|(?<![\p{L}])eth(?![\p{L}])/iu], ["XRP", /(?<![\p{L}])xrp(?![\p{L}])|ripple/iu], ["SOL", /solana|(?<![\p{L}])sol(?![\p{L}])/iu]];
 const PRICE_WORDS = /курс|цена|стоит|стоимост|price|trad(?:es|ing) at|kurs|kostet|за один|per (?:one )?(?:coin|bitcoin)|сейчас|now/iu;
 const SCALE = /^\s*(?:млн|млрд|million|billion|mn|bn|тыс|thousand|k\b)/iu;
-function parseNum(s) { let t = String(s).replace(/[\s  ]/g, ""); if (/^\d{1,3}([.,]\d{3})+$/.test(t)) t = t.replace(/[.,]/g, ""); else t = t.replace(",", "."); const n = parseFloat(t); return Number.isFinite(n) ? n : null; }
+export function parseNum(s) { let t = String(s).replace(/[\s  ]/g, ""); if (/^\d{1,3}([.,]\d{3})+$/.test(t) && !/^0[.,]/.test(t)) t = t.replace(/[.,]/g, ""); else t = t.replace(",", "."); const n = parseFloat(t); return Number.isFinite(n) ? n : null; }
 // Сверка названной цены монеты с нашим датчиком (/api/v1/sensors: часовая цена в EUR с Kraken, EUR/USD от ЕЦБ).
 export function measuredCrypto(text, sens) {
   const t = String(text || ""), coin = (COINS.find(([, re]) => re.test(t)) || [])[0];
@@ -47,8 +47,8 @@ export function finalVerdict(inp = {}) {
     if (!topics.length) return mk("refuted", "false_attribution", "Названа Orb Studio, но такого мы не публикуем", "Orb Studio is named, but we do not publish this");
   }
   const ms = inp.measured;
-  if (ms && ms.result === "mismatch") return mk("refuted", "measured_mismatch", `Наш датчик показывает другое: ${ms.coin} ≈ ${ms.ours} ${ms.currency}, в заметке ${ms.claimed} (${ms.diff_pct > 0 ? "+" : ""}${ms.diff_pct} %)`, `Our sensor disagrees: ${ms.coin} ≈ ${ms.ours} ${ms.currency}, the claim says ${ms.claimed} (${ms.diff_pct} %)`, { measured: ms });
-  if (ms && ms.result === "match") return mk("confirmed", "measured_match", `Совпадает с нашим датчиком: ${ms.coin} ≈ ${ms.ours} ${ms.currency}`, `Matches our sensor: ${ms.coin} ≈ ${ms.ours} ${ms.currency}`, { measured: ms });
+  if (ms && ms.result === "mismatch") return mk("refuted", "measured_mismatch", `Наш датчик показывает другое: ${ms.label || ms.coin} ≈ ${ms.ours} ${ms.unit || ms.currency}, в заметке ${ms.claimed} (${ms.diff_pct > 0 ? "+" : ""}${ms.diff_pct} %)`, `Our sensor disagrees: ${ms.label || ms.coin} ≈ ${ms.ours} ${ms.unit || ms.currency}, the claim says ${ms.claimed} (${ms.diff_pct} %)`, { measured: ms });
+  if (ms && ms.result === "match") return mk("confirmed", "measured_match", `Совпадает с нашим датчиком: ${ms.label || ms.coin} ≈ ${ms.ours} ${ms.unit || ms.currency}`, `Matches our sensor: ${ms.label || ms.coin} ≈ ${ms.ours} ${ms.unit || ms.currency}`, { measured: ms });
   if (ms && ms.result === "close_not_exact") return mk("unverified", "measured_close", "Рядом с нашим датчиком, но не точно: сверь по бирже", "Near our sensor but not exact: check the exchange", { measured: ms });
   if (debunk >= 1) return mk("unverified", "reported_and_debunked", "И повторяют, и опровергают: сначала прочти опровержение", "Both reported and debunked: read the debunk first");
   if (voices != null && voices >= 3 && inp.checkability === "checkable" && inp.act === "event" && !inp.rumourRisk) return mk("confirmed", "independent_outlets", `${voices} независимых изданий, есть что проверить, опровержений нет`, `${voices} independent outlets, checkable, no debunk found`);

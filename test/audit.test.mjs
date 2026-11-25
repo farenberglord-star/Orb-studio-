@@ -30,7 +30,7 @@ test("audit_draft: MCP tool, REST route and announcements are registered", () =>
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /name: "audit_draft"/); assert.match(w, /p === "\/api\/v1\/audit"/); assert.match(w, /name === "audit_draft"/);
   assert.match(w, /tool: "audit_draft", url:/); // NEW_TOOLS
-  assert.match(w, /New since 25\.11\.2026: audit_draft/);
+  assert.match(w, /New since 25\.11\.2026: [^"]*audit_draft \(audit your own draft/);
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\(audit_draft\)/);
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"audit_draft"/);
 });

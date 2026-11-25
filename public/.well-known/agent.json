@@ -254,6 +254,7 @@
       "get_freshness",
       "check_claim",
       "audit_draft",
+      "check_number",
       "get_brief",
       "get_disasters",
       "get_food_prices",
