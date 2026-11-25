@@ -130,6 +130,7 @@
     "simpson": "https://orbstudio.org/api/v1/simpson",
     "trackrecord": "https://orbstudio.org/api/v1/trackrecord",
     "kasperson": "https://orbstudio.org/api/v1/kasperson",
+    "simmel": "https://orbstudio.org/api/v1/simmel",
     "ashby": "https://orbstudio.org/api/v1/ashby",
     "schmidt": "https://orbstudio.org/api/v1/schmidt",
     "cohen_s": "https://orbstudio.org/api/v1/cohen-s",
