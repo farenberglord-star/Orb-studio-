@@ -19,6 +19,8 @@ export function localHref(href, lang, translated) {
   return "/" + lang + (bare === "/" || bare === "/index" ? "/" : bare) + rest;
 }
 // Адрес этой языковой версии для canonical и og:url
+// адрес без языка (/, /tariffs): язык выбирается по браузеру, поэтому он канонический сам для себя и он же x-default в hreflang
+export function bareCanonical(origin, pathname) { if (explicitLang(pathname)) return null; const b = barePath(pathname); return origin + (b === "/index" ? "/" : b); }
 export function canonicalUrl(origin, pathname) { const l = explicitLang(pathname); if (!l) return null; const b = barePath(pathname); return origin + "/" + l + (b === "/" || b === "/index" ? "/" : b); }
 // hreflang: русская версия живёт по /ru/x (а не /x, где язык выбирается по браузеру); x-default — адрес без языка
 export function fixAlternate(hreflang, href, origin) {

@@ -6,7 +6,7 @@ import { echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE, fourValued } from "./ech
 import { asLines } from "./voicelines.js";
 import { segOk, langOk, DUO_FIELDS } from "./langcheck.js";
 import { SENS_W } from "./sensors_i18n.js";
-import { explicitLang, barePath, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
+import { explicitLang, barePath, localHref, canonicalUrl, bareCanonical, fixAlternate, alternateTags, isTestAgentName, EXTRA_LOCAL, pageMeta, ogTags } from "./seo.js";
 import { handleTrackSale, trackCatalog } from "./radio-track-sale.js";
 import { agentsAtWork } from "./agents-work.js";
 import { radioTextBlock, radioJsonLd, RADIO_TRACKS } from "./radio.js";
@@ -4831,10 +4831,11 @@ async function davidEpisodes(env, ctx, origin) {
   return data;
 }
 function episodesJsonLd(data) {
-  const vids = data.episodes.filter((e) => e.title || e.summary).slice(0, 10).map((e) => ({
+  // Google требует thumbnailUrl и uploadDate с часовым поясом: без картинки видео в разметку не берём, дату пишем с «Z»
+  const vids = data.episodes.filter((e) => (e.title || e.summary) && e.thumbnail && /^\d{4}-\d{2}-\d{2}$/.test(e.date || "")).slice(0, 10).map((e) => ({
     "@type": "VideoObject", name: (e.title || "David — Orb Studio").slice(0, 110),
     description: (e.summary || (e.transcript && e.transcript.ru && e.transcript.ru.join(" ")) || e.caption || "").slice(0, 500) || undefined,
-    thumbnailUrl: e.thumbnail || undefined, uploadDate: e.date || undefined,
+    thumbnailUrl: e.thumbnail, uploadDate: `${e.date}T00:00:00Z`,
     embedUrl: `https://www.tiktok.com/player/v1/${e.id}`, url: e.tiktok_url,
     transcript: e.transcript ? [...(e.transcript.ru || []), ...(e.transcript.de || [])].join(" ").slice(0, 3000) : undefined,
     publisher: { "@type": "Organization", name: "Orb Studio", url: "https://orbstudio.org" },
@@ -9312,6 +9313,11 @@ function seoRewrite(asset, url, pageLang) {
     const meta = pageMeta(bare, el || pageLang), self = origin + (el ? "/" + el : "") + bare;
     rw.on("head", { element(e) { e.append(alternateTags(origin, bare) + ogTags(meta, self), { html: true }); } });
     if (meta) rw.on("title", { element(e) { e.setInnerContent(meta.title); } }).on('meta[name="description"]', { element(e) { e.setAttribute("content", meta.desc); } });
+  }
+  if (!el && !EXTRA_LOCAL.includes(bare.slice(1))) {
+    // без языка в адресе отдаётся версия по языку посетителя, но canonical — этот же адрес (не /en/): иначе Google видит спор «/» против «/en/»
+    const canon = bareCanonical(origin, url.pathname);
+    rw.on('link[rel="canonical"]', { element(e) { e.setAttribute("href", canon); } }).on('meta[property="og:url"]', { element(e) { e.setAttribute("content", canon); } });
   }
   if (el) {
     const canon = canonicalUrl(origin, url.pathname);

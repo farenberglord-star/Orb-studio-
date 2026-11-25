@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { explicitLang, barePath, isLocalizable, localHref, canonicalUrl, fixAlternate, alternateTags, isTestAgentName } from "../src/seo.js";
+import { explicitLang, barePath, isLocalizable, localHref, canonicalUrl, bareCanonical, fixAlternate, alternateTags, isTestAgentName } from "../src/seo.js";
 
 const TR = new Set(["world", "air", "about", "podcast", "tools/clips"]), O = "https://orbstudio.org";
 test("links keep the language of the address", () => {
@@ -69,4 +69,9 @@ test("desk segments carry the publication time with a date", () => {
   assert.equal(d.segments[0].published_at, "2026-11-19T22:45:00.000Z"); assert.equal(d.segments[0].card.published_at, "2026-11-19T22:45:00.000Z"); assert.equal(d.segments[0].time, "23:45"); assert.equal(d.segments[1].published_at, null);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
   assert.match(w, /published_at: Number\.isFinite\(f\[5\]\)/); assert.match(w, /\|\| 0\) >= 1 && cands\.length > 4/);
+});
+
+test("адрес без языка канонический сам для себя, а не /en/", () => {
+  assert.equal(bareCanonical(O, "/"), O + "/"); assert.equal(bareCanonical(O, "/index.html"), O + "/"); assert.equal(bareCanonical(O, "/tariffs.html"), O + "/tariffs");
+  assert.equal(bareCanonical(O, "/en/"), null); assert.equal(bareCanonical(O, "/ru/about"), null);
 });
