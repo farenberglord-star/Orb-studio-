@@ -8,6 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def load(p):
     spec = importlib.util.spec_from_file_location(os.path.basename(p)[:-3], os.path.join(ROOT, p)); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); return m
 def norm(s):
+    s = s.translate(str.maketrans({"œ": "oe", "Œ": "oe", "æ": "ae", "Æ": "ae", "ß": "ss", "ø": "o", "Ø": "o", "đ": "d", "Đ": "d", "ł": "l", "Ł": "l"}))  # лигатуры не раскладываются в NFKD (Ricœur → Ricoeur)
     s = unicodedata.normalize("NFKD", s); s = "".join(ch for ch in s if not unicodedata.combining(ch)).lower()
     return re.sub(r"[^a-zа-я0-9 ]+", " ", s).split()
 def known():

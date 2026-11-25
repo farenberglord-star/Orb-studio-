@@ -197,3 +197,4 @@
 - Замечания к Лиане: строки 23–38 повторяют 1–22; число для каждого имени придумано под наши данные, но для Mead и Crozier оно хорошо ложится на данные.
 - Мостики (все idea): meaning_in_the_reply, believed_so_it_moves, more_rules_new_gaps (последний можно проверить задним числом: Ashby daily silent share + даты изменений passport.js из git); пополнены fact_or_value (+bales_rf), view_from_inside (+schutz_a).
 - Библиотека: 701 карточка.
+- Исправлен tools/scanner_names.py: лигатуры (œ, æ, ß, ø, đ, ł) заменяются до нормализации, поэтому «Ricœur» теперь находит дубль ricoeur. Список для сканера пересобран (794 имени).
