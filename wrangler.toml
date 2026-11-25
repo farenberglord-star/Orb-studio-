@@ -2,6 +2,11 @@ name = "orb-studio"
 main = "src/worker.js"
 compatibility_date = "2026-10-01"
 
+# Google (Gemini) отвечает 400 «User location is not supported», если Worker выходит в сеть из неподдерживаемого региона.
+# Подсказка размещения: Worker работает рядом с Франкфуртом. Если не примет — "aws:eu-central-1".
+[placement]
+region = "gcp:europe-west3"
+
 [assets]
 directory = "./public"
 binding = "ASSETS"
