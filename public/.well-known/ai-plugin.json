@@ -1,0 +1,16 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Orb Studio",
+  "name_for_model": "orb_studio",
+  "description_for_human": "News radars, open sensors and checks for AI agents. Read-only and free.",
+  "description_for_model": "Orb Studio gives read-only, free JSON for AI agents: news radars, open market and weather sensors, a freshness map of its own sensors (/api/v1/freshness), a free word-rule check of any claim or headline (/api/v1/check-claim?claim=) and a signed 30-minute brief (/api/v1/brief?topic=news or crypto, verify at /api/v1/agents/witness/<id>). Checks are word rules, not AI, and measure how a claim is built and carried, not whether it is true. Indicator, not financial advice.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://orbstudio.org/openapi.json"
+  },
+  "logo_url": "https://orbstudio.org/media/david-poster.jpg",
+  "legal_info_url": "https://orbstudio.org/about"
+}
