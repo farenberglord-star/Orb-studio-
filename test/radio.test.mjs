@@ -354,6 +354,11 @@ test("sensor news: only numbers that the sensors gave, right language, no foreca
   assert.equal(checkSensorStory(good, f.money, "en"), good);
   assert.equal(checkSensorStory(good.replace("87 euros", "90 euros"), f.money, "en"), null, "a rounded number is rejected");
   assert.equal(checkSensorStory(good + " Over the last 24 hours nothing else changed.", f.money, "en"), null, "an added number is rejected");
+    const { unitsToWords } = await import("../src/radio.js");
+  const chain = "From the Orb Studio sensors: the Bitcoin network shows a fast fee of 3 sat/vB right now, and the queue holds 12,430 transactions." + pad;
+  assert.equal(checkSensorStory(chain, f.crypto, "en"), unitsToWords(chain, "en"), "sat/vB from the sensor line is spoken as words, the story is kept");
+  assert.match(checkSensorStory(chain, f.crypto, "en"), /3 satoshis per virtual byte/); assert.equal(checkSensorStory(chain.replace("3 sat/vB", "4 sat/vB"), f.crypto, "en"), null, "numbers are still checked");
+  assert.equal(unitsToWords("on average 615 EH/s", "de"), "on average 615 Exahash pro Sekunde");
   assert.equal(checkSensorStory(good + " Prices will rise tomorrow.", f.money, "en"), null); assert.equal(checkSensorStory(good + " It is 87 €/MWh.", f.money, "en"), null, "units must be spoken as words");
   assert.equal(checkSensorStory("Too short, 87 and 8.7.", f.money, "en"), null); assert.equal(checkSensorStory(good, f.money, "ru"), null, "wrong language");
   assert.equal(checkSensorStory(good.replace(/\d[\d.]*/g, "many"), f.money, "en"), null, "a story without the sensor figures is not a sensor story");

@@ -31,3 +31,20 @@ export function polyakReport(inp) {
   return { sensor: "polyak", checked_at: new Date(now).toISOString(), series: POLYAK_SERIES.map((id) => ({ id, ...polyakSeries(s[id], now) })), honour: POLYAK,
     how_to_read: "Past readings only, no forecast. polyak_average_24h = average of the readings in the last 24 hours before the last 3 hours; average_last_3h = median of the last 6 readings. calm = nothing beyond the noise threshold; jump = the last reading is far from the average but the last 3 hours are not (a one-off); shift = the last 3 hours as a whole moved away from the average (a sustained change). inertia_per_6h = heavy-ball momentum of the changes, in index points per 6 hours. unknown = fewer than 12 readings in 24 hours." };
 }
+
+// Какие заголовки дали сдвиг: для индексов, которые считаются по словам заголовка (галлюцинации — «странное», согласие — «договорились/спор»).
+// rows: заголовки радаров за последние часы [{ radar, source, headline, first_ts, last_ts }]; links: { нормализованный заголовок: ссылка } из живых лент.
+// Вошли — заголовок появился за последние 3 часа и жив сейчас; вышли — был, а за последние 3 часа пропал. Для индексов без слов (token_hunger, geo_radar) вклад не считаем.
+const WORD_SIDE = { hallucination: { up: ["odd", "in"], down: ["odd", "out"] }, consensus: { up: [["agree", "in"], ["fight", "out"]], down: [["fight", "in"], ["agree", "out"]] } };
+export function polyakContributors(id, verdict, direction, rows, res, links, now, norm = (x) => String(x || "").toLowerCase().trim(), max = 5) {
+  if (!WORD_SIDE[id] || (verdict !== "shift" && verdict !== "jump") || !direction) return null;
+  const T3 = now - 3 * 3600e3, ALIVE = now - 45 * 60e3, out = [];
+  const plan = WORD_SIDE[id][direction]; for (const [tag, way] of (Array.isArray(plan[0]) ? plan : [plan])) {
+    const re = res[tag]; if (!re) continue;
+    for (const r of rows || []) { if (!r || !re.test(r.headline || "")) continue;
+      const entered = way === "in" && r.first_ts >= T3 && r.last_ts >= ALIVE, left = way === "out" && r.first_ts < T3 && r.last_ts < ALIVE && r.last_ts >= T3;
+      if (entered || left) out.push({ headline: r.headline, source: r.source || null, radar: r.radar, link: (links && links[norm(r.headline)]) || null, what: tag === "odd" ? "odd_wording" : tag, change: way === "in" ? "entered_last_3h" : "left_last_3h", at: new Date(way === "in" ? r.first_ts : r.last_ts).toISOString() }); } }
+  out.sort((a, b) => (a.change === b.change ? Date.parse(b.at) - Date.parse(a.at) : a.change === "entered_last_3h" ? -1 : 1));
+  return { counted_by: id === "hallucination" ? "headlines with odd wording (strange, bizarre, unprecedented, viral …)" : "headlines with agreement words (deal, accord, backs …) against conflict words (clash, reject, protest …)", total: out.length, items: out.slice(0, max),
+    note: "Headlines whose wording moved this index in the last 3 hours (entered = new and still on a radar; left = dropped off). Counted by words, not by meaning: read them before you repeat the number. Not a forecast." };
+}

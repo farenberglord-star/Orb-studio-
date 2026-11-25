@@ -21,3 +21,29 @@ test("Polyak sensor: report shape, honour, no crypto, pages and wiring", () => {
   const sm = readFileSync(new URL("../public/sitemap.xml", import.meta.url), "utf8"); for (const pre of ["", "/de", "/en"]) assert.ok(sm.includes("<loc>https://orbstudio.org" + pre + "/tools/polyak</loc>"));
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\[Polyak sensor\]/);
 });
+import { polyakContributors } from "../src/polyak.js";
+test("Polyak sensor: a shift names the headlines that moved the index, with links", () => {
+  const res = { odd: /\b(bizarre|strange)\b/i, agree: /\bdeal\b/i, fight: /\bclash\b/i }, H = 3600e3;
+  const rows = [
+    { radar: "geo", source: "A", headline: "Bizarre storm surprises town", first_ts: now - H, last_ts: now - 600e3 },
+    { radar: "ai", source: "B", headline: "Strange robot goes viral", first_ts: now - 10 * H, last_ts: now - 600e3 },
+    { radar: "geo", source: "C", headline: "Ordinary budget news", first_ts: now - H, last_ts: now - 600e3 },
+  ];
+  const norm = (x) => x.toLowerCase(), links = { "bizarre storm surprises town": "https://example.org/a" };
+  const c = polyakContributors("hallucination", "shift", "up", rows, res, links, now, norm);
+  assert.equal(c.items.length, 1, "only the headline that is new in the last 3 hours and odd-worded");
+  assert.equal(c.items[0].link, "https://example.org/a"); assert.equal(c.items[0].change, "entered_last_3h");
+  assert.equal(polyakContributors("hallucination", "calm", null, rows, res, links, now, norm), null, "calm: nothing to explain");
+  assert.equal(polyakContributors("token_hunger", "shift", "up", rows, res, links, now, norm), null, "no words behind this index: no contributors");
+  const gone = polyakContributors("hallucination", "shift", "down", [{ radar: "ai", source: "B", headline: "Strange old story", first_ts: now - 10 * H, last_ts: now - 2 * H }], res, {}, now, norm);
+  assert.equal(gone.items[0].change, "left_last_3h");
+});
+import { askReport, askTokens } from "../src/ask.js";
+test("ask entry: free question points to headlines and tools, no AI", () => {
+  const radars = [{ id: "geo", feed: [[0, "Iran threatens Strait of Hormuz shipping", "Reuters", 0, "https://example.org/h"], [0, "Weather in Hamburg", "NDR", 0, "https://example.org/w"]] }];
+  const tools = [{ name: "get_roads", title: "Roads", description: "jams" }, { name: "get_hormuz", title: "Hormuz chokepoint", description: "ship passages" }];
+  const r = askReport("what about Hormuz", radars, tools);
+  assert.equal(r.matched, true); assert.equal(r.headlines.length, 1); assert.equal(r.headlines[0].link, "https://example.org/h"); assert.deepEqual(r.tools_to_call_next, ["get_hormuz"]);
+  assert.equal(askReport("Hormuzes", radars, tools).headlines.length, 1, "word beginning matches inflected forms");
+  assert.equal(askReport("is", radars, tools).matched, false); assert.deepEqual(askTokens("what about the Hormuz Hormuz"), ["hormuz"]);
+});

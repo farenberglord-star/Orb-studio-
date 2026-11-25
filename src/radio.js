@@ -310,6 +310,15 @@ Rules:
 export const SENSOR_TOOL = { name: "write_sensor_news", description: "David's spoken news pieces from the sensor lines, one per topic.",
   input_schema: { type: "object", properties: Object.fromEntries(Object.keys(SENSOR_TOPICS).map((k) => [k, { type: "string" }])) } };
 const SENSOR_BAD = /\b(?:will (?:rise|fall|drop|grow|climb|increase|decrease|go up|go down)|is expected|are expected|forecast\w*|predict\w*|price target|you should|buy|sell|invest\w*|wird (?:steigen|fallen|sinken)|werden (?:steigen|fallen|sinken)|prognos\w*|voraussichtlich|kaufen|verkaufen|investier\w*|world premiere|exclusive|unique|einzigartig\w*|exklusiv\w*)\b|прогноз|выраст[еу]т|упад[её]т|подорожа[еюю]т|подешеве[еюю]т|ожидается|скорее всего|покупай|продавай|инвестир|впервые|единственн|уникальн|эксклюзив|ignore (?:all |previous )|system prompt|https?:\/\//i;
+// Крипто-единицы со слэшем стоят прямо в строках датчика («EH/s», «sat/vB»), и модель иногда копирует их как есть, хотя ей велено писать словами.
+// Раньше такой рассказ целиком отбрасывался (unit_not_in_words), и крипто-тема пропадала из эфира (Гамильтон: sensor_news degraded, dropped crypto).
+// Теперь только эти две единицы заменяются словами, числа не трогаются; «€/MWh» и прочие по-прежнему отклоняются.
+const UNIT_WORDS = {
+  en: [[/\bEH\s*\/\s*s\b/g, "exahashes per second"], [/\bsat\s*\/\s*v?B(?:yte)?\b/gi, "satoshis per virtual byte"]],
+  de: [[/\bEH\s*\/\s*s\b/g, "Exahash pro Sekunde"], [/\bsat\s*\/\s*v?B(?:yte)?\b/gi, "Satoshi pro virtuellem Byte"]],
+  ru: [[/\bEH\s*\/\s*s\b/g, "эксахэшей в секунду"], [/\bsat\s*\/\s*v?B(?:yte)?\b/gi, "сатоши за виртуальный байт"]],
+};
+export const unitsToWords = (t, lang) => (UNIT_WORDS[lang] || UNIT_WORDS.en).reduce((x, [re, w]) => x.replace(re, w), String(t || ""));
 // Проверка рассказа: нужный язык и длина, ни одного числа, которого нет в строках датчиков, без прогнозов и советов. Не прошёл — темы в эфире нет.
 // Почему рассказ не прошёл (null — прошёл). Причина сохраняется в выпуске, чтобы отказ можно было разобрать, а не гадать.
 export function sensorStoryProblem(t, lines, lang) {
@@ -324,12 +333,12 @@ export function sensorStoryProblem(t, lines, lang) {
 }
 // Проверка рассказа: нужный язык и длина, ни одного числа, которого нет в строках датчиков, без прогнозов и советов. Не прошёл — темы в эфире нет.
 export function checkSensorStory(text, lines, lang, strip = (t) => t) {
-  const t = typeof text === "string" ? strip(text).replace(/\s+/g, " ").trim() : "";
+  const t = typeof text === "string" ? unitsToWords(strip(text).replace(/\s+/g, " ").trim(), lang) : "";
   return sensorStoryProblem(t, lines, lang) ? null : t;
 }
 export function checkSensorStories(out, facts, lang, strip = (t) => t) {
   const res = {}, rejected = {};
-  for (const k of Object.keys(SENSOR_TOPICS)) { if (!facts || !facts[k]) continue; const raw = out && out[k], t = typeof raw === "string" ? strip(raw).replace(/\s+/g, " ").trim() : "";
+  for (const k of Object.keys(SENSOR_TOPICS)) { if (!facts || !facts[k]) continue; const raw = out && out[k], t = typeof raw === "string" ? unitsToWords(strip(raw).replace(/\s+/g, " ").trim(), lang) : "";
     const why = typeof raw === "string" ? sensorStoryProblem(t, facts[k], lang) : "not_written"; if (why) rejected[k] = why; else res[k] = { text: t, facts: facts[k] }; }
   if (Object.keys(rejected).length) Object.defineProperty(res, "_rejected", { value: rejected, enumerable: false });
   return res;
