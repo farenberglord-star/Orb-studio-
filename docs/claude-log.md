@@ -292,3 +292,8 @@
 ## 2026-11-25 — партия 21 (Лиана; Фасмер, Ушаков, Бенвенист)
 - Взято 3 карточки (736 → 739): vasmer_m (look_alike, †1962-11-30, Wikipedia), ushakov_dn (stale_data, †1942-04-17, Wikipedia), benveniste_e (look_alike, †1976-10-03, Collège de France). Сомнение Лианы в днях смерти Фасмера и Бенвениста напрасно.
 - Мостики: расширены same_form_three_layers (+benveniste_e), same_words_other_thing (+vasmer_m), word_has_birth_date (+ushakov_dn; словарь Ушакова в общественном достоянии — источник пометок возможен).
+
+## 2026-11-25 — партия 23 (Лиана; Визер, Алле, Мизес, Барнард)
+- Взято 2 карточки (739 → 741): wieser_f (answer_cost, †1926-07-22 по Wikipedia, 23.07 по Britannica — год сходится, день расходится в источниках), barnard_ci (side_effects, †1961-06-07, Wikipedia).
+- Дубли: Алле (allais_m) и Л. фон Мизес (mises_l) уже в библиотеке.
+- Мостики: новый next_headline_yield (idea; число: сдвиг индекса радара на лишний заголовок за 30 мин, данные ix_hist.h — проверить, что h считает заголовки); расширены cheap_to_say_dear_to_check (+wieser_f) и who_else_pays (+barnard_ci). Предложенное Лианой число для Барнарда («публикации против индекса») слишком расплывчато и не принято.

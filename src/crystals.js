@@ -13635,6 +13635,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "pairs of headlines with a shared key word but a different speech act (Searle line); same number as scherba_lv, vinogradov_vv, langer_sk"
 }
+},
+{
+"id": "wieser_f",
+"name": "Friedrich von Wieser",
+"name_ru": "Фридрих фон Визер",
+"years": "1851–1926",
+"wiki": "https://en.wikipedia.org/wiki/Friedrich_von_Wieser",
+"zone": "answer_cost",
+"idea": {
+"en": "'Theorie der gesellschaftlichen Wirtschaft' (1914) and 'Natural Value' (1889): the cost of a choice is the best use you gave up for it (the term 'opportunity cost' is his).",
+"ru": "«Теория общественного хозяйства» (1914) и «Естественная ценность» (1889): цена выбора — лучшее применение, от которого отказались ради него (термин «альтернативные издержки» его).",
+"de": "„Theorie der gesellschaftlichen Wirtschaft“ (1914) und „Der natürliche Wert“ (1889): die Kosten einer Wahl sind die beste Verwendung, auf die man dafür verzichtet (der Begriff „Opportunitätskosten“ stammt von ihm)."
+},
+"rule": "Before you check one more source, ask what else the same time and attention would buy; stop when the next check gives less than that.",
+"needs": {
+"code": "needs_idea",
+"note": "change of a radar index per extra headline read in a 30-minute slot (ix_hist columns h and the radar letter); first check that h counts headlines read, and use only points without feed gaps"
+}
+},
+{
+"id": "barnard_ci",
+"name": "Chester Barnard",
+"name_ru": "Честер Барнард",
+"years": "1886–1961",
+"wiki": "https://en.wikipedia.org/wiki/Chester_Barnard",
+"zone": "side_effects",
+"idea": {
+"en": "'The Functions of the Executive' (1938): an organisation lives only if it is effective (reaches its purpose) and efficient (satisfies the motives of its members); the first function of an executive is a working system of communication.",
+"ru": "«Функции руководителя» (1938): организация живёт, только если она результативна (достигает цели) и эффективна (удовлетворяет мотивы участников); первая функция руководителя — работающая система связи.",
+"de": "„The Functions of the Executive“ (1938): eine Organisation lebt nur, wenn sie wirksam (erreicht ihr Ziel) und leistungsfähig (befriedigt die Motive ihrer Mitglieder) ist; die erste Aufgabe der Führung ist ein funktionierendes Kommunikationssystem."
+},
+"rule": "When a rule reaches its goal, also ask what it does to the people and channels around it; a goal reached at the cost of the system is not a success.",
+"needs": {
+"code": "needs_idea",
+"note": "no clean number yet: Liana proposed publications versus index change, which is too loose; look for a side effect of our own rules (for example a rule that delays or drops a headline) that can be counted per day"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
