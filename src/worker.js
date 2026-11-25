@@ -77,6 +77,7 @@ import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
 import { newsPassport, PASSPORT_RULE } from "./passport.js";
+import { measuredCrypto, finalVerdict, isDebunkText, hostOf as verdictHost } from "./verdict.js";
 import { methodReport } from "./method.js";
 import { timeMachineReport } from "./timemachine.js";
 import { hagenauerReport } from "./hagenauer.js";
@@ -896,7 +897,7 @@ async function checkHeadline(origin, request, raw, env) {
   const used = +((await (await caches.default.match(rk))?.text()) || 0);
   if (used >= 30) return { error: "Limit: 30 checks per hour. Try again later." };
   await caches.default.put(rk, new Response(String(used + 1), { headers: { "Cache-Control": "max-age=3600" } }));
-  const ck = new Request(`${origin}/__cache/chk-v7-${await sha(text.toLowerCase())}`);
+  const ck = new Request(`${origin}/__cache/chk-v8-${await sha(text.toLowerCase())}`);
   const hit = await caches.default.match(ck); if (hit) return hit.json();
   const words = text.replace(/[^\p{L}\p{N} ]+/gu, " ").split(/\s+/).filter((x) => x.length >= 4 && !STOP.has(x.toLowerCase())).slice(0, 5);
   const mkt = /[а-яё]/i.test(text) ? "ru-RU" : /[äöüß]/i.test(text) ? "de-DE" : "en-US";
@@ -907,12 +908,13 @@ async function checkHeadline(origin, request, raw, env) {
       if (r.ok) { searched = true; items = (await r.text()).split(/<item[\s>]/i).slice(1, 40).map((b) => ({ title: tag(b, "title"), link: tag(b, "link"), source: tag(b, "News:Source"), description: tag(b, "description"), ts: Date.parse(tag(b, "pubDate")) || 0 })); }
     } catch (e) {}
   }
-  const sig = sigOf(text), seen = new Map(), raws = [];
+  const sig = sigOf(text), seen = new Map(), raws = [], debunks = [];
   for (const it of items) {
     if (!it.title || (it.ts && Date.now() - it.ts > 2.5 * 864e5)) continue;
     const s = sigOf(it.title); let k = 0; for (const x of sig) if (s.has(x)) k++;
     const need = sig.size <= 7 ? 2 : 3;
     const key = srcKey(it.source || "");
+    if (k >= need && key && !seen.has(key) && isDebunkText(it.title + " " + it.description)) { debunks.push({ outlet: wClean(it.source, 60), title: wClean(it.title, 160), link: it.link || null }); continue; } // опровержение повторяет заголовок, но подтверждением не считается
     if (k >= need && key && !seen.has(key)) { const o = { outlet: wClean(it.source, 60), title: wClean(it.title, 200), link: it.link || null, published: it.ts ? new Date(it.ts).toISOString() : null }; seen.set(key, o); raws.push({ ...o, description: wClean(it.description, 300) }); }
   }
   const echo = echoGroups(raws);
@@ -930,6 +932,8 @@ async function checkHeadline(origin, request, raw, env) {
     speech_act: (() => { const a = searleHeadline(text); return { ...a, explain: SEARLE_EXPLAIN[a.act], sensor: "https://orbstudio.org/tools/searle" }; })(),
     checkability: (() => { const f = frankfurtHeadline(text); return { ...f, explain: FRANKFURT_EXPLAIN[f.class], sensor: "https://orbstudio.org/tools/frankfurt" }; })(),
     explain: { confirmed: "3+ independent voices report the same story", two_sources: "2 independent voices", single_source: n > 1 ? "several outlets, but all repeat one text (one agency or the same headline) — one source" : "only 1 outlet found", not_found: "no outlet found reporting this in the last 2 days — treat as unverified", search_unavailable: "news search did not answer, try later" }[verdict],
+    debunk_items: debunks.length, ...(debunks.length ? { debunks: debunks.slice(0, 5) } : {}),
+    final: finalVerdict({ headline: text, voices: searched ? echo.independent_voices : null, debunk: debunks.length, measured: await (async () => { try { const sn = await sharedGet(env, "sensors-v8", 20 * 60e3); return sn ? measuredCrypto(text, sn) : null; } catch { return null; } })(), act: searleHeadline(text).act, rumourRisk: false, checkability: frankfurtHeadline(text).class }),
     ...(looksLikeInjection(text) ? { injection_suspected: true } : {}),
     rule: "This measures how widely a story is reported by news outlets, not whether it is true. Matching is by shared key words in the same language, so a rephrased rumour may be missed and an unrelated story with the same words may match. Orb Studio never rewrites the news.",
     checked_at: new Date().toISOString(), tool: "check_headline", page: "https://orbstudio.org/sensors",
@@ -1935,7 +1939,8 @@ async function passportOf(env, ctx, origin, headline) { // паспорт люб
   const hit = all.find((x) => norm(x.headline) === nh) || all.find((x) => { const a = norm(x.headline); return a.length > 20 && (a.includes(nh) || nh.includes(a)); });
   let amp = null;
   if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
-  const p = newsPassport(hit ? { ...hit, amplified: amp } : { headline: h });
+  let measured = null; try { measured = measuredCrypto(h, await sensorsData(env, ctx)); } catch {}
+  const p = newsPassport(hit ? { ...hit, amplified: amp, measured } : { headline: h, measured });
   return { ...p, on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
     rule: PASSPORT_RULE, page: origin + "/tools/method" };
 }

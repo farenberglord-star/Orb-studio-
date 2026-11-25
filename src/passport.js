@@ -1,3 +1,4 @@
+import { finalVerdict, hostOf } from "./verdict.js";
 import { toneOf } from "./tone.js";
 // «Паспорт новости»: одна цепочка проверок перед эфиром. Каждая новость проходит шаги в порядке зон библиотеки:
 // 1) свежесть (Микрин/Кокс), 2) факт или слух (независимые голоса, Сёрл — речевой акт, Франкфурт — есть ли что проверить, госСМИ),
@@ -89,6 +90,7 @@ export function newsPassport(it, now = Date.now()) {
     amplified: amp && amp.outlets_peak >= 3 && amp.outlets_peak >= 2 * Math.max(1, amp.outlets_first) ? { from: amp.outlets_first, to: amp.outlets_peak } : null,
     first_source: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), found_document: foundDoc, metaphor: meta, tone: tone && tone.loaded ? tone : null, rumour_risk: rumourRisk,
     confidence: high ? "high" : low ? "low" : "medium", fired, say,
+    verdict: finalVerdict({ headline, voices, debunk: (it && it.debunk) || 0, measured: (it && it.measured) || null, host: hostOf(it && it.link), act: act.act, rumourRisk, checkability: chk.class }),
     chain: evidenceChain({ act: act.act, voices, age, check: chk.class, first: (amp && amp.first_source) || null, quoted: QUOTED.test(headline), metaphor: !!meta, tone: !!(tone && tone.loaded) }),
     steps: ["freshness (Mikrin, Cox)", "independent voices (check_headline)", "speech act (Searle)", "checkability (Frankfurt)", "state media (Lyberg)", "retellings vs first source (Kasperson, Zajonc)", "extraordinary claims need stronger evidence (Hume, Laplace)", "quotes out of context (Derrida, Schleiermacher)", "found documents: date, wording, origin (Valla, Dobrovsky, Chasles)", "first source, not the count of retellings (Schleicher)", "metaphor is not the fact (Max Müller)", "loaded words: evaluation, potency, activity (Osgood, Elias)", "grave + few outlets + unclear = rumour risk (Allport, Cantril)", "do not amplify, say where facts stop (Kasperson, Lindley)"],
   };

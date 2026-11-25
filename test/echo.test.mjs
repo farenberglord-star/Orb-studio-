@@ -39,7 +39,7 @@ test("check_headline uses independent voices for its verdict", () => {
   assert.match(w, /import \{ echoGroups, agencyOf, ECHO_EXPLAIN, ECHO_RULE, fourValued \} from "\.\/echo\.js"/);
   assert.match(w, /v = echo\.independent_voices, verdict = .*v >= 3 \? "confirmed"/);
   assert.match(w, /independent_voices: echo\.independent_voices/);
-  assert.match(w, /chk-v7-/); assert.match(w, /sources_agree: searched \? fourValued\(raws\)/);
+  assert.match(w, /chk-v8-/); assert.match(w, /sources_agree: searched \? fourValued\(raws\)/);
 });
 
 import { fourValued } from "../src/echo.js";

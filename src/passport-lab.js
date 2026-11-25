@@ -2,7 +2,7 @@
 // это отдельные подсказки рядом с паспортом, пока владелец не скажет «да».
 // 1) Маркер опровержения (Kasperson, Frankfurt): статьи-опровержения повторяют заголовок, но это не подтверждения.
 // 2) «Побуждение к сделке» (Hume, Lindley): два и больше сигнала из четырёх — это не новость.
-const DEBUNK = /(?<![\p{L}])(fact[- ]?check\p{L}*|debunk\p{L}*|no evidence|fabricated|hoax|blatant lie|false claim|фейк\p{L}*|опроверг\p{L}*|опровергл\p{L}*|ложн\p{L}* информац\p{L}*|faktencheck\p{L}*|falschmeldung\p{L}*|erfunden\p{L}*|gefälscht\p{L}*|dementiert\p{L}*)(?![\p{L}])/iu;
+export const DEBUNK = /(?<![\p{L}])(fact[- ]?check\p{L}*|debunk\p{L}*|no evidence|fabricated|hoax|blatant lie|false claim|фейк\p{L}*|опроверг\p{L}*|опровергл\p{L}*|ложн\p{L}* информац\p{L}*|faktencheck\p{L}*|falschmeldung\p{L}*|erfunden\p{L}*|gefälscht\p{L}*|dementiert\p{L}*)(?![\p{L}])/iu;
 const GAIN = /(\d[\d\s.,]*\s?%|guaranteed|гарантир\p{L}*|garantiert)/iu;
 const ACT = /(?<![\p{L}])(transfer|send your|buy now|invest now|переведите|перевести|успейте|купите|jetzt kaufen|überweisen)(?![\p{L}])/iu;
 const URGENT = /(?<![\p{L}])(urgent|hurry|limited|only \d+ hours|срочно|огранич\p{L}*|за \d+ минут|dringend|nur noch|23:59)(?![\p{L}])/iu;
