@@ -12941,6 +12941,97 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "share of headlines that carry feeling words against plain information, per day; the tone line of the passport exists, a daily share is not computed yet"
 }
+},
+{
+"id": "simmel_g",
+"name": "Georg Simmel",
+"name_ru": "Георг Зиммель",
+"years": "1858–1918",
+"wiki": "https://en.wikipedia.org/wiki/Georg_Simmel",
+"zone": "answer_cost",
+"idea": {
+"en": "'Die Großstädte und das Geistesleben' (1903): under a constant flood of stimuli the city dweller protects himself with a blasé reserve and loses the ability to tell things apart.",
+"ru": "«Большие города и духовная жизнь» (1903): под постоянным потоком раздражителей горожанин защищается пресыщенной сдержанностью и теряет способность различать вещи.",
+"de": "„Die Großstädte und das Geistesleben“ (1903): Unter dem ständigen Reizstrom schützt sich der Großstädter mit blasierter Reserve und verliert die Fähigkeit, Dinge zu unterscheiden."
+},
+"rule": "More alerts do not mean more attention; when the flow is heavy, say less and mark what is different.",
+"needs": {
+"code": "needs_idea",
+"note": "reaction of the radar index per 30 minutes when the headline flow is above its 90th percentile; computable from radar_life counts and ix_hist, not defined yet"
+}
+},
+{
+"id": "michels_r",
+"name": "Robert Michels",
+"name_ru": "Роберт Михельс",
+"years": "1876–1936",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Michels",
+"zone": "side_effects",
+"idea": {
+"en": "'Zur Soziologie des Parteiwesens in der modernen Demokratie' (1911): any large organisation tends to be run by a small leading group (the 'iron law of oligarchy').",
+"ru": "«К социологии партийной жизни в современной демократии» (1911): любая большая организация склонна управляться небольшой руководящей группой («железный закон олигархии»).",
+"de": "„Zur Soziologie des Parteiwesens in der modernen Demokratie“ (1911): Jede große Organisation neigt dazu, von einer kleinen Führungsgruppe geleitet zu werden („ehernes Gesetz der Oligarchie“)."
+},
+"rule": "When a topic grows, check whether more voices mean more independent sources or the same few.",
+"needs": {
+"code": "covered",
+"note": "the Bradford sensor already shows how much of the coverage a few outlets carry",
+"covered_by": "bradford"
+}
+},
+{
+"id": "scheler_m",
+"name": "Max Scheler",
+"name_ru": "Макс Шелер",
+"years": "1874–1928",
+"wiki": "https://en.wikipedia.org/wiki/Max_Scheler",
+"zone": "own_limits",
+"idea": {
+"en": "'Die Wissensformen und die Gesellschaft' (1926): what a society notices and counts as knowledge is selected by its values and interests.",
+"ru": "«Формы знания и общество» (1926): то, что общество замечает и считает знанием, отбирается его ценностями и интересами.",
+"de": "„Die Wissensformen und die Gesellschaft“ (1926): Was eine Gesellschaft bemerkt und als Wissen gelten lässt, wird durch ihre Werte und Interessen ausgewählt."
+},
+"rule": "Ask which measured events the stream leaves out, not only what it says.",
+"needs": {
+"code": "needs_idea",
+"note": "share of measured events (earthquakes, water level) with no headline within 24 hours; needs an event list from the open sensors and a text match, not defined yet"
+}
+},
+{
+"id": "benjamin_w",
+"name": "Walter Benjamin",
+"name_ru": "Вальтер Беньямин",
+"years": "1892–1940",
+"wiki": "https://en.wikipedia.org/wiki/Walter_Benjamin",
+"zone": "stale_data",
+"idea": {
+"en": "'Das Kunstwerk im Zeitalter seiner technischen Reproduzierbarkeit' (1936): a reproduction lacks the original's presence in time and place, its 'here and now'.",
+"ru": "«Произведение искусства в эпоху его технической воспроизводимости» (1936): у репродукции нет присутствия оригинала во времени и пространстве, его «здесь и сейчас».",
+"de": "„Das Kunstwerk im Zeitalter seiner technischen Reproduzierbarkeit“ (1936): Der Reproduktion fehlt das Dasein des Originals in Zeit und Raum, sein „Hier und Jetzt“."
+},
+"rule": "A copy carries no time or place; say when and where the original was made.",
+"needs": {
+"code": "needs_idea",
+"note": "share of verbatim reprints that give no time of the first measurement; needs a text match, not defined yet"
+}
+},
+{
+"id": "arendt_h",
+"name": "Hannah Arendt",
+"name_ru": "Ханна Арендт",
+"years": "1906–1975",
+"wiki": "https://en.wikipedia.org/wiki/Hannah_Arendt",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Truth and Politics' (1967): factual truth is fragile; replacing facts with an agreed story wears away the ability to tell true from false, and a fact is not an opinion.",
+"ru": "«Истина и политика» (1967): фактическая истина хрупка; подмена фактов согласованной историей подтачивает способность отличать истинное от ложного, а факт — не мнение.",
+"de": "„Truth and Politics“ (1967): Faktenwahrheit ist zerbrechlich; wer Fakten durch eine vereinbarte Geschichte ersetzt, untergräbt die Fähigkeit, Wahres von Falschem zu unterscheiden; ein Faktum ist keine Meinung."
+},
+"rule": "Keep fact and opinion apart, and say which facts can be checked against a record.",
+"needs": {
+"code": "needs_idea",
+"note": "how long a refuted claim stays in headlines against open sensor data; needs a list of refuted claims, not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
