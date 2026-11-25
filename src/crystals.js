@@ -13834,6 +13834,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "expected number of wrong items among the day's confirmed headlines, sum of (1 - confidence) from the Harman calibration; needs Harman confidences stored per headline"
 }
+},
+{
+"id": "bachelard_g",
+"name": "Gaston Bachelard",
+"name_ru": "Гастон Башляр",
+"years": "1884–1962",
+"wiki": "https://en.wikipedia.org/wiki/Gaston_Bachelard",
+"zone": "own_limits",
+"idea": {
+"en": "'La formation de l'esprit scientifique' (1938): the first impression and the familiar image are an epistemological obstacle; knowledge begins by breaking with them.",
+"ru": "«Формирование научного духа» (1938): первое впечатление и привычный образ — эпистемологическое препятствие; знание начинается с разрыва с ними.",
+"de": "„La formation de l'esprit scientifique“ (1938): der erste Eindruck und das vertraute Bild sind ein epistemologisches Hindernis; Erkenntnis beginnt mit dem Bruch mit ihnen."
+},
+"rule": "Do not rest on the first impression of a story; name what it feels like and check it against something that does not feel like it.",
+"needs": {
+"code": "needs_idea",
+"note": "rule only: a first-impression check in the passport; no number, no sensor; philosophy of science, not psychoanalytic practice"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

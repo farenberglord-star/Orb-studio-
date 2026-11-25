@@ -1671,6 +1671,11 @@ C = [
  '«Probability and the Logic of Rational Belief» (1961): каждое высоковероятное утверждение можно принять отдельно, но все вместе они могут противоречить друг другу (парадокс лотереи).',
  '„Probability and the Logic of Rational Belief“ (1961): jede sehr wahrscheinliche Aussage lässt sich einzeln annehmen, aber alle zusammen können widersprüchlich sein (Lotterieparadoxon).',
  'Do not treat every well-supported item as true at once; count how many of them you expect to be wrong.'),
+('bachelard_g', 'Gaston Bachelard', 'Гастон Башляр', '1884–1962', 'https://en.wikipedia.org/wiki/Gaston_Bachelard', 'own_limits',
+ "'La formation de l'esprit scientifique' (1938): the first impression and the familiar image are an epistemological obstacle; knowledge begins by breaking with them.",
+ '«Формирование научного духа» (1938): первое впечатление и привычный образ — эпистемологическое препятствие; знание начинается с разрыва с ними.',
+ '„La formation de l\'esprit scientifique“ (1938): der erste Eindruck und das vertraute Bild sind ein epistemologisches Hindernis; Erkenntnis beginnt mit dem Bruch mit ihnen.',
+ 'Do not rest on the first impression of a story; name what it feels like and check it against something that does not feel like it.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2233,3 +2238,4 @@ NEEDS['levi_i'] = ('covered', 'applied: the Pearson cost-of-error sensor already
 NEEDS['stebbing_ls'] = ('needs_idea', 'share of headlines built on a stock phrase; close to the line "Smoothness is not understanding", no number yet')
 NEEDS['wilson_p'] = ('needs_history', 'per outlet and topic: share of its headlines later confirmed by two or more other outlets; needs passport lines stored at first sight (Ashby keeps them), about 30 days')
 NEEDS['kyburg_hn'] = ('needs_idea', 'expected number of wrong items among the day\'s confirmed headlines, sum of (1 - confidence) from the Harman calibration; needs Harman confidences stored per headline')
+NEEDS['bachelard_g'] = ('needs_idea', 'rule only: a first-impression check in the passport; no number, no sensor; philosophy of science, not psychoanalytic practice')
