@@ -13725,6 +13725,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "how often the energy radar (n) moves opposite to the measured day-ahead electricity price, per week; Liana gave no measurement, this one is ours; needs a stored price series next to ix_hist"
 }
+},
+{
+"id": "roethlisberger_fj",
+"name": "Fritz Roethlisberger",
+"name_ru": "Фриц Рётлисбергер",
+"years": "1898–1974",
+"wiki": "https://en.wikipedia.org/wiki/Fritz_Roethlisberger",
+"zone": "own_limits",
+"idea": {
+"en": "'Management and the Worker' (1939, with W. J. Dickson): in the Hawthorne tests output rose whatever physical condition was changed; the book explains it by the workers' changed attitudes and by the new social situation the experiment itself created.",
+"ru": "«Руководство и рабочий» (1939, с У. Дж. Диксоном): в опытах Хоторна выработка росла при любом изменении физических условий; книга объясняет это изменившимся отношением рабочих и новой социальной обстановкой, созданной самим опытом.",
+"de": "„Management and the Worker“ (1939, mit W. J. Dickson): in den Hawthorne-Versuchen stieg die Leistung bei jeder Änderung der äußeren Bedingungen; das Buch erklärt dies mit der geänderten Einstellung der Arbeiter und der neuen sozialen Lage, die der Versuch selbst schuf."
+},
+"rule": "When a number moves right after you changed how or whom you measure, suspect the measuring first; check it against a period with no change.",
+"needs": {
+"code": "needs_idea",
+"note": "shift of a radar index within 24 hours after our own change of its feed list, against the ordinary 24-hour shift; needs a dated list of feed changes (git history of RADARS feeds) and ix_hist; feed_log shows the unplanned changes from 25.11"
+}
+},
+{
+"id": "kondratiev_nd",
+"name": "Nikolai Kondratiev",
+"name_ru": "Николай Кондратьев",
+"years": "1892–1938",
+"wiki": "https://en.wikipedia.org/wiki/Nikolai_Kondratiev",
+"zone": "stale_data",
+"idea": {
+"en": "'The Major Economic Cycles' (1925): to see a slow wave, first remove the trend and the shorter swings; and with a series this short he called a long wave 'at least very probable', not proven.",
+"ru": "«Большие циклы конъюнктуры» (1925): чтобы увидеть медленную волну, сначала убирают тренд и короткие колебания; а по такому короткому ряду он называл длинную волну «по меньшей мере весьма вероятной», но не доказанной.",
+"de": "„Die langen Wellen der Konjunktur“ (1925): um eine langsame Welle zu sehen, entfernt man zuerst den Trend und die kürzeren Schwankungen; und bei einer so kurzen Reihe nannte er die lange Welle „zumindest sehr wahrscheinlich“, nicht bewiesen."
+},
+"rule": "Do not call a short swing a change of regime; set it against the long background first, and say how short your series is.",
+"needs": {
+"code": "covered",
+"note": "applied: level_vs_30d already sets each radar against its own 30-day values; a longer background needs more history than the 13 days we have"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

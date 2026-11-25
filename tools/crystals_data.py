@@ -1641,6 +1641,16 @@ C = [
  '«Природа объяснения» (1943): ум строит малую модель действительности и с её помощью предсказывает события; модель хороша ровно настолько, насколько совпадает с событиями, которые она замещает.',
  '„The Nature of Explanation“ (1943): der Geist baut ein kleines Modell der Wirklichkeit und sagt damit Ereignisse voraus; ein Modell ist nur so gut wie seine Übereinstimmung mit den Ereignissen, die es vertritt.',
  'Check an internal model against what it stands for whenever the surroundings change; do not trust it only because it worked before.'),
+('roethlisberger_fj', 'Fritz Roethlisberger', 'Фриц Рётлисбергер', '1898–1974', 'https://en.wikipedia.org/wiki/Fritz_Roethlisberger', 'own_limits',
+ "'Management and the Worker' (1939, with W. J. Dickson): in the Hawthorne tests output rose whatever physical condition was changed; the book explains it by the workers' changed attitudes and by the new social situation the experiment itself created.",
+ '«Руководство и рабочий» (1939, с У. Дж. Диксоном): в опытах Хоторна выработка росла при любом изменении физических условий; книга объясняет это изменившимся отношением рабочих и новой социальной обстановкой, созданной самим опытом.',
+ '„Management and the Worker“ (1939, mit W. J. Dickson): in den Hawthorne-Versuchen stieg die Leistung bei jeder Änderung der äußeren Bedingungen; das Buch erklärt dies mit der geänderten Einstellung der Arbeiter und der neuen sozialen Lage, die der Versuch selbst schuf.',
+ 'When a number moves right after you changed how or whom you measure, suspect the measuring first; check it against a period with no change.'),
+('kondratiev_nd', 'Nikolai Kondratiev', 'Николай Кондратьев', '1892–1938', 'https://en.wikipedia.org/wiki/Nikolai_Kondratiev', 'stale_data',
+ "'The Major Economic Cycles' (1925): to see a slow wave, first remove the trend and the shorter swings; and with a series this short he called a long wave 'at least very probable', not proven.",
+ '«Большие циклы конъюнктуры» (1925): чтобы увидеть медленную волну, сначала убирают тренд и короткие колебания; а по такому короткому ряду он называл длинную волну «по меньшей мере весьма вероятной», но не доказанной.',
+ '„Die langen Wellen der Konjunktur“ (1925): um eine langsame Welle zu sehen, entfernt man zuerst den Trend und die kürzeren Schwankungen; und bei einer so kurzen Reihe nannte er die lange Welle „zumindest sehr wahrscheinlich“, nicht bewiesen.',
+ 'Do not call a short swing a change of regime; set it against the long background first, and say how short your series is.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2197,3 +2207,5 @@ NEEDS['barnard_ci'] = ('needs_idea', 'no clean number yet: Liana proposed public
 NEEDS['banach_s'] = ('needs_history', 'median ratio of successive 30-minute shifts of a radar index after a shift of 10 points or more (below 1 means the shock dies away); needs a history without feed-failure points, about 30 days (see the 25.11 episode)')
 NEEDS['erlang_ak'] = ('needs_history', 'share of cron slots where the fetch budget (30) or the 7 s timeout was hit; the journal feed_log (/api/v1/feed-health) runs since 25.11.2026, a week of data is needed')
 NEEDS['craik_kj'] = ('needs_idea', 'how often the energy radar (n) moves opposite to the measured day-ahead electricity price, per week; Liana gave no measurement, this one is ours; needs a stored price series next to ix_hist')
+NEEDS['roethlisberger_fj'] = ('needs_idea', 'shift of a radar index within 24 hours after our own change of its feed list, against the ordinary 24-hour shift; needs a dated list of feed changes (git history of RADARS feeds) and ix_hist; feed_log shows the unplanned changes from 25.11')
+NEEDS['kondratiev_nd'] = ('covered', 'applied: level_vs_30d already sets each radar against its own 30-day values; a longer background needs more history than the 13 days we have')
