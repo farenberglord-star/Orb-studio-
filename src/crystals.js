@@ -12704,6 +12704,153 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "difference in speech-act type between first headlines and the digest 24 hours later; needs both stored, not defined yet"
 }
+},
+{
+"id": "thom_r",
+"name": "René Thom",
+"name_ru": "Рене Том",
+"years": "1923–2002",
+"wiki": "https://en.wikipedia.org/wiki/Ren%C3%A9_Thom",
+"zone": "look_alike",
+"idea": {
+"en": "'Stabilité structurelle et morphogénèse' (1972): a smooth change of the controlling parameters can make a system jump suddenly from one state to another (catastrophe theory).",
+"ru": "«Структурная устойчивость и морфогенез» (1972): плавное изменение управляющих параметров может внезапно перебросить систему из одного состояния в другое (теория катастроф).",
+"de": "„Stabilité structurelle et morphogénèse“ (1972): Eine stetige Änderung der steuernden Parameter kann ein System plötzlich von einem Zustand in einen anderen springen lassen."
+},
+"rule": "A sudden jump does not need a sudden cause; look for the slow drift before it.",
+"needs": {
+"code": "needs_idea",
+"note": "share of radar jumps (shift of 10 points or more held for 2 hours) preceded by a steady drift in the hour before; computable from ix_hist, not defined yet"
+}
+},
+{
+"id": "haken_h",
+"name": "Hermann Haken",
+"name_ru": "Герман Хакен",
+"years": "1927–2024",
+"wiki": "https://en.wikipedia.org/wiki/Hermann_Haken",
+"zone": "side_effects",
+"idea": {
+"en": "'Synergetik' (1977): near an instability a few order parameters take over and the many separate parts of a system fall in line with them.",
+"ru": "«Синергетика» (1977): у границы неустойчивости несколько параметров порядка берут верх, и множество разрозненных частей системы выстраиваются под них.",
+"de": "„Synergetik“ (1977): Nahe einer Instabilität übernehmen wenige Ordnungsparameter die Führung, und die vielen einzelnen Teile des Systems richten sich nach ihnen aus."
+},
+"rule": "When many sources suddenly say the same thing, ask what one thing they are following.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'same story pull' (Hotelling + Schmidt + Asch + Janis + Haken): speed at which outlets line up behind one story; needs weeks of history",
+"not_before": "2026-12-07"
+}
+},
+{
+"id": "dahrendorf_r",
+"name": "Ralf Dahrendorf",
+"name_ru": "Ральф Дарендорф",
+"years": "1929–2009",
+"wiki": "https://en.wikipedia.org/wiki/Ralf_Dahrendorf",
+"zone": "side_effects",
+"idea": {
+"en": "'Class and Class Conflict in Industrial Society' (1959): conflicts that are suppressed instead of regulated do not disappear and tend to break out more sharply later.",
+"ru": "«Класс и классовый конфликт в индустриальном обществе» (1959): конфликты, которые подавляют вместо того, чтобы упорядочить, не исчезают и позже обычно вспыхивают острее.",
+"de": "„Class and Class Conflict in Industrial Society“ (1959): Unterdrückte statt geregelte Konflikte verschwinden nicht und brechen später meist schärfer aus."
+},
+"rule": "A quiet stretch is not peace; check whether the cause was settled or only kept out of the news.",
+"needs": {
+"code": "needs_idea",
+"note": "share of threat and demand headlines per day against the previous week after a quiet stretch; the speech-act count over radar_life is possible, not defined yet"
+}
+},
+{
+"id": "coser_la",
+"name": "Lewis Coser",
+"name_ru": "Льюис Козер",
+"years": "1913–2003",
+"wiki": "https://en.wikipedia.org/wiki/Lewis_Coser",
+"zone": "side_effects",
+"idea": {
+"en": "'The Functions of Social Conflict' (1956): conflict with an outside group tightens a group's inner unity and hardens its boundary.",
+"ru": "«Функции социального конфликта» (1956): конфликт с внешней группой укрепляет внутреннее единство группы и ужесточает её границу.",
+"de": "„The Functions of Social Conflict“ (1956): Konflikt mit einer Außengruppe festigt die innere Einheit einer Gruppe und verhärtet ihre Grenze."
+},
+"rule": "Under an outside threat, a group's statements converge; do not count the agreement as independent.",
+"needs": {
+"code": "needs_idea",
+"note": "spread of wording across outlets after an outside shock; no wording-spread number yet"
+}
+},
+{
+"id": "sartori_g",
+"name": "Giovanni Sartori",
+"name_ru": "Джованни Сартори",
+"years": "1924–2017",
+"wiki": "https://en.wikipedia.org/wiki/Giovanni_Sartori",
+"zone": "look_alike",
+"idea": {
+"en": "'Concept Misformation in Comparative Politics' (1970): stretching a term to cover more cases loses meaning, because the wider the reach, the fewer the traits the term can name.",
+"ru": "«Неверное образование понятий в сравнительной политологии» (1970): растягивание термина на большее число случаев лишает его смысла: чем шире охват, тем меньше признаков он способен назвать.",
+"de": "„Concept Misformation in Comparative Politics“ (1970): Wird ein Begriff auf mehr Fälle gedehnt, verliert er Gehalt: je weiter der Umfang, desto weniger Merkmale kann er nennen."
+},
+"rule": "Check whether a label (crisis, war, collapse) is stretched over cases that share few traits.",
+"needs": {
+"code": "needs_idea",
+"note": "headlines under one general tag against how well they track the physical sensors; no tag list tied to our data yet"
+}
+},
+{
+"id": "dahl_ra",
+"name": "Robert Dahl",
+"name_ru": "Роберт Даль",
+"years": "1915–2014",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Dahl",
+"zone": "answer_cost",
+"idea": {
+"en": "'Polyarchy' (1971): real contestation needs alternative, independent sources of information that citizens can reach; one dominant source is not a choice.",
+"ru": "«Полиархия» (1971): реальная состязательность требует альтернативных независимых источников информации, до которых можно добраться; один доминирующий источник — не выбор.",
+"de": "„Polyarchy“ (1971): Echter Wettbewerb braucht alternative, unabhängige Informationsquellen, die erreichbar sind; eine dominierende Quelle ist keine Wahl."
+},
+"rule": "Name at least two independent sources, or say that only one exists.",
+"needs": {
+"code": "covered",
+"note": "the Bradford sensor already shows how much of the coverage a few outlets carry",
+"covered_by": "bradford"
+}
+},
+{
+"id": "weaver_w",
+"name": "Warren Weaver",
+"name_ru": "Уоррен Уивер",
+"years": "1894–1978",
+"wiki": "https://en.wikipedia.org/wiki/Warren_Weaver",
+"zone": "one_model",
+"idea": {
+"en": "'Science and Complexity' (1948): problems of simplicity, of disorganized complexity (handled by statistics) and of organized complexity (many interrelated factors) need different methods.",
+"ru": "«Наука и сложность» (1948): задачи простоты, неорганизованной сложности (их берёт статистика) и организованной сложности (много взаимосвязанных факторов) требуют разных методов.",
+"de": "„Science and Complexity“ (1948): Probleme der Einfachheit, der ungeordneten Komplexität (Statistik) und der organisierten Komplexität (viele zusammenhängende Faktoren) brauchen unterschiedliche Methoden."
+},
+"rule": "Say whether many interacting streams are averaged or understood; an average hides the interaction.",
+"needs": {
+"code": "needs_history",
+"note": "bridge 'growth outruns control' (Chandler + Penrose + Weaver + Ashby): null share against number of outlets and streams per cycle; radar_cycle logging started 25.11",
+"not_before": "2026-12-09"
+}
+},
+{
+"id": "planck_m",
+"name": "Max Planck",
+"name_ru": "Макс Планк",
+"years": "1858–1947",
+"wiki": "https://en.wikipedia.org/wiki/Max_Planck",
+"zone": "stale_data",
+"idea": {
+"en": "'Wissenschaftliche Selbstbiographie' (1948): a new scientific truth does not win by convincing its opponents but because they die out and a generation grows up that knows it.",
+"ru": "«Научная автобиография» (1948): новая научная истина побеждает не тем, что убеждает противников, а тем, что они вымирают и вырастает поколение, которому она знакома.",
+"de": "„Wissenschaftliche Selbstbiographie“ (1948): Eine neue wissenschaftliche Wahrheit siegt nicht, indem sie ihre Gegner überzeugt, sondern weil sie aussterben und eine Generation heranwächst, die mit ihr vertraut ist."
+},
+"rule": "An old reading can outlive its evidence; date the source before trusting its view.",
+"needs": {
+"code": "needs_idea",
+"note": "age of the readings still repeated in headlines after a base sensor updated; no list of retired readings yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
