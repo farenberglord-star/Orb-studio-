@@ -13671,6 +13671,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no clean number yet: Liana proposed publications versus index change, which is too loose; look for a side effect of our own rules (for example a rule that delays or drops a headline) that can be counted per day"
 }
+},
+{
+"id": "banach_s",
+"name": "Stefan Banach",
+"name_ru": "Стефан Банах",
+"years": "1892–1945",
+"wiki": "https://en.wikipedia.org/wiki/Stefan_Banach",
+"zone": "own_limits",
+"idea": {
+"en": "Doctoral thesis (1922, on operations in abstract spaces and integral equations): contraction principle. If every step shrinks the distance between two guesses by a fixed factor below one, repeated steps settle on one answer; if not, there is no guarantee they settle.",
+"ru": "Диссертация (1922, об операциях в абстрактных пространствах и интегральных уравнениях): принцип сжимающих отображений. Если каждый шаг уменьшает расстояние между двумя оценками в постоянное число раз меньше единицы, повторы сходятся к одному ответу; если нет, сходимости никто не гарантирует.",
+"de": "Dissertation (1922, über Operationen in abstrakten Räumen und Integralgleichungen): Kontraktionsprinzip. Verkleinert jeder Schritt den Abstand zweier Schätzungen um einen festen Faktor unter eins, laufen die Wiederholungen auf eine Antwort zu; sonst gibt es dafür keine Garantie."
+},
+"rule": "Do not call an estimate settled until successive corrections shrink; if they do not, say the figure has not settled.",
+"needs": {
+"code": "needs_history",
+"note": "median ratio of successive 30-minute shifts of a radar index after a shift of 10 points or more (below 1 means the shock dies away); needs a history without feed-failure points, about 30 days (see the 25.11 episode)"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

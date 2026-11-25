@@ -1626,6 +1626,11 @@ C = [
  '«Функции руководителя» (1938): организация живёт, только если она результативна (достигает цели) и эффективна (удовлетворяет мотивы участников); первая функция руководителя — работающая система связи.',
  '„The Functions of the Executive“ (1938): eine Organisation lebt nur, wenn sie wirksam (erreicht ihr Ziel) und leistungsfähig (befriedigt die Motive ihrer Mitglieder) ist; die erste Aufgabe der Führung ist ein funktionierendes Kommunikationssystem.',
  'When a rule reaches its goal, also ask what it does to the people and channels around it; a goal reached at the cost of the system is not a success.'),
+('banach_s', 'Stefan Banach', 'Стефан Банах', '1892–1945', 'https://en.wikipedia.org/wiki/Stefan_Banach', 'own_limits',
+ "Doctoral thesis (1922, on operations in abstract spaces and integral equations): contraction principle. If every step shrinks the distance between two guesses by a fixed factor below one, repeated steps settle on one answer; if not, there is no guarantee they settle.",
+ 'Диссертация (1922, об операциях в абстрактных пространствах и интегральных уравнениях): принцип сжимающих отображений. Если каждый шаг уменьшает расстояние между двумя оценками в постоянное число раз меньше единицы, повторы сходятся к одному ответу; если нет, сходимости никто не гарантирует.',
+ 'Dissertation (1922, über Operationen in abstrakten Räumen und Integralgleichungen): Kontraktionsprinzip. Verkleinert jeder Schritt den Abstand zweier Schätzungen um einen festen Faktor unter eins, laufen die Wiederholungen auf eine Antwort zu; sonst gibt es dafür keine Garantie.',
+ 'Do not call an estimate settled until successive corrections shrink; if they do not, say the figure has not settled.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2179,3 +2184,4 @@ NEEDS['ushakov_dn'] = ('needs_source', 'the 1935-1940 dictionary with style labe
 NEEDS['benveniste_e'] = ('needs_idea', 'pairs of headlines with a shared key word but a different speech act (Searle line); same number as scherba_lv, vinogradov_vv, langer_sk')
 NEEDS['wieser_f'] = ('needs_idea', 'change of a radar index per extra headline read in a 30-minute slot (ix_hist columns h and the radar letter); first check that h counts headlines read, and use only points without feed gaps')
 NEEDS['barnard_ci'] = ('needs_idea', 'no clean number yet: Liana proposed publications versus index change, which is too loose; look for a side effect of our own rules (for example a rule that delays or drops a headline) that can be counted per day')
+NEEDS['banach_s'] = ('needs_history', 'median ratio of successive 30-minute shifts of a radar index after a shift of 10 points or more (below 1 means the shock dies away); needs a history without feed-failure points, about 30 days (see the 25.11 episode)')
