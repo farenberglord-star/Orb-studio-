@@ -11897,6 +11897,24 @@ export const CRYSTALS = [
 "note": "the Lyberg sensor already reports what the feeds cannot see; the Polyak sensor shows only changes, so a flat stretch is flagged as no change seen",
 "covered_by": "lyberg"
 }
+},
+{
+"id": "baumol_w",
+"name": "William J. Baumol",
+"name_ru": "Уильям Баумоль",
+"years": "1922–2017",
+"wiki": "https://en.wikipedia.org/wiki/William_Baumol",
+"zone": "side_effects",
+"idea": {
+"en": "'Performing Arts: The Economic Dilemma' (1966, with Bowen), the cost disease: where work cannot get faster (a string quartet), pay still rises with pay elsewhere, so the cost of that work keeps climbing.",
+"ru": "«Исполнительские искусства: экономическая дилемма» (1966, с Боуэном), «болезнь издержек»: где труд нельзя ускорить (струнный квартет), оплата всё равно растёт вслед за другими отраслями, и стоимость такой работы поднимается.",
+"de": "„Performing Arts: The Economic Dilemma“ (1966, mit Bowen), Kostenkrankheit: Wo Arbeit nicht schneller werden kann (Streichquartett), steigt der Lohn trotzdem mit den anderen Branchen, und die Kosten steigen."
+},
+"rule": "When one step got cheap and another cannot, expect the slow step to become the costly one; budget for it.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'cheap to say, dear to check' (Baumol + Coase + Mooers): the Bertsekas sensor gives token cost of answers; a matching cost of checking a headline by hand is not measured yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
