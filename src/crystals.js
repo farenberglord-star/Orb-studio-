@@ -13197,6 +13197,62 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "swing of a combined index built from 2 outlets against one built from 10 or more; needs per-outlet series, not defined yet"
 }
+},
+{
+"id": "hood_c",
+"name": "Christopher Hood",
+"name_ru": "Кристофер Худ",
+"years": "1947–2025",
+"wiki": "https://en.wikipedia.org/wiki/Christopher_Hood",
+"zone": "side_effects",
+"idea": {
+"en": "'Gaming in Targetworld' (2006): when managers are held to targets, they hit the target and miss the point, and reported success rises.",
+"ru": "«Игры в мире целей» (2006): когда руководителей оценивают по целевым показателям, они попадают в показатель и промахиваются мимо смысла, а отчётный успех растёт.",
+"de": "„Gaming in Targetworld“ (2006): Wer an Zielvorgaben gemessen wird, trifft die Zahl und verfehlt den Sinn, und der gemeldete Erfolg steigt."
+},
+"rule": "When a figure is a target, ask what was done to reach it before you read it as a result.",
+"needs": {
+"code": "covered",
+"note": "host rule 'how could the reward or ban be gamed' and the Campbell line already cover target gaming",
+"covered_by": "campbell_dt"
+}
+},
+{
+"id": "duesenberry_js",
+"name": "James Duesenberry",
+"name_ru": "Джеймс Дьюзенберри",
+"years": "1918–2009",
+"wiki": "https://en.wikipedia.org/wiki/James_Duesenberry",
+"zone": "stale_data",
+"idea": {
+"en": "'Income, Saving and the Theory of Consumer Behavior' (1949): spending follows the earlier peak, so it rises with income but falls back slowly (the ratchet).",
+"ru": "«Доход, сбережения и теория поведения потребителя» (1949): расходы держатся за прежний пик, поэтому растут вместе с доходом, а падают медленно (храповик).",
+"de": "„Income, Saving and the Theory of Consumer Behavior“ (1949): Die Ausgaben folgen dem früheren Höchststand: Sie steigen mit dem Einkommen, fallen aber nur langsam zurück (Sperrklinkeneffekt)."
+},
+"rule": "After a shock the old level lingers; do not read a slow fall as a calm.",
+"needs": {
+"code": "needs_idea",
+"note": "ratio of the fall time to the rise time of a radar index after a shock; computable from ix_hist (30-minute points), thresholds not defined yet"
+}
+},
+{
+"id": "leibenstein_h",
+"name": "Harvey Leibenstein",
+"name_ru": "Харви Лейбенстайн",
+"years": "1922–1994",
+"wiki": "https://en.wikipedia.org/wiki/Harvey_Leibenstein",
+"zone": "look_alike",
+"idea": {
+"en": "'Bandwagon, Snob and Veblen Effects in the Theory of Consumer Demand' (1950): demand for a thing grows because others are seen to want it.",
+"ru": "«Эффекты присоединения к большинству, сноба и Веблена в теории потребительского спроса» (1950): спрос растёт, потому что видно, что этого хотят другие.",
+"de": "„Bandwagon, Snob and Veblen Effects in the Theory of Consumer Demand“ (1950): Die Nachfrage wächst, weil andere sichtbar dasselbe wollen."
+},
+"rule": "Many reports of one story may be a bandwagon; count what each added, not how many.",
+"needs": {
+"code": "covered",
+"note": "the Schmidt sensor already shows whether outlets join a story as a chain or a wave",
+"covered_by": "schmidt"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
