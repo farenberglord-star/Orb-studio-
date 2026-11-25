@@ -1,7 +1,7 @@
 // «Новости по теме с паспортом»: одна точка входа для агента. Новость + паспорт, где у каждой строки названы датчик и кристалл (учёный), который её дал.
 // Паспорт не говорит «правда» или «фейк»: он называет признаки и причины со словами из заголовка; чего не измерили — null, а не «чисто».
 // Связка: кристалл (идея учёного → правило) → мостик → датчик → строка паспорта → агент. Учёный без строки здесь остаётся кристаллом библиотеки.
-import { askTokens, askHit } from "./ask.js";
+import { askTokens, askHit, INJECTION, UNTRUSTED_NOTE } from "./ask.js";
 import { frankfurtHeadline } from "./frankfurt.js";
 
 // scope: per_headline — применимо к отдельной новости; headline_only — только если заголовок попал в выборку датчика (иначе null: «не смотрели», не «чисто»);
@@ -91,11 +91,11 @@ export function newsByTopic(topic, items, pass, extrasFor = () => ({}), now = Da
   const seen = new Set(), out = [];
   for (const { it } of scored) { const k = String(it.headline).toLowerCase().slice(0, 60); if (seen.has(k)) continue; seen.add(k);
     const p = pass(it, now), lines = passportLines(p, extrasFor(it, p));
-    out.push({ headline: it.headline, source: it.source || null, outlet_link: it.link || null, radar: it.radar, published_at: it.published_at || null,
+    out.push({ headline: it.headline, looks_like_instructions: INJECTION.test(String(it.headline || "")), source: it.source || null, outlet_link: it.link || null, radar: it.radar, published_at: it.published_at || null,
       passport: { confidence: p.confidence, status: p.status, say: p.say.slice(0, 4), fired: p.fired, lines } });
     if (out.length >= max) break; }
   return { topic: q || null, words_searched: toks, checked_at: new Date(now).toISOString(), found: out.length, items: out,
-    topic_sensors: topicSensors(q),
+    topic_sensors: topicSensors(q), data_notice: UNTRUSTED_NOTE,
     table: "/api/v1/news-passport-table", method: "/tools/method",
     how_to_read: "Each item is a radar headline with its passport. A passport is not a verdict of true or false: it lists signs and reasons with the words that triggered them. Every line names the sensor and the scientist cards behind it. null means not measured or no sign found by the word rules, never 'clean'. confidence (high / medium / low) is how safe it is to repeat the headline as a fact. No AI is used. Not a forecast." };
 }
