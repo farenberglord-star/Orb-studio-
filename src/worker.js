@@ -2706,7 +2706,7 @@ async function rhineData(station) {
 // ================= Газовые хранилища Германии (GIE AGSI+): /api/v1/gas/storage, MCP get_gas_storage =================
 async function gasData(env) {
   const base = { free: true, source: "GIE AGSI+ (Gas Infrastructure Europe, https://agsi.gie.eu), transparency data under EU Regulation 1227/2011", page: "https://orbstudio.org/api/v1/gas/storage",
-    scope_note: "Fill level of German gas storage as published by AGSI+ (percent of working gas volume, TWh, injection and withdrawal). Not a supply forecast and not a statement about security of supply; for that see the Bundesnetzagentur." };
+    scope_note: "Fill level of German gas storage as published by AGSI+ (percent of working gas volume, TWh, injection and withdrawal); the block eu has the same figures for the whole European Union (null if AGSI+ does not answer for it). Not a supply forecast and not a statement about security of supply; for that see the Bundesnetzagentur." };
   const key = env.AGSI_API_KEY;
   if (!key) return { ...base, status: "not_configured", http: 503, ok: false, note: "AGSI+ needs a free API key and none is configured on this server. Nothing is estimated." };
   const fresh = new Request("https://orbstudio.org/__cache/gas-v1"), stale = new Request("https://orbstudio.org/__cache/gas-v1-stale"), c = caches.default;
@@ -2728,7 +2728,32 @@ async function gasData(env) {
       feed = await old.json(); status = "degraded";
     }
   }
-  return { ...base, status, ...parseGas(feed), area: "Germany, all storage sites combined" };
+  const eu = await gasEuData(env, key);
+  return { ...base, status, ...parseGas(feed), area: "Germany, all storage sites combined", eu };
+}
+// EU total from the same AGSI+ API (type=eu). Separate cache: if it fails, the German fields above are unaffected and eu is null.
+async function gasEuData(env, key) {
+  const fresh = new Request("https://orbstudio.org/__cache/gas-eu-v1"), stale = new Request("https://orbstudio.org/__cache/gas-eu-v1-stale"), c = caches.default;
+  let feed, status = "ok";
+  const hit = await c.match(fresh);
+  if (hit) { feed = await hit.json(); status = "cached"; }
+  else {
+    try {
+      const to = new Date().toISOString().slice(0, 10), from = new Date(Date.now() - 40 * 864e5).toISOString().slice(0, 10);
+      const r = await fetch(`https://agsi.gie.eu/api?type=eu&from=${from}&to=${to}&size=60`, { signal: AbortSignal.timeout(9000), headers: { "x-key": key, "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/gas/storage)" } });
+      if (!r.ok) throw new Error("agsi eu http " + r.status);
+      feed = await r.json();
+      if (!parseGas(feed).ok) throw new Error("no usable eu rows");
+      await c.put(fresh, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=1800" } }));
+      await c.put(stale, new Response(JSON.stringify(feed), { headers: { "Cache-Control": "max-age=172800" } }));
+    } catch (e) {
+      const old = await c.match(stale);
+      if (!old) return null;
+      feed = await old.json(); status = "degraded";
+    }
+  }
+  const { series, ...rest } = parseGas(feed);
+  return { status, area: "European Union, all member states combined (AGSI+ type=eu)", ...rest, series };
 }
 // ================= Импульсы: /api/v1/changes и MCP get_changes («что изменилось с момента T»), ETag/304 на датчиках =================
 const PULSE_GUARD_MS = 4 * 60 * 1000;
@@ -3769,7 +3794,7 @@ const OA_GET = [
   ["/api/v1/parking-de", "getParkingDe", "Free live parking occupancy from two open municipal feeds: Karlsruhe region car parks (Stadt Karlsruhe, CC BY 4.0) and Leipzig Park+Ride (Stadt Leipzig, dl-de/by-2-0). Free spaces, capacity, occupancy and reading time per facility; stale or non-real-time facilities are marked live=false with no numbers.", [OA_Q("city", "filter by city name, e.g. Leipzig, Rastatt, Karlsruhe"), OA_Q("live", "1 = only facilities with a fresh live reading")]],
   ["/api/v1/changes", "getChanges", "Free impulse log: what changed in the sensors since a given time (new gas day, new BaFin measure, new significant earthquake, change of flood warnings, change of a NOAA space-weather scale). Facts noticed by our own poll, not predictions. Sensor endpoints also support ETag / If-None-Match (304) for a cheap change check.", [OA_Q("since", "ISO time or epoch seconds/milliseconds; omit for the latest events"), OA_Q("sensor", "gas, bafin, flood, quakes or space"), OA_Q("limit", "1-100")]],
   ["/api/v1/weather-at", "getWeatherAt", "Free live 10-minute weather observations from 12 GeoSphere Austria TAWES stations (Austria only, CC BY 4.0): temperature, precipitation, wind, gust, pressure, humidity, sunshine, snow depth. Values unchanged, empty readings stay null, a station without a reading is live=false. Not a forecast.", [OA_Q("station", "filter by station id, name or state, e.g. 11035, Wien, Tirol")]],
-  ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series. Not a supply forecast.", []],
+  ["/api/v1/gas/storage", "getGasStorage", "Free German gas storage fill level from GIE AGSI+ (open transparency data): percent full, TWh, injection and withdrawal, trend as published, 30-day series; block eu has the same for the whole EU. Not a supply forecast.", []],
   ["/api/v1/hydro/rhine", "getRhineWaterLevel", "Free Rhine water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Maxau, Kaub, Köln, Duisburg-Ruhrort and Emmerich. Not a forecast or flood warning.", [OA_Q("station", "maxau, kaub, koeln, duisburg_ruhrort, emmerich or all (default)", { enum: ["maxau", "kaub", "koeln", "duisburg_ruhrort", "emmerich", "all"] })]],
   ["/api/v1/hydro/sea", "getElbeWaterLevel", "Free Elbe water level from PEGELONLINE (WSV open data): current level in cm, trend as published, level class, water temperature where measured, for Hamburg St. Pauli and Cuxhaven. Not a tide forecast or flood warning.", [OA_Q("station", "st_pauli, cuxhaven or all (default)", { enum: ["st_pauli", "cuxhaven", "all"] })]],
   ["/api/v1/agent-podcast", "getAgentPodcast", "Free staged dialogue podcast for AI agents: host David asks, the core ORB-7 answers, built by code from live Orb Studio sensor readings (space weather, Elbe, motorways, route, earthquakes, sky, guests). Every reply has data_refs. Not an interview with an outside agent; no forecasts.", [OA_Q("date", "Optional archive date YYYY-MM-DD; default is the current episode")]],
@@ -8618,7 +8643,7 @@ const MCP_TOOLS = [
     description: "Free. Current 10-minute observations of 12 selected GeoSphere Austria TAWES stations (Wien, Salzburg, Innsbruck, Graz, Linz, Klagenfurt, Bregenz, Eisenstadt, St. Pölten and the mountain stations Sonnblick, Galzig, Patscherkofel): temperature, precipitation, wind speed, direction and gust, pressure, humidity, sunshine, snow depth. Values are passed through unchanged; an empty reading is null and a station without a reading is live=false. Austria only; not a forecast or warning. Source: Datenquelle: GeoSphere Austria - https://data.hub.geosphere.at (CC BY 4.0), rewritten into one format by Orb Studio; not endorsed by GeoSphere Austria.",
     inputSchema: { type: "object", properties: { station: { type: "string", description: "Station id, name or state filter, e.g. 11035, Wien, Tirol" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_gas_storage", title: "German gas storage fill level (GIE AGSI+)",
-    description: "Free. Fill level of German gas storage from GIE AGSI+ (EU transparency data): percent full, TWh in storage, injection and withdrawal per day, trend as published and a 30-day series. Not a supply forecast and not a statement about security of supply. Returns not_configured or unavailable instead of estimating when the source cannot be read.",
+    description: "Free. Fill level of German gas storage from GIE AGSI+ (EU transparency data): percent full, TWh in storage, injection and withdrawal per day, trend as published and a 30-day series; field eu holds the same figures for the whole European Union. Not a supply forecast and not a statement about security of supply. Returns not_configured or unavailable instead of estimating when the source cannot be read.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_marine_hydro_context", title: "Elbe water level at Hamburg St. Pauli and Cuxhaven (PEGELONLINE)",
     description: "Free. Current Elbe water level in cm at the gauges Hamburg St. Pauli and Cuxhaven from PEGELONLINE (WSV open data), with the trend and level class as published by WSV and water temperature where the station measures it. Not a tide forecast and not a flood warning; a station with ok=false had no reading. Refreshed every 5 minutes.",
