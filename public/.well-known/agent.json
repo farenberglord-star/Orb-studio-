@@ -253,6 +253,7 @@
       "get_german_polls",
       "get_freshness",
       "check_claim",
+      "audit_draft",
       "get_brief",
       "get_disasters",
       "get_food_prices",
