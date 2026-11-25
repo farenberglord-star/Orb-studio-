@@ -4160,7 +4160,7 @@ async function handleApi(url, request, env, ctx) {
   }
   if (p === "/api/v1/check-claim") return json({ ...(await passportOf(env, ctx, url.origin, url.searchParams.get("claim") || url.searchParams.get("headline"))), tool: "check_claim", also: "check_headline counts outlets in the news search; check_claim is the free word-rule passport" }, { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/method") return json(await methodNow(env, ctx, url.origin), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
-  if (p === "/api/v1/crystal-bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/crystal-bridges" || p === "/api/v1/bridges") return json(bridgesReport(), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/zipf") return json(await zipfNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/bradford") return json(await bradfordNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/reiss") return json(await reissNow(env), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" });
