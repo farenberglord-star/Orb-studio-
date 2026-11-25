@@ -13032,6 +13032,171 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "how long a refuted claim stays in headlines against open sensor data; needs a list of refuted claims, not defined yet"
 }
+},
+{
+"id": "lefebvre_h",
+"name": "Henri Lefebvre",
+"name_ru": "Анри Лефевр",
+"years": "1901–1991",
+"wiki": "https://en.wikipedia.org/wiki/Henri_Lefebvre",
+"zone": "side_effects",
+"idea": {
+"en": "'La Production de l'espace' (1974): abstract, uniform space and uniform measures push out the local rhythms of real places.",
+"ru": "«Производство пространства» (1974): абстрактное единообразное пространство и единые меры вытесняют местные ритмы реальных мест.",
+"de": "„La Production de l'espace“ (1974): Der abstrakte, einheitliche Raum und einheitliche Maße verdrängen die lokalen Rhythmen realer Orte."
+},
+"rule": "A single summary number hides places; look at the local readings before you trust the total.",
+"needs": {
+"code": "needs_idea",
+"note": "gap between the single radar index and the spread of regional sensor levels (water level, grid load); needs a per-region series, not defined yet"
+}
+},
+{
+"id": "lewin_k",
+"name": "Kurt Lewin",
+"name_ru": "Курт Левин",
+"years": "1890–1947",
+"wiki": "https://en.wikipedia.org/wiki/Kurt_Lewin",
+"zone": "side_effects",
+"idea": {
+"en": "'Frontiers in Group Dynamics' (1947): a lasting change goes through three steps: unfreezing, moving, refreezing at a new level.",
+"ru": "«Границы групповой динамики» (1947): устойчивое изменение проходит три шага: размораживание, движение, закрепление на новом уровне.",
+"de": "„Frontiers in Group Dynamics“ (1947): Eine dauerhafte Veränderung durchläuft drei Schritte: Auftauen, Bewegen, Wiedereinfrieren auf neuem Niveau."
+},
+"rule": "Wait until the new level has settled before you call a move a change.",
+"needs": {
+"code": "needs_idea",
+"note": "length of the volatile stretch between two settled levels of a radar index in ix_hist; computable from our 30-minute points, thresholds not defined yet"
+}
+},
+{
+"id": "sherif_m",
+"name": "Muzafer Sherif",
+"name_ru": "Музафер Шериф",
+"years": "1906–1988",
+"wiki": "https://en.wikipedia.org/wiki/Muzafer_Sherif",
+"zone": "look_alike",
+"idea": {
+"en": "'The Psychology of Social Norms' (1936): when the situation is unclear, people's judgements converge on a shared norm that none of them checked.",
+"ru": "«Психология социальных норм» (1936): когда ситуация неясна, суждения людей сходятся к общей норме, которую никто не проверял.",
+"de": "„The Psychology of Social Norms“ (1936): Ist die Lage unklar, nähern sich die Urteile einer gemeinsamen Norm an, die niemand geprüft hat."
+},
+"rule": "Agreement among sources in an unclear situation is not confirmation; ask what each one measured.",
+"needs": {
+"code": "needs_idea",
+"note": "narrowing of outlets' wording on one event while the open sensors for it hold no value; needs a text match, not defined yet"
+}
+},
+{
+"id": "barker_rg",
+"name": "Roger Barker",
+"name_ru": "Роджер Баркер",
+"years": "1903–1990",
+"wiki": "https://en.wikipedia.org/wiki/Roger_Barker",
+"zone": "own_limits",
+"idea": {
+"en": "'Ecological Psychology' (1968): behaviour is largely set by the 'behavior setting' it happens in, not only by the person.",
+"ru": "«Экологическая психология» (1968): поведение во многом задаётся «поведенческой ситуацией», в которой оно происходит, а не только человеком.",
+"de": "„Ecological Psychology“ (1968): Verhalten wird weitgehend vom „Behavior Setting“ bestimmt, in dem es stattfindet, nicht nur von der Person."
+},
+"rule": "Say in which setting a statement was made before you read it as a general view.",
+"needs": {
+"code": "needs_idea",
+"note": "mix of speech acts (searle.js) in calm versus crisis windows of the sensors; window rule not defined yet"
+}
+},
+{
+"id": "lapiere_rt",
+"name": "Richard LaPiere",
+"name_ru": "Ричард Лапьер",
+"years": "1899–1986",
+"wiki": "https://en.wikipedia.org/wiki/Richard_LaPiere",
+"zone": "own_limits",
+"idea": {
+"en": "'Attitudes vs. Actions' (1934): what establishments said in a questionnaire differed from how they acted at the door.",
+"ru": "«Установки и действия» (1934): то, что заведения отвечали в анкете, расходилось с их поведением на пороге.",
+"de": "„Attitudes vs. Actions“ (1934): Was Betriebe im Fragebogen angaben, wich von ihrem Verhalten an der Tür ab."
+},
+"rule": "A stated position is not an action; look for the action before you report the position as fact.",
+"needs": {
+"code": "covered",
+"note": "get_promises already sets what the ECB and the Fed said against what they did",
+"covered_by": "promises"
+}
+},
+{
+"id": "mortensen_dt",
+"name": "Dale Mortensen",
+"name_ru": "Дейл Мортенсен",
+"years": "1939–2014",
+"wiki": "https://en.wikipedia.org/wiki/Dale_T._Mortensen",
+"zone": "answer_cost",
+"idea": {
+"en": "Search-and-matching models (1980s–1990s): finding a match takes time and effort, so open demand and idle supply exist side by side.",
+"ru": "Модели поиска и подбора (1980–1990-е): подбор пары требует времени и усилий, поэтому открытый спрос и простаивающее предложение существуют рядом.",
+"de": "Such- und Matching-Modelle (1980er–1990er): Das Finden eines Partners braucht Zeit und Aufwand, daher bestehen offene Nachfrage und ungenutztes Angebot nebeneinander."
+},
+"rule": "A request and its answer do not arrive together; count the delay before you call it a failure.",
+"needs": {
+"code": "needs_idea",
+"note": "delay between a demand or request headline and the answering event; needs a pair list, not defined yet"
+}
+},
+{
+"id": "prescott_ec",
+"name": "Edward Prescott",
+"name_ru": "Эдвард Прескотт",
+"years": "1940–2022",
+"wiki": "https://en.wikipedia.org/wiki/Edward_C._Prescott",
+"zone": "stale_data",
+"idea": {
+"en": "'Rules Rather Than Discretion' (Kydland & Prescott, 1977): a plan that is best when announced may be dropped when the time comes, so announcements lose credit.",
+"ru": "«Правила, а не усмотрение» (Кидланд и Прескотт, 1977): план, лучший в момент объявления, может быть отброшен в момент исполнения, и объявлениям перестают верить.",
+"de": "„Rules Rather Than Discretion“ (Kydland & Prescott, 1977): Ein bei Ankündigung bester Plan kann bei Ausführung fallen gelassen werden; Ankündigungen verlieren Glaubwürdigkeit."
+},
+"rule": "An announced plan is old once the moment of action arrives; check whether it still stands.",
+"needs": {
+"code": "covered",
+"note": "get_promises already shows signals later changed by the ECB and the Fed",
+"covered_by": "promises"
+}
+},
+{
+"id": "black_f",
+"name": "Fischer Black",
+"name_ru": "Фишер Блэк",
+"years": "1938–1995",
+"wiki": "https://en.wikipedia.org/wiki/Fischer_Black",
+"zone": "measurement_error",
+"idea": {
+"en": "'Noise' (1986): observed prices carry noise that hides the underlying value; the noise can be as large as the signal.",
+"ru": "«Шум» (1986): наблюдаемые цены несут шум, скрывающий истинную стоимость; шум может быть так же велик, как сигнал.",
+"de": "„Noise“ (1986): Beobachtete Preise tragen Rauschen, das den zugrunde liegenden Wert verdeckt; das Rauschen kann so groß sein wie das Signal."
+},
+"rule": "Do not read every short move as news; compare the quick wobble with the slow trend first.",
+"needs": {
+"code": "covered",
+"note": "the Polyak sensor already compares the fast wobble with the slow tide of the radar index",
+"covered_by": "polyak"
+}
+},
+{
+"id": "markowitz_hm",
+"name": "Harry Markowitz",
+"name_ru": "Гарри Марковиц",
+"years": "1927–2023",
+"wiki": "https://en.wikipedia.org/wiki/Harry_Markowitz",
+"zone": "answer_cost",
+"idea": {
+"en": "'Portfolio Selection' (1952): combining parts lowers the spread of the whole only as far as the parts do not move together.",
+"ru": "«Выбор портфеля» (1952): объединение частей снижает разброс целого лишь настолько, насколько части не движутся вместе.",
+"de": "„Portfolio Selection“ (1952): Das Zusammenfassen von Teilen senkt die Streuung des Ganzen nur so weit, wie sich die Teile nicht gemeinsam bewegen."
+},
+"rule": "More sources help only if they are independent; count independent ones, not names.",
+"needs": {
+"code": "needs_idea",
+"note": "swing of a combined index built from 2 outlets against one built from 10 or more; needs per-outlet series, not defined yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
