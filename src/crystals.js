@@ -11915,6 +11915,117 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "bridge 'cheap to say, dear to check' (Baumol + Coase + Mooers): the Bertsekas sensor gives token cost of answers; a matching cost of checking a headline by hand is not measured yet"
 }
+},
+{
+"id": "hirsch_f",
+"name": "Fred Hirsch",
+"name_ru": "Фред Хирш",
+"years": "1931–1978",
+"wiki": "https://en.wikipedia.org/wiki/Fred_Hirsch_(economist)",
+"zone": "side_effects",
+"idea": {
+"en": "'Social Limits to Growth' (1977): positional goods, whose value comes from others not having them, lose value as more people get them; growth cannot give everyone that kind of good.",
+"ru": "«Социальные пределы роста» (1977): позиционные блага, ценность которых в том, что их нет у других, обесцениваются, когда их получает больше людей; рост не может дать их всем.",
+"de": "„Social Limits to Growth“ (1977): Positionsgüter, deren Wert darin liegt, dass andere sie nicht haben, verlieren an Wert, wenn mehr Menschen sie erhalten."
+},
+"rule": "When everyone gets the same thing, ask if its value came from others not having it.",
+"needs": {
+"code": "covered",
+"note": "the Ziv sensor already measures how much a retelling adds that is new",
+"covered_by": "ziv"
+}
+},
+{
+"id": "solow_r",
+"name": "Robert M. Solow",
+"name_ru": "Роберт Солоу",
+"years": "1924–2023",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Solow",
+"zone": "side_effects",
+"idea": {
+"en": "'We'd Better Watch Out' (1987 book review): computers can be seen everywhere except in the productivity statistics; a new tool may not show in the headline metric yet.",
+"ru": "«Нам лучше быть начеку» (рецензия 1987): компьютеры видны повсюду, кроме статистики производительности; новый инструмент может ещё не отразиться в главном показателе.",
+"de": "„We'd Better Watch Out“ (Rezension 1987): Computer sieht man überall, nur nicht in der Produktivitätsstatistik; ein neues Werkzeug zeigt sich vielleicht noch nicht in der Hauptkennzahl."
+},
+"rule": "A tool can be everywhere and still absent from the metric; ask what the metric is able to see.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'what the metric can see' (Solow + Morgenstern + Rivlin + Bateson): a number for effects of a new feature that the radar index cannot show; no measurable form yet"
+}
+},
+{
+"id": "rivlin_a",
+"name": "Alice M. Rivlin",
+"name_ru": "Элис Ривлин",
+"years": "1931–2019",
+"wiki": "https://en.wikipedia.org/wiki/Alice_Rivlin",
+"zone": "own_limits",
+"idea": {
+"en": "'Systematic Thinking for Social Action' (1971): a national average can hide local failures, so a programme must be measured where it is delivered, in parts.",
+"ru": "«Систематическое мышление для социальных действий» (1971): среднее по стране может скрывать местные провалы, поэтому программу надо мерить там, где она работает, по частям.",
+"de": "„Systematic Thinking for Social Action“ (1971): Ein nationaler Durchschnitt kann lokales Scheitern verbergen; ein Programm muss dort gemessen werden, wo es wirkt."
+},
+"rule": "Show the parts next to the average; a steady average can hide a failing part.",
+"needs": {
+"code": "covered",
+"note": "the Simpson sensor already checks whether the whole index and its radars move the same way",
+"covered_by": "simpson"
+}
+},
+{
+"id": "morgenstern_o",
+"name": "Oskar Morgenstern",
+"name_ru": "Оскар Моргенштерн",
+"years": "1902–1977",
+"wiki": "https://en.wikipedia.org/wiki/Oskar_Morgenstern",
+"zone": "measurement_error",
+"idea": {
+"en": "'On the Accuracy of Economic Observations' (1950): national income is known only within a margin of error of about 10 percent (Kuznets), yet policy was argued from shifts of 1 percent.",
+"ru": "«О точности экономических наблюдений» (1950): национальный доход известен лишь с погрешностью около 10 процентов (Кузнец), а политику обсуждали по сдвигам в 1 процент.",
+"de": "„On the Accuracy of Economic Observations“ (1950): Das Volkseinkommen ist nur auf etwa 10 Prozent genau bekannt (Kuznets), doch Politik wurde mit Verschiebungen von 1 Prozent begründet."
+},
+"rule": "State the error of a number before you read a change smaller than that error.",
+"needs": {
+"code": "covered",
+"note": "the track record sensor already reports the radar's ordinary noise, so a change inside it is not a finding",
+"covered_by": "trackrecord"
+}
+},
+{
+"id": "schon_d",
+"name": "Donald A. Schön",
+"name_ru": "Дональд Шён",
+"years": "1930–1997",
+"wiki": "https://en.wikipedia.org/wiki/Donald_Sch%C3%B6n",
+"zone": "own_limits",
+"idea": {
+"en": "'The Reflective Practitioner' (1983): in unstable, unique situations a ready-made model often fails; skilled people rebuild their approach while acting (reflection-in-action).",
+"ru": "«Рефлексивный практик» (1983): в нестабильных, уникальных ситуациях готовая модель часто не работает; опытные люди перестраивают подход по ходу действия.",
+"de": "„The Reflective Practitioner“ (1983): In instabilen, einmaligen Situationen versagt ein fertiges Modell oft; Könner bauen ihren Ansatz im Handeln um."
+},
+"rule": "When the case does not fit the model, say so and rebuild the approach in the open.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'learning loops' (Schön + Argyris + March + Weick): how often the class of one story changes in the first hours; first and later classifications are not stored yet"
+}
+},
+{
+"id": "argyris_c",
+"name": "Chris Argyris",
+"name_ru": "Крис Арджирис",
+"years": "1923–2013",
+"wiki": "https://en.wikipedia.org/wiki/Chris_Argyris",
+"zone": "own_limits",
+"idea": {
+"en": "'Organizational Learning' (1978, with Schön): defensive routines protect people from embarrassment and also block the detection of errors; real learning questions the rules, not only the actions (double-loop).",
+"ru": "«Организационное обучение» (1978, со Шёном): защитные рутины оберегают людей от неловкости и заодно мешают заметить ошибки; настоящее обучение ставит под вопрос правила, а не только действия (двойной контур).",
+"de": "„Organizational Learning“ (1978, mit Schön): Abwehrroutinen schützen vor Peinlichkeit und verhindern zugleich, Fehler zu bemerken; echtes Lernen hinterfragt die Regeln, nicht nur die Handlungen."
+},
+"rule": "When an error is found, ask which rule produced it, not only which action.",
+"needs": {
+"code": "needs_idea",
+"note": "bridge 'learning loops': when a sensor finds an error, log which rule produced it; no error log with causes yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
