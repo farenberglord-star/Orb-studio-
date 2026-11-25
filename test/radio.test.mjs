@@ -608,3 +608,30 @@ test("radio prefers headlines from the last 6 hours, falls back to older ones", 
   assert.equal(_ff([], now).length, 0);
   assert.match(_ss("de"), /um 1,53 % gesunken/);
 });
+
+test("radio host: Energy-style DJ lines carry a joke and laughter tags, tags are whitelisted and hidden from subtitles", async () => {
+  const { checkDj, DJ_FALLBACK, DJ_STOCK_MORE, DJ_SYSTEM, cleanTags, plainSpeech } = await import("../src/radio.js");
+  assert.match(DJ_SYSTEM, /morning-show DJ/); assert.match(DJ_SYSTEM, /JOKES: every single line/); assert.match(DJ_SYSTEM, /\[chuckle\], \[laugh\], \[giggle\] and \[pause\]/);
+  assert.match(DJ_SYSTEM, /Never joke about news, wars, disasters/);
+  const tagged = /\[(?:laugh|chuckle|giggle|pause)\]/;
+  for (const l of ["en", "de", "ru"]) {
+    for (const p of ["ident", "intro", "to_music", "next_track"]) assert.match(DJ_FALLBACK[l][p], tagged, l + p + " has a laugh tag");
+    for (const p of ["to_music", "after_music", "next_track"]) for (const x of DJ_STOCK_MORE[l][p]) assert.match(x, tagged, l + p + " variant has a tag");
+    const r = checkDj({ [l]: { ...DJ_FALLBACK[l], more: DJ_STOCK_MORE[l] } })[l];
+    assert.equal(r.next_track.by, "host"); assert.match(r.next_track.text, tagged, "the tag survives the check, the voice needs it");
+  }
+  // посторонние теги и разметка вычищаются, смех остаётся
+  assert.equal(cleanTags("Hi [whisper] there <emphasis>you</emphasis> [LAUGH] ok"), "Hi there you [laugh] ok");
+  assert.equal(cleanTags("A [sigh] B [pause] C"), "A B [pause] C");
+  // три и больше тегов на строку — строка отвергается
+  const many = "Next one! [laugh] Wow [chuckle] and again [giggle] bye.";
+  assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, next_track: many } }).en.next_track.by, "stock");
+  assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, next_track: "Next one is on the way! [laugh] Hold on to your radios." } }).en.next_track.by, "host");
+  // шутка не должна обходить правила: «only», совет и время суток по-прежнему отвергаются
+  for (const bad of ["Only the best tracks here! [laugh] Hold on.", "You should buy this one! [chuckle] Great track.", "Good morning, road! [laugh] Next track."]) assert.equal(checkDj({ en: { ...DJ_FALLBACK.en, next_track: bad } }).en.next_track.by, "stock", bad);
+  // субтитры без тегов, пунктуация не разрывается
+  assert.equal(plainSpeech("Good one! [laugh] Next track [pause] is coming."), "Good one! Next track is coming.");
+  assert.equal(plainSpeech("[chuckle] I would dance, if I had legs. [laugh]"), "I would dance, if I had legs.");
+  // тег одного голоса не пропадает из текста для озвучки и не попадает в то, что показывает страница
+  assert.ok(!tagged.test(plainSpeech(DJ_FALLBACK.en.ident)));
+});
