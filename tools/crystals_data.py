@@ -1961,6 +1961,16 @@ C = [
  '«Quantitative Relations between the Size of Text and the Size of Vocabulary» (тартуская школа квантитативной лингвистики, 1970-е): богатство словаря зависит от длины текста, поэтому сравнивай тексты только при равной длине или через поправку на длину.',
  '„Quantitative Relations between the Size of Text and the Size of Vocabulary“ (Tartuer Schule der quantitativen Linguistik, 1970er): Der Wortschatzreichtum hängt von der Textlänge ab; vergleiche Texte nur bei gleicher Länge oder mit Längenkorrektur.',
  'Do not compare word variety of a short and a long text without correcting for length.'),
+('rotemberg_jj', 'Julio Rotemberg', 'Хулио Ротемберг', '1953–2017', 'https://en.wikipedia.org/wiki/Julio_Rotemberg', 'stale_data',
+ "'Sticky Prices in the United States' (Journal of Political Economy, 1982): when changing a price has a cost, prices move in small slow steps; a jump in the cost of inputs does not show up at once in the prices people see.",
+ '«Sticky Prices in the United States» (Journal of Political Economy, 1982): если смена цены чего-то стоит, цены двигаются малыми медленными шагами; скачок издержек не виден сразу в ценах, которые видят люди.',
+ '„Sticky Prices in the United States“ (Journal of Political Economy, 1982): Wenn eine Preisänderung Kosten verursacht, bewegen sich Preise in kleinen, langsamen Schritten; ein Kostensprung zeigt sich nicht sofort in den sichtbaren Preisen.',
+ 'A jump in the market does not mean the price on the shelf has already caught up.'),
+('garcia_molina_h', 'Héctor García-Molina', 'Эктор Гарсиа-Молина', '1953–2019', 'https://en.wikipedia.org/wiki/H%C3%A9ctor_Garc%C3%ADa-Molina', 'stale_data',
+ "Cho and García-Molina, 'The Evolution of the Web and Implications for an Incremental Crawler' (VLDB, 2000): pages change at very different rates; measure each page's own rate of change and revisit fast-changing ones more often.",
+ 'Чо и Гарсиа-Молина, «The Evolution of the Web and Implications for an Incremental Crawler» (VLDB, 2000): страницы меняются с очень разной скоростью; измеряй собственную скорость изменений каждой страницы и заходи чаще на быстро меняющиеся.',
+ 'Cho und García-Molina, „The Evolution of the Web and Implications for an Incremental Crawler“ (VLDB, 2000): Seiten ändern sich unterschiedlich schnell; miss die eigene Änderungsrate jeder Seite und besuche schnell wechselnde öfter.',
+ 'Every source has its own rhythm of change; judge its silence against that rhythm.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2585,3 +2595,5 @@ NEEDS['schwarz_g'] = ('covered', 'the Leamer sensor recomputes indices under rea
 NEEDS['mccall_jj'] = ('needs_idea', 'per story: how much each further outlet headline moves the story index (radar feeds, every 30 minutes); stop point where the last few move it under a threshold; not computed yet')
 NEEDS['dynkin_eb'] = ('needs_idea', 'same measure as McCall: the point where continuing to read more headlines of a story stops being worth more than stopping; not computed yet')
 NEEDS['tuldava_j'] = ('needs_idea', 'per story: distinct words over headline words, corrected for the number of headlines (length-adjusted richness) against stories of other sizes; radar feeds, every 30 minutes; the exact index form to be taken from the original source')
+NEEDS['rotemberg_jj'] = ('needs_idea', 'share of bank and energy tariffs unchanged between weekly checks (public/data/tariffs.json history) and the size of a step when they do change; set against the moves of the market price; not computed yet')
+NEEDS['garcia_molina_h'] = ('needs_idea', 'per outlet and per radar source: estimated rate of change from the history of polls (every 30 minutes) and the time since its last change against its own usual interval; not computed yet')

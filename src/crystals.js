@@ -14980,6 +14980,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per story: distinct words over headline words, corrected for the number of headlines (length-adjusted richness) against stories of other sizes; radar feeds, every 30 minutes; the exact index form to be taken from the original source"
 }
+},
+{
+"id": "rotemberg_jj",
+"name": "Julio Rotemberg",
+"name_ru": "Хулио Ротемберг",
+"years": "1953–2017",
+"wiki": "https://en.wikipedia.org/wiki/Julio_Rotemberg",
+"zone": "stale_data",
+"idea": {
+"en": "'Sticky Prices in the United States' (Journal of Political Economy, 1982): when changing a price has a cost, prices move in small slow steps; a jump in the cost of inputs does not show up at once in the prices people see.",
+"ru": "«Sticky Prices in the United States» (Journal of Political Economy, 1982): если смена цены чего-то стоит, цены двигаются малыми медленными шагами; скачок издержек не виден сразу в ценах, которые видят люди.",
+"de": "„Sticky Prices in the United States“ (Journal of Political Economy, 1982): Wenn eine Preisänderung Kosten verursacht, bewegen sich Preise in kleinen, langsamen Schritten; ein Kostensprung zeigt sich nicht sofort in den sichtbaren Preisen."
+},
+"rule": "A jump in the market does not mean the price on the shelf has already caught up.",
+"needs": {
+"code": "needs_idea",
+"note": "share of bank and energy tariffs unchanged between weekly checks (public/data/tariffs.json history) and the size of a step when they do change; set against the moves of the market price; not computed yet"
+}
+},
+{
+"id": "garcia_molina_h",
+"name": "Héctor García-Molina",
+"name_ru": "Эктор Гарсиа-Молина",
+"years": "1953–2019",
+"wiki": "https://en.wikipedia.org/wiki/H%C3%A9ctor_Garc%C3%ADa-Molina",
+"zone": "stale_data",
+"idea": {
+"en": "Cho and García-Molina, 'The Evolution of the Web and Implications for an Incremental Crawler' (VLDB, 2000): pages change at very different rates; measure each page's own rate of change and revisit fast-changing ones more often.",
+"ru": "Чо и Гарсиа-Молина, «The Evolution of the Web and Implications for an Incremental Crawler» (VLDB, 2000): страницы меняются с очень разной скоростью; измеряй собственную скорость изменений каждой страницы и заходи чаще на быстро меняющиеся.",
+"de": "Cho und García-Molina, „The Evolution of the Web and Implications for an Incremental Crawler“ (VLDB, 2000): Seiten ändern sich unterschiedlich schnell; miss die eigene Änderungsrate jeder Seite und besuche schnell wechselnde öfter."
+},
+"rule": "Every source has its own rhythm of change; judge its silence against that rhythm.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet and per radar source: estimated rate of change from the history of polls (every 30 minutes) and the time since its last change against its own usual interval; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

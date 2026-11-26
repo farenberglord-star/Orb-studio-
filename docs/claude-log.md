@@ -479,3 +479,4 @@
 - 26.11.2026 13:50: по открытому адресу /api/v1/roundtable видно: последний выпуск от 24.11 07:01 UTC (два дня назад), ответы Gemini по всем четырём темам со status "error" без причины. Значит проблема не только в звуке: выпуски не выходят, Gemini падает (подозрение: модель gemini-3.5-flash, ключ или квота). /api/v1/roundtable/voice-status расширен как «здоровье стола»: возраст выпуска, наличие ключей (да/нет), статус каждого гостя, last_error (RT_ERR), решение модератора.
 - 26.11: Партия 44б — schwarz_g, mccall_jj, dynkin_eb; мостик when_to_stop_reading; Тулдава, Фелледжи (жив), Петтит остаются в memory-waiting.
 - 26.11: Тулдава (tuldava_j) принят в same_words_many_copies; партия 45 дала 0 имён.
+- 26.11: Партия 45б — rotemberg_jj, garcia_molina_h; мостики shelf_price_lags_market, own_rhythm_of_change.
