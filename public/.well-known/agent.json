@@ -36,6 +36,8 @@
   ],
   "endpoints": {
     "news_with_passport": "https://orbstudio.org/api/v1/news?topic={topic}",
+    "news_url_passport": "https://orbstudio.org/api/v1/passport?url={article_url}",
+    "news_url_passport_post": "POST https://orbstudio.org/api/v1/passport with JSON {\"url\": \"https://…\", \"lang\": \"ru|de|en\"}",
     "radars": "https://orbstudio.org/api/v1/radars",
     "radars_full": "https://orbstudio.org/api/v1/radars?full=1",
     "radar": "https://orbstudio.org/api/v1/radar/{geo|politics|economy|budget|crypto|energy|web}",
@@ -258,6 +260,7 @@
       "get_radiation_dose_rate",
       "get_german_polls",
       "get_freshness",
+      "check_news_url",
       "check_claim",
       "audit_draft",
       "check_number",

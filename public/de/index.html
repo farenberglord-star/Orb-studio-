@@ -244,6 +244,7 @@ details.machine a{color:var(--holo)}
 <link rel="alternate" hreflang="en" href="https://orbstudio.org/en/">
 <link rel="alternate" hreflang="x-default" href="https://orbstudio.org/">
 <script>window.I18N_RADAR={"geo": {"title": "Geo-Radar", "lead": "Russland, China, USA: militärische, diplomatische und Sanktionssignale aus offenen Feeds.", "fac": {"Военные": "Militär", "Санкции": "Sanktionen", "Дипломатия": "Diplomatie", "Выборы": "Wahlen"}}, "budget": {"title": "Haushaltsbudget", "lead": "Lebensmittelpreise, Miete, Nebenkosten und Zinsen in Deutschland und der EU.", "fac": {"Инфляция": "Inflation", "Энергия": "Energie", "Аренда": "Miete", "Ставки": "Zinsen"}}, "politics": {"title": "Politik", "lead": "Regierungen, Wahlen und Gesetze: Deutschland, EU, USA.", "fac": {"Кризисы": "Krisen", "Выборы": "Wahlen", "Правительство": "Regierung", "Законы": "Gesetze"}}, "economy": {"title": "Wirtschaft", "lead": "Wachstum, Rezession, Zinsen, Arbeitsmarkt: Deutschland, Euroraum, USA.", "fac": {"Рецессия": "Rezession", "Ставки": "Zinsen", "Работа": "Arbeit", "Рост": "Wachstum"}}, "crypto": {"title": "Krypto-Radar", "lead": "BTC, ETH, XRP: Nachrichten und Marktdaten von Kraken.", "fac": {"Регуляторы": "Regulierer", "Взломы": "Hacks", "Волатильность": "Volatilität", "Институции": "Institutionen"}}, "energy": {"title": "Energie-Radar", "lead": "Brent, Gas, Tanker und OPEC+-Beschlüsse.", "fac": {"Нефть": "Öl", "Газ": "Gas", "ОПЕК+": "OPEC+", "Маршруты": "Routen"}}, "web": {"title": "Offenes Web", "lead": "Wie offen das Internet für KI-Agenten ist: Bot-Sperren, Klagen wegen Scraping, bezahlter Zugang für Crawler.", "fac": {"Блокировки": "Sperren", "Суды": "Klagen", "Платный доступ": "Bezahlzugang", "Открытость": "Offenheit"}}};</script>
+<link rel="stylesheet" href="/news-passport.css">
 </head>
 <body>
 
@@ -288,6 +289,19 @@ details.machine a{color:var(--holo)}
       <div class="box" id="jsonBox" hidden><div class="eyebrow">Dieselbe Sendung maschinenlesbar</div><pre class="script" id="jsonOut" style="margin:8px 0 0"></pre></div>
     </div>
   </div>
+
+  <!--orb-news-passport-->
+  <section class="np" id="npBox" aria-labelledby="npT">
+    <span class="eyebrow">Nachrichten prüfen · für Menschen und KI-Agenten</span>
+    <h2 id="npT">Nachricht prüfen</h2>
+    <p class="npl">Link zu einer Nachricht einfügen. Sie erhalten den Pass: was unabhängige Quellen bestätigen, was übertrieben ist, wo nur Meinungen stehen, was fehlt und woher die Nachricht stammt.</p>
+    <form class="npf" id="npForm" novalidate>
+      <input id="npUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2000" placeholder="Link zur Nachricht einfügen" aria-label="Link zur Nachricht einfügen">
+      <button type="submit" id="npGo">Prüfen</button>
+    </form>
+    <div id="npOut" role="status" aria-live="polite"></div>
+    <p class="npn">Für Agenten: <code>POST /api/v1/passport</code> <code>{"url": "…"}</code> · <code>GET /api/v1/passport?url=…</code> · <a href="/llms.txt">llms.txt</a></p>
+  </section>
 
 <style>.rtb{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(255,178,94,.45);border-radius:14px;padding:12px;margin:12px 0;background:linear-gradient(135deg,rgba(255,178,94,.08),rgba(127,178,255,.06) 55%,rgba(181,140,255,.07))}
 .rtb:hover,.rtb:focus-visible{border-color:#ffb25e;outline:none;box-shadow:0 0 0 1px rgba(255,178,94,.35)}
@@ -1189,6 +1203,7 @@ setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=a
 })();
 </script>
 <script src="/banners.js" defer></script>
+<script src="/news-passport.js" defer></script>
 <script src="/media/david-hero.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/orbcore3d.js" defer></script>
 <script src="/factor3d.js" defer></script>

@@ -239,6 +239,7 @@ details.machine a{color:var(--holo)}
 <style>/* выравнивание главной: ядро во всю высоту колонки, ровные сетки */@media (min-width:861px){.studio.has-core{aspect-ratio:auto;height:100%;min-height:380px}}.stats{grid-template-columns:repeat(6,minmax(0,1fr))}@media (max-width:1000px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}@media (max-width:520px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}.rc.soon h3{margin:2px 0}.radars{grid-template-columns:repeat(3,minmax(0,1fr))}@media (max-width:860px){.radars{grid-template-columns:repeat(2,minmax(0,1fr))}.rc.soon{grid-column:1/-1}}@media (max-width:520px){.radars{grid-template-columns:1fr}}</style>
 <style>/* голограмма HOLO-MAP на странице радара убрана: место под новую голограмму факторов */#v-radar .rhero>.studio{display:none}#v-radar .rhero.no3d{grid-template-columns:1fr}.f3d-box{position:relative;border:1px solid rgba(80,230,150,.25);border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;align-self:start}@media (max-width:860px){.f3d-box{aspect-ratio:4/5}}</style>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="/favicon.ico"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/news-passport.css">
 </head>
 <body>
 
@@ -283,6 +284,19 @@ details.machine a{color:var(--holo)}
       <div class="box" id="jsonBox" hidden><div class="eyebrow">Тот же выпуск в машинном виде</div><pre class="script" id="jsonOut" style="margin:8px 0 0"></pre></div>
     </div>
   </div>
+
+  <!--orb-news-passport-->
+  <section class="np" id="npBox" aria-labelledby="npT">
+    <span class="eyebrow">Проверка новости · для людей и ИИ-агентов</span>
+    <h2 id="npT">Проверить новость</h2>
+    <p class="npl">Вставьте ссылку на новость. Получите паспорт: что подтверждено независимыми источниками, что преувеличено, где мнения, чего не хватает и откуда новость взялась.</p>
+    <form class="npf" id="npForm" novalidate>
+      <input id="npUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2000" placeholder="Вставьте ссылку на новость" aria-label="Вставьте ссылку на новость">
+      <button type="submit" id="npGo">Проверить</button>
+    </form>
+    <div id="npOut" role="status" aria-live="polite"></div>
+    <p class="npn">Агентам: <code>POST /api/v1/passport</code> <code>{"url": "…"}</code> · <code>GET /api/v1/passport?url=…</code> · <a href="/llms.txt">llms.txt</a></p>
+  </section>
 
 <style>.rtb{display:grid;grid-template-columns:132px 1fr;gap:14px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(255,178,94,.45);border-radius:14px;padding:12px;margin:12px 0;background:linear-gradient(135deg,rgba(255,178,94,.08),rgba(127,178,255,.06) 55%,rgba(181,140,255,.07))}
 .rtb:hover,.rtb:focus-visible{border-color:#ffb25e;outline:none;box-shadow:0 0 0 1px rgba(255,178,94,.35)}
@@ -1184,6 +1198,7 @@ setInterval(async()=>{try{const r=await fetch('/api/v1/radars?full=1');const j=a
 })();
 </script>
 <script src="/banners.js" defer></script>
+<script src="/news-passport.js" defer></script>
 <script src="/media/david-hero.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script><script src="/orbcore3d.js" defer></script>
 <script src="/factor3d.js" defer></script>

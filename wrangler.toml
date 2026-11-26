@@ -16,6 +16,9 @@ run_worker_first = ["/de/*", "/en/*", "/ru/*", "/tools/cockpit", "/tools/cockpit
 [vars]
 KRAKEN_CODE = "ghqspfzq"
 MAIN_HOST = "orbstudio.org"
+# Паспорт новости по ссылке (src/news-url.js): модель с веб-поиском и потолок новых проверок в сутки на весь сайт (расходы на модель и поиск). Здесь, а не в панели: деплой из GitHub стирает переменные панели.
+NEWS_PASSPORT_MODEL = "claude-sonnet-5-5"
+NEWS_PASSPORT_DAILY_CAP = "60"
 REDIRECT_WORKERS_DEV = "1"   # старый адрес workers.dev ведёт на orbstudio.org
 XAI_MODEL = "grok-4.3"   # гость «Студии на двоих»; здесь, а не в панели: деплой из GitHub стирает переменные панели
 # ANTHROPIC_MODEL = "claude-sonnet-5-5"   # по умолчанию claude-haiku-5-5
