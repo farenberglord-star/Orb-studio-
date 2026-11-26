@@ -14688,6 +14688,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "same as Mosteller: function-word sequences of headlines in one event group; bridge same_words_many_copies"
 }
+},
+{
+"id": "robbins_h",
+"name": "Herbert Robbins",
+"name_ru": "Герберт Роббинс",
+"years": "1915–2001",
+"wiki": "https://en.wikipedia.org/wiki/Herbert_Robbins",
+"zone": "answer_cost",
+"idea": {
+"en": "'Some Aspects of the Sequential Design of Experiments' (1952): choosing which option to try next is a trade between learning about new options and using the best known one.",
+"ru": "«Some Aspects of the Sequential Design of Experiments» (1952): выбор, что пробовать дальше, — это обмен между изучением новых вариантов и использованием лучшего известного.",
+"de": "„Some Aspects of the Sequential Design of Experiments“ (1952): Die Wahl, was als Nächstes versucht wird, ist ein Tausch zwischen dem Kennenlernen neuer Optionen und der Nutzung der besten bekannten."
+},
+"rule": "Keep one slot for a source you have not checked before, but lean on the ones that proved right.",
+"needs": {
+"code": "needs_idea",
+"note": "per answer: share of checks spent on sources not used before against proven ones (Harman track record per outlet); bridge economy_of_checking"
+}
+},
+{
+"id": "hoeffding_w",
+"name": "Wassily Hoeffding",
+"name_ru": "Василий Хёфдинг",
+"years": "1914–1991",
+"wiki": "https://en.wikipedia.org/wiki/Wassily_Hoeffding",
+"zone": "answer_cost",
+"idea": {
+"en": "'Probability Inequalities for Sums of Bounded Random Variables' (1963): with n independent bounded observations the average is within ε of the truth except with probability at most 2·exp(−2nε²).",
+"ru": "«Probability Inequalities for Sums of Bounded Random Variables» (1963): при n независимых ограниченных наблюдениях среднее отклоняется от истины больше чем на ε с вероятностью не выше 2·exp(−2nε²).",
+"de": "„Probability Inequalities for Sums of Bounded Random Variables“ (1963): Bei n unabhängigen beschränkten Beobachtungen weicht der Mittelwert höchstens mit Wahrscheinlichkeit 2·exp(−2nε²) um mehr als ε von der Wahrheit ab."
+},
+"rule": "Say how many independent sources the answer rests on and how far off that few could be.",
+"needs": {
+"code": "needs_history",
+"note": "Hoeffding bound for a share estimated from the Kish effective number of independent outlets of a story; bridge independent_voices"
+}
+},
+{
+"id": "weinreich_u",
+"name": "Uriel Weinreich",
+"name_ru": "Уриэль Вайнрайх",
+"years": "1926–1967",
+"wiki": "https://en.wikipedia.org/wiki/Uriel_Weinreich",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Languages in Contact' (1953): in contact, one language copies the structures and word-for-word expressions of another (interference, calques); the copy shows where a text came from.",
+"ru": "«Languages in Contact» (1953): при контакте один язык перенимает структуры и пословные выражения другого (интерференция, кальки); калька показывает, откуда пришёл текст.",
+"de": "„Languages in Contact“ (1953): Im Kontakt übernimmt eine Sprache Strukturen und wörtliche Wendungen einer anderen (Interferenz, Lehnübersetzungen); die Lehnübersetzung zeigt, woher ein Text kam."
+},
+"rule": "A headline that reads like a word-for-word translation is a retelling of a foreign report; name the original.",
+"needs": {
+"code": "needs_idea",
+"note": "for a story carried in two languages (Reiss pairs): share of word-for-word aligned tokens between versions (calque) against free rewording; bridge calque_not_report"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

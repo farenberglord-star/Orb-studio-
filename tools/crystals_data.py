@@ -1881,6 +1881,21 @@ C = [
  '«Inference and Disputed Authorship: The Federalist» (1964, с Ф. Мостеллером): байесовские шансы по частотам служебных слов решили спор об авторстве статей «Федералиста».',
  '„Inference and Disputed Authorship: The Federalist“ (1964, mit F. Mosteller): Bayessche Chancen aus Funktionswort-Häufigkeiten klärten die Autorschaft der umstrittenen Federalist-Artikel.',
  'Weigh evidence of shared authorship by how unusual the shared words are, not by how many words are shared.'),
+('robbins_h', 'Herbert Robbins', 'Герберт Роббинс', '1915–2001', 'https://en.wikipedia.org/wiki/Herbert_Robbins', 'answer_cost',
+ "'Some Aspects of the Sequential Design of Experiments' (1952): choosing which option to try next is a trade between learning about new options and using the best known one.",
+ '«Some Aspects of the Sequential Design of Experiments» (1952): выбор, что пробовать дальше, — это обмен между изучением новых вариантов и использованием лучшего известного.',
+ '„Some Aspects of the Sequential Design of Experiments“ (1952): Die Wahl, was als Nächstes versucht wird, ist ein Tausch zwischen dem Kennenlernen neuer Optionen und der Nutzung der besten bekannten.',
+ 'Keep one slot for a source you have not checked before, but lean on the ones that proved right.'),
+('hoeffding_w', 'Wassily Hoeffding', 'Василий Хёфдинг', '1914–1991', 'https://en.wikipedia.org/wiki/Wassily_Hoeffding', 'answer_cost',
+ "'Probability Inequalities for Sums of Bounded Random Variables' (1963): with n independent bounded observations the average is within ε of the truth except with probability at most 2·exp(−2nε²).",
+ '«Probability Inequalities for Sums of Bounded Random Variables» (1963): при n независимых ограниченных наблюдениях среднее отклоняется от истины больше чем на ε с вероятностью не выше 2·exp(−2nε²).',
+ '„Probability Inequalities for Sums of Bounded Random Variables“ (1963): Bei n unabhängigen beschränkten Beobachtungen weicht der Mittelwert höchstens mit Wahrscheinlichkeit 2·exp(−2nε²) um mehr als ε von der Wahrheit ab.',
+ 'Say how many independent sources the answer rests on and how far off that few could be.'),
+('weinreich_u', 'Uriel Weinreich', 'Уриэль Вайнрайх', '1926–1967', 'https://en.wikipedia.org/wiki/Uriel_Weinreich', 'rumour_vs_fact',
+ "'Languages in Contact' (1953): in contact, one language copies the structures and word-for-word expressions of another (interference, calques); the copy shows where a text came from.",
+ '«Languages in Contact» (1953): при контакте один язык перенимает структуры и пословные выражения другого (интерференция, кальки); калька показывает, откуда пришёл текст.',
+ '„Languages in Contact“ (1953): Im Kontakt übernimmt eine Sprache Strukturen und wörtliche Wendungen einer anderen (Interferenz, Lehnübersetzungen); die Lehnübersetzung zeigt, woher ein Text kam.',
+ 'A headline that reads like a word-for-word translation is a retelling of a foreign report; name the original.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2489,3 +2504,6 @@ NEEDS['nyquist_h'] = ('covered', 'the Nyquist sensor (/api/v1/nyquist) gives eac
 NEEDS['ogburn_wf'] = ('needs_history', 'outlets that joined a story within minutes of each other: independent (different details, Flesch concreteness) or copied (same words); bridge independent_voices', None)
 NEEDS['mosteller_f'] = ('needs_idea', 'per same-event group (Krippendorff grouping): share of headline pairs from different outlets with the same function-word sequence (copied wording) against different wording; bridge same_words_many_copies', None)
 NEEDS['wallace_dl'] = ('needs_idea', 'same as Mosteller: function-word sequences of headlines in one event group; bridge same_words_many_copies', None)
+NEEDS['robbins_h'] = ('needs_idea', 'per answer: share of checks spent on sources not used before against proven ones (Harman track record per outlet); bridge economy_of_checking', None)
+NEEDS['hoeffding_w'] = ('needs_history', 'Hoeffding bound for a share estimated from the Kish effective number of independent outlets of a story; bridge independent_voices', None)
+NEEDS['weinreich_u'] = ('needs_idea', 'for a story carried in two languages (Reiss pairs): share of word-for-word aligned tokens between versions (calque) against free rewording; bridge calque_not_report', None)
