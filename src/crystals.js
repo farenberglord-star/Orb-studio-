@@ -10961,8 +10961,8 @@ export const CRYSTALS = [
 "rule": "A reading inside the usual band is not yet a signal; name the band before calling a change.",
 "needs": {
 "code": "covered",
-"note": "radar_noise in the track record names the usual daily band of the crypto radar",
-"covered_by": "trackrecord"
+"note": "the Shewhart sensor (/api/v1/shewhart) sums each radar's deviations from its own mean over 48 h (CUSUM) and flags a quiet lasting shift; radar_noise in the track record names the usual daily band",
+"covered_by": "shewhart"
 }
 },
 {

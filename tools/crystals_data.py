@@ -2121,7 +2121,7 @@ NEEDS["wilde_g"] = ('covered', "applied: an announced measure is read as a promi
 NEEDS["kletz"] = ('covered', "applied: extraordinary-claim and 'first by what definition?' lines")
 NEEDS["white_gf"] = ('covered', "applied: 'who else pays' rule names the losses outside the intended effect")
 
-NEEDS["shewhart"] = ('covered', 'radar_noise in the track record names the usual daily band of the crypto radar', None, 'trackrecord')
+NEEDS["shewhart"] = ('covered', 'the Shewhart sensor (/api/v1/shewhart) sums each radar\'s deviations from its own mean over 48 h (CUSUM) and flags a quiet lasting shift; radar_noise in the track record names the usual daily band', None, 'shewhart')
 NEEDS["deming"] = ('covered', 'applied: a radar jump counts only if it holds for 2 hours; alarm thresholds are fixed in advance')
 NEEDS["juran"] = ('covered', 'the Pareto sensor shows the share of movement from the biggest jumps', None, 'pareto')
 NEEDS["ishikawa"] = ('covered', 'applied: several working hypotheses rule for the hosts')

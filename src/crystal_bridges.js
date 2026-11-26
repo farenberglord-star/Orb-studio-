@@ -210,6 +210,7 @@ export const CRYSTAL_BRIDGES = [
   B("pooled_or_split", "One number or several", "Одно число или несколько", "one_model", "idea", ["cochran_wg", "leamer", "campbell_dt"], { needs: "a bootstrap error for each Leamer variant of a radar index, to test whether the spread of variants is larger than their noise (Cochran Q)" }),
   B("economy_of_checking", "Enough checking", "Достаточно проверки", "answer_cost", "idea", ["kotarbinski_t", "levi_i"], { needs: "a stored trace of the Harman confidence after each checked source, to see when further checks stop moving the answer" }),
   B("not_yet_true", "Not yet true, not yet false", "Ещё не истина и не ложь", "rumour_vs_fact", "covered", ["lukasiewicz_j", "searle", "belnap"], { sensor: "searle", number: "not_yet_happened_pct: share of current radar headlines that are promises, threats or demands (Searle sensor, over the live radar headlines, every 30 minutes)" }),
+  B("quiet_shift", "A quiet shift", "Тихий сдвиг", "stale_data", "sensor", ["shewhart", "nelson_ls"], { sensor: "shewhart", number: "CUSUM of each radar's hourly mean over the last 48 h against its own earlier mean and spread (ix_hist, every 30 minutes); shift_up / shift_down with the estimated new level" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
