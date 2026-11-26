@@ -39,3 +39,8 @@ test("think_it_through: MCP tool, REST route and announcements are registered", 
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\(think_it_through\)/);
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"think_it_through"/);
 });
+test("think_it_through: time words, reviews and urgency reach their zones", () => {
+  assert.ok(thinkItThrough("Какие новости были в городе за последнюю неделю?").questions.some((q) => q.zone === "stale_data"));
+  assert.ok(thinkItThrough("Проверь рейтинг и отзывы отеля").questions.some((q) => q.zone === "measurement_error"));
+  assert.ok(thinkItThrough("Мне нужна комната через час, срочно").questions.some((q) => q.zone === "answer_cost"));
+});

@@ -51,11 +51,11 @@ export const THINK_ZONES = {
 
 // слова-триггеры по зонам (ru / en / de), нижний регистр
 const TRIG = {
-  rumour_vs_fact: /правд|слух|новост|источник|фейк|достоверн|пересказ|сообщил|заявил|проверить|анализир|информаци|true|rumou?r|news|source|fake|verify|fact[- ]?check|claim|analy[sz]e|information|stimmt|gerücht|nachricht|quelle|überprüf|analysier|information/iu,
-  stale_data: /сейчас|актуальн|устарел|свеж|по состоянию|ещё так|current|still|up to date|outdated|latest|stale|aktuell|veraltet|noch immer|immer noch/iu,
+  rumour_vs_fact: /отзыв|накрут|review|fake review|bewertung|правд|слух|новост|источник|фейк|достоверн|пересказ|сообщил|заявил|проверить|анализир|информаци|true|rumou?r|news|source|fake|verify|fact[- ]?check|claim|analy[sz]e|information|stimmt|gerücht|nachricht|quelle|überprüf|analysier|information/iu,
+  stale_data: /сейчас|сегодня|вчера|за (?:последн\p{L}* )?(?:недел|месяц|день|сутки)|на этой неделе|актуальн|устарел|свеж|по состоянию|ещё так|last (?:week|month|days?)|this week|today|yesterday|letzte[nr]? (?:woche|monat|tage?)|diese woche|heute|gestern|current|still|up to date|outdated|latest|stale|aktuell|veraltet|noch immer|immer noch/iu,
   one_model: /выбр|сравни|какую|какой|какая|страну|систем|лучше|vs|choose|compare|which (?:country|system|option)|better|best|system|welche[sn]? (?:land|system)|wähl|vergleich|besser/iu,
-  answer_cost: /хватит|достаточно|сколько ещё|ещё проверить|стоит ли ещё|enough|how much more|worth (?:checking|asking)|more research|genug|noch prüfen|lohnt/iu,
-  measurement_error: /число|цифр|процент|статистик|опрос|среднее|\d+\s?%|number|percent|statistic|poll|survey|average|zahl|prozent|statistik|umfrage|durchschnitt/iu,
+  answer_cost: /срочно|через час|быстро|нет времени|urgent|in an hour|quickly|no time|dringend|in einer stunde|schnell|хватит|достаточно|сколько ещё|ещё проверить|стоит ли ещё|enough|how much more|worth (?:checking|asking)|more research|genug|noch prüfen|lohnt/iu,
+  measurement_error: /рейтинг|отзыв|оценк|rating|review|bewertung|число|цифр|процент|статистик|опрос|среднее|\d+\s?%|number|percent|statistic|poll|survey|average|zahl|prozent|statistik|umfrage|durchschnitt/iu,
   own_limits: /не знаю|не уверен|сомнева|как реагир|что делать|как относиться|i don't know|not sure|unsure|doubt|how (?:should|do) i (?:react|respond)|what should i do|weiß nicht|unsicher|zweifel|wie (?:soll|reagier)|was soll ich/iu,
   side_effects: /что будет|последств|если я|побочн|повлияет|what (?:will|would) happen|consequence|side effect|impact|affect|was passiert|folgen|nebenwirk|auswirk/iu,
   look_alike: /то же самое|похож|одно и то же|такой же|same as|similar|the same|look[s]? like|dasselbe|ähnlich|gleich/iu,
