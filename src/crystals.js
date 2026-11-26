@@ -14853,6 +14853,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "share of names, numbers and places in each new headline of a story that no earlier headline of that story had; from the radar feeds, every 30 minutes; not computed yet"
 }
+},
+{
+"id": "wadati_k",
+"name": "Kiyoo Wadati",
+"name_ru": "Киё Вадати",
+"years": "1902–1995",
+"wiki": "https://en.wikipedia.org/wiki/Kiyoo_Wadati",
+"zone": "look_alike",
+"idea": {
+"en": "'On the activity of deep-focus earthquakes in the Japan Islands and neighbourhoods' (1928): earthquakes differ by depth; read the depth before treating two quakes as the same kind of event.",
+"ru": "«Shallow and Deep Earthquakes» (1928): толчки различаются по глубине; прежде чем считать два толчка событиями одного рода, прочти глубину.",
+"de": "„Shallow and Deep Earthquakes“ (1928): Beben unterscheiden sich nach Tiefe; lies die Tiefe, bevor du zwei Beben als gleichartig behandelst."
+},
+"rule": "Do not compare a deep quake and a shallow one as the same kind of event.",
+"needs": {
+"code": "needs_idea",
+"note": "USGS depth field of the 30-day feed (already read by the Omori sensor): aftershock counts split by depth class (shallow under 70 km vs deeper); hypothesis to check on our data, not a stated result; every 30 minutes"
+}
+},
+{
+"id": "spjotvoll_e",
+"name": "Emil Spjøtvoll",
+"name_ru": "Эмиль Спьётволл",
+"years": "1940–2002",
+"wiki": "https://en.wikipedia.org/wiki/Emil_Spj%C3%B8tvoll",
+"zone": "answer_cost",
+"idea": {
+"en": "Schweder and Spjøtvoll, 'Plots of P-values to evaluate many tests simultaneously' (Biometrika, 1982): when many checks run at once, look at all their p-values together and estimate how many of the checked hypotheses are true nulls.",
+"ru": "Швейдер и Спьётволл, «Plots of P-values to evaluate many tests simultaneously» (Biometrika, 1982): когда много проверок идёт разом, смотри на все их p-значения вместе и оценивай, сколько из проверяемых гипотез на самом деле нулевые.",
+"de": "Schweder und Spjøtvoll, „Plots of P-values to evaluate many tests simultaneously“ (Biometrika, 1982): Wenn viele Prüfungen gleichzeitig laufen, betrachte alle p-Werte zusammen und schätze, wie viele der Nullhypothesen wahr sind."
+},
+"rule": "Among many checks run at once, some will look like signals by luck; say how many.",
+"needs": {
+"code": "needs_idea",
+"note": "per radar update: how many shift checks ran at once and how many pass the 2-hour rule; the share expected from noise alone from the distribution of all p-values; from ix_hist, every 30 minutes"
+}
+},
+{
+"id": "altmann_g",
+"name": "Gabriel Altmann",
+"name_ru": "Габриэль Альтманн",
+"years": "1931–2020",
+"wiki": "https://en.wikipedia.org/wiki/Gabriel_Altmann",
+"zone": "look_alike",
+"idea": {
+"en": "Altmann's 'Prolegomena to Menzerath's law' (1980): the longer the whole (sentence), the shorter its parts (words); length of a text unit and length of its parts move together.",
+"ru": "Альтманн, «Prolegomena to Menzerath's law» (1980): чем длиннее целое (предложение), тем короче его части (слова); длина единицы текста и длина её частей связаны.",
+"de": "Altmann, „Prolegomena to Menzerath's law“ (1980): Je länger das Ganze (Satz), desto kürzer seine Teile (Wörter); Länge der Texteinheit und ihrer Teile hängen zusammen."
+},
+"rule": "A long headline with long words is a different object than a long one with short words.",
+"needs": {
+"code": "needs_idea",
+"note": "per headline: length in words and mean word length (radar feeds, every 30 minutes); slope of mean word length against headline length per outlet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

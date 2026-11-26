@@ -1926,6 +1926,21 @@ C = [
  'Тезаурусная мера семантической информации (1965, «О семантических аспектах теории информации»): сообщение — информация лишь настолько, насколько оно меняет то, что получатель уже знает.',
  'Thesaurus-Maß der semantischen Information (1965, „Über semantische Aspekte der Informationstheorie“): Eine Nachricht ist nur so weit Information, wie sie ändert, was der Empfänger schon weiß.',
  'Count what a new headline adds (names, numbers, places) that earlier headlines of the story lacked; no additions means a retelling.'),
+('wadati_k', 'Kiyoo Wadati', 'Киё Вадати', '1902–1995', 'https://en.wikipedia.org/wiki/Kiyoo_Wadati', 'look_alike',
+ "'On the activity of deep-focus earthquakes in the Japan Islands and neighbourhoods' (1928): earthquakes differ by depth; read the depth before treating two quakes as the same kind of event.",
+ '«Shallow and Deep Earthquakes» (1928): толчки различаются по глубине; прежде чем считать два толчка событиями одного рода, прочти глубину.',
+ '„Shallow and Deep Earthquakes“ (1928): Beben unterscheiden sich nach Tiefe; lies die Tiefe, bevor du zwei Beben als gleichartig behandelst.',
+ 'Do not compare a deep quake and a shallow one as the same kind of event.'),
+('spjotvoll_e', 'Emil Spjøtvoll', 'Эмиль Спьётволл', '1940–2002', 'https://en.wikipedia.org/wiki/Emil_Spj%C3%B8tvoll', 'answer_cost',
+ "Schweder and Spjøtvoll, 'Plots of P-values to evaluate many tests simultaneously' (Biometrika, 1982): when many checks run at once, look at all their p-values together and estimate how many of the checked hypotheses are true nulls.",
+ 'Швейдер и Спьётволл, «Plots of P-values to evaluate many tests simultaneously» (Biometrika, 1982): когда много проверок идёт разом, смотри на все их p-значения вместе и оценивай, сколько из проверяемых гипотез на самом деле нулевые.',
+ 'Schweder und Spjøtvoll, „Plots of P-values to evaluate many tests simultaneously“ (Biometrika, 1982): Wenn viele Prüfungen gleichzeitig laufen, betrachte alle p-Werte zusammen und schätze, wie viele der Nullhypothesen wahr sind.',
+ 'Among many checks run at once, some will look like signals by luck; say how many.'),
+('altmann_g', 'Gabriel Altmann', 'Габриэль Альтманн', '1931–2020', 'https://en.wikipedia.org/wiki/Gabriel_Altmann', 'look_alike',
+ "Altmann's 'Prolegomena to Menzerath's law' (1980): the longer the whole (sentence), the shorter its parts (words); length of a text unit and length of its parts move together.",
+ 'Альтманн, «Prolegomena to Menzerath\'s law» (1980): чем длиннее целое (предложение), тем короче его части (слова); длина единицы текста и длина её частей связаны.',
+ 'Altmann, „Prolegomena to Menzerath\'s law“ (1980): Je länger das Ganze (Satz), desto kürzer seine Teile (Wörter); Länge der Texteinheit und ihrer Teile hängen zusammen.',
+ 'A long headline with long words is a different object than a long one with short words.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2543,3 +2558,6 @@ NEEDS['akaike_h'] = ('covered', 'the Leamer sensor recomputes indices under reas
 NEEDS['hinkley_dv'] = ('needs_idea', 'the Shewhart sensor flags a lasting shift (CUSUM) but gives no date; the Hinkley estimate of the change point from ix_hist would give "since when" and a doubt range for each radar')
 NEEDS['bhattacharyya_ak'] = ('needs_idea', 'overlap (Bhattacharyya coefficient, 0–1) between a radar\'s hourly values of the last 48 h and its earlier history; from ix_hist, every 30 minutes; not computed yet (Smirnov D already does a similar job)')
 NEEDS['schreider_ya'] = ('needs_idea', 'share of names, numbers and places in each new headline of a story that no earlier headline of that story had; from the radar feeds, every 30 minutes; not computed yet')
+NEEDS['wadati_k'] = ('needs_idea', 'USGS depth field of the 30-day feed (already read by the Omori sensor): aftershock counts split by depth class (shallow under 70 km vs deeper); hypothesis to check on our data, not a stated result; every 30 minutes')
+NEEDS['spjotvoll_e'] = ('needs_idea', 'per radar update: how many shift checks ran at once and how many pass the 2-hour rule; the share expected from noise alone from the distribution of all p-values; from ix_hist, every 30 minutes')
+NEEDS['altmann_g'] = ('needs_idea', 'per headline: length in words and mean word length (radar feeds, every 30 minutes); slope of mean word length against headline length per outlet')
