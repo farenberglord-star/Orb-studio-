@@ -415,6 +415,15 @@ export async function rtAgentData(env, deps) {
 export async function rtHandle(request, env, ctx, url, deps) {
   const p = url.pathname, H = { "Access-Control-Allow-Origin": "*" };
   if (p === "/api/v1/roundtable/comments") return deps.comments(request, env, ctx, url);
+  if (p === "/api/v1/roundtable/voice-status") { // для владельца: настроен ли голос и сколько символов синтеза сегодня (без ключей)
+    let used = null; try { if (env.DB) { await env.DB.prepare("CREATE TABLE IF NOT EXISTS rt_tts (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run(); used = ((await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM rt_tts WHERE day=?1").bind(new Date().toISOString().slice(0, 10)).first()) || {}).c; } } catch (e) {}
+    // здоровье стола: возраст последнего выпуска, последняя ошибка сборки или гостя, решение модератора, статус каждого гостя (текст ошибок обрезан, ключей в них нет)
+    const latest = env.DB ? await deps.sharedGet(env, RT_KEY, 1e15).catch(() => null) : null, lastErr = env.DB ? await deps.sharedGet(env, RT_ERR, 1e15).catch(() => null) : null, dec = env.DB ? await deps.sharedGet(env, RT_DECIDE, 1e15).catch(() => null) : null;
+    const guests = {}; for (const g of RT_GUESTS) { const st = (latest && latest.topics || []).map((t) => (t.answers && t.answers[g] ? t.answers[g].status : "off")); guests[g] = { ok: st.filter((x) => x === "ok").length, error: st.filter((x) => x === "error").length, off: st.filter((x) => x === "off").length }; }
+    return deps.json({ voice_configured: !!env.XAI_API_KEY, keys_set: { anthropic: !!env.ANTHROPIC_API_KEY, gemini: !!env.GEMINI_API_KEY, xai: !!env.XAI_API_KEY, deepseek: !!env.DEEPSEEK_API_KEY }, database: !!env.DB, chars_used_today: used, chars_limit_per_day: RT_TTS_DAY_CHARS, budget_reached: used != null && used >= RT_TTS_DAY_CHARS - 1400,
+      latest_episode: latest ? { generated_at: latest.generated_at, age_hours: Math.round((Date.now() - Date.parse(latest.generated_at)) / 36e5 * 10) / 10 } : null, guests_in_latest: guests, models: { gemini: env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash" },
+      last_error: lastErr || null, last_moderator_decision: dec || null }, { ...H, "Cache-Control": "no-store" });
+  }
   if (p === "/api/v1/roundtable/audio") {
     const bad = (m, st = 404) => deps.json({ error: m }, { ...H, "Cache-Control": "no-store" }, st);
     if (!env.XAI_API_KEY || !env.DB) return bad("voice not configured", 503);
