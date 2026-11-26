@@ -227,6 +227,7 @@ export const CRYSTAL_BRIDGES = [
   B("named_or_anonymous", "Named source or 'sources say'", "Названный источник или «источники сообщают»", "rumour_vs_fact", "sensor", ["chafe_w", "searle", "wilson_p"], { sensor: "searle", number: "shares of live radar headlines with an unnamed source, a named source or no attribution (evidential word rules in English, German, Russian; Searle sensor, every 30 minutes)" }),
   B("hedged_not_stated", "'Could' is not 'did'", "«Может» — не «сделал»", "rumour_vs_fact", "sensor", ["palmer_fr", "chafe_w", "searle"], { sensor: "searle", number: "share of live radar headlines with epistemic hedges (could, may, likely, könnte, вероятно), overall and by speech act (Searle sensor, every 30 minutes)" }),
   B("if_is_not_did", "'If' is not 'did'", "«Если» — не «сделал»", "rumour_vs_fact", "sensor", ["adams_ew", "lewis_d", "searle"], { sensor: "searle", number: "share of live radar headlines with a condition (if, would, wenn, falls, если, бы) (Searle sensor, every 30 minutes)" }),
+  B("number_from_another_time", "A number from another period", "Число из другого периода", "stale_data", "sensor", ["prior_an", "reichenbach", "searle"], { sensor: "searle", number: "share of live radar headlines with a number and a past period (in October, Q3, last year, im Vorjahr, за октябрь) (Searle sensor, every 30 minutes)" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {
