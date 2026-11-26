@@ -19,6 +19,8 @@
 - Emil Post | 1897–1954 | one_model | «Introduction to a General Theory of Elementary Propositions» (1921) | полнота системы связок проверяется выразимостью всех функций | en.wikipedia.org/wiki/Emil_Leon_Post | правило не даёт агенту действия; нет числа
 - Stanisław Leśniewski | 1886–1939 | one_model | «Podstawy ogólnej teoryi mnogości. I» (1916) | мереология: логический класс и реальное целое из частей — разные вещи | en.wikipedia.org/wiki/Stanis%C5%82aw_Le%C5%9Bniewski | нет числа; связь с одной моделью слабая
 
+- Ágnes Heller | 1929–2019 | rumour_vs_fact | «A mindennapi élet» (1970; англ. «Everyday Life», 1984) | повседневное мышление смешивает оценку и знание | en.wikipedia.org/wiki/%C3%81gnes_Heller | правило Лианы — пересказ; «оценка ≠ факт» уже у Оссовской (мостик tone)
+
 ## Ждут проверки даты смерти
 - Tadeusz Pszczołowski | 1922–? | answer_cost | «Zasady sprawnego działania» (1960) | праксеология: оценка действия по соотношению результата и затрат | каталог Академии военного искусства: 1922–1999; Лиана: 1922–2019 — расхождение | войдёт в economy_of_checking вместе с Котарбинским, когда дата подтвердится
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты
