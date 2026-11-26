@@ -125,9 +125,10 @@ async function runStage(env, deps, row, work) {
   }
   const d = work.d; d.translations = await rtTranslate(env, d);
   // ru и de обязательны: без перевода зритель на русской странице слышит английский. Первые попытки этапа повторяются, последняя отдаёт что есть (cron потом доводит)
-  if (RT_TR.some((l) => !d.translations[l])) {
-    const again = await rtTranslate(env, d, RT_TR.filter((l) => !d.translations[l])); Object.assign(d.translations, again);
-    if (RT_TR.some((l) => !d.translations[l]) && (row.tries | 0) < RQ_MAX_TRIES - 1) throw new Error("translation incomplete"); }
+  const bad = (tr, l) => !tr[l] || (tr[l].fb && tr[l].fb.length); // нет языка совсем или у какого-то гостя реплика осталась на английском
+  if (RT_TR.some((l) => bad(d.translations, l))) {
+    const again = await rtTranslate(env, d, RT_TR.filter((l) => bad(d.translations, l))); for (const l of Object.keys(again)) if (!bad(again, l) || !d.translations[l]) d.translations[l] = again[l];
+    if (RT_TR.some((l) => bad(d.translations, l)) && (row.tries | 0) < RQ_MAX_TRIES - 1) throw new Error("translation incomplete"); }
   d.episode_id = row.id; d.kind = "viewer_request";
   d.request = { id: row.id, kind: row.kind, url: d.topics[0].link || row.url, submitted_at: new Date(row.ts).toISOString(), by: row.by_agent ? "agent" : "visitor", ...(row.name ? { name: row.name } : {}) };
   return d; // последний этап отдаёт готовую карточку
@@ -175,8 +176,8 @@ export async function rqRepairTranslations(env) {
   const rows = ((await env.DB.prepare("SELECT id, card FROM " + TBL + " WHERE status='ready' AND card IS NOT NULL ORDER BY done_ts DESC LIMIT 12").all()).results) || [];
   for (const r of rows) {
     let d = null; try { d = JSON.parse(r.card); } catch { continue; }
-    const miss = RT_TR.filter((l) => !(d.translations && d.translations[l])); if (!miss.length || (d.tr_fix | 0) >= 3) continue;
-    d.tr_fix = (d.tr_fix | 0) + 1; d.translations = { ...(d.translations || {}), ...(await rtTranslate(env, d, miss)) };
+    const tr0 = d.translations || {}, miss = RT_TR.filter((l) => !tr0[l] || (tr0[l].fb && tr0[l].fb.length)); if (!miss.length || (d.tr_fix | 0) >= 3) continue;
+    d.tr_fix = (d.tr_fix | 0) + 1; { const got = await rtTranslate(env, d, miss); for (const l of Object.keys(got)) if (!tr0[l] || !got[l].fb || got[l].fb.length < ((tr0[l].fb || []).length || 99)) tr0[l] = got[l]; d.translations = tr0; }
     await env.DB.prepare("UPDATE " + TBL + " SET card=?2 WHERE id=?1").bind(r.id, JSON.stringify(d)).run(); return r.id;
   }
   return null;

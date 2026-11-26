@@ -259,7 +259,8 @@ export async function rtTranslate(env, d, only) {
       const o = { intro: cleanSpeech(data.intro, 700), closing: cleanSpeech(data.closing, 900), topics: {} };
       for (const t of src.topics) {
         const x = data.topics.find((y) => +y.i === t.i); if (!x) return null;
-        const a = {}; for (const g of Object.keys(t.answers)) { const v = cleanSpeech(x.answers && x.answers[g], 1000); if (!v) return null; a[g] = v; }
+        // Один гость без перевода не губит весь язык: его реплика остаётся оригиналом (fb), остальные идут на языке зрителя; cron потом переводит заново
+        const a = {}; for (const g of Object.keys(t.answers)) { const v = cleanSpeech(x.answers && x.answers[g], 1000); if (v) a[g] = v; else { a[g] = cleanSpeech(t.answers[g], 1000); (o.fb = o.fb || []).push(g); } }
         o.topics[t.i] = { recap: cleanSpeech(x.recap, 700), question: cleanSpeech(x.question, 450), thanks: cleanSpeech(x.thanks, 450), answers: a };
       }
       return o;
@@ -396,9 +397,9 @@ export async function rtWarm(env, ctx, deps) {
 // между выпусками: доделать переводы и озвучку последнего
 async function rtTidy(env, deps, latest, now) {
   if (!latest) return;
-  const missing = RT_TR.filter((l) => !latest.translations || !latest.translations[l]);
+  const missing = RT_TR.filter((l) => !latest.translations || !latest.translations[l] || (latest.translations[l].fb && latest.translations[l].fb.length));
   if (missing.length && now - Date.parse(latest.generated_at) < 12 * 3600e3) {
-    const tr = await rtTranslate(env, latest).catch(() => ({}));
+    const tr = await rtTranslate(env, latest, missing).catch(() => ({}));
     if (Object.keys(tr).length) { latest.translations = { ...(latest.translations || {}), ...tr }; await deps.sharedPut(env, RT_KEY, latest); }
   }
   await rtPrewarm(env, latest, 24);

@@ -187,3 +187,19 @@ test("карточка без русского перевода доводитс
   assert.equal(await rqRepairTranslations(env), r.body.id);
   const fixed = await rqFind(env, r.body.id); assert.ok(fixed.translations.ru && fixed.translations.de); assert.equal(await rqRepairTranslations(env), null, "всё на месте — ничего не делаем");
 });
+
+test("Gemini на трёх языках: реплика есть на en, ru и de; сбой перевода одной реплики не роняет язык и потом доводится", async () => {
+  mockFetch(); const real = globalThis.fetch; let dropGemini = true; const env = { DB: fakeDb(), ...KEYS };
+  globalThis.fetch = async (url, init) => { const res = await real(url, init), b = init && init.body ? JSON.parse(init.body) : {};
+    if (dropGemini && String(url).includes("x.ai/v1/chat") && /You translate/.test((b.messages && b.messages[0].content) || "")) { const j = await res.json(), c = JSON.parse(j.choices[0].message.content); for (const t of c.topics) delete t.answers.gemini; j.choices[0].message.content = JSON.stringify(c); return new Response(JSON.stringify(j), { status: 200 }); }
+    return res; };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/gem" });
+  assert.equal(await until(env, deps(), r.body.id), "ready");
+  let d = await rqFind(env, r.body.id);
+  assert.match(d.topics[0].answers.gemini.text, /gemini says/, "английский оригинал");
+  for (const l of ["ru", "de"]) { assert.ok(d.translations[l], l + ": язык собран"); assert.ok(d.translations[l].topics[0].answers.gemini, l + ": реплика Gemini есть (хотя бы оригиналом)"); assert.deepEqual(d.translations[l].fb, ["gemini"]); }
+  dropGemini = false; assert.equal(await rqRepairTranslations(env), r.body.id);
+  d = await rqFind(env, r.body.id);
+  for (const l of ["ru", "de"]) { assert.ok(!(d.translations[l].fb || []).length, l + ": доведено"); assert.match(d.translations[l].topics[0].answers.gemini, /gemini says/); }
+  globalThis.fetch = real;
+});
