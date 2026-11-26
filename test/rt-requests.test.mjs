@@ -243,3 +243,13 @@ test("сбой перевода пишется в журнал, /voice-status е
   const res = await rtHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/voice-status"), { json, sharedGet: async () => null });
   assert.ok(res.body.translation_log.length > 0); assert.match(res.body.translation_log[0].what, /429/);
 });
+
+test("адрес озвучки меняется вместе с текстом: исправленный перевод не отдаёт старый (кэшированный) звук", async () => {
+  mockFetch(); const env = { DB: fakeDb(), ...KEYS };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/audio" });
+  assert.equal(await until(env, deps(), r.body.id), "ready");
+  const d = await rqFind(env, r.body.id), a = rtQueue(d, "ru").lines.find((x) => x.part === "answer" && x.who === "gemini");
+  d.translations.ru.topics[0].answers.gemini = "Совсем другой русский текст ответа";
+  const b = rtQueue(d, "ru").lines.find((x) => x.part === "answer" && x.who === "gemini");
+  assert.match(a.audio, /&v=[0-9a-z]+$/); assert.notEqual(a.audio, b.audio); assert.equal(a.audio.replace(/&v=.*/, ""), b.audio.replace(/&v=.*/, ""));
+});

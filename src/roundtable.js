@@ -342,8 +342,10 @@ export function rtLineText(d, part, seg, who, lang) {
 export function rtQueue(d, lang, origin = "") {
   const L = RT_LANGS.includes(lang) && (lang === "en" || (d.translations && d.translations[lang])) ? lang : "en";
   const ep = d.episode_id || rtEpId(d), q = [];
-  const au = (part, seg, who) => `${origin}/api/v1/roundtable/audio?ep=${ep}&part=${part}${seg != null ? "&seg=" + seg : ""}${who ? "&who=" + who : ""}&lang=${L}`;
-  const add = (part, seg, who, topic) => { const x = rtLineText(d, part, seg, who, L); if (x && x.text) q.push({ who: x.who, part, seg, text: x.text, audio: au(part, seg, part === "answer" ? who : null), topic }); };
+  // v — отпечаток текста: аудио кэшируется на неделю («immutable»), и когда перевод поправили, прежний адрес отдавал бы старую озвучку другого текста
+  const hv = (t) => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h.toString(36); };
+  const au = (part, seg, who, text) => `${origin}/api/v1/roundtable/audio?ep=${ep}&part=${part}${seg != null ? "&seg=" + seg : ""}${who ? "&who=" + who : ""}&lang=${L}&v=${hv(text || "")}`;
+  const add = (part, seg, who, topic) => { const x = rtLineText(d, part, seg, who, L); if (x && x.text) q.push({ who: x.who, part, seg, text: x.text, audio: au(part, seg, part === "answer" ? who : null, x.text), topic }); };
   add("intro", null, null, null);
   for (const t of d.topics || []) {
     add("recap", t.i, null, t.i); add("question", t.i, null, t.i);
