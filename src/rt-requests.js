@@ -172,12 +172,22 @@ export async function rqTick(env, deps) {
   if (next) { await rqProcess(env, deps, next.id); return; }
   await rqRepairTranslations(env); // готовые карточки без русского или немецкого перевода доводим (до 3 попыток)
 }
+const RQ_TR_VER = 2;
 export async function rqRepairTranslations(env) {
   const rows = ((await env.DB.prepare("SELECT id, card FROM " + TBL + " WHERE status='ready' AND card IS NOT NULL ORDER BY done_ts DESC LIMIT 12").all()).results) || [];
   for (const r of rows) {
     let d = null; try { d = JSON.parse(r.card); } catch { continue; }
-    const tr0 = d.translations || {}, miss = RT_TR.filter((l) => !tr0[l] || (tr0[l].fb && tr0[l].fb.length) || !(tr0[l].topics && tr0[l].topics[0] && tr0[l].topics[0].headline)); if (!miss.length || (d.tr_fix | 0) >= 3) continue;
-    d.tr_fix = (d.tr_fix | 0) + 1; { const got = await rtTranslate(env, d, miss); for (const l of Object.keys(got)) if (!tr0[l] || !got[l].fb || got[l].fb.length < ((tr0[l].fb || []).length || 99)) tr0[l] = got[l]; d.translations = tr0; }
+    const tr0 = d.translations || {}, miss = RT_TR.filter((l) => !tr0[l] || (tr0[l].fb && tr0[l].fb.length) || !(tr0[l].topics && tr0[l].topics[0] && tr0[l].topics[0].headline));
+    if (!miss.length) continue;
+    if (d.tr_ver !== RQ_TR_VER) { d.tr_ver = RQ_TR_VER; d.tr_fix = 0; } // новая версия переводчика: счётчик попыток карточки начинается заново
+    if ((d.tr_fix | 0) >= 3) continue;
+    d.tr_fix = (d.tr_fix | 0) + 1;
+    const got = await rtTranslate(env, d, miss);
+    for (const l of Object.keys(got)) { // рабочий язык (без fb) никогда не заменяется языком с fb; частично лучший заменяет худший
+      const oldFb = (tr0[l] && tr0[l].fb) || [], newFb = got[l].fb || [], oldOk = tr0[l] && !oldFb.length, newOk = !newFb.length;
+      if (!tr0[l] || newOk || (!oldOk && newFb.length < oldFb.length)) tr0[l] = got[l];
+    }
+    d.translations = tr0;
     await env.DB.prepare("UPDATE " + TBL + " SET card=?2 WHERE id=?1").bind(r.id, JSON.stringify(d)).run(); return r.id;
   }
   return null;

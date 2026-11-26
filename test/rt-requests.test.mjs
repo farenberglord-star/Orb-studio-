@@ -214,3 +214,22 @@ test("Gemini на трёх языках: ответы гостей на en, ru �
   for (const l of ["ru", "de"]) assert.ok(!(d.translations[l].fb || []).length, l + ": доведено");
   globalThis.fetch = real;
 });
+
+test("доводка перевода: исчерпанные попытки старой версии возобновляются, рабочий язык не портится неудачным новым", async () => {
+  mockFetch(); const real = globalThis.fetch; const env = { DB: fakeDb(), ...KEYS };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/fix" });
+  assert.equal(await until(env, deps(), r.body.id), "ready");
+  let d = await rqFind(env, r.body.id); const goodDe = JSON.stringify(d.translations.de);
+  d.translations.ru.fb = ["gemini", "grok", "deepseek"]; for (const g of ["gemini", "grok", "deepseek"]) d.translations.ru.topics[0].answers[g] = d.topics[0].answers[g].text; d.tr_fix = 3; delete d.tr_ver; delete d.translations.de.topics[0].headline; // как у карточки rq97b9…
+  await env.DB.prepare("UPDATE rt_requests SET card=?2 WHERE id=?1").bind(r.body.id, JSON.stringify(d)).run();
+  // переводчик сломан: de без headline не должен испортиться, ru остаётся с fb
+  globalThis.fetch = async (url, init) => String(url).includes("x.ai/v1/chat") ? new Response("boom", { status: 500 }) : real(url, init);
+  await rqRepairTranslations(env); d = await rqFind(env, r.body.id);
+  assert.ok(d.translations.de && !(d.translations.de.fb || []).length, "немецкий цел"); assert.ok(d.translations.ru.fb.length, "русский ещё ждёт");
+  // переводчик починился: новая версия обнуляет счётчик, ru доведён, de не испорчен
+  globalThis.fetch = real; d.tr_fix = 3; d.tr_ver = 2; await env.DB.prepare("UPDATE rt_requests SET card=?2 WHERE id=?1").bind(r.body.id, JSON.stringify(d)).run();
+  assert.equal(await rqRepairTranslations(env), null, "в новой версии три попытки исчерпаны — не гоняем бесконечно");
+  d.tr_fix = 3; delete d.tr_ver; await env.DB.prepare("UPDATE rt_requests SET card=?2 WHERE id=?1").bind(r.body.id, JSON.stringify(d)).run();
+  assert.equal(await rqRepairTranslations(env), r.body.id); d = await rqFind(env, r.body.id);
+  assert.ok(!(d.translations.ru.fb || []).length); assert.match(d.translations.ru.topics[0].answers.gemini, /^Ответ /); assert.match(d.translations.ru.topics[0].headline, /^Пересказ /); assert.ok(d.translations.de.topics[0].headline); assert.ok(goodDe.length > 10);
+});
