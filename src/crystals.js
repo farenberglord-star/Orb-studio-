@@ -14091,6 +14091,42 @@ export const CRYSTALS = [
 "code": "covered",
 "note": "the news passport tone line already separates loaded (evaluative) wording from the event; bridge tone"
 }
+},
+{
+"id": "krippendorff_k",
+"name": "Klaus Krippendorff",
+"name_ru": "Клаус Криппендорф",
+"years": "1932–2022",
+"wiki": "https://en.wikipedia.org/wiki/Klaus_Krippendorff",
+"zone": "one_model",
+"idea": {
+"en": "'Estimating the Reliability, Systematic Error and Random Error of Interval Data' (1970): coders' agreement counts only beyond what chance would give; with low agreement the categories, not the data, are speaking.",
+"ru": "«Estimating the Reliability, Systematic Error and Random Error of Interval Data» (1970): согласие кодировщиков засчитывается только сверх случайного; при низком согласии говорят категории, а не данные.",
+"de": "„Estimating the Reliability, Systematic Error and Random Error of Interval Data“ (1970): Die Übereinstimmung von Kodierern zählt nur über den Zufall hinaus; bei geringer Übereinstimmung sprechen die Kategorien, nicht die Daten."
+},
+"rule": "Before trusting a label for a story, check whether different outlets would give it the same label beyond chance.",
+"needs": {
+"code": "needs_idea",
+"note": "agreement beyond chance (alpha) of the Searle speech-act labels given by different outlets to the same radar story (radar_life + Searle rules), every 30 minutes; bridge outlets_agree_on_act"
+}
+},
+{
+"id": "kendall_dg",
+"name": "David G. Kendall",
+"name_ru": "Дэвид Кендалл",
+"years": "1918–2007",
+"wiki": "https://en.wikipedia.org/wiki/David_George_Kendall",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Epidemics and Rumours' (1964, with D. J. Daley): a rumour stops spreading not because it was checked but because its spreaders meet people who already know it.",
+"ru": "«Epidemics and Rumours» (1964, с Д. Дейли): слух перестаёт распространяться не потому, что его проверили, а потому что распространители встречают тех, кто уже знает.",
+"de": "„Epidemics and Rumours“ (1964, mit D. J. Daley): Ein Gerücht hört auf, sich zu verbreiten, nicht weil es geprüft wurde, sondern weil seine Verbreiter auf Leute treffen, die es schon kennen."
+},
+"rule": "Do not read a story that stopped spreading as confirmed or refuted; it may only be saturated.",
+"needs": {
+"code": "needs_idea",
+"note": "share of radar stories whose outlet count stopped growing while no outlet reported it as an event (saturation without confirmation), from publication times per outlet, every 30 minutes; bridge saturated_not_settled"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

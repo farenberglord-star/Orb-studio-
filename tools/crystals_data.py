@@ -1721,6 +1721,16 @@ C = [
  '«Podstawy nauki o moralności» (1947): оценочное высказывание выражает установку говорящего, описательное можно проверить фактами — не смешивай их.',
  '„Podstawy nauki o moralności“ (1947): Eine wertende Aussage drückt die Haltung des Sprechers aus, eine beschreibende lässt sich an Tatsachen prüfen — halte sie auseinander.',
  'Separate what a headline says happened from how it judges it; pass on the fact, attribute the judgement.'),
+('krippendorff_k', 'Klaus Krippendorff', 'Клаус Криппендорф', '1932–2022', 'https://en.wikipedia.org/wiki/Klaus_Krippendorff', 'one_model',
+ "'Estimating the Reliability, Systematic Error and Random Error of Interval Data' (1970): coders' agreement counts only beyond what chance would give; with low agreement the categories, not the data, are speaking.",
+ '«Estimating the Reliability, Systematic Error and Random Error of Interval Data» (1970): согласие кодировщиков засчитывается только сверх случайного; при низком согласии говорят категории, а не данные.',
+ '„Estimating the Reliability, Systematic Error and Random Error of Interval Data“ (1970): Die Übereinstimmung von Kodierern zählt nur über den Zufall hinaus; bei geringer Übereinstimmung sprechen die Kategorien, nicht die Daten.',
+ 'Before trusting a label for a story, check whether different outlets would give it the same label beyond chance.'),
+('kendall_dg', 'David G. Kendall', 'Дэвид Кендалл', '1918–2007', 'https://en.wikipedia.org/wiki/David_George_Kendall', 'rumour_vs_fact',
+ "'Epidemics and Rumours' (1964, with D. J. Daley): a rumour stops spreading not because it was checked but because its spreaders meet people who already know it.",
+ '«Epidemics and Rumours» (1964, с Д. Дейли): слух перестаёт распространяться не потому, что его проверили, а потому что распространители встречают тех, кто уже знает.',
+ '„Epidemics and Rumours“ (1964, mit D. J. Daley): Ein Gerücht hört auf, sich zu verbreiten, nicht weil es geprüft wurde, sondern weil seine Verbreiter auf Leute treffen, die es schon kennen.',
+ 'Do not read a story that stopped spreading as confirmed or refuted; it may only be saturated.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2297,3 +2307,5 @@ NEEDS['pelc_j'] = ('covered', 'the Searle sensor already separates claims, promi
 NEEDS['kotarbinski_t'] = ('needs_idea', 'per answer: number of sources checked and how much each further check moved the Harman confidence; when the last checks moved it by under a few points, further checking is waste; needs the confidence trace stored per answer; bridge economy_of_checking', None)
 NEEDS['lukasiewicz_j'] = ('covered', 'the Searle sensor already gives not_yet_happened_pct: promises, threats and demands are neither true nor false yet; bridge not_yet_true', None, 'searle')
 NEEDS['ossowska_m'] = ('covered', 'the news passport tone line already separates loaded (evaluative) wording from the event; bridge tone', None)
+NEEDS['krippendorff_k'] = ('needs_idea', 'agreement beyond chance (alpha) of the Searle speech-act labels given by different outlets to the same radar story (radar_life + Searle rules), every 30 minutes; bridge outlets_agree_on_act', None)
+NEEDS['kendall_dg'] = ('needs_idea', 'share of radar stories whose outlet count stopped growing while no outlet reported it as an event (saturation without confirmation), from publication times per outlet, every 30 minutes; bridge saturated_not_settled', None)
