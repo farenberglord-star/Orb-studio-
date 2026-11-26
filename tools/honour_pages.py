@@ -284,6 +284,45 @@ PORTAL_RENDER = """if(!d||!Array.isArray(d.sensors))return;for(const s of d.sens
   else if(s.id==="park")t=P.live.park.replace("{n}",s.now.checked).replace("{m}",s.now.with_signs);
   else if(s.id==="polyak")t=s.now.moving&&s.now.moving.length?P.live.polyak_move.replace("{x}",s.now.moving.map((m)=>(P.names[m.id]||m.id)+" "+(m.direction==="up"?"↑":"↓")).join(", ")):P.live.polyak_calm;
   el.textContent=P.now+": "+t;}"""
+# Датчики в честь учёных без собственной страницы (работают для агентов через API и MCP) — строки на портале, чтобы ни один не потерялся.
+AGENT_ONLY = [
+  ("shewhart", "/api/v1/shewhart", "Walter A. Shewhart (1891–1967)", "https://en.wikipedia.org/wiki/Walter_A._Shewhart",
+   {"ru": "Тихо ли сдвинулся уровень радара, шире ли стал разброс, держится ли подъём по инерции?", "de": "Hat sich das Niveau eines Radars still verschoben, ist die Streuung breiter geworden, hält sich ein Anstieg aus Trägheit?", "en": "Has a radar's level quietly shifted, has its spread widened, is a rise held by inertia?"}),
+  ("krippendorff", "/api/v1/krippendorff", "Klaus Krippendorff (1932–2022)", "https://en.wikipedia.org/wiki/Klaus_Krippendorff",
+   {"ru": "Одинаково ли разные издания подают одно событие — как факт, заявление, обещание или угрозу?", "de": "Stellen verschiedene Medien dasselbe Ereignis gleich dar — als Tatsache, Aussage, Versprechen oder Drohung?", "en": "Do different outlets present the same event the same way — as a fact, statement, promise or threat?"}),
+  ("kendall_rumour", "/api/v1/kendall-rumour", "David G. Kendall (1918–2007)", "https://en.wikipedia.org/wiki/David_George_Kendall",
+   {"ru": "Какие истории перестали набирать издания, так и не став событием?", "de": "Welche Meldungen gewinnen keine Medien mehr hinzu, ohne je zum Ereignis geworden zu sein?", "en": "Which stories stopped gaining outlets without ever becoming an event?"}),
+  ("omori", "/api/v1/omori", "Fusakichi Omori (1868–1923)", "https://en.wikipedia.org/wiki/Fusakichi_Omori",
+   {"ru": "Новое землетрясение в новостях — это афтершок недавнего сильного толчка рядом?", "de": "Ist ein „neues Erdbeben“ in den Nachrichten ein Nachbeben eines starken Bebens in der Nähe?", "en": "Is a 'new earthquake' in the news an aftershock of a recent large quake nearby?"}),
+  ("shiskin", "/api/v1/shiskin", "Julius Shiskin (1912–1978)", "https://en.wikipedia.org/wiki/Julius_Shiskin",
+   {"ru": "Издание молчит, потому что сломалась лента, или это его обычный тихий час?", "de": "Schweigt ein Medium, weil der Feed kaputt ist, oder ist es seine übliche ruhige Stunde?", "en": "Is a silent outlet broken, or is this its usual quiet hour?"}),
+  ("cohen_s", "/api/v1/cohen-s", "Stanley Cohen (1942–2013)", "https://en.wikipedia.org/wiki/Stanley_Cohen_(sociologist)",
+   {"ru": "Насколько громко звучат заголовки о землетрясениях по сравнению с магнитудой, которую записал USGS?", "de": "Wie laut klingen Erdbeben-Schlagzeilen im Vergleich zur von USGS gemessenen Magnitude?", "en": "How loud do earthquake headlines sound compared with the magnitude USGS recorded?"}),
+  ("schmidt", "/api/v1/schmidt", "Johannes Schmidt (1843–1901)", "https://en.wikipedia.org/wiki/Johannes_Schmidt_(linguist)",
+   {"ru": "Издания подхватывают историю цепочкой пересказов или почти одновременно, волной?", "de": "Greifen Medien eine Meldung als Kette von Nacherzählungen auf oder fast gleichzeitig, als Welle?", "en": "Do outlets pick up a story as a chain of retellings or almost at once, as a wave?"}),
+  ("simmel", "/api/v1/simmel", "Georg Simmel (1858–1918)", "https://en.wikipedia.org/wiki/Georg_Simmel",
+   {"ru": "Реагируют ли индексы радаров слабее, когда новых историй очень много?", "de": "Reagieren die Radar-Indizes schwächer, wenn sehr viele neue Meldungen kommen?", "en": "Do the radar indices react less when many new stories arrive?"}),
+  ("ashby", "/api/v1/ashby", "W. Ross Ashby (1903–1972)", "https://en.wikipedia.org/wiki/W._Ross_Ashby",
+   {"ru": "На какой доле историй паспорту новости нечего сказать о содержании заголовка?", "de": "Bei welchem Anteil der Meldungen hat der Nachrichtenpass nichts zum Inhalt der Schlagzeile zu sagen?", "en": "On what share of stories does the news passport have nothing to say about the headline?"}),
+  ("scheler", "/api/v1/scheler", "Max Scheler (1874–1928)", "https://en.wikipedia.org/wiki/Max_Scheler",
+   {"ru": "Сколько официальных предупреждений о погоде уровня 3+ не попало ни в один заголовок?", "de": "Wie viele amtliche Wetterwarnungen ab Stufe 3 tauchen in keiner Schlagzeile auf?", "en": "How many official level 3+ weather warnings appear in no headline?"}),
+  ("bradford", "/api/v1/bradford", "Samuel C. Bradford (1878–1948), Alfred J. Lotka (1880–1949)", "https://en.wikipedia.org/wiki/Samuel_C._Bradford",
+   {"ru": "Насколько заголовки радаров сосредоточены в немногих изданиях и что нёс только хвост?", "de": "Wie stark konzentrieren sich die Radar-Schlagzeilen auf wenige Medien, und was brachte nur der lange Schwanz?", "en": "How concentrated are the radar headlines in a few outlets, and what did only the long tail carry?"}),
+  ("zipf", "/api/v1/zipf", "George K. Zipf (1902–1950)", "https://en.wikipedia.org/wiki/George_Kingsley_Zipf",
+   {"ru": "Какие слова в заголовках сегодня поднялись намного выше своей обычной доли?", "de": "Welche Wörter in den Schlagzeilen liegen heute weit über ihrem üblichen Anteil?", "en": "Which words in today's headlines rose far above their usual share?"}),
+  ("reiss", "/api/v1/reiss", "Katharina Reiß (1923–2018), Eugene Nida (1914–2011)", "https://en.wikipedia.org/wiki/Katharina_Rei%C3%9F",
+   {"ru": "Совпадают ли версии одной истории на английском, немецком и русском?", "de": "Stimmen die Fassungen einer Meldung auf Englisch, Deutsch und Russisch überein?", "en": "Do the English, German and Russian versions of one story agree?"}),
+]
+AGENT_ONLY_H = {"ru": ("Датчики для агентов", "Эти датчики тоже названы в честь учёных и работают на живых данных, но своей страницы у них пока нет: агенты получают их через API и MCP. Здесь — чтобы ни один не потерялся.", "сейчас", "данные"),
+  "de": ("Sensoren für Agenten", "Auch diese Sensoren tragen den Namen eines Wissenschaftlers und laufen auf Live-Daten, haben aber noch keine eigene Seite: Agenten nutzen sie über API und MCP. Hier stehen sie, damit keiner verloren geht.", "jetzt", "Daten"),
+  "en": ("Sensors for agents", "These sensors are also named after scientists and run on live data, but have no page of their own yet: agents use them through the API and MCP. They are listed here so that none is lost.", "now", "data")}
+def agent_only_section(lg):
+    h, lead, now, dat = AGENT_ONLY_H[lg]
+    rows = "".join('<li><b>get_%s</b> · %s<br><span>%s</span><br><small class="ao" data-api="%s">%s: …</small> · <a href="%s">%s</a> · <a href="%s" rel="noopener">Wikipedia</a></li>' % (
+        t, H.escape(who), H.escape(q[lg]), api, H.escape(now), api, H.escape(dat), wiki) for t, api, who, wiki, q in AGENT_ONLY)
+    js = '<script>document.querySelectorAll(".ao").forEach((el)=>{fetch(el.dataset.api,{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(d&&d.verdict)el.textContent=el.textContent.replace("…",String(d.verdict).replace(/_/g," "));}).catch(()=>{});});</script>'
+    return '  <section class="panel"><h2>%s</h2><p><small>%s</small></p><ul class="aolist" style="display:grid;gap:.6rem;list-style:none;padding:0">%s</ul></section>\n%s\n' % (H.escape(h), H.escape(lead), rows, js)
+
 def portal(lg):
     P = PORTAL[lg]; s = open(TPL[lg]).read(); head = s[:s.index('<div class="wrap">')]; pre = "" if lg == "ru" else "/" + lg; path = pre + "/tools/scientists"
     head = re.sub(r'<title>.*?</title>', '<title>' + H.escape(P["title"]) + '</title>', head, count=1, flags=re.S)
@@ -310,7 +349,7 @@ def portal(lg):
     body = ('<div class="wrap">\n  <div>\n    <div class="eyebrow">' + H.escape(P["eye"]) + '</div>\n    <h1>' + H.escape(P["h1"]) + '</h1>\n    <p class="lead">' + H.escape(P["lead"]) + '</p>\n    <p><small>' + H.escape(P["rule"]) + '</small></p>\n  </div>\n'
       '  <section class="panel"><h2>' + H.escape(PORTAL_IMPULSE[lg][0]) + '</h2><p id="impLine">' + H.escape(IMPULSE[lg]["cfg"]["loading"]) + '</p><p><a href="' + pre + '/tools/impulse">' + H.escape(PORTAL_IMPULSE[lg][1]) + ' →</a></p></section>\n'
       '  <section class="panel"><h2>' + H.escape({"ru": "Библиотека кристаллов", "de": "Kristall-Bibliothek", "en": "Crystal Library"}[lg]) + '</h2><p>' + H.escape({"ru": "Идеи всех учёных, которых нашёл разведчик, — и тех, у кого уже есть датчик, и тех, кто ещё ждёт: главная мысль и правило для ИИ-агента.", "de": "Die Ideen aller Forschenden, die der Späher gefunden hat – mit und ohne Sensor: Kerngedanke und Regel für KI-Agenten.", "en": "The ideas of every scientist the scout has found – with or without a sensor yet: the core thought and a rule for AI agents."}[lg]) + '</p><p><a href="' + pre + '/tools/crystals">' + H.escape({"ru": "Открыть библиотеку", "de": "Bibliothek öffnen", "en": "Open the library"}[lg]) + ' →</a></p></section>\n'
-      '  <section class="panel sci">\n' + "\n".join(cards) + '\n  </section>\n  <section class="panel">\n    <h2>' + H.escape(P["connect_h"]) + '</h2>\n    <p>' + P["connect"] + '</p>\n  </section>\n'
+      '  <section class="panel sci">\n' + "\n".join(cards) + '\n  </section>\n' + agent_only_section(lg) + '  <section class="panel">\n    <h2>' + H.escape(P["connect_h"]) + '</h2>\n    <p>' + P["connect"] + '</p>\n  </section>\n'
       '  <aside class="pstrip" aria-label="' + H.escape(st[0]) + '"><small>' + H.escape(st[0]) + ' · ' + H.escape(st[3]) + '</small><a href="/go/kraken?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[1]) + ' ↗</a><a href="/go/starlink?from=scientists" target="_blank" rel="sponsored noopener">' + H.escape(st[2]) + ' ↗</a></aside>\n</div>\n'
       '<script>\nconst P=' + json.dumps({"imp_leader": IMPULSE[lg]["cfg"]["leader"], "imp_none": IMPULSE[lg]["cfg"]["none"], "names_s": IMPULSE_COMP[lg], "live": P["live"], "now": P["now"], "min": SENSORS["mikrin"]["L"][lg]["cfg"]["min"], "names": {**SENSORS["hamilton"]["L"][lg]["cfg"]["comp"], **SENSORS["polyak"]["L"][lg]["cfg"]["comp"]}}, ensure_ascii=False) + ';\ntry{if(!sessionStorage.getItem("orbCounted_scientists")){sessionStorage.setItem("orbCounted_scientists","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"scientists",lang:"' + lg + '",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}\n'
       'fetch("/api/v1/impulse",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{const el=document.getElementById("impLine");if(!el||!d||!Array.isArray(d.sensors))return;const L=d.sensors.find((s)=>s.id===d.leader);el.textContent=L?P.imp_leader.replace("{x}",P.names_s[L.id]||L.id).replace("{n}",L.calls_7d):P.imp_none;}).catch(()=>{});\n'
