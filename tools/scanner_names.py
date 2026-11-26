@@ -19,6 +19,10 @@ def known():
     for f in glob.glob(os.path.join(ROOT, "src", "*.js")):
         for m in re.finditer(r'name:\s*"([^"]+)",\s*years:\s*"([^"]+)"', open(f, encoding="utf-8").read()):
             out.append((os.path.basename(f)[:-3], m.group(1), m.group(2), "sensor"))
+    w = os.path.join(ROOT, "docs", "memory-waiting.md")  # проверенные без мостика — тоже «уже знаем»
+    if os.path.exists(w):
+        for m in re.finditer(r"^- ([^|\n]+?) \| ([^|\n]+?) \|", open(w, encoding="utf-8").read(), re.M):
+            out.append(("waiting", m.group(1).strip(), m.group(2).strip(), "memory-waiting"))
     return out
 SUFFIX = {"jr", "sr", "ii", "iii", "iv", "мл", "ст"}  # «Henry Kyburg Jr.» -> kyburg, а не jr
 def surname(name): t = [w for w in norm(name) if len(w) > 1 and w not in SUFFIX]; return t[-1] if t else ""

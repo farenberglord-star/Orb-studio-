@@ -1706,11 +1706,11 @@ C = [
  '«O użyciu wyrażeń» (1971): что выражение делает в конкретном употреблении, не задано его словарным значением; читай употребление, а не только слова.',
  '„O użyciu wyrażeń“ (1971): Was ein Ausdruck in einem bestimmten Gebrauch leistet, ist nicht durch seine Wörterbuchbedeutung festgelegt; lies den Gebrauch, nicht nur die Wörter.',
  'Before treating a headline as a claim, check how its words are used here: report, quote, question or irony.'),
-('altshuller_g', 'Genrich Altshuller', 'Генрих Альтшуллер', '1926–1998', 'https://en.wikipedia.org/wiki/Genrikh_Altshuller', 'one_model',
- "'Алгоритм изобретения' (1969): when improving one parameter worsens another, do not settle for a compromise; name the contradiction and look for a way to remove it.",
- '«Алгоритм изобретения» (1969): если улучшение одного параметра ухудшает другой, не останавливайся на компромиссе; назови противоречие и ищи способ его снять.',
- '„Algorithmus der Erfindung“ (1969): Wenn die Verbesserung eines Parameters einen anderen verschlechtert, begnüge dich nicht mit einem Kompromiss; benenne den Widerspruch und suche einen Weg, ihn aufzuheben.',
- 'When two goals pull against each other, say which ones and whether a different approach removes the conflict.'),
+('kotarbinski_t', 'Tadeusz Kotarbiński', 'Тадеуш Котарбинский', '1886–1981', 'https://en.wikipedia.org/wiki/Tadeusz_Kotarbi%C5%84ski', 'answer_cost',
+ "'Traktat o dobrej robocie' (1955): good work is effective and economical at once; spending more means than the result needs is a fault, not care.",
+ '«Трактат о хорошей работе» (1955): хорошая работа одновременно действенна и экономна; тратить больше средств, чем нужно результату, — ошибка, а не тщательность.',
+ '„Traktat o dobrej robocie“ (1955): Gute Arbeit ist zugleich wirksam und sparsam; mehr Mittel aufzuwenden, als das Ergebnis braucht, ist ein Fehler, keine Sorgfalt.',
+ 'Stop checking when another source no longer changes the answer; say how many checks the answer took.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2284,4 +2284,4 @@ NEEDS['gini_c'] = ('covered', 'the Bradford sensor already gives how concentrate
 NEEDS['theil_h'] = ('covered', 'concentration of headlines by outlet is given by the Bradford sensor; Theil adds only the between/within split of outlet groups; bridge outlet_concentration', None, 'bradford')
 NEEDS['herfindahl_oc'] = ('covered', 'concentration of headlines by outlet is given by the Bradford sensor (top-5 and top-10 shares); bridge outlet_concentration', None, 'bradford')
 NEEDS['pelc_j'] = ('covered', 'the Searle sensor already separates claims, promises, threats and events (speech acts), i.e. use rather than wording', None, 'searle')
-NEEDS['altshuller_g'] = ('needs_idea', 'no number yet; possible host rule: when two passport lines pull the confidence in opposite directions, name the contradiction instead of averaging', None)
+NEEDS['kotarbinski_t'] = ('needs_idea', 'per answer: number of sources checked and how much each further check moved the Harman confidence; when the last checks moved it by under a few points, further checking is waste; needs the confidence trace stored per answer; bridge economy_of_checking', None)

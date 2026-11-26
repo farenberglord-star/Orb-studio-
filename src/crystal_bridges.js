@@ -43,7 +43,7 @@ export const CRYSTAL_BRIDGES = [
   B("unanimity", "Unanimity is not proof", "Единогласие ≠ доказательство", "rumour_vs_fact", "covered", ["asch", "condorcet", "hempel"], { sensor: "frankfurt" }),
   B("formal_limit", "A system cannot check itself", "Граница формализации", "own_limits", "covered", ["goedel", "tarski", "polanyi_m", "ryle"], { sensor: "rabin" }),
   B("calm_breeds_risk", "Stability breeds risk", "Стабильность растит риск", "side_effects", "covered", ["minsky_h", "pareto", "mandelbrot"], { sensor: "pareto" }),
-  B("message_functions", "Three functions of a message", "Три функции сообщения", "rumour_vs_fact", "covered", ["buehler", "searle", "goffman"], { sensor: "searle" }),
+  B("message_functions", "Three functions of a message", "Три функции сообщения", "rumour_vs_fact", "covered", ["buehler", "searle", "goffman", "pelc_j"], { sensor: "searle" }),
   B("test_before_data", "Fix the test before the data", "Тест до данных", "measurement_error", "covered", ["fisher_r", "skinner_bf"], { sensor: "trackrecord" }),
   B("not_confirmed", "Not confirmed ≠ refuted", "Не подтверждено ≠ опровергнуто", "rumour_vs_fact", "covered", ["greimas", "dunn", "karpenko"], { sensor: "frankfurt" }),
   B("verb_aspect", "Done, doing or planned", "Вид глагола", "rumour_vs_fact", "covered", ["maslov", "searle", "grice"], { sensor: "searle" }),
@@ -208,6 +208,7 @@ export const CRYSTAL_BRIDGES = [
   B("meaning_of_its_time", "Meaning of its own time", "Значение своего времени", "stale_data", "covered", ["paul_h", "koselleck", "rey"], { line: "quoted and found_document lines" }),
   B("outlet_concentration", "Many headlines, few outlets", "Много заголовков — мало изданий", "one_model", "covered", ["gini_c", "theil_h", "herfindahl_oc", "bradford_sc", "pareto"], { sensor: "bradford", number: "share of 7 days of radar headlines given by the 5 and 10 largest outlets (feeds, recomputed on each Bradford report, daily)" }),
   B("pooled_or_split", "One number or several", "Одно число или несколько", "one_model", "idea", ["cochran_wg", "leamer", "campbell_dt"], { needs: "a bootstrap error for each Leamer variant of a radar index, to test whether the spread of variants is larger than their noise (Cochran Q)" }),
+  B("economy_of_checking", "Enough checking", "Достаточно проверки", "answer_cost", "idea", ["kotarbinski_t", "levi_i"], { needs: "a stored trace of the Harman confidence after each checked source, to see when further checks stop moving the answer" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

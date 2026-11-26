@@ -14038,21 +14038,21 @@ export const CRYSTALS = [
 }
 },
 {
-"id": "altshuller_g",
-"name": "Genrich Altshuller",
-"name_ru": "Генрих Альтшуллер",
-"years": "1926–1998",
-"wiki": "https://en.wikipedia.org/wiki/Genrikh_Altshuller",
-"zone": "one_model",
+"id": "kotarbinski_t",
+"name": "Tadeusz Kotarbiński",
+"name_ru": "Тадеуш Котарбинский",
+"years": "1886–1981",
+"wiki": "https://en.wikipedia.org/wiki/Tadeusz_Kotarbi%C5%84ski",
+"zone": "answer_cost",
 "idea": {
-"en": "'Алгоритм изобретения' (1969): when improving one parameter worsens another, do not settle for a compromise; name the contradiction and look for a way to remove it.",
-"ru": "«Алгоритм изобретения» (1969): если улучшение одного параметра ухудшает другой, не останавливайся на компромиссе; назови противоречие и ищи способ его снять.",
-"de": "„Algorithmus der Erfindung“ (1969): Wenn die Verbesserung eines Parameters einen anderen verschlechtert, begnüge dich nicht mit einem Kompromiss; benenne den Widerspruch und suche einen Weg, ihn aufzuheben."
+"en": "'Traktat o dobrej robocie' (1955): good work is effective and economical at once; spending more means than the result needs is a fault, not care.",
+"ru": "«Трактат о хорошей работе» (1955): хорошая работа одновременно действенна и экономна; тратить больше средств, чем нужно результату, — ошибка, а не тщательность.",
+"de": "„Traktat o dobrej robocie“ (1955): Gute Arbeit ist zugleich wirksam und sparsam; mehr Mittel aufzuwenden, als das Ergebnis braucht, ist ein Fehler, keine Sorgfalt."
 },
-"rule": "When two goals pull against each other, say which ones and whether a different approach removes the conflict.",
+"rule": "Stop checking when another source no longer changes the answer; say how many checks the answer took.",
 "needs": {
 "code": "needs_idea",
-"note": "no number yet; possible host rule: when two passport lines pull the confidence in opposite directions, name the contradiction instead of averaging"
+"note": "per answer: number of sources checked and how much each further check moved the Harman confidence; when the last checks moved it by under a few points, further checking is waste; needs the confidence trace stored per answer; bridge economy_of_checking"
 }
 }
 ];
