@@ -1956,6 +1956,11 @@ C = [
  '«Оптимальный выбор момента остановки марковского процесса» (ДАН СССР, 1963): лучший момент остановки — когда ценность остановки сейчас не меньше ценности продолжения.',
  '„Die optimale Wahl des Zeitpunkts zum Stoppen eines Markov-Prozesses“ (Doklady AN SSSR, 1963): Der beste Zeitpunkt zum Stoppen ist, wenn der Wert des Stoppens jetzt mindestens so groß ist wie der des Weitermachens.',
  'Stop when stopping now is worth at least as much as going on.'),
+('tuldava_j', 'Juhan Tuldava', 'Юхан Тулдава', '1922–2003', 'https://et.wikipedia.org/wiki/Juhan_Tuldava', 'look_alike',
+ "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
+ '«Quantitative Relations between the Size of Text and the Size of Vocabulary» (тартуская школа квантитативной лингвистики, 1970-е): богатство словаря зависит от длины текста, поэтому сравнивай тексты только при равной длине или через поправку на длину.',
+ '„Quantitative Relations between the Size of Text and the Size of Vocabulary“ (Tartuer Schule der quantitativen Linguistik, 1970er): Der Wortschatzreichtum hängt von der Textlänge ab; vergleiche Texte nur bei gleicher Länge oder mit Längenkorrektur.',
+ 'Do not compare word variety of a short and a long text without correcting for length.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2579,3 +2584,4 @@ NEEDS['altmann_g'] = ('needs_idea', 'per headline: length in words and mean word
 NEEDS['schwarz_g'] = ('covered', 'the Leamer sensor recomputes indices under reasonable alternative choices; Schwarz adds that a choice with more parameters must earn them; bridge robust_conclusion', None, 'leamer')
 NEEDS['mccall_jj'] = ('needs_idea', 'per story: how much each further outlet headline moves the story index (radar feeds, every 30 minutes); stop point where the last few move it under a threshold; not computed yet')
 NEEDS['dynkin_eb'] = ('needs_idea', 'same measure as McCall: the point where continuing to read more headlines of a story stops being worth more than stopping; not computed yet')
+NEEDS['tuldava_j'] = ('needs_idea', 'per story: distinct words over headline words, corrected for the number of headlines (length-adjusted richness) against stories of other sizes; radar feeds, every 30 minutes; the exact index form to be taken from the original source')

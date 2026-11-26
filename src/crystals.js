@@ -14962,6 +14962,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "same measure as McCall: the point where continuing to read more headlines of a story stops being worth more than stopping; not computed yet"
 }
+},
+{
+"id": "tuldava_j",
+"name": "Juhan Tuldava",
+"name_ru": "Юхан Тулдава",
+"years": "1922–2003",
+"wiki": "https://et.wikipedia.org/wiki/Juhan_Tuldava",
+"zone": "look_alike",
+"idea": {
+"en": "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
+"ru": "«Quantitative Relations between the Size of Text and the Size of Vocabulary» (тартуская школа квантитативной лингвистики, 1970-е): богатство словаря зависит от длины текста, поэтому сравнивай тексты только при равной длине или через поправку на длину.",
+"de": "„Quantitative Relations between the Size of Text and the Size of Vocabulary“ (Tartuer Schule der quantitativen Linguistik, 1970er): Der Wortschatzreichtum hängt von der Textlänge ab; vergleiche Texte nur bei gleicher Länge oder mit Längenkorrektur."
+},
+"rule": "Do not compare word variety of a short and a long text without correcting for length.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: distinct words over headline words, corrected for the number of headlines (length-adjusted richness) against stories of other sizes; radar feeds, every 30 minutes; the exact index form to be taken from the original source"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
