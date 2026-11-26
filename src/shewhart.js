@@ -126,6 +126,7 @@ export function shewhartReport(rows, series, now = Date.now()) {
   const shifted = Object.entries(radars).filter(([, r]) => r.verdict === "shift_up" || r.verdict === "shift_down").map(([id, r]) => ({ radar: id, verdict: r.verdict, since: r.shift_since, from: r.mean_before, to: r.new_level_estimate }));
   return {
     sensor: "shewhart", honour: SHEWHART, generated_at: new Date(now).toISOString(),
+    verdict: shifted.length ? "level_shifted" : Object.values(radars).some((r) => r.verdict === "in_control") ? "levels_in_control" : "collecting",
     question: "Has a radar's level quietly shifted — a small change that never looked like a jump but has held for hours?",
     shifted, radars,
     drifting: Object.entries(radars).filter(([, r]) => r.small_steps_24h && r.small_steps_24h.verdict === "drift_in_small_steps").map(([id, r]) => ({ radar: id, net_24h: r.small_steps_24h.net_24h, small_steps_share_pct: r.small_steps_24h.small_steps_share_pct })),
