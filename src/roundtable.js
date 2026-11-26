@@ -246,6 +246,16 @@ export function rtAssemble(topics0, intro, answers, close, models) {
 // В эфир — только если по каждой теме ответил хотя бы один гость
 export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
 
+// ответ переводчика читаем в любом разумном виде: объект {gemini: "…"} (любой регистр), массив [{guest, text}] или вложенный {text}
+function pickAns(a, g) {
+  if (!a) return "";
+  const txt = (v) => (typeof v === "string" ? v : v && typeof v === "object" ? String(v.text || v.answer || v.translation || "") : "");
+  if (Array.isArray(a)) { const e = a.find((y) => y && [y.guest, y.who, y.id, y.name, y.key].some((n) => String(n || "").toLowerCase() === g)); return e ? txt(e) : ""; }
+  if (typeof a === "object") { const k = Object.keys(a).find((n) => n.toLowerCase() === g); return k ? txt(a[k]) : ""; }
+  return "";
+}
+// перевод годится, если он не пуст, не равен оригиналу и для русского написан кириллицей
+function okTr(v, orig, lg) { const t = cleanSpeech(v, 1000); if (!t) return ""; if (lg === "ru" && !/[а-яё]/i.test(t)) return ""; if (t === cleanSpeech(orig, 1000)) return ""; return t; }
 export async function rtTranslate(env, d, only) {
   const LANGS = only && only.length ? RT_TR.filter((l) => only.includes(l)) : RT_TR;
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
@@ -254,14 +264,22 @@ export async function rtTranslate(env, d, only) {
     try {
       const { data } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
         `You translate a news round table between AI models from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Translate every string, keep the meaning exactly, add nothing. Write the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI, Orb Studio and orbstudio.org exactly like this, in Latin letters, never transliterated (for example never "Клод"). Return the same JSON structure with the same keys.`,
-        JSON.stringify(src), { temperature: 0.2, max_tokens: 6000 });
+        JSON.stringify(src), { temperature: 0.2, max_tokens: 9000 });
       if (!data || typeof data.intro !== "string" || !Array.isArray(data.topics)) return null;
       const o = { intro: cleanSpeech(data.intro, 700), closing: cleanSpeech(data.closing, 900), topics: {} };
       for (const t of src.topics) {
         const x = data.topics.find((y) => +y.i === t.i); if (!x) return null;
-        // Один гость без перевода не губит весь язык: его реплика остаётся оригиналом (fb), остальные идут на языке зрителя; cron потом переводит заново
-        const a = {}; for (const g of Object.keys(t.answers)) { const v = cleanSpeech(x.answers && x.answers[g], 1000); if (v) a[g] = v; else { a[g] = cleanSpeech(t.answers[g], 1000); (o.fb = o.fb || []).push(g); } }
+        // Один гость без перевода не губит весь язык: его реплика остаётся оригиналом (fb), остальные идут на языке зрителя; ниже fb добивается отдельным простым запросом, потом cron
+        const a = {}; for (const g of Object.keys(t.answers)) { const v = okTr(pickAns(x.answers, g), t.answers[g], lg); if (v) a[g] = v; else { a[g] = cleanSpeech(t.answers[g], 1000); (o.fb = o.fb || []).push(t.i + ":" + g); } }
         o.topics[t.i] = { recap: cleanSpeech(x.recap, 700), question: cleanSpeech(x.question, 450), thanks: cleanSpeech(x.thanks, 450), answers: a };
+      }
+      if (o.fb && o.fb.length) { // ответы гостей не пришли в ожидаемом виде: переводим только их, плоским запросом «ключ → текст»
+        try { const items = Object.fromEntries(o.fb.map((k) => { const [i, g] = k.split(":"); return [k, src.topics.find((t) => String(t.i) === i).answers[g]]; }));
+          const { data: fl } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
+            `Translate every value of the JSON object from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Keep the meaning exactly, add nothing. Keep the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI in Latin letters. Return a JSON object with exactly the same keys.`, JSON.stringify(items), { temperature: 0.2, max_tokens: 4000 });
+          const left = []; for (const k of o.fb) { const [i, g] = k.split(":"), v = okTr(fl && typeof fl === "object" ? fl[k] : "", items[k], lg); if (v) o.topics[i].answers[g] = v; else left.push(k); }
+          if (left.length) o.fb = left; else delete o.fb;
+        } catch {}
       }
       return o;
     } catch { return null; }

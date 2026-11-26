@@ -34,9 +34,9 @@ function mockFetch({ reject = false, guestFail = [] } = {}) {
       return new Response(JSON.stringify({ model: "claude-test", content: [{ type: "tool_use", name, input }] }), { status: 200 });
     }
     const sys = (b.messages && b.messages[0] && b.messages[0].content) || "";
-    if (String(url).includes("x.ai/v1/chat") && /You translate/.test(sys)) {
-      const src = JSON.parse(b.messages[1].content);
-      const out = { intro: "Willkommen " + src.intro, closing: "Danke " + src.closing, topics: src.topics.map((t) => ({ i: t.i, recap: "Zusammenfassung " + t.recap, question: "Frage " + t.question, thanks: "Danke " + t.thanks, answers: Object.fromEntries(Object.entries(t.answers).map(([g, x]) => [g, "Antwort " + x])) })) };
+    if (String(url).includes("x.ai/v1/chat") && /You translate|Translate every value/.test(sys)) {
+      const src = JSON.parse(b.messages[1].content), ru = /Russian/.test(sys), w = ru ? ["Здравствуйте ", "Спасибо ", "Пересказ ", "Вопрос ", "Ответ "] : ["Willkommen ", "Danke ", "Zusammenfassung ", "Frage ", "Antwort "];
+      const out = src.topics ? { intro: w[0] + src.intro, closing: w[1] + src.closing, topics: src.topics.map((t) => ({ i: t.i, recap: w[2] + t.recap, question: w[3] + t.question, thanks: w[1] + t.thanks, answers: Object.fromEntries(Object.entries(t.answers).map(([g, x]) => [g, w[4] + x])) })) } : Object.fromEntries(Object.entries(src).map(([k, x]) => [k, w[4] + x]));
       return new Response(JSON.stringify({ model: "grok-test", choices: [{ message: { content: JSON.stringify(out) } }] }), { status: 200 });
     }
     const guest = String(url).includes("x.ai") ? "grok" : String(url).includes("deepseek") ? "deepseek" : "gemini";
@@ -188,18 +188,27 @@ test("карточка без русского перевода доводитс
   const fixed = await rqFind(env, r.body.id); assert.ok(fixed.translations.ru && fixed.translations.de); assert.equal(await rqRepairTranslations(env), null, "всё на месте — ничего не делаем");
 });
 
-test("Gemini на трёх языках: реплика есть на en, ru и de; сбой перевода одной реплики не роняет язык и потом доводится", async () => {
-  mockFetch(); const real = globalThis.fetch; let dropGemini = true; const env = { DB: fakeDb(), ...KEYS };
-  globalThis.fetch = async (url, init) => { const res = await real(url, init), b = init && init.body ? JSON.parse(init.body) : {};
-    if (dropGemini && String(url).includes("x.ai/v1/chat") && /You translate/.test((b.messages && b.messages[0].content) || "")) { const j = await res.json(), c = JSON.parse(j.choices[0].message.content); for (const t of c.topics) delete t.answers.gemini; j.choices[0].message.content = JSON.stringify(c); return new Response(JSON.stringify(j), { status: 200 }); }
+test("Gemini на трёх языках: ответы гостей на en, ru и de; если переводчик не вернул реплику Gemini — добивается отдельным запросом, а при двойном сбое доводится потом", async () => {
+  mockFetch(); const real = globalThis.fetch; let dropGemini = true, dropFlat = false; const env = { DB: fakeDb(), ...KEYS };
+  globalThis.fetch = async (url, init) => { const res = await real(url, init), b = init && init.body ? JSON.parse(init.body) : {}, sys = (b.messages && b.messages[0].content) || "";
+    if (dropGemini && String(url).includes("x.ai/v1/chat") && /You translate/.test(sys)) { const j = await res.json(), c = JSON.parse(j.choices[0].message.content); for (const t of c.topics) delete t.answers.gemini; j.choices[0].message.content = JSON.stringify(c); return new Response(JSON.stringify(j), { status: 200 }); }
+    if (dropFlat && String(url).includes("x.ai/v1/chat") && /Translate every value/.test(sys)) return new Response("boom", { status: 500 });
     return res; };
-  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/gem" });
+  // 1) структурный перевод потерял Gemini, плоский запрос его добил
+  let r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/gem" });
   assert.equal(await until(env, deps(), r.body.id), "ready");
   let d = await rqFind(env, r.body.id);
   assert.match(d.topics[0].answers.gemini.text, /gemini says/, "английский оригинал");
-  for (const l of ["ru", "de"]) { assert.ok(d.translations[l], l + ": язык собран"); assert.ok(d.translations[l].topics[0].answers.gemini, l + ": реплика Gemini есть (хотя бы оригиналом)"); assert.deepEqual(d.translations[l].fb, ["gemini"]); }
-  dropGemini = false; assert.equal(await rqRepairTranslations(env), r.body.id);
-  d = await rqFind(env, r.body.id);
-  for (const l of ["ru", "de"]) { assert.ok(!(d.translations[l].fb || []).length, l + ": доведено"); assert.match(d.translations[l].topics[0].answers.gemini, /gemini says/); }
+  assert.match(d.translations.ru.topics[0].answers.gemini, /^Ответ gemini says/, "ru: реплика Gemini переведена"); assert.match(d.translations.de.topics[0].answers.gemini, /^Antwort gemini says/, "de: переведена");
+  for (const l of ["ru", "de"]) for (const g of ["gemini", "grok", "deepseek"]) assert.ok(d.translations[l].topics[0].answers[g] !== d.topics[0].answers[g].text, l + "/" + g + " не оригинал");
+  assert.ok(!d.translations.ru.fb && !d.translations.de.fb);
+  const qru = rtQueue(d, "ru"), who = (l) => l.filter((x) => x.part === "answer").map((x) => x.text); // очередь для русской страницы целиком на русском
+  assert.ok(who(qru.lines || qru).every((x) => /[а-яё]/i.test(x)), "русский эфир: все гости по-русски");
+  // 2) сбой и структурного, и плоского: язык не теряется, реплика оригиналом (fb), потом cron довершает
+  dropFlat = true; r = await rqSubmit(req("2.2.2.2"), env, { waitUntil() {} }, deps(), { url: "https://example.com/gem2" });
+  assert.equal(await until(env, deps(), r.body.id), "ready"); d = await rqFind(env, r.body.id);
+  for (const l of ["ru", "de"]) { assert.ok(d.translations[l].topics[0].answers.gemini); assert.deepEqual(d.translations[l].fb, ["0:gemini"]); }
+  dropGemini = false; dropFlat = false; assert.equal(await rqRepairTranslations(env), r.body.id); d = await rqFind(env, r.body.id);
+  for (const l of ["ru", "de"]) assert.ok(!(d.translations[l].fb || []).length, l + ": доведено");
   globalThis.fetch = real;
 });
