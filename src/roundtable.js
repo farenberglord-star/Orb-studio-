@@ -149,15 +149,24 @@ export async function askGuest(env, g, topics, lang) {
   if (g === "deepseek") { if (!env.DEEPSEEK_API_KEY) return { status: "off" }; return openaiLike("https://api.deepseek.com/chat/completions", env.DEEPSEEK_API_KEY, env.DEEPSEEK_MODEL || "deepseek-chat", sys, user); }
   if (g === "gemini") {
     if (!env.GEMINI_API_KEY) return { status: "off" };
-    const model = env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash";
-    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", { method: "POST", signal: AbortSignal.timeout(90000),
-      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 8192, ...(/^gemini-3/.test(model) ? { thinkingConfig: { thinkingLevel: "low" } } : {}) } }) });
-    if (!r.ok) throw new Error("Gemini " + r.status + " " + (await r.text()).slice(0, 160));
-    // maxOutputTokens считает и «мысли» модели: при 2000 ответ обрывался посреди JSON (rt-last-error 26.11.2026). Части-мысли пропускаем, оборванный ответ — явная ошибка.
-    const j = await r.json(); const c0 = (j.candidates || [])[0] || {}; const txt = (c0.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || "").join("");
-    if (c0.finishReason && c0.finishReason !== "STOP") throw new Error("Gemini finishReason " + c0.finishReason + " after " + txt.length + " chars");
-    return { data: parseJson(txt), model: j.modelVersion || model };
+    // gemini-3.5-flash у Google помечена устаревшей (маршрутизируется на 3.6), для серии 3 temperature не задают, мысли модели считаются в maxOutputTokens.
+    // Пустой или оборванный ответ не молчание: пробуем следующую модель цепочки, а в ошибку пишем, что именно случилось с каждой.
+    const chain = [...new Set([env.RT_GEMINI_MODEL, env.GEMINI_MODEL, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite"].filter(Boolean))], fails = [];
+    for (const model of chain.slice(0, 3)) {
+      try {
+        const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", { method: "POST", signal: AbortSignal.timeout(60000),
+          headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+          body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { responseMimeType: "application/json", maxOutputTokens: 8192, ...(/^gemini-3/.test(model) ? { thinkingConfig: { thinkingLevel: "low" } } : { temperature: 0.6 }) } }) });
+        if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 100));
+        const j = await r.json(); const c0 = (j.candidates || [])[0] || {}; const txt = (c0.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || "").join("");
+        if (c0.finishReason && c0.finishReason !== "STOP") throw new Error("finishReason " + c0.finishReason + " after " + txt.length + " chars");
+        if (!txt.trim()) throw new Error("empty answer" + (j.promptFeedback && j.promptFeedback.blockReason ? " (blocked: " + j.promptFeedback.blockReason + ")" : ""));
+        let data = null; try { data = parseJson(txt); } catch {}
+        if (!data) throw new Error("not JSON: " + txt.slice(0, 60));
+        return { data, model: j.modelVersion || model };
+      } catch (e) { fails.push(model + ": " + String(e && e.message || e).slice(0, 110)); }
+    }
+    throw new Error("Gemini " + fails.join(" | "));
   }
   return { status: "off" };
 }
@@ -193,7 +202,7 @@ export async function rtAuthorPreview(env, deps, make) {
   if (await deps.sharedGet(env, RT_AUTHOR_LOCK, 10 * 60e3)) return { status: "preparing" };
   await deps.sharedPut(env, RT_AUTHOR_LOCK, { t: Date.now() });
   const topics = RT_AUTHOR_THESES.map((t, i) => ({ i, headline: t, source: RT_AUTHOR_SOURCE, recap: t, question: RT_AUTHOR_QUESTION })), answers = {};
-  await Promise.all(RT_GUESTS.map(async (g) => { try { answers[g] = await askGuest(env, g, topics, "Russian"); } catch (e) { answers[g] = { error: String(e && e.message || e).slice(0, 120) }; } }));
+  await Promise.all(RT_GUESTS.map(async (g) => { try { answers[g] = await askGuest(env, g, topics, "Russian"); } catch (e) { answers[g] = { error: String(e && e.message || e).slice(0, 400) }; } }));
   let rounds = rtAuthorAssemble(answers, null);
   if (!rounds.some((r) => RT_GUESTS.some((g) => r.answers[g].status === "ok"))) return { status: "guests_offline", errors: Object.fromEntries(RT_GUESTS.map((g) => [g, answers[g] && (answers[g].error || answers[g].status) || null])) };
   try { rounds = rtAuthorAssemble(answers, await claudeTool(env, RT_AUTHOR_CLOSE_SYSTEM, { theses: rounds.map((r) => ({ i: r.i, thesis: r.thesis, answers: Object.fromEntries(RT_GUESTS.map((g) => [g, r.answers[g].text])) })) }, RT_AUTHOR_CLOSE_TOOL, 900)); } catch {}

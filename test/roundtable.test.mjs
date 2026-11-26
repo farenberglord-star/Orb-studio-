@@ -121,3 +121,19 @@ test("three site languages only: Russian, German, English — Romanian and Turki
   assert.ok(!/RO: "ro"|TR: "tr"/.test(w)); assert.ok(!/5 languages/.test(w + readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8")));
   const aj = JSON.parse(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8")); assert.ok(!JSON.stringify(aj).includes('"ro"') && !JSON.stringify(aj).includes('"tr"'));
 });
+
+test("Gemini: пустой ответ или 404 первой модели — берётся следующая, причины видны в ошибке", async () => {
+  const m = await import("../src/roundtable.js"), realFetch = globalThis.fetch, seen = [];
+  try {
+    const good = JSON.stringify({ answers: [{ i: 0, text: "Ответ Gemini по теме выпуска." }] });
+    globalThis.fetch = async (url, init) => { const model = decodeURIComponent(String(url).split("/models/")[1].split(":")[0]); seen.push([model, JSON.parse(init.body).generationConfig.temperature]);
+      if (model === "gemini-3.6-flash") return new Response(JSON.stringify({ candidates: [{ finishReason: "STOP", content: { parts: [] } }] }), { status: 200 });
+      if (model === "gemini-3.5-flash") return new Response("not found", { status: 404 });
+      return new Response(JSON.stringify({ modelVersion: model, candidates: [{ finishReason: "STOP", content: { parts: [{ text: good }] } }] }), { status: 200 }); };
+    const r = await m.askGuest({ GEMINI_API_KEY: "k" }, "gemini", [{ i: 0, headline: "H", source: "S", recap: "R", question: "Q?" }], "Russian");
+    assert.equal(r.model, "gemini-3.1-flash-lite"); assert.deepEqual(seen.map((x) => x[0]), ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite"]);
+    assert.equal(seen[0][1], undefined, "для серии 3 temperature не задаём");
+    globalThis.fetch = async () => new Response("boom", { status: 500 });
+    await assert.rejects(() => m.askGuest({ GEMINI_API_KEY: "k" }, "gemini", [], "Russian"), /gemini-3\.6-flash: 500 boom.*gemini-3\.5-flash: 500/);
+  } finally { globalThis.fetch = realFetch; }
+});
