@@ -14630,8 +14630,9 @@ export const CRYSTALS = [
 },
 "rule": "Do not read a trend into a series polled more slowly than it moves; say how often it was read.",
 "needs": {
-"code": "needs_idea",
-"note": "for each sensor in the freshness catalogue: our polling interval against the source update interval (expect_h); below a ratio of 2 the series can show changes that are not there; bridge poll_fast_enough"
+"code": "covered",
+"note": "the Nyquist sensor (/api/v1/nyquist) gives each radar's share of half-hour records that differ; above 0.5 it is below the Nyquist rate",
+"covered_by": "nyquist"
 }
 },
 {

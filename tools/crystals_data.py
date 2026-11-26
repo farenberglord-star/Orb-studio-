@@ -2475,5 +2475,5 @@ NEEDS['line_mb'] = ('needs_history', 'a story\'s share of all radar headlines pe
 NEEDS['ruge_mh'] = ('needs_idea', 'share of radar headlines naming one of the largest powers or a head of state/government, per radar per day; coverage reflects selection, not size; bridge elite_lens', None)
 NEEDS['sichel_h'] = ('needs_idea', 'vocabulary richness of the headlines of one story across outlets (distinct words / words, or a Sichel fit), from radar headlines, daily; bridge same_words_many_copies', None)
 NEEDS['shibutani_t'] = ('covered', 'the Searle sensor gives attribution: share of radar headlines resting on unnamed sources; bridge named_or_anonymous', None, 'searle')
-NEEDS['nyquist_h'] = ('needs_idea', 'for each sensor in the freshness catalogue: our polling interval against the source update interval (expect_h); below a ratio of 2 the series can show changes that are not there; bridge poll_fast_enough', None)
+NEEDS['nyquist_h'] = ('covered', 'the Nyquist sensor (/api/v1/nyquist) gives each radar\'s share of half-hour records that differ; above 0.5 it is below the Nyquist rate', None, 'nyquist')
 NEEDS['ogburn_wf'] = ('needs_history', 'outlets that joined a story within minutes of each other: independent (different details, Flesch concreteness) or copied (same words); bridge independent_voices', None)
