@@ -535,11 +535,11 @@ function start() {
   // «Новость на стол»: форма, статус и список готовых карточек
   const RQ = API + "/request", rqMsg = $("rq-msg");
   $("rq-h").textContent = t.rqH; $("rq-sub").textContent = t.rqSub; $("rq-url").placeholder = t.rqUrl; $("rq-name").placeholder = t.rqName; $("rq-go").textContent = t.rqGo; $("rq-list-h").textContent = t.rqList;
-  async function rqLoad() { try { const j = await (await fetch(API + "/requests")).json(); const ol = $("rq-list"); ol.textContent = "";
+  async function rqLoad() { try { const j = await (await fetch(API + "/requests?lang=" + lang)).json(); const ol = $("rq-list"); ol.textContent = "";
     const list = (j && j.requests) || []; if (!list.length) { const li = document.createElement("li"); li.textContent = t.rqEmpty; ol.append(li); return; }
     for (const r of list.slice(0, 12)) { const li = document.createElement("li"), h = document.createElement("div"), a = document.createElement("a"); if (r.by === "agent") li.className = "ag";
       h.className = "h"; h.textContent = (r.name || (r.by === "agent" ? t.rqAgent : t.rqGuest)) + " · " + (r.source || "") + " · " + new Date(r.ready_at || r.submitted_at).toLocaleString(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-      a.textContent = r.title || r.id; a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(r.id); li.append(h, a); ol.append(li); } } catch {} }
+      a.textContent = r.title_local || r.title || r.id; a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(r.id); li.append(h, a); ol.append(li); } } catch {} }
   // Шкала подготовки: сервер собирает выпуск сам, страница только читает статус; id хранится в браузере, поэтому после перезагрузки шкала возвращается
   const rqP = $("rqp"), rqBar = $("rqp-bar"), rqPc = $("rqp-pc"), rqPt = $("rqp-t"), rqPn = $("rqp-n"); let rqTimer = null, rqShown = 0;
   const rqLinkTo = (id) => { rqMsg.textContent = ""; const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(id); a.textContent = t.rqReady; rqMsg.append(a); };

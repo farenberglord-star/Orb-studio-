@@ -36,7 +36,7 @@ function mockFetch({ reject = false, guestFail = [] } = {}) {
     const sys = (b.messages && b.messages[0] && b.messages[0].content) || "";
     if (String(url).includes("x.ai/v1/chat") && /You translate|Translate every value/.test(sys)) {
       const src = JSON.parse(b.messages[1].content), ru = /Russian/.test(sys), w = ru ? ["Здравствуйте ", "Спасибо ", "Пересказ ", "Вопрос ", "Ответ "] : ["Willkommen ", "Danke ", "Zusammenfassung ", "Frage ", "Antwort "];
-      const out = src.topics ? { intro: w[0] + src.intro, closing: w[1] + src.closing, topics: src.topics.map((t) => ({ i: t.i, recap: w[2] + t.recap, question: w[3] + t.question, thanks: w[1] + t.thanks, answers: Object.fromEntries(Object.entries(t.answers).map(([g, x]) => [g, w[4] + x])) })) } : Object.fromEntries(Object.entries(src).map(([k, x]) => [k, w[4] + x]));
+      const out = src.topics ? { intro: w[0] + src.intro, closing: w[1] + src.closing, topics: src.topics.map((t) => ({ i: t.i, headline: w[2] + t.headline, recap: w[2] + t.recap, question: w[3] + t.question, thanks: w[1] + t.thanks, answers: Object.fromEntries(Object.entries(t.answers).map(([g, x]) => [g, w[4] + x])) })) } : Object.fromEntries(Object.entries(src).map(([k, x]) => [k, w[4] + x]));
       return new Response(JSON.stringify({ model: "grok-test", choices: [{ message: { content: JSON.stringify(out) } }] }), { status: 200 });
     }
     const guest = String(url).includes("x.ai") ? "grok" : String(url).includes("deepseek") ? "deepseek" : "gemini";
@@ -204,6 +204,8 @@ test("Gemini на трёх языках: ответы гостей на en, ru �
   assert.ok(!d.translations.ru.fb && !d.translations.de.fb);
   const qru = rtQueue(d, "ru"), who = (l) => l.filter((x) => x.part === "answer").map((x) => x.text); // очередь для русской страницы целиком на русском
   assert.ok(who(qru.lines || qru).every((x) => /[а-яё]/i.test(x)), "русский эфир: все гости по-русски");
+  const list = await rqHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/requests?lang=ru"), deps({ autoStart: true }));
+  assert.match(list.body.requests[0].title_local, /^Пересказ /, "заголовок в списке на языке страницы"); assert.ok(!/^Пересказ/.test(list.body.requests[0].title));
   // 2) сбой и структурного, и плоского: язык не теряется, реплика оригиналом (fb), потом cron довершает
   dropFlat = true; r = await rqSubmit(req("2.2.2.2"), env, { waitUntil() {} }, deps(), { url: "https://example.com/gem2" });
   assert.equal(await until(env, deps(), r.body.id), "ready"); d = await rqFind(env, r.body.id);

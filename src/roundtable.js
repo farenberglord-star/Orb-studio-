@@ -259,7 +259,7 @@ function okTr(v, orig, lg) { const t = cleanSpeech(v, 1000); if (!t) return ""; 
 export async function rtTranslate(env, d, only) {
   const LANGS = only && only.length ? RT_TR.filter((l) => only.includes(l)) : RT_TR;
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
-  const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
+  const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, headline: t.headline, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
   const one = async (lg) => {
     try {
       const { data } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
@@ -271,7 +271,7 @@ export async function rtTranslate(env, d, only) {
         const x = data.topics.find((y) => +y.i === t.i); if (!x) return null;
         // Один гость без перевода не губит весь язык: его реплика остаётся оригиналом (fb), остальные идут на языке зрителя; ниже fb добивается отдельным простым запросом, потом cron
         const a = {}; for (const g of Object.keys(t.answers)) { const v = okTr(pickAns(x.answers, g), t.answers[g], lg); if (v) a[g] = v; else { a[g] = cleanSpeech(t.answers[g], 1000); (o.fb = o.fb || []).push(t.i + ":" + g); } }
-        o.topics[t.i] = { recap: cleanSpeech(x.recap, 700), question: cleanSpeech(x.question, 450), thanks: cleanSpeech(x.thanks, 450), answers: a };
+        o.topics[t.i] = { headline: okTr(x.headline, t.headline, lg) || undefined, recap: cleanSpeech(x.recap, 700), question: cleanSpeech(x.question, 450), thanks: cleanSpeech(x.thanks, 450), answers: a };
       }
       if (o.fb && o.fb.length) { // ответы гостей не пришли в ожидаемом виде: переводим только их, плоским запросом «ключ → текст»
         try { const items = Object.fromEntries(o.fb.map((k) => { const [i, g] = k.split(":"); return [k, src.topics.find((t) => String(t.i) === i).answers[g]]; }));
