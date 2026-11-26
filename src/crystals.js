@@ -13998,6 +13998,25 @@ export const CRYSTALS = [
 "note": "concentration of headlines by outlet is given by the Bradford sensor; Theil adds only the between/within split of outlet groups; bridge outlet_concentration",
 "covered_by": "bradford"
 }
+},
+{
+"id": "herfindahl_oc",
+"name": "Orris C. Herfindahl",
+"name_ru": "Оррис Херфиндаль",
+"years": "1918–1972",
+"wiki": "https://en.wikipedia.org/wiki/Orris_C._Herfindahl",
+"zone": "one_model",
+"idea": {
+"en": "'Concentration in the Steel Industry' (1950): concentration is the sum of squared shares, so one large share weighs far more than many small ones.",
+"ru": "«Concentration in the Steel Industry» (1950): концентрация — сумма квадратов долей, поэтому одна крупная доля весит гораздо больше многих мелких.",
+"de": "„Concentration in the Steel Industry“ (1950): Konzentration ist die Summe der quadrierten Anteile, daher wiegt ein großer Anteil weit mehr als viele kleine."
+},
+"rule": "Do not count outlets as equal voices; check whether one large outlet carries most of the story.",
+"needs": {
+"code": "covered",
+"note": "concentration of headlines by outlet is given by the Bradford sensor (top-5 and top-10 shares); bridge outlet_concentration",
+"covered_by": "bradford"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

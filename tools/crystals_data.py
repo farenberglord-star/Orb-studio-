@@ -1696,6 +1696,11 @@ C = [
  '«Economics and Information Theory» (1967): концентрация, измеренная через энтропию, точно раскладывается на часть между группами и часть внутри групп.',
  '„Economics and Information Theory“ (1967): Konzentration, als Entropie gemessen, zerfällt genau in einen Anteil zwischen Gruppen und einen innerhalb der Gruppen.',
  'When a story seems concentrated, say whether it is a few outlet groups or a few outlets inside each group.'),
+('herfindahl_oc', 'Orris C. Herfindahl', 'Оррис Херфиндаль', '1918–1972', 'https://en.wikipedia.org/wiki/Orris_C._Herfindahl', 'one_model',
+ "'Concentration in the Steel Industry' (1950): concentration is the sum of squared shares, so one large share weighs far more than many small ones.",
+ '«Concentration in the Steel Industry» (1950): концентрация — сумма квадратов долей, поэтому одна крупная доля весит гораздо больше многих мелких.',
+ '„Concentration in the Steel Industry“ (1950): Konzentration ist die Summe der quadrierten Anteile, daher wiegt ein großer Anteil weit mehr als viele kleine.',
+ 'Do not count outlets as equal voices; check whether one large outlet carries most of the story.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2267,3 +2272,4 @@ NEEDS['brookes_bc'] = ('needs_idea', 'age of the items behind a news story; a ra
 NEEDS['cochran_wg'] = ('needs_idea', 'heterogeneity Q (or I²) of the Leamer variants of one radar index against their own bootstrap error over headlines, every 30 minutes; needs a per-variant error, not yet computed; bridge pooled_or_split', None)
 NEEDS['gini_c'] = ('covered', 'the Bradford sensor already gives how concentrated 7 days of headlines are by outlet (top-5 and top-10 shares); bridge outlet_concentration', None, 'bradford')
 NEEDS['theil_h'] = ('covered', 'concentration of headlines by outlet is given by the Bradford sensor; Theil adds only the between/within split of outlet groups; bridge outlet_concentration', None, 'bradford')
+NEEDS['herfindahl_oc'] = ('covered', 'concentration of headlines by outlet is given by the Bradford sensor (top-5 and top-10 shares); bridge outlet_concentration', None, 'bradford')
