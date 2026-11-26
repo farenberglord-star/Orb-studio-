@@ -15016,6 +15016,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per outlet and per radar source: estimated rate of change from the history of polls (every 30 minutes) and the time since its last change against its own usual interval; not computed yet"
 }
+},
+{
+"id": "naroll_r",
+"name": "Raoul Naroll",
+"name_ru": "Рауль Нарролл",
+"years": "1920–1985",
+"wiki": "https://en.wikipedia.org/wiki/Raoul_Naroll",
+"zone": "one_model",
+"idea": {
+"en": "'Two Solutions to Galton's Problem' (Philosophy of Science, 1961): similar cases are not independent samples if they could have copied from one another; test for borrowing before counting them as separate confirmations.",
+"ru": "«Two Solutions to Galton's Problem» (Philosophy of Science, 1961): похожие случаи не независимые выборки, если могли перенять друг у друга; проверь заимствование, прежде чем считать их отдельными подтверждениями.",
+"de": "„Two Solutions to Galton's Problem“ (Philosophy of Science, 1961): Ähnliche Fälle sind keine unabhängigen Stichproben, wenn sie voneinander übernommen haben können; prüfe Entlehnung, bevor du sie als getrennte Bestätigungen zählst."
+},
+"rule": "Matching reports may be copies; check for a common source before counting them twice.",
+"needs": {
+"code": "needs_idea",
+"note": "share of headline pairs from different outlets within 30 minutes that share a common first source or one is a reprint of the other; radar feeds, every 30 minutes; with Kish effective number of outlets; not computed yet"
+}
+},
+{
+"id": "degroot_mh",
+"name": "Morris H. DeGroot",
+"name_ru": "Моррис Х. ДеГроот",
+"years": "1931–1989",
+"wiki": "https://en.wikipedia.org/wiki/Morris_H._DeGroot",
+"zone": "answer_cost",
+"idea": {
+"en": "'Optimal Statistical Decisions' (McGraw-Hill, 1970): the value of more information is the expected improvement of the decision; keep collecting only while that is more than the cost of one more step.",
+"ru": "«Optimal Statistical Decisions» (McGraw-Hill, 1970): ценность дополнительной информации — ожидаемое улучшение решения; продолжай сбор, пока оно больше цены ещё одного шага.",
+"de": "„Optimal Statistical Decisions“ (McGraw-Hill, 1970): Der Wert zusätzlicher Information ist die erwartete Verbesserung der Entscheidung; sammle nur weiter, solange sie mehr als ein weiterer Schritt kostet."
+},
+"rule": "More information is worth it only while it improves the decision by more than it costs.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: expected change of the story index from one more outlet headline against the threshold cost of a step; same measure as the McCall bridge; not computed yet"
+}
+},
+{
+"id": "chernoff_h",
+"name": "Herman Chernoff",
+"name_ru": "Герман Чернов",
+"years": "1923–2026",
+"wiki": "https://en.wikipedia.org/wiki/Herman_Chernoff",
+"zone": "answer_cost",
+"idea": {
+"en": "'Sequential Design of Experiments' (Annals of Mathematical Statistics, 1959): choose each next observation for the most information per unit cost, and stop when the confidence needed is reached.",
+"ru": "«Sequential Design of Experiments» (Annals of Mathematical Statistics, 1959): выбирай каждое следующее наблюдение по наибольшей информации на единицу затрат и останавливайся, когда достигнута нужная уверенность.",
+"de": "„Sequential Design of Experiments“ (Annals of Mathematical Statistics, 1959): Wähle jede nächste Beobachtung nach größtem Informationsgewinn je Kosteneinheit und höre auf, wenn die nötige Sicherheit erreicht ist."
+},
+"rule": "Pick the next source for the most new information per cost, and stop at the needed confidence.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: which next outlet adds the most new information per cost and the point where the story index is steady; radar feeds, every 30 minutes; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

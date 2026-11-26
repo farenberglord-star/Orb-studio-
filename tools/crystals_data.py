@@ -1971,6 +1971,21 @@ C = [
  'Чо и Гарсиа-Молина, «The Evolution of the Web and Implications for an Incremental Crawler» (VLDB, 2000): страницы меняются с очень разной скоростью; измеряй собственную скорость изменений каждой страницы и заходи чаще на быстро меняющиеся.',
  'Cho und García-Molina, „The Evolution of the Web and Implications for an Incremental Crawler“ (VLDB, 2000): Seiten ändern sich unterschiedlich schnell; miss die eigene Änderungsrate jeder Seite und besuche schnell wechselnde öfter.',
  'Every source has its own rhythm of change; judge its silence against that rhythm.'),
+('naroll_r', 'Raoul Naroll', 'Рауль Нарролл', '1920–1985', 'https://en.wikipedia.org/wiki/Raoul_Naroll', 'one_model',
+ "'Two Solutions to Galton's Problem' (Philosophy of Science, 1961): similar cases are not independent samples if they could have copied from one another; test for borrowing before counting them as separate confirmations.",
+ '«Two Solutions to Galton\'s Problem» (Philosophy of Science, 1961): похожие случаи не независимые выборки, если могли перенять друг у друга; проверь заимствование, прежде чем считать их отдельными подтверждениями.',
+ '„Two Solutions to Galton\'s Problem“ (Philosophy of Science, 1961): Ähnliche Fälle sind keine unabhängigen Stichproben, wenn sie voneinander übernommen haben können; prüfe Entlehnung, bevor du sie als getrennte Bestätigungen zählst.',
+ 'Matching reports may be copies; check for a common source before counting them twice.'),
+('degroot_mh', 'Morris H. DeGroot', 'Моррис Х. ДеГроот', '1931–1989', 'https://en.wikipedia.org/wiki/Morris_H._DeGroot', 'answer_cost',
+ "'Optimal Statistical Decisions' (McGraw-Hill, 1970): the value of more information is the expected improvement of the decision; keep collecting only while that is more than the cost of one more step.",
+ '«Optimal Statistical Decisions» (McGraw-Hill, 1970): ценность дополнительной информации — ожидаемое улучшение решения; продолжай сбор, пока оно больше цены ещё одного шага.',
+ '„Optimal Statistical Decisions“ (McGraw-Hill, 1970): Der Wert zusätzlicher Information ist die erwartete Verbesserung der Entscheidung; sammle nur weiter, solange sie mehr als ein weiterer Schritt kostet.',
+ 'More information is worth it only while it improves the decision by more than it costs.'),
+('chernoff_h', 'Herman Chernoff', 'Герман Чернов', '1923–2026', 'https://en.wikipedia.org/wiki/Herman_Chernoff', 'answer_cost',
+ "'Sequential Design of Experiments' (Annals of Mathematical Statistics, 1959): choose each next observation for the most information per unit cost, and stop when the confidence needed is reached.",
+ '«Sequential Design of Experiments» (Annals of Mathematical Statistics, 1959): выбирай каждое следующее наблюдение по наибольшей информации на единицу затрат и останавливайся, когда достигнута нужная уверенность.',
+ '„Sequential Design of Experiments“ (Annals of Mathematical Statistics, 1959): Wähle jede nächste Beobachtung nach größtem Informationsgewinn je Kosteneinheit und höre auf, wenn die nötige Sicherheit erreicht ist.',
+ 'Pick the next source for the most new information per cost, and stop at the needed confidence.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2597,3 +2612,6 @@ NEEDS['dynkin_eb'] = ('needs_idea', 'same measure as McCall: the point where con
 NEEDS['tuldava_j'] = ('needs_idea', 'per story: distinct words over headline words, corrected for the number of headlines (length-adjusted richness) against stories of other sizes; radar feeds, every 30 minutes; the exact index form to be taken from the original source')
 NEEDS['rotemberg_jj'] = ('needs_idea', 'share of bank and energy tariffs unchanged between weekly checks (public/data/tariffs.json history) and the size of a step when they do change; set against the moves of the market price; not computed yet')
 NEEDS['garcia_molina_h'] = ('needs_idea', 'per outlet and per radar source: estimated rate of change from the history of polls (every 30 minutes) and the time since its last change against its own usual interval; not computed yet')
+NEEDS['naroll_r'] = ('needs_idea', 'share of headline pairs from different outlets within 30 minutes that share a common first source or one is a reprint of the other; radar feeds, every 30 minutes; with Kish effective number of outlets; not computed yet')
+NEEDS['degroot_mh'] = ('needs_idea', 'per story: expected change of the story index from one more outlet headline against the threshold cost of a step; same measure as the McCall bridge; not computed yet')
+NEEDS['chernoff_h'] = ('needs_idea', 'per story: which next outlet adds the most new information per cost and the point where the story index is steady; radar feeds, every 30 minutes; not computed yet')
