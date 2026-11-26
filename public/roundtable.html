@@ -75,7 +75,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .below{width:auto;padding:22px 4px 30px}
   .stage{border-radius:0;box-shadow:0 0 60px rgba(90,140,255,.18)}
 }
-.xs{display:inline-flex;align-items:center;gap:6px;margin:4px 0 14px;font:600 14px system-ui,sans-serif;color:#fff;background:#000;border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:9px 15px;text-decoration:none}.xs:hover,.xs:focus-visible{border-color:#fff;outline:none}
+.xs{display:inline-flex;align-items:center;gap:6px;margin:4px 0 14px;font:600 14px system-ui,sans-serif;color:#fff;background:#000;border:1px solid rgba(255,255,255,.35);border-radius:9px;padding:9px 15px;text-decoration:none}.xs:hover,.xs:focus-visible{border-color:#fff;outline:none}.xs.wa{background:#128c4a;margin-left:8px}.xs.fb{background:#1877f2;margin-left:8px}.rqbar{flex:1;height:14px;border-radius:7px;background:rgba(255,255,255,.1);border:1px solid rgba(160,200,255,.3);overflow:hidden}.rqbar i{display:block;height:100%;width:0;background:#6fe6ff;border-radius:7px;transition:width .8s ease}.rqrow{display:flex;align-items:center;gap:10px}.rqrow span{font:700 14px system-ui,sans-serif;color:#e8f2ff;min-width:42px;text-align:right}.rqp{margin:12px 0 4px}.rqp-t{margin:0 0 8px;font:600 14px system-ui,sans-serif;color:#e8f2ff}.board .rqbar{margin:14px auto 0;max-width:420px}
 .snd{position:absolute;left:50%;transform:translateX(-50%);top:calc(58px + env(safe-area-inset-top,0px));z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;width:min(92%,420px);pointer-events:none}
 .snd button{pointer-events:auto;font:700 14px "Chakra Petch",system-ui,sans-serif;letter-spacing:.04em;color:#05080f;background:linear-gradient(90deg,#6fe6ff,#b58cff);border:0;border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:0 0 22px rgba(140,200,255,.35)}
 .snd button[aria-pressed="true"]{background:rgba(8,12,24,.78);color:#dff3ff;border:1px solid rgba(160,200,255,.45);box-shadow:none;font-size:12.5px;padding:7px 14px}
@@ -214,7 +214,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
     <div class="brand"><i></i>Orb Studio<b id="ttl"></b></div>
     <div class="honest"><span id="imgnote"></span><time class="epdate" id="epdate" hidden></time></div>
   </div>
-  <div class="board" id="board" role="status" hidden><h2 id="board-h"></h2><p id="board-p"></p></div>
+  <div class="board" id="board" role="status" hidden><h2 id="board-h"></h2><p id="board-p"></p><div class="rqbar" id="board-bar" hidden><i id="board-fill"></i></div></div>
   <section class="sub out" id="sub" aria-live="polite" hidden>
     <div class="head"><span id="who"></span><span id="role"></span><span id="chunks" aria-hidden="true"></span></div>
     <p id="text"></p>
@@ -226,6 +226,8 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <p class="note" id="credit"></p><p class="note" id="vnote"></p>
   <section class="prog" id="prog" aria-labelledby="prog-h" hidden><h2 id="prog-h"></h2><ol id="prog-list"></ol></section>
   <a class="xs" id="xshare" target="_blank" rel="noopener noreferrer"></a>
+  <a class="xs wa" id="wshare" target="_blank" rel="noopener noreferrer"></a>
+  <a class="xs fb" id="fshare" target="_blank" rel="noopener noreferrer"></a>
   <section class="arch" id="arch" aria-labelledby="arch-h" hidden>
     <h2 id="arch-h">Из архива автора</h2>
     <p class="arch-sub" id="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
@@ -239,6 +241,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <input id="rq-name" maxlength="40" aria-label="name">
       <div class="cm-row"><button type="submit" id="rq-go"></button><span id="rq-msg" role="status"></span></div>
     </form>
+    <div class="rqp" id="rqp" hidden role="status"><p class="rqp-t" id="rqp-t"></p><div class="rqrow"><div class="rqbar"><i id="rqp-bar"></i></div><span id="rqp-pc">0%</span></div><p class="cm-sub" id="rqp-n"></p></div>
     <h3 class="rq-lh" id="rq-list-h"></h3>
     <ol class="cm-list" id="rq-list"></ol>
   </section>

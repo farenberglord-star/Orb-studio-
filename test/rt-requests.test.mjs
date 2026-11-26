@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { rqKind, rqId, rqPassportFrom, rqSubmit, rqProcess, rqTick, rqFind, rqHandle, RQ_PER_IP_DAY, RQ_QUEUE_CAP, RQ_YT_DAILY } from "../src/rt-requests.js";
+import { rqKind, rqId, rqPassportFrom, rqSubmit, rqProcess, rqTick, rqFind, rqHandle, rqProgress, RQ_PER_IP_DAY, RQ_QUEUE_CAP, RQ_YT_DAILY, RQ_STAGES } from "../src/rt-requests.js";
 import { rtFind, rtQueue } from "../src/roundtable.js";
 
 // D1 из SQLite в памяти
@@ -47,6 +47,7 @@ function mockFetch({ reject = false, guestFail = [] } = {}) {
   };
   return calls;
 }
+const until = async (env, d, id) => { let r; for (let i = 0; i < 6; i++) { r = await rqProcess(env, d, id); if (r !== "partial") return r; } return r; }; // повторы этапов до итога
 const KEYS = { ANTHROPIC_API_KEY: "a", XAI_API_KEY: "x", GEMINI_API_KEY: "g", DEEPSEEK_API_KEY: "d" };
 
 test("ссылка → один и тот же выпуск, метки слежения не в счёт; YouTube отличается от статьи", async () => {
@@ -91,7 +92,7 @@ test("видео: суточный потолок отдельный", async () 
 test("сборка: паспорт → модератор → три гостя → перевод; карточка читается, играется и попадает «следом»", async () => {
   mockFetch(); const env = { DB: fakeDb(), ...KEYS };
   const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/a", name: "Anna" });
-  assert.equal(await rqProcess(env, deps(), r.body.id), "ready");
+  assert.equal(await until(env, deps(), r.body.id), "ready");
   const d = await rqFind(env, r.body.id);
   assert.equal(d.episode_id, r.body.id); assert.equal(d.kind, "viewer_request"); assert.equal(d.topics.length, 1);
   assert.equal(d.topics[0].passport.checked.verdict, "partly_confirmed");
@@ -112,7 +113,7 @@ test("сборка: паспорт → модератор → три гостя 
 test("модератор отклоняет неподходящее: статус rejected, в эфир не идёт, ответ гостям не тратится", async () => {
   const calls = mockFetch({ reject: true }); const env = { DB: fakeDb(), ...KEYS };
   const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/ad" });
-  assert.equal(await rqProcess(env, deps(), r.body.id), "rejected");
+  assert.equal(await until(env, deps(), r.body.id), "rejected");
   assert.equal(calls.filter((u) => /x\.ai|deepseek|googleapis/.test(u)).length, 0);
   assert.equal(await rqFind(env, r.body.id), null);
   const st = (await rqHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + r.body.id), deps())).body;
@@ -123,12 +124,12 @@ test("страница не прочиталась или гости не отв
   mockFetch(); const env = { DB: fakeDb(), ...KEYS };
   const bad = deps({ urlPassport: async () => ({ http: 200, body: { status: "not_checked", reason: "captcha_or_paywall" } }) });
   const r = await rqSubmit(req(), env, { waitUntil() {} }, bad, { url: "https://example.com/paywall" });
-  assert.equal(await rqProcess(env, bad, r.body.id), "failed");
+  assert.equal(await until(env, bad, r.body.id), "failed");
   const again = await rqSubmit(req("5.5.5.5"), env, { waitUntil() {} }, deps(), { url: "https://example.com/paywall" });
   assert.equal(again.http, 200); assert.equal(again.body.status, "failed"); assert.ok(again.body.retry_after_minutes > 0);
   mockFetch({ guestFail: ["grok", "deepseek"] });
   const r2 = await rqSubmit(req("6.6.6.6"), env, { waitUntil() {} }, deps(), { url: "https://example.com/b" });
-  assert.equal(await rqProcess(env, deps(), r2.body.id), "failed", "ответил один гость из трёх — в эфир нельзя");
+  assert.equal(await until(env, deps(), r2.body.id), "failed", "ответил один гость из трёх — в эфир нельзя");
   mockFetch(); const r3 = await rqSubmit(req("7.7.7.7"), env, { waitUntil() {} }, deps(), { url: "https://example.com/c" });
   await rqTick(env, deps()); assert.equal((await rqHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + r3.body.id), deps())).body.status, "ready");
 });
@@ -144,9 +145,36 @@ test("страница: форма, три языка, переход к сле�
   const { readFileSync } = await import("node:fs");
   const { T } = await import("../public/roundtable.js");
   const html = readFileSync(new URL("../public/roundtable.html", import.meta.url), "utf8"), js = readFileSync(new URL("../public/roundtable.js", import.meta.url), "utf8");
-  for (const id of ["rq-f", "rq-url", "rq-name", "rq-go", "rq-msg", "rq-list", "rq-list-h"]) assert.ok(html.includes('id="' + id + '"'), id);
-  for (const l of ["en", "ru", "de"]) for (const k of ["rqH", "rqSub", "rqUrl", "rqName", "rqGo", "rqQueued", "rqReady", "rqRej", "rqFail", "rqErr", "rqList", "rqEmpty", "rqLabel", "rqNote"]) assert.ok(T[l][k], l + "." + k);
-  assert.match(js, /nextReq\(\)/); assert.match(js, /requests\?next=1/);
+  for (const id of ["rq-f", "rq-url", "rq-name", "rq-go", "rq-msg", "rq-list", "rq-list-h", "rqp", "rqp-bar", "rqp-pc", "rqp-t", "board-bar", "board-fill", "wshare", "fshare", "xshare"]) assert.ok(html.includes('id="' + id + '"'), id);
+  for (const l of ["en", "ru", "de"]) for (const k of ["rqH", "rqSub", "rqUrl", "rqName", "rqGo", "rqQueued", "rqReady", "rqRej", "rqFail", "rqErr", "rqList", "rqEmpty", "rqLabel", "rqNote", "rqSt_passport", "rqSt_plan", "rqSt_guests", "rqSt_close", "rqSt_translate", "rqWait", "rqLeave", "shareWa", "shareFb"]) assert.ok(T[l][k], l + "." + k);
+  assert.match(js, /orbRqActive/, "после перезагрузки шкала возвращается"); assert.match(js, /wa\.me\/\?text=/); assert.match(js, /facebook\.com\/sharer/); assert.match(js, /nextReq\(\)/); assert.match(js, /requests\?next=1/);
   assert.ok(html.indexOf('id="rq"') < html.indexOf('id="krb"'), "форма стоит до баннеров");
   assert.match(html, /go\/kraken/); assert.match(html, /go\/starlink/);
+});
+
+test("сборка по этапам: оборванный этап повторяется с того же места, шкала растёт, результат остаётся на сайте", async () => {
+  const env = { DB: fakeDb(), ...KEYS };
+  const st = async (id, d = deps()) => (await rqHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + id), d)).body;
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/resume" });
+  assert.equal(r.body.progress, 3); assert.equal((await st(r.body.id)).stage, "passport");
+  mockFetch({ guestFail: ["grok", "deepseek"] });                         // гости не ответили: этап «guests» упал, но паспорт и вопрос модератора сохранены
+  assert.equal(await rqProcess(env, deps(), r.body.id), "partial");
+  let s1 = await st(r.body.id); assert.equal(s1.status, "queued"); assert.equal(s1.stage, "guests"); assert.equal(s1.progress, 35);
+  mockFetch();                                                            // «зритель закрыл страницу»: любой следующий проход (опрос статуса или cron) подхватывает с этапа guests
+  assert.equal(await rqTick(env, deps()), undefined);
+  const s2 = await st(r.body.id); assert.equal(s2.status, "ready"); assert.equal(s2.progress, 100);
+  const d = await rqFind(env, r.body.id); assert.ok(d && d.topics[0].passport.checked.verdict === "partly_confirmed", "паспорт этапа 1 дожил до конца");
+  assert.deepEqual(RQ_STAGES, ["passport", "plan", "guests", "close", "translate"]);
+  assert.equal(rqProgress({ status: "queued", stage: 3 }), 65);
+});
+
+test("опрос статуса подталкивает брошенную сборку, но не трогает работающую (аренда этапа)", async () => {
+  mockFetch(); const env = { DB: fakeDb(), ...KEYS }; const jobs = []; const c = { waitUntil(p) { jobs.push(p); } };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/kick" });
+  const poll = () => rqHandle({ method: "GET", headers: { get: () => null } }, env, c, new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + r.body.id), deps({ autoStart: true }));
+  await env.DB.prepare("UPDATE rt_requests SET status='building', lease=?2 WHERE id=?1").bind(r.body.id, Date.now() + 60000).run();
+  await poll(); assert.equal(jobs.length, 0, "этап ведёт другой запрос — не мешаем");
+  await env.DB.prepare("UPDATE rt_requests SET lease=?2 WHERE id=?1").bind(r.body.id, Date.now() - 1).run();
+  await poll(); assert.equal(jobs.length, 1, "аренда истекла — подхватываем"); await Promise.all(jobs);
+  assert.equal((await poll()).body.status, "ready");
 });

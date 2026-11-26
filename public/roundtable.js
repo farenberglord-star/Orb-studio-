@@ -1,5 +1,15 @@
 export const T = {
  "en": {
+  "rqSt_passport": "Reading the story and checking it with the news passport",
+  "rqSt_plan": "Claude is preparing the question",
+  "rqSt_guests": "Gemini, Grok and DeepSeek are answering",
+  "rqSt_close": "Claude is wrapping up",
+  "rqSt_translate": "Translating to German and Russian",
+  "rqWait": "Your story is on its way to the table",
+  "rqLeave": "You can close this page: the episode is built on the server and will stay on the site at its own link.",
+  "rqLink": "Link to this episode",
+  "shareWa": "Share on WhatsApp",
+  "shareFb": "Share on Facebook",
   "rqH": "Send a story to the round table",
   "rqSub": "Paste a link to a news article or a YouTube video. Orb Studio checks it with the news passport, then Claude retells it and asks Gemini, Grok and DeepSeek. The finished episode appears in the list below and plays right after the regular round table. Up to 3 requests a day per person; no private, adult or advertising content.",
   "rqUrl": "Link to a news article or YouTube video (https://…)",
@@ -68,6 +78,16 @@ export const T = {
   "podcast": "Podcast with David and Grok →"
  },
  "ru": {
+  "rqSt_passport": "Читаю новость и проверяю по паспорту",
+  "rqSt_plan": "Claude готовит вопрос",
+  "rqSt_guests": "Gemini, Grok и DeepSeek отвечают",
+  "rqSt_close": "Claude подводит итог",
+  "rqSt_translate": "Перевод на немецкий и русский",
+  "rqWait": "Ваша новость идёт на стол",
+  "rqLeave": "Страницу можно закрыть: выпуск соберётся на сервере и останется на сайте по своей ссылке.",
+  "rqLink": "Ссылка на этот выпуск",
+  "shareWa": "Поделиться в WhatsApp",
+  "shareFb": "Поделиться в Facebook",
   "rqH": "Отправьте новость на круглый стол",
   "rqSub": "Вставьте ссылку на новость или видео с YouTube. Orb Studio проверит её по паспорту новости, затем Claude перескажет её и задаст вопрос Gemini, Grok и DeepSeek. Готовый выпуск появится в списке ниже и сразу после обычного круглого стола пойдёт в эфир. До 3 запросов в сутки на человека; без личного, взрослого и рекламного содержания.",
   "rqUrl": "Ссылка на новость или видео YouTube (https://…)",
@@ -136,6 +156,16 @@ export const T = {
   "watch": "Watch:"
  },
  "de": {
+  "rqSt_passport": "Die Nachricht wird gelesen und mit dem Nachrichtenpass geprüft",
+  "rqSt_plan": "Claude bereitet die Frage vor",
+  "rqSt_guests": "Gemini, Grok und DeepSeek antworten",
+  "rqSt_close": "Claude fasst zusammen",
+  "rqSt_translate": "Übersetzung ins Deutsche und Russische",
+  "rqWait": "Eure Nachricht ist auf dem Weg zum Tisch",
+  "rqLeave": "Ihr könnt die Seite schließen: Die Folge wird auf dem Server gebaut und bleibt unter ihrem Link auf der Seite.",
+  "rqLink": "Link zu dieser Folge",
+  "shareWa": "Auf WhatsApp teilen",
+  "shareFb": "Auf Facebook teilen",
   "rqH": "Schickt eine Nachricht an den Runden Tisch",
   "rqSub": "Fügt einen Link zu einer Nachricht oder einem YouTube-Video ein. Orb Studio prüft ihn mit dem Nachrichtenpass, danach fasst Claude ihn zusammen und fragt Gemini, Grok und DeepSeek. Die fertige Folge erscheint in der Liste unten und läuft direkt nach dem regulären Runden Tisch. Bis zu 3 Anfragen pro Tag und Person; keine privaten, nicht jugendfreien oder Werbeinhalte.",
   "rqUrl": "Link zu einer Nachricht oder einem YouTube-Video (https://…)",
@@ -385,7 +415,10 @@ function start() {
   const kc = $("krcode"); kc.addEventListener("click", () => { try { navigator.clipboard.writeText(kc.dataset.code); kc.textContent = kc.dataset.code + " ✓ " + t.copied; } catch {} });
 
   const xs = $("xshare"); xs.textContent = "𝕏 " + t.share + ({ ru: " (на английском)", de: " (auf Englisch)" }[lang] || "");
-  const setShare = (d) => { const ep = d && d.episode_id; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(shareText(d)) + "&url=" + encodeURIComponent("https://orbstudio.org/en/roundtable" + (ep ? "?ep=" + ep : "")) + "&hashtags=OrbStudio,AI"; };
+  const wa = $("wshare"), fb = $("fshare"); wa.textContent = "💬 " + t.shareWa; fb.textContent = "f  " + t.shareFb;
+  const setShare = (d) => { const ep = d && d.episode_id; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(shareText(d)) + "&url=" + encodeURIComponent("https://orbstudio.org/en/roundtable" + (ep ? "?ep=" + ep : "")) + "&hashtags=OrbStudio,AI";
+    const pg = "https://orbstudio.org/" + lang + "/roundtable" + (ep ? "?ep=" + ep : ""); // WhatsApp и Facebook: ссылка на язык страницы зрителя
+    wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText(d) + " " + pg); fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pg); };
   setShare(null);
 
   function showBoard(h, p) { sub.hidden = true; board.hidden = false; $("board-h").textContent = h; $("board-p").textContent = p || ""; stage.dataset.speaker = ""; }
@@ -420,6 +453,8 @@ function start() {
     try { const r = await fetch(url, { method: "GET", headers: { range: "bytes=0-0" } }); if (r.ok || r.status === 206) return;
       const m = { 429: t.noVoiceBudget, 503: t.noVoiceOff, 502: t.noVoice }[r.status]; if (m) { whyShown = true; $("vnote").textContent = m; } } catch {}
   }
+  const stageTxt = (k) => t["rqSt_" + k] || t.rqBuilding;
+  async function rqStatus(id) { try { return await (await fetch(API + "/request?id=" + encodeURIComponent(id), { headers: { accept: "application/json" } })).json(); } catch { return null; } }
   function endBoard() { showBoard(t.done, t.doneSub); renderProg(-1); if (!pinned) retry = setTimeout(load, 300000); }
   // «Новость на стол»: следующая готовая карточка зрителей, которую этот зритель ещё не видел
   async function nextReq() {
@@ -453,6 +488,10 @@ function start() {
     clearTimeout(timer); clearTimeout(retry);
     const pep = new URLSearchParams(location.search).get("ep"); pinned = /^(?:\d{8,}|rq[0-9a-f]{12})$/.test(pep || ""); // ссылка на конкретный выпуск (ссылки из X и карточки зрителей)
     let d = null; try { d = await (await fetch(API + "?lang=" + lang + (pinned ? "&ep=" + pep : ""), { headers: { accept: "application/json" } })).json(); } catch { d = null; }
+    if (pinned && /^rq/.test(pep) && (!d || d.status !== "ok" || !d.queue)) { const j = await rqStatus(pep); // карточка зрителя ещё собирается: шкала, потом сам выпуск
+      if (j && (j.status === "queued" || j.status === "building")) { showBoard(t.rqWait, stageTxt(j.stage) + " · " + t.rqLeave); const bb = $("board-bar"); bb.hidden = false; $("board-fill").style.width = Math.round(j.progress || 0) + "%"; retry = setTimeout(load, 4000); return; }
+      if (j && (j.status === "rejected" || j.status === "failed")) { $("board-bar").hidden = true; showBoard(j.status === "rejected" ? t.rqRej : t.rqFail, j.reason || ""); return; } }
+    $("board-bar").hidden = true;
     if (pinned && (!d || d.status !== "ok" || !d.queue)) { pinned = false; try { d = await (await fetch(API + "?lang=" + lang, { headers: { accept: "application/json" } })).json(); } catch { d = null; } }
     if (!d) { showBoard(t.noLink, t.noLinkSub); retry = setTimeout(load, 90000); return; }
     if (d.status !== "ok" || !d.queue) { showBoard(t.preparing, t.preparingSub); retry = setTimeout(load, 120000); return; }
@@ -495,17 +534,29 @@ function start() {
     for (const r of list.slice(0, 12)) { const li = document.createElement("li"), h = document.createElement("div"), a = document.createElement("a"); if (r.by === "agent") li.className = "ag";
       h.className = "h"; h.textContent = (r.name || (r.by === "agent" ? t.rqAgent : t.rqGuest)) + " · " + (r.source || "") + " · " + new Date(r.ready_at || r.submitted_at).toLocaleString(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
       a.textContent = r.title || r.id; a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(r.id); li.append(h, a); ol.append(li); } } catch {} }
-  async function rqPoll(id, n) { await new Promise((ok) => setTimeout(ok, 10000)); let j = null; try { j = await (await fetch(RQ + "?id=" + id)).json(); } catch {}
-    if (j && j.status === "ready") { rqMsg.textContent = ""; const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(id); a.textContent = t.rqReady; rqMsg.append(a); rqLoad(); return; }
-    if (j && j.status === "rejected") { rqMsg.textContent = t.rqRej + (j.reason || ""); return; } if (j && j.status === "failed") { rqMsg.textContent = t.rqFail + (j.reason || ""); return; }
-    if (n < 24) { rqMsg.textContent = t.rqBuilding; rqPoll(id, n + 1); } }
+  // Шкала подготовки: сервер собирает выпуск сам, страница только читает статус; id хранится в браузере, поэтому после перезагрузки шкала возвращается
+  const rqP = $("rqp"), rqBar = $("rqp-bar"), rqPc = $("rqp-pc"), rqPt = $("rqp-t"), rqPn = $("rqp-n"); let rqTimer = null, rqShown = 0;
+  const rqLinkTo = (id) => { rqMsg.textContent = ""; const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(id); a.textContent = t.rqReady; rqMsg.append(a); };
+  const rqSetBar = (v) => { rqShown = Math.max(rqShown, v); rqBar.style.width = rqShown + "%"; rqPc.textContent = Math.round(rqShown) + "%"; };
+  function rqTrack(id) {
+    clearInterval(rqTimer); rqShown = 0; rqP.hidden = false; rqPt.textContent = t.rqWait; rqPn.textContent = t.rqLeave; rqSetBar(2);
+    let target = 3, stop = false;
+    const creep = setInterval(() => { if (stop) return clearInterval(creep); if (rqShown < Math.min(97, target + 8)) rqSetBar(rqShown + 0.4); }, 1000);
+    const poll = async () => { if (stop) return; const j = await rqStatus(id);
+      if (j && (j.status === "queued" || j.status === "building")) { target = j.progress || target; rqSetBar(target); rqPt.textContent = stageTxt(j.stage); rqTimer = setTimeout(poll, 4000); return; }
+      stop = true; clearInterval(creep); try { localStorage.removeItem("orbRqActive"); } catch {}
+      if (j && j.status === "ready") { rqSetBar(100); rqPt.textContent = ""; rqPn.textContent = ""; rqP.hidden = true; rqLinkTo(id); rqLoad(); return; }
+      rqP.hidden = true; rqMsg.textContent = j && j.status === "rejected" ? t.rqRej + (j.reason || "") : j && j.status === "failed" ? t.rqFail + (j.reason || "") : t.rqErr; };
+    poll();
+  }
   $("rq-f").addEventListener("submit", async (e) => { e.preventDefault(); rqMsg.textContent = ""; $("rq-go").disabled = true;
     try { const r = await fetch(RQ, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: $("rq-url").value, name: $("rq-name").value, lang }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) { rqMsg.textContent = t.rqErr + (j.error ? ": " + j.error : ""); return; }
-      if (j.status === "ready") { const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(j.id); a.textContent = t.rqReady; rqMsg.append(a); return; }
+      if (j.status === "ready") { rqLinkTo(j.id); return; }
       if (j.status === "rejected") { rqMsg.textContent = t.rqRej + (j.reason || ""); return; } if (j.status === "failed") { rqMsg.textContent = t.rqFail + (j.reason || ""); return; }
-      rqMsg.textContent = t.rqQueued; $("rq-url").value = ""; rqPoll(j.id, 0);
+      $("rq-url").value = ""; try { localStorage.setItem("orbRqActive", j.id); } catch {} rqTrack(j.id);
     } catch { rqMsg.textContent = t.rqErr; } finally { $("rq-go").disabled = false; } });
+  { let act = null; try { act = localStorage.getItem("orbRqActive"); } catch {} if (act && /^rq[0-9a-f]{12}$/.test(act)) rqTrack(act); } // перезагрузили страницу — шкала продолжается
   rqLoad(); cmLoad(); load();
 }
 if (typeof document !== "undefined") { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); }
