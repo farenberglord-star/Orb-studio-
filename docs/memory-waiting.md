@@ -26,6 +26,8 @@
 
 - Jacob Wolfowitz | 1910–1981 | one_model | Wald & Wolfowitz, «On a Test Whether Two Samples are from the Same Population» (1940) | число серий роста и падения против случайного | en.wikipedia.org/wiki/Jacob_Wolfowitz | покрыто «Нельсоном» и Дурбином — Уотсоном (липкость); мостика нового нет
 
+- C. R. Rao | 1920–2023 | one_model | «Diversity and dissimilarity coefficients: a unified approach» (1982) | разнообразие с учётом расстояния между категориями (квадратичная энтропия) | en.wikipedia.org/wiki/C._R._Rao | нужны метки страны/языка/агентства у изданий — их пока нет
+
 ## Ждут проверки даты смерти
 - Tadeusz Pszczołowski | 1922–? | answer_cost | «Zasady sprawnego działania» (1960) | праксеология: оценка действия по соотношению результата и затрат | каталог Академии военного искусства: 1922–1999; Лиана: 1922–2019 — расхождение | войдёт в economy_of_checking вместе с Котарбинским, когда дата подтвердится
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты

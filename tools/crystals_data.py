@@ -1776,6 +1776,26 @@ C = [
  '«Rank-Sum Tests for Dispersions» (1960, с А. Р. Ансари): изменение разброса можно проверить отдельно, без предположения о нормальности и без сдвига центра.',
  '„Rank-Sum Tests for Dispersions“ (1960, mit A. R. Ansari): Eine Änderung der Streuung lässt sich für sich prüfen, ohne Normalverteilung und ohne Verschiebung der Mitte.',
  'Do not report wider swings as a new level; say whether the centre moved or only the spread.'),
+('youden_wj', 'William J. Youden', 'Уильям Юден', '1900–1971', 'https://en.wikipedia.org/wiki/William_J._Youden', 'stale_data',
+ "'Graphical Diagnosis of Interlaboratory Test Results' (1959): plot paired measurements of two materials; points along the diagonal show a lab's own systematic bias, scatter around it shows random error.",
+ '«Graphical Diagnosis of Interlaboratory Test Results» (1959): нанеси парные измерения двух образцов; точки вдоль диагонали показывают собственный систематический сдвиг лаборатории, разброс вокруг — случайную ошибку.',
+ '„Graphical Diagnosis of Interlaboratory Test Results“ (1959): Trage gepaarte Messungen zweier Proben auf; Punkte entlang der Diagonale zeigen den eigenen systematischen Fehler eines Labors, die Streuung darum den Zufallsfehler.',
+ 'When two sources disagree, ask whether one is always off in the same direction (bias) or just noisy.'),
+('whipple_gc', 'George Chandler Whipple', 'Джордж Уиппл', '1866–1924', 'https://en.wikipedia.org/wiki/George_C._Whipple', 'rumour_vs_fact',
+ "'Vital Statistics' (1919): when reported numbers heap on figures ending in 0 or 5, they are estimates, not counts; the index measures how strong the heaping is.",
+ '«Vital Statistics» (1919): если числа скучиваются на значениях, оканчивающихся на 0 или 5, это оценки, а не подсчёт; индекс измеряет силу скучивания.',
+ '„Vital Statistics“ (1919): Häufen sich gemeldete Zahlen auf Werten mit 0 oder 5 am Ende, sind es Schätzungen, keine Zählungen; der Index misst, wie stark die Häufung ist.',
+ 'A round number in a headline is usually an estimate; say so when you repeat it.'),
+('renyi_a', 'Alfréd Rényi', 'Альфред Реньи', '1921–1970', 'https://en.wikipedia.org/wiki/Alfr%C3%A9d_R%C3%A9nyi', 'one_model',
+ "'On Measures of Entropy and Information' (1961): one family of entropies weighs rare and dominant categories differently by its order; order 2 is minus the log of the sum of squared shares.",
+ '«On Measures of Entropy and Information» (1961): одно семейство энтропий по-разному взвешивает редкие и доминирующие категории в зависимости от порядка; порядок 2 — минус логарифм суммы квадратов долей.',
+ '„On Measures of Entropy and Information“ (1961): Eine Familie von Entropien gewichtet seltene und dominante Kategorien je nach Ordnung verschieden; Ordnung 2 ist minus der Logarithmus der Summe der quadrierten Anteile.',
+ 'Say whether a story looks diverse only because of many tiny outlets while one large outlet carries most of it.'),
+('birnbaum_a', 'Allan Birnbaum', 'Аллан Бирнбаум', '1923–1976', 'https://en.wikipedia.org/wiki/Allan_Birnbaum', 'answer_cost',
+ "'On the Foundations of Statistical Inference' (1962): all the evidence the data give about a hypothesis is in the likelihood; a new observation that leaves the likelihood ratio unchanged adds no evidence.",
+ '«On the Foundations of Statistical Inference» (1962): всё, что данные говорят о гипотезе, содержится в функции правдоподобия; новое наблюдение, не меняющее отношение правдоподобий, не добавляет свидетельства.',
+ '„On the Foundations of Statistical Inference“ (1962): Alles, was die Daten über eine Hypothese aussagen, steckt in der Likelihood; eine neue Beobachtung, die das Likelihood-Verhältnis nicht ändert, fügt keinen Beleg hinzu.',
+ 'A repeat of the same report is not new evidence; count it only if it changes what the evidence says.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2363,3 +2383,7 @@ NEEDS['omori_f'] = ('covered', 'the Omori sensor (/api/v1/omori) marks USGS even
 NEEDS['noelle_neumann_e'] = ('covered', 'the Krippendorff sensor lists events that outlets present differently (examples_split), so the minority version stays visible next to the chorus', None, 'krippendorff')
 NEEDS['smirnov_nv'] = ('covered', 'the Shewhart sensor gives distribution_48h.smirnov_d per radar (last 48 h against its history); bridge spread_not_level', None, 'shewhart')
 NEEDS['bradley_ra'] = ('covered', 'the Shewhart sensor gives distribution_48h.ansari_bradley_z per radar (spread after aligning medians); bridge spread_not_level', None, 'shewhart')
+NEEDS['youden_wj'] = ('needs_history', 'pairs of the same quantity from two routes (Baird cross-checks): mean difference (bias) against spread of differences, per pair of routes, daily; needs a stored history of the cross-checks; bridge bias_or_noise', None)
+NEEDS['whipple_gc'] = ('covered', 'the Newcomb sensor gives whipple.index for whole numbers in radar headlines (30 days); bridge round_numbers_are_estimates', None, 'newcomb')
+NEEDS['renyi_a'] = ('covered', 'order-2 Renyi entropy is minus log of the Herfindahl sum the Bradford sensor concentration stands for; bridge outlet_concentration', None, 'bradford')
+NEEDS['birnbaum_a'] = ('needs_idea', 'per answer: does a further retelling change the likelihood ratio (Harman confidence trace); bridge economy_of_checking', None)

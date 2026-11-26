@@ -2151,11 +2151,11 @@ async function paretoNow(env) { // «Парето»: доля движения �
   const r = paretoReport(rows, Date.now(), since); await sharedPut(env, "pareto-v1", r).catch(() => {}); return r;
 }
 async function newcombNow(env) { // «Ньюкомб»: закон первой цифры для чисел из заголовков радаров (30 дней)
-  const c = await sharedGet(env, "newcomb-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "newcomb-v2", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], since = null;
   try { rows = (await env.DB.prepare("SELECT radar, headline FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 30 * 864e5).all()).results || [];
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life").first()) || {}).m || null; } catch {}
-  const r = newcombReport(rows, Date.now(), since); await sharedPut(env, "newcomb-v1", r).catch(() => {}); return r;
+  const r = newcombReport(rows, Date.now(), since); await sharedPut(env, "newcomb-v2", r).catch(() => {}); return r;
 }
 async function cohenSNow(env) { // «Стэнли Коэн»: громкость заголовков о землетрясениях против того, что записал USGS
   const c = await sharedGet(env, "cohen-s-v1", 10 * 60e3).catch(() => null); if (c) return c;
