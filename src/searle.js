@@ -28,6 +28,18 @@ export const SEARLE_EXPLAIN = {
   threat: "a threat or warning — a possible future, not an event",
   demand: "a demand, request or call — it says what someone wants, not what happened",
 };
+// Уровень абстракции Флеша («Measuring the Level of Abstraction», 1950): доля конкретных слов — чисел, дат, имён и мест.
+// Заголовок с подробностями (кто, где, сколько, когда) проверить легче, чем общий пересказ. Считаем грубо, по форме слов.
+const MONTHS = /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember|январ|феврал|март|апрел|ма[йя]|июн|июл|август|сентябр|октябр|ноябр|декабр|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i;
+export function concreteness(title) {
+  const words = String(title || "").replace(/[«»"“”„()]/g, " ").split(/\s+/).filter((w) => /[\p{L}\d]/u.test(w));
+  if (words.length < 3) return null;
+  const de = /[äöüß]|\b(der|die|das|und|mit|für|nicht|ein|eine|im|zum|zur|fordern|fordert)\b/i.test(title); // в немецком все существительные с заглавной — их не считаем
+  let k = 0;
+  words.forEach((w, i) => { const c = w.replace(/^[^\p{L}\d]+|[^\p{L}\d]+$/gu, ""); if (!c) return;
+    if (/\d/.test(c) || MONTHS.test(c) || (!de && i > 0 && /^\p{Lu}/u.test(c) && !/^\p{Lu}+$/u.test(c.slice(0, 2))) || (i > 0 && /^\p{Lu}{2,5}$/u.test(c))) k++; });
+  return Math.round((100 * k) / words.length);
+}
 export function searleReport(radars, now = Date.now()) {
   const rs = (radars || []).filter((r) => r && Array.isArray(r.feed));
   if (!rs.length) return { sensor: "searle", verdict: "no_data", radars: [], generated_at: new Date(now).toISOString() };
@@ -42,6 +54,8 @@ export function searleReport(radars, now = Date.now()) {
   return {
     sensor: "searle", verdict: notYet >= 40 ? "mostly_words_not_deeds" : notYet >= 20 ? "many_words_not_deeds" : "mostly_events",
     headlines: n, shares, not_yet_happened_pct: notYet, explain: SEARLE_EXPLAIN, radars: per,
+    concreteness_by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const v = all.filter((x) => x.act === k).map((x) => concreteness(x.headline)).filter((x) => x != null); return [k, v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null]; })),
+    concreteness_note: "Flesch's level of abstraction (1950), roughly: share of concrete words (numbers, dates, names, places) per 100 words of the headline, averaged by speech act. A low share means a general retelling with few checkable details. German headlines: capitalised nouns are not counted, only numbers, dates and abbreviations.",
     examples: { threat: all.filter((x) => x.act === "threat").slice(0, 5), promise: all.filter((x) => x.act === "promise").slice(0, 5), demand: all.filter((x) => x.act === "demand").slice(0, 5) },
     question: "How much of what the Orb Studio radars carry is something that happened, and how much is only a promise, a threat, a demand or someone's statement?",
     method: "Each top radar headline is matched against word lists in English, German and Russian for four speech acts: threat or warning (threatens, warns, droht, угрожает), demand or call (demands, urges, fordert, потребовал), promise or plan (vows, pledges, plans, will, kündigt an, пообещал, намерен) and claim (says, denies, behauptet, заявил). The strongest act found counts (threat > demand > promise > claim); a headline with none is reported as an event. Word rules, no AI: 'will' in a quote or 'warns' in a weather story are counted too.",

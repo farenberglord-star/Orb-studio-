@@ -1796,6 +1796,16 @@ C = [
  '«On the Foundations of Statistical Inference» (1962): всё, что данные говорят о гипотезе, содержится в функции правдоподобия; новое наблюдение, не меняющее отношение правдоподобий, не добавляет свидетельства.',
  '„On the Foundations of Statistical Inference“ (1962): Alles, was die Daten über eine Hypothese aussagen, steckt in der Likelihood; eine neue Beobachtung, die das Likelihood-Verhältnis nicht ändert, fügt keinen Beleg hinzu.',
  'A repeat of the same report is not new evidence; count it only if it changes what the evidence says.'),
+('flesch_r', 'Rudolf Flesch', 'Рудольф Флеш', '1911–1986', 'https://en.wikipedia.org/wiki/Rudolf_Flesch', 'rumour_vs_fact',
+ "'Measuring the Level of Abstraction' (1950): count the concrete words — names, numbers, dates, places — per hundred words; a text with few of them is harder to check.",
+ '«Measuring the Level of Abstraction» (1950): считай конкретные слова — имена, числа, даты, места — на сотню слов; текст, где их мало, труднее проверить.',
+ '„Measuring the Level of Abstraction“ (1950): Zähle die konkreten Wörter — Namen, Zahlen, Daten, Orte — pro hundert Wörter; ein Text mit wenigen davon ist schwerer zu prüfen.',
+ 'A headline without who, where, when or how many is a retelling, not a report; look for the detailed version.'),
+('kish_l', 'Leslie Kish', 'Лесли Киш', '1910–2000', 'https://en.wikipedia.org/wiki/Leslie_Kish', 'one_model',
+ "'Survey Sampling' (1965): clustered observations carry less information than their number suggests; the design effect says how many independent ones they are worth.",
+ '«Survey Sampling» (1965): наблюдения из одного кластера несут меньше информации, чем их число; эффект дизайна говорит, скольким независимым они равны.',
+ '„Survey Sampling“ (1965): Gebündelte Beobachtungen tragen weniger Information, als ihre Zahl vermuten lässt; der Designeffekt sagt, wie vielen unabhängigen sie entsprechen.',
+ 'Do not count twenty headlines from one wire as twenty sources; say how many independent ones they are.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2387,3 +2397,5 @@ NEEDS['youden_wj'] = ('needs_history', 'pairs of the same quantity from two rout
 NEEDS['whipple_gc'] = ('covered', 'the Newcomb sensor gives whipple.index for whole numbers in radar headlines (30 days); bridge round_numbers_are_estimates', None, 'newcomb')
 NEEDS['renyi_a'] = ('covered', 'order-2 Renyi entropy is minus log of the Herfindahl sum the Bradford sensor concentration stands for; bridge outlet_concentration', None, 'bradford')
 NEEDS['birnbaum_a'] = ('needs_idea', 'per answer: does a further retelling change the likelihood ratio (Harman confidence trace); bridge economy_of_checking', None)
+NEEDS['flesch_r'] = ('covered', 'the Searle sensor gives concreteness_by_act: share of numbers, dates and names per headline by speech act; bridge details_not_repeats', None, 'searle')
+NEEDS['kish_l'] = ('needs_history', 'effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices', None)

@@ -14372,6 +14372,43 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per answer: does a further retelling change the likelihood ratio (Harman confidence trace); bridge economy_of_checking"
 }
+},
+{
+"id": "flesch_r",
+"name": "Rudolf Flesch",
+"name_ru": "Рудольф Флеш",
+"years": "1911–1986",
+"wiki": "https://en.wikipedia.org/wiki/Rudolf_Flesch",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Measuring the Level of Abstraction' (1950): count the concrete words — names, numbers, dates, places — per hundred words; a text with few of them is harder to check.",
+"ru": "«Measuring the Level of Abstraction» (1950): считай конкретные слова — имена, числа, даты, места — на сотню слов; текст, где их мало, труднее проверить.",
+"de": "„Measuring the Level of Abstraction“ (1950): Zähle die konkreten Wörter — Namen, Zahlen, Daten, Orte — pro hundert Wörter; ein Text mit wenigen davon ist schwerer zu prüfen."
+},
+"rule": "A headline without who, where, when or how many is a retelling, not a report; look for the detailed version.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor gives concreteness_by_act: share of numbers, dates and names per headline by speech act; bridge details_not_repeats",
+"covered_by": "searle"
+}
+},
+{
+"id": "kish_l",
+"name": "Leslie Kish",
+"name_ru": "Лесли Киш",
+"years": "1910–2000",
+"wiki": "https://en.wikipedia.org/wiki/Leslie_Kish",
+"zone": "one_model",
+"idea": {
+"en": "'Survey Sampling' (1965): clustered observations carry less information than their number suggests; the design effect says how many independent ones they are worth.",
+"ru": "«Survey Sampling» (1965): наблюдения из одного кластера несут меньше информации, чем их число; эффект дизайна говорит, скольким независимым они равны.",
+"de": "„Survey Sampling“ (1965): Gebündelte Beobachtungen tragen weniger Information, als ihre Zahl vermuten lässt; der Designeffekt sagt, wie vielen unabhängigen sie entsprechen."
+},
+"rule": "Do not count twenty headlines from one wire as twenty sources; say how many independent ones they are.",
+"needs": {
+"code": "needs_history",
+"note": "effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
