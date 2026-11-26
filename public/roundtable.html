@@ -67,6 +67,30 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .prog li b{flex:none;font:600 10.5px ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#7f93ad;min-width:74px}
 .prog li.on{background:rgba(111,230,255,.10);color:#fff;box-shadow:inset 3px 0 0 #6fe6ff}
 .prog li.on b{color:#6fe6ff}
+/* «Спросить круглый стол»: ссылка на новость → паспорт → Claude спрашивает гостей; приватный выпуск по ссылке */
+.ra{padding:16px;border:1px solid rgba(255,178,94,.4);border-radius:16px;background:radial-gradient(110% 80% at 0% 0%,rgba(255,178,94,.12),transparent 60%),rgba(10,14,28,.78)}
+.ra h2{margin:0 0 4px;font:700 18px "Chakra Petch",system-ui,sans-serif;color:#fff}
+.ra-sub{margin:0 0 10px;font-size:12.5px;color:#9fb2cc;line-height:1.45}
+.ra form{display:flex;gap:8px;flex-wrap:wrap}
+.ra input{flex:1 1 220px;min-width:0;box-sizing:border-box;background:#070a14;color:#e8f2ff;border:1px solid rgba(160,200,255,.3);border-radius:10px;padding:10px 11px;font:14px ui-monospace,Menlo,monospace}
+.ra input:focus{outline:2px solid #ffb25e;outline-offset:1px}
+.ra button,.ra .ra-btn{font:700 14px "Chakra Petch",system-ui,sans-serif;color:#05080f;background:linear-gradient(90deg,#ffb25e,#b58cff);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+.ra .ra-btn.ghost{background:transparent;color:#e8f2ff;border:1px solid rgba(255,255,255,.35)}
+.ra button:disabled{opacity:.6;cursor:progress}
+.ra-out{margin-top:10px}
+.ra-out:empty{display:none}
+.ra-steps{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px;font:12.5px ui-monospace,Menlo,monospace;color:#7f93ad}
+.ra-steps li.on{color:#ffb25e}.ra-steps li.ok{color:#9fe6b8}.ra-steps li.ok::before{content:"✓ "}.ra-steps li.on::before{content:"▸ "}.ra-steps li:not(.on):not(.ok)::before{content:"· "}
+.ra-bar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin:8px 0 2px}.ra-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb25e,#b58cff);box-shadow:0 0 10px #ffb25e;transition:width .4s}
+.ra-card{padding:12px;border-radius:12px;background:rgba(255,255,255,.04);border-left:3px solid #ffb25e}
+.ra-card h3{margin:0 0 4px;font-size:15px;color:#fff;line-height:1.3}
+.ra-chip{display:inline-block;margin:2px 0 8px;font:700 11px ui-monospace,Menlo,monospace;letter-spacing:.06em;text-transform:uppercase;border:1px solid currentColor;border-radius:999px;padding:4px 10px;color:#9fb2cc}
+.ra-chip.v-mostly_confirmed{color:#4fd8a4}.ra-chip.v-partly_verified{color:#6fe6ff}.ra-chip.v-partly_exaggerated{color:#ffb547}.ra-chip.v-contains_errors{color:#ff5d7a}
+.ra-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ra-msg{margin:0;font-size:13.5px;color:#e8f2ff;line-height:1.45}
+.ra-note{margin:8px 0 0;font-size:11.5px;color:#7f93ad;line-height:1.4}
+.ra-mine{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:4px;font-size:12.5px}
+.ra-mine a{color:#c9d6ea}
 /* Компьютер: студия слева во всю высоту, справа — программа выпуска, комментарии и баннеры */
 @media (min-width:1000px) and (min-aspect-ratio:1/1){
   body{display:grid;grid-template-columns:var(--col) minmax(360px,520px);justify-content:center;column-gap:28px;height:100svh;overflow:hidden}
@@ -226,6 +250,18 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <p class="note" id="credit"></p><p class="note" id="vnote"></p>
   <section class="prog" id="prog" aria-labelledby="prog-h" hidden><h2 id="prog-h"></h2><ol id="prog-list"></ol></section>
   <a class="xs" id="xshare" target="_blank" rel="noopener noreferrer"></a>
+  <!--orb-roundtable-ask-->
+  <section class="ra" id="raBox" aria-labelledby="raT">
+    <h2 id="raT"></h2>
+    <p class="ra-sub" id="raSub"></p>
+    <form id="raForm" novalidate>
+      <input id="raUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" maxlength="2000">
+      <button type="submit" id="raGo"></button>
+    </form>
+    <div class="ra-out" id="raOut" role="status" aria-live="polite"></div>
+    <ul class="ra-mine" id="raMine" hidden></ul>
+    <p class="ra-note" id="raNote"></p>
+  </section>
   <section class="arch" id="arch" aria-labelledby="arch-h" hidden>
     <h2 id="arch-h">Из архива автора</h2>
     <p class="arch-sub" id="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
@@ -263,6 +299,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   <p class="foot links"><a href="/studio" data-t="podcast"></a><span><span data-t="agents"></span> <a href="/api/v1/roundtable">/api/v1/roundtable</a></span></p>
 </div></div>
 <script type="module" src="/roundtable.js"></script>
+<script type="module" src="/roundtable-ask.js"></script>
 <script>
 // Круг «Из архива автора»: оригинал на русском; немецкий и английский — перевод Claude из /data/author-round-i18n.json (показывается, только если он сделан с этого же круга)
 (function () {

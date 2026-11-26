@@ -114,7 +114,7 @@ closing: 4-5 sentences. First sum up the whole round table briefly: in one or tw
 withhold: list answers that must not air: investment advice, a price prediction stated as certain, hateful or degrading content, or obviously invented statistics. Usually this list is empty.`;
 
 // ---------- вызовы моделей ----------
-async function claudeTool(env, system, input, tool, maxTokens = 2500) {
+export async function claudeTool(env, system, input, tool, maxTokens = 2500) {
   // Модель модератора может не принимать принудительный вызов инструмента: тогда «auto» с явной просьбой,
   // а если инструмент так и не вызван — запасная модель (claude-haiku-5-5, как в подкасте) с принудительным вызовом
   const call = async (model, forced) => {
@@ -142,9 +142,9 @@ async function openaiLike(url, key, model, system, user, extra = {}) {
   if (!r.ok) throw new Error(model + " " + r.status + " " + (await r.text()).slice(0, 160));
   const j = await r.json(); return { data: parseJson(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content), model: j.model || model };
 }
-async function askGuest(env, g, topics, lang) {
+export async function askGuest(env, g, topics, lang, sysExtra = "") {
   const user = JSON.stringify({ moderator: "Claude (Anthropic)", topics: topics.map((t) => ({ i: t.i, headline: t.headline, source: t.source, moderator_recap: t.recap, question: t.question, ...(t.passport ? { PASSPORT: t.passport } : {}) })) });
-  const sys = rtGuestSystem(g, lang);
+  const sys = rtGuestSystem(g, lang) + (sysExtra ? "\n" + sysExtra : "");
   if (g === "grok") { if (!env.XAI_API_KEY) return { status: "off" }; return openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3", sys, user); }
   if (g === "deepseek") { if (!env.DEEPSEEK_API_KEY) return { status: "off" }; return openaiLike("https://api.deepseek.com/chat/completions", env.DEEPSEEK_API_KEY, env.DEEPSEEK_MODEL || "deepseek-chat", sys, user); }
   if (g === "gemini") {
@@ -237,7 +237,7 @@ export function rtAssemble(topics0, intro, answers, close, models) {
 // В эфир — только если по каждой теме ответил хотя бы один гость
 export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
 
-async function rtTranslate(env, d) {
+export async function rtTranslate(env, d) {
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
   const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
   const one = async (lg) => {
@@ -319,7 +319,7 @@ export function rtQueue(d, lang, origin = "") {
   return { lang: L, lines: q };
 }
 
-async function rtVoice(env, text, who, lg) {
+export async function rtVoice(env, text, who, lg) {
   const voice = RT_CAST[who].voice; text = String(text || "").trim().slice(0, 1400); if (!text) return null;
   const kb = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("rt|" + voice + "|" + lg + "|" + text)));
   const key = [...kb].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 40);
@@ -336,6 +336,8 @@ async function rtVoice(env, text, who, lg) {
   return { buf, cached: false };
 }
 async function rtFind(env, deps, ep) {
+  // приватный выпуск «Спросить круглый стол» (src/roundtable-ask.js): ep = ask-<id>; в архив и в «последний выпуск» не попадает
+  if (ep && /^ask-[0-9a-f]{18}$/.test(ep)) { const rec = await deps.sharedGet(env, "rt-ask-" + ep.slice(4), 1e15); return rec && rec.status === "ok" && rec.episode ? rec.episode : null; }
   const latest = await deps.sharedGet(env, RT_KEY, 1e15);
   if (!ep || (latest && latest.episode_id === ep)) return latest;
   const arc = (await deps.sharedGet(env, RT_ARCHIVE, 1e15)) || { episodes: [] };
@@ -399,7 +401,7 @@ export function rtCards(d) {
     headline: t.headline, source: t.source, link: t.link || null, moderator: "Claude (Anthropic)", moderator_recap: t.recap, question: t.question,
     answers: RT_GUESTS.map((g) => ({ guest: RT_CAST[g].name + " (" + RT_CAST[g].maker + ")", status: t.answers[g] ? t.answers[g].status : "off", text: t.answers[g] && t.answers[g].status === "ok" ? t.answers[g].text : null })),
     moderator_thanks: t.thanks || null, occasion: d.occasion || null, translations: RT_TR.filter((l) => d.translations && d.translations[l]),
-    page: "https://orbstudio.org/roundtable" + (d.episode_id ? "?ep=" + d.episode_id : "") }));
+    page: "https://orbstudio.org/roundtable" + (d.kind === "ask" && d.ask ? "?ask=" + d.ask.id : d.episode_id ? "?ep=" + d.episode_id : ""), ...(d.kind === "ask" ? { kind: "ask", passport_check: d.passport_check || null } : {}) }));
 }
 export async function rtAgentData(env, deps) {
   const d = await deps.sharedGet(env, RT_KEY, 1e15);
@@ -449,7 +451,8 @@ export async function rtHandle(request, env, ctx, url, deps) {
     const lang = RT_LANGS.includes(url.searchParams.get("lang")) ? url.searchParams.get("lang") : null;
     const out = { ...base, ...d, cards: rtCards(d), partners: deps.partners ? deps.partners("api-roundtable") : undefined };
     if (lang) out.queue = rtQueue(d, lang, url.origin);
-    return deps.json(out, { ...H, "Cache-Control": "public, max-age=60" });
+    if (d.kind === "ask") { out.about = "A private round table on one news story brought by a visitor or an AI agent: Orb Studio first checks the article with the news passport, then the moderator Claude retells it strictly by that passport and asks Gemini, Grok and DeepSeek. Views of AI models, not verdicts or advice."; delete out.schedule; delete out.partners; }
+    return deps.json(out, { ...H, "Cache-Control": "public, max-age=60", ...(d.kind === "ask" ? { "X-Robots-Tag": "noindex" } : {}) });
   }
   return null;
 }

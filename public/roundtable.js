@@ -1,5 +1,11 @@
 export const T = {
  "en": {
+  "askTitle": "AI Round Table · your story",
+  "askWait": "Your round table is being prepared",
+  "askWaitSub": "Orb Studio checks the article with the news passport, then Claude asks Gemini, Grok and DeepSeek. Usually 1–3 minutes; the page will start by itself.",
+  "askGone": "No such round table",
+  "askGoneSub": "The link is wrong or the check failed. You can bring the news link again below.",
+  "askProg": "Your story on the table",
   "partner": "Orb Studio partner · referral link",
   "krH": "The studio talks through the news. Prices — on <b>Kraken</b>",
   "krSub": "Kraken crypto exchange: buy bitcoin with euro, Kraken Pro for active trading. Orb Studio's crypto radar takes its prices from the Kraken API.",
@@ -51,6 +57,12 @@ export const T = {
   "podcast": "Podcast with David and Grok →"
  },
  "ru": {
+  "askTitle": "Круглый стол ИИ · ваша новость",
+  "askWait": "Ваш круглый стол готовится",
+  "askWaitSub": "Orb Studio проверяет статью паспортом новости, потом Claude спрашивает Gemini, Grok и DeepSeek. Обычно 1–3 минуты; страница начнёт сама.",
+  "askGone": "Такого круглого стола нет",
+  "askGoneSub": "Ссылка неверна или проверка не удалась. Новость можно принести ещё раз — поле ниже.",
+  "askProg": "Ваша новость на столе",
   "partner": "Партнёр Orb Studio · реферальная ссылка",
   "krH": "Студия обсуждает новости. Курсы — на <b>Kraken</b>",
   "krSub": "Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли. Котировки крипто-радара Orb Studio — с Kraken API.",
@@ -102,6 +114,12 @@ export const T = {
   "watch": "Watch:"
  },
  "de": {
+  "askTitle": "KI-Runder Tisch · Ihre Nachricht",
+  "askWait": "Ihr runder Tisch wird vorbereitet",
+  "askWaitSub": "Orb Studio prüft den Artikel mit dem Nachrichtenpass, dann fragt Claude Gemini, Grok und DeepSeek. Meist 1–3 Minuten; die Seite startet von selbst.",
+  "askGone": "Diesen runden Tisch gibt es nicht",
+  "askGoneSub": "Der Link ist falsch oder die Prüfung ist fehlgeschlagen. Sie können den Nachrichtenlink unten erneut bringen.",
+  "askProg": "Ihre Nachricht auf dem Tisch",
   "partner": "Partner von Orb Studio · Empfehlungslink",
   "krH": "Das Studio bespricht die Nachrichten. Die Kurse – auf <b>Kraken</b>",
   "krSub": "Kryptobörse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading. Die Kurse des Krypto-Radars von Orb Studio kommen von der Kraken-API.",
@@ -318,10 +336,13 @@ function start() {
   document.documentElement.lang = lang;
   const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
   const stage = $("stage"), sub = $("sub"), board = $("board"), voice = new Audio(), pre = new Audio();
+  // приватный выпуск «Спросить круглый стол»: /roundtable?ask=<id> (src/roundtable-ask.js); выпуски дня не трогает
+  const askId = (() => { try { const a = new URLSearchParams(location.search).get("ask"); return /^[0-9a-f]{18}$/.test(a || "") ? a : null; } catch { return null; } })();
+  if (askId) { const m = document.createElement("meta"); m.name = "robots"; m.content = "noindex"; document.head.append(m); }
   voice.preload = "auto"; pre.preload = "auto";
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t[e.dataset.t]; });
   document.querySelectorAll("[data-h]").forEach((e) => { e.innerHTML = t[e.dataset.h]; });
-  $("ttl").textContent = t.title; $("credit").textContent = t.credit; $("imgnote").textContent = t.image; $("vnote").textContent = t.voices; $("next").setAttribute("aria-label", t.next);
+  $("ttl").textContent = askId ? t.askTitle : t.title; $("credit").textContent = t.credit; $("imgnote").textContent = t.image; $("vnote").textContent = t.voices; $("next").setAttribute("aria-label", t.next);
   for (const [k, s] of Object.entries(SEATS)) { const g = $("glow-" + k); g.style.left = s.x + "%"; g.style.top = s.y + "%"; const l = $("lb-" + k); l.style.left = s.label[0] + "%"; l.style.top = s.label[1] + "%"; l.textContent = NAMES[k]; }
   const auto = !!navigator.webdriver, hit = (page) => { try { fetch("/api/v1/hit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ page, lang, auto }) }).catch(() => {}); } catch {} };
   let seen = false; try { seen = sessionStorage.getItem("orbCounted_rt") === "1"; } catch {}
@@ -334,14 +355,14 @@ function start() {
   const kc = $("krcode"); kc.addEventListener("click", () => { try { navigator.clipboard.writeText(kc.dataset.code); kc.textContent = kc.dataset.code + " ✓ " + t.copied; } catch {} });
 
   const xs = $("xshare"); xs.textContent = "𝕏 " + t.share + ({ ru: " (на английском)", de: " (auf Englisch)" }[lang] || "");
-  const setShare = (d) => { const ep = d && d.episode_id; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(shareText(d)) + "&url=" + encodeURIComponent("https://orbstudio.org/en/roundtable" + (ep ? "?ep=" + ep : "")) + "&hashtags=OrbStudio,AI"; };
+  const setShare = (d) => { const ep = d && d.episode_id; xs.href = "https://x.com/intent/post?text=" + encodeURIComponent(shareText(d)) + "&url=" + encodeURIComponent(askId ? "https://orbstudio.org/" + lang + "/roundtable?ask=" + askId : "https://orbstudio.org/en/roundtable" + (ep ? "?ep=" + ep : "")) + "&hashtags=OrbStudio,AI"; };
   setShare(null);
 
   function showBoard(h, p) { sub.hidden = true; board.hidden = false; $("board-h").textContent = h; $("board-p").textContent = p || ""; stage.dataset.speaker = ""; }
   let chunkTick = null;
   let queue = [], pos = 0, timer = null, retry = null, soundOn = false, started = false, listenCounted = false, doneFor = null, ep = null, vfail = 0, topics = [];
   function renderProg(cur) {
-    const ol = $("prog-list"); if (!topics.length) { $("prog").hidden = true; return; } $("prog").hidden = false; $("prog-h").textContent = t.progH;
+    const ol = $("prog-list"); if (!topics.length) { $("prog").hidden = true; return; } $("prog").hidden = false; $("prog-h").textContent = askId ? t.askProg : t.progH;
     if (ol.childElementCount !== topics.length) { ol.textContent = ""; topics.forEach((x, k) => { const li = document.createElement("li"), b = document.createElement("b"), s = document.createElement("span"); b.textContent = t.topic + " " + (k + 1); s.textContent = x.headline; li.append(b, s); ol.append(li); }); }
     [...ol.children].forEach((li, k) => li.classList.toggle("on", k === cur));
   }
@@ -389,8 +410,12 @@ function start() {
   }
   async function load() {
     clearTimeout(timer); clearTimeout(retry);
-    let d = null; try { d = await (await fetch(API + "?lang=" + lang, { headers: { accept: "application/json" } })).json(); } catch { d = null; }
+    let d = null; try { d = await (await fetch(API + "?lang=" + lang + (askId ? "&ep=ask-" + askId : ""), { headers: { accept: "application/json" } })).json(); } catch { d = null; }
     if (!d) { showBoard(t.noLink, t.noLinkSub); retry = setTimeout(load, 90000); return; }
+    if (askId && (d.status !== "ok" || !d.queue)) { // ещё готовится или не удался: спрашиваем заявку
+      let a = null; try { a = await (await fetch(API + "/ask?id=" + askId)).json(); } catch {}
+      if (a && (a.status === "queued" || a.status === "working")) { showBoard(t.askWait, t.askWaitSub); retry = setTimeout(load, 12000); return; }
+      showBoard(t.askGone, t.askGoneSub); return; }
     if (d.status !== "ok" || !d.queue) { showBoard(t.preparing, t.preparingSub); retry = setTimeout(load, 120000); return; }
     ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);
     { const e = $("epdate"), dt = episodeDate(d.generated_at); e.hidden = !dt; e.textContent = dt; if (dt) e.dateTime = d.generated_at; } // дата выпуска на сцене

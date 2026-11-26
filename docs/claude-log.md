@@ -493,3 +493,11 @@
 - `/de/feiertag-heute` (src/feiertag.js, на сервере, только по-немецки): праздник сегодня по 16 землям, воскресенье, ближайший праздник, FAQ. Считается по правилам (place.js), без внешних источников.
 - Раздел «Карты и агенты»: `/tools/maps`, `/de/tools/maps`, `/en/tools/maps` (генератор `python3 tools/maps_pages.py`, текст внутри него). Честная строка: не связан с Google, Google Maps — товарный знак Google LLC; без логотипов, рейтингов и отзывов Google; тест это проверяет.
 - Условия Google Maps Platform сверены по поиску: требуют атрибуцию по документации и ограничивают кэширование; мы API не используем и содержимое не храним.
+
+## 26.11.2026 — «Спросить круглый стол»: приватный выпуск по ссылке на новость (превью, ветка preview/roundtable-ask)
+- Идея владельца: на странице круглого стола блок, как «Проверить новость»: даём ссылку → паспорт новости по ссылке → Claude пересказывает строго по паспорту и спрашивает Gemini, Grok, DeepSeek → приватный выпуск со своей ссылкой (поделиться в TikTok). Агенты тоже могут приносить новости. Выпуски дня не трогаем.
+- Код: `src/roundtable-ask.js` (raCreate / raProcess / raTick / raHandle), в `src/roundtable.js` экспортированы claudeTool, askGuest (+ доп. правило для гостей), rtTranslate, rtVoice; rtFind понимает `ep=ask-<id>`. Страница: блок `#raBox` в `public/roundtable.html` + `public/roundtable-ask.js`; плеер `?ask=<id>` (noindex, заголовок «ваша новость»).
+- API: POST/GET `/api/v1/roundtable/ask`, MCP `ask_round_table` (url → id, потом опрос по id). Анонс: NEW_TOOLS, llms.txt, MCP_INSTRUCTIONS, agent.json, OpenAPI.
+- Приватность: id — 18 случайных hex; выпуск не попадает в rt-latest, архив, карточки get_round_table; ответы с X-Robots-Tag noindex. Та же ссылка за сутки → тот же выпуск.
+- Лимиты: 3 новых в час с адреса, 20 в сутки на сайт (`RT_ASK_DAILY_CAP`), плюс общий суточный потолок паспортов. Сборка в фоне после POST; cron каждые 6 минут доделывает брошенные (raTick), не больше 2 попыток.
+- Проверка: `test/roundtable-ask.test.mjs` (6 тестов, модели замоканы); локально wrangler dev — блок и маршруты отвечают. Живой прогон с ключами — после выкладки.
