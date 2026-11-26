@@ -463,3 +463,8 @@
 - Одноразовый адрес gemini-probe из задачи не брали: лишняя скрытая поверхность, а причина уже найдена.
 - Партия 41 (Лиана, по памяти) и ответ с поиском Google (26.11): в библиотеку Hinkley (hinkley_dv, 1944–2019; Biometrika 1970, 57(1):1–17 → «Тихий сдвиг»: нужна дата сдвига), Bhattacharyya (bhattacharyya_ak, 1915–1996; Bull. Calcutta Math. Soc. 35:99–109, 1943 → «Изменился разброс, а не уровень»), Shreider (schreider_ya, 1927–1998, ВИНИТИ → новый мостик new_info_not_paraphrase, idea, с number). Garfield — дубль. В ожидание: Braun (1932–2022), Fellegi, Pettitt, Dynkin. Список сканеров: 923.
 - 26.11: Партия 43 — wadati_k, spjotvoll_e, altmann_g; мостик many_checks_some_lucky; Шварц и Тулдава в memory-waiting.
+
+## 26.11.2026 — Телеметрия проверок паспорта (идея Лианы, принято частично)
+- Harman отдаёт блок `telemetry` (`checksTelemetry`): по каждой проверке паспорта — trigger_rate, влияние на уверенность (CONF_EFFECT — свойство паспорта), доля оспоренных с проверкой и без, группа workhorse / specialist / calibrate / text_only_by_design / collecting. Данные — уже хранимые `fired` в radar_life, новых записей и опроса нет.
+- Заменили: raw/final_verdict → уверенность (у паспорта нет вердикта факт/гипотеза). Не взяли: veto_cost (нет данных «подтвердилось позже» — это новый датчик), disagreement_value (нет общего формата конфликта радаров; смотреть после ~21.12). bridge_id у Лианы выдуман (palmer_epistemic_modality): реальный — hedged_not_stated / карточка palmer_fr.
+- Проверки, меняющие только текст say (tone, quoted, metaphor, state_media, amplified), не считаются «нулевым сдвигом» и не сужаются.

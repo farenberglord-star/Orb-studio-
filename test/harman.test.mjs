@@ -46,3 +46,13 @@ test("cry wolf: alarm rate and whether warned stories are challenged more", asyn
   const r = cryWolfReport(stored, L); assert.equal(r.alarm_rate_pct, 80); assert.equal(r.crying_wolf, true); assert.equal(r.verdict, "warnings_informative");
   assert.equal(r.by_check_pct.few_voices, 80); assert.equal(cryWolfReport(stored.slice(0, 10), []).crying_wolf, false);
 });
+
+test("checks telemetry: groups, text-only by design, collecting", async () => {
+  const { checksTelemetry } = await import("../src/harman.js");
+  const mk = (fired, hit) => ({ fired: fired.split(",").filter(Boolean), hit: hit ? {} : null, s: {} });
+  const L = []; const stored = [];
+  for (let i = 0; i < 40; i++) { const f = i < 20 ? "few_voices" : i < 22 ? "found_document" : i < 30 ? "tone" : ""; const h = f === "few_voices" ? i < 30 : f === "found_document" ? true : i === 25; stored.push({ fired: f }); L.push(mk(f, h)); }
+  const r = checksTelemetry(stored, L), by = Object.fromEntries(r.checks.map((c) => [c.check, c]));
+  assert.equal(r.verdict, "measured"); assert.equal(by.few_voices.group, "workhorse"); assert.equal(by.tone.group, "text_only_by_design"); assert.equal(by.found_document.confidence_effect, "blocks_high");
+  assert.equal(checksTelemetry(stored.slice(0, 5), L.slice(0, 5)).verdict, "collecting"); assert.ok(r.not_measured.length === 2);
+});

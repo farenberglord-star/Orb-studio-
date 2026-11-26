@@ -34,12 +34,13 @@ export function harmanReport(rows, now = Date.now(), since = null) {
     if (+s.n_max >= 3) L.widened++;
     if (s.fired != null) layered.push({ s, hit, fired: String(s.fired).split(",").filter(Boolean) });
   }
+  const stored = all.filter((r) => r.fired != null && !CORRECTION_RE.test(r.headline));
   const out = ["high", "medium", "low"].map((c) => { const L = levels[c] || { stories: 0, challenged: 0, widened: 0 }; return { confidence: c, ...L, challenged_pct: pct(L.challenged, L.stories), widened_pct: pct(L.widened, L.stories) }; });
   const ready = out.filter((x) => x.stories >= HARMAN_MIN), hi = out[0], lo = out[2];
   const verdict = ready.length < 2 ? "collecting" : hi.stories >= HARMAN_MIN && lo.stories >= HARMAN_MIN && hi.challenged_pct > lo.challenged_pct ? "overconfident"
     : ready.every((x, i, a) => i === 0 || a[i - 1].challenged_pct <= x.challenged_pct + 2) ? "calibrated" : "mixed";
   return {
-    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered), after_correction: afterCorrectionReport(all, corr, now), cry_wolf: cryWolfReport(all.filter((r) => r.fired != null && !CORRECTION_RE.test(r.headline)), layered),
+    sensor: "harman", verdict, levels: out, examples, layers: layersReport(layered), after_correction: afterCorrectionReport(all, corr, now), cry_wolf: cryWolfReport(stored, layered), telemetry: checksTelemetry(stored, layered),
     stories_resolved: done.length, stories_waiting: all.filter((r) => r.conf && +r.first_ts > now - HARMAN_WINDOW).length, corrections_seen: corr.length,
     question: "Is the Orb Studio news passport honest about its own confidence — are stories it rated 'high' challenged less often than those it rated 'low'?",
     method: `The passport's confidence (high / medium / low) is stored when a story first appears on a radar. ${HARMAN_WINDOW / 3600e3} hours later, the story counts as challenged if another radar headline with denial, retraction or correction words (denies, retracts, corrects, dementiert, korrigiert, опроверг, исправ…) appeared in that window and shares at least 40% of its key words. Widened = 3+ outlets at the peak. Calibrated = the challenged share does not fall as confidence rises; overconfident = 'high' is challenged more often than 'low'. A verdict needs ${HARMAN_MIN} resolved stories in at least two levels. Word rules, no AI.`,
@@ -71,6 +72,29 @@ export function layersReport(layered) {
     bridge: "Crystal Library bridge 'holes in the layers': Reason ('Human Error', 1990, the Swiss-cheese model) + Bobbio (rule conflicts) + Harman.",
     since: "2026-11-24 (checks are stored from this day)", min_challenged: REASON_MIN,
   };
+}
+
+// Телеметрия проверок паспорта (предложение Лианы/Gemini 26.11.2026, принято частично): по каждой проверке — как часто срабатывает,
+// как влияет на уверенность (свойство самого паспорта, не измерение) и оспаривают ли истории с ней чаще остальных.
+// Вердиктов «факт/гипотеза» у паспорта нет, поэтому «сдвиг решения» = сдвиг уверенности; «цена перестраховки» (veto_cost) не считаем:
+// данных «подтвердилось позже» у нас нет. Группы: workhorse / specialist / calibrate / text_only_by_design / collecting.
+export const CONF_EFFECT = { few_voices: "lowers", extraordinary: "lowers", rumour_risk: "lowers", vague: "lowers_if_nothing_to_check", stale: "lowers_if_over_48h",
+  not_event: "blocks_high", found_document: "blocks_high", poll: "blocks_high", quoted: "text_only", metaphor: "text_only", tone: "text_only", state_media: "text_only", amplified: "text_only" };
+export const TELE_RARE = 5, TELE_MIN = 10;
+export function checksTelemetry(stored, layered) {
+  const n = (stored || []).length, ch = layered.filter((x) => x.hit), rest = layered.filter((x) => !x.hit), enough = ch.length >= TELE_MIN;
+  const rate = (a) => (a.length ? Math.round((100 * a.filter((x) => x.hit).length) / a.length) : null);
+  const checks = Object.keys(CONF_EFFECT).map((id) => {
+    const fired = stored.filter((r) => String(r.fired).split(",").includes(id)).length, w = layered.filter((x) => x.fired.includes(id)), q = layered.filter((x) => !x.fired.includes(id));
+    const trig = n ? Math.round((100 * fired) / n) : null, cw = rate(w), cq = rate(q), eff = CONF_EFFECT[id];
+    const informative = cw != null && cq != null && w.length >= TELE_MIN ? cw > cq : null;
+    const group = !fired ? "never_fired" : eff === "text_only" ? "text_only_by_design" : !enough || informative == null ? "collecting" : informative ? (trig < TELE_RARE ? "specialist" : "workhorse") : "calibrate";
+    return { check: id, confidence_effect: eff, trigger_rate_pct: trig, challenged_when_fired_pct: cw, challenged_when_not_fired_pct: cq, group };
+  }).filter((c) => c.trigger_rate_pct || c.group !== "never_fired");
+  return { stories: n, challenged: ch.length, verdict: enough ? "measured" : "collecting", checks,
+    groups: { workhorse: "fires often, challenged stories carry it more often than the rest", specialist: "fires rarely (<" + TELE_RARE + "% of stories) but when it does the story is challenged more often", calibrate: "fires on stories that are not challenged more often than the rest: widen or narrow its words", text_only_by_design: "changes only the 'say' lines, never the confidence (keeps Harman's calibration comparable): judged by challenged share only, never narrowed for 'no shift'" },
+    not_measured: ["veto_cost (no 'confirmed later' data: would need a new sensor)", "disagreement_value (no common format for a conflict between two radars yet)"],
+    bridge: "Idea from Liana (Gemini) 26.11.2026, accepted in part: per-check telemetry on the stored passport checks; Harman + Reason + Pearson (cost of a false alarm).", min_challenged: TELE_MIN };
 }
 
 // «Крик „волк“» — мостик Пирсон (цена ложной тревоги) + Харман + Несселроуд; опора — Брезниц, «Cry Wolf» (1984), карточка ждёт некролога.
