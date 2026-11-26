@@ -20,7 +20,8 @@ def known():
         for m in re.finditer(r'name:\s*"([^"]+)",\s*years:\s*"([^"]+)"', open(f, encoding="utf-8").read()):
             out.append((os.path.basename(f)[:-3], m.group(1), m.group(2), "sensor"))
     return out
-def surname(name): t = [w for w in norm(name) if len(w) > 1]; return t[-1] if t else ""
+SUFFIX = {"jr", "sr", "ii", "iii", "iv", "мл", "ст"}  # «Henry Kyburg Jr.» -> kyburg, а не jr
+def surname(name): t = [w for w in norm(name) if len(w) > 1 and w not in SUFFIX]; return t[-1] if t else ""
 def main():
     k = known()
     if len(sys.argv) > 1 and sys.argv[1] == "list":
