@@ -57,7 +57,7 @@ export function omoriReport(rows, events, now = Date.now(), usgsOk = true) {
     quake_headlines_matched: heads.length, aftershock_headlines: afterHeads.length, examples: afterHeads.slice(0, 8),
     rule: `USGS events of magnitude 2.5+ over ${OMORI_DAYS} days; a mainshock is magnitude ${OMORI_MAIN_MAG}+; an aftershock is a smaller event within ${OMORI_KM} km after it. Omori check on the past: with n(t) ~ 1/t the first day and days 2-10 hold roughly equal counts. Radar quake headlines are matched to USGS events by the place named (as in Cohen-S).`,
     how_to_use: "aftershock: say it is an aftershock of the named mainshock, not a new earthquake, and give both magnitudes. omori_like: the sequence is fading as aftershocks usually do. This describes what USGS recorded; it is not a forecast of further quakes.",
-    limits: "Distance and time window only; a nearby independent quake can be counted as an aftershock. USGS 2.5+ feed: small aftershocks are missing.",
+    limits: "Distance and time window only; a nearby independent quake can be counted as an aftershock. USGS 2.5+ feed: outside the US it holds mostly magnitude 4.5+, so many small aftershocks are missing and too_few is common.",
     disclaimer: "Indicator, not advice. Not a forecast.",
   };
 }
