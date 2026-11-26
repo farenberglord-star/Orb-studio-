@@ -246,7 +246,8 @@ export function rtAssemble(topics0, intro, answers, close, models) {
 // В эфир — только если по каждой теме ответил хотя бы один гость
 export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
 
-export async function rtTranslate(env, d) {
+export async function rtTranslate(env, d, only) {
+  const LANGS = only && only.length ? RT_TR.filter((l) => only.includes(l)) : RT_TR;
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
   const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
   const one = async (lg) => {
@@ -264,8 +265,8 @@ export async function rtTranslate(env, d) {
       return o;
     } catch { return null; }
   };
-  const res = await Promise.all(RT_TR.map(one)); const out = {};
-  RT_TR.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
+  const res = await Promise.all(LANGS.map(one)); const out = {};
+  LANGS.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
   return out;
 }
 

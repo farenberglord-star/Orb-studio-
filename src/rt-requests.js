@@ -9,7 +9,7 @@ import { normalizeUrl, linkKey } from "./news-url.js";
 import { newsPassport } from "./passport.js";
 import { stateTag } from "./statemedia.js";
 import { youtubeId, supadata, transcript } from "./interview.js";
-import { RT_GUESTS, RT_CAST, RT_CLOSE_TOOL, cleanSpeech, claudeTool, askGuest, rtTranslate, rtAssemble, rtQueue } from "./roundtable.js";
+import { RT_TR, RT_GUESTS, RT_CAST, RT_CLOSE_TOOL, cleanSpeech, claudeTool, askGuest, rtTranslate, rtAssemble, rtQueue } from "./roundtable.js";
 
 export const RQ_PER_IP_DAY = 3;          // запросов с одного адреса в сутки
 export const RQ_QUEUE_CAP = 10;          // в очереди и в работе одновременно
@@ -124,6 +124,10 @@ async function runStage(env, deps, row, work) {
     work.d = d; delete work.answers; return null;
   }
   const d = work.d; d.translations = await rtTranslate(env, d);
+  // ru и de обязательны: без перевода зритель на русской странице слышит английский. Первые попытки этапа повторяются, последняя отдаёт что есть (cron потом доводит)
+  if (RT_TR.some((l) => !d.translations[l])) {
+    const again = await rtTranslate(env, d, RT_TR.filter((l) => !d.translations[l])); Object.assign(d.translations, again);
+    if (RT_TR.some((l) => !d.translations[l]) && (row.tries | 0) < RQ_MAX_TRIES - 1) throw new Error("translation incomplete"); }
   d.episode_id = row.id; d.kind = "viewer_request";
   d.request = { id: row.id, kind: row.kind, url: d.topics[0].link || row.url, submitted_at: new Date(row.ts).toISOString(), by: row.by_agent ? "agent" : "visitor", ...(row.name ? { name: row.name } : {}) };
   return d; // последний этап отдаёт готовую карточку
@@ -164,7 +168,18 @@ export async function rqTick(env, deps) {
   await ensure(env);
   const now = Date.now();
   const next = await env.DB.prepare("SELECT id FROM " + TBL + " WHERE status='queued' OR (status='building' AND (lease IS NULL OR lease<?1)) ORDER BY ts ASC LIMIT 1").bind(now).first();
-  if (next) await rqProcess(env, deps, next.id);
+  if (next) { await rqProcess(env, deps, next.id); return; }
+  await rqRepairTranslations(env); // готовые карточки без русского или немецкого перевода доводим (до 3 попыток)
+}
+export async function rqRepairTranslations(env) {
+  const rows = ((await env.DB.prepare("SELECT id, card FROM " + TBL + " WHERE status='ready' AND card IS NOT NULL ORDER BY done_ts DESC LIMIT 12").all()).results) || [];
+  for (const r of rows) {
+    let d = null; try { d = JSON.parse(r.card); } catch { continue; }
+    const miss = RT_TR.filter((l) => !(d.translations && d.translations[l])); if (!miss.length || (d.tr_fix | 0) >= 3) continue;
+    d.tr_fix = (d.tr_fix | 0) + 1; d.translations = { ...(d.translations || {}), ...(await rtTranslate(env, d, miss)) };
+    await env.DB.prepare("UPDATE " + TBL + " SET card=?2 WHERE id=?1").bind(r.id, JSON.stringify(d)).run(); return r.id;
+  }
+  return null;
 }
 
 export async function rqSubmit(request, env, ctx, deps, b) {
@@ -174,7 +189,7 @@ export async function rqSubmit(request, env, ctx, deps, b) {
   if (!n.ok) return { http: 400, body: { error: "bad_url", reason: n.error, hint: "Send {\"url\": \"https://link-to-a-news-article-or-youtube-video\"}" } };
   const id = await rqId(n.url), kind = rqKind(n.url), page = "https://orbstudio.org/roundtable?ep=" + id;
   const ex = await env.DB.prepare("SELECT id, status, reason, ts FROM " + TBL + " WHERE id=?1").bind(id).first();
-  if (ex && ex.status !== "failed") return { http: 200, body: { id, status: ex.status, ...(ex.reason ? { reason: ex.reason } : {}), ...(ex.status === "ready" ? { page } : {}), already: true } };
+  if (ex && ex.status !== "failed") return { http: 409, body: { error: "duplicate", message: "This link was already sent to the round table.", id, status: ex.status, ...(ex.reason ? { reason: ex.reason } : {}), ...(ex.status === "ready" ? { page } : { status_url: "https://orbstudio.org/api/v1/roundtable/request?id=" + id }), already: true } };
   if (ex && Date.now() - ex.ts < RQ_RETRY_MS) return { http: 200, body: { id, status: "failed", reason: ex.reason, retry_after_minutes: Math.ceil((RQ_RETRY_MS - (Date.now() - ex.ts)) / 60000), already: true } };
   const iph = (await sha((request.headers.get("cf-connecting-ip") || "?") + "|rt-request|" + day())).slice(0, 16), today = day();
   const q = (await env.DB.prepare("SELECT COUNT(*) c FROM " + TBL + " WHERE status IN ('queued','building')").first()) || {};

@@ -21,6 +21,8 @@ export const T = {
   "rqRej": "This story cannot go on air: ",
   "rqFail": "Could not prepare this story: ",
   "rqErr": "Could not send",
+  "rqDup": "This news was already sent — the episode is here:",
+  "rqDupWait": "This news was already sent and is being prepared — the bar shows its progress.",
   "rqList": "Stories sent by viewers and AI agents",
   "rqEmpty": "No requests yet — send the first one.",
   "rqAgent": "AI agent",
@@ -99,6 +101,8 @@ export const T = {
   "rqRej": "Эту новость нельзя выпустить в эфир: ",
   "rqFail": "Не удалось подготовить новость: ",
   "rqErr": "Не удалось отправить",
+  "rqDup": "Эта новость уже отправлена — выпуск здесь:",
+  "rqDupWait": "Эта новость уже отправлена и готовится — шкала показывает ход.",
   "rqList": "Новости от зрителей и ИИ-агентов",
   "rqEmpty": "Запросов пока нет — пришлите первый.",
   "rqAgent": "ИИ-агент",
@@ -177,6 +181,8 @@ export const T = {
   "rqRej": "Diese Nachricht kann nicht gesendet werden: ",
   "rqFail": "Die Nachricht konnte nicht vorbereitet werden: ",
   "rqErr": "Senden nicht möglich",
+  "rqDup": "Diese Nachricht wurde schon gesendet — die Folge ist hier:",
+  "rqDupWait": "Diese Nachricht wurde schon gesendet und wird vorbereitet — der Balken zeigt den Fortschritt.",
   "rqList": "Nachrichten von Zuschauern und KI-Agenten",
   "rqEmpty": "Noch keine Anfragen – schickt die erste.",
   "rqAgent": "KI-Agent",
@@ -551,7 +557,8 @@ function start() {
   }
   $("rq-f").addEventListener("submit", async (e) => { e.preventDefault(); rqMsg.textContent = ""; $("rq-go").disabled = true;
     try { const r = await fetch(RQ, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: $("rq-url").value, name: $("rq-name").value, lang }) });
-      const j = await r.json().catch(() => ({})); if (!r.ok) { rqMsg.textContent = t.rqErr + (j.error ? ": " + j.error : ""); return; }
+      const j = await r.json().catch(() => ({})); if (r.status === 409 && j.id) { $("rq-url").value = ""; if (j.status === "ready") { rqLinkTo(j.id); rqMsg.prepend(t.rqDup + " "); } else { rqMsg.textContent = t.rqDupWait; try { localStorage.setItem("orbRqActive", j.id); } catch {} rqTrack(j.id); } return; }
+      if (!r.ok) { rqMsg.textContent = t.rqErr + (j.error ? ": " + j.error : ""); return; }
       if (j.status === "ready") { rqLinkTo(j.id); return; }
       if (j.status === "rejected") { rqMsg.textContent = t.rqRej + (j.reason || ""); return; } if (j.status === "failed") { rqMsg.textContent = t.rqFail + (j.reason || ""); return; }
       $("rq-url").value = ""; try { localStorage.setItem("orbRqActive", j.id); } catch {} rqTrack(j.id);

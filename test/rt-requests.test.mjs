@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { rqKind, rqId, rqPassportFrom, rqSubmit, rqProcess, rqTick, rqFind, rqHandle, rqProgress, RQ_PER_IP_DAY, RQ_QUEUE_CAP, RQ_YT_DAILY, RQ_STAGES } from "../src/rt-requests.js";
+import { rqRepairTranslations, rqKind, rqId, rqPassportFrom, rqSubmit, rqProcess, rqTick, rqFind, rqHandle, rqProgress, RQ_PER_IP_DAY, RQ_QUEUE_CAP, RQ_YT_DAILY, RQ_STAGES } from "../src/rt-requests.js";
 import { rtFind, rtQueue } from "../src/roundtable.js";
 
 // D1 из SQLite в памяти
@@ -73,7 +73,7 @@ test("приём: плохие ссылки, свой сайт, дубль, ли
   const r1 = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/a?utm_source=tw", name: "Anna" });
   assert.equal(r1.http, 202); assert.equal(r1.body.status, "queued"); assert.match(r1.body.page, /roundtable\?ep=rq/);
   const dup = await rqSubmit(req("2.2.2.2"), env, { waitUntil() {} }, deps(), { url: "https://www.example.com/a" });
-  assert.equal(dup.http, 200); assert.equal(dup.body.already, true); assert.equal(dup.body.id, r1.body.id);
+  assert.equal(dup.http, 409); assert.equal(dup.body.error, "duplicate"); assert.equal(dup.body.already, true); assert.equal(dup.body.id, r1.body.id);
   for (let i = 0; i < RQ_PER_IP_DAY - 1; i++) assert.equal((await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/p" + i })).http, 202);
   const lim = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/zzz" });
   assert.equal(lim.http, 429, "четвёртый запрос с адреса за сутки");
@@ -176,4 +176,14 @@ test("опрос статуса ведёт сборку сам, пока зри�
   const busy = (await poll()).body; assert.equal(busy.status, "building"); assert.equal(busy.stage, "passport", "этап ведёт другой запрос — не мешаем");
   await env.DB.prepare("UPDATE rt_requests SET lease=?2 WHERE id=?1").bind(r.body.id, Date.now() - 1).run();
   const done = (await poll()).body; assert.equal(done.status, "ready", "аренда истекла — опрос довёл сборку до конца"); assert.equal(done.progress, 100);
+});
+
+test("карточка без русского перевода доводится cron-ом (до 3 попыток), готовая остаётся читаемой", async () => {
+  mockFetch(); const env = { DB: fakeDb(), ...KEYS };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/tr" });
+  assert.equal(await until(env, deps(), r.body.id), "ready");
+  const d = await rqFind(env, r.body.id); delete d.translations.ru;
+  await env.DB.prepare("UPDATE rt_requests SET card=?2 WHERE id=?1").bind(r.body.id, JSON.stringify(d)).run();
+  assert.equal(await rqRepairTranslations(env), r.body.id);
+  const fixed = await rqFind(env, r.body.id); assert.ok(fixed.translations.ru && fixed.translations.de); assert.equal(await rqRepairTranslations(env), null, "всё на месте — ничего не делаем");
 });
