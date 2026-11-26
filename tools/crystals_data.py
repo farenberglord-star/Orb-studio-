@@ -1896,6 +1896,21 @@ C = [
  '«Languages in Contact» (1953): при контакте один язык перенимает структуры и пословные выражения другого (интерференция, кальки); калька показывает, откуда пришёл текст.',
  '„Languages in Contact“ (1953): Im Kontakt übernimmt eine Sprache Strukturen und wörtliche Wendungen einer anderen (Interferenz, Lehnübersetzungen); die Lehnübersetzung zeigt, woher ein Text kam.',
  'A headline that reads like a word-for-word translation is a retelling of a foreign report; name the original.'),
+('jakobson_r', 'Roman Jakobson', 'Роман Якобсон', '1896–1982', 'https://en.wikipedia.org/wiki/Roman_Jakobson', 'rumour_vs_fact',
+ "'Closing Statement: Linguistics and Poetics' (1960): every message has six functions — referential, emotive, conative, phatic, metalingual, poetic; one of them dominates.",
+ '«Closing Statement: Linguistics and Poetics» (1960): у каждого сообщения шесть функций — референтивная, эмотивная, конативная, фатическая, метаязыковая, поэтическая; одна из них ведущая.',
+ '„Closing Statement: Linguistics and Poetics“ (1960): Jede Nachricht hat sechs Funktionen — referentiell, emotiv, konativ, phatisch, metasprachlich, poetisch; eine davon dominiert.',
+ 'Ask which function a headline serves first: to inform, to move feelings or to make you act.'),
+('voloshinov_vn', 'Valentin Voloshinov', 'Валентин Волошинов', '1895–1936', 'https://en.wikipedia.org/wiki/Valentin_Voloshinov', 'rumour_vs_fact',
+ "'Marxism and the Philosophy of Language' (1929; authorship with M. Bakhtin is disputed): direct, indirect and quasi-direct speech show how far the reporter stands from someone else's words.",
+ '«Марксизм и философия языка» (1929; соавторство Бахтина спорно): прямая, косвенная и несобственно-прямая речь показывают, насколько передающий отделяет себя от чужого слова.',
+ '„Marxismus und Sprachphilosophie“ (1929; Mitautorschaft Bachtins umstritten): direkte, indirekte und erlebte Rede zeigen, wie weit der Berichtende von fremden Worten Abstand hält.',
+ 'Prefer the speaker\'s own quoted words to the outlet\'s paraphrase, and say which one you are giving.'),
+('akaike_h', 'Hirotugu Akaike', 'Хиротугу Акаике', '1927–2009', 'https://en.wikipedia.org/wiki/Hirotugu_Akaike', 'one_model',
+ "'Information Theory and an Extension of the Maximum Likelihood Principle' (1973): compare models by fit penalised for the number of parameters; the best fit to the past is not the best model.",
+ '«Information Theory and an Extension of the Maximum Likelihood Principle» (1973): сравнивай модели по точности со штрафом за число параметров; лучшая подгонка к прошлому — не лучшая модель.',
+ '„Information Theory and an Extension of the Maximum Likelihood Principle“ (1973): Vergleiche Modelle nach Güte mit Strafe für die Zahl der Parameter; die beste Anpassung an die Vergangenheit ist nicht das beste Modell.',
+ 'Prefer the simpler explanation that fits almost as well; say how many knobs the complex one needs.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2507,3 +2522,6 @@ NEEDS['wallace_dl'] = ('needs_idea', 'same as Mosteller: function-word sequences
 NEEDS['robbins_h'] = ('needs_idea', 'per answer: share of checks spent on sources not used before against proven ones (Harman track record per outlet); bridge economy_of_checking', None)
 NEEDS['hoeffding_w'] = ('needs_history', 'Hoeffding bound for a share estimated from the Kish effective number of independent outlets of a story; bridge independent_voices', None)
 NEEDS['weinreich_u'] = ('needs_idea', 'for a story carried in two languages (Reiss pairs): share of word-for-word aligned tokens between versions (calque) against free rewording; bridge calque_not_report', None)
+NEEDS['jakobson_r'] = ('covered', 'the Searle sensor and the tone line separate event, claim and loaded wording; bridge message_functions', None, 'searle')
+NEEDS['voloshinov_vn'] = ('covered', 'the Searle sensor gives direct_quote_pct: share of radar headlines with the speaker\'s own words quoted; bridge named_or_anonymous', None, 'searle')
+NEEDS['akaike_h'] = ('covered', 'the Leamer sensor recomputes indices under reasonable alternative choices; a simpler choice that moves the index little is preferred; bridge robust_conclusion', None, 'leamer')

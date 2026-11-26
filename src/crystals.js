@@ -14742,6 +14742,63 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "for a story carried in two languages (Reiss pairs): share of word-for-word aligned tokens between versions (calque) against free rewording; bridge calque_not_report"
 }
+},
+{
+"id": "jakobson_r",
+"name": "Roman Jakobson",
+"name_ru": "Роман Якобсон",
+"years": "1896–1982",
+"wiki": "https://en.wikipedia.org/wiki/Roman_Jakobson",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Closing Statement: Linguistics and Poetics' (1960): every message has six functions — referential, emotive, conative, phatic, metalingual, poetic; one of them dominates.",
+"ru": "«Closing Statement: Linguistics and Poetics» (1960): у каждого сообщения шесть функций — референтивная, эмотивная, конативная, фатическая, метаязыковая, поэтическая; одна из них ведущая.",
+"de": "„Closing Statement: Linguistics and Poetics“ (1960): Jede Nachricht hat sechs Funktionen — referentiell, emotiv, konativ, phatisch, metasprachlich, poetisch; eine davon dominiert."
+},
+"rule": "Ask which function a headline serves first: to inform, to move feelings or to make you act.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor and the tone line separate event, claim and loaded wording; bridge message_functions",
+"covered_by": "searle"
+}
+},
+{
+"id": "voloshinov_vn",
+"name": "Valentin Voloshinov",
+"name_ru": "Валентин Волошинов",
+"years": "1895–1936",
+"wiki": "https://en.wikipedia.org/wiki/Valentin_Voloshinov",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Marxism and the Philosophy of Language' (1929; authorship with M. Bakhtin is disputed): direct, indirect and quasi-direct speech show how far the reporter stands from someone else's words.",
+"ru": "«Марксизм и философия языка» (1929; соавторство Бахтина спорно): прямая, косвенная и несобственно-прямая речь показывают, насколько передающий отделяет себя от чужого слова.",
+"de": "„Marxismus und Sprachphilosophie“ (1929; Mitautorschaft Bachtins umstritten): direkte, indirekte und erlebte Rede zeigen, wie weit der Berichtende von fremden Worten Abstand hält."
+},
+"rule": "Prefer the speaker's own quoted words to the outlet's paraphrase, and say which one you are giving.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor gives direct_quote_pct: share of radar headlines with the speaker's own words quoted; bridge named_or_anonymous",
+"covered_by": "searle"
+}
+},
+{
+"id": "akaike_h",
+"name": "Hirotugu Akaike",
+"name_ru": "Хиротугу Акаике",
+"years": "1927–2009",
+"wiki": "https://en.wikipedia.org/wiki/Hirotugu_Akaike",
+"zone": "one_model",
+"idea": {
+"en": "'Information Theory and an Extension of the Maximum Likelihood Principle' (1973): compare models by fit penalised for the number of parameters; the best fit to the past is not the best model.",
+"ru": "«Information Theory and an Extension of the Maximum Likelihood Principle» (1973): сравнивай модели по точности со штрафом за число параметров; лучшая подгонка к прошлому — не лучшая модель.",
+"de": "„Information Theory and an Extension of the Maximum Likelihood Principle“ (1973): Vergleiche Modelle nach Güte mit Strafe für die Zahl der Parameter; die beste Anpassung an die Vergangenheit ist nicht das beste Modell."
+},
+"rule": "Prefer the simpler explanation that fits almost as well; say how many knobs the complex one needs.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor recomputes indices under reasonable alternative choices; a simpler choice that moves the index little is preferred; bridge robust_conclusion",
+"covered_by": "leamer"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

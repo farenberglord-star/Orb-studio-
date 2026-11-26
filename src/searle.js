@@ -60,6 +60,10 @@ export function conditional(title) { return COND.test(String(title || "")); }
 // Время отнесённости (А. Н. Прайор, «Past, Present and Future», 1967; Рейхенбах — время события, речи и отсчёта): заголовок
 // «инфляция в октябре 2,1 %» говорит о прошлом периоде, даже если вышел сегодня. Ищем указатели прошлого периода рядом с числом.
 const PERIOD = /(\b(?:in|for|during|since|im|für|seit)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December|Januar|Februar|März|Juni|Juli|Oktober|Dezember|Q[1-4]|the (?:first|second|third|fourth) quarter|(?:last|previous) (?:year|month|quarter|week)|20[12]\d)\b|\bQ[1-4]\b|\b(?:last|previous) (?:year|month|quarter)\b|\b(?:Vorjahr|Vormonat|Vorquartal|im (?:ersten|zweiten|dritten|vierten) Quartal)\b|(?:в|за)\s+(?:январ|феврал|март|апрел|ма[ея]|июн|июл|август|сентябр|октябр|ноябр|декабр)\p{L}*|(?:в|за)\s+(?:прошл\p{L}+|I{1,3}V?|[1-4])\s*(?:год|квартал|месяц)\p{L}*|за\s+20[12]\d)/iu;
+// Передача чужой речи (В. Н. Волошинов, «Марксизм и философия языка», 1929): прямая речь — слова говорящего в кавычках или
+// после двоеточия; косвенная — пересказ издания («X says that…»). Прямая цитата проверяема дословно, пересказ — нет.
+const DIRECT = /([«"“„][^«»"“”„]{3,}[»"”“]|^\p{Lu}[\p{L}'’ .-]{2,40}:\s)/u;
+export function directQuote(title) { return DIRECT.test(String(title || "")); }
 export function pastPeriod(title) { const t = String(title || ""); return /\d/.test(t) && PERIOD.test(t); }
 export function searleReport(radars, now = Date.now()) {
   const rs = (radars || []).filter((r) => r && Array.isArray(r.feed));
@@ -89,6 +93,8 @@ export function searleReport(radars, now = Date.now()) {
     past_period: (() => { const c = all.filter((x) => pastPeriod(x.headline)); return { past_period_pct: all.length ? Math.round((100 * c.length) / all.length) : null,
       examples: c.slice(0, 5).map((x) => ({ headline: x.headline, source: x.source })),
       note: "Reference time (A. N. Prior, 'Past, Present and Future', 1967; H. Reichenbach): a headline with a number and a past period (in October, Q3, last year, im Vorjahr, за октябрь) reports that period (usually past, sometimes a coming month), not today. Give the period when you repeat the number." }; })(),
+    direct_quote_pct: all.length ? Math.round((100 * all.filter((x) => directQuote(x.headline)).length) / all.length) : null,
+    direct_quote_note: "Reported speech (V. N. Voloshinov, 1929): a direct quote (in quotation marks or after 'Name:') can be checked word for word; an outlet's paraphrase of what someone said cannot. Quote the speaker, not the paraphrase, when you can.",
     concreteness_by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const v = all.filter((x) => x.act === k).map((x) => concreteness(x.headline)).filter((x) => x != null); return [k, v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null]; })),
     concreteness_note: "Flesch's level of abstraction (1950), roughly: share of concrete words (numbers, dates, names, places) per 100 words of the headline, averaged by speech act. A low share means a general retelling with few checkable details. German headlines: capitalised nouns are not counted, only numbers, dates and abbreviations.",
     examples: { threat: all.filter((x) => x.act === "threat").slice(0, 5), promise: all.filter((x) => x.act === "promise").slice(0, 5), demand: all.filter((x) => x.act === "demand").slice(0, 5) },
