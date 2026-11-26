@@ -79,7 +79,7 @@ import { leamerReport } from "./leamer.js";
 import { bairdReport } from "./baird.js";
 import { lybergRadar, lybergReport, regionQuota } from "./lyberg.js";
 import { stateTag } from "./statemedia.js";
-import { newsPassport, PASSPORT_RULE, mergeVoices, sigSimilar } from "./passport.js";
+import { newsPassport, PASSPORT_RULE, mergeVoices, sigSimilar, contentWordCount } from "./passport.js";
 import { measuredCrypto, finalVerdict, isDebunkText, hostOf as verdictHost } from "./verdict.js";
 import { methodReport } from "./method.js";
 import { timeMachineReport } from "./timemachine.js";
@@ -1962,6 +1962,7 @@ async function briefStamp(env, ctx, origin, lang) { // штамп и JSON-LD д�
 }
 async function passportOf(env, ctx, origin, headline) { // паспорт любого заголовка: если он есть на радарах — с числом изданий, возрастом и усилением
   const h = String(headline || "").replace(/\s+/g, " ").trim().slice(0, 300); if (h.length < 8) return { error: "headline_too_short", note: "Send a headline of at least 8 characters." };
+  if (contentWordCount(h) < 2) return { error: "no_content_words", note: "After removing function words (the, and, of, der, und, и, в …) fewer than 2 content words are left: there is nothing to judge. Send a real headline." };
   const norm = (t) => String(t || "").toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim(), nh = norm(h);
   const all = [];
   for (const r of await allRadars(env, ctx, origin).catch(() => [])) (r.feed || []).forEach((f, j) => all.push({ headline: f[1], source: f[2], link: f[4], radar: r.id, confirm: r.verify ? r.verify[j] : null, published_at: Number.isFinite(f[5]) && f[5] > 0 ? new Date(f[5]).toISOString() : null, ...stateTag(f[2], f[4]) }));
@@ -1973,7 +1974,8 @@ async function passportOf(env, ctx, origin, headline) { // паспорт люб
   if (hit) try { const r = await env.DB.prepare("SELECT MIN(n_first) a, MAX(n_max) b, (SELECT r2.source FROM radar_life r2 WHERE r2.headline = radar_life.headline AND r2.source IS NOT NULL ORDER BY r2.first_ts LIMIT 1) s FROM radar_life WHERE n_first IS NOT NULL AND headline = ?1").bind(hit.headline).first(); if (r && r.a != null) amp = { outlets_first: +r.a, outlets_peak: +r.b, first_source: r.s || null }; } catch {}
   let measured = null; try { measured = measureClaim(h, await sensorsData(env, ctx)).find((x) => x.result) || null; } catch {}
   const p = newsPassport(hit ? { ...hit, confirm: await voicesFor(origin, hit.confirm, hit.headline, hit.source), amplified: amp, measured } : { headline: h, measured, confirm: await voicesFor(origin, null, h, null) });
-  return { ...p, on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
+  const unseen = !hit && p.voices == null; // число изданий не считали: «средняя» уверенность была бы выдумкой (в Хармана не идёт — там паспорт считается при первом появлении на радаре)
+  return { ...p, ...(unseen ? { confidence: "unknown", confidence_note: "No outlet count was made for this headline (it is not on the radars and check_headline has not run): confidence is unknown, not medium. Run check_headline to count outlets." } : {}), on_radars: !!hit, ...(hit ? { radar: hit.radar, source: hit.source, link: hit.link } : { note: "This headline is not on the Orb Studio radars right now: the passport uses word rules only (status, checkability); outlets, age and amplification are unknown. check_headline searches the news for outlets." }),
     rule: PASSPORT_RULE, page: origin + "/tools/method" };
 }
 async function newsWithPassport(env, ctx, origin, topic) { // «Новости по теме с паспортом»: радарные заголовки по теме, у каждой строки паспорта — датчик и кристалл
@@ -2045,7 +2047,7 @@ async function harmanNow(env) { // «Харман»: честна ли увер�
   try { const q = (cols) => env.DB.prepare(`SELECT ${cols} FROM radar_life WHERE first_ts > ?1 AND first_ts >= ?2`).bind(Date.now() - 17 * 864e5, sw.ts || 0).all();
     rows = ((await q("k, radar, headline, first_ts, last_ts, n_max, conf, fired").catch(() => q("k, radar, headline, first_ts, last_ts, n_max, conf"))).results) || []; // колонка fired появляется с первым проходом cron
     since = ((await env.DB.prepare("SELECT MIN(first_ts) m FROM radar_life WHERE conf IS NOT NULL AND first_ts >= ?1").bind(sw.ts || 0).first()) || {}).m || null; } catch {}
-  const r = { ...harmanReport(rows, Date.now(), since), since_wide: sw.iso, since_wide_note: "From this moment a headline's outlet count is the larger of our feeds and Bing News (2 days), so passports are no longer 'few voices' by construction. Rows before it counted our feeds only and are left out, so levels stay comparable." }; await sharedPut(env, "harman-v6", r).catch(() => {}); return r;
+  const r = { ...harmanReport(rows, Date.now(), since), since_wide: sw.iso, since_wide_note: "From this moment a headline's outlet count is the larger of our feeds and Bing News (2 days), so passports are no longer 'few voices' by construction. Rows before it counted our feeds only and are left out, so levels stay comparable." }; if (r.layers && sw.iso) r.layers.since = sw.iso + " (the same moment as since_wide; checks are stored from this moment)"; await sharedPut(env, "harman-v6", r).catch(() => {}); return r;
 }
 async function auditGate(origin, request) { // не больше 60 проверок в час с одного адреса
   const ip = request.headers.get("cf-connecting-ip") || "x", rk = new Request(`${origin}/__cache/audit-rate-${await sha(ip + new Date().toISOString().slice(0, 13))}`);

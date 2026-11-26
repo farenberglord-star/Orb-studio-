@@ -35,6 +35,11 @@ function actOf(headline, searle) {
   return searle.act;
 }
 
+// Служебные слова (en/de/ru): заголовок из одних служебных слов паспорта не получает — нет содержания, о котором можно судить.
+const FUNCTION_WORDS = new Set(("the a an and or but of in on at to for with from by as is are was were be been being it its this that these those there their than then so not no nor into onto over under about after before through during between more most less will would could should can may might shall do does did has have had i you he she we they them his her our your my me us who whom whose which what when where why how if while also very just only " +
+  "der die das den dem des ein eine einer eines einem einen und oder aber von vom zu zum zur mit mir dir ihm ihr uns euch sie ist sind war waren sein wird werden wurde wurden hat haben hatte nicht kein keine auf aus bei nach vor über unter durch für gegen ohne um als wie wenn dass daß auch noch nur sich es er wir ihr " +
+  "и в во не на с со что как а то все она так его но да ты к у же вы за бы по только ее мне было вот от меня еще нет о из ему теперь когда даже ну вдруг ли если уже или ни быть был него до вас нибудь опять уж вам ведь там потом себя ничего ей может они тут где есть надо ней для мы тебя их чем была сам чтоб без будто чего раз тоже себе под будет ж тогда кто этот того потому этого какой совсем ним здесь этом один почти мой тем чтобы нее сейчас были куда зачем всех никогда можно при наконец два об другой хоть после над больше тот через эти нас про всего них какая много разве три эту моя впрочем хорошо свою этой перед иногда лучше чуть том нельзя такой им более всегда конечно всю между").split(" "));
+export const contentWordCount = (headline) => (String(headline || "").toLowerCase().match(/[\p{L}\p{N}]+/gu) || []).filter((w) => w.length > 1 && !FUNCTION_WORDS.has(w)).length;
 export function newsPassport(it, now = Date.now()) {
   const headline = String((it && it.headline) || ""), se = searleHeadline(headline), act = { act: actOf(headline, se) }, chk = frankfurtHeadline(headline);
   const pub = it && it.published_at ? Date.parse(it.published_at) : NaN, age = Number.isFinite(pub) ? Math.max(0, (now - pub) / 3600e3) : null;
