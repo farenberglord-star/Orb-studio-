@@ -14409,6 +14409,25 @@ export const CRYSTALS = [
 "code": "needs_history",
 "note": "effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices"
 }
+},
+{
+"id": "dempster_ap",
+"name": "Arthur P. Dempster",
+"name_ru": "Артур Демпстер",
+"years": "1929–2026",
+"wiki": "https://en.wikipedia.org/wiki/Arthur_P._Dempster",
+"zone": "answer_cost",
+"idea": {
+"en": "'Upper and Lower Probabilities Induced by a Multivalued Mapping' (1967): evidence may support a claim only between a lower and an upper probability; the gap between them is what we do not know.",
+"ru": "«Upper and Lower Probabilities Induced by a Multivalued Mapping» (1967): свидетельства могут поддерживать утверждение лишь в пределах между нижней и верхней вероятностью; разрыв между ними — то, чего мы не знаем.",
+"de": "„Upper and Lower Probabilities Induced by a Multivalued Mapping“ (1967): Belege stützen eine Aussage oft nur zwischen einer unteren und einer oberen Wahrscheinlichkeit; die Lücke dazwischen ist, was wir nicht wissen."
+},
+"rule": "When the low and high readings fall on different sides of a label, say \"not known\" instead of picking one.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known",
+"covered_by": "hagenauer"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

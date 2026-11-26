@@ -33,3 +33,4 @@
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты
 - Robert E. Burton | 1919–? | stale_data | Burton & Kebler, «The "Half-Life" of Some Scientific and Technical Literatures» (1960) | — | годы не найдены | полураспад покрыт карточкой Брукса
 - Alexander M. Mood | 1913–? | stale_data | «Introduction to the Theory of Statistics» (1950), медианный тест | равенство медиан выборок | Лиана: 2009, не подтверждено | медианный лаг перепечаток уже даёт датчик «Шмидт»
+- C. K. Chow | ?–? | answer_cost | «An Optimum Character Recognition System Using Decision Functions» (1957), правило отказа от ответа | при заданной цене ошибки лучше отказаться от решения, чем ошибиться | годы не найдены (Лиана: «Вен Чинг Чоу, 1928–2020» — не подтверждено; Chow 1924 в библиотеке — тёзка Юань-Ши Чоу) | войдёт в say_not_known, когда подтвердятся годы

@@ -1806,6 +1806,11 @@ C = [
  '«Survey Sampling» (1965): наблюдения из одного кластера несут меньше информации, чем их число; эффект дизайна говорит, скольким независимым они равны.',
  '„Survey Sampling“ (1965): Gebündelte Beobachtungen tragen weniger Information, als ihre Zahl vermuten lässt; der Designeffekt sagt, wie vielen unabhängigen sie entsprechen.',
  'Do not count twenty headlines from one wire as twenty sources; say how many independent ones they are.'),
+('dempster_ap', 'Arthur P. Dempster', 'Артур Демпстер', '1929–2026', 'https://en.wikipedia.org/wiki/Arthur_P._Dempster', 'answer_cost',
+ "'Upper and Lower Probabilities Induced by a Multivalued Mapping' (1967): evidence may support a claim only between a lower and an upper probability; the gap between them is what we do not know.",
+ '«Upper and Lower Probabilities Induced by a Multivalued Mapping» (1967): свидетельства могут поддерживать утверждение лишь в пределах между нижней и верхней вероятностью; разрыв между ними — то, чего мы не знаем.',
+ '„Upper and Lower Probabilities Induced by a Multivalued Mapping“ (1967): Belege stützen eine Aussage oft nur zwischen einer unteren und einer oberen Wahrscheinlichkeit; die Lücke dazwischen ist, was wir nicht wissen.',
+ 'When the low and high readings fall on different sides of a label, say "not known" instead of picking one.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2399,3 +2404,4 @@ NEEDS['renyi_a'] = ('covered', 'order-2 Renyi entropy is minus log of the Herfin
 NEEDS['birnbaum_a'] = ('needs_idea', 'per answer: does a further retelling change the likelihood ratio (Harman confidence trace); bridge economy_of_checking', None)
 NEEDS['flesch_r'] = ('covered', 'the Searle sensor gives concreteness_by_act: share of numbers, dates and names per headline by speech act; bridge details_not_repeats', None, 'searle')
 NEEDS['kish_l'] = ('needs_history', 'effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices', None)
+NEEDS['dempster_ap'] = ('covered', 'the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known', None, 'hagenauer')
