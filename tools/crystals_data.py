@@ -1761,6 +1761,11 @@ C = [
  '«On the After-shocks of Earthquakes» (1894): после сильного землетрясения число афтершоков убывает примерно обратно пропорционально прошедшему времени.',
  '„On the After-shocks of Earthquakes“ (1894): Nach einem starken Erdbeben fällt die Zahl der Nachbeben etwa umgekehrt proportional zur verstrichenen Zeit.',
  'After a large quake, check whether a new quake headline is an aftershock near the same place before calling it a new event.'),
+('noelle_neumann_e', 'Elisabeth Noelle-Neumann', 'Элизабет Ноэль-Нойман', '1916–2010', 'https://en.wikipedia.org/wiki/Elisabeth_Noelle-Neumann', 'rumour_vs_fact',
+ "'Die Schweigespirale' (1974; 'The Spiral of Silence', 1980): people who think their view is losing fall silent, so the loudest version looks more common than it is.",
+ '«Die Schweigespirale» (1974): кто считает своё мнение проигрывающим, замолкает, поэтому самая громкая версия кажется распространённее, чем есть.',
+ '„Die Schweigespirale“ (1974): Wer glaubt, mit seiner Meinung in der Minderheit zu sein, schweigt, deshalb wirkt die lauteste Version verbreiteter, als sie ist.',
+ 'Do not take the version most outlets repeat for the only one; look for the outlets that tell it differently.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2345,3 +2350,4 @@ NEEDS['weibull_w'] = ('needs_history', 'Weibull shape of the waiting times betwe
 NEEDS['anscombe_fj'] = ('needs_idea', 'per answer: how the Harman confidence moved with each checked source, stop when it moves less than the needed precision; bridge economy_of_checking', None)
 NEEDS['shiskin_j'] = ('covered', 'the Shiskin sensor (/api/v1/shiskin) compares each outlet\'s last 6 hours with its own hour-of-week pattern over 30 days', None, 'shiskin')
 NEEDS['omori_f'] = ('covered', 'the Omori sensor (/api/v1/omori) marks USGS events and radar quake headlines that are aftershocks of a magnitude 6+ quake within 100 km', None, 'omori')
+NEEDS['noelle_neumann_e'] = ('covered', 'the Krippendorff sensor lists events that outlets present differently (examples_split), so the minority version stays visible next to the chorus', None, 'krippendorff')

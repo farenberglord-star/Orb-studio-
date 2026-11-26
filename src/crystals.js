@@ -14241,6 +14241,25 @@ export const CRYSTALS = [
 "note": "the Omori sensor (/api/v1/omori) marks USGS events and radar quake headlines that are aftershocks of a magnitude 6+ quake within 100 km",
 "covered_by": "omori"
 }
+},
+{
+"id": "noelle_neumann_e",
+"name": "Elisabeth Noelle-Neumann",
+"name_ru": "Элизабет Ноэль-Нойман",
+"years": "1916–2010",
+"wiki": "https://en.wikipedia.org/wiki/Elisabeth_Noelle-Neumann",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Die Schweigespirale' (1974; 'The Spiral of Silence', 1980): people who think their view is losing fall silent, so the loudest version looks more common than it is.",
+"ru": "«Die Schweigespirale» (1974): кто считает своё мнение проигрывающим, замолкает, поэтому самая громкая версия кажется распространённее, чем есть.",
+"de": "„Die Schweigespirale“ (1974): Wer glaubt, mit seiner Meinung in der Minderheit zu sein, schweigt, deshalb wirkt die lauteste Version verbreiteter, als sie ist."
+},
+"rule": "Do not take the version most outlets repeat for the only one; look for the outlets that tell it differently.",
+"needs": {
+"code": "covered",
+"note": "the Krippendorff sensor lists events that outlets present differently (examples_split), so the minority version stays visible next to the chorus",
+"covered_by": "krippendorff"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

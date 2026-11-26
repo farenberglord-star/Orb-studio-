@@ -21,6 +21,9 @@
 
 - Ágnes Heller | 1929–2019 | rumour_vs_fact | «A mindennapi élet» (1970; англ. «Everyday Life», 1984) | повседневное мышление смешивает оценку и знание | en.wikipedia.org/wiki/%C3%81gnes_Heller | правило Лианы — пересказ; «оценка ≠ факт» уже у Оссовской (мостик tone)
 
+- Rensis Likert | 1903–1981 | one_model | «A Technique for the Measurement of Attitudes» (1932) | суммарный балл имеет смысл, только если пункты шкалы согласованы между собой (анализ пунктов) | en.wikipedia.org/wiki/Rensis_Likert | нет числа: согласованность частей индекса радара сейчас не считается (возможная пара — «Лимер»)
+- Fritz Machlup | 1902–1983 | answer_cost | «The Production and Distribution of Knowledge in the United States» (1962) | производство знания — отрасль с затратами; ценность нового знания сверяется с затратами | en.wikipedia.org/wiki/Fritz_Machlup | правило — пересказ; работа про долю знания в экономике, не про цену одной проверки
+
 ## Ждут проверки даты смерти
 - Tadeusz Pszczołowski | 1922–? | answer_cost | «Zasady sprawnego działania» (1960) | праксеология: оценка действия по соотношению результата и затрат | каталог Академии военного искусства: 1922–1999; Лиана: 1922–2019 — расхождение | войдёт в economy_of_checking вместе с Котарбинским, когда дата подтвердится
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты
