@@ -13942,6 +13942,62 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "age of the items behind a news story; a rate of going stale needs a stored history of first-seen times, so far only a passport line idea"
 }
+},
+{
+"id": "cochran_wg",
+"name": "William G. Cochran",
+"name_ru": "Уильям Кокран",
+"years": "1909–1980",
+"wiki": "https://en.wikipedia.org/wiki/William_Gemmell_Cochran",
+"zone": "one_model",
+"idea": {
+"en": "'The Combination of Estimates from Different Experiments' (1954): before pooling estimates, test whether they differ more than their own errors allow; if they do, one common value is the wrong model.",
+"ru": "«The Combination of Estimates from Different Experiments» (1954): прежде чем объединять оценки, проверь, расходятся ли они сильнее, чем допускают их собственные погрешности; если да, одно общее значение — неверная модель.",
+"de": "„The Combination of Estimates from Different Experiments“ (1954): Bevor man Schätzungen zusammenlegt, prüfe, ob sie stärker abweichen, als ihre eigenen Fehler erlauben; wenn ja, ist ein gemeinsamer Wert das falsche Modell."
+},
+"rule": "Before averaging several readings into one number, check that their spread is no larger than their own noise.",
+"needs": {
+"code": "needs_idea",
+"note": "heterogeneity Q (or I²) of the Leamer variants of one radar index against their own bootstrap error over headlines, every 30 minutes; needs a per-variant error, not yet computed; bridge pooled_or_split"
+}
+},
+{
+"id": "gini_c",
+"name": "Corrado Gini",
+"name_ru": "Коррадо Джини",
+"years": "1884–1965",
+"wiki": "https://en.wikipedia.org/wiki/Corrado_Gini",
+"zone": "one_model",
+"idea": {
+"en": "'Variabilità e mutabilità' (1912): measure how unevenly a total is spread by the mean difference between all pairs, not by the average alone.",
+"ru": "«Variabilità e mutabilità» (1912): насколько неравномерно распределено целое, измеряй средней разностью между всеми парами, а не одним средним.",
+"de": "„Variabilità e mutabilità“ (1912): Wie ungleich ein Ganzes verteilt ist, misst man an der mittleren Differenz aller Paare, nicht am Durchschnitt allein."
+},
+"rule": "Do not read a story count as broad support; check how much of it comes from a few outlets.",
+"needs": {
+"code": "covered",
+"note": "the Bradford sensor already gives how concentrated 7 days of headlines are by outlet (top-5 and top-10 shares); bridge outlet_concentration",
+"covered_by": "bradford"
+}
+},
+{
+"id": "theil_h",
+"name": "Henri Theil",
+"name_ru": "Анри Тейл",
+"years": "1924–2000",
+"wiki": "https://en.wikipedia.org/wiki/Henri_Theil",
+"zone": "one_model",
+"idea": {
+"en": "'Economics and Information Theory' (1967): concentration measured as entropy splits exactly into a part between groups and a part within them.",
+"ru": "«Economics and Information Theory» (1967): концентрация, измеренная через энтропию, точно раскладывается на часть между группами и часть внутри групп.",
+"de": "„Economics and Information Theory“ (1967): Konzentration, als Entropie gemessen, zerfällt genau in einen Anteil zwischen Gruppen und einen innerhalb der Gruppen."
+},
+"rule": "When a story seems concentrated, say whether it is a few outlet groups or a few outlets inside each group.",
+"needs": {
+"code": "covered",
+"note": "concentration of headlines by outlet is given by the Bradford sensor; Theil adds only the between/within split of outlet groups; bridge outlet_concentration",
+"covered_by": "bradford"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
