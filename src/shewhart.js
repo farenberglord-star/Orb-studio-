@@ -58,16 +58,54 @@ export function cusum(pts, now = Date.now(), k = SHEWHART_K, h = SHEWHART_H) {
     new_level_estimate: r1(mean + (side === "up" ? 1 : -1) * sigma * (k + s / n)) };
 }
 
+// Мостик «Мелкие шаги — большая сумма» (Парфит + Херст + Том): какая доля движения радара за сутки пришла получасовыми
+// шагами меньше порога «скачка» (10 пунктов). Скачок радара считает только удержанный большой шаг, медленный дрейф он не видит.
+export const DRIFT_JUMP = 10, DRIFT_MIN_NET = 10, DRIFT_SHARE = 80;
+export function smallSteps(rows, col, now = Date.now()) {
+  const v = (rows || []).filter((r) => r && r[col] != null && +r.ts > now - 864e5 && +r.ts <= now).map((r) => +r[col]);
+  if (v.length < 24) return { verdict: "collecting", points: v.length };
+  const net = v[v.length - 1] - v[0]; let small = 0, big = 0;
+  for (let i = 1; i < v.length; i++) { const d = v[i] - v[i - 1]; if (Math.abs(d) < DRIFT_JUMP) small += d; else big += d; }
+  if (Math.abs(net) < DRIFT_MIN_NET) return { verdict: "no_large_move", net_24h: r1(net), points: v.length };
+  const share = Math.max(0, Math.min(100, Math.round((100 * small) / net)));
+  return { verdict: share >= DRIFT_SHARE ? "drift_in_small_steps" : "moved_by_jumps", net_24h: r1(net), small_steps_share_pct: share, sum_small: r1(small), sum_big: r1(big), points: v.length };
+}
+
+// Мостик «Храповик: вверх быстро, вниз медленно» (Дьюзенберри + Хикс + Калдор): после подъёма радара на 10+ пунктов —
+// сколько часов занял подъём и сколько потом заняло возвращение на половину пути вниз. Отношение > 1 — уровень «застревает».
+export const RATCHET_RISE = 10, RATCHET_LOOKBACK_H = 6, RATCHET_MIN_EP = 3;
+const medianOf = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+export function ratchet(rows, col, now = Date.now()) {
+  const pts = (rows || []).filter((r) => r && r[col] != null && +r.ts <= now && +r.ts > now - 30 * 864e5).map((r) => ({ ts: +r.ts, v: +r[col] }));
+  const rises = [], falls = []; let stuck = 0, i = 1;
+  while (i < pts.length) {
+    let lo = null; for (let j = i - 1; j >= 0 && pts[j].ts >= pts[i].ts - RATCHET_LOOKBACK_H * HOUR; j--) if (!lo || pts[j].v < lo.v) lo = pts[j]; // ближайший к подъёму минимум
+    if (!lo || pts[i].v - lo.v < RATCHET_RISE) { i++; continue; }
+    let pk = i; while (pk + 1 < pts.length && pts[pk + 1].v >= pts[pk].v) pk++;
+    const half = lo.v + (pts[pk].v - lo.v) / 2; let back = pk + 1; while (back < pts.length && pts[back].v > half) back++;
+    rises.push((pts[pk].ts - lo.ts) / HOUR);
+    if (back < pts.length) falls.push((pts[back].ts - pts[pk].ts) / HOUR); else stuck++;
+    i = Math.max(back, pk + 1) + 1;
+  }
+  if (rises.length < RATCHET_MIN_EP) return { verdict: "collecting", rises: rises.length };
+  const mr = medianOf(rises), mf = medianOf(falls), ratio = mr && mf != null ? r1(mf / Math.max(0.5, mr)) : null;
+  const verdict = stuck > falls.length ? "stays_up" : ratio != null && ratio >= 2 ? "rises_fast_falls_slow" : ratio != null && ratio <= 0.5 ? "falls_back_fast" : "symmetric";
+  return { verdict, rises: rises.length, returned_halfway: falls.length, still_up: stuck, median_rise_hours: r1(mr), median_half_return_hours: mf == null ? null : r1(mf), fall_to_rise_ratio: ratio };
+}
+
 export function shewhartReport(rows, series, now = Date.now()) {
   const radars = {};
-  for (const [id, col] of series) radars[id] = cusum(hourly(rows, col), now);
+  for (const [id, col] of series) radars[id] = { ...cusum(hourly(rows, col), now), small_steps_24h: smallSteps(rows, col, now), ratchet_30d: ratchet(rows, col, now) };
   const shifted = Object.entries(radars).filter(([, r]) => r.verdict === "shift_up" || r.verdict === "shift_down").map(([id, r]) => ({ radar: id, verdict: r.verdict, since: r.shift_since, from: r.mean_before, to: r.new_level_estimate }));
   return {
     sensor: "shewhart", honour: SHEWHART, generated_at: new Date(now).toISOString(),
     question: "Has a radar's level quietly shifted — a small change that never looked like a jump but has held for hours?",
     shifted, radars,
-    rule: `hourly means of each radar; mean and usual spread (sigma from the moving range) from its history before the last ${SHEWHART_RECENT_H} h; over the last ${SHEWHART_RECENT_H} h deviations beyond ${SHEWHART_K} sigma are summed (CUSUM); shift = the sum passes ${SHEWHART_H} sigma`,
-    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length).",
+    drifting: Object.entries(radars).filter(([, r]) => r.small_steps_24h && r.small_steps_24h.verdict === "drift_in_small_steps").map(([id, r]) => ({ radar: id, net_24h: r.small_steps_24h.net_24h, small_steps_share_pct: r.small_steps_24h.small_steps_share_pct })),
+    ratchets: Object.entries(radars).filter(([, r]) => r.ratchet_30d && (r.ratchet_30d.verdict === "rises_fast_falls_slow" || r.ratchet_30d.verdict === "stays_up")).map(([id, r]) => ({ radar: id, ...r.ratchet_30d })),
+    rule: `hourly means of each radar; mean and usual spread (standard deviation of hourly means) from its history before the last ${SHEWHART_RECENT_H} h; over the last ${SHEWHART_RECENT_H} h deviations beyond ${SHEWHART_K} sigma are summed (CUSUM); shift = the sum passes ${SHEWHART_H} sigma`,
+    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length). small_steps_24h drift_in_small_steps: the day's move came in steps too small to count as a jump — read it as a drift, not as calm. ratchet_30d rises_fast_falls_slow / stays_up: after a rise this radar comes down slowly — a high level may be inertia, not fresh news.",
+    bridges: ["quiet_shift (Shewhart + Nelson)", "small_steps_large_sum (Parfit + Hurst + Thom)", "ratchet_up_slow_down (Duesenberry + Hicks + Kaldor)"],
     check: SHEWHART_CHECK,
     disclaimer: "Indicator, not advice. Thresholds are working assumptions, checked against the stored radar history.",
   };

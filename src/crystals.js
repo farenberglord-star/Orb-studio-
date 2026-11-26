@@ -14106,8 +14106,9 @@ export const CRYSTALS = [
 },
 "rule": "Before trusting a label for a story, check whether different outlets would give it the same label beyond chance.",
 "needs": {
-"code": "needs_idea",
-"note": "agreement beyond chance (alpha) of the Searle speech-act labels given by different outlets to the same radar story (radar_life + Searle rules), every 30 minutes; bridge outlets_agree_on_act"
+"code": "covered",
+"note": "the Krippendorff sensor (/api/v1/krippendorff) gives the alpha of Searle speech-act labels across outlets for the same event, 48 h of radar stories",
+"covered_by": "krippendorff"
 }
 },
 {
@@ -14124,8 +14125,9 @@ export const CRYSTALS = [
 },
 "rule": "Do not read a story that stopped spreading as confirmed or refuted; it may only be saturated.",
 "needs": {
-"code": "needs_idea",
-"note": "share of radar stories whose outlet count stopped growing while no outlet reported it as an event (saturation without confirmation), from publication times per outlet, every 30 minutes; bridge saturated_not_settled"
+"code": "covered",
+"note": "the Kendall sensor (/api/v1/kendall-rumour) lists live stories that stopped gaining outlets while still a statement, promise, threat or demand",
+"covered_by": "kendall_rumour"
 }
 }
 ];

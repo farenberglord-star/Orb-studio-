@@ -35,7 +35,7 @@ export function cohenStory(row, events) {
   const q = matchQuake(h, events, +row.first_ts || null), loud = loudWords(h), peak = Math.max(+row.n_max || 1, +row.n_first || 1);
   const alarm = loud.length >= 1 || peak >= COHEN_S_LOUD_OUTLETS;
   const verdict = !q ? "no_measurement" : alarm && q.mag < COHEN_S_SMALL_MAG ? "loud_for_size" : q.mag >= COHEN_S_BIG_MAG ? "size_fits" : alarm ? "in_between" : "quiet_for_size";
-  return { radar: row.radar || null, headline: h, outlets_peak: peak, loud_words: loud, alarm, usgs_magnitude: q ? q.mag : null, usgs_place: q ? q.place : null, usgs_time: q ? q.time : null, tsunami_flag: q ? !!q.tsunami_flag : null, verdict };
+  return { radar: row.radar || null, headline: h, outlets_peak: peak, loud_words: loud, alarm, usgs_magnitude: q ? q.mag : null, amplitude_vs_m5: q ? Math.round(Math.pow(10, q.mag - 5) * 100) / 100 : null, energy_vs_m5: q ? Math.round(Math.pow(10, 1.5 * (q.mag - 5)) * 100) / 100 : null, usgs_place: q ? q.place : null, usgs_time: q ? q.time : null, tsunami_flag: q ? !!q.tsunami_flag : null, verdict };
 }
 export function cohenReport(rows, events, now = Date.now(), since = null, usgsOk = true) {
   const st = (rows || []).map((r) => cohenStory(r, events)).filter(Boolean), meas = st.filter((s) => s.verdict !== "no_measurement"), loud = st.filter((s) => s.verdict === "loud_for_size");
@@ -49,6 +49,7 @@ export function cohenReport(rows, events, now = Date.now(), since = null, usgsOk
     measured_examples: [...meas].sort((a, b) => b.usgs_magnitude - a.usgs_magnitude).slice(0, 8),
     question: "How loud do the Orb Studio radars write about an earthquake compared with what USGS measured?",
     method: `Radar stories of the last ${COHEN_S_DAYS} days whose headline names an earthquake are matched to USGS events (magnitude 2.5 and above, last week) by the place named in the headline. Loud = a strong word in the headline (word list, English, German, Russian) or at least ${COHEN_S_LOUD_OUTLETS} outlets at the peak. Loud for size = loud and USGS magnitude below ${COHEN_S_SMALL_MAG}. Size fits = magnitude ${COHEN_S_BIG_MAG} or more. Headlines whose place we cannot find in USGS are counted as unmeasured, not as loud. Magnitude is not damage: a modest quake under a city can matter more than a large one far at sea. Word rules, no AI.`,
+    log_step: "Magnitude is a log scale: one step means about 10 times the recorded amplitude and about 32 times the energy (Richter). amplitude_vs_m5 and energy_vs_m5 compare each quake with a magnitude 5.",
     rule: "Before repeating a loud headline about an earthquake, state the magnitude USGS recorded and the place, and do not use stronger words than the measurement supports. A loud headline over a small magnitude is not proof that nothing happened: check the local reports.",
     bridge: "Crystal Library bridge 'size of the incident vs size of the alarm': S. Cohen (disproportion) + Kasperson (amplification) + Osgood (word colour) + the USGS instrument reading.",
     history_since: since ? new Date(+since).toISOString() : null,
