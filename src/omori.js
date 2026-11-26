@@ -34,9 +34,24 @@ export function omoriSequences(events, now = Date.now()) {
     const age = (now - m.t) / D;
     seqs.push({ main: { mag: m.mag, place: m.place, time: m.time, url: m.url || null }, aftershocks: after.length, day1, days2to10,
       decay: age < 10 ? "too_early" : after.length < 10 ? "too_few" : days2to10 <= day1 * 2.5 && days2to10 >= day1 * 0.4 ? "omori_like" : days2to10 > day1 * 2.5 ? "slower_than_omori" : "faster_than_omori",
-      largest_aftershock: after.length ? Math.max(...after.map((e) => e.mag)) : null, events: after });
+      largest_aftershock: after.length ? Math.max(...after.map((e) => e.mag)) : null,
+      bath_gap: after.length ? Math.round((m.mag - Math.max(...after.map((e) => e.mag))) * 10) / 10 : null, // закон Бота: обычно около 1,2
+      bath: !after.length ? null : m.mag - Math.max(...after.map((e) => e.mag)) < 0.5 ? "unusually_large_aftershock" : "usual", events: after });
   }
   return seqs;
+}
+
+// Закон Гутенберга — Рихтера («Frequency of Earthquakes in California», 1944): log10 N = a − b·M, обычно b ≈ 1 — каждая
+// следующая единица магнитуды встречается примерно в 10 раз реже. b по формуле максимального правдоподобия (Аки, 1965)
+// для событий от порога полноты Mc (в мировой ленте USGS — 4,5). Даёт агенту меру «насколько редок такой толчок за месяц».
+export const GR_MC = 4.5;
+export function gutenbergRichter(events, now = Date.now()) {
+  const m = (events || []).map((e) => ({ ...e, t: Date.parse(e.time) })).filter((e) => Number.isFinite(e.t) && e.t > now - OMORI_DAYS * D && e.t <= now && e.mag >= GR_MC).map((e) => e.mag);
+  if (m.length < 50) return { verdict: "collecting", events: m.length };
+  const mean = m.reduce((a, b) => a + b, 0) / m.length, b = Math.LOG10E / (mean - (GR_MC - 0.05));
+  const perMonth = (M) => Math.round(m.length * Math.pow(10, -b * (M - GR_MC)) * 10) / 10;
+  return { b_value: Math.round(b * 100) / 100, events: m.length, mc: GR_MC, per_30_days: { "5": perMonth(5), "6": perMonth(6), "7": perMonth(7) },
+    note: "Gutenberg-Richter: with b near 1 each step of magnitude is about ten times rarer. per_30_days: how many quakes of at least that magnitude this 30-day USGS feed implies worldwide - a measure of how unusual a headline quake is, not a forecast." };
 }
 
 // rows: radar_life [{ radar, headline, first_ts }] за 7 дней
@@ -54,6 +69,8 @@ export function omoriReport(rows, events, now = Date.now(), usgsOk = true) {
     verdict: !usgsOk ? "no_measurement_source" : !seqs.length ? "no_large_quake_30d" : afterHeads.length ? "aftershock_headlines" : "sequences_without_headlines",
     question: "Is a 'new earthquake' in the news actually an aftershock of a recent large quake nearby?",
     sequences: seqs.map(({ events: e, ...s }) => s), aftershock_events_30d: after.size,
+    gutenberg_richter: gutenbergRichter(events, now),
+    bath_note: "Båth's law (M. Båth, 1965): the largest aftershock is usually about 1.2 magnitudes below the mainshock. bath = unusually_large_aftershock when the gap is under 0.5 - such an 'aftershock' is big news of its own.",
     quake_headlines_matched: heads.length, aftershock_headlines: afterHeads.length, examples: afterHeads.slice(0, 8),
     rule: `USGS events of magnitude 2.5+ over ${OMORI_DAYS} days; a mainshock is magnitude ${OMORI_MAIN_MAG}+; an aftershock is a smaller event within ${OMORI_KM} km after it. Omori check on the past: with n(t) ~ 1/t the first day and days 2-10 hold roughly equal counts. Radar quake headlines are matched to USGS events by the place named (as in Cohen-S).`,
     how_to_use: "aftershock: say it is an aftershock of the named mainshock, not a new earthquake, and give both magnitudes. omori_like: the sequence is fading as aftershocks usually do. This describes what USGS recorded; it is not a forecast of further quakes.",

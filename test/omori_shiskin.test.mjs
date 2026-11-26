@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { omoriSequences, omoriReport, kmBetween } from "../src/omori.js";
+import { omoriSequences, omoriReport, kmBetween, gutenbergRichter } from "../src/omori.js";
 import { shiskinReport } from "../src/shiskin.js";
 
 const D = 864e5, H = 3600e3, now = Date.UTC(2026, 10, 26, 12);
@@ -34,4 +34,14 @@ test("omori and shiskin wired into worker, llms.txt and agent.json", () => {
   for (const n of ["omori", "shiskin"]) { assert.match(w, new RegExp(`name: "get_${n}"`)); assert.match(w, new RegExp(`tool: "get_${n}"`)); assert.match(w, new RegExp(`name === "get_${n}"`)); assert.match(w, new RegExp(`p === "/api/v1/${n}"`)); }
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /get_omori[\s\S]*get_shiskin|get_shiskin[\s\S]*get_omori/);
   const a = readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"); assert.match(a, /api\/v1\/omori/); assert.match(a, /api\/v1\/shiskin/);
+});
+
+test("omori: Gutenberg-Richter b near 1 on a synthetic catalogue; Båth gap per sequence", () => {
+  const ev = []; let k = 0;
+  for (let m = 4.5; m < 7.5; m += 0.1) { const n = Math.round(1000 * Math.pow(10, -(m - 4.5))); for (let i = 0; i < n; i++) ev.push({ mag: Math.round(m * 10) / 10, place: "x", time: new Date(now - ((k++ % 29) + 0.5) * D).toISOString(), lat: 0, lon: 0 }); }
+  const g = gutenbergRichter(ev, now);
+  assert.ok(g.b_value > 0.85 && g.b_value < 1.15, String(g.b_value));
+  const main = { mag: 6.5, place: "A", time: new Date(now - 5 * D).toISOString(), lat: 10, lon: 10 };
+  const s = omoriSequences([main, { mag: 6.3, place: "A", time: new Date(now - 4 * D).toISOString(), lat: 10.1, lon: 10.1 }], now);
+  assert.equal(s[0].bath, "unusually_large_aftershock");
 });

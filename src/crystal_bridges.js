@@ -228,6 +228,7 @@ export const CRYSTAL_BRIDGES = [
   B("hedged_not_stated", "'Could' is not 'did'", "«Может» — не «сделал»", "rumour_vs_fact", "sensor", ["palmer_fr", "chafe_w", "searle"], { sensor: "searle", number: "share of live radar headlines with epistemic hedges (could, may, likely, könnte, вероятно), overall and by speech act (Searle sensor, every 30 minutes)" }),
   B("if_is_not_did", "'If' is not 'did'", "«Если» — не «сделал»", "rumour_vs_fact", "sensor", ["adams_ew", "lewis_d", "searle"], { sensor: "searle", number: "share of live radar headlines with a condition (if, would, wenn, falls, если, бы) (Searle sensor, every 30 minutes)" }),
   B("number_from_another_time", "A number from another period", "Число из другого периода", "stale_data", "sensor", ["prior_an", "reichenbach", "searle"], { sensor: "searle", number: "share of live radar headlines with a number and a past period (in October, Q3, last year, im Vorjahr, за октябрь) (Searle sensor, every 30 minutes)" }),
+  B("how_rare_is_this_quake", "How rare is a quake of this size", "Насколько редок толчок такой силы", "look_alike", "sensor", ["gutenberg_b", "richter_cf", "omori_f", "cohen_s"], { sensor: "omori", number: "Gutenberg-Richter b-value of the 30-day USGS feed from magnitude 4.5 and the implied count of M5, M6, M7 quakes per 30 days; Båth gap per sequence (Omori sensor, every 30 minutes)" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

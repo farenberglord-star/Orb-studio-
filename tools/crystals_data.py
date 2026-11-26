@@ -1831,6 +1831,11 @@ C = [
  '«Bayesian Estimation and Prediction Using Asymmetric Loss Functions» (1986): если ошибка в одну сторону дороже, чем в другую, лучший ответ смещается прочь от дорогой стороны.',
  '„Bayesian Estimation and Prediction Using Asymmetric Loss Functions“ (1986): Kostet ein Fehler in eine Richtung mehr als in die andere, liegt die beste Antwort weg von der teuren Seite.',
  'When a false alarm costs more than a missed signal, lean towards the cautious label and say why.'),
+('gutenberg_b', 'Beno Gutenberg', 'Бено Гутенберг', '1889–1960', 'https://en.wikipedia.org/wiki/Beno_Gutenberg', 'look_alike',
+ "'Frequency of Earthquakes in California' (1944, with C. F. Richter): the number of quakes falls tenfold with each unit of magnitude (log N = a - bM, b near 1).",
+ '«Frequency of Earthquakes in California» (1944, с Ч. Рихтером): число землетрясений падает примерно в 10 раз с каждой единицей магнитуды (log N = a − bM, b около 1).',
+ '„Frequency of Earthquakes in California“ (1944, mit C. F. Richter): Die Zahl der Beben sinkt mit jeder Magnitudeneinheit etwa auf ein Zehntel (log N = a − bM, b nahe 1).',
+ 'Before calling a quake rare, say how many of that size the month usually has worldwide.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2429,3 +2434,4 @@ NEEDS['chafe_w'] = ('covered', 'the Searle sensor gives attribution: shares of r
 NEEDS['palmer_fr'] = ('covered', 'the Searle sensor gives hedged: share of radar headlines with epistemic markers (could, may, likely, könnte, вероятно), by speech act; bridge hedged_not_stated', None, 'searle')
 NEEDS['adams_ew'] = ('covered', 'the Searle sensor gives conditional: share of radar headlines with if / would / wenn / falls / если / бы; bridge if_is_not_did', None, 'searle')
 NEEDS['zellner_a'] = ('covered', 'the Hagenauer sensor marks labels on_edge; with an asymmetric cost the cautious label is chosen there; bridge say_not_known', None, 'hagenauer')
+NEEDS['gutenberg_b'] = ('covered', 'the Omori sensor gives gutenberg_richter: b-value of the 30-day USGS feed from M4.5 and how many quakes of M5, M6, M7 that implies per 30 days', None, 'omori')

@@ -2237,11 +2237,11 @@ async function kendallDgNow(env) { // «Кендалл» (Д. Г.): истори
   const r = kendallReport(rows); await sharedPut(env, "kendall-dg-v1", r).catch(() => {}); return r;
 }
 async function omoriNow(env) { // «Омори»: какие недавние землетрясения и заголовки о них — афтершоки сильного толчка рядом
-  const c = await sharedGet(env, "omori-v2", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "omori-v3", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = [], events = [], ok = true;
   try { rows = (await env.DB.prepare("SELECT radar, headline, first_ts FROM radar_life WHERE first_ts > ?1").bind(Date.now() - 7 * 864e5).all()).results || []; } catch {}
   try { const r = await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_month.geojson", { headers: { accept: "application/geo+json,application/json", "user-agent": "orbstudio.org (open data dashboard)" }, signal: AbortSignal.timeout(10000) }); if (!r.ok) throw new Error("usgs " + r.status); events = parseFeatures(await r.json()); } catch { ok = false; }
-  const r = omoriReport(rows, events, Date.now(), ok); if (ok) await sharedPut(env, "omori-v2", r).catch(() => {}); return r;
+  const r = omoriReport(rows, events, Date.now(), ok); if (ok) await sharedPut(env, "omori-v3", r).catch(() => {}); return r;
 }
 async function shiskinNow(env) { // «Шискин»: молчит ли издание подозрительно — в час, когда обычно публикует
   const c = await sharedGet(env, "shiskin-v1", 30 * 60e3).catch(() => null); if (c) return c;

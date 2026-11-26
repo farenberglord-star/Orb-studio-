@@ -14504,6 +14504,25 @@ export const CRYSTALS = [
 "note": "the Hagenauer sensor marks labels on_edge; with an asymmetric cost the cautious label is chosen there; bridge say_not_known",
 "covered_by": "hagenauer"
 }
+},
+{
+"id": "gutenberg_b",
+"name": "Beno Gutenberg",
+"name_ru": "Бено Гутенберг",
+"years": "1889–1960",
+"wiki": "https://en.wikipedia.org/wiki/Beno_Gutenberg",
+"zone": "look_alike",
+"idea": {
+"en": "'Frequency of Earthquakes in California' (1944, with C. F. Richter): the number of quakes falls tenfold with each unit of magnitude (log N = a - bM, b near 1).",
+"ru": "«Frequency of Earthquakes in California» (1944, с Ч. Рихтером): число землетрясений падает примерно в 10 раз с каждой единицей магнитуды (log N = a − bM, b около 1).",
+"de": "„Frequency of Earthquakes in California“ (1944, mit C. F. Richter): Die Zahl der Beben sinkt mit jeder Magnitudeneinheit etwa auf ein Zehntel (log N = a − bM, b nahe 1)."
+},
+"rule": "Before calling a quake rare, say how many of that size the month usually has worldwide.",
+"needs": {
+"code": "covered",
+"note": "the Omori sensor gives gutenberg_richter: b-value of the 30-day USGS feed from M4.5 and how many quakes of M5, M6, M7 that implies per 30 days",
+"covered_by": "omori"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
