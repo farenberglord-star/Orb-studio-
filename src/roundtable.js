@@ -152,9 +152,11 @@ async function askGuest(env, g, topics, lang) {
     const model = env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash";
     const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent", { method: "POST", signal: AbortSignal.timeout(90000),
       headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 2000 } }) });
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: "user", parts: [{ text: user }] }], generationConfig: { responseMimeType: "application/json", temperature: 0.6, maxOutputTokens: 8192, ...(/^gemini-3/.test(model) ? { thinkingConfig: { thinkingLevel: "low" } } : {}) } }) });
     if (!r.ok) throw new Error("Gemini " + r.status + " " + (await r.text()).slice(0, 160));
-    const j = await r.json(); const txt = ((j.candidates || [])[0]?.content?.parts || []).map((p) => p.text || "").join("");
+    // maxOutputTokens считает и «мысли» модели: при 2000 ответ обрывался посреди JSON (rt-last-error 26.11.2026). Части-мысли пропускаем, оборванный ответ — явная ошибка.
+    const j = await r.json(); const c0 = (j.candidates || [])[0] || {}; const txt = (c0.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || "").join("");
+    if (c0.finishReason && c0.finishReason !== "STOP") throw new Error("Gemini finishReason " + c0.finishReason + " after " + txt.length + " chars");
     return { data: parseJson(txt), model: j.modelVersion || model };
   }
   return { status: "off" };
