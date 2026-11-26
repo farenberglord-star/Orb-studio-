@@ -49,6 +49,10 @@ export function attribution(title) {
   const t = String(title || "");
   return ANON.test(t) ? "anonymous" : NAMED.test(t) ? "named" : "none";
 }
+// Эпистемическая модальность (Ф. Р. Палмер, «Mood and Modality», 1986): говорящий помечает степень уверенности —
+// «может», «вероятно», «could», «könnte». Заголовок с такой пометкой — предположение, а не утверждение.
+const HEDGE = /(\b(?:could|might|may|possibly|probably|likely|unlikely|perhaps|seems?|appears? to|expected to|set to|poised to|feared|suspected|alleged(?:ly)?)\b|\b(?:könnte|könnten|dürfte|dürften|möglicherweise|vermutlich|wahrscheinlich|offenbar|angeblich|soll(?:en)? (?:\p{L}+ )?(?:haben|sein))\b|(?:может|могут|возможно|вероятно|по-видимому|предположительно|якобы|не исключ\p{L}*))/iu;
+export function hedged(title) { return HEDGE.test(String(title || "")); }
 export function searleReport(radars, now = Date.now()) {
   const rs = (radars || []).filter((r) => r && Array.isArray(r.feed));
   if (!rs.length) return { sensor: "searle", verdict: "no_data", radars: [], generated_at: new Date(now).toISOString() };
@@ -67,6 +71,10 @@ export function searleReport(radars, now = Date.now()) {
       return { anonymous_pct: Math.round((100 * c.anonymous) / t), named_pct: Math.round((100 * c.named) / t), none_pct: Math.round((100 * c.none) / t),
         anonymous_examples: all.filter((x) => attribution(x.headline) === "anonymous").slice(0, 5).map((x) => ({ headline: x.headline, source: x.source, act: x.act })),
         note: "Evidentiality (Chafe & Nichols, 1986): who the headline says the knowledge comes from. anonymous = unnamed sources, insiders, 'reportedly'; named = a person, office or document is given; none = no attribution in the headline. Repeat an anonymous claim only as such." }; })(),
+    hedged: (() => { const h = all.filter((x) => hedged(x.headline)); return { hedged_pct: all.length ? Math.round((100 * h.length) / all.length) : null,
+      by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const xs = all.filter((x) => x.act === k); return [k, xs.length ? Math.round((100 * xs.filter((x) => hedged(x.headline)).length) / xs.length) : null]; })),
+      examples: h.slice(0, 5).map((x) => ({ headline: x.headline, source: x.source, act: x.act })),
+      note: "Epistemic modality (F. R. Palmer, 'Mood and Modality', 1986): could, may, likely, könnte, вероятно mark a supposition. A hedged 'event' headline reports a possibility, not something that happened." }; })(),
     concreteness_by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const v = all.filter((x) => x.act === k).map((x) => concreteness(x.headline)).filter((x) => x != null); return [k, v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null]; })),
     concreteness_note: "Flesch's level of abstraction (1950), roughly: share of concrete words (numbers, dates, names, places) per 100 words of the headline, averaged by speech act. A low share means a general retelling with few checkable details. German headlines: capitalised nouns are not counted, only numbers, dates and abbreviations.",
     examples: { threat: all.filter((x) => x.act === "threat").slice(0, 5), promise: all.filter((x) => x.act === "promise").slice(0, 5), demand: all.filter((x) => x.act === "demand").slice(0, 5) },

@@ -1816,6 +1816,11 @@ C = [
  '«Evidentiality: The Linguistic Coding of Epistemology» (1986, ред. с Й. Николс): языки помечают, откуда говорящий знает — видел, вывел или слышал от других; эта пометка говорит, сколько стоит утверждение.',
  '„Evidentiality: The Linguistic Coding of Epistemology“ (1986, hg. mit J. Nichols): Sprachen markieren, woher der Sprecher etwas weiß — gesehen, erschlossen oder von anderen gehört; die Markierung sagt, was die Aussage wert ist.',
  'Pass on a claim from unnamed sources as hearsay, and name the source when the headline names one.'),
+('palmer_fr', 'Frank R. Palmer', 'Фрэнк Палмер', '1922–2019', 'https://en.wikipedia.org/wiki/Frank_R._Palmer', 'rumour_vs_fact',
+ "'Mood and Modality' (1986): speakers mark how sure they are — epistemic modality ('may', 'must', 'probably') turns a statement of fact into a judgement about its possibility.",
+ '«Mood and Modality» (1986): говорящие помечают, насколько уверены, — эпистемическая модальность («может», «должно быть», «вероятно») превращает утверждение факта в суждение о его возможности.',
+ '„Mood and Modality“ (1986): Sprecher markieren, wie sicher sie sind — epistemische Modalität („kann“, „muss“, „wahrscheinlich“) macht aus einer Tatsachenaussage ein Urteil über ihre Möglichkeit.',
+ 'Keep the hedge when you retell: "could raise rates" is a possibility, not a decision.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2411,3 +2416,4 @@ NEEDS['flesch_r'] = ('covered', 'the Searle sensor gives concreteness_by_act: sh
 NEEDS['kish_l'] = ('needs_history', 'effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices', None)
 NEEDS['dempster_ap'] = ('covered', 'the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known', None, 'hagenauer')
 NEEDS['chafe_w'] = ('covered', 'the Searle sensor gives attribution: shares of radar headlines with an unnamed source, a named source or none, with examples', None, 'searle')
+NEEDS['palmer_fr'] = ('covered', 'the Searle sensor gives hedged: share of radar headlines with epistemic markers (could, may, likely, könnte, вероятно), by speech act; bridge hedged_not_stated', None, 'searle')

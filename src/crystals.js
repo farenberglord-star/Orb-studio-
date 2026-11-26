@@ -14447,6 +14447,25 @@ export const CRYSTALS = [
 "note": "the Searle sensor gives attribution: shares of radar headlines with an unnamed source, a named source or none, with examples",
 "covered_by": "searle"
 }
+},
+{
+"id": "palmer_fr",
+"name": "Frank R. Palmer",
+"name_ru": "Фрэнк Палмер",
+"years": "1922–2019",
+"wiki": "https://en.wikipedia.org/wiki/Frank_R._Palmer",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Mood and Modality' (1986): speakers mark how sure they are — epistemic modality ('may', 'must', 'probably') turns a statement of fact into a judgement about its possibility.",
+"ru": "«Mood and Modality» (1986): говорящие помечают, насколько уверены, — эпистемическая модальность («может», «должно быть», «вероятно») превращает утверждение факта в суждение о его возможности.",
+"de": "„Mood and Modality“ (1986): Sprecher markieren, wie sicher sie sind — epistemische Modalität („kann“, „muss“, „wahrscheinlich“) macht aus einer Tatsachenaussage ein Urteil über ihre Möglichkeit."
+},
+"rule": "Keep the hedge when you retell: \"could raise rates\" is a possibility, not a decision.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor gives hedged: share of radar headlines with epistemic markers (could, may, likely, könnte, вероятно), by speech act; bridge hedged_not_stated",
+"covered_by": "searle"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
