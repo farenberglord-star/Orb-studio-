@@ -14017,6 +14017,43 @@ export const CRYSTALS = [
 "note": "concentration of headlines by outlet is given by the Bradford sensor (top-5 and top-10 shares); bridge outlet_concentration",
 "covered_by": "bradford"
 }
+},
+{
+"id": "pelc_j",
+"name": "Jerzy Pelc",
+"name_ru": "Ежи Пельц",
+"years": "1924–2017",
+"wiki": "https://pl.wikipedia.org/wiki/Jerzy_Pelc",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'O użyciu wyrażeń' (1971): what an expression does in a given use is not fixed by its dictionary meaning; read the use, not only the words.",
+"ru": "«O użyciu wyrażeń» (1971): что выражение делает в конкретном употреблении, не задано его словарным значением; читай употребление, а не только слова.",
+"de": "„O użyciu wyrażeń“ (1971): Was ein Ausdruck in einem bestimmten Gebrauch leistet, ist nicht durch seine Wörterbuchbedeutung festgelegt; lies den Gebrauch, nicht nur die Wörter."
+},
+"rule": "Before treating a headline as a claim, check how its words are used here: report, quote, question or irony.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already separates claims, promises, threats and events (speech acts), i.e. use rather than wording",
+"covered_by": "searle"
+}
+},
+{
+"id": "altshuller_g",
+"name": "Genrich Altshuller",
+"name_ru": "Генрих Альтшуллер",
+"years": "1926–1998",
+"wiki": "https://en.wikipedia.org/wiki/Genrikh_Altshuller",
+"zone": "one_model",
+"idea": {
+"en": "'Алгоритм изобретения' (1969): when improving one parameter worsens another, do not settle for a compromise; name the contradiction and look for a way to remove it.",
+"ru": "«Алгоритм изобретения» (1969): если улучшение одного параметра ухудшает другой, не останавливайся на компромиссе; назови противоречие и ищи способ его снять.",
+"de": "„Algorithmus der Erfindung“ (1969): Wenn die Verbesserung eines Parameters einen anderen verschlechtert, begnüge dich nicht mit einem Kompromiss; benenne den Widerspruch und suche einen Weg, ihn aufzuheben."
+},
+"rule": "When two goals pull against each other, say which ones and whether a different approach removes the conflict.",
+"needs": {
+"code": "needs_idea",
+"note": "no number yet; possible host rule: when two passport lines pull the confidence in opposite directions, name the contradiction instead of averaging"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
