@@ -1746,6 +1746,21 @@ C = [
  '«A Statistical Distribution Function of Wide Applicability» (1951): один параметр формы говорит, растёт, постоянна или падает со временем вероятность следующего события.',
  '„A Statistical Distribution Function of Wide Applicability“ (1951): Ein Formparameter zeigt, ob die Wahrscheinlichkeit des nächsten Ereignisses mit der Zeit steigt, gleich bleibt oder fällt.',
  'Say whether a story is still gathering outlets or fading; a story that fades fast is old news sooner than its age suggests.'),
+('anscombe_fj', 'Frank Anscombe', 'Фрэнк Энскомб', '1918–2001', 'https://en.wikipedia.org/wiki/Frank_Anscombe', 'answer_cost',
+ "'Sequential Estimation' (1952): keep sampling only until the estimate is as precise as you need; the stopping point depends on what the data have shown so far, not on a number fixed in advance.",
+ '«Sequential Estimation» (1952): собирай наблюдения, пока оценка не станет такой точной, как нужно; точка остановки зависит от того, что данные уже показали, а не от заранее заданного числа.',
+ '„Sequential Estimation“ (1952): Sammle Beobachtungen nur, bis die Schätzung so genau ist wie nötig; der Haltepunkt hängt davon ab, was die Daten bisher gezeigt haben, nicht von einer vorab festgelegten Zahl.',
+ 'Stop adding sources once the answer is as precise as the question needs; say how precise that was.'),
+('shiskin_j', 'Julius Shiskin', 'Джулиус Шискин', '1912–1978', 'https://en.wikipedia.org/wiki/Julius_Shiskin', 'stale_data',
+ "The X-11 seasonal adjustment method (1965, US Census Bureau): remove the regular calendar pattern first; only what remains says whether something changed.",
+ 'Метод сезонной корректировки X-11 (1965, Бюро переписи США): сначала убери регулярный календарный узор; только остаток говорит, изменилось ли что-то.',
+ 'Die Saisonbereinigung X-11 (1965, US Census Bureau): Entferne zuerst das regelmäßige Kalendermuster; erst der Rest sagt, ob sich etwas geändert hat.',
+ 'Before calling a quiet source broken, compare it with its own usual hour and weekday.'),
+('omori_f', 'Fusakichi Omori', 'Фусакити Омори', '1868–1923', 'https://en.wikipedia.org/wiki/Fusakichi_Omori', 'look_alike',
+ "'On the After-shocks of Earthquakes' (1894): after a large earthquake the number of aftershocks falls roughly as one over the time elapsed.",
+ '«On the After-shocks of Earthquakes» (1894): после сильного землетрясения число афтершоков убывает примерно обратно пропорционально прошедшему времени.',
+ '„On the After-shocks of Earthquakes“ (1894): Nach einem starken Erdbeben fällt die Zahl der Nachbeben etwa umgekehrt proportional zur verstrichenen Zeit.',
+ 'After a large quake, check whether a new quake headline is an aftershock near the same place before calling it a new event.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2327,3 +2342,6 @@ NEEDS['kendall_dg'] = ('covered', 'the Kendall sensor (/api/v1/kendall-rumour) l
 NEEDS['durbin_j'] = ('covered', 'the Shewhart sensor gives durbin_watson per radar; below 1 the radar is sticky and its spread is underestimated; bridge sticky_series', None, 'shewhart')
 NEEDS['watson_gs'] = ('covered', 'the Shewhart sensor gives durbin_watson per radar; bridge sticky_series', None, 'shewhart')
 NEEDS['weibull_w'] = ('needs_history', 'Weibull shape of the waiting times between outlets joining a radar story (radar_life.joins, recorded since 25.11.2026); shape < 1 = the story fades fast; bridge story_spread_decay', None)
+NEEDS['anscombe_fj'] = ('needs_idea', 'per answer: how the Harman confidence moved with each checked source, stop when it moves less than the needed precision; bridge economy_of_checking', None)
+NEEDS['shiskin_j'] = ('needs_idea', 'per outlet: headlines by hour of week over 30 days (radar_life.source, first_ts); a silent outlet is broken only if it is silent in an hour when it usually publishes; bridge quiet_or_broken', None)
+NEEDS['omori_f'] = ('needs_idea', 'after a USGS magnitude 6+ event, later USGS events within 100 km over 30 days and their decay; a radar quake headline matching such an event is an aftershock; bridge aftershock_not_new', None)

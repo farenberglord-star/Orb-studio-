@@ -14185,6 +14185,60 @@ export const CRYSTALS = [
 "code": "needs_history",
 "note": "Weibull shape of the waiting times between outlets joining a radar story (radar_life.joins, recorded since 25.11.2026); shape < 1 = the story fades fast; bridge story_spread_decay"
 }
+},
+{
+"id": "anscombe_fj",
+"name": "Frank Anscombe",
+"name_ru": "Фрэнк Энскомб",
+"years": "1918–2001",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Anscombe",
+"zone": "answer_cost",
+"idea": {
+"en": "'Sequential Estimation' (1952): keep sampling only until the estimate is as precise as you need; the stopping point depends on what the data have shown so far, not on a number fixed in advance.",
+"ru": "«Sequential Estimation» (1952): собирай наблюдения, пока оценка не станет такой точной, как нужно; точка остановки зависит от того, что данные уже показали, а не от заранее заданного числа.",
+"de": "„Sequential Estimation“ (1952): Sammle Beobachtungen nur, bis die Schätzung so genau ist wie nötig; der Haltepunkt hängt davon ab, was die Daten bisher gezeigt haben, nicht von einer vorab festgelegten Zahl."
+},
+"rule": "Stop adding sources once the answer is as precise as the question needs; say how precise that was.",
+"needs": {
+"code": "needs_idea",
+"note": "per answer: how the Harman confidence moved with each checked source, stop when it moves less than the needed precision; bridge economy_of_checking"
+}
+},
+{
+"id": "shiskin_j",
+"name": "Julius Shiskin",
+"name_ru": "Джулиус Шискин",
+"years": "1912–1978",
+"wiki": "https://en.wikipedia.org/wiki/Julius_Shiskin",
+"zone": "stale_data",
+"idea": {
+"en": "The X-11 seasonal adjustment method (1965, US Census Bureau): remove the regular calendar pattern first; only what remains says whether something changed.",
+"ru": "Метод сезонной корректировки X-11 (1965, Бюро переписи США): сначала убери регулярный календарный узор; только остаток говорит, изменилось ли что-то.",
+"de": "Die Saisonbereinigung X-11 (1965, US Census Bureau): Entferne zuerst das regelmäßige Kalendermuster; erst der Rest sagt, ob sich etwas geändert hat."
+},
+"rule": "Before calling a quiet source broken, compare it with its own usual hour and weekday.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet: headlines by hour of week over 30 days (radar_life.source, first_ts); a silent outlet is broken only if it is silent in an hour when it usually publishes; bridge quiet_or_broken"
+}
+},
+{
+"id": "omori_f",
+"name": "Fusakichi Omori",
+"name_ru": "Фусакити Омори",
+"years": "1868–1923",
+"wiki": "https://en.wikipedia.org/wiki/Fusakichi_Omori",
+"zone": "look_alike",
+"idea": {
+"en": "'On the After-shocks of Earthquakes' (1894): after a large earthquake the number of aftershocks falls roughly as one over the time elapsed.",
+"ru": "«On the After-shocks of Earthquakes» (1894): после сильного землетрясения число афтершоков убывает примерно обратно пропорционально прошедшему времени.",
+"de": "„On the After-shocks of Earthquakes“ (1894): Nach einem starken Erdbeben fällt die Zahl der Nachbeben etwa umgekehrt proportional zur verstrichenen Zeit."
+},
+"rule": "After a large quake, check whether a new quake headline is an aftershock near the same place before calling it a new event.",
+"needs": {
+"code": "needs_idea",
+"note": "after a USGS magnitude 6+ event, later USGS events within 100 km over 30 days and their decay; a radar quake headline matching such an event is an aftershock; bridge aftershock_not_new"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
