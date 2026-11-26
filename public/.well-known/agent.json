@@ -135,6 +135,8 @@
     "dwd_warnings": "https://orbstudio.org/api/v1/weather/warnings-de",
     "shewhart": "https://orbstudio.org/api/v1/shewhart",
     "krippendorff": "https://orbstudio.org/api/v1/krippendorff",
+    "omori": "https://orbstudio.org/api/v1/omori",
+    "shiskin": "https://orbstudio.org/api/v1/shiskin",
     "kendall_rumour": "https://orbstudio.org/api/v1/kendall-rumour",
     "simmel": "https://orbstudio.org/api/v1/simmel",
     "ashby": "https://orbstudio.org/api/v1/ashby",

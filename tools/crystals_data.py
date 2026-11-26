@@ -2343,5 +2343,5 @@ NEEDS['durbin_j'] = ('covered', 'the Shewhart sensor gives durbin_watson per rad
 NEEDS['watson_gs'] = ('covered', 'the Shewhart sensor gives durbin_watson per radar; bridge sticky_series', None, 'shewhart')
 NEEDS['weibull_w'] = ('needs_history', 'Weibull shape of the waiting times between outlets joining a radar story (radar_life.joins, recorded since 25.11.2026); shape < 1 = the story fades fast; bridge story_spread_decay', None)
 NEEDS['anscombe_fj'] = ('needs_idea', 'per answer: how the Harman confidence moved with each checked source, stop when it moves less than the needed precision; bridge economy_of_checking', None)
-NEEDS['shiskin_j'] = ('needs_idea', 'per outlet: headlines by hour of week over 30 days (radar_life.source, first_ts); a silent outlet is broken only if it is silent in an hour when it usually publishes; bridge quiet_or_broken', None)
-NEEDS['omori_f'] = ('needs_idea', 'after a USGS magnitude 6+ event, later USGS events within 100 km over 30 days and their decay; a radar quake headline matching such an event is an aftershock; bridge aftershock_not_new', None)
+NEEDS['shiskin_j'] = ('covered', 'the Shiskin sensor (/api/v1/shiskin) compares each outlet\'s last 6 hours with its own hour-of-week pattern over 30 days', None, 'shiskin')
+NEEDS['omori_f'] = ('covered', 'the Omori sensor (/api/v1/omori) marks USGS events and radar quake headlines that are aftershocks of a magnitude 6+ quake within 100 km', None, 'omori')

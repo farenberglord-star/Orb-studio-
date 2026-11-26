@@ -14218,8 +14218,9 @@ export const CRYSTALS = [
 },
 "rule": "Before calling a quiet source broken, compare it with its own usual hour and weekday.",
 "needs": {
-"code": "needs_idea",
-"note": "per outlet: headlines by hour of week over 30 days (radar_life.source, first_ts); a silent outlet is broken only if it is silent in an hour when it usually publishes; bridge quiet_or_broken"
+"code": "covered",
+"note": "the Shiskin sensor (/api/v1/shiskin) compares each outlet's last 6 hours with its own hour-of-week pattern over 30 days",
+"covered_by": "shiskin"
 }
 },
 {
@@ -14236,8 +14237,9 @@ export const CRYSTALS = [
 },
 "rule": "After a large quake, check whether a new quake headline is an aftershock near the same place before calling it a new event.",
 "needs": {
-"code": "needs_idea",
-"note": "after a USGS magnitude 6+ event, later USGS events within 100 km over 30 days and their decay; a radar quake headline matching such an event is an aftershock; bridge aftershock_not_new"
+"code": "covered",
+"note": "the Omori sensor (/api/v1/omori) marks USGS events and radar quake headlines that are aftershocks of a magnitude 6+ quake within 100 km",
+"covered_by": "omori"
 }
 }
 ];
