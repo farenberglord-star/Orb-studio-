@@ -2222,9 +2222,9 @@ async function schelerNow(env) { // «Шелер»: какая доля изме
   const r = schelerReport(ev, hs, Date.now(), since); await sharedPut(env, "scheler-v1", r).catch(() => {}); return r;
 }
 async function shewhartNow(env) { // «Шухарт»: тихий устойчивый сдвиг уровня радара (накопленная сумма отклонений, CUSUM)
-  const c = await sharedGet(env, "shewhart-v3", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "shewhart-v4", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = []; try { rows = (await env.DB.prepare("SELECT ts, c, g, k, b, p, e, n, j, w FROM ix_hist WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 30 * 864e5).all()).results || []; } catch {}
-  const r = shewhartReport(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "shewhart-v3", r).catch(() => {}); return r;
+  const r = shewhartReport(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "shewhart-v4", r).catch(() => {}); return r;
 }
 async function krippendorffNow(env) { // «Криппендорф»: одинаково ли разные издания подают одно событие (альфа речевых актов)
   const c = await sharedGet(env, "krippendorff-v2", 30 * 60e3).catch(() => null); if (c) return c;

@@ -24,7 +24,10 @@
 - Rensis Likert | 1903–1981 | one_model | «A Technique for the Measurement of Attitudes» (1932) | суммарный балл имеет смысл, только если пункты шкалы согласованы между собой (анализ пунктов) | en.wikipedia.org/wiki/Rensis_Likert | нет числа: согласованность частей индекса радара сейчас не считается (возможная пара — «Лимер»)
 - Fritz Machlup | 1902–1983 | answer_cost | «The Production and Distribution of Knowledge in the United States» (1962) | производство знания — отрасль с затратами; ценность нового знания сверяется с затратами | en.wikipedia.org/wiki/Fritz_Machlup | правило — пересказ; работа про долю знания в экономике, не про цену одной проверки
 
+- Jacob Wolfowitz | 1910–1981 | one_model | Wald & Wolfowitz, «On a Test Whether Two Samples are from the Same Population» (1940) | число серий роста и падения против случайного | en.wikipedia.org/wiki/Jacob_Wolfowitz | покрыто «Нельсоном» и Дурбином — Уотсоном (липкость); мостика нового нет
+
 ## Ждут проверки даты смерти
 - Tadeusz Pszczołowski | 1922–? | answer_cost | «Zasady sprawnego działania» (1960) | праксеология: оценка действия по соотношению результата и затрат | каталог Академии военного искусства: 1922–1999; Лиана: 1922–2019 — расхождение | войдёт в economy_of_checking вместе с Котарбинским, когда дата подтвердится
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты
 - Robert E. Burton | 1919–? | stale_data | Burton & Kebler, «The "Half-Life" of Some Scientific and Technical Literatures» (1960) | — | годы не найдены | полураспад покрыт карточкой Брукса
+- Alexander M. Mood | 1913–? | stale_data | «Introduction to the Theory of Statistics» (1950), медианный тест | равенство медиан выборок | Лиана: 2009, не подтверждено | медианный лаг перепечаток уже даёт датчик «Шмидт»

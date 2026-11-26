@@ -14260,6 +14260,44 @@ export const CRYSTALS = [
 "note": "the Krippendorff sensor lists events that outlets present differently (examples_split), so the minority version stays visible next to the chorus",
 "covered_by": "krippendorff"
 }
+},
+{
+"id": "smirnov_nv",
+"name": "Nikolai Smirnov",
+"name_ru": "Николай Смирнов",
+"years": "1900–1966",
+"wiki": "https://en.wikipedia.org/wiki/Nikolai_Smirnov_(mathematician)",
+"zone": "stale_data",
+"idea": {
+"en": "'On the estimation of the discrepancy between empirical curves of distribution for two independent samples' (1939): compare whole distributions by their largest gap, not only their averages.",
+"ru": "«Оценка расхождения между эмпирическими кривыми распределения в двух независимых выборках» (1939): сравнивай распределения целиком по наибольшему разрыву, а не только средние.",
+"de": "„Über die Abschätzung der Abweichung zwischen empirischen Verteilungskurven zweier unabhängiger Stichproben“ (1939): Vergleiche ganze Verteilungen an ihrer größten Lücke, nicht nur die Mittelwerte."
+},
+"rule": "Before reusing an old baseline, check that the recent values still come from the same distribution.",
+"needs": {
+"code": "covered",
+"note": "the Shewhart sensor gives distribution_48h.smirnov_d per radar (last 48 h against its history); bridge spread_not_level",
+"covered_by": "shewhart"
+}
+},
+{
+"id": "bradley_ra",
+"name": "Ralph A. Bradley",
+"name_ru": "Ральф Брэдли",
+"years": "1923–2001",
+"wiki": "https://en.wikipedia.org/wiki/Ralph_A._Bradley",
+"zone": "stale_data",
+"idea": {
+"en": "'Rank-Sum Tests for Dispersions' (1960, with A. R. Ansari): a change in spread can be tested on its own, without assuming normal data and without a change in the centre.",
+"ru": "«Rank-Sum Tests for Dispersions» (1960, с А. Р. Ансари): изменение разброса можно проверить отдельно, без предположения о нормальности и без сдвига центра.",
+"de": "„Rank-Sum Tests for Dispersions“ (1960, mit A. R. Ansari): Eine Änderung der Streuung lässt sich für sich prüfen, ohne Normalverteilung und ohne Verschiebung der Mitte."
+},
+"rule": "Do not report wider swings as a new level; say whether the centre moved or only the spread.",
+"needs": {
+"code": "covered",
+"note": "the Shewhart sensor gives distribution_48h.ansari_bradley_z per radar (spread after aligning medians); bridge spread_not_level",
+"covered_by": "shewhart"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

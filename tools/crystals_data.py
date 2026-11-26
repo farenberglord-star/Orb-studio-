@@ -1766,6 +1766,16 @@ C = [
  '«Die Schweigespirale» (1974): кто считает своё мнение проигрывающим, замолкает, поэтому самая громкая версия кажется распространённее, чем есть.',
  '„Die Schweigespirale“ (1974): Wer glaubt, mit seiner Meinung in der Minderheit zu sein, schweigt, deshalb wirkt die lauteste Version verbreiteter, als sie ist.',
  'Do not take the version most outlets repeat for the only one; look for the outlets that tell it differently.'),
+('smirnov_nv', 'Nikolai Smirnov', 'Николай Смирнов', '1900–1966', 'https://en.wikipedia.org/wiki/Nikolai_Smirnov_(mathematician)', 'stale_data',
+ "'On the estimation of the discrepancy between empirical curves of distribution for two independent samples' (1939): compare whole distributions by their largest gap, not only their averages.",
+ '«Оценка расхождения между эмпирическими кривыми распределения в двух независимых выборках» (1939): сравнивай распределения целиком по наибольшему разрыву, а не только средние.',
+ '„Über die Abschätzung der Abweichung zwischen empirischen Verteilungskurven zweier unabhängiger Stichproben“ (1939): Vergleiche ganze Verteilungen an ihrer größten Lücke, nicht nur die Mittelwerte.',
+ 'Before reusing an old baseline, check that the recent values still come from the same distribution.'),
+('bradley_ra', 'Ralph A. Bradley', 'Ральф Брэдли', '1923–2001', 'https://en.wikipedia.org/wiki/Ralph_A._Bradley', 'stale_data',
+ "'Rank-Sum Tests for Dispersions' (1960, with A. R. Ansari): a change in spread can be tested on its own, without assuming normal data and without a change in the centre.",
+ '«Rank-Sum Tests for Dispersions» (1960, с А. Р. Ансари): изменение разброса можно проверить отдельно, без предположения о нормальности и без сдвига центра.',
+ '„Rank-Sum Tests for Dispersions“ (1960, mit A. R. Ansari): Eine Änderung der Streuung lässt sich für sich prüfen, ohne Normalverteilung und ohne Verschiebung der Mitte.',
+ 'Do not report wider swings as a new level; say whether the centre moved or only the spread.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2351,3 +2361,5 @@ NEEDS['anscombe_fj'] = ('needs_idea', 'per answer: how the Harman confidence mov
 NEEDS['shiskin_j'] = ('covered', 'the Shiskin sensor (/api/v1/shiskin) compares each outlet\'s last 6 hours with its own hour-of-week pattern over 30 days', None, 'shiskin')
 NEEDS['omori_f'] = ('covered', 'the Omori sensor (/api/v1/omori) marks USGS events and radar quake headlines that are aftershocks of a magnitude 6+ quake within 100 km', None, 'omori')
 NEEDS['noelle_neumann_e'] = ('covered', 'the Krippendorff sensor lists events that outlets present differently (examples_split), so the minority version stays visible next to the chorus', None, 'krippendorff')
+NEEDS['smirnov_nv'] = ('covered', 'the Shewhart sensor gives distribution_48h.smirnov_d per radar (last 48 h against its history); bridge spread_not_level', None, 'shewhart')
+NEEDS['bradley_ra'] = ('covered', 'the Shewhart sensor gives distribution_48h.ansari_bradley_z per radar (spread after aligning medians); bridge spread_not_level', None, 'shewhart')

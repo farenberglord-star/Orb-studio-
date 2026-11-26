@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { alphaNominal, krippendorffReport } from "../src/krippendorff.js";
 import { kendallStory, kendallReport } from "../src/kendall_dg.js";
-import { smallSteps, ratchet } from "../src/shewhart.js";
+import { smallSteps, ratchet, distributionShift } from "../src/shewhart.js";
 
 test("krippendorff: alpha is 1 for full agreement, low when labels split", () => {
   assert.equal(alphaNominal([["event", "event"], ["claim", "claim"], ["threat", "threat"]]).alpha, 1);
@@ -57,4 +57,11 @@ test("new sensors wired into worker, llms.txt and agent.json", () => {
   assert.match(w, /p === "\/api\/v1\/krippendorff"/); assert.match(w, /p === "\/api\/v1\/kendall-rumour"/);
   const l = readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"); assert.match(l, /get_krippendorff/); assert.match(l, /get_kendall_rumour/);
   const a = readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"); assert.match(a, /api\/v1\/krippendorff/); assert.match(a, /api\/v1\/kendall-rumour/);
+});
+
+test("shewhart: wider swings around the same centre are spread_wider, not a level shift", () => {
+  const now = Date.UTC(2026, 10, 26, 12), H = 3600e3, pts = [];
+  for (let t = now - 10 * 864e5; t <= now; t += H) { const recent = t >= now - 48 * H, k = Math.round(t / H) % 6; pts.push({ ts: t, v: 50 + (recent ? (k - 2.5) * 6 : (k - 2.5) * 1) }); }
+  const r = distributionShift(pts, now);
+  assert.equal(r.verdict, "spread_wider"); assert.ok(r.ansari_bradley_z <= -3);
 });

@@ -96,9 +96,33 @@ export function ratchet(rows, col, now = Date.now()) {
   return { verdict, rises: rises.length, returned_halfway: falls.length, still_up: stuck, median_rise_hours: r1(mr), median_half_return_hours: mf == null ? null : r1(mf), fall_to_rise_ratio: ratio };
 }
 
+// Мостик «Изменился разброс, а не уровень» (Смирнов + Брэдли + Шухарт): последние 48 часов против истории радара.
+// Смирнов (1939): наибольшее расхождение двух эмпирических функций распределения (D от 0 до 1).
+// Ансари — Брэдли (1960): шире или уже стал разброс при том же центре (ранги от краёв к центру, z-оценка).
+// Ряды радаров «липкие» (Дурбин — Уотсон < 1), поэтому пороги — рабочие допущения, а не уровни значимости.
+export const SPREAD_D = 0.5, SPREAD_Z = 3;
+export function distributionShift(pts, now = Date.now()) {
+  const cut = now - SHEWHART_RECENT_H * HOUR;
+  const a = pts.filter((p) => p.ts >= cut && p.ts <= now).map((p) => p.v), b = pts.filter((p) => p.ts < cut && p.ts >= now - 30 * 864e5).map((p) => p.v);
+  if (a.length < 12 || b.length < SHEWHART_MIN_BASE_H) return { verdict: "collecting" };
+  const A = [...a].sort((x, y) => x - y), Bs = [...b].sort((x, y) => x - y), m = A.length, n = Bs.length;
+  let i = 0, j = 0, d = 0;
+  while (i < m && j < n) { const x = Math.min(A[i], Bs[j]); while (i < m && A[i] <= x) i++; while (j < n && Bs[j] <= x) j++; d = Math.max(d, Math.abs(i / m - j / n)); }
+  const medA = A[m >> 1], medB = Bs[n >> 1]; // Ансари — Брэдли сравнивает разброс при общем центре: сначала совмещаем медианы
+  const all = [...a.map((v) => ({ v: v - medA, s: 1 })), ...b.map((v) => ({ v: v - medB, s: 0 }))].sort((x, y) => x.v - y.v), N = all.length;
+  const score = all.map((_, k) => Math.min(k + 1, N - k)); // баллы Ансари — Брэдли: 1 на краях, больше к центру
+  for (let k = 0; k < N;) { let e = k; while (e + 1 < N && all[e + 1].v === all[k].v) e++; const avg = score.slice(k, e + 1).reduce((x, y) => x + y, 0) / (e - k + 1); for (let q = k; q <= e; q++) score[q] = avg; k = e + 1; }
+  const W = all.reduce((acc, x, k) => acc + (x.s ? score[k] : 0), 0);
+  const EW = N % 2 ? (m * (N + 1) ** 2) / (4 * N) : (m * (N + 2)) / 4;
+  const VW = N % 2 ? (m * n * (N + 1) * (3 + N * N)) / (48 * N * N) : (m * n * (N + 2) * (N - 2)) / (48 * (N - 1));
+  const z = VW > 0 ? Math.round(((W - EW) / Math.sqrt(VW)) * 10) / 10 : null;
+  const verdict = z != null && z <= -SPREAD_Z ? "spread_wider" : z != null && z >= SPREAD_Z ? "spread_narrower" : d >= SPREAD_D ? "distribution_moved" : "same_distribution";
+  return { verdict, smirnov_d: Math.round(d * 100) / 100, ansari_bradley_z: z, recent_hours: m, base_hours: n };
+}
+
 export function shewhartReport(rows, series, now = Date.now()) {
   const radars = {};
-  for (const [id, col] of series) radars[id] = { ...cusum(hourly(rows, col), now), small_steps_24h: smallSteps(rows, col, now), ratchet_30d: ratchet(rows, col, now) };
+  for (const [id, col] of series) { const h = hourly(rows, col); radars[id] = { ...cusum(h, now), distribution_48h: distributionShift(h, now), small_steps_24h: smallSteps(rows, col, now), ratchet_30d: ratchet(rows, col, now) }; }
   const shifted = Object.entries(radars).filter(([, r]) => r.verdict === "shift_up" || r.verdict === "shift_down").map(([id, r]) => ({ radar: id, verdict: r.verdict, since: r.shift_since, from: r.mean_before, to: r.new_level_estimate }));
   return {
     sensor: "shewhart", honour: SHEWHART, generated_at: new Date(now).toISOString(),
@@ -107,8 +131,8 @@ export function shewhartReport(rows, series, now = Date.now()) {
     drifting: Object.entries(radars).filter(([, r]) => r.small_steps_24h && r.small_steps_24h.verdict === "drift_in_small_steps").map(([id, r]) => ({ radar: id, net_24h: r.small_steps_24h.net_24h, small_steps_share_pct: r.small_steps_24h.small_steps_share_pct })),
     ratchets: Object.entries(radars).filter(([, r]) => r.ratchet_30d && (r.ratchet_30d.verdict === "rises_fast_falls_slow" || r.ratchet_30d.verdict === "stays_up")).map(([id, r]) => ({ radar: id, ...r.ratchet_30d })),
     rule: `hourly means of each radar; mean and usual spread (standard deviation of hourly means) from its history before the last ${SHEWHART_RECENT_H} h; over the last ${SHEWHART_RECENT_H} h deviations beyond ${SHEWHART_K} sigma are summed (CUSUM); shift = the sum passes ${SHEWHART_H} sigma`,
-    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length). small_steps_24h drift_in_small_steps: the day's move came in steps too small to count as a jump — read it as a drift, not as calm. durbin_watson below 1 (sticky: true): neighbouring hours are not independent, so the series looks calmer than it is — treat a shift verdict as a hint and look at the headlines before calling it a regime. ratchet_30d rises_fast_falls_slow / stays_up: after a rise this radar comes down slowly — a high level may be inertia, not fresh news.",
-    bridges: ["quiet_shift (Shewhart + Nelson)", "sticky_series (Durbin + Watson + Shewhart)", "small_steps_large_sum (Parfit + Hurst + Thom)", "ratchet_up_slow_down (Duesenberry + Hicks + Kaldor)"],
+    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length). small_steps_24h drift_in_small_steps: the day's move came in steps too small to count as a jump — read it as a drift, not as calm. distribution_48h spread_wider / spread_narrower: the radar's swings got wider or narrower while its centre may not have moved — read it as more or less agitation, not as a new level (Ansari-Bradley); distribution_moved: the whole spread of values differs from its history (Smirnov D). durbin_watson below 1 (sticky: true): neighbouring hours are not independent, so the series looks calmer than it is — treat a shift verdict as a hint and look at the headlines before calling it a regime. ratchet_30d rises_fast_falls_slow / stays_up: after a rise this radar comes down slowly — a high level may be inertia, not fresh news.",
+    bridges: ["quiet_shift (Shewhart + Nelson)", "sticky_series (Durbin + Watson + Shewhart)", "spread_not_level (Smirnov + Bradley + Shewhart)", "small_steps_large_sum (Parfit + Hurst + Thom)", "ratchet_up_slow_down (Duesenberry + Hicks + Kaldor)"],
     check: SHEWHART_CHECK,
     disclaimer: "Indicator, not advice. Thresholds are working assumptions, checked against the stored radar history.",
   };
