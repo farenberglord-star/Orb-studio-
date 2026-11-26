@@ -1856,6 +1856,21 @@ C = [
  '«On a Distribution Law for Word Frequencies» (1975): одно распределение описывает и частые слова, и длинный хвост редких — и тем измеряет, насколько богат словарь на самом деле.',
  '„On a Distribution Law for Word Frequencies“ (1975): Eine Verteilung beschreibt die häufigen Wörter und den langen Schwanz der seltenen und misst so, wie reich ein Wortschatz wirklich ist.',
  'Many headlines with the same few words are one wording repeated, not many reports.'),
+('shibutani_t', 'Tamotsu Shibutani', 'Тамоцу Шибутани', '1920–2004', 'https://en.wikipedia.org/wiki/Tamotsu_Shibutani', 'rumour_vs_fact',
+ "'Improvised News: A Sociological Study of Rumor' (1966): rumour is news improvised by a group when the demand for information exceeds what institutional channels supply.",
+ '«Improvised News: A Sociological Study of Rumor» (1966): слух — это новости, которые группа импровизирует, когда спрос на сведения превышает то, что дают официальные каналы.',
+ '„Improvised News: A Sociological Study of Rumor“ (1966): Ein Gerücht ist von einer Gruppe improvisierte Nachricht, wenn der Bedarf an Information größer ist als das, was die offiziellen Kanäle liefern.',
+ 'When a story rests on unnamed sources and no official statement exists yet, treat it as improvised news and say what is missing.'),
+('nyquist_h', 'Harry Nyquist', 'Гарри Найквист', '1889–1976', 'https://en.wikipedia.org/wiki/Harry_Nyquist', 'stale_data',
+ "'Certain Topics in Telegraph Transmission Theory' (1928): to follow a signal, sample it at least twice as often as it can change; slower sampling invents changes that are not there.",
+ '«Certain Topics in Telegraph Transmission Theory» (1928): чтобы следить за сигналом, опрашивай его хотя бы вдвое чаще, чем он может меняться; редкий опрос выдумывает изменения, которых нет.',
+ '„Certain Topics in Telegraph Transmission Theory“ (1928): Um einem Signal zu folgen, taste es mindestens doppelt so oft ab, wie es sich ändern kann; seltenere Abtastung erfindet Änderungen, die es nicht gibt.',
+ 'Do not read a trend into a series polled more slowly than it moves; say how often it was read.'),
+('ogburn_wf', 'William F. Ogburn', 'Уильям Огберн', '1886–1959', 'https://en.wikipedia.org/wiki/William_Fielding_Ogburn', 'one_model',
+ "'Are Inventions Inevitable?' (1922, with D. S. Thomas): the same invention often appears independently in several places at once; simultaneity alone does not prove copying.",
+ '«Are Inventions Inevitable?» (1922, с Д. С. Томас): одно и то же изобретение часто появляется независимо в нескольких местах одновременно; одновременность сама по себе не доказывает копирования.',
+ '„Are Inventions Inevitable?“ (1922, mit D. S. Thomas): Dieselbe Erfindung erscheint oft unabhängig an mehreren Orten zugleich; Gleichzeitigkeit allein beweist kein Abschreiben.',
+ 'Outlets reporting at the same moment may be independent or copying; check whether they add different details.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2459,3 +2474,6 @@ NEEDS['aki_k'] = ('covered', 'the Omori sensor computes the Gutenberg-Richter b-
 NEEDS['line_mb'] = ('needs_history', 'a story\'s share of all radar headlines per 6 hours against its raw count (radar_life, joins since 25.11.2026): faded or just drowned by a busy day; bridge story_spread_decay', None)
 NEEDS['ruge_mh'] = ('needs_idea', 'share of radar headlines naming one of the largest powers or a head of state/government, per radar per day; coverage reflects selection, not size; bridge elite_lens', None)
 NEEDS['sichel_h'] = ('needs_idea', 'vocabulary richness of the headlines of one story across outlets (distinct words / words, or a Sichel fit), from radar headlines, daily; bridge same_words_many_copies', None)
+NEEDS['shibutani_t'] = ('covered', 'the Searle sensor gives attribution: share of radar headlines resting on unnamed sources; bridge named_or_anonymous', None, 'searle')
+NEEDS['nyquist_h'] = ('needs_idea', 'for each sensor in the freshness catalogue: our polling interval against the source update interval (expect_h); below a ratio of 2 the series can show changes that are not there; bridge poll_fast_enough', None)
+NEEDS['ogburn_wf'] = ('needs_history', 'outlets that joined a story within minutes of each other: independent (different details, Flesch concreteness) or copied (same words); bridge independent_voices', None)
