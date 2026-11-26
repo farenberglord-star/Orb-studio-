@@ -488,3 +488,8 @@
 - Мостики (crystal_bridges.js): map_card_hours_disagree, rating_needs_its_count, review_age_and_bursts (sensor); typical_is_not_now, place_with_nearby_warnings, report_back_loop (idea).
 - Ждёт «да» владельца: страница раздела Google Maps на сайте (ru/de/en, с пометкой «не связан с Google; Google Maps — товарный знак Google LLC», без логотипов и копий отзывов; сначала сверить условия Google Maps Platform по первоисточнику) и страница для людей «Hat heute geöffnet? Feiertag Hamburg». Цены на топливо (Tankerkönig) — только после проверки лицензии.
 - Жёсткие границы: не рекомендация «идти / не идти»; аптеки, врачи, банки — только заметка и официальный источник; история перемещений человека не берётся и не хранится.
+
+### 26.11.2026 (позже) — страницы для check_place, «да» владельца получено
+- `/de/feiertag-heute` (src/feiertag.js, на сервере, только по-немецки): праздник сегодня по 16 землям, воскресенье, ближайший праздник, FAQ. Считается по правилам (place.js), без внешних источников.
+- Раздел «Карты и агенты»: `/tools/maps`, `/de/tools/maps`, `/en/tools/maps` (генератор `python3 tools/maps_pages.py`, текст внутри него). Честная строка: не связан с Google, Google Maps — товарный знак Google LLC; без логотипов, рейтингов и отзывов Google; тест это проверяет.
+- Условия Google Maps Platform сверены по поиску: требуют атрибуцию по документации и ограничивают кэширование; мы API не используем и содержимое не храним.

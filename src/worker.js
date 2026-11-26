@@ -89,6 +89,7 @@ import { hagenauerReport } from "./hagenauer.js";
 import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { thinkItThrough } from "./think.js";
 import { checkPlace } from "./place.js";
+import { feiertagModel, feiertagHtml } from "./feiertag.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
 import { duckworthReport } from "./duckworth.js";
 import { trevisanReport } from "./trevisan.js";
@@ -10369,6 +10370,11 @@ async function handleRequest(request, env, ctx) {
       let pw = null;
       try { const sn = await Promise.race([sensorsData(env, ctx), new Promise((r) => setTimeout(() => r(null), 6000))]) || await sharedGet(env, "sensors-v8", 2 * 86400e3); pw = sn && sn.power; } catch (e) {}
       return new Response(strompreisHtml(strompreisModel(pw), url.origin), { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Language": "de", "Cache-Control": pw ? "public, max-age=300" : "no-store" } });
+    }
+    // «Hat heute geöffnet? Feiertag heute»: праздники по землям, считаются по правилам (src/place.js), страница целиком на сервере
+    if (/^\/(?:de\/)?feiertag-heute(?:\.html)?\/?$/.test(url.pathname)) {
+      if (url.pathname !== "/de/feiertag-heute") return Response.redirect(url.origin + "/de/feiertag-heute" + url.search, 301);
+      return new Response(feiertagHtml(feiertagModel(), url.origin), { headers: { "Content-Type": "text/html; charset=utf-8", "Content-Language": "de", "Cache-Control": "public, max-age=600" } });
     }
     // страницы, слитые в другие при наведении порядка (19.11.2026): старый адрес ведёт на новое место, язык сохраняется
     { const mv = url.pathname.replace(/\.html$/, "").match(/^(\/(?:ru|de|en))?(\/[a-z0-9/-]+)$/);

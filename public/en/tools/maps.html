@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Can you trust a map card for a place? · check_place · Orb Studio</title>
+<meta name="description" content="An AI assistant describes a castle, museum or shop from a map card. check_place checks it: public holiday, stars with the number of ratings, hours that disagree, review age. Not affiliated with Google.">
+<link rel="canonical" href="https://orbstudio.org/en/tools/maps">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/tools/maps">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/maps">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/maps">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/en/tools/maps">
+<meta property="og:url" content="https://orbstudio.org/en/tools/maps">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="Can you trust a map card for a place? · check_place · Orb Studio">
+<meta property="og:description" content="An AI assistant describes a castle, museum or shop from a map card. check_place checks it: public holiday, stars with the number of ratings, hours that disagree, review age. Not affiliated with Google.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--up:#4fd8a4;--mono:ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;margin:0;line-height:1.5}a{color:var(--holo)}
+.wrap{max-width:860px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left,0px)) 28px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:26px;letter-spacing:.03em;margin:4px 0 0}h2{font-size:16px;letter-spacing:.05em;margin:0 0 8px;color:var(--holo)}h3{font-size:15px;margin:12px 0 2px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}.lead{color:var(--dim);margin:2px 0 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.card p{margin:4px 0}.card ul{margin:4px 0;padding-left:20px}
+.indep{border-color:var(--up)}.who{font-family:var(--mono);font-size:12px;color:var(--up)}code{font-family:var(--mono);color:var(--holo);word-break:break-all}
+.more{display:flex;gap:8px;flex-wrap:wrap}.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "Can you trust a map card for a place? · check_place · Orb Studio", "url": "https://orbstudio.org/en/tools/maps", "inLanguage": "en", "description": "An AI assistant describes a castle, museum or shop from a map card. check_place checks it: public holiday, stars with the number of ratings, hours that disagree, review age. Not affiliated with Google.", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org/"}}</script>
+</head>
+<body><main class="wrap">
+<header><div class="eyebrow">Maps · agents · check_place</div><h1>Can you trust a map card for a place?</h1><p class="lead">You ask an AI assistant for a route to a castle, a description and reviews. The assistant takes the card from a map service; we check it with independent rules and say what is confirmed and what is not.</p></header>
+<section class="card indep"><h2>Plainly about Google</h2><p>Orb Studio is not affiliated with or endorsed by Google. Google Maps is a trademark of Google LLC. We do not read, copy or store Google Maps content and do not use its API: we check only what the assistant or the person passes in the request. There are no Google logos, ratings or reviews on this page.</p></section>
+<section class="card"><h2>What is checked</h2><h3>Public holiday, Sunday, holiday eve</h3><p>Hours on a map are often the usual ones. On a holiday or a Sunday they may differ. The German calendar is computed by fixed rules for each state.</p><p class="who">Rotemberg</p><h3>Stars with the number of ratings</h3><p>4.7 from 465 ratings and 3.5 from 893 are different things, and 5.0 from three ratings says almost nothing. Thresholds and the pull toward 4.0 are a working assumption, not a verdict on the place.</p><p class="who">Cohen</p><h3>Hours that disagree between sources</h3><p>If the map, a directory and the website give different hours we say so and ask you to confirm with the place itself.</p><p class="who">García-Molina</p><h3>Review age and a burst in one week</h3><p>If most reviews are old or many arrive in a single week, that is a reason to look closer, not a verdict.</p><p class="who">Hinkley, Campbell</p><h3>&#x27;Usually not busy&#x27;</h3><p>That is the typical level for this hour, not how busy it is now.</p><p class="who">Kalman</p><h3>What the assistant did not bring</h3><p>A list of the fields without which the check stays incomplete: hours per source, review dates, number of ratings.</p><p class="who">-</p></section>
+<section class="card"><h2>Example</h2><p>The museum in Bergedorf Castle (Hamburg): the map gave different hours than a directory. The answer names the disagreement and suggests phoning the museum before travelling.</p><p><a href="https://orbstudio.org/api/v1/place?name=Museum%20f%C3%BCr%20Bergedorf&rating=4.5&reviews=1435&state=HH&lat=53.4896&lon=10.2124&hours=%5B%7B%22source%22%3A%22map%22%2C%22open%22%3A%2211%3A00%22%2C%22close%22%3A%2217%3A00%22%7D%2C%7B%22source%22%3A%22directory%22%2C%22open%22%3A%2210%3A00%22%2C%22close%22%3A%2218%3A00%22%7D%5D" rel="nofollow">Open the example (JSON)</a></p></section>
+<section class="card"><h2>Limits</h2><ul><li>Not a recommendation to go or not to go, and no rating of the place.</li><li>Pharmacies, doctors, banks: only a note and the official source (aponet.de, 116 117, the bank itself).</li><li>One-off and local holidays are not modelled; the star thresholds are a working assumption.</li><li>We never edit a map: when sources disagree, the person can report the mistake in the app.</li></ul></section>
+<section class="card"><h2>For agents</h2><p>MCP tool check_place and REST /api/v1/place. Free, no AI, no web search. Pass the name, rating and number of ratings, hours per source, review dates.</p><p><code>https://orbstudio.org/api/v1/place?name=...</code></p></section>
+<section class="card"><h2>More</h2><div class="more"><a href="/de/feiertag-heute">Public holiday today by state (in German)</a><a href="/en/tools/crystals">Crystal Library: the scientists behind the checks</a><a href="/api/v1/think?q=">Think it through (think_it_through)</a></div></section>
+</main></body>
+</html>
