@@ -23,6 +23,8 @@ export const T = {
   "mute": "🔇 Sound off",
   "copied": "copied",
   "noVoice": "Voice unavailable right now — subtitles continue",
+  "noVoiceBudget": "Today's voice limit is reached — subtitles continue",
+  "noVoiceOff": "Voice is not switched on on the server yet — subtitles continue",
   "next": "Next",
   "story": "Open the story",
   "noLink": "No connection",
@@ -72,6 +74,8 @@ export const T = {
   "mute": "🔇 Без звука",
   "copied": "скопировано",
   "noVoice": "Голос сейчас недоступен — идут субтитры",
+  "noVoiceBudget": "На сегодня лимит голоса исчерпан — идут субтитры",
+  "noVoiceOff": "Голос на сервере не включён — идут субтитры",
   "next": "Дальше",
   "story": "Открыть новость",
   "noLink": "Нет связи",
@@ -121,6 +125,8 @@ export const T = {
   "mute": "🔇 Ton aus",
   "copied": "kopiert",
   "noVoice": "Stimme gerade nicht verfügbar – Untertitel laufen",
+  "noVoiceBudget": "Das Stimmenlimit für heute ist erreicht – Untertitel laufen",
+  "noVoiceOff": "Die Stimme ist auf dem Server nicht aktiviert – Untertitel laufen",
   "next": "Weiter",
   "story": "Zur Nachricht",
   "noLink": "Keine Verbindung",
@@ -310,6 +316,7 @@ function start() {
   const hint = document.documentElement.dataset.al || (navigator.languages || []).map((x) => String(x).slice(0, 2).toLowerCase()).find((x) => T[x]) || navigator.language;
   const lang = pickLang(location.search, hint), t = T[lang];
   document.documentElement.lang = lang;
+  const SILENT = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
   const stage = $("stage"), sub = $("sub"), board = $("board"), voice = new Audio(), pre = new Audio();
   voice.preload = "auto"; pre.preload = "auto";
   document.querySelectorAll("[data-t]").forEach((e) => { e.textContent = t[e.dataset.t]; });
@@ -356,6 +363,12 @@ function start() {
       stage.dataset.speaker = x.label ? "" : x.who; sub.classList.remove("out"); renderProg(x.topic);
     }, 180);
   }
+  let whyShown = false;
+  // Почему нет голоса: сервер отвечает 429 (суточный лимит синтеза), 503 (голос не настроен), 502 (сбой синтеза) — говорим человеку, а не молчим
+  async function whyNoVoice(url) {
+    try { const r = await fetch(url, { method: "GET", headers: { range: "bytes=0-0" } }); if (r.ok || r.status === 206) return;
+      const m = { 429: t.noVoiceBudget, 503: t.noVoiceOff, 502: t.noVoice }[r.status]; if (m) { whyShown = true; $("vnote").textContent = m; } } catch {}
+  }
   function step() {
     clearTimeout(timer); voice.onended = voice.onerror = null;
     if (pos >= queue.length) { showBoard(t.done, t.doneSub); renderProg(-1); retry = setTimeout(load, 300000); return; }
@@ -366,7 +379,7 @@ function start() {
       const done = () => { voice.onended = voice.onerror = null; stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, 650); };
       voice.onended = () => { vfail = 0; done(); };
       voice.onerror = () => { if (tries++ < 1) { clearTimeout(timer); timer = setTimeout(() => { voice.src = x.audio + "&r=1"; voice.play().catch(() => voice.onerror && voice.onerror()); timer = setTimeout(done, Math.max(lineMs(x.text) * 2.5, 30000)); }, 2000); return; }
-        vfail++; if (vfail >= 6) $("vnote").textContent = t.noVoice; stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, lineMs(x.text)); };
+        vfail++; if (vfail === 2) whyNoVoice(x.audio); if (vfail >= 6 && !whyShown) $("vnote").textContent = t.noVoice; stage.dataset.voiced = ""; clearTimeout(timer); timer = setTimeout(step, lineMs(x.text)); };
       voice.play().catch(() => voice.onerror && voice.onerror());
       timer = setTimeout(done, Math.max(lineMs(x.text) * 2.5, 30000));
       const n = queue.slice(pos).find((y) => y.audio); if (n && pre.src !== n.audio) pre.src = n.audio;
@@ -392,6 +405,8 @@ function start() {
   lb.addEventListener("click", (e) => { e.stopPropagation();
     if (soundOn) { soundOn = false; lb.textContent = t.listen; lb.setAttribute("aria-pressed", "false"); voice.pause(); stage.dataset.voiced = ""; step(); return; }
     soundOn = true; lb.textContent = t.mute; lb.setAttribute("aria-pressed", "true");
+    // Телефоны (iOS Safari, мобильный Chrome) разрешают звук только из самого нажатия, а голос стартует после сетевого запроса: «открываем» оба плеера тихим файлом сразу, в жесте
+    for (const a of [voice, pre]) { try { a.src = SILENT; const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); } catch {} }
     try { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(voice); an = actx.createAnalyser(); an.fftSize = 512; src.connect(an); an.connect(actx.destination); } actx.resume(); } catch { an = null; }
     if (!listenCounted) { listenCounted = true; hit("roundtable-listen"); }
     if (!started) { started = true; return load(); } // первое нажатие — с начала, с приветствия модератора
