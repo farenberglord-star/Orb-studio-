@@ -1836,6 +1836,26 @@ C = [
  '«Frequency of Earthquakes in California» (1944, с Ч. Рихтером): число землетрясений падает примерно в 10 раз с каждой единицей магнитуды (log N = a − bM, b около 1).',
  '„Frequency of Earthquakes in California“ (1944, mit C. F. Richter): Die Zahl der Beben sinkt mit jeder Magnitudeneinheit etwa auf ein Zehntel (log N = a − bM, b nahe 1).',
  'Before calling a quake rare, say how many of that size the month usually has worldwide.'),
+('aki_k', 'Keiiti Aki', 'Кэйити Аки', '1930–2005', 'https://en.wikipedia.org/wiki/Keiiti_Aki', 'look_alike',
+ "'Maximum likelihood estimate of b in the formula log N = a - bM and its confidence limits' (1965): estimate the slope from the mean magnitude above the completeness level, with its error, instead of fitting a line by eye.",
+ '«Maximum likelihood estimate of b…» (1965): оценивай наклон по средней магнитуде выше порога полноты каталога, вместе с погрешностью, а не проводя прямую на глаз.',
+ '„Maximum likelihood estimate of b…“ (1965): Schätze die Steigung aus der mittleren Magnitude oberhalb der Vollständigkeitsschwelle, mit ihrem Fehler, statt eine Gerade nach Augenmaß zu legen.',
+ 'Say how rare a quake is from the catalogue itself, and only above the magnitude the catalogue records completely.'),
+('line_mb', 'Maurice B. Line', 'Морис Лайн', '1928–2010', 'https://en.wikipedia.org/wiki/Maurice_Line', 'stale_data',
+ "''Obsolescence' and Changes in the Use of Literature with Time' (1974, with A. Sandison): apparent ageing must be corrected for the growth of the whole literature; an old item may look forgotten only because everything grew.",
+ '«‘Obsolescence’ and Changes in the Use of Literature with Time» (1974, с А. Сэндисоном): кажущееся старение надо поправлять на рост всего потока; старое может казаться забытым лишь потому, что вырос весь поток.',
+ '„‘Obsolescence’ and Changes in the Use of Literature with Time“ (1974, mit A. Sandison): Scheinbares Veralten muss um das Wachstum des ganzen Bestands bereinigt werden; Altes wirkt vielleicht nur vergessen, weil alles gewachsen ist.',
+ 'Before calling a story faded, check whether it shrank or whether a busy news day simply buried it.'),
+('ruge_mh', 'Mari Holmboe Ruge', 'Мари Хольмбу Руге', '1934–2025', 'https://no.wikipedia.org/wiki/Mari_Holmboe_Ruge', 'one_model',
+ "'The Structure of Foreign News' (1965, with J. Galtung): events become news more easily when they concern elite nations and elite people and are negative; coverage reflects this selection, not the size of the event.",
+ '«The Structure of Foreign News» (1965, с Й. Гальтунгом): событие легче становится новостью, если касается элитных стран и людей и негативно; освещение отражает этот отбор, а не масштаб события.',
+ '„The Structure of Foreign News“ (1965, mit J. Galtung): Ereignisse werden leichter zur Nachricht, wenn sie Elitenationen und Elitepersonen betreffen und negativ sind; die Berichterstattung spiegelt diese Auswahl, nicht die Größe des Ereignisses.',
+ 'Do not read heavy coverage as importance; ask whether the story is about an elite country or person.'),
+('sichel_h', 'Herbert Sichel', 'Герберт Сихель', '1915–1995', 'https://en.wikipedia.org/wiki/Herbert_Sichel', 'look_alike',
+ "'On a Distribution Law for Word Frequencies' (1975): one distribution fits both the common words and the long tail of rare ones, and so measures how rich a vocabulary really is.",
+ '«On a Distribution Law for Word Frequencies» (1975): одно распределение описывает и частые слова, и длинный хвост редких — и тем измеряет, насколько богат словарь на самом деле.',
+ '„On a Distribution Law for Word Frequencies“ (1975): Eine Verteilung beschreibt die häufigen Wörter und den langen Schwanz der seltenen und misst so, wie reich ein Wortschatz wirklich ist.',
+ 'Many headlines with the same few words are one wording repeated, not many reports.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2435,3 +2455,7 @@ NEEDS['palmer_fr'] = ('covered', 'the Searle sensor gives hedged: share of radar
 NEEDS['adams_ew'] = ('covered', 'the Searle sensor gives conditional: share of radar headlines with if / would / wenn / falls / если / бы; bridge if_is_not_did', None, 'searle')
 NEEDS['zellner_a'] = ('covered', 'the Hagenauer sensor marks labels on_edge; with an asymmetric cost the cautious label is chosen there; bridge say_not_known', None, 'hagenauer')
 NEEDS['gutenberg_b'] = ('covered', 'the Omori sensor gives gutenberg_richter: b-value of the 30-day USGS feed from M4.5 and how many quakes of M5, M6, M7 that implies per 30 days', None, 'omori')
+NEEDS['aki_k'] = ('covered', 'the Omori sensor computes the Gutenberg-Richter b-value with Aki\'s maximum likelihood formula from M4.5; bridge how_rare_is_this_quake', None, 'omori')
+NEEDS['line_mb'] = ('needs_history', 'a story\'s share of all radar headlines per 6 hours against its raw count (radar_life, joins since 25.11.2026): faded or just drowned by a busy day; bridge story_spread_decay', None)
+NEEDS['ruge_mh'] = ('needs_idea', 'share of radar headlines naming one of the largest powers or a head of state/government, per radar per day; coverage reflects selection, not size; bridge elite_lens', None)
+NEEDS['sichel_h'] = ('needs_idea', 'vocabulary richness of the headlines of one story across outlets (distinct words / words, or a Sichel fit), from radar headlines, daily; bridge same_words_many_copies', None)
