@@ -28,25 +28,25 @@ const kinds = (p) => p.items.map((x) => (x.type === "say" || x.type === "news" ?
 test("carousel: after every track David does something — interview, sensor news or weather; never two tracks in a row", () => {
   const iv = interviews(duo([seg(0), seg(1), seg(2)]), "en"), NEWS = [{ key: "sens:money:1", text: "Sensor story one." }, { key: "sens:world:1", text: "Sensor story two." }];
   const p = plan(iv, new Set(), 0, 2, { dj: DJ, weather: WX, first: true, stories: NEWS });
-  assert.deepEqual(kinds(p), ["say:You", "track", "say:Today's", "talk", "talk", "talk", "say:Thanks,", "track", "say:And+Next", "track", "news:Sensor+Next", "track", "news:Sensor+Next"], "the podcast runs as one block: all questions to the guest in a row");
+  assert.deepEqual(kinds(p), ["say:You", "say:Today's", "talk", "talk", "talk", "say:And", "news:Sensor", "news:Sensor"], "words first; the podcast runs as one block; no music while the news share would drop below 60 %");
   for (let i = 1; i < p.items.length; i++) assert.ok(!(p.items[i].type === "track" && p.items[i - 1].type === "track"), "no two tracks in a row");
   assert.equal(p.items[0].iv.lines[0].audio, DJ.ident.audio); assert.equal(p.items[0].iv.lines[0].who, "david");
   assert.deepEqual(p.items.filter((x) => x.type === "talk").map((x) => x.iv.headline), ["H0", "H1", "H2"]);
   assert.deepEqual(p.items.filter((x) => x.type === "news").map((x) => x.key), ["sens:money:1", "sens:world:1"]); assert.equal(p.news, 2);
   const p2 = plan(iv, new Set(["H0", "H1", "sens:money:1"]), p.trackAt, 2, { dj: DJ, weather: null, first: false, introSaid: true, stories: NEWS });
-  assert.deepEqual(kinds(p2), ["track", "talk", "say:Thanks,", "track", "news:Sensor+Next"]); assert.equal(p2.items[1].iv.headline, "H2"); assert.equal(p2.items[4].key, "sens:world:1");
+  assert.deepEqual(kinds(p2), ["talk", "news:Sensor"]); assert.equal(p2.items[0].iv.headline, "H2"); assert.equal(p2.items[1].key, "sens:world:1");
 });
 test("nothing new: greeting first, then a track and a short link; weather takes the block when it is due", () => {
   const iv = interviews(duo([seg(0)]), "en");
   const m = plan(iv, new Set(["H0"]), 0, 2, { dj: DJ, weather: WX, first: true });
-  assert.deepEqual(kinds(m), ["say:You", "track", "say:And+Next"]); assert.equal(m.fresh, 0);
+  assert.deepEqual(kinds(m), ["say:You", "say:And"]); assert.equal(m.fresh, 0);
   assert.deepEqual(kinds(plan([], new Set(), 0, 2, { dj: DJ, first: false })), ["track", "say:Nice+Next"]);
   assert.deepEqual(kinds(plan([], new Set(["k"]), 0, 2, { dj: DJ, stories: [{ key: "k", text: "Heard already." }, { text: "no key" }, null] })), ["track", "say:Nice+Next"], "a heard or broken story is not aired");
 });
 test("plan without DJ lines or data: same grid, no invented words", () => {
   const iv = interviews(duo([seg(0)]), "en");
-  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["track", "talk"]);
-  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["track", "talk"]);
+  assert.deepEqual(kinds(plan(iv, new Set(), 0)), ["talk"]);
+  assert.deepEqual(kinds(plan(iv, new Set(), 0, 2, { dj: { ident: { text: "  " }, intro: null }, first: true })), ["talk"]);
   for (const p of [plan(iv, new Set(["H0"])), plan([], new Set()), plan(null, null)]) { assert.deepEqual(kinds(p), ["track"]); assert.equal(p.fresh, 0); }
   assert.equal(sayItem("t", [{ text: "x", audio: "javascript:1" }]).iv.lines[0].audio, null); assert.equal(sayItem("t", [null, {}]), null);
 });
@@ -269,10 +269,10 @@ test("DJ does not repeat himself: four different variants of every repeated link
   // плеер: по кругу, счётчик общий для нескольких вызовов
   const vars = { after_music: [1, 2, 3].map((i) => ({ text: "After " + i })), next_track: [{ text: "Next 1" }, { text: "Next 2" }], to_music: [{ text: "Music 1" }, { text: "Music 2" }] }, turns = {};
   const texts = (p) => p.items.filter((x) => x.type === "say").map((x) => x.iv.lines.map((y) => y.text).join(" | "));
-  const iv = (h) => ({ headline: h, lines: [{ who: "david", text: "q" }, { who: "grok", text: "a" }] });
+  const LONG = "word ".repeat(200), iv = (h) => ({ headline: h, lines: [{ who: "david", text: LONG }, { who: "grok", text: LONG }] });
   const a = texts(plan([iv("a"), iv("b")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), b = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true }));
   assert.deepEqual([...a, ...b], ["Music 1", "After 1 | Next 1"]);
-  const c = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })); assert.deepEqual(c, ["After 2 | Next 2"], "the next round takes the next variant"); assert.deepEqual(texts(plan([iv("z")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), ["Music 2"]);
+  const c = texts(plan([], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })); assert.deepEqual(c, ["After 2 | Next 2"], "the next round takes the next variant"); assert.deepEqual(texts(plan([iv("z"), iv("y")], new Set(), 0, 2, { dj: DJ, variants: vars, turns, introSaid: true })), ["Music 2"]);
   assert.equal(texts(plan([], new Set(), 0, 2, { dj: DJ }))[0], DJ.after_music.text + " | " + DJ.next_track.text, "without variants the single line still plays");
 });
 
@@ -387,8 +387,8 @@ test("radar news: one top headline per radar, one sentence each, nothing beyond 
   // плеер: блок радаров — одна новость с несколькими репликами, не повторяется
   const story = { key: "radar:1", title: "Top stories", source: "Radars · bbc.co.uk", lines: [{ text: "Intro." }, { text: "Energy. Tanker seized." }, { text: "AI. Probe opened." }] };
   const p = plan([], new Set(), 0, 2, { dj: DJ, stories: [story, { key: "sens:1", text: "Sensor story." }] });
-  assert.deepEqual(p.items.map((x) => x.type), ["track", "news", "track", "news"]); assert.deepEqual(p.items[1].iv.lines.map((x) => x.text), ["Intro.", "Energy. Tanker seized.", "AI. Probe opened.", DJ.next_track.text]);
-  assert.equal(p.items[1].key, "radar:1"); assert.equal(p.items[1].iv.source, "Radars · bbc.co.uk"); assert.equal(p.items[1].label, "Top stories");
+  assert.deepEqual(p.items.map((x) => x.type), ["news", "news"]); assert.deepEqual(p.items[0].iv.lines.map((x) => x.text), ["Intro.", "Energy. Tanker seized.", "AI. Probe opened."]);
+  assert.equal(p.items[0].key, "radar:1"); assert.equal(p.items[0].iv.source, "Radars · bbc.co.uk"); assert.equal(p.items[0].label, "Top stories");
   assert.deepEqual(plan([], new Set(["radar:1"]), 0, 2, { dj: DJ, stories: [story] }).items.map((x) => x.type), ["track", "say"]);
   const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8"); assert.match(w, /p === "\/api\/v1\/radio\/radar"/); assert.match(w, /ctx\.waitUntil\(radioRadarWarm\(env, ctx\)/);
 });
@@ -526,8 +526,8 @@ test("voice budget: robots and checks never start speech synthesis; the radio sk
   const dj = { ident: V("Ident.", 1), intro: V("Intro.", 2), to_music: V("To music.", 3), after_music: { text: "No voice." }, next_track: V("Next.", 4) };
   const talk = (h, voiced) => ({ headline: h, guest: "Grok", lines: [{ who: "david", kind: "read", text: "r", audio: voiced ? A(5) : null }, { who: "david", kind: "question", text: "q", audio: voiced ? A(6) : null }, { who: "grok", kind: "answer", text: "a", audio: voiced ? A(7) : null }, { who: "david", kind: "remark", text: "m", audio: null }] });
   const p = plan([talk("voiced", true), talk("mute", false)], new Set(), 0, 2, { voiceOnly: true, dj, first: true, greeting: { text: "Hello." }, weather: { text: "Weather." }, stories: [{ key: "s1", text: "Sensor.", audio: A(8) }, { key: "s2", text: "Mute sensor." }] });
-  assert.deepEqual(p.items.map((x) => x.type), ["say", "track", "say", "talk", "say", "track", "news"], "the mute talk, the mute story and the unvoiced weather are left out");
-  assert.deepEqual(p.items[0].iv.lines.map((x) => x.text), ["Ident."], "the unvoiced greeting is dropped, the voiced ident stays"); assert.deepEqual(p.items[3].iv.lines.map((x) => x.kind), ["read", "question", "answer"], "the unvoiced remark is dropped from the talk");
+  assert.deepEqual(p.items.map((x) => x.type), ["say", "say", "talk", "news"], "the mute talk, the mute story and the unvoiced weather are left out");
+  assert.deepEqual(p.items[0].iv.lines.map((x) => x.text), ["Ident."], "the unvoiced greeting is dropped, the voiced ident stays"); assert.deepEqual(p.items[2].iv.lines.map((x) => x.kind), ["read", "question", "answer"], "the unvoiced remark is dropped from the talk");
   assert.equal(p.fresh, 1); assert.equal(p.news, 1);
   assert.deepEqual(plan([], new Set(), 0, 2, { voiceOnly: true, dj }).items.map((x) => x.type + ":" + (x.iv ? x.iv.lines.map((l) => l.text).join("+") : "")), ["track:", "say:Next."], "a link keeps only its voiced part");
   assert.deepEqual(plan([talk("mute", false)], new Set(), 0, 2, { voiceOnly: true, dj: {} }).items.map((x) => x.type), ["track"], "nothing voiced: music only, no silence");
@@ -639,4 +639,21 @@ test("radio host: Energy-style DJ lines carry a joke and laughter tags, tags are
   assert.equal(plainSpeech("[chuckle] I would dance, if I had legs. [laugh]"), "I would dance, if I had legs.");
   // тег одного голоса не пропадает из текста для озвучки и не попадает в то, что показывает страница
   assert.ok(!tagged.test(plainSpeech(DJ_FALLBACK.en.ident)));
+});
+
+test("radio mix: words first, music after; about 60 % of the air is news, the counter lives between rounds", async () => {
+  const { NEWS_SHARE_DEFAULT } = await import("../public/radio.js");
+  assert.equal(NEWS_SHARE_DEFAULT, 0.6);
+  const A = (n) => "https://orbstudio.org/api/v1/radio/audio?k=" + String(n).padStart(40, "0"), TXT = "word ".repeat(100); // 500 знаков ≈ 36 с речи
+  const dj = { ident: { text: "Ident.", audio: A(1) }, to_music: { text: "Now music.", audio: A(2) }, next_track: { text: "Next track.", audio: A(3) }, after_music: { text: "After.", audio: A(4) } };
+  const stories = Array.from({ length: 24 }, (_, i) => ({ key: "s" + i, text: TXT, audio: A(10 + i) })), mix = { said: 0, music: 0 }, heard = new Set(), items = [];
+  for (let round = 0; round < 6; round++) { const p = plan([], heard, 0, 4, { dj, first: round === 0, greeting: { text: "Hello.", audio: A(5) }, stories, mix, blocks: 4 }); for (const x of p.items) { items.push(x); if (x.key) heard.add(x.key); } }
+  assert.notEqual(items[0].type, "track", "the air starts with words");
+  assert.equal(items[1].type, "news", "news right after the greeting, music comes later");
+  for (let i = 1; i < items.length; i++) assert.ok(!(items[i].type === "track" && items[i - 1].type === "track"), "no two tracks in a row");
+  const tracks = items.filter((x) => x.type === "track"); assert.ok(tracks.length >= 2, "music does play");
+  assert.ok(mix.said / (mix.said + mix.music) >= 0.6 - 1e-9, "news share " + (mix.said / (mix.said + mix.music)).toFixed(2));
+  assert.ok(mix.said / (mix.said + mix.music) < 0.75, "music is not squeezed out");
+  const nolink = items.filter((x) => x.type === "news" && x.iv.lines.some((l) => l.text === "Next track.")).length, music = tracks.length;
+  assert.equal(nolink, music, "a link 'next track' is spoken only where a track really follows");
 });

@@ -1,4 +1,4 @@
-// Тестовое «Радио Orb Studio»: наш трек → интервью Давида с гостем по одной новости → наш трек → следующая новость.
+// «Радио Orb Studio»: сначала слово, потом музыка. Интервью Давида с гостем, новости радаров и датчиков, погода — около 60 % эфира; наш трек идёт после блока, пока доля слов не падает ниже 60 %.
 // Интервью не сочиняются на странице: берутся готовые сегменты из GET /api/v1/broadcast/duo (текст и голос).
 // Новость не повторяется: услышанные заголовки запоминаются в браузере. Нет новых — играет только музыка.
 import { buildQueue, boardFor, pickLang, lineMs, T as ST } from "./studio-duo.js";
@@ -140,6 +140,7 @@ export function sayItem(title, parts) {
 // Услышанные интервью и новости не повторяются; без связок сетка та же, только без слов диджея.
 export const BLOCKS = 5, PODCAST_MAX = 4;
 // Длинный трек плавно уводится через две минуты, короткий (до 2:40) играет целиком
+export const NEWS_SHARE_DEFAULT = 0.6; // доля слова (новости, подкаст, погода) в эфире
 export const TRACK_CUT = 120, TRACK_FULL = 160, CUT_FADE = 5;
 export function cutAt(dur) { return dur > TRACK_FULL ? TRACK_CUT : dur; }
 export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
@@ -153,20 +154,32 @@ export function plan(list, heard, trackAt = 0, talks = 2, o = {}) {
   // Радио слушают, а не читают: в режиме voiceOnly реплика без готового голоса не звучит тишиной, а пропускается; разговор без озвученных вопроса и ответа — тоже
   const vo = !!o.voiceOnly, hasA = (x) => !!(x && typeof x.audio === "string" && /^https:\/\//.test(x.audio));
   const sayV = (ttl, parts) => sayItem(ttl, vo ? (parts || []).filter(hasA) : parts);
-  const push = (x) => { if (x) out.push(x); }, track = () => out.push({ type: "track", track: (o.nextTrack && o.nextTrack()) || TRACKS[k++ % TRACKS.length] });
-  if (o.first) push(sayV(title, [o.greeting, dj.ident]));
+  // Эфир: сначала слово, потом музыка; новости (подкаст, радары, датчики, погода) — около 60 % времени, музыка — остальное.
+  // Музыка после блока идёт, только если с ней доля слова не упадёт ниже NEWS_SHARE (время слов — знаки / SPEECH_CPS, музыки — cutAt).
+  const NEWS_SHARE = o.newsShare || NEWS_SHARE_DEFAULT, MUSIC_PER_NEWS = (1 - NEWS_SHARE) / NEWS_SHARE, TRACK_EST = o.trackEst || 120;
+  const push = (x) => { if (x) out.push(x); }, track = () => { const tr = (o.nextTrack && o.nextTrack()) || TRACKS[k++ % TRACKS.length]; out.push({ type: "track", track: tr }); return tr; };
+  const SPEECH_CPS = 14; // озвучка читает около 14 знаков в секунду (lineMs — время показа субтитра, у него потолок 18 с, для счёта эфира не годится)
+  const sec = (lines) => (lines || []).reduce((n, x) => n + (x && typeof x.text === "string" ? Math.max(2.5, x.text.length / SPEECH_CPS) : 0), 0);
+  const mix = o.mix || { said: 0, music: 0 }; // секунды слов и музыки; плеер хранит счётчик между кругами, чтобы 60/40 держалось в целом эфире
+  if (o.first) { const g = sayV(title, [o.greeting, dj.ident]); push(g); mix.said += g ? sec(g.iv.lines) : 0; }
   // очередь блоков: подкаст с гостем, потом новости радаров и датчиков; погода (когда пришёл её час) идёт вторым блоком
   const talks2 = vo ? fresh.map((iv) => { const lines = iv.lines.filter(hasA), has = (k) => lines.some((x) => x.kind === k); return has("question") && has("answer") ? { ...iv, lines } : null; }).filter(Boolean) : fresh;
   const newsV = vo ? news.filter((n) => (Array.isArray(n.lines) ? n.lines.filter(hasA).length > 1 : hasA(n))) : news;
   const q = []; if (talks2.length) q.push({ talks: talks2 }); for (const n of newsV) q.push({ news: n });
   if (o.weather && (!vo || hasA(o.weather))) q.splice(Math.min(1, q.length), 0, { weather: o.weather });
+  // нужна ли музыка после блока с content-секундами: да, если с ней музыки не больше доли MUSIC_PER_NEWS от слов
+  const musicFollows = (add) => mix.music + TRACK_EST <= MUSIC_PER_NEWS * (mix.said + add);
+  const afterBlock = (follow) => { if (follow) { const tr = track(); mix.music += cutAt(tr.sec); } };
   for (const b of q.length ? q.slice(0, o.blocks || BLOCKS) : [{}]) {
-    track();
-    if (b.talks) { const g = gOf(b.talks[0]); if (said !== g && said !== "*") { push(sayV(title, [(o.intros && o.intros[g]) || dj.intro])); said = g; }
-      for (const iv of b.talks) out.push({ type: "talk", iv }); push(sayV(title, [say("to_music")])); }
-    else if (b.news) { const n = b.news, it = sayV(n.title || o.newsTitle || title, [...(Array.isArray(n.lines) ? n.lines : [n]), say("next_track")]); if (it) { it.type = "news"; it.key = n.key; it.label = n.title || o.newsTitle || ""; it.iv.source = n.source || o.newsSource || null; out.push(it); } }
-    else if (b.weather) push(sayV(title, [b.weather, say("next_track")]));
-    else push(sayV(title, [say("after_music"), say("next_track")]));
+    if (b.talks) { const g = gOf(b.talks[0]); let add = 0;
+      if (said !== g && said !== "*") { const it = sayV(title, [(o.intros && o.intros[g]) || dj.intro]); push(it); add += it ? sec(it.iv.lines) : 0; said = g; }
+      for (const iv of b.talks) { out.push({ type: "talk", iv }); add += sec(iv.lines); }
+      const follow = musicFollows(add); if (follow) { const it = sayV(title, [say("to_music")]); push(it); add += it ? sec(it.iv.lines) : 0; }
+      mix.said += add; afterBlock(follow); }
+    else if (b.news) { const n = b.news, lines = Array.isArray(n.lines) ? n.lines : [n], follow = musicFollows(sec(lines)), it = sayV(n.title || o.newsTitle || title, follow ? [...lines, say("next_track")] : lines);
+      if (it) { it.type = "news"; it.key = n.key; it.label = n.title || o.newsTitle || ""; it.iv.source = n.source || o.newsSource || null; out.push(it); mix.said += sec(it.iv.lines); afterBlock(follow); } }
+    else if (b.weather) { const follow = musicFollows(sec([b.weather])), it = sayV(title, follow ? [b.weather, say("next_track")] : [b.weather]); push(it); mix.said += it ? sec(it.iv.lines) : 0; afterBlock(follow && !!it); }
+    else { track(); push(sayV(title, [say("after_music"), say("next_track")])); } // нечего сказать — только музыка, как раньше
   }
   return { items: out, trackAt: k % TRACKS.length, fresh: talks2.length, news: newsV.length, introGuest: said };
 }
@@ -234,7 +247,7 @@ function start() {
   const KEY = "orbRadioHeard";
   const heard = new Set(); try { for (const h of JSON.parse(localStorage.getItem(KEY) || "[]")) heard.add(String(h)); } catch {}
   const saveHeard = () => { try { localStorage.setItem(KEY, JSON.stringify([...heard].slice(-80))); } catch {} };
-  const air = document.querySelector(".air"); const failed = new Map(); let voiceLine = false, itemHeard = false, speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
+  const air = document.querySelector(".air"); const failed = new Map(); const airMix = { said: 0, music: 0 }; let voiceLine = false, itemHeard = false, speaker = "", flashAt = -1e9, weather = null, greeted = false, introSaid = false, introGuest = null, pending = null; const djTurns = { to_music: Math.floor(Math.random() * 4), after_music: Math.floor(Math.random() * 4), next_track: Math.floor(Math.random() * 4) };
   let lineAt = 0, lineMsNow = 0, items = [], idx = -1, trackAt = 0, li = 0, timer = 0, on = false, started = false;
 
   // ---- звук: настоящий уровень через Web Audio; если браузер не даёт — эквалайзер стоит на минимуме, звук идёт как обычно ----
@@ -292,7 +305,7 @@ function start() {
     if (rad && rad.status === "ok" && typeof rad.key === "string" && Array.isArray(rad.lines) && rad.lines.length > 1) stories.unshift({ key: rad.key, lines: rad.lines, title: t.radarNews, source: t.radarSrc + (Array.isArray(rad.sources) && rad.sources.length ? " · " + rad.sources.slice(0, 4).join(", ") : "") });
     // погода раз в час: время последнего прогноза помнит браузер, так что и после перезагрузки страницы Давид не повторяет её раньше срока
     weather = wx && wx.status === "ok" && wx.text && weatherDue(lastWx(), Date.now()) ? { text: wx.text, audio: wx.audio } : null; if (weather) { try { localStorage.setItem(WX_KEY, String(Date.now())); } catch {} }
-    const skipNow = notNow(failed, Date.now()), p = plan(mergeInterviews(reg, worldInterviews(duo, lang)).filter((iv) => !skipNow.has(iv.headline)), heard, trackAt, 2, { voiceOnly: true, dj: dj && dj.links, stories: stories.filter((x) => !skipNow.has(x.key)), newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
+    const skipNow = notNow(failed, Date.now()), p = plan(mergeInterviews(reg, worldInterviews(duo, lang)).filter((iv) => !skipNow.has(iv.headline)), heard, trackAt, 2, { voiceOnly: true, dj: dj && dj.links, stories: stories.filter((x) => !skipNow.has(x.key)), newsTitle: t.sensNews, newsSource: t.sensSrc, nextTrack, variants: dj && dj.variants, intros: dj && dj.intros, introGuest, turns: djTurns, mix: airMix, greeting: dj && dj.greetings && dj.greetings[daypart(new Date().getHours())], weather, first: !greeted, introSaid, title: t.title }); trackAt = p.trackAt;
     greeted = true; if (p.fresh) { introSaid = true; introGuest = p.introGuest; }
     $("note").textContent = !duo || boardFor(duo) === "noLink" ? t.noLink : p.fresh || p.news ? "" : t.noNew;
     const tk = tickerItems(duo), el = $("tick"); el.textContent = tk.length ? "  +++  " + tk.join("  +++  ") + "  +++  " + t.title : t.title;
