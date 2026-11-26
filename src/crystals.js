@@ -14907,6 +14907,61 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per headline: length in words and mean word length (radar feeds, every 30 minutes); slope of mean word length against headline length per outlet"
 }
+},
+{
+"id": "schwarz_g",
+"name": "Gideon Schwarz",
+"name_ru": "Гидеон Шварц",
+"years": "1933–2007",
+"wiki": "https://en.wikipedia.org/wiki/Gideon_E._Schwarz",
+"zone": "one_model",
+"idea": {
+"en": "'Estimating the Dimension of a Model' (Annals of Statistics, 1978): choose among models with a penalty for the number of parameters; a model that fits only slightly better with more parameters is not better.",
+"ru": "«Estimating the Dimension of a Model» (Annals of Statistics, 1978): выбирай модель со штрафом за число параметров; модель, которая лишь чуть точнее при большем числе параметров, не лучше.",
+"de": "„Estimating the Dimension of a Model“ (Annals of Statistics, 1978): Wähle ein Modell mit Strafe für die Parameterzahl; ein Modell, das mit mehr Parametern kaum besser passt, ist nicht besser."
+},
+"rule": "A more complex model must earn its extra parameters.",
+"needs": {
+"code": "covered",
+"note": "the Leamer sensor recomputes indices under reasonable alternative choices; Schwarz adds that a choice with more parameters must earn them; bridge robust_conclusion",
+"covered_by": "leamer"
+}
+},
+{
+"id": "mccall_jj",
+"name": "John J. McCall",
+"name_ru": "Джон Дж. Маккол",
+"years": "1933–2018",
+"wiki": "https://en.wikipedia.org/wiki/John_J._McCall",
+"zone": "answer_cost",
+"idea": {
+"en": "'The Economics of Information and Optimal Stopping Rules' (Journal of Business, 1965): stop collecting when the expected gain from one more look is lower than its cost.",
+"ru": "«The Economics of Information and Optimal Stopping Rules» (Journal of Business, 1965): прекращай добор, когда ожидаемая выгода от ещё одного взгляда меньше его цены.",
+"de": "„The Economics of Information and Optimal Stopping Rules“ (Journal of Business, 1965): Höre auf zu sammeln, wenn der erwartete Gewinn eines weiteren Blicks unter seinen Kosten liegt."
+},
+"rule": "Stop adding sources when the next one would change the picture less than it costs.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: how much each further outlet headline moves the story index (radar feeds, every 30 minutes); stop point where the last few move it under a threshold; not computed yet"
+}
+},
+{
+"id": "dynkin_eb",
+"name": "Eugene Dynkin",
+"name_ru": "Евгений Дынкин",
+"years": "1924–2014",
+"wiki": "https://en.wikipedia.org/wiki/Eugene_Dynkin",
+"zone": "answer_cost",
+"idea": {
+"en": "'The optimum choice of the instant for stopping a Markov process' (Doklady Akademii Nauk SSSR, 1963): the best moment to stop is when the value of stopping now is at least the value of continuing.",
+"ru": "«Оптимальный выбор момента остановки марковского процесса» (ДАН СССР, 1963): лучший момент остановки — когда ценность остановки сейчас не меньше ценности продолжения.",
+"de": "„Die optimale Wahl des Zeitpunkts zum Stoppen eines Markov-Prozesses“ (Doklady AN SSSR, 1963): Der beste Zeitpunkt zum Stoppen ist, wenn der Wert des Stoppens jetzt mindestens so groß ist wie der des Weitermachens."
+},
+"rule": "Stop when stopping now is worth at least as much as going on.",
+"needs": {
+"code": "needs_idea",
+"note": "same measure as McCall: the point where continuing to read more headlines of a story stops being worth more than stopping; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

@@ -1941,6 +1941,21 @@ C = [
  'Альтманн, «Prolegomena to Menzerath\'s law» (1980): чем длиннее целое (предложение), тем короче его части (слова); длина единицы текста и длина её частей связаны.',
  'Altmann, „Prolegomena to Menzerath\'s law“ (1980): Je länger das Ganze (Satz), desto kürzer seine Teile (Wörter); Länge der Texteinheit und ihrer Teile hängen zusammen.',
  'A long headline with long words is a different object than a long one with short words.'),
+('schwarz_g', 'Gideon Schwarz', 'Гидеон Шварц', '1933–2007', 'https://en.wikipedia.org/wiki/Gideon_E._Schwarz', 'one_model',
+ "'Estimating the Dimension of a Model' (Annals of Statistics, 1978): choose among models with a penalty for the number of parameters; a model that fits only slightly better with more parameters is not better.",
+ '«Estimating the Dimension of a Model» (Annals of Statistics, 1978): выбирай модель со штрафом за число параметров; модель, которая лишь чуть точнее при большем числе параметров, не лучше.',
+ '„Estimating the Dimension of a Model“ (Annals of Statistics, 1978): Wähle ein Modell mit Strafe für die Parameterzahl; ein Modell, das mit mehr Parametern kaum besser passt, ist nicht besser.',
+ 'A more complex model must earn its extra parameters.'),
+('mccall_jj', 'John J. McCall', 'Джон Дж. Маккол', '1933–2018', 'https://en.wikipedia.org/wiki/John_J._McCall', 'answer_cost',
+ "'The Economics of Information and Optimal Stopping Rules' (Journal of Business, 1965): stop collecting when the expected gain from one more look is lower than its cost.",
+ '«The Economics of Information and Optimal Stopping Rules» (Journal of Business, 1965): прекращай добор, когда ожидаемая выгода от ещё одного взгляда меньше его цены.',
+ '„The Economics of Information and Optimal Stopping Rules“ (Journal of Business, 1965): Höre auf zu sammeln, wenn der erwartete Gewinn eines weiteren Blicks unter seinen Kosten liegt.',
+ 'Stop adding sources when the next one would change the picture less than it costs.'),
+('dynkin_eb', 'Eugene Dynkin', 'Евгений Дынкин', '1924–2014', 'https://en.wikipedia.org/wiki/Eugene_Dynkin', 'answer_cost',
+ "'The optimum choice of the instant for stopping a Markov process' (Doklady Akademii Nauk SSSR, 1963): the best moment to stop is when the value of stopping now is at least the value of continuing.",
+ '«Оптимальный выбор момента остановки марковского процесса» (ДАН СССР, 1963): лучший момент остановки — когда ценность остановки сейчас не меньше ценности продолжения.',
+ '„Die optimale Wahl des Zeitpunkts zum Stoppen eines Markov-Prozesses“ (Doklady AN SSSR, 1963): Der beste Zeitpunkt zum Stoppen ist, wenn der Wert des Stoppens jetzt mindestens so groß ist wie der des Weitermachens.',
+ 'Stop when stopping now is worth at least as much as going on.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2561,3 +2576,6 @@ NEEDS['schreider_ya'] = ('needs_idea', 'share of names, numbers and places in ea
 NEEDS['wadati_k'] = ('needs_idea', 'USGS depth field of the 30-day feed (already read by the Omori sensor): aftershock counts split by depth class (shallow under 70 km vs deeper); hypothesis to check on our data, not a stated result; every 30 minutes')
 NEEDS['spjotvoll_e'] = ('needs_idea', 'per radar update: how many shift checks ran at once and how many pass the 2-hour rule; the share expected from noise alone from the distribution of all p-values; from ix_hist, every 30 minutes')
 NEEDS['altmann_g'] = ('needs_idea', 'per headline: length in words and mean word length (radar feeds, every 30 minutes); slope of mean word length against headline length per outlet')
+NEEDS['schwarz_g'] = ('covered', 'the Leamer sensor recomputes indices under reasonable alternative choices; Schwarz adds that a choice with more parameters must earn them; bridge robust_conclusion', None, 'leamer')
+NEEDS['mccall_jj'] = ('needs_idea', 'per story: how much each further outlet headline moves the story index (radar feeds, every 30 minutes); stop point where the last few move it under a threshold; not computed yet')
+NEEDS['dynkin_eb'] = ('needs_idea', 'same measure as McCall: the point where continuing to read more headlines of a story stops being worth more than stopping; not computed yet')
