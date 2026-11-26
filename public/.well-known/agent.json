@@ -262,6 +262,7 @@
       "get_german_polls",
       "get_freshness",
       "check_news_url",
+      "check_place",
       "think_it_through",
       "check_claim",
       "audit_draft",

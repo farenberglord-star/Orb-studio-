@@ -481,3 +481,10 @@
 - 26.11: Тулдава (tuldava_j) принят в same_words_many_copies; партия 45 дала 0 имён.
 - 26.11: Партия 45б — rotemberg_jj, garcia_molina_h; мостики shelf_price_lags_market, own_rhythm_of_change.
 - 26.11: Партия 46 — naroll_r, degroot_mh, chernoff_h; расширены independent_voices, when_to_stop_reading. Гиршик отсеян по фильтру (военное происхождение).
+
+## 26.11.2026 — check_place v1 (карточка места из карт → проверка)
+- Идея владельца: пользователи Google Maps спрашивают агентов про места (маршрут, описание, отзывы, новости); пропускаем карточку через паспорт и кристаллы. Принцип: агент приносит поля карточки, мы проверяем независимыми правилами; Google Maps сами не читаем, не скрейпим, не храним.
+- Сделано: `src/place.js` (праздники Германии по землям по правилам, рейтинг с числом оценок и рабочей «подтяжкой» к 4,0, расхождение часов по источникам, возраст отзывов и всплеск за неделю, «типичное не живое», ссылки на DWD/паводки/дороги/парковки), REST `/api/v1/place`, MCP `check_place`, NEW_TOOLS, llms.txt, MCP_INSTRUCTIONS, agent.json, `test/place.test.mjs`.
+- Мостики (crystal_bridges.js): map_card_hours_disagree, rating_needs_its_count, review_age_and_bursts (sensor); typical_is_not_now, place_with_nearby_warnings, report_back_loop (idea).
+- Ждёт «да» владельца: страница раздела Google Maps на сайте (ru/de/en, с пометкой «не связан с Google; Google Maps — товарный знак Google LLC», без логотипов и копий отзывов; сначала сверить условия Google Maps Platform по первоисточнику) и страница для людей «Hat heute geöffnet? Feiertag Hamburg». Цены на топливо (Tankerkönig) — только после проверки лицензии.
+- Жёсткие границы: не рекомендация «идти / не идти»; аптеки, врачи, банки — только заметка и официальный источник; история перемещений человека не берётся и не хранится.
