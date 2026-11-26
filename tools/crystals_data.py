@@ -1911,6 +1911,21 @@ C = [
  '«Information Theory and an Extension of the Maximum Likelihood Principle» (1973): сравнивай модели по точности со штрафом за число параметров; лучшая подгонка к прошлому — не лучшая модель.',
  '„Information Theory and an Extension of the Maximum Likelihood Principle“ (1973): Vergleiche Modelle nach Güte mit Strafe für die Zahl der Parameter; die beste Anpassung an die Vergangenheit ist nicht das beste Modell.',
  'Prefer the simpler explanation that fits almost as well; say how many knobs the complex one needs.'),
+('hinkley_dv', 'David Hinkley', 'Дэвид Хинкли', '1944–2019', 'https://en.wikipedia.org/wiki/David_Hinkley', 'stale_data',
+ "'Inference about the change-point in a sequence of random variables' (Biometrika, 1970): estimate the point where a series' mean changed, and how sure we are of that date.",
+ '«Inference about the change-point in a sequence of random variables» (Biometrika, 1970): оценивай точку, где у ряда сменился средний уровень, и насколько мы уверены в этой дате.',
+ '„Inference about the change-point in a sequence of random variables“ (Biometrika, 1970): Schätze den Punkt, an dem sich der Mittelwert einer Reihe geändert hat, und wie sicher dieses Datum ist.',
+ 'When a series has shifted, say since when, and how wide the doubt about that moment is.'),
+('bhattacharyya_ak', 'Anil Kumar Bhattacharyya', 'Анил Кумар Бхаттачарья', '1915–1996', 'https://en.wikipedia.org/wiki/Anil_Kumar_Bhattacharyya', 'stale_data',
+ "'On a measure of divergence between two statistical populations defined by their probability distributions' (1943): the overlap of two distributions as one number from 0 to 1, with no assumption of a bell curve.",
+ '«On a measure of divergence between two statistical populations defined by their probability distributions» (1943): перекрытие двух распределений одним числом от 0 до 1, без предположения о колоколе.',
+ '„On a measure of divergence between two statistical populations defined by their probability distributions“ (1943): Die Überlappung zweier Verteilungen als eine Zahl von 0 bis 1, ohne Annahme einer Glockenkurve.',
+ 'Say how much of the recent values still look like the earlier ones, as a share, not a verdict.'),
+('schreider_ya', 'Yulii Shreider', 'Юлий Шрейдер', '1927–1998', 'https://en.wikipedia.org/wiki/Julius_Anatolyevich_Schrader', 'rumour_vs_fact',
+ "Thesaurus measure of semantic information (1965, 'On semantic aspects of information theory'): a message is information only as far as it changes what the receiver already knows.",
+ 'Тезаурусная мера семантической информации (1965, «О семантических аспектах теории информации»): сообщение — информация лишь настолько, насколько оно меняет то, что получатель уже знает.',
+ 'Thesaurus-Maß der semantischen Information (1965, „Über semantische Aspekte der Informationstheorie“): Eine Nachricht ist nur so weit Information, wie sie ändert, was der Empfänger schon weiß.',
+ 'Count what a new headline adds (names, numbers, places) that earlier headlines of the story lacked; no additions means a retelling.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2525,3 +2540,6 @@ NEEDS['weinreich_u'] = ('needs_idea', 'for a story carried in two languages (Rei
 NEEDS['jakobson_r'] = ('covered', 'the Searle sensor and the tone line separate event, claim and loaded wording; bridge message_functions', None, 'searle')
 NEEDS['voloshinov_vn'] = ('covered', 'the Searle sensor gives direct_quote_pct: share of radar headlines with the speaker\'s own words quoted; bridge named_or_anonymous', None, 'searle')
 NEEDS['akaike_h'] = ('covered', 'the Leamer sensor recomputes indices under reasonable alternative choices; a simpler choice that moves the index little is preferred; bridge robust_conclusion', None, 'leamer')
+NEEDS['hinkley_dv'] = ('needs_idea', 'the Shewhart sensor flags a lasting shift (CUSUM) but gives no date; the Hinkley estimate of the change point from ix_hist would give "since when" and a doubt range for each radar')
+NEEDS['bhattacharyya_ak'] = ('needs_idea', 'overlap (Bhattacharyya coefficient, 0–1) between a radar\'s hourly values of the last 48 h and its earlier history; from ix_hist, every 30 minutes; not computed yet (Smirnov D already does a similar job)')
+NEEDS['schreider_ya'] = ('needs_idea', 'share of names, numbers and places in each new headline of a story that no earlier headline of that story had; from the radar feeds, every 30 minutes; not computed yet')

@@ -14799,6 +14799,60 @@ export const CRYSTALS = [
 "note": "the Leamer sensor recomputes indices under reasonable alternative choices; a simpler choice that moves the index little is preferred; bridge robust_conclusion",
 "covered_by": "leamer"
 }
+},
+{
+"id": "hinkley_dv",
+"name": "David Hinkley",
+"name_ru": "Дэвид Хинкли",
+"years": "1944–2019",
+"wiki": "https://en.wikipedia.org/wiki/David_Hinkley",
+"zone": "stale_data",
+"idea": {
+"en": "'Inference about the change-point in a sequence of random variables' (Biometrika, 1970): estimate the point where a series' mean changed, and how sure we are of that date.",
+"ru": "«Inference about the change-point in a sequence of random variables» (Biometrika, 1970): оценивай точку, где у ряда сменился средний уровень, и насколько мы уверены в этой дате.",
+"de": "„Inference about the change-point in a sequence of random variables“ (Biometrika, 1970): Schätze den Punkt, an dem sich der Mittelwert einer Reihe geändert hat, und wie sicher dieses Datum ist."
+},
+"rule": "When a series has shifted, say since when, and how wide the doubt about that moment is.",
+"needs": {
+"code": "needs_idea",
+"note": "the Shewhart sensor flags a lasting shift (CUSUM) but gives no date; the Hinkley estimate of the change point from ix_hist would give \"since when\" and a doubt range for each radar"
+}
+},
+{
+"id": "bhattacharyya_ak",
+"name": "Anil Kumar Bhattacharyya",
+"name_ru": "Анил Кумар Бхаттачарья",
+"years": "1915–1996",
+"wiki": "https://en.wikipedia.org/wiki/Anil_Kumar_Bhattacharyya",
+"zone": "stale_data",
+"idea": {
+"en": "'On a measure of divergence between two statistical populations defined by their probability distributions' (1943): the overlap of two distributions as one number from 0 to 1, with no assumption of a bell curve.",
+"ru": "«On a measure of divergence between two statistical populations defined by their probability distributions» (1943): перекрытие двух распределений одним числом от 0 до 1, без предположения о колоколе.",
+"de": "„On a measure of divergence between two statistical populations defined by their probability distributions“ (1943): Die Überlappung zweier Verteilungen als eine Zahl von 0 bis 1, ohne Annahme einer Glockenkurve."
+},
+"rule": "Say how much of the recent values still look like the earlier ones, as a share, not a verdict.",
+"needs": {
+"code": "needs_idea",
+"note": "overlap (Bhattacharyya coefficient, 0–1) between a radar's hourly values of the last 48 h and its earlier history; from ix_hist, every 30 minutes; not computed yet (Smirnov D already does a similar job)"
+}
+},
+{
+"id": "schreider_ya",
+"name": "Yulii Shreider",
+"name_ru": "Юлий Шрейдер",
+"years": "1927–1998",
+"wiki": "https://en.wikipedia.org/wiki/Julius_Anatolyevich_Schrader",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Thesaurus measure of semantic information (1965, 'On semantic aspects of information theory'): a message is information only as far as it changes what the receiver already knows.",
+"ru": "Тезаурусная мера семантической информации (1965, «О семантических аспектах теории информации»): сообщение — информация лишь настолько, насколько оно меняет то, что получатель уже знает.",
+"de": "Thesaurus-Maß der semantischen Information (1965, „Über semantische Aspekte der Informationstheorie“): Eine Nachricht ist nur so weit Information, wie sie ändert, was der Empfänger schon weiß."
+},
+"rule": "Count what a new headline adds (names, numbers, places) that earlier headlines of the story lacked; no additions means a retelling.",
+"needs": {
+"code": "needs_idea",
+"note": "share of names, numbers and places in each new headline of a story that no earlier headline of that story had; from the radar feeds, every 30 minutes; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
