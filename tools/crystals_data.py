@@ -1731,6 +1731,21 @@ C = [
  '«Epidemics and Rumours» (1964, с Д. Дейли): слух перестаёт распространяться не потому, что его проверили, а потому что распространители встречают тех, кто уже знает.',
  '„Epidemics and Rumours“ (1964, mit D. J. Daley): Ein Gerücht hört auf, sich zu verbreiten, nicht weil es geprüft wurde, sondern weil seine Verbreiter auf Leute treffen, die es schon kennen.',
  'Do not read a story that stopped spreading as confirmed or refuted; it may only be saturated.'),
+('durbin_j', 'James Durbin', 'Джеймс Дурбин', '1923–2012', 'https://en.wikipedia.org/wiki/James_Durbin', 'stale_data',
+ "'Testing for Serial Correlation in Least Squares Regression' (1950, with G. S. Watson): if neighbouring residuals move together, the usual error estimate is too small.",
+ '«Testing for Serial Correlation in Least Squares Regression» (1950, с Дж. Уотсоном): если соседние остатки движутся вместе, обычная оценка ошибки занижена.',
+ '„Testing for Serial Correlation in Least Squares Regression“ (1950, mit G. S. Watson): Bewegen sich benachbarte Residuen gemeinsam, ist die übliche Fehlerschätzung zu klein.',
+ 'Before trusting a calm series, check whether its points are independent; a sticky series hides its real uncertainty.'),
+('watson_gs', 'Geoffrey S. Watson', 'Джеффри Уотсон', '1921–1998', 'https://en.wikipedia.org/wiki/Geoffrey_Watson', 'stale_data',
+ "'Testing for Serial Correlation in Least Squares Regression' (1950, with J. Durbin): the d statistic near 2 means independent errors; far below 2 means each value repeats the last.",
+ '«Testing for Serial Correlation in Least Squares Regression» (1950, с Дж. Дурбином): статистика d около 2 — ошибки независимы; намного ниже 2 — каждое значение повторяет предыдущее.',
+ '„Testing for Serial Correlation in Least Squares Regression“ (1950, mit J. Durbin): d nahe 2 heißt unabhängige Fehler; weit unter 2 wiederholt jeder Wert den vorigen.',
+ 'When a sensor keeps repeating its last value, read it as stale, not as stable.'),
+('weibull_w', 'Waloddi Weibull', 'Валодди Вейбулл', '1887–1979', 'https://en.wikipedia.org/wiki/Waloddi_Weibull', 'stale_data',
+ "'A Statistical Distribution Function of Wide Applicability' (1951): one shape parameter tells whether the chance of the next event rises, stays flat or falls with time.",
+ '«A Statistical Distribution Function of Wide Applicability» (1951): один параметр формы говорит, растёт, постоянна или падает со временем вероятность следующего события.',
+ '„A Statistical Distribution Function of Wide Applicability“ (1951): Ein Formparameter zeigt, ob die Wahrscheinlichkeit des nächsten Ereignisses mit der Zeit steigt, gleich bleibt oder fällt.',
+ 'Say whether a story is still gathering outlets or fading; a story that fades fast is old news sooner than its age suggests.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2309,3 +2324,6 @@ NEEDS['lukasiewicz_j'] = ('covered', 'the Searle sensor already gives not_yet_ha
 NEEDS['ossowska_m'] = ('covered', 'the news passport tone line already separates loaded (evaluative) wording from the event; bridge tone', None)
 NEEDS['krippendorff_k'] = ('covered', 'the Krippendorff sensor (/api/v1/krippendorff) gives the alpha of Searle speech-act labels across outlets for the same event, 48 h of radar stories', None, 'krippendorff')
 NEEDS['kendall_dg'] = ('covered', 'the Kendall sensor (/api/v1/kendall-rumour) lists live stories that stopped gaining outlets while still a statement, promise, threat or demand', None, 'kendall_rumour')
+NEEDS['durbin_j'] = ('covered', 'the Shewhart sensor gives durbin_watson per radar; below 1 the radar is sticky and its spread is underestimated; bridge sticky_series', None, 'shewhart')
+NEEDS['watson_gs'] = ('covered', 'the Shewhart sensor gives durbin_watson per radar; bridge sticky_series', None, 'shewhart')
+NEEDS['weibull_w'] = ('needs_history', 'Weibull shape of the waiting times between outlets joining a radar story (radar_life.joins, recorded since 25.11.2026); shape < 1 = the story fades fast; bridge story_spread_decay', None)

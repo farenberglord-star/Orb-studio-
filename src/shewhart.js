@@ -50,7 +50,10 @@ export function cusum(pts, now = Date.now(), k = SHEWHART_K, h = SHEWHART_H) {
     if (!alarm && (up > h || down > h)) alarm = { side: up > h ? "up" : "down", at: p.ts };
   }
   const last = rec[rec.length - 1].v, side = up > h ? "up" : down > h ? "down" : null;
-  const out = { mean_before: r1(mean), sigma: r1(sigma), now: r1(last), cusum_up: r1(up), cusum_down: r1(down), threshold: h, base_hours: base.length, recent_hours: rec.length };
+  // Дурбин — Уотсон по истории: DW ≈ 2 — соседние часы независимы; DW < 1 — ряд «липкий», и σ занижает настоящую неопределённость
+  let dn = 0, dd = 0; for (let i = 0; i < base.length; i++) { const e = base[i].v - mean; dd += e * e; if (i) { const f = e - (base[i - 1].v - mean); dn += f * f; } }
+  const dw = dd > 0 ? Math.round((dn / dd) * 100) / 100 : null;
+  const out = { mean_before: r1(mean), sigma: r1(sigma), now: r1(last), durbin_watson: dw, sticky: dw != null && dw < 1, cusum_up: r1(up), cusum_down: r1(down), threshold: h, base_hours: base.length, recent_hours: rec.length };
   if (!side) return { ...out, verdict: "in_control" };
   const since = side === "up" ? upStart : downStart, n = rec.filter((p) => p.ts >= since).length || 1;
   const s = side === "up" ? up : down; // оценка нового уровня (Пейдж/Монтгомери): μ ± σ·(k + S/n)
@@ -104,8 +107,8 @@ export function shewhartReport(rows, series, now = Date.now()) {
     drifting: Object.entries(radars).filter(([, r]) => r.small_steps_24h && r.small_steps_24h.verdict === "drift_in_small_steps").map(([id, r]) => ({ radar: id, net_24h: r.small_steps_24h.net_24h, small_steps_share_pct: r.small_steps_24h.small_steps_share_pct })),
     ratchets: Object.entries(radars).filter(([, r]) => r.ratchet_30d && (r.ratchet_30d.verdict === "rises_fast_falls_slow" || r.ratchet_30d.verdict === "stays_up")).map(([id, r]) => ({ radar: id, ...r.ratchet_30d })),
     rule: `hourly means of each radar; mean and usual spread (standard deviation of hourly means) from its history before the last ${SHEWHART_RECENT_H} h; over the last ${SHEWHART_RECENT_H} h deviations beyond ${SHEWHART_K} sigma are summed (CUSUM); shift = the sum passes ${SHEWHART_H} sigma`,
-    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length). small_steps_24h drift_in_small_steps: the day's move came in steps too small to count as a jump — read it as a drift, not as calm. ratchet_30d rises_fast_falls_slow / stays_up: after a rise this radar comes down slowly — a high level may be inertia, not fresh news.",
-    bridges: ["quiet_shift (Shewhart + Nelson)", "small_steps_large_sum (Parfit + Hurst + Thom)", "ratchet_up_slow_down (Duesenberry + Hicks + Kaldor)"],
+    how_to_use: "shift_up / shift_down: treat the radar's recent level as a new regime, not as noise — compare news against new_level_estimate, not mean_before. in_control: movements are ordinary variation; do not explain them as events. Complements radar jumps (big moves) and Nelson runs (run length). small_steps_24h drift_in_small_steps: the day's move came in steps too small to count as a jump — read it as a drift, not as calm. durbin_watson below 1 (sticky: true): neighbouring hours are not independent, so the series looks calmer than it is — treat a shift verdict as a hint and look at the headlines before calling it a regime. ratchet_30d rises_fast_falls_slow / stays_up: after a rise this radar comes down slowly — a high level may be inertia, not fresh news.",
+    bridges: ["quiet_shift (Shewhart + Nelson)", "sticky_series (Durbin + Watson + Shewhart)", "small_steps_large_sum (Parfit + Hurst + Thom)", "ratchet_up_slow_down (Duesenberry + Hicks + Kaldor)"],
     check: SHEWHART_CHECK,
     disclaimer: "Indicator, not advice. Thresholds are working assumptions, checked against the stored radar history.",
   };

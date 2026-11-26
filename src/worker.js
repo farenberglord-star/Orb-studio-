@@ -2220,14 +2220,14 @@ async function schelerNow(env) { // «Шелер»: какая доля изме
   const r = schelerReport(ev, hs, Date.now(), since); await sharedPut(env, "scheler-v1", r).catch(() => {}); return r;
 }
 async function shewhartNow(env) { // «Шухарт»: тихий устойчивый сдвиг уровня радара (накопленная сумма отклонений, CUSUM)
-  const c = await sharedGet(env, "shewhart-v2", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "shewhart-v3", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = []; try { rows = (await env.DB.prepare("SELECT ts, c, g, k, b, p, e, n, j, w FROM ix_hist WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 30 * 864e5).all()).results || []; } catch {}
-  const r = shewhartReport(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "shewhart-v2", r).catch(() => {}); return r;
+  const r = shewhartReport(rows, PARETO_SERIES); if (rows.length) await sharedPut(env, "shewhart-v3", r).catch(() => {}); return r;
 }
 async function krippendorffNow(env) { // «Криппендорф»: одинаково ли разные издания подают одно событие (альфа речевых актов)
-  const c = await sharedGet(env, "krippendorff-v1", 30 * 60e3).catch(() => null); if (c) return c;
+  const c = await sharedGet(env, "krippendorff-v2", 30 * 60e3).catch(() => null); if (c) return c;
   let rows = []; try { rows = (await env.DB.prepare("SELECT radar, source, headline, first_ts FROM radar_life WHERE first_ts > ?1 ORDER BY first_ts DESC LIMIT 900").bind(Date.now() - KRIPP_HOURS * 3600e3).all()).results || []; } catch {}
-  const r = krippendorffReport(rows); if (rows.length) await sharedPut(env, "krippendorff-v1", r).catch(() => {}); return r;
+  const r = krippendorffReport(rows); if (rows.length) await sharedPut(env, "krippendorff-v2", r).catch(() => {}); return r;
 }
 async function kendallDgNow(env) { // «Кендалл» (Д. Г.): истории, которые перестали набирать издания, оставаясь заявлением или обещанием
   const c = await sharedGet(env, "kendall-dg-v1", 30 * 60e3).catch(() => null); if (c) return c;

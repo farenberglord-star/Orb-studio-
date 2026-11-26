@@ -14129,6 +14129,62 @@ export const CRYSTALS = [
 "note": "the Kendall sensor (/api/v1/kendall-rumour) lists live stories that stopped gaining outlets while still a statement, promise, threat or demand",
 "covered_by": "kendall_rumour"
 }
+},
+{
+"id": "durbin_j",
+"name": "James Durbin",
+"name_ru": "Джеймс Дурбин",
+"years": "1923–2012",
+"wiki": "https://en.wikipedia.org/wiki/James_Durbin",
+"zone": "stale_data",
+"idea": {
+"en": "'Testing for Serial Correlation in Least Squares Regression' (1950, with G. S. Watson): if neighbouring residuals move together, the usual error estimate is too small.",
+"ru": "«Testing for Serial Correlation in Least Squares Regression» (1950, с Дж. Уотсоном): если соседние остатки движутся вместе, обычная оценка ошибки занижена.",
+"de": "„Testing for Serial Correlation in Least Squares Regression“ (1950, mit G. S. Watson): Bewegen sich benachbarte Residuen gemeinsam, ist die übliche Fehlerschätzung zu klein."
+},
+"rule": "Before trusting a calm series, check whether its points are independent; a sticky series hides its real uncertainty.",
+"needs": {
+"code": "covered",
+"note": "the Shewhart sensor gives durbin_watson per radar; below 1 the radar is sticky and its spread is underestimated; bridge sticky_series",
+"covered_by": "shewhart"
+}
+},
+{
+"id": "watson_gs",
+"name": "Geoffrey S. Watson",
+"name_ru": "Джеффри Уотсон",
+"years": "1921–1998",
+"wiki": "https://en.wikipedia.org/wiki/Geoffrey_Watson",
+"zone": "stale_data",
+"idea": {
+"en": "'Testing for Serial Correlation in Least Squares Regression' (1950, with J. Durbin): the d statistic near 2 means independent errors; far below 2 means each value repeats the last.",
+"ru": "«Testing for Serial Correlation in Least Squares Regression» (1950, с Дж. Дурбином): статистика d около 2 — ошибки независимы; намного ниже 2 — каждое значение повторяет предыдущее.",
+"de": "„Testing for Serial Correlation in Least Squares Regression“ (1950, mit J. Durbin): d nahe 2 heißt unabhängige Fehler; weit unter 2 wiederholt jeder Wert den vorigen."
+},
+"rule": "When a sensor keeps repeating its last value, read it as stale, not as stable.",
+"needs": {
+"code": "covered",
+"note": "the Shewhart sensor gives durbin_watson per radar; bridge sticky_series",
+"covered_by": "shewhart"
+}
+},
+{
+"id": "weibull_w",
+"name": "Waloddi Weibull",
+"name_ru": "Валодди Вейбулл",
+"years": "1887–1979",
+"wiki": "https://en.wikipedia.org/wiki/Waloddi_Weibull",
+"zone": "stale_data",
+"idea": {
+"en": "'A Statistical Distribution Function of Wide Applicability' (1951): one shape parameter tells whether the chance of the next event rises, stays flat or falls with time.",
+"ru": "«A Statistical Distribution Function of Wide Applicability» (1951): один параметр формы говорит, растёт, постоянна или падает со временем вероятность следующего события.",
+"de": "„A Statistical Distribution Function of Wide Applicability“ (1951): Ein Formparameter zeigt, ob die Wahrscheinlichkeit des nächsten Ereignisses mit der Zeit steigt, gleich bleibt oder fällt."
+},
+"rule": "Say whether a story is still gathering outlets or fading; a story that fades fast is old news sooner than its age suggests.",
+"needs": {
+"code": "needs_history",
+"note": "Weibull shape of the waiting times between outlets joining a radar story (radar_life.joins, recorded since 25.11.2026); shape < 1 = the story fades fast; bridge story_spread_decay"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

@@ -33,6 +33,15 @@ export function alphaNominal(units) {
 }
 
 // rows: radar_life [{ radar, source, headline, first_ts }] — разные истории; склеиваем одно событие у разных изданий
+// AC1 Гвета (2008) для номинальных меток: устойчивее альфы, когда почти все метки одной категории («событие»).
+export function gwetAC1(units, Q = 5) {
+  const us = (units || []).filter((u) => Array.isArray(u) && u.length >= 2); if (!us.length) return null;
+  let pa = 0; const tot = {}; let n = 0;
+  for (const u of us) { const m = u.length, cnt = {}; for (const v of u) { cnt[v] = (cnt[v] || 0) + 1; tot[v] = (tot[v] || 0) + 1; n++; }
+    let agree = 0; for (const k of Object.values(cnt)) agree += k * (k - 1); pa += agree / (m * (m - 1)); }
+  pa /= us.length; let pe = 0; for (const k of Object.values(tot)) { const p = k / n; pe += p * (1 - p); } pe /= Q - 1;
+  return pe >= 1 ? null : Math.round(((pa - pe) / (1 - pe)) * 100) / 100;
+}
 export function sameEventGroups(rows) {
   const items = (rows || []).filter((r) => r && r.headline && r.source).map((r) => ({ ...r, outlet: outletOf(r.source), stems: storyStems(r.headline) }));
   // «рубричные» основы (война, Украина, биткоин) весят половину: в 48-часовом потоке это слова из 2 % заголовков и чаще
@@ -50,14 +59,18 @@ export function krippendorffReport(rows, now = Date.now()) {
   const groups = sameEventGroups(rows).map((xs) => xs.map((x) => ({ ...x, act: searleHeadline(x.headline).act })));
   const a = alphaNominal(groups.map((xs) => xs.map((x) => x.act)));
   const split = groups.filter((xs) => new Set(xs.map((x) => x.act)).size > 1);
-  const verdict = groups.length < KRIPP_MIN_UNITS || !a || a.alpha == null ? "collecting" : a.alpha >= KRIPP_HIGH ? "outlets_agree" : a.alpha >= KRIPP_LOW ? "partly_agree" : "status_disputed";
+  const ac1 = gwetAC1(groups.map((xs) => xs.map((x) => x.act)));
+  // альфа падает, когда почти все метки — «событие»; если AC1 Гвета при этом высок, издания в основном согласны
+  const verdict = groups.length < KRIPP_MIN_UNITS || !a || a.alpha == null ? "collecting" : a.alpha >= KRIPP_HIGH ? "outlets_agree"
+    : ac1 != null && ac1 >= KRIPP_HIGH ? "mostly_agree_rare_splits" : a.alpha >= KRIPP_LOW ? "partly_agree" : "status_disputed";
   return {
     sensor: "krippendorff", honour: KRIPPENDORFF, generated_at: new Date(now).toISOString(), verdict,
     question: "When several outlets report the same event, do they present it the same way — as something that happened, a statement, a promise, a threat or a demand?",
-    alpha: a ? a.alpha : null, events_with_2plus_outlets: groups.length, events_presented_differently: split.length,
+    alpha: a ? a.alpha : null, gwet_ac1: ac1,
+    agreement_note: "alpha falls when almost every headline is an 'event' even if outlets agree; Gwet's AC1 (2008) stays stable then. Read both: low alpha with high AC1 = outlets mostly agree and the rare disagreements are about statements versus events.", events_with_2plus_outlets: groups.length, events_presented_differently: split.length,
     split_share_pct: groups.length ? Math.round((100 * split.length) / groups.length) : null,
     examples_split: split.slice(0, 6).map((xs) => ({ versions: xs.slice(0, 4).map((x) => ({ outlet: x.outlet, act: x.act, headline: x.headline })) })),
-    rule: `radar stories of the last ${KRIPP_HOURS} h; the same event at different outlets is matched by shared word stems with each event's first headline (no chaining; stems in 2%+ of headlines weigh half); each outlet's first headline is labelled by the Searle word rules; Krippendorff's alpha (nominal) over events with 2+ outlets. alpha >= ${KRIPP_HIGH}: outlets agree; ${KRIPP_LOW}-${KRIPP_HIGH}: partly; below ${KRIPP_LOW}: status disputed`,
+    rule: `radar stories of the last ${KRIPP_HOURS} h; the same event at different outlets is matched by shared word stems with each event's first headline (no chaining; stems in 2%+ of headlines weigh half); each outlet's first headline is labelled by the Searle word rules; Krippendorff's alpha (nominal) over events with 2+ outlets. alpha >= ${KRIPP_HIGH}: outlets agree; ${KRIPP_LOW}-${KRIPP_HIGH}: partly; below ${KRIPP_LOW}: status disputed; if Gwet's AC1 >= ${KRIPP_HIGH} while alpha is low: mostly_agree_rare_splits (one category dominates)`,
     how_to_use: "status_disputed or a split example: do not pass on one outlet's framing (for example 'X did' versus 'X threatens to') as the fact; say that outlets present it differently and which version is a statement or a plan. outlets_agree: the framing is shared — still check the source, agreement is not truth.",
     limits: "Word rules, no AI; matching by word stems can merge two stories or miss a paraphrase. Agreement between outlets is not evidence that the event happened.",
     disclaimer: "Indicator, not advice.",

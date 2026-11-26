@@ -12,6 +12,12 @@ test("krippendorff: alpha is 1 for full agreement, low when labels split", () =>
   assert.equal(alphaNominal([["event", "event"]]).reason, "one_category_only");
 });
 
+test("krippendorff: AC1 stays high when one category dominates", async () => {
+  const { gwetAC1 } = await import("../src/krippendorff.js");
+  const units = [...Array(18)].map(() => ["event", "event"]).concat([["event", "claim"], ["event", "claim"]]);
+  assert.ok(gwetAC1(units) > 0.8); assert.ok(alphaNominal(units).alpha < 0.4);
+});
+
 test("krippendorff: same event at two outlets is grouped without chaining", () => {
   const t = Date.UTC(2026, 10, 26, 8);
   const rows = [];
