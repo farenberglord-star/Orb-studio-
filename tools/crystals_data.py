@@ -1956,7 +1956,7 @@ C = [
  '«Оптимальный выбор момента остановки марковского процесса» (ДАН СССР, 1963): лучший момент остановки — когда ценность остановки сейчас не меньше ценности продолжения.',
  '„Die optimale Wahl des Zeitpunkts zum Stoppen eines Markov-Prozesses“ (Doklady AN SSSR, 1963): Der beste Zeitpunkt zum Stoppen ist, wenn der Wert des Stoppens jetzt mindestens so groß ist wie der des Weitermachens.',
  'Stop when stopping now is worth at least as much as going on.'),
-('tuldava_j', 'Juhan Tuldava', 'Юхан Тулдава', '1922–2003', 'https://et.wikipedia.org/wiki/Juhan_Tuldava', 'look_alike',
+('tuldava_j', 'Juhan Tuldava', 'Юхан Тулдава', '1922–2003', 'https://ru.wikipedia.org/wiki/Тулдава,_Юхан', 'look_alike',
  "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
  '«Quantitative Relations between the Size of Text and the Size of Vocabulary» (тартуская школа квантитативной лингвистики, 1970-е): богатство словаря зависит от длины текста, поэтому сравнивай тексты только при равной длине или через поправку на длину.',
  '„Quantitative Relations between the Size of Text and the Size of Vocabulary“ (Tartuer Schule der quantitativen Linguistik, 1970er): Der Wortschatzreichtum hängt von der Textlänge ab; vergleiche Texte nur bei gleicher Länge oder mit Längenkorrektur.',

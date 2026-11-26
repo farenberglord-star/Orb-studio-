@@ -14968,7 +14968,7 @@ export const CRYSTALS = [
 "name": "Juhan Tuldava",
 "name_ru": "Юхан Тулдава",
 "years": "1922–2003",
-"wiki": "https://et.wikipedia.org/wiki/Juhan_Tuldava",
+"wiki": "https://ru.wikipedia.org/wiki/Тулдава,_Юхан",
 "zone": "look_alike",
 "idea": {
 "en": "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
