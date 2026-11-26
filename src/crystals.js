@@ -14054,6 +14054,43 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per answer: number of sources checked and how much each further check moved the Harman confidence; when the last checks moved it by under a few points, further checking is waste; needs the confidence trace stored per answer; bridge economy_of_checking"
 }
+},
+{
+"id": "lukasiewicz_j",
+"name": "Jan Łukasiewicz",
+"name_ru": "Ян Лукасевич",
+"years": "1878–1956",
+"wiki": "https://en.wikipedia.org/wiki/Jan_%C5%81ukasiewicz",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'O logice trójwartościowej' (1920): a statement about a future contingent event is neither true nor false yet; it takes a third value, 'possible'.",
+"ru": "«O logice trójwartościowej» (1920): высказывание о будущем случайном событии пока ни истинно, ни ложно; у него третье значение — «возможно».",
+"de": "„O logice trójwartościowej“ (1920): Eine Aussage über ein künftiges, nicht notwendiges Ereignis ist noch weder wahr noch falsch; sie hat einen dritten Wert, „möglich“."
+},
+"rule": "Do not report a promise, threat or plan as true or false; mark it as not yet decided.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor already gives not_yet_happened_pct: promises, threats and demands are neither true nor false yet; bridge not_yet_true",
+"covered_by": "searle"
+}
+},
+{
+"id": "ossowska_m",
+"name": "Maria Ossowska",
+"name_ru": "Мария Оссовская",
+"years": "1896–1974",
+"wiki": "https://en.wikipedia.org/wiki/Maria_Ossowska",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Podstawy nauki o moralności' (1947): an evaluative statement expresses the speaker's attitude; a descriptive one can be checked against facts — keep them apart.",
+"ru": "«Podstawy nauki o moralności» (1947): оценочное высказывание выражает установку говорящего, описательное можно проверить фактами — не смешивай их.",
+"de": "„Podstawy nauki o moralności“ (1947): Eine wertende Aussage drückt die Haltung des Sprechers aus, eine beschreibende lässt sich an Tatsachen prüfen — halte sie auseinander."
+},
+"rule": "Separate what a headline says happened from how it judges it; pass on the fact, attribute the judgement.",
+"needs": {
+"code": "covered",
+"note": "the news passport tone line already separates loaded (evaluative) wording from the event; bridge tone"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

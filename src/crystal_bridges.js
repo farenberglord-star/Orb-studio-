@@ -53,7 +53,7 @@ export const CRYSTAL_BRIDGES = [
   B("spill_over", "Spill-over between radars", "Перенос между радарами", "side_effects", "waiting", ["leontief", "walras", "kahn_r", "quesnay"], { until: "2026-12-21" }),
   B("radar_moves_market", "A published radar moves the market", "Радар меняет рынок", "side_effects", "waiting", ["rosenthal", "keynes", "von_neumann", "wiener", "phillips_w", "campbell_dt"], { until: "2026-12-21" }),
   B("revisions", "How often numbers are revised", "Правки чисел", "stale_data", "waiting", ["rinne", "elmasri"], { until: "2026-12-21" }),
-  B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "line", ["osgood", "elias", "wallas", "lippmann", "weber_m"], { line: "news passport: own short loaded-word list (src/tone.js, field tone)" }),
+  B("tone", "Tone in three dimensions", "Тон в трёх измерениях", "rumour_vs_fact", "line", ["osgood", "elias", "wallas", "lippmann", "weber_m", "ossowska_m"], { line: "news passport: own short loaded-word list (src/tone.js, field tone)" }),
   B("namesakes", "Namesakes in the news", "Тёзки в новостях", "look_alike", "sensor", ["frege", "geach", "dirichlet", "levenshtein"], { sensor: "frege" }),
   B("tree_or_wave", "Tree or wave of copies", "Дерево или волна", "rumour_vs_fact", "sensor", ["schmidt_j", "schleicher", "tarde"], { sensor: "schmidt", number: "share of radar stories whose outlets arrived as a chain or as a wave (publication times per outlet, from the feeds, every 30 minutes)" }),
   B("log_step", "A step on a log scale is a ratio", "Шаг на логарифмической шкале — это кратность", "measurement_error", "ready", ["richter_cf", "cohen_s"], { number: "ratio of recorded amplitude between two USGS magnitudes (10 per step); added to the Stanley Cohen sensor output" }),
@@ -209,6 +209,7 @@ export const CRYSTAL_BRIDGES = [
   B("outlet_concentration", "Many headlines, few outlets", "Много заголовков — мало изданий", "one_model", "covered", ["gini_c", "theil_h", "herfindahl_oc", "bradford_sc", "pareto"], { sensor: "bradford", number: "share of 7 days of radar headlines given by the 5 and 10 largest outlets (feeds, recomputed on each Bradford report, daily)" }),
   B("pooled_or_split", "One number or several", "Одно число или несколько", "one_model", "idea", ["cochran_wg", "leamer", "campbell_dt"], { needs: "a bootstrap error for each Leamer variant of a radar index, to test whether the spread of variants is larger than their noise (Cochran Q)" }),
   B("economy_of_checking", "Enough checking", "Достаточно проверки", "answer_cost", "idea", ["kotarbinski_t", "levi_i"], { needs: "a stored trace of the Harman confidence after each checked source, to see when further checks stop moving the answer" }),
+  B("not_yet_true", "Not yet true, not yet false", "Ещё не истина и не ложь", "rumour_vs_fact", "covered", ["lukasiewicz_j", "searle", "belnap"], { sensor: "searle", number: "not_yet_happened_pct: share of current radar headlines that are promises, threats or demands (Searle sensor, over the live radar headlines, every 30 minutes)" }),
 ];
 export const BRIDGE_GROUPS = { working: ["sensor", "line", "covered"], waiting: ["waiting", "ready"], blocked: ["source", "idea"] };
 export function bridgesReport(now = Date.now()) {

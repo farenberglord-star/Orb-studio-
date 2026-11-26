@@ -16,6 +16,9 @@
 - Roman Suszko | 1919–1979 | rumour_vs_fact | «Non-Fregean Logic and Theories» (1968) | истинность высказывания и тождество описываемых ситуаций — разные вещи | en.wikipedia.org/wiki/Roman_Suszko | связь со «слухом и фактом» слабая
 - Adam Schaff | 1913–2006 | rumour_vs_fact | «Wstęp do semantyki» (1960) | — | pl.wikipedia.org/wiki/Adam_Schaff | правило — общий пересказ; речевые акты покрыты датчиком searle
 
+- Emil Post | 1897–1954 | one_model | «Introduction to a General Theory of Elementary Propositions» (1921) | полнота системы связок проверяется выразимостью всех функций | en.wikipedia.org/wiki/Emil_Leon_Post | правило не даёт агенту действия; нет числа
+- Stanisław Leśniewski | 1886–1939 | one_model | «Podstawy ogólnej teoryi mnogości. I» (1916) | мереология: логический класс и реальное целое из частей — разные вещи | en.wikipedia.org/wiki/Stanis%C5%82aw_Le%C5%9Bniewski | нет числа; связь с одной моделью слабая
+
 ## Ждут проверки даты смерти
 - Tadeusz Pszczołowski | 1922–? | answer_cost | «Zasady sprawnego działania» (1960) | праксеология: оценка действия по соотношению результата и затрат | каталог Академии военного искусства: 1922–1999; Лиана: 1922–2019 — расхождение | войдёт в economy_of_checking вместе с Котарбинским, когда дата подтвердится
 - William Kent | ?–? | stale_data | «Data and Reality» (1978) | запись и реальный объект расходятся со временем | смерть известна (сын держит права), год не найден | нет даты
