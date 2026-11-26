@@ -14652,6 +14652,42 @@ export const CRYSTALS = [
 "code": "needs_history",
 "note": "outlets that joined a story within minutes of each other: independent (different details, Flesch concreteness) or copied (same words); bridge independent_voices"
 }
+},
+{
+"id": "mosteller_f",
+"name": "Frederick Mosteller",
+"name_ru": "Фредерик Мостеллер",
+"years": "1916–2006",
+"wiki": "https://en.wikipedia.org/wiki/Frederick_Mosteller",
+"zone": "look_alike",
+"idea": {
+"en": "'Inference and Disputed Authorship: The Federalist' (1964, with D. L. Wallace): the rates of small function words ('upon', 'whilst', 'by') identify who wrote a text far better than its topic words.",
+"ru": "«Inference and Disputed Authorship: The Federalist» (1964, с Д. Л. Уоллесом): частоты мелких служебных слов («upon», «whilst», «by») определяют автора текста гораздо лучше, чем тематические слова.",
+"de": "„Inference and Disputed Authorship: The Federalist“ (1964, mit D. L. Wallace): Die Häufigkeit kleiner Funktionswörter („upon“, „whilst“, „by“) verrät den Autor eines Textes weit besser als seine Themenwörter."
+},
+"rule": "Two outlets with the same topic words may still be two writers; the same small words in the same order point to one text copied.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group (Krippendorff grouping): share of headline pairs from different outlets with the same function-word sequence (copied wording) against different wording; bridge same_words_many_copies"
+}
+},
+{
+"id": "wallace_dl",
+"name": "David L. Wallace",
+"name_ru": "Дэвид Уоллес",
+"years": "1928–2017",
+"wiki": "https://news.uchicago.edu/story/david-l-wallace-statistician-who-helped-identify-federalist-papers-authors-1928-2017",
+"zone": "look_alike",
+"idea": {
+"en": "'Inference and Disputed Authorship: The Federalist' (1964, with F. Mosteller): Bayesian odds from function-word rates settled the authorship of the disputed Federalist papers.",
+"ru": "«Inference and Disputed Authorship: The Federalist» (1964, с Ф. Мостеллером): байесовские шансы по частотам служебных слов решили спор об авторстве статей «Федералиста».",
+"de": "„Inference and Disputed Authorship: The Federalist“ (1964, mit F. Mosteller): Bayessche Chancen aus Funktionswort-Häufigkeiten klärten die Autorschaft der umstrittenen Federalist-Artikel."
+},
+"rule": "Weigh evidence of shared authorship by how unusual the shared words are, not by how many words are shared.",
+"needs": {
+"code": "needs_idea",
+"note": "same as Mosteller: function-word sequences of headlines in one event group; bridge same_words_many_copies"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

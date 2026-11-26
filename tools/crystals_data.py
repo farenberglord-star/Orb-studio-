@@ -1871,6 +1871,16 @@ C = [
  '«Are Inventions Inevitable?» (1922, с Д. С. Томас): одно и то же изобретение часто появляется независимо в нескольких местах одновременно; одновременность сама по себе не доказывает копирования.',
  '„Are Inventions Inevitable?“ (1922, mit D. S. Thomas): Dieselbe Erfindung erscheint oft unabhängig an mehreren Orten zugleich; Gleichzeitigkeit allein beweist kein Abschreiben.',
  'Outlets reporting at the same moment may be independent or copying; check whether they add different details.'),
+('mosteller_f', 'Frederick Mosteller', 'Фредерик Мостеллер', '1916–2006', 'https://en.wikipedia.org/wiki/Frederick_Mosteller', 'look_alike',
+ "'Inference and Disputed Authorship: The Federalist' (1964, with D. L. Wallace): the rates of small function words ('upon', 'whilst', 'by') identify who wrote a text far better than its topic words.",
+ '«Inference and Disputed Authorship: The Federalist» (1964, с Д. Л. Уоллесом): частоты мелких служебных слов («upon», «whilst», «by») определяют автора текста гораздо лучше, чем тематические слова.',
+ '„Inference and Disputed Authorship: The Federalist“ (1964, mit D. L. Wallace): Die Häufigkeit kleiner Funktionswörter („upon“, „whilst“, „by“) verrät den Autor eines Textes weit besser als seine Themenwörter.',
+ 'Two outlets with the same topic words may still be two writers; the same small words in the same order point to one text copied.'),
+('wallace_dl', 'David L. Wallace', 'Дэвид Уоллес', '1928–2017', 'https://news.uchicago.edu/story/david-l-wallace-statistician-who-helped-identify-federalist-papers-authors-1928-2017', 'look_alike',
+ "'Inference and Disputed Authorship: The Federalist' (1964, with F. Mosteller): Bayesian odds from function-word rates settled the authorship of the disputed Federalist papers.",
+ '«Inference and Disputed Authorship: The Federalist» (1964, с Ф. Мостеллером): байесовские шансы по частотам служебных слов решили спор об авторстве статей «Федералиста».',
+ '„Inference and Disputed Authorship: The Federalist“ (1964, mit F. Mosteller): Bayessche Chancen aus Funktionswort-Häufigkeiten klärten die Autorschaft der umstrittenen Federalist-Artikel.',
+ 'Weigh evidence of shared authorship by how unusual the shared words are, not by how many words are shared.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2477,3 +2487,5 @@ NEEDS['sichel_h'] = ('needs_idea', 'vocabulary richness of the headlines of one 
 NEEDS['shibutani_t'] = ('covered', 'the Searle sensor gives attribution: share of radar headlines resting on unnamed sources; bridge named_or_anonymous', None, 'searle')
 NEEDS['nyquist_h'] = ('covered', 'the Nyquist sensor (/api/v1/nyquist) gives each radar\'s share of half-hour records that differ; above 0.5 it is below the Nyquist rate', None, 'nyquist')
 NEEDS['ogburn_wf'] = ('needs_history', 'outlets that joined a story within minutes of each other: independent (different details, Flesch concreteness) or copied (same words); bridge independent_voices', None)
+NEEDS['mosteller_f'] = ('needs_idea', 'per same-event group (Krippendorff grouping): share of headline pairs from different outlets with the same function-word sequence (copied wording) against different wording; bridge same_words_many_copies', None)
+NEEDS['wallace_dl'] = ('needs_idea', 'same as Mosteller: function-word sequences of headlines in one event group; bridge same_words_many_copies', None)

@@ -10,7 +10,7 @@ test("every crystal: name, years, Wikipedia link, zone, ideas in three languages
   for (const c of CRYSTALS) {
     assert.ok(!ids.has(c.id), "duplicate " + c.id); ids.add(c.id);
     assert.ok(c.name && c.name_ru && /(20(2[0-6])|201[0-9]|200[0-9]|19[0-9][0-9])$/.test(c.years), c.id + " years " + c.years);
-    assert.match(c.wiki, /^https:\/\/(en|de|ru|fr|pl|it|es|zh|ar|fa|tr|no|sv|da|fi|nl|cs|hu|ja|pt)\.wikipedia\.org\/wiki\/\S+$/);
+    assert.match(c.wiki, /^https:\/\/((en|de|ru|fr|pl|it|es|zh|ar|fa|tr|no|sv|da|fi|nl|cs|hu|ja|pt)\.wikipedia\.org\/wiki\/\S+|[a-z0-9.-]+\.(edu|ac\.uk)\/\S+)$/); // без статьи в Википедии — некролог университета, чтобы учёный не потерялся
     assert.ok(CRYSTAL_ZONES.includes(c.zone), c.id);
     for (const l of ["en", "ru", "de"]) assert.ok(c.idea[l] && c.idea[l].length > 10, c.id + " " + l);
     assert.ok(c.rule.length > 15, c.id);
