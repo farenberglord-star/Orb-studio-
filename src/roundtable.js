@@ -114,7 +114,7 @@ closing: 4-5 sentences. First sum up the whole round table briefly: in one or tw
 withhold: list answers that must not air: investment advice, a price prediction stated as certain, hateful or degrading content, or obviously invented statistics. Usually this list is empty.`;
 
 // ---------- вызовы моделей ----------
-async function claudeTool(env, system, input, tool, maxTokens = 2500) {
+export async function claudeTool(env, system, input, tool, maxTokens = 2500) {
   // Модель модератора может не принимать принудительный вызов инструмента: тогда «auto» с явной просьбой,
   // а если инструмент так и не вызван — запасная модель (claude-haiku-5-5, как в подкасте) с принудительным вызовом
   const call = async (model, forced) => {
@@ -142,7 +142,7 @@ async function openaiLike(url, key, model, system, user, extra = {}) {
   if (!r.ok) throw new Error(model + " " + r.status + " " + (await r.text()).slice(0, 160));
   const j = await r.json(); return { data: parseJson(j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content), model: j.model || model };
 }
-async function askGuest(env, g, topics, lang) {
+export async function askGuest(env, g, topics, lang) {
   const user = JSON.stringify({ moderator: "Claude (Anthropic)", topics: topics.map((t) => ({ i: t.i, headline: t.headline, source: t.source, moderator_recap: t.recap, question: t.question, ...(t.passport ? { PASSPORT: t.passport } : {}) })) });
   const sys = rtGuestSystem(g, lang);
   if (g === "grok") { if (!env.XAI_API_KEY) return { status: "off" }; return openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3", sys, user); }
@@ -237,7 +237,7 @@ export function rtAssemble(topics0, intro, answers, close, models) {
 // В эфир — только если по каждой теме ответил хотя бы один гость
 export function rtPublishable(d) { return !!(d && d.topics && d.topics.length === RT_TOPICS && d.intro && d.closing && d.topics.every((t) => RT_GUESTS.some((g) => t.answers[g] && t.answers[g].status === "ok"))); }
 
-async function rtTranslate(env, d) {
+export async function rtTranslate(env, d) {
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
   const src = { intro: d.intro, closing: d.closing, topics: d.topics.map((t) => ({ i: t.i, recap: t.recap, question: t.question, thanks: t.thanks, answers: Object.fromEntries(RT_GUESTS.filter((g) => t.answers[g].status === "ok").map((g) => [g, t.answers[g].text])) })) };
   const one = async (lg) => {
@@ -335,7 +335,8 @@ async function rtVoice(env, text, who, lg) {
   await env.DB.prepare("INSERT OR IGNORE INTO rt_tts (k, day, voice, chars, audio, ts) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(key, day, voice, text.length, buf, Date.now()).run();
   return { buf, cached: false };
 }
-async function rtFind(env, deps, ep) {
+export async function rtFind(env, deps, ep) {
+  if (ep && deps.rqFind && /^rq[0-9a-f]{12}$/.test(ep)) return deps.rqFind(env, ep); // карточки «Новость на стол» (src/rt-requests.js)
   const latest = await deps.sharedGet(env, RT_KEY, 1e15);
   if (!ep || (latest && latest.episode_id === ep)) return latest;
   const arc = (await deps.sharedGet(env, RT_ARCHIVE, 1e15)) || { episodes: [] };
@@ -415,6 +416,7 @@ export async function rtAgentData(env, deps) {
 export async function rtHandle(request, env, ctx, url, deps) {
   const p = url.pathname, H = { "Access-Control-Allow-Origin": "*" };
   if (p === "/api/v1/roundtable/comments") return deps.comments(request, env, ctx, url);
+  if ((p === "/api/v1/roundtable/request" || p === "/api/v1/roundtable/requests") && deps.requests) return deps.requests(request, env, ctx, url);
   if (p === "/api/v1/roundtable/voice-status") { // для владельца: настроен ли голос и сколько символов синтеза сегодня (без ключей)
     let used = null; try { if (env.DB) { await env.DB.prepare("CREATE TABLE IF NOT EXISTS rt_tts (k TEXT PRIMARY KEY, day TEXT NOT NULL, voice TEXT, chars INTEGER NOT NULL, audio BLOB NOT NULL, ts INTEGER NOT NULL)").run(); used = ((await env.DB.prepare("SELECT COALESCE(SUM(chars),0) c FROM rt_tts WHERE day=?1").bind(new Date().toISOString().slice(0, 10)).first()) || {}).c; } } catch (e) {}
     // здоровье стола: возраст последнего выпуска, последняя ошибка сборки или гостя, решение модератора, статус каждого гостя (текст ошибок обрезан, ключей в них нет)

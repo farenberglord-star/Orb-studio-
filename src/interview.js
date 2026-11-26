@@ -30,14 +30,14 @@ export function youtubeId(u) {
 }
 const fmt = (s) => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(x).padStart(2, "0"); };
 
-async function supadata(env, path, retry = 2) {
+export async function supadata(env, path, retry = 2) {
   const r = await fetch("https://api.supadata.ai/v1/" + path, { headers: { "x-api-key": env.SUPADATA_API_KEY }, signal: AbortSignal.timeout(45000) });
   if (r.status === 429 && retry > 0) { await new Promise((ok) => setTimeout(ok, 2500)); return supadata(env, path, retry - 1); } // бесплатный тариф: ~1 запрос в секунду
   const t = await r.text(); let j = null; try { j = JSON.parse(t); } catch (e) {}
   if (!r.ok && r.status !== 202) throw new Error("Supadata " + r.status + ": " + (j && (j.message || j.error) || t).toString().slice(0, 160));
   return j;
 }
-async function transcript(env, vid) {
+export async function transcript(env, vid) {
   const url = encodeURIComponent("https://www.youtube.com/watch?v=" + vid);
   let j = await supadata(env, `transcript?url=${url}&mode=native`);
   const job = j && j.jobId;

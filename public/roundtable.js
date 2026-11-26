@@ -1,5 +1,22 @@
 export const T = {
  "en": {
+  "rqH": "Send a story to the round table",
+  "rqSub": "Paste a link to a news article or a YouTube video. Orb Studio checks it with the news passport, then Claude retells it and asks Gemini, Grok and DeepSeek. The finished episode appears in the list below and plays right after the regular round table. Up to 3 requests a day per person; no private, adult or advertising content.",
+  "rqUrl": "Link to a news article or YouTube video (https://…)",
+  "rqName": "Your name (optional)",
+  "rqGo": "Send to the table",
+  "rqQueued": "Accepted. The episode will be ready in 1–3 minutes.",
+  "rqBuilding": "Still being prepared…",
+  "rqReady": "Ready — open the episode",
+  "rqRej": "This story cannot go on air: ",
+  "rqFail": "Could not prepare this story: ",
+  "rqErr": "Could not send",
+  "rqList": "Stories sent by viewers and AI agents",
+  "rqEmpty": "No requests yet — send the first one.",
+  "rqAgent": "AI agent",
+  "rqGuest": "Viewer",
+  "rqLabel": "Special episode: a story sent to the table by a viewer or an AI agent",
+  "rqNote": "Views of AI models, not verdicts. Check the story at its original source.",
   "partner": "Orb Studio partner · referral link",
   "krH": "The studio talks through the news. Prices — on <b>Kraken</b>",
   "krSub": "Kraken crypto exchange: buy bitcoin with euro, Kraken Pro for active trading. Orb Studio's crypto radar takes its prices from the Kraken API.",
@@ -51,6 +68,23 @@ export const T = {
   "podcast": "Podcast with David and Grok →"
  },
  "ru": {
+  "rqH": "Отправьте новость на круглый стол",
+  "rqSub": "Вставьте ссылку на новость или видео с YouTube. Orb Studio проверит её по паспорту новости, затем Claude перескажет её и задаст вопрос Gemini, Grok и DeepSeek. Готовый выпуск появится в списке ниже и сразу после обычного круглого стола пойдёт в эфир. До 3 запросов в сутки на человека; без личного, взрослого и рекламного содержания.",
+  "rqUrl": "Ссылка на новость или видео YouTube (https://…)",
+  "rqName": "Ваше имя (необязательно)",
+  "rqGo": "Отправить на стол",
+  "rqQueued": "Принято. Выпуск будет готов через 1–3 минуты.",
+  "rqBuilding": "Выпуск ещё готовится…",
+  "rqReady": "Готово — открыть выпуск",
+  "rqRej": "Эту новость нельзя выпустить в эфир: ",
+  "rqFail": "Не удалось подготовить новость: ",
+  "rqErr": "Не удалось отправить",
+  "rqList": "Новости от зрителей и ИИ-агентов",
+  "rqEmpty": "Запросов пока нет — пришлите первый.",
+  "rqAgent": "ИИ-агент",
+  "rqGuest": "Зритель",
+  "rqLabel": "Спецвыпуск: новость, присланная на стол зрителем или ИИ-агентом",
+  "rqNote": "Мнения ИИ-моделей, не приговоры. Проверяйте новость по первоисточнику.",
   "partner": "Партнёр Orb Studio · реферальная ссылка",
   "krH": "Студия обсуждает новости. Курсы — на <b>Kraken</b>",
   "krSub": "Криптобиржа Kraken: покупка биткоина за евро, Kraken Pro для активной торговли. Котировки крипто-радара Orb Studio — с Kraken API.",
@@ -102,6 +136,23 @@ export const T = {
   "watch": "Watch:"
  },
  "de": {
+  "rqH": "Schickt eine Nachricht an den Runden Tisch",
+  "rqSub": "Fügt einen Link zu einer Nachricht oder einem YouTube-Video ein. Orb Studio prüft ihn mit dem Nachrichtenpass, danach fasst Claude ihn zusammen und fragt Gemini, Grok und DeepSeek. Die fertige Folge erscheint in der Liste unten und läuft direkt nach dem regulären Runden Tisch. Bis zu 3 Anfragen pro Tag und Person; keine privaten, nicht jugendfreien oder Werbeinhalte.",
+  "rqUrl": "Link zu einer Nachricht oder einem YouTube-Video (https://…)",
+  "rqName": "Euer Name (optional)",
+  "rqGo": "An den Tisch schicken",
+  "rqQueued": "Angenommen. Die Folge ist in 1–3 Minuten fertig.",
+  "rqBuilding": "Wird noch vorbereitet…",
+  "rqReady": "Fertig – Folge öffnen",
+  "rqRej": "Diese Nachricht kann nicht gesendet werden: ",
+  "rqFail": "Die Nachricht konnte nicht vorbereitet werden: ",
+  "rqErr": "Senden nicht möglich",
+  "rqList": "Nachrichten von Zuschauern und KI-Agenten",
+  "rqEmpty": "Noch keine Anfragen – schickt die erste.",
+  "rqAgent": "KI-Agent",
+  "rqGuest": "Zuschauer",
+  "rqLabel": "Sonderfolge: eine Nachricht, die ein Zuschauer oder KI-Agent an den Tisch geschickt hat",
+  "rqNote": "Ansichten von KI-Modellen, keine Urteile. Prüft die Nachricht an der Originalquelle.",
   "partner": "Partner von Orb Studio · Empfehlungslink",
   "krH": "Das Studio bespricht die Nachrichten. Die Kurse – auf <b>Kraken</b>",
   "krSub": "Kryptobörse Kraken: Bitcoin mit Euro kaufen, Kraken Pro für aktives Trading. Die Kurse des Krypto-Radars von Orb Studio kommen von der Kraken-API.",
@@ -339,7 +390,7 @@ function start() {
 
   function showBoard(h, p) { sub.hidden = true; board.hidden = false; $("board-h").textContent = h; $("board-p").textContent = p || ""; stage.dataset.speaker = ""; }
   let chunkTick = null;
-  let queue = [], pos = 0, timer = null, retry = null, soundOn = false, started = false, listenCounted = false, doneFor = null, ep = null, vfail = 0, topics = [];
+  let queue = [], pos = 0, timer = null, retry = null, soundOn = false, started = false, listenCounted = false, doneFor = null, ep = null, vfail = 0, topics = [], pinned = false;
   function renderProg(cur) {
     const ol = $("prog-list"); if (!topics.length) { $("prog").hidden = true; return; } $("prog").hidden = false; $("prog-h").textContent = t.progH;
     if (ol.childElementCount !== topics.length) { ol.textContent = ""; topics.forEach((x, k) => { const li = document.createElement("li"), b = document.createElement("b"), s = document.createElement("span"); b.textContent = t.topic + " " + (k + 1); s.textContent = x.headline; li.append(b, s); ol.append(li); }); }
@@ -369,9 +420,20 @@ function start() {
     try { const r = await fetch(url, { method: "GET", headers: { range: "bytes=0-0" } }); if (r.ok || r.status === 206) return;
       const m = { 429: t.noVoiceBudget, 503: t.noVoiceOff, 502: t.noVoice }[r.status]; if (m) { whyShown = true; $("vnote").textContent = m; } } catch {}
   }
+  function endBoard() { showBoard(t.done, t.doneSub); renderProg(-1); if (!pinned) retry = setTimeout(load, 300000); }
+  // «Новость на стол»: следующая готовая карточка зрителей, которую этот зритель ещё не видел
+  async function nextReq() {
+    let seen = []; try { seen = JSON.parse(localStorage.getItem("orbRqSeen") || "[]"); } catch {}
+    let d = null; try { d = await (await fetch(API + "/requests?next=1&lang=" + lang + "&seen=" + encodeURIComponent(seen.join(",")), { headers: { accept: "application/json" } })).json(); } catch { return false; }
+    if (!d || d.status !== "ok" || !d.queue || !d.queue.lines || !d.queue.lines.length) return false;
+    seen.push(d.episode_id); try { localStorage.setItem("orbRqSeen", JSON.stringify(seen.slice(-40))); } catch {}
+    ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);
+    { const e = $("epdate"), dt = episodeDate(d.generated_at); e.hidden = !dt; e.textContent = dt; if (dt) e.dateTime = d.generated_at; }
+    queue = [{ who: "claude", part: "special", text: t.rqLabel, label: true, audio: null }, ...playable(d.queue.lines, t)]; pos = 0; step(); return true;
+  }
   function step() {
     clearTimeout(timer); voice.onended = voice.onerror = null;
-    if (pos >= queue.length) { showBoard(t.done, t.doneSub); renderProg(-1); retry = setTimeout(load, 300000); return; }
+    if (pos >= queue.length) { if (pinned) { endBoard(); return; } nextReq().then((ok) => { if (!ok) endBoard(); }); return; } // после выпуска — карточка из очереди «Новость на стол», если она есть
     const x = queue[pos++]; show(x);
     if (x.part === "closing" && soundOn && doneFor !== ep) { doneFor = ep; hit("roundtable-done"); }
     if (soundOn && x.audio && vfail < 6) {
@@ -389,7 +451,9 @@ function start() {
   }
   async function load() {
     clearTimeout(timer); clearTimeout(retry);
-    let d = null; try { d = await (await fetch(API + "?lang=" + lang, { headers: { accept: "application/json" } })).json(); } catch { d = null; }
+    const pep = new URLSearchParams(location.search).get("ep"); pinned = /^(?:\d{8,}|rq[0-9a-f]{12})$/.test(pep || ""); // ссылка на конкретный выпуск (ссылки из X и карточки зрителей)
+    let d = null; try { d = await (await fetch(API + "?lang=" + lang + (pinned ? "&ep=" + pep : ""), { headers: { accept: "application/json" } })).json(); } catch { d = null; }
+    if (pinned && (!d || d.status !== "ok" || !d.queue)) { pinned = false; try { d = await (await fetch(API + "?lang=" + lang, { headers: { accept: "application/json" } })).json(); } catch { d = null; } }
     if (!d) { showBoard(t.noLink, t.noLinkSub); retry = setTimeout(load, 90000); return; }
     if (d.status !== "ok" || !d.queue) { showBoard(t.preparing, t.preparingSub); retry = setTimeout(load, 120000); return; }
     ep = d.episode_id; topics = d.topics || []; setShare(d); renderProg(-1);
@@ -423,6 +487,25 @@ function start() {
   $("cm-f").addEventListener("submit", async (e) => { e.preventDefault(); const msg = $("cm-msg");
     try { const r = await fetch(CM, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: $("cm-text").value, name: $("cm-name").value, lang, website: $("cm-hp").value }) });
       const j = await r.json().catch(() => ({})); if (!r.ok) { msg.textContent = t.cmErr + (j.error ? ": " + j.error : ""); return; } msg.textContent = t.cmOk; $("cm-text").value = ""; cmLoad(); } catch { msg.textContent = t.cmErr; } });
-  cmLoad(); load();
+  // «Новость на стол»: форма, статус и список готовых карточек
+  const RQ = API + "/request", rqMsg = $("rq-msg");
+  $("rq-h").textContent = t.rqH; $("rq-sub").textContent = t.rqSub; $("rq-url").placeholder = t.rqUrl; $("rq-name").placeholder = t.rqName; $("rq-go").textContent = t.rqGo; $("rq-list-h").textContent = t.rqList;
+  async function rqLoad() { try { const j = await (await fetch(API + "/requests")).json(); const ol = $("rq-list"); ol.textContent = "";
+    const list = (j && j.requests) || []; if (!list.length) { const li = document.createElement("li"); li.textContent = t.rqEmpty; ol.append(li); return; }
+    for (const r of list.slice(0, 12)) { const li = document.createElement("li"), h = document.createElement("div"), a = document.createElement("a"); if (r.by === "agent") li.className = "ag";
+      h.className = "h"; h.textContent = (r.name || (r.by === "agent" ? t.rqAgent : t.rqGuest)) + " · " + (r.source || "") + " · " + new Date(r.ready_at || r.submitted_at).toLocaleString(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      a.textContent = r.title || r.id; a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(r.id); li.append(h, a); ol.append(li); } } catch {} }
+  async function rqPoll(id, n) { await new Promise((ok) => setTimeout(ok, 10000)); let j = null; try { j = await (await fetch(RQ + "?id=" + id)).json(); } catch {}
+    if (j && j.status === "ready") { rqMsg.textContent = ""; const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(id); a.textContent = t.rqReady; rqMsg.append(a); rqLoad(); return; }
+    if (j && j.status === "rejected") { rqMsg.textContent = t.rqRej + (j.reason || ""); return; } if (j && j.status === "failed") { rqMsg.textContent = t.rqFail + (j.reason || ""); return; }
+    if (n < 24) { rqMsg.textContent = t.rqBuilding; rqPoll(id, n + 1); } }
+  $("rq-f").addEventListener("submit", async (e) => { e.preventDefault(); rqMsg.textContent = ""; $("rq-go").disabled = true;
+    try { const r = await fetch(RQ, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: $("rq-url").value, name: $("rq-name").value, lang }) });
+      const j = await r.json().catch(() => ({})); if (!r.ok) { rqMsg.textContent = t.rqErr + (j.error ? ": " + j.error : ""); return; }
+      if (j.status === "ready") { const a = document.createElement("a"); a.href = "/" + lang + "/roundtable?ep=" + encodeURIComponent(j.id); a.textContent = t.rqReady; rqMsg.append(a); return; }
+      if (j.status === "rejected") { rqMsg.textContent = t.rqRej + (j.reason || ""); return; } if (j.status === "failed") { rqMsg.textContent = t.rqFail + (j.reason || ""); return; }
+      rqMsg.textContent = t.rqQueued; $("rq-url").value = ""; rqPoll(j.id, 0);
+    } catch { rqMsg.textContent = t.rqErr; } finally { $("rq-go").disabled = false; } });
+  rqLoad(); cmLoad(); load();
 }
 if (typeof document !== "undefined") { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start(); }

@@ -286,7 +286,8 @@
       "check_headline",
       "get_ai_pulse",
       "get_promises",
-      "get_round_table"
+      "get_round_table",
+      "submit_round_table_news"
     ],
     "registry_name": "io.github.farenberglord-star/orb-studio",
     "server_card": "https://orbstudio.org/mcp/server-card",

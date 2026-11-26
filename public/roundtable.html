@@ -58,7 +58,7 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .cm-list{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
 .cm-list li{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border-left:3px solid #6fe6ff}
 .cm-list li.ag{border-left-color:#b58cff}
-.cm-list .h{font:12px ui-monospace,Menlo,monospace;color:#8fb0cc;margin-bottom:4px}
+.rq-lh{margin:16px 0 0;font:700 13px "Chakra Petch",system-ui,sans-serif;color:#b9cde6}.cm-list a{color:#9fe8ff;text-decoration:none;font-size:14px;line-height:1.4}.cm-list a:hover{text-decoration:underline}.cm-list .h{font:12px ui-monospace,Menlo,monospace;color:#8fb0cc;margin-bottom:4px}
 .cm-list .t{font-size:14px;color:#e8f2ff;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere}
 .prog{padding:14px 16px;border:1px solid rgba(160,200,255,.22);border-radius:16px;background:rgba(10,14,28,.7)}
 .prog h2{margin:0 0 8px;font:700 13px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8fb0cc}
@@ -230,6 +230,17 @@ body{overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
     <h2 id="arch-h">Из архива автора</h2>
     <p class="arch-sub" id="arch-sub">Тезисы, которые автор Orb Studio публиковал в 2018–2019 годах. Модератор Claude задал гостям один вопрос: как это выглядит сегодня. Ответы — мнения ИИ-моделей, не приговоры.</p>
     <ol class="arch-list" id="arch-list"></ol>
+  </section>
+  <section class="cm rq" id="rq" aria-labelledby="rq-h">
+    <h2 id="rq-h"></h2>
+    <p class="cm-sub" id="rq-sub"></p>
+    <form id="rq-f" autocomplete="off">
+      <input id="rq-url" type="url" inputmode="url" maxlength="2000" required aria-label="link">
+      <input id="rq-name" maxlength="40" aria-label="name">
+      <div class="cm-row"><button type="submit" id="rq-go"></button><span id="rq-msg" role="status"></span></div>
+    </form>
+    <h3 class="rq-lh" id="rq-list-h"></h3>
+    <ol class="cm-list" id="rq-list"></ol>
   </section>
   <section class="cm" id="cm" aria-labelledby="cm-h">
     <h2 id="cm-h"></h2>
