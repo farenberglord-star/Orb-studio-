@@ -39,9 +39,9 @@ export const THINK_ZONES = {
       de: "Wie sicher bin ich und warum? Sag, was du nicht weißt und wie du es herausfinden würdest. Sicherheit sollte dem entsprechen, was du wirklich geprüft hast, nicht dem Gefühl." }),
   side_effects: P("side_effects",
     [{ name: "Roger Kasperson" }, { id: "campbell_dt", name: "Donald Campbell" }],
-    { en: "What else will it change? Retelling can amplify a risk beyond its size, and a measure that becomes a target gets bent. Ask who else is affected and what changes besides the goal.",
-      ru: "Что ещё это изменит? Пересказ может раздуть риск сверх его размера, а мера, ставшая целью, искривляется. Спроси, кого ещё это затронет и что изменится помимо цели.",
-      de: "Was ändert sich sonst noch? Nacherzählen kann ein Risiko über seine Größe hinaus verstärken, und eine Messgröße, die zum Ziel wird, wird verbogen. Frag, wen es noch betrifft und was sich außer dem Ziel ändert." }),
+    { en: "What else will it change? A number you optimise for (pay, rent, tax) stops measuring what you wanted once it is the goal, and a retold risk can grow beyond its size. Ask who else is affected and what changes besides the goal.",
+      ru: "Что ещё это изменит? Число, под которое ты оптимизируешь (зарплата, аренда, налог), перестаёт мерить то, что тебе было нужно, как только становится целью, а пересказанный риск может вырасти сверх своего размера. Спроси, кого ещё это затронет и что изменится помимо цели.",
+      de: "Was ändert sich sonst noch? Eine Zahl, auf die du optimierst (Gehalt, Miete, Steuer), misst nicht mehr, was du wolltest, sobald sie das Ziel ist, und ein weitererzähltes Risiko kann über seine Größe hinauswachsen. Frag, wen es noch betrifft und was sich außer dem Ziel ändert." }),
   look_alike: P("look_alike",
     [{ id: "wadati_k", name: "Kiyoo Wadati" }, { id: "tuldava_j", name: "Juhan Tuldava" }, { id: "altmann_g", name: "Gabriel Altmann" }],
     { en: "Is it the same thing, or only similar? Compare like with like: quakes by depth, texts by length. Before you put two cases in one pile, check the one thing that could make them different kinds.",
@@ -67,7 +67,7 @@ const DEFAULT_ZONES = ["own_limits", "one_model", "stale_data"];
 const SENSITIVE = {
   money: /инвест|акци|крипт|биткоин|купить|продать|кредит|ипотек|invest|stock|crypto|bitcoin|buy|sell|loan|mortgage|aktie|kredit|kaufen|verkaufen/iu,
   health: /лечени|лекарств|диагноз|симптом|болезн|treatment|medicine|drug|diagnos|symptom|disease|behandlung|medikament|krankheit/iu,
-  politics: /страну|политическ|партия|выбор[аыов]|правительств|страны|country|political|party|election|government|vote|land |politisch|partei|wahl|regierung/iu,
+  politics: /где (?:мне )?(?:лучше )?жить|переезд|переех|эмигр|иммигр|where to live|move to|relocat|emigrat|immigrat|wo (?:soll ich )?leben|umzieh|auswander|страну|политическ|партия|выбор[аыов]|правительств|страны|country|political|party|election|government|vote|land |politisch|partei|wahl|regierung/iu,
 };
 const NOTE = {
   base: { en: "These are questions to check your own conclusion, not an answer and not a recommendation. Word rules, no AI, no web search.",
@@ -97,7 +97,10 @@ export function thinkItThrough(input, langOverride) {
   const lang = ["ru", "en", "de"].includes(langOverride) ? langOverride : detectLang(text);
   const hits = ORDER.map((z) => ({ z, n: (text.match(new RegExp(TRIG[z].source, "giu")) || []).length })).filter((h) => h.n > 0).sort((a, b) => b.n - a.n || ORDER.indexOf(a.z) - ORDER.indexOf(b.z));
   const matched = hits.length > 0;
-  const zones = (matched ? hits.map((h) => h.z) : DEFAULT_ZONES).slice(0, 3);
+  let zones = matched ? hits.map((h) => h.z) : DEFAULT_ZONES.slice();
+  // выбор из вариантов: одного вопроса про допущения мало, добавляем «чего я не знаю» и «что ещё изменится»
+  if (zones[0] === "one_model") for (const z of ["own_limits", "side_effects"]) if (!zones.includes(z)) zones.push(z);
+  zones = zones.slice(0, 3);
   const questions = zones.map((z) => ({ zone: z, question: THINK_ZONES[z].q[lang], scientists: THINK_ZONES[z].who.map((w) => w.name), cards: THINK_ZONES[z].who.filter((w) => w.id).map((w) => w.id) }));
   const notes = [NOTE.base[lang]];
   for (const k of Object.keys(SENSITIVE)) if (SENSITIVE[k].test(text)) notes.push(NOTE[k][lang]);

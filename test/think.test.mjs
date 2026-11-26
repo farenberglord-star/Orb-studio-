@@ -44,3 +44,8 @@ test("think_it_through: time words, reviews and urgency reach their zones", () =
   assert.ok(thinkItThrough("Проверь рейтинг и отзывы отеля").questions.some((q) => q.zone === "measurement_error"));
   assert.ok(thinkItThrough("Мне нужна комната через час, срочно").questions.some((q) => q.zone === "answer_cost"));
 });
+test("think_it_through: a choice between options adds 'what I don't know' and 'what else changes', and a relocation question carries the no-rating note", () => {
+  const r = thinkItThrough("Сижу, думаю и выбираю, где мне лучше жить: в Австрии или в Германии.");
+  assert.deepEqual(r.questions.map((q) => q.zone), ["one_model", "own_limits", "side_effects"]);
+  assert.ok(r.notes.some((n) => /не оценивает и не рекомендует/.test(n)));
+});
