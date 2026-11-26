@@ -256,6 +256,10 @@ function pickAns(a, g) {
 }
 // перевод годится, если он не пуст, не равен оригиналу и для русского написан кириллицей
 function okTr(v, orig, lg) { const t = cleanSpeech(v, 1000); if (!t) return ""; if (lg === "ru" && !/[а-яё]/i.test(t)) return ""; if (t === cleanSpeech(orig, 1000)) return ""; return t; }
+async function trLog(env, lang, what) { // журнал сбоев перевода: последние 20, виден в /voice-status (ключей в тексте нет)
+  try { if (!env.DB) return; await env.DB.prepare("CREATE TABLE IF NOT EXISTS rt_tr_log (ts INTEGER NOT NULL, lang TEXT, what TEXT)").run();
+    await env.DB.prepare("INSERT INTO rt_tr_log (ts, lang, what) VALUES (?1,?2,?3)").bind(Date.now(), lang, String(what).slice(0, 300)).run();
+    await env.DB.prepare("DELETE FROM rt_tr_log WHERE ts < COALESCE((SELECT ts FROM rt_tr_log ORDER BY ts DESC LIMIT 1 OFFSET 19), 0)").run(); } catch {} }
 export async function rtTranslate(env, d, only) {
   const LANGS = only && only.length ? RT_TR.filter((l) => only.includes(l)) : RT_TR;
   const NAMES = { de: "German", ru: "Russian", ro: "Romanian", tr: "Turkish" };
@@ -265,7 +269,7 @@ export async function rtTranslate(env, d, only) {
       const { data } = await openaiLike("https://api.x.ai/v1/chat/completions", env.XAI_API_KEY, env.XAI_MODEL || "grok-4.3",
         `You translate a news round table between AI models from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Translate every string, keep the meaning exactly, add nothing. Write the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI, Orb Studio and orbstudio.org exactly like this, in Latin letters, never transliterated (for example never "Клод"). Return the same JSON structure with the same keys.`,
         JSON.stringify(src), { temperature: 0.2, max_tokens: 9000 });
-      if (!data || typeof data.intro !== "string" || !Array.isArray(data.topics)) return null;
+      if (!data || typeof data.intro !== "string" || !Array.isArray(data.topics)) { await trLog(env, lg, "bad answer shape: " + (data && typeof data === "object" ? "keys " + Object.keys(data).join(",") : String(data))); return null; }
       const o = { intro: cleanSpeech(data.intro, 700), closing: cleanSpeech(data.closing, 900), topics: {} };
       for (const t of src.topics) {
         const x = data.topics.find((y) => +y.i === t.i); if (!x) return null;
@@ -280,10 +284,11 @@ export async function rtTranslate(env, d, only) {
             `Translate every value of the JSON object from English into natural spoken ${NAMES[lg]}, the way people talk on a real broadcast. Keep the meaning exactly, add nothing. Keep the names Claude, Gemini, Grok, DeepSeek, Anthropic, Google, xAI in Latin letters. Return a JSON object with exactly the same keys.`, JSON.stringify(items), { temperature: 0.2, max_tokens: 4000 });
           const left = []; for (const k of o.fb) { const [i, g] = split(k), v = okTr(pickAns(fl, k) || pickAns(fl, g) || (fl && typeof fl === "object" ? fl[k] : ""), items[k], lg); if (v) o.topics[i].answers[g] = v; else left.push(k); }
           if (left.length) o.fb = left; else delete o.fb;
-        } catch {}
+          if (left.length) await trLog(env, lg, "flat retry did not translate " + left.join(",") + (fl && typeof fl === "object" ? "; keys " + Object.keys(fl).join(",") : "; no object"));
+        } catch (e) { await trLog(env, lg, "flat retry error: " + String(e && e.message || e)); }
       }
       return o;
-    } catch { return null; }
+    } catch (e) { await trLog(env, lg, "translate error: " + String(e && e.message || e)); return null; }
   };
   const res = await Promise.all(LANGS.map(one)); const out = {};
   LANGS.forEach((lg, k) => { if (res[k]) out[lg] = res[k]; });
@@ -454,7 +459,7 @@ export async function rtHandle(request, env, ctx, url, deps) {
     const guests = {}; for (const g of RT_GUESTS) { const st = (latest && latest.topics || []).map((t) => (t.answers && t.answers[g] ? t.answers[g].status : "off")); guests[g] = { ok: st.filter((x) => x === "ok").length, error: st.filter((x) => x === "error").length, off: st.filter((x) => x === "off").length }; }
     return deps.json({ voice_configured: !!env.XAI_API_KEY, keys_set: { anthropic: !!env.ANTHROPIC_API_KEY, gemini: !!env.GEMINI_API_KEY, xai: !!env.XAI_API_KEY, deepseek: !!env.DEEPSEEK_API_KEY }, database: !!env.DB, chars_used_today: used, chars_limit_per_day: RT_TTS_DAY_CHARS, budget_reached: used != null && used >= RT_TTS_DAY_CHARS - 1400,
       latest_episode: latest ? { generated_at: latest.generated_at, age_hours: Math.round((Date.now() - Date.parse(latest.generated_at)) / 36e5 * 10) / 10 } : null, guests_in_latest: guests, models: { gemini: env.RT_GEMINI_MODEL || env.GEMINI_MODEL || "gemini-3.5-flash" },
-      last_error: lastErr || null, last_moderator_decision: dec || null }, { ...H, "Cache-Control": "no-store" });
+      last_error: lastErr || null, translation_log: env.DB ? await env.DB.prepare("SELECT ts, lang, what FROM rt_tr_log ORDER BY ts DESC LIMIT 10").all().then((r) => (r.results || []).map((x) => ({ at: new Date(x.ts).toISOString(), lang: x.lang, what: x.what }))).catch(() => []) : [], last_moderator_decision: dec || null }, { ...H, "Cache-Control": "no-store" });
   }
   if (p === "/api/v1/roundtable/audio") {
     const bad = (m, st = 404) => deps.json({ error: m }, { ...H, "Cache-Control": "no-store" }, st);

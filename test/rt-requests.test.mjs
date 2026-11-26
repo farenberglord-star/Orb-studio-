@@ -233,3 +233,13 @@ test("доводка перевода: исчерпанные попытки с�
   assert.equal(await rqRepairTranslations(env), r.body.id); d = await rqFind(env, r.body.id);
   assert.ok(!(d.translations.ru.fb || []).length); assert.match(d.translations.ru.topics[0].answers.gemini, /^Ответ /); assert.match(d.translations.ru.topics[0].headline, /^Пересказ /); assert.ok(d.translations.de.topics[0].headline); assert.ok(goodDe.length > 10);
 });
+
+test("сбой перевода пишется в журнал, /voice-status его показывает", async () => {
+  mockFetch(); const real = globalThis.fetch; const env = { DB: fakeDb(), ...KEYS };
+  const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/log" });
+  globalThis.fetch = async (url, init) => String(url).includes("x.ai/v1/chat") && /You translate|Translate every/.test(JSON.parse(init.body).messages[0].content) ? new Response("quota exceeded", { status: 429 }) : real(url, init);
+  await until(env, deps(), r.body.id); globalThis.fetch = real;
+  const { rtHandle } = await import("../src/roundtable.js");
+  const res = await rtHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/voice-status"), { json, sharedGet: async () => null });
+  assert.ok(res.body.translation_log.length > 0); assert.match(res.body.translation_log[0].what, /429/);
+});
