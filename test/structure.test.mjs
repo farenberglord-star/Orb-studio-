@@ -30,3 +30,10 @@ test("structure: soft findings are reported, not failed (they are questions for 
   assert.ok(Array.isArray(r.soft));
   if (process.env.SHOW_SOFT) console.log(r.soft);
 });
+
+import { readFileSync } from "node:fs";
+test("structure ratchet: a working bridge (sensor / line / covered) without `number` must be on the old list; new ones need a number", () => {
+  const old = new Set(readFileSync(new URL("../docs/bridges-without-number.txt", import.meta.url), "utf8").split("\n").filter(Boolean));
+  const fresh = r.no_number.filter((id) => !old.has(id));
+  assert.deepEqual(fresh, [], "add `number: \"what, from where, how often\"` to: " + fresh.join(", "));
+});

@@ -60,7 +60,7 @@ export function diagnose(now = Date.now()) {
   if (liar.length) S("working_bridge_but_all_cards_need_idea", liar.length + ": " + liar.slice(0, 6).join(", "));
   if (stale.length) S("idea_bridge_but_all_cards_covered", stale.length + ": " + stale.slice(0, 6).join(", "));
   return { cards: CRYSTALS.length, bridges: CRYSTAL_BRIDGES.length, sensors: SCIENTISTS.length, passport_lines: PASSPORT_TABLE.length, zones, bridges_per_zone: bz,
-    orphans: orphans.length, orphan_share_pct: Math.round((100 * orphans.length) / CRYSTALS.length), hard, soft };
+    no_number: noNumber, orphans: orphans.length, orphan_share_pct: Math.round((100 * orphans.length) / CRYSTALS.length), hard, soft };
 }
 
 if (process.argv[1] && process.argv[1].endsWith("self_diagnosis.mjs")) {
@@ -72,6 +72,13 @@ if (process.argv[1] && process.argv[1].endsWith("self_diagnosis.mjs")) {
     `## Жёсткие нарушения: ${r.hard.length}`, ...r.hard.map((x) => `- ${x.rule}: ${x.what}`), "",
     `## Вопросы владельцу (мягкие): ${r.soft.length}`, ...r.soft.map((x) => `- ${x.rule}: ${x.what}`), ""];
   const out = lines.join("\n");
+  if (process.argv.includes("--md")) {
+    const bs = new Map(CRYSTAL_BRIDGES.map((b) => [b.id, b]));
+    writeFileSync(new URL("../docs/bridges-without-number.txt", import.meta.url), r.no_number.join("\n") + "\n");
+    writeFileSync(new URL("../docs/bridges-without-number.md", import.meta.url), ["# Рабочие мостики без поля number (на " + new Date().toISOString().slice(0, 10) + ")", "",
+      "Правило CLAUDE.md: у мостика выше idea указывать number — что мерить, откуда, как часто. Новые такие мостики тест отклоняет; эти оставлены списком (docs/bridges-without-number.txt), по одному снимаются, когда число найдено.", "",
+      ...r.no_number.map((id) => "- **" + id + "** (" + bs.get(id).status + "): " + String((bs.get(id).line || bs.get(id).needs || "—")).slice(0, 160))].join("\n") + "\n");
+  }
   if (process.argv.includes("--md")) writeFileSync(new URL("../docs/self-diagnosis.md", import.meta.url), out);
   console.log(out);
 }

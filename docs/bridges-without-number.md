@@ -1,0 +1,56 @@
+# Рабочие мостики без поля number (на 2026-11-26)
+
+Правило CLAUDE.md: у мостика выше idea указывать number — что мерить, откуда, как часто. Новые такие мостики тест отклоняет; эти оставлены списком (docs/bridges-without-number.txt), по одному снимаются, когда число найдено.
+
+- **familiar_true** (line): —
+- **smooth_not_understanding** (line): —
+- **false_premise** (line): —
+- **quote_context** (line): —
+- **found_document** (line): —
+- **extraordinary** (line): —
+- **metaphor** (line): —
+- **who_else_pays** (line): —
+- **rumour_risk** (line): —
+- **first_source** (line): —
+- **rule_conflict** (line): —
+- **knowledge_dispersed** (line): —
+- **several_hypotheses** (line): —
+- **honest_answer_pays** (line): —
+- **witness_question** (line): —
+- **tone** (line): news passport: own short loaded-word list (src/tone.js, field tone)
+- **measure_depends_on_set** (line): /api/v1/radars: level_vs_30d — each radar level as a percentile of its own 30 days
+- **off_the_question** (line): host rule: answer the question in the first sentence; if you drift, come back or say which part you cannot answer (Grok, David, round table)
+- **many_readings** (line): —
+- **looks_vs_is** (line): —
+- **rule_without_words** (line): —
+- **hint_starts_rumour** (line): —
+- **question_innuendo** (line): —
+- **poll_is_estimate** (line): news passport: poll line — who was asked, how many, margin of error; never 'high' confidence
+- **frame_choice** (line): —
+- **impossible_at_date** (line): news passport: found-document line now catches dated artefacts and found diaries
+- **remains_vs_tradition** (line): —
+- **translation_shift** (line): news passport: translation line — quote the original, compare language versions
+- **one_story_three_languages** (line): /api/v1/reiss and get_reiss: language versions of one story compared by the passport
+- **self_declared_sound** (line): —
+- **cobra_effect** (line): host rule in GROK_SYSTEM and the round table: how could the reward or ban be gamed
+- **risk_thermostat** (covered): Searle reads announced measures as promises
+- **no_memory** (covered): extraordinary-claim and 'first by what definition?' lines
+- **run_rule** (line): run_vs_mean in /api/v1/radars
+- **tampering** (covered): radar jump counts only if held 2 hours; thresholds fixed in advance
+- **cause_classes** (covered): several working hypotheses rule
+- **loss_off_target** (covered): level_vs_30d in /api/v1/radars
+- **catch_at_source** (covered): first-source line of the news passport
+- **rare_anchor_weighs** (line): Reiss and the duo dedupe: common shared words count half
+- **evidence_chain** (line): chain block of the news passport
+- **qualifier_and_rebuttal** (covered): host rule: say what is not in the calculation
+- **tests_survived** (covered): passport voices count independent outlets
+- **conflicting_sources** (covered): Reiss names differing versions and outlets
+- **ruin_vs_share** (line): ruin block in /api/v1/crypto-passport
+- **edge_of_the_table** (covered): level_vs_30d min and max
+- **null_not_zero** (covered): consensus index: value null + no_signal when agree + conflict = 0 (69 false zeros in 30 days before the fix); Leamer drops empty specifications
+- **all_or_nothing** (covered): radar_life: one atomic INSERT per story; evidence chain names the missing link
+- **record_linkage** (covered): Frege namesakes; Reiss and duo sameStory need several shared anchors
+- **certain_answers** (covered): rule: say what is missing from the calculation
+- **earliest_found** (covered): FIRST_CLAIM: 'first by what definition?'; found-document line checks words against the date
+- **balanced_sample** (covered): Bradford core share and Lyberg coverage
+- **meaning_of_its_time** (covered): quoted and found_document lines

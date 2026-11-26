@@ -66,6 +66,7 @@ import { hamiltonReport } from "./hamilton.js";
 import { mikrinReport } from "./mikrin.js";
 import { polyakReport, polyakContributors } from "./polyak.js";
 import { askReport } from "./ask.js";
+import { toolUsageReport } from "./tool-usage.js";
 import { askTokens, askHit } from "./ask.js";
 import { newsByTopic, newsTable } from "./news.js";
 import { scientistsIndex, SCIENTISTS } from "./scientists.js";
@@ -10185,6 +10186,13 @@ async function handleRequest(request, env, ctx) {
       const live = await anomalyDetect(env).catch((e) => ({ enabled: false, error: String(e).slice(0, 120) }));
       const log = (await sharedGet(env, ANOM_KEY, 1e15).catch(() => null)) || { items: [] };
       return json({ free: true, page: "https://orbstudio.org/api/v1/anomalies", now: live, log: log.items.slice(0, 30) }, { "Cache-Control": "no-store" });
+    }
+    if (url.pathname === "/api/v1/stats/tools") { // какие MCP-инструменты агенты реально вызывают (для владельца, не инструмент агентов)
+      if (!env.DB) return json({ enabled: false });
+      await ensureTable(env);
+      const days = Math.min(30, Math.max(1, +url.searchParams.get("days") || 14)), from = new Date(Date.now() - (days - 1) * 864e5).toISOString().slice(0, 10);
+      const rows = (await env.DB.prepare("SELECT page, name, SUM(n) n FROM hits WHERE kind='agent' AND page LIKE '/mcp/%' AND day>=?1 GROUP BY page, name").bind(from).all()).results || [];
+      return json(toolUsageReport(rows, MCP_TOOLS.map((t) => t.name), days), { "Cache-Control": "public, max-age=600" });
     }
     if (url.pathname === "/api/v1/stats/studio") {
       // слушатели подкаста по дням и языкам: открыли страницу → нажали «Слушать» → дослушали свежий выпуск до конца
