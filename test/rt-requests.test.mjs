@@ -168,13 +168,12 @@ test("сборка по этапам: оборванный этап повтор
   assert.equal(rqProgress({ status: "queued", stage: 3 }), 65);
 });
 
-test("опрос статуса подталкивает брошенную сборку, но не трогает работающую (аренда этапа)", async () => {
-  mockFetch(); const env = { DB: fakeDb(), ...KEYS }; const jobs = []; const c = { waitUntil(p) { jobs.push(p); } };
+test("опрос статуса ведёт сборку сам, пока зритель ждёт; чужую работающую (аренда) не трогает", async () => {
+  mockFetch(); const env = { DB: fakeDb(), ...KEYS };
   const r = await rqSubmit(req(), env, { waitUntil() {} }, deps(), { url: "https://example.com/kick" });
-  const poll = () => rqHandle({ method: "GET", headers: { get: () => null } }, env, c, new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + r.body.id), deps({ autoStart: true }));
+  const poll = () => rqHandle({ method: "GET", headers: { get: () => null } }, env, ctx(), new URL("https://orbstudio.org/api/v1/roundtable/request?id=" + r.body.id), deps({ autoStart: true }));
   await env.DB.prepare("UPDATE rt_requests SET status='building', lease=?2 WHERE id=?1").bind(r.body.id, Date.now() + 60000).run();
-  await poll(); assert.equal(jobs.length, 0, "этап ведёт другой запрос — не мешаем");
+  const busy = (await poll()).body; assert.equal(busy.status, "building"); assert.equal(busy.stage, "passport", "этап ведёт другой запрос — не мешаем");
   await env.DB.prepare("UPDATE rt_requests SET lease=?2 WHERE id=?1").bind(r.body.id, Date.now() - 1).run();
-  await poll(); assert.equal(jobs.length, 1, "аренда истекла — подхватываем"); await Promise.all(jobs);
-  assert.equal((await poll()).body.status, "ready");
+  const done = (await poll()).body; assert.equal(done.status, "ready", "аренда истекла — опрос довёл сборку до конца"); assert.equal(done.progress, 100);
 });

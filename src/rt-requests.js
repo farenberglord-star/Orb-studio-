@@ -88,7 +88,8 @@ async function material(env, deps, row, n) {
 // Если воркер оборвал этап (зритель закрыл страницу, перезапуск), аренда истекает, и этап повторит следующий опрос статуса или cron (раз в 6 минут).
 export const RQ_STAGES = ["passport", "plan", "guests", "close", "translate"];
 export const RQ_PROGRESS = [3, 25, 35, 65, 78];   // процент, когда этап с этим номером начался
-export const RQ_LEASE_MS = 100 * 1000;            // сколько этап считается «в работе», прежде чем его можно взять заново
+export const RQ_LEASE_MS = 120 * 1000;            // сколько этап считается «в работе» (паспорт с веб-поиском идёт до ~110 с)
+export const RQ_POLL_BUDGET_MS = 45 * 1000;       // опрос статуса ведёт сборку, пока не прошло столько; новый этап после этого не начинает
 export const RQ_MAX_TRIES = 3;                    // сбоев на одну ссылку (всего) до статуса failed
 export const RQ_MAX_AGE_MS = 30 * 60e3;           // дольше полу часа сборку не тянем
 export const rqProgress = (r) => (r.status === "ready" ? 100 : RQ_PROGRESS[Math.min(Math.max(r.stage | 0, 0), RQ_PROGRESS.length - 1)]);
@@ -129,10 +130,11 @@ async function runStage(env, deps, row, work) {
 }
 
 // Берёт ссылку в работу и проходит этапы подряд, пока не готово. null — ссылку уже ведёт другой запрос; иначе ready | rejected | failed | "partial" (этап не удался, повторит опрос или cron)
-export async function rqProcess(env, deps, id) {
+export async function rqProcess(env, deps, id, opts = {}) {
   await ensure(env);
-  let last = null;
+  let last = null; const t0 = Date.now();
   for (let guard = 0; guard < 8; guard++) {
+    if (guard > 0 && opts.budgetMs && Date.now() - t0 > opts.budgetMs) return last;
     const now = Date.now();
     const claim = await env.DB.prepare("UPDATE " + TBL + " SET status='building', lease=?2 WHERE id=?1 AND (status='queued' OR (status='building' AND (lease IS NULL OR lease<?3)))").bind(id, now + RQ_LEASE_MS, now).run();
     if (!claim.meta || !claim.meta.changes) return last;
@@ -186,7 +188,7 @@ export async function rqSubmit(request, env, ctx, deps, b) {
   const agent = deps.classifyAgent ? deps.classifyAgent(request.headers.get("user-agent")) : null;
   await env.DB.prepare("INSERT INTO " + TBL + " (id, url, kind, status, ts, day, iph, lang, name, by_agent, agent) VALUES (?1,?2,?3,'queued',?4,?5,?6,?7,?8,?9,?10) ON CONFLICT(id) DO UPDATE SET status='queued', ts=?4, day=?5, iph=?6, lang=?7, name=?8, by_agent=?9, agent=?10, reason=NULL, done_ts=NULL, stage=0, tries=0, work=NULL, lease=NULL")
     .bind(id, n.url, kind, Date.now(), today, iph, lang, name, agent ? 1 : 0, agent ? String(agent).slice(0, 60) : null).run();
-  if (deps.autoStart !== false) ctx.waitUntil(rqProcess(env, deps, id).catch(() => null)); // собираем сразу; оборванный этап подхватят опрос статуса и cron
+  // Сборку ведут опросы статуса (страница зрителя или агента, пока он ждёт) и cron раз в 6 минут: фоновая работа после ответа воркера обрывается через ~30 секунд, а паспорт с поиском идёт дольше
   const ahead = await env.DB.prepare("SELECT COUNT(*) c FROM " + TBL + " WHERE status IN ('queued','building') AND ts<(SELECT ts FROM " + TBL + " WHERE id=?1)").bind(id).first();
   return { http: 202, body: { id, status: "queued", kind, ahead: (ahead && ahead.c) || 0, page, status_url: "https://orbstudio.org/api/v1/roundtable/request?id=" + id, progress: RQ_PROGRESS[0], note: "Building the episode takes 1-3 minutes. The story is checked by the news passport; the moderator and three AI guests discuss it; the card stays public at the page link." } };
 }
@@ -214,8 +216,11 @@ export async function rqHandle(request, env, ctx, url, deps) {
     if (!RQ_ID_RE.test(String(id || ""))) return deps.json({ error: "Send POST {url} to submit, or GET ?id=rq… for the status" }, H, 400);
     const r = await env.DB.prepare("SELECT * FROM " + TBL + " WHERE id=?1").bind(id).first();
     if (!r) return deps.json({ error: "no such request" }, H, 404);
-    if ((r.status === "queued" || r.status === "building") && (r.status === "queued" || !r.lease || r.lease < Date.now()) && deps.autoStart !== false) ctx.waitUntil(rqProcess(env, deps, id).catch(() => null)); // зритель ждёт — подталкиваем оборванную сборку
-    return deps.json({ ...pub(r), ...(r.reason && r.status !== "ready" ? { reason: r.reason } : {}) }, H);
+    let row = r;
+    if ((r.status === "queued" || r.status === "building") && (r.status === "queued" || !r.lease || r.lease < Date.now()) && deps.autoStart !== false) { // зритель ждёт: сборку ведёт сам этот опрос (ответ идёт, пока этап работает), оборванную подхватывает cron
+      try { await rqProcess(env, deps, id, { budgetMs: RQ_POLL_BUDGET_MS }); } catch {}
+      row = (await env.DB.prepare("SELECT * FROM " + TBL + " WHERE id=?1").bind(id).first()) || r; }
+    return deps.json({ ...pub(row), ...(row.reason && row.status !== "ready" ? { reason: row.reason } : {}) }, H);
   }
   if (p === "/api/v1/roundtable/requests") {
     if (url.searchParams.get("next") === "1") { // следующая карточка из очереди для зрителя: не старше трёх суток, ещё не показанная ему
