@@ -40,6 +40,15 @@ export function concreteness(title) {
     if (/\d/.test(c) || MONTHS.test(c) || (!de && i > 0 && /^\p{Lu}/u.test(c) && !/^\p{Lu}+$/u.test(c.slice(0, 2))) || (i > 0 && /^\p{Lu}{2,5}$/u.test(c))) k++; });
   return Math.round((100 * k) / words.length);
 }
+// Эвиденциальность (У. Чейф и Й. Николс, «Evidentiality: The Linguistic Coding of Epistemology», 1986): язык помечает, откуда
+// говорящий знает. В заголовке: безымянный источник («sources say», «laut Insidern», «по данным СМИ») против названного
+// (имя, должность или ведомство говорит). Грубые правила по словам, без ИИ.
+const ANON = /(\bsources?\s+(?:say|said|tell|told|close|familiar)|according to (?:sources|reports|media|people)|\breportedly\b|\breports? (?:say|suggest)|\bunnamed\b|\banonymous\b|\binsiders?\b|people familiar|person familiar|laut (?:Berichten|Medienberichten|Insidern|Kreisen)|aus\s+\p{L}*kreisen|\bInsider\b|по данным (?:СМИ|источник\p{L}*)|\bисточник\p{L}*|по сообщениям СМИ|как сообщают|по слухам)/iu;
+const NAMED = /(\b\p{Lu}[\p{L}'’-]+(?:\s\p{Lu}[\p{L}'’-]+){0,2}\s(?:says|said|tells|told|warns|warned|announces|announced|sagt|sagte|warnt|kündigt|заявил\p{L}*|сообщил\p{L}*|объявил\p{L}*)\b|^\p{Lu}[\p{L}'’ .-]{2,40}:\s|[Aa]ccording to (?:the )?\p{Lu}\p{L}+|[Ll]aut (?:dem |der |des )?\p{Lu}\p{L}+|[Пп]о данным \p{Lu}\p{L}+|[Пп]о словам \p{L}+)/u;
+export function attribution(title) {
+  const t = String(title || "");
+  return ANON.test(t) ? "anonymous" : NAMED.test(t) ? "named" : "none";
+}
 export function searleReport(radars, now = Date.now()) {
   const rs = (radars || []).filter((r) => r && Array.isArray(r.feed));
   if (!rs.length) return { sensor: "searle", verdict: "no_data", radars: [], generated_at: new Date(now).toISOString() };
@@ -54,6 +63,10 @@ export function searleReport(radars, now = Date.now()) {
   return {
     sensor: "searle", verdict: notYet >= 40 ? "mostly_words_not_deeds" : notYet >= 20 ? "many_words_not_deeds" : "mostly_events",
     headlines: n, shares, not_yet_happened_pct: notYet, explain: SEARLE_EXPLAIN, radars: per,
+    attribution: (() => { const c = { anonymous: 0, named: 0, none: 0 }; for (const x of all) c[attribution(x.headline)]++; const t = all.length || 1;
+      return { anonymous_pct: Math.round((100 * c.anonymous) / t), named_pct: Math.round((100 * c.named) / t), none_pct: Math.round((100 * c.none) / t),
+        anonymous_examples: all.filter((x) => attribution(x.headline) === "anonymous").slice(0, 5).map((x) => ({ headline: x.headline, source: x.source, act: x.act })),
+        note: "Evidentiality (Chafe & Nichols, 1986): who the headline says the knowledge comes from. anonymous = unnamed sources, insiders, 'reportedly'; named = a person, office or document is given; none = no attribution in the headline. Repeat an anonymous claim only as such." }; })(),
     concreteness_by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const v = all.filter((x) => x.act === k).map((x) => concreteness(x.headline)).filter((x) => x != null); return [k, v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null]; })),
     concreteness_note: "Flesch's level of abstraction (1950), roughly: share of concrete words (numbers, dates, names, places) per 100 words of the headline, averaged by speech act. A low share means a general retelling with few checkable details. German headlines: capitalised nouns are not counted, only numbers, dates and abbreviations.",
     examples: { threat: all.filter((x) => x.act === "threat").slice(0, 5), promise: all.filter((x) => x.act === "promise").slice(0, 5), demand: all.filter((x) => x.act === "demand").slice(0, 5) },

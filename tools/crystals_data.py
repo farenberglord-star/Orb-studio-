@@ -1811,6 +1811,11 @@ C = [
  '«Upper and Lower Probabilities Induced by a Multivalued Mapping» (1967): свидетельства могут поддерживать утверждение лишь в пределах между нижней и верхней вероятностью; разрыв между ними — то, чего мы не знаем.',
  '„Upper and Lower Probabilities Induced by a Multivalued Mapping“ (1967): Belege stützen eine Aussage oft nur zwischen einer unteren und einer oberen Wahrscheinlichkeit; die Lücke dazwischen ist, was wir nicht wissen.',
  'When the low and high readings fall on different sides of a label, say "not known" instead of picking one.'),
+('chafe_w', 'Wallace Chafe', 'Уоллес Чейф', '1927–2019', 'https://en.wikipedia.org/wiki/Wallace_Chafe', 'rumour_vs_fact',
+ "'Evidentiality: The Linguistic Coding of Epistemology' (1986, ed. with J. Nichols): languages mark how the speaker knows — seen, inferred or heard from others; the mark tells how much the claim is worth.",
+ '«Evidentiality: The Linguistic Coding of Epistemology» (1986, ред. с Й. Николс): языки помечают, откуда говорящий знает — видел, вывел или слышал от других; эта пометка говорит, сколько стоит утверждение.',
+ '„Evidentiality: The Linguistic Coding of Epistemology“ (1986, hg. mit J. Nichols): Sprachen markieren, woher der Sprecher etwas weiß — gesehen, erschlossen oder von anderen gehört; die Markierung sagt, was die Aussage wert ist.',
+ 'Pass on a claim from unnamed sources as hearsay, and name the source when the headline names one.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2405,3 +2410,4 @@ NEEDS['birnbaum_a'] = ('needs_idea', 'per answer: does a further retelling chang
 NEEDS['flesch_r'] = ('covered', 'the Searle sensor gives concreteness_by_act: share of numbers, dates and names per headline by speech act; bridge details_not_repeats', None, 'searle')
 NEEDS['kish_l'] = ('needs_history', 'effective number of independent outlets per radar story: outlets that joined within 30 minutes of each other count as one cluster (radar_life.joins, since 25.11.2026), n_eff = n / design effect; bridge independent_voices', None)
 NEEDS['dempster_ap'] = ('covered', 'the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known', None, 'hagenauer')
+NEEDS['chafe_w'] = ('covered', 'the Searle sensor gives attribution: shares of radar headlines with an unnamed source, a named source or none, with examples', None, 'searle')

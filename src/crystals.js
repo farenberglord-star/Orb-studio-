@@ -14428,6 +14428,25 @@ export const CRYSTALS = [
 "note": "the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known",
 "covered_by": "hagenauer"
 }
+},
+{
+"id": "chafe_w",
+"name": "Wallace Chafe",
+"name_ru": "Уоллес Чейф",
+"years": "1927–2019",
+"wiki": "https://en.wikipedia.org/wiki/Wallace_Chafe",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Evidentiality: The Linguistic Coding of Epistemology' (1986, ed. with J. Nichols): languages mark how the speaker knows — seen, inferred or heard from others; the mark tells how much the claim is worth.",
+"ru": "«Evidentiality: The Linguistic Coding of Epistemology» (1986, ред. с Й. Николс): языки помечают, откуда говорящий знает — видел, вывел или слышал от других; эта пометка говорит, сколько стоит утверждение.",
+"de": "„Evidentiality: The Linguistic Coding of Epistemology“ (1986, hg. mit J. Nichols): Sprachen markieren, woher der Sprecher etwas weiß — gesehen, erschlossen oder von anderen gehört; die Markierung sagt, was die Aussage wert ist."
+},
+"rule": "Pass on a claim from unnamed sources as hearsay, and name the source when the headline names one.",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor gives attribution: shares of radar headlines with an unnamed source, a named source or none, with examples",
+"covered_by": "searle"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
