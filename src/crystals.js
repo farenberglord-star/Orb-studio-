@@ -14466,6 +14466,44 @@ export const CRYSTALS = [
 "note": "the Searle sensor gives hedged: share of radar headlines with epistemic markers (could, may, likely, könnte, вероятно), by speech act; bridge hedged_not_stated",
 "covered_by": "searle"
 }
+},
+{
+"id": "adams_ew",
+"name": "Ernest W. Adams",
+"name_ru": "Эрнест Адамс",
+"years": "1926–2009",
+"wiki": "https://en.wikipedia.org/wiki/Ernest_W._Adams",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Logic of Conditionals' (1965): 'if A then B' is acceptable to the degree that B is probable given A; it reports a dependence, not that B happened.",
+"ru": "«The Logic of Conditionals» (1965): «если A, то B» приемлемо в той мере, в какой B вероятно при A; это сообщение о зависимости, а не о том, что B случилось.",
+"de": "„The Logic of Conditionals“ (1965): „Wenn A, dann B“ ist in dem Maß annehmbar, in dem B gegeben A wahrscheinlich ist; es meldet eine Abhängigkeit, nicht dass B geschah."
+},
+"rule": "Retell an \"if\" headline with its condition; do not drop the \"if\".",
+"needs": {
+"code": "covered",
+"note": "the Searle sensor gives conditional: share of radar headlines with if / would / wenn / falls / если / бы; bridge if_is_not_did",
+"covered_by": "searle"
+}
+},
+{
+"id": "zellner_a",
+"name": "Arnold Zellner",
+"name_ru": "Арнольд Зеллнер",
+"years": "1927–2010",
+"wiki": "https://en.wikipedia.org/wiki/Arnold_Zellner",
+"zone": "answer_cost",
+"idea": {
+"en": "'Bayesian Estimation and Prediction Using Asymmetric Loss Functions' (1986): when an error in one direction costs more than in the other, the best answer leans away from the costly side.",
+"ru": "«Bayesian Estimation and Prediction Using Asymmetric Loss Functions» (1986): если ошибка в одну сторону дороже, чем в другую, лучший ответ смещается прочь от дорогой стороны.",
+"de": "„Bayesian Estimation and Prediction Using Asymmetric Loss Functions“ (1986): Kostet ein Fehler in eine Richtung mehr als in die andere, liegt die beste Antwort weg von der teuren Seite."
+},
+"rule": "When a false alarm costs more than a missed signal, lean towards the cautious label and say why.",
+"needs": {
+"code": "covered",
+"note": "the Hagenauer sensor marks labels on_edge; with an asymmetric cost the cautious label is chosen there; bridge say_not_known",
+"covered_by": "hagenauer"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

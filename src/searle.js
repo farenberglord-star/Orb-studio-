@@ -53,6 +53,10 @@ export function attribution(title) {
 // «может», «вероятно», «could», «könnte». Заголовок с такой пометкой — предположение, а не утверждение.
 const HEDGE = /(\b(?:could|might|may|possibly|probably|likely|unlikely|perhaps|seems?|appears? to|expected to|set to|poised to|feared|suspected|alleged(?:ly)?)\b|\b(?:könnte|könnten|dürfte|dürften|möglicherweise|vermutlich|wahrscheinlich|offenbar|angeblich|soll(?:en)? (?:\p{L}+ )?(?:haben|sein))\b|(?:может|могут|возможно|вероятно|по-видимому|предположительно|якобы|не исключ\p{L}*))/iu;
 export function hedged(title) { return HEDGE.test(String(title || "")); }
+// Условное высказывание (Э. У. Адамс, «The Logic of Conditionals», 1965): «если A, то B» приемлемо в меру P(B|A) — это не сообщение
+// о том, что B случилось. Заголовок с «если / in case / falls / unless» говорит об условии, а не о событии.
+const COND = /(\b(?:if|unless|in case|in the event|should .{1,30} fail|would|wenn|falls|sofern|im Fall|würde|würden)\b|(?:\bесли\b|в случае|при условии|если только|было бы|бы\s))/iu;
+export function conditional(title) { return COND.test(String(title || "")); }
 export function searleReport(radars, now = Date.now()) {
   const rs = (radars || []).filter((r) => r && Array.isArray(r.feed));
   if (!rs.length) return { sensor: "searle", verdict: "no_data", radars: [], generated_at: new Date(now).toISOString() };
@@ -75,6 +79,9 @@ export function searleReport(radars, now = Date.now()) {
       by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const xs = all.filter((x) => x.act === k); return [k, xs.length ? Math.round((100 * xs.filter((x) => hedged(x.headline)).length) / xs.length) : null]; })),
       examples: h.slice(0, 5).map((x) => ({ headline: x.headline, source: x.source, act: x.act })),
       note: "Epistemic modality (F. R. Palmer, 'Mood and Modality', 1986): could, may, likely, könnte, вероятно mark a supposition. A hedged 'event' headline reports a possibility, not something that happened." }; })(),
+    conditional: (() => { const c = all.filter((x) => conditional(x.headline)); return { conditional_pct: all.length ? Math.round((100 * c.length) / all.length) : null,
+      examples: c.slice(0, 5).map((x) => ({ headline: x.headline, source: x.source, act: x.act })),
+      note: "Conditionals (E. W. Adams, 'The Logic of Conditionals', 1965; D. Lewis, 'Counterfactuals', 1973): 'if', 'would', 'wenn', 'falls', 'если', 'бы' state what follows under a condition — not that it happened." }; })(),
     concreteness_by_act: Object.fromEntries(["event", "claim", "promise", "threat", "demand"].map((k) => { const v = all.filter((x) => x.act === k).map((x) => concreteness(x.headline)).filter((x) => x != null); return [k, v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null]; })),
     concreteness_note: "Flesch's level of abstraction (1950), roughly: share of concrete words (numbers, dates, names, places) per 100 words of the headline, averaged by speech act. A low share means a general retelling with few checkable details. German headlines: capitalised nouns are not counted, only numbers, dates and abbreviations.",
     examples: { threat: all.filter((x) => x.act === "threat").slice(0, 5), promise: all.filter((x) => x.act === "promise").slice(0, 5), demand: all.filter((x) => x.act === "demand").slice(0, 5) },

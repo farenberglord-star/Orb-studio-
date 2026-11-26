@@ -1821,6 +1821,16 @@ C = [
  '«Mood and Modality» (1986): говорящие помечают, насколько уверены, — эпистемическая модальность («может», «должно быть», «вероятно») превращает утверждение факта в суждение о его возможности.',
  '„Mood and Modality“ (1986): Sprecher markieren, wie sicher sie sind — epistemische Modalität („kann“, „muss“, „wahrscheinlich“) macht aus einer Tatsachenaussage ein Urteil über ihre Möglichkeit.',
  'Keep the hedge when you retell: "could raise rates" is a possibility, not a decision.'),
+('adams_ew', 'Ernest W. Adams', 'Эрнест Адамс', '1926–2009', 'https://en.wikipedia.org/wiki/Ernest_W._Adams', 'rumour_vs_fact',
+ "'The Logic of Conditionals' (1965): 'if A then B' is acceptable to the degree that B is probable given A; it reports a dependence, not that B happened.",
+ '«The Logic of Conditionals» (1965): «если A, то B» приемлемо в той мере, в какой B вероятно при A; это сообщение о зависимости, а не о том, что B случилось.',
+ '„The Logic of Conditionals“ (1965): „Wenn A, dann B“ ist in dem Maß annehmbar, in dem B gegeben A wahrscheinlich ist; es meldet eine Abhängigkeit, nicht dass B geschah.',
+ 'Retell an "if" headline with its condition; do not drop the "if".'),
+('zellner_a', 'Arnold Zellner', 'Арнольд Зеллнер', '1927–2010', 'https://en.wikipedia.org/wiki/Arnold_Zellner', 'answer_cost',
+ "'Bayesian Estimation and Prediction Using Asymmetric Loss Functions' (1986): when an error in one direction costs more than in the other, the best answer leans away from the costly side.",
+ '«Bayesian Estimation and Prediction Using Asymmetric Loss Functions» (1986): если ошибка в одну сторону дороже, чем в другую, лучший ответ смещается прочь от дорогой стороны.',
+ '„Bayesian Estimation and Prediction Using Asymmetric Loss Functions“ (1986): Kostet ein Fehler in eine Richtung mehr als in die andere, liegt die beste Antwort weg von der teuren Seite.',
+ 'When a false alarm costs more than a missed signal, lean towards the cautious label and say why.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2417,3 +2427,5 @@ NEEDS['kish_l'] = ('needs_history', 'effective number of independent outlets per
 NEEDS['dempster_ap'] = ('covered', 'the Hagenauer sensor marks published labels on_edge and uses the Leamer low-high range of each index: a label inside the range of ignorance is not stated firmly; bridge say_not_known', None, 'hagenauer')
 NEEDS['chafe_w'] = ('covered', 'the Searle sensor gives attribution: shares of radar headlines with an unnamed source, a named source or none, with examples', None, 'searle')
 NEEDS['palmer_fr'] = ('covered', 'the Searle sensor gives hedged: share of radar headlines with epistemic markers (could, may, likely, könnte, вероятно), by speech act; bridge hedged_not_stated', None, 'searle')
+NEEDS['adams_ew'] = ('covered', 'the Searle sensor gives conditional: share of radar headlines with if / would / wenn / falls / если / бы; bridge if_is_not_did', None, 'searle')
+NEEDS['zellner_a'] = ('covered', 'the Hagenauer sensor marks labels on_edge; with an asymmetric cost the cautious label is chosen there; bridge say_not_known', None, 'hagenauer')
