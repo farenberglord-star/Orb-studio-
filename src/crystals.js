@@ -7190,7 +7190,7 @@ export const CRYSTALS = [
 "name": "Mark Aizerman",
 "name_ru": "Марк Айзерман",
 "years": "1913–1992",
-"wiki": "https://en.wikipedia.org/wiki/Mark_Aizerman",
+"wiki": "https://ru.wikipedia.org/wiki/%D0%90%D0%B9%D0%B7%D0%B5%D1%80%D0%BC%D0%B0%D0%BD,_%D0%9C%D0%B0%D1%80%D0%BA_%D0%90%D1%80%D0%BE%D0%BD%D0%BE%D0%B2%D0%B8%D1%87",
 "zone": "look_alike",
 "idea": {
 "en": "The method of potential functions (a forerunner of the kernel trick) and the theory of choice: similarity is something you choose to measure, and the choice shapes the result.",
@@ -14968,7 +14968,7 @@ export const CRYSTALS = [
 "name": "Juhan Tuldava",
 "name_ru": "Юхан Тулдава",
 "years": "1922–2003",
-"wiki": "https://dspace.ut.ee/bitstreams/beb261cb-b0a1-4406-9f04-a17f4e1624d5/download",
+"wiki": "https://et.wikipedia.org/wiki/Juhan_Tuldava",
 "zone": "look_alike",
 "idea": {
 "en": "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
