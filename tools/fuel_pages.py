@@ -19,7 +19,8 @@ T = {
   rules="Паспорт только фильтрует и помечает. Цены он не меняет: это данные Tankerkönig/MTS-K как есть. В списке нет отметки времени у каждой цены, поэтому проверки свежести здесь нет: мы показываем время получения списка (кэш до 6 минут).",
   src="Цены:", vis="Визитов:", share="Поделиться в X", agents="Для агентов", agents_t="То же отдаёт API: GET /api/v1/fuel-hamburg. Бесплатно, без ключа. Не финансовый и не маршрутный совет: цена на колонке может отличаться.",
   partners="Партнёры Orb Studio · реферальные ссылки", kr="Kraken — криптобиржа ↗", sl="Starlink — интернет везде ↗", unit="€/л", loc="ru-RU",
-  more="Ещё", m1="Условия на маршруте", m1u="/tools/route-weather", m2="Все инструменты"),
+  more="Ещё", m1="Условия на маршруте", m1u="/tools/route-weather", m2="Все инструменты",
+  h1a="Проверено {n} станций.", h1b="Показываем {m}.", sub="Остальные не годятся для сравнения. Ниже, почему.", lg_ok="показано", lg_cl="закрыто", lg_odd="необычная цена", w_ok="В списке", p_ok="Открыты и дают нормальную цену. Из них мы берём самые дешёвые.", w_closed="Закрыты сейчас", p_closed="В базе осталась их последняя цена, но заправиться там нельзя. Поэтому их нет в списке.", w_no_price="Нет цены на этот вид топлива", p_no_price="Станция открыта, но цену на это топливо не передала.", w_out_of_range="Невозможная цена", p_out_of_range="Цена вне разумных пределов, похоже на ошибку ввода.", w_outlier="Цена сильно отличается от района", p_outlier="Дороже или дешевле обычной больше чем на 12 % (сейчас это выше {hi} € или ниже {lo} €). Часто это заправки на автобане: там топливо дороже всего. Такие цены мы не прячем и не правим, просто не ставим в «самые дешёвые».", note="Цены сайт не меняет. Он только решает, какие станции показывать в списке.", sum="Показать, кто именно отсеян", foot="Данные получены {t} · обновляются не чаще раза в 5 минут"),
  "de": dict(path="/de/tools/fuel", pre="/de", file="de/tools/fuel.html", lang="de",
   title="Wo tanke ich gerade am günstigsten in Hamburg und Umland? · Spritpreise · Orb Studio",
   desc="Diesel, E5 und E10 an Tankstellen in Hamburg, Harburg, Buxtehude und im Umland: niedrigste Preise, Median und Datenpass — was aussortiert wurde und warum. Daten von Tankerkönig.de, CC BY 4.0.",
@@ -32,7 +33,8 @@ T = {
   rules="Der Pass filtert und markiert nur. Preise werden nie verändert: Es sind Tankerkönig/MTS-K-Daten, wie sie sind. Die Liste enthält keinen Zeitstempel je Preis, deshalb gibt es hier keine Frische-Prüfung: Gezeigt wird der Abrufzeitpunkt (Cache bis zu 6 Minuten).",
   src="Preise:", vis="Besuche:", share="Auf X teilen", agents="Für Agenten", agents_t="Dasselbe liefert die API: GET /api/v1/fuel-hamburg. Kostenlos, ohne Schlüssel. Keine Finanz- oder Routenberatung: Der Preis an der Säule kann abweichen.",
   partners="Orb-Studio-Partner · Empfehlungslinks", kr="Kraken — Krypto-Börse ↗", sl="Starlink — Internet überall ↗", unit="€/l", loc="de-DE",
-  more="Mehr", m1="Bedingungen auf der Route", m1u="/de/tools/route-weather", m2="Alle Werkzeuge"),
+  more="Mehr", m1="Bedingungen auf der Route", m1u="/de/tools/route-weather", m2="Alle Werkzeuge",
+  h1a="{n} Tankstellen geprüft.", h1b="Gezeigt werden {m}.", sub="Die übrigen taugen nicht für den Vergleich. Unten steht, warum.", lg_ok="gezeigt", lg_cl="geschlossen", lg_odd="auffälliger Preis", w_ok="In der Liste", p_ok="Geöffnet und mit normalem Preis. Daraus nehmen wir die günstigsten.", w_closed="Gerade geschlossen", p_closed="In der Datenbank steht noch ihr letzter Preis, aber tanken kann man dort nicht. Deshalb fehlen sie in der Liste.", w_no_price="Kein Preis für diese Sorte", p_no_price="Die Station ist offen, hat aber für diese Sorte keinen Preis gemeldet.", w_out_of_range="Unmöglicher Preis", p_out_of_range="Preis außerhalb jeder Vernunft, wohl ein Eingabefehler.", w_outlier="Preis weicht stark vom Umfeld ab", p_outlier="Mehr als 12 % teurer oder billiger als üblich (jetzt über {hi} € oder unter {lo} €). Oft sind das Tankstellen an der Autobahn: Dort ist Sprit am teuersten. Solche Preise verstecken und ändern wir nicht, sie kommen nur nicht in die „günstigsten“.", note="Die Seite ändert keine Preise. Sie entscheidet nur, welche Stationen in der Liste gezeigt werden.", sum="Zeigen, wer genau aussortiert wurde", foot="Daten abgerufen {t} · Aktualisierung höchstens alle 5 Minuten"),
  "en": dict(path="/en/tools/fuel", pre="/en", file="en/tools/fuel.html", lang="en",
   title="Where is fuel cheapest right now in Hamburg and the suburbs? · Fuel prices · Orb Studio",
   desc="Diesel, E5 and E10 at petrol stations in Hamburg, Harburg, Buxtehude and the suburbs: lowest prices, median and a data passport — what was filtered out and why. Data from Tankerkönig.de, CC BY 4.0.",
@@ -45,7 +47,8 @@ T = {
   rules="The passport only filters and flags. It never changes a price: this is Tankerkönig/MTS-K data as reported. The list carries no timestamp per price, so there is no freshness check here: we show the time the list was fetched (cache up to 6 minutes).",
   src="Prices:", vis="Visits:", share="Share on X", agents="For agents", agents_t="The same data via API: GET /api/v1/fuel-hamburg. Free, no key. Not financial or route advice: the price at the pump may differ.",
   partners="Orb Studio partners · referral links", kr="Kraken — crypto exchange ↗", sl="Starlink — internet anywhere ↗", unit="€/l", loc="en-GB",
-  more="More", m1="Route conditions", m1u="/en/tools/route-weather", m2="All tools"),
+  more="More", m1="Route conditions", m1u="/en/tools/route-weather", m2="All tools",
+  h1a="{n} stations checked.", h1b="Showing {m}.", sub="The rest are not fit for comparison. Here is why.", lg_ok="shown", lg_cl="closed", lg_odd="unusual price", w_ok="In the list", p_ok="Open and with a normal price. We take the cheapest from these.", w_closed="Closed right now", p_closed="Their last price is still in the database, but you cannot fill up there. So they are not in the list.", w_no_price="No price for this fuel", p_no_price="The station is open but did not report a price for this fuel.", w_out_of_range="Impossible price", p_out_of_range="A price outside any sensible range, most likely a typing error.", w_outlier="Price far from the area norm", p_outlier="More than 12% above or below the usual price (right now above {hi} € or below {lo} €). Often these are motorway stations, where fuel is the most expensive. We do not hide or edit such prices; they just do not enter the “cheapest” list.", note="The site never changes prices. It only decides which stations to show in the list.", sum="Show who exactly was filtered out", foot="Data fetched {t} · refreshed at most every 5 minutes"),
 }
 
 CSS = """<style>
@@ -74,6 +77,16 @@ CSS = """<style>
 .fx-ban{display:flex;gap:8px;margin:10px 0}
 .fx-ban a{flex:1;text-align:center;padding:9px 8px;font-size:12px;text-decoration:none;color:#cfd6ff;border:1px solid #1b2145;background:#0b0e1c;letter-spacing:.04em}
 .fx-ban a:first-of-type{border-color:rgba(185,174,255,.5)}
+.fx-hd{font:700 clamp(19px,5.4vw,25px)/1.25 'Chakra Petch',system-ui,sans-serif;color:#fff}.fx-hd b{color:var(--gr);text-shadow:0 0 12px rgba(57,255,136,.55)}
+.fx-sub{color:#9aa4d4;font-size:12.5px;margin:6px 0 0}
+.fx-bar{display:flex;height:18px;margin:16px 0 6px;border:1px solid #1b2145;background:#06081a}.fx-bar i{display:block;height:100%;min-width:2px}
+.fx-b1{background:linear-gradient(90deg,#1fbf63,var(--gr));box-shadow:0 0 14px rgba(57,255,136,.4)}.fx-b2{background:repeating-linear-gradient(45deg,#3a4170 0 4px,#2a3058 4px 8px)}.fx-b3{background:var(--am);box-shadow:0 0 10px rgba(255,184,0,.6)}
+.fx-leg{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;color:#6f78a8;flex-wrap:wrap}
+.fx-row{display:grid;grid-template-columns:48px 1fr;gap:10px;padding:11px 0;border-top:1px dashed #1b2145;align-items:start}
+.fx-n{font:700 20px 'Chakra Petch',system-ui,sans-serif;text-align:center;color:#8b95cf}.fx-row.g .fx-n{color:var(--gr)}.fx-row.a .fx-n{color:var(--am)}
+.fx-row h3{font:700 13.5px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.04em;color:#fff;margin:0}.fx-row p{font-size:12.5px;color:#9aa4d4;margin:2px 0 0}
+.fx-note{margin-top:12px;padding:10px 12px;border-left:3px solid var(--cy);background:rgba(0,240,255,.05);font-size:12.5px}
+.fx-det{margin-top:12px;border:1px solid #1b2145;padding:10px 12px}.fx-det summary{cursor:pointer;color:var(--cy);font-size:12.5px}.fx-det ul{margin:10px 0 0}
 .fx-st{min-height:1.4em;color:var(--am);font-size:12.5px}
 .fx-foot{margin-top:16px;font-size:11.5px;color:#8a92b8;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
 .fx-share{border:1px solid var(--cy);color:var(--cy);padding:6px 12px;text-decoration:none;font-size:12px}
@@ -87,7 +100,7 @@ def build(code):
     root = "https://orbstudio.org"
     E = lambda x: html.escape(x, quote=True)
     ld = json.dumps({"@context": "https://schema.org", "@type": "WebPage", "name": t["title"], "url": root + t["path"], "inLanguage": t["lang"], "description": t["desc"]}, ensure_ascii=False)
-    js_t = json.dumps({k: t[k] for k in ("loading", "err", "notconf", "fetched", "stale", "best", "r_closed", "r_no_price", "r_out_of_range", "r_outlier", "none", "unit", "loc", "lowest", "median", "passed")}, ensure_ascii=False)
+    js_t = json.dumps({k: t[k] for k in ("loading", "err", "notconf", "fetched", "stale", "best", "r_closed", "r_no_price", "r_out_of_range", "r_outlier", "none", "unit", "loc", "lowest", "median", "passed", "h1a", "h1b", "lg_ok", "lg_cl", "lg_odd", "w_ok", "p_ok", "w_closed", "p_closed", "w_no_price", "p_no_price", "w_out_of_range", "p_out_of_range", "w_outlier", "p_outlier")}, ensure_ascii=False)
     share = "https://x.com/intent/post?text=" + "Hamburg fuel prices, filtered by a data passport (closed stations, empty and impossible prices dropped, nothing altered) - ORB Fuel Radar. Data: Tankerkoenig.de CC BY 4.0".replace(" ", "%20") + "&url=" + root + "/en/tools/fuel"
     out = f"""<!doctype html>
 <html lang="{t['lang']}">
@@ -121,7 +134,11 @@ def build(code):
 <div class="fx-st" id="st" role="status">{E(t['loading'])}</div>
 <div class="fx-stat"><div><small>{E(t['lowest'])}</small><strong id="smin">–</strong></div><div><small>{E(t['median'])}</small><strong id="smed">–</strong></div><div><small>{E(t['passed'])}</small><strong id="sok">–</strong></div></div>
 <div id="list"></div>
-<section class="fx-pass"><h2>{E(t['ph'])}</h2><ul id="plog"></ul><p class="fx-rules">{E(t['rules'])}</p></section>
+<section class="fx-pass"><h2>{E(t['ph'])}</h2><div class="fx-hd" id="hd"></div><p class="fx-sub">{E(t['sub'])}</p>
+<div class="fx-bar" id="bar"></div><div class="fx-leg" id="leg"></div><div id="rows"></div>
+<div class="fx-note">{E(t['note'])}</div>
+<details class="fx-det"><summary>{E(t['sum'])}</summary><ul id="plog"></ul></details>
+<p class="fx-rules">{E(t['rules'])}</p></section>
 <section class="fx-pass" style="border-color:#1b2145;background:none"><h2 style="color:var(--holo)">{E(t['agents'])}</h2><p class="fx-rules" style="margin:0">{E(t['agents_t'])}</p></section>
 <div class="fx-foot"><span>{E(t['src'])} <a href="https://www.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig.de</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · <span id="when"></span></span><span>{E(t['vis'])} <b id="vc">—</b></span><a class="fx-share" href="{share}" target="_blank" rel="noopener">{E(t['share'])}</a></div>
 <div class="fx-ban" style="margin-top:14px"><a href="{t['m1u']}">{E(t['m1'])}</a><a href="{t['pre']}/tools">{E(t['m2'])}</a></div>
@@ -139,10 +156,20 @@ function render(){{
     var c=el('div','fx-card'+(i?'':' best')),r=el('div','fx-rank',String(i+1)),m=el('div'),n=el('div','fx-nm',s.name+' ');
     n.appendChild(el('i',null,'· '+s.street+(s.street&&s.place?', ':'')+s.place));if(!i)n.appendChild(el('span','fx-tag',T.best));
     m.appendChild(n);c.appendChild(r);c.appendChild(m);c.appendChild(el('div','fx-pr',fmt(s.price)));list.appendChild(c)}});
-  var log=$('plog');log.textContent='';var any=false;
-  ['closed','no_price','out_of_range','outlier'].forEach(function(k){{var n=f.rejected[k];if(!n)return;any=true;var li=el('li');li.appendChild(el('em',null,'✕ '));li.appendChild(document.createTextNode(n+' × '));li.appendChild(el('u',null,T['r_'+k]));log.appendChild(li)}});
+  var rj=f.rejected,cl=rj.closed||0,odd=(rj.no_price||0)+(rj.out_of_range||0)+(rj.outlier||0),hd=$('hd');hd.textContent='';
+  [[T.h1a,f.stations_total],[T.h1b,f.stations_passed]].forEach(function(p,i){{var parts=p[0].split('{{'+(i?'m':'n')+'}}');hd.appendChild(document.createTextNode(parts[0]));hd.appendChild(el('b',null,String(p[1])));hd.appendChild(document.createTextNode(parts[1]||''));if(!i)hd.appendChild(document.createElement('br'))}});
+  var bar=$('bar');bar.textContent='';[['fx-b1',f.stations_passed],['fx-b2',cl],['fx-b3',odd]].forEach(function(x){{if(x[1]>0){{var i=el('i',x[0]);i.style.flexGrow=String(x[1]);i.style.flexBasis='0';bar.appendChild(i)}}}});
+  var lg=$('leg');lg.textContent='';[T.lg_ok+' '+f.stations_passed,T.lg_cl+' '+cl,T.lg_odd+' '+odd].forEach(function(x){{lg.appendChild(el('span',null,x))}});
+  var rows=$('rows');rows.textContent='';
+  function row(cls,n,h,p){{var r=el('div','fx-row '+cls);r.appendChild(el('div','fx-n',String(n)));var d=el('div');d.appendChild(el('h3',null,h));d.appendChild(el('p',null,p));r.appendChild(d);rows.appendChild(r)}}
+  var bd=f.outlier_bounds||{{}};
+  row('g',f.stations_passed,T.w_ok,T.p_ok);
+  if(cl)row('',cl,T.w_closed,T.p_closed);
+  if(rj.no_price)row('a',rj.no_price,T.w_no_price,T.p_no_price);
+  if(rj.out_of_range)row('a',rj.out_of_range,T.w_out_of_range,T.p_out_of_range);
+  if(rj.outlier)row('a',rj.outlier,T.w_outlier,T.p_outlier.replace('{{hi}}',bd.high!=null?bd.high.toLocaleString(T.loc,{{minimumFractionDigits:2,maximumFractionDigits:2}}):'').replace('{{lo}}',bd.low!=null?bd.low.toLocaleString(T.loc,{{minimumFractionDigits:2,maximumFractionDigits:2}}):''));
+  var log=$('plog');log.textContent='';
   f.rejected_examples.forEach(function(e){{var li=el('li');li.appendChild(el('em',null,'✕ '));li.appendChild(document.createTextNode(e.name+(e.place?' · '+e.place:'')+(e.price!=null?' · '+fmt(e.price):'')+' — '));li.appendChild(el('u',null,T['r_'+e.reason]));log.appendChild(li)}});
-  if(!any)log.appendChild(el('li',null,T.none));
 }}
 Array.prototype.forEach.call(document.querySelectorAll('#sel button'),function(b){{b.addEventListener('click',function(){{fuel=b.dataset.f;Array.prototype.forEach.call(document.querySelectorAll('#sel button'),function(x){{x.setAttribute('aria-pressed',x===b?'true':'false')}});render()}})}});
 fetch('/api/v1/fuel-hamburg',{{headers:{{accept:'application/json'}}}}).then(function(r){{return r.json()}}).then(function(d){{

@@ -14,6 +14,7 @@ test("fuel passport: closed, empty, impossible and outlier prices are dropped, p
   assert.equal(p.stations_passed, 4);
   assert.deepEqual(p.rejected, { closed: 1, no_price: 3, out_of_range: 1, outlier: 1 });
   assert.equal(p.lowest, 1.65);
+  assert.ok(p.outlier_bounds.high > 1.9 && p.outlier_bounds.low < 1.6); // границы «необычной цены» для объяснения на странице
   assert.deepEqual(p.top.map((x) => x.price), [1.65, 1.69, 1.7, 1.72]); // цены ровно такие, как пришли
 });
 
@@ -46,7 +47,7 @@ test("fuel pages: three languages, canonical, hreflang, partner banners, attribu
     assert.match(h, /rel="canonical" href="https:\/\/orbstudio\.org[^"]*\/tools\/fuel"/);
     assert.match(h, /hreflang="de"/); assert.match(h, /\/go\/kraken\?from=fuel/); assert.match(h, /\/go\/starlink\?from=fuel/);
     assert.match(h, /tankerkoenig\.de/); assert.match(h, /CC BY 4\.0/); assert.match(h, /x\.com\/intent\/post/);
-    assert.match(h, /\/api\/v1\/fuel-hamburg/); assert.ok(!/demo|демо/i.test(h));
+    assert.match(h, /\/api\/v1\/fuel-hamburg/); assert.match(h, /id="bar"/); assert.match(h, /id="rows"/); assert.ok(!/demo|демо/i.test(h));
   }
   const sm = rd("public/sitemap.xml");
   for (const u of ["/tools/fuel", "/de/tools/fuel", "/en/tools/fuel"]) assert.ok(sm.includes(`<loc>https://orbstudio.org${u}</loc>`));

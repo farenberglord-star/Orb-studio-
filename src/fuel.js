@@ -34,10 +34,11 @@ export function fuelPassport(stations, fuel) {
   const med0 = ok.length ? median(ok.map((s) => s[fuel])) : null;
   const kept = [];
   for (const s of ok) { if (Math.abs(s[fuel] - med0) / med0 > FUEL_OUTLIER) note(s, "outlier", s[fuel]); else kept.push(s); }
+  const bounds = med0 == null ? null : { low: Math.round(med0 * (1 - FUEL_OUTLIER) * 1000) / 1000, high: Math.round(med0 * (1 + FUEL_OUTLIER) * 1000) / 1000 };
   kept.sort((a, b) => a[fuel] - b[fuel]);
   const total = (Array.isArray(stations) ? stations : []).length;
   return {
-    fuel, stations_total: total, stations_passed: kept.length, rejected, rejected_examples: examples,
+    fuel, stations_total: total, stations_passed: kept.length, rejected, outlier_bounds: bounds, rejected_examples: examples,
     median: kept.length ? Math.round(median(kept.map((s) => s[fuel])) * 1000) / 1000 : null,
     lowest: kept.length ? kept[0][fuel] : null,
     top: kept.slice(0, FUEL_TOP).map((s) => ({ name: clean(s.brand || s.name, 40), place: clean(s.place, 30), street: clean(s.street, 40), price: s[fuel] })),

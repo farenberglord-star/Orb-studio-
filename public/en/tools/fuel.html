@@ -44,6 +44,16 @@
 .fx-ban{display:flex;gap:8px;margin:10px 0}
 .fx-ban a{flex:1;text-align:center;padding:9px 8px;font-size:12px;text-decoration:none;color:#cfd6ff;border:1px solid #1b2145;background:#0b0e1c;letter-spacing:.04em}
 .fx-ban a:first-of-type{border-color:rgba(185,174,255,.5)}
+.fx-hd{font:700 clamp(19px,5.4vw,25px)/1.25 'Chakra Petch',system-ui,sans-serif;color:#fff}.fx-hd b{color:var(--gr);text-shadow:0 0 12px rgba(57,255,136,.55)}
+.fx-sub{color:#9aa4d4;font-size:12.5px;margin:6px 0 0}
+.fx-bar{display:flex;height:18px;margin:16px 0 6px;border:1px solid #1b2145;background:#06081a}.fx-bar i{display:block;height:100%;min-width:2px}
+.fx-b1{background:linear-gradient(90deg,#1fbf63,var(--gr));box-shadow:0 0 14px rgba(57,255,136,.4)}.fx-b2{background:repeating-linear-gradient(45deg,#3a4170 0 4px,#2a3058 4px 8px)}.fx-b3{background:var(--am);box-shadow:0 0 10px rgba(255,184,0,.6)}
+.fx-leg{display:flex;justify-content:space-between;gap:6px;font-size:10.5px;color:#6f78a8;flex-wrap:wrap}
+.fx-row{display:grid;grid-template-columns:48px 1fr;gap:10px;padding:11px 0;border-top:1px dashed #1b2145;align-items:start}
+.fx-n{font:700 20px 'Chakra Petch',system-ui,sans-serif;text-align:center;color:#8b95cf}.fx-row.g .fx-n{color:var(--gr)}.fx-row.a .fx-n{color:var(--am)}
+.fx-row h3{font:700 13.5px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.04em;color:#fff;margin:0}.fx-row p{font-size:12.5px;color:#9aa4d4;margin:2px 0 0}
+.fx-note{margin-top:12px;padding:10px 12px;border-left:3px solid var(--cy);background:rgba(0,240,255,.05);font-size:12.5px}
+.fx-det{margin-top:12px;border:1px solid #1b2145;padding:10px 12px}.fx-det summary{cursor:pointer;color:var(--cy);font-size:12.5px}.fx-det ul{margin:10px 0 0}
 .fx-st{min-height:1.4em;color:var(--am);font-size:12.5px}
 .fx-foot{margin-top:16px;font-size:11.5px;color:#8a92b8;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
 .fx-share{border:1px solid var(--cy);color:var(--cy);padding:6px 12px;text-decoration:none;font-size:12px}
@@ -78,13 +88,17 @@
 <div class="fx-st" id="st" role="status">Loading prices…</div>
 <div class="fx-stat"><div><small>lowest</small><strong id="smin">–</strong></div><div><small>median</small><strong id="smed">–</strong></div><div><small>passed</small><strong id="sok">–</strong></div></div>
 <div id="list"></div>
-<section class="fx-pass"><h2>DATA PASSPORT · what was filtered and why</h2><ul id="plog"></ul><p class="fx-rules">The passport only filters and flags. It never changes a price: this is Tankerkönig/MTS-K data as reported. The list carries no timestamp per price, so there is no freshness check here: we show the time the list was fetched (cache up to 6 minutes).</p></section>
+<section class="fx-pass"><h2>DATA PASSPORT · what was filtered and why</h2><div class="fx-hd" id="hd"></div><p class="fx-sub">The rest are not fit for comparison. Here is why.</p>
+<div class="fx-bar" id="bar"></div><div class="fx-leg" id="leg"></div><div id="rows"></div>
+<div class="fx-note">The site never changes prices. It only decides which stations to show in the list.</div>
+<details class="fx-det"><summary>Show who exactly was filtered out</summary><ul id="plog"></ul></details>
+<p class="fx-rules">The passport only filters and flags. It never changes a price: this is Tankerkönig/MTS-K data as reported. The list carries no timestamp per price, so there is no freshness check here: we show the time the list was fetched (cache up to 6 minutes).</p></section>
 <section class="fx-pass" style="border-color:#1b2145;background:none"><h2 style="color:var(--holo)">For agents</h2><p class="fx-rules" style="margin:0">The same data via API: GET /api/v1/fuel-hamburg. Free, no key. Not financial or route advice: the price at the pump may differ.</p></section>
 <div class="fx-foot"><span>Prices: <a href="https://www.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig.de</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · <span id="when"></span></span><span>Visits: <b id="vc">—</b></span><a class="fx-share" href="https://x.com/intent/post?text=Hamburg%20fuel%20prices,%20filtered%20by%20a%20data%20passport%20(closed%20stations,%20empty%20and%20impossible%20prices%20dropped,%20nothing%20altered)%20-%20ORB%20Fuel%20Radar.%20Data:%20Tankerkoenig.de%20CC%20BY%204.0&url=https://orbstudio.org/en/tools/fuel" target="_blank" rel="noopener">Share on X</a></div>
 <div class="fx-ban" style="margin-top:14px"><a href="/en/tools/route-weather">Route conditions</a><a href="/en/tools">All tools</a></div>
 </main>
 <script>(function(){
-var T={"loading": "Loading prices…", "err": "The source did not answer. Please try again in a minute.", "notconf": "The sensor is not connected yet.", "fetched": "Data fetched", "stale": "The source is not answering — showing the last good copy.", "best": "best price", "r_closed": "closed", "r_no_price": "no price", "r_out_of_range": "price outside plausible range", "r_outlier": "outlier: more than 12% from the median", "none": "Nothing was filtered out.", "unit": "€/l", "loc": "en-GB", "lowest": "lowest", "median": "median", "passed": "passed"},fuel='diesel',D=null;
+var T={"loading": "Loading prices…", "err": "The source did not answer. Please try again in a minute.", "notconf": "The sensor is not connected yet.", "fetched": "Data fetched", "stale": "The source is not answering — showing the last good copy.", "best": "best price", "r_closed": "closed", "r_no_price": "no price", "r_out_of_range": "price outside plausible range", "r_outlier": "outlier: more than 12% from the median", "none": "Nothing was filtered out.", "unit": "€/l", "loc": "en-GB", "lowest": "lowest", "median": "median", "passed": "passed", "h1a": "{n} stations checked.", "h1b": "Showing {m}.", "lg_ok": "shown", "lg_cl": "closed", "lg_odd": "unusual price", "w_ok": "In the list", "p_ok": "Open and with a normal price. We take the cheapest from these.", "w_closed": "Closed right now", "p_closed": "Their last price is still in the database, but you cannot fill up there. So they are not in the list.", "w_no_price": "No price for this fuel", "p_no_price": "The station is open but did not report a price for this fuel.", "w_out_of_range": "Impossible price", "p_out_of_range": "A price outside any sensible range, most likely a typing error.", "w_outlier": "Price far from the area norm", "p_outlier": "More than 12% above or below the usual price (right now above {hi} € or below {lo} €). Often these are motorway stations, where fuel is the most expensive. We do not hide or edit such prices; they just do not enter the “cheapest” list."},fuel='diesel',D=null;
 function $(i){return document.getElementById(i)}
 function el(tag,cls,txt){var n=document.createElement(tag);if(cls)n.className=cls;if(txt!=null)n.textContent=txt;return n}
 function fmt(x){return x==null?'–':x.toLocaleString(T.loc,{minimumFractionDigits:3,maximumFractionDigits:3})+' €'}
@@ -96,10 +110,20 @@ function render(){
     var c=el('div','fx-card'+(i?'':' best')),r=el('div','fx-rank',String(i+1)),m=el('div'),n=el('div','fx-nm',s.name+' ');
     n.appendChild(el('i',null,'· '+s.street+(s.street&&s.place?', ':'')+s.place));if(!i)n.appendChild(el('span','fx-tag',T.best));
     m.appendChild(n);c.appendChild(r);c.appendChild(m);c.appendChild(el('div','fx-pr',fmt(s.price)));list.appendChild(c)});
-  var log=$('plog');log.textContent='';var any=false;
-  ['closed','no_price','out_of_range','outlier'].forEach(function(k){var n=f.rejected[k];if(!n)return;any=true;var li=el('li');li.appendChild(el('em',null,'✕ '));li.appendChild(document.createTextNode(n+' × '));li.appendChild(el('u',null,T['r_'+k]));log.appendChild(li)});
+  var rj=f.rejected,cl=rj.closed||0,odd=(rj.no_price||0)+(rj.out_of_range||0)+(rj.outlier||0),hd=$('hd');hd.textContent='';
+  [[T.h1a,f.stations_total],[T.h1b,f.stations_passed]].forEach(function(p,i){var parts=p[0].split('{'+(i?'m':'n')+'}');hd.appendChild(document.createTextNode(parts[0]));hd.appendChild(el('b',null,String(p[1])));hd.appendChild(document.createTextNode(parts[1]||''));if(!i)hd.appendChild(document.createElement('br'))});
+  var bar=$('bar');bar.textContent='';[['fx-b1',f.stations_passed],['fx-b2',cl],['fx-b3',odd]].forEach(function(x){if(x[1]>0){var i=el('i',x[0]);i.style.flexGrow=String(x[1]);i.style.flexBasis='0';bar.appendChild(i)}});
+  var lg=$('leg');lg.textContent='';[T.lg_ok+' '+f.stations_passed,T.lg_cl+' '+cl,T.lg_odd+' '+odd].forEach(function(x){lg.appendChild(el('span',null,x))});
+  var rows=$('rows');rows.textContent='';
+  function row(cls,n,h,p){var r=el('div','fx-row '+cls);r.appendChild(el('div','fx-n',String(n)));var d=el('div');d.appendChild(el('h3',null,h));d.appendChild(el('p',null,p));r.appendChild(d);rows.appendChild(r)}
+  var bd=f.outlier_bounds||{};
+  row('g',f.stations_passed,T.w_ok,T.p_ok);
+  if(cl)row('',cl,T.w_closed,T.p_closed);
+  if(rj.no_price)row('a',rj.no_price,T.w_no_price,T.p_no_price);
+  if(rj.out_of_range)row('a',rj.out_of_range,T.w_out_of_range,T.p_out_of_range);
+  if(rj.outlier)row('a',rj.outlier,T.w_outlier,T.p_outlier.replace('{hi}',bd.high!=null?bd.high.toLocaleString(T.loc,{minimumFractionDigits:2,maximumFractionDigits:2}):'').replace('{lo}',bd.low!=null?bd.low.toLocaleString(T.loc,{minimumFractionDigits:2,maximumFractionDigits:2}):''));
+  var log=$('plog');log.textContent='';
   f.rejected_examples.forEach(function(e){var li=el('li');li.appendChild(el('em',null,'✕ '));li.appendChild(document.createTextNode(e.name+(e.place?' · '+e.place:'')+(e.price!=null?' · '+fmt(e.price):'')+' — '));li.appendChild(el('u',null,T['r_'+e.reason]));log.appendChild(li)});
-  if(!any)log.appendChild(el('li',null,T.none));
 }
 Array.prototype.forEach.call(document.querySelectorAll('#sel button'),function(b){b.addEventListener('click',function(){fuel=b.dataset.f;Array.prototype.forEach.call(document.querySelectorAll('#sel button'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});render()})});
 fetch('/api/v1/fuel-hamburg',{headers:{accept:'application/json'}}).then(function(r){return r.json()}).then(function(d){
