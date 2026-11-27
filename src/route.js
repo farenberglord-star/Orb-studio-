@@ -1,3 +1,4 @@
+import { samplePoints } from "./route_conditions.js";
 // Free route sensor: open routing (OSRM by FOSSGIS, OpenStreetMap data) + motorway reports (Autobahn GmbH) near the route.
 // Nothing is estimated: distance and duration come from the router, incidents from the official feed.
 export const ROUTE_BOX = { latMin: 52.9, latMax: 54.2, lonMin: 8.9, lonMax: 10.9 };
@@ -69,7 +70,7 @@ function oneRoute(r, mode, roads) {
   for (const leg of r.legs || []) for (const s of leg.steps || []) if (s.name && s.distance > 150 && names[names.length - 1] !== s.name) names.push(s.name);
   const out = {
     mode, distance_m: Math.round(r.distance), duration_min: Math.round(r.duration / 6) / 10,
-    main_streets: names.slice(0, 12), points: line.length,
+    main_streets: names.slice(0, 12), points: line.length, sample_points: samplePoints(line),
     duration_note: "Duration is the router's free-flow estimate from OpenStreetMap speeds. It does not include live traffic.",
   };
   if (mode === "car") {

@@ -89,9 +89,10 @@ import { timeMachineReport } from "./timemachine.js";
 import { hagenauerReport } from "./hagenauer.js";
 import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { thinkItThrough } from "./think.js";
-import { checkPlace, normState, normRoads } from "./place.js";
+import { checkPlace, normState, normRoads, sunInfo } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
 import { inspectionStats } from "./roads_inspection.js";
+import { conditionsSummary } from "./route_conditions.js";
 import { decodeTripUpdates, waitParadox, VBB_RT_URL, WAIT_ATTRIBUTION, MAX_FEED_BYTES } from "./wait_paradox.js";
 import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
@@ -2693,7 +2694,17 @@ async function routeData(env, params) {
     body.roads_updated = roads ? roads.updated : null;
     await c.put(key, new Response(JSON.stringify(body), { headers: { "Cache-Control": "max-age=300" } }));
   }
-  return { status: "ok", from: { lat: a.lat, lon: a.lon, ...(a.place ? { place: a.place } : {}) }, to: { lat: b.lat, lon: b.lon, ...(b.place ? { place: b.place } : {}) }, ...body,
+  let conditions;
+  if (params.conditions === "true" || params.conditions === true) { // условия на маршруте: тьма после заката, худший воздух по трём точкам, предупреждения DWD
+    const race = (p) => Promise.race([p, new Promise((r) => setTimeout(() => r(null), 7000))]).catch(() => null);
+    const st = normState(params.state), pts = body.sample_points || [];
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(params.date || "") ? params.date : new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
+    const sun = params.time ? sunInfo((a.lat + b.lat) / 2, (a.lon + b.lon) / 2, date, Date.now(), "Europe/Berlin", params.time) : null;
+    const [air, dwd] = await Promise.all([Promise.all(pts.map((p) => race(airData(env, p.lat, p.lon)))), race(dwdWarnData(env, st))]);
+    conditions = conditionsSummary({ sun, durationMin: body.duration_min, air, dwd, state: st, mode });
+    if (!params.time) conditions.dark = { status: "needs_time", note: "Give time=HH:MM (Berlin time) and optionally date=YYYY-MM-DD to count minutes after sunset." };
+  }
+  return { status: "ok", from: { lat: a.lat, lon: a.lon, ...(a.place ? { place: a.place } : {}) }, to: { lat: b.lat, lon: b.lon, ...(b.place ? { place: b.place } : {}) }, ...body, ...(conditions ? { conditions } : {}),
     sources: "Routing: OSRM, FOSSGIS demo server, map data © OpenStreetMap contributors (ODbL, https://www.openstreetmap.org/copyright). Motorway reports: Autobahn GmbH des Bundes, verkehr.autobahn.de.",
     free: true, note: "Free to use. Best effort, no guarantee. This is a record of router output and official reports, not a forecast.", page: "https://orbstudio.org/api/v1/route" };
 }
@@ -3899,7 +3910,7 @@ const OA_GET = [
   ["/api/v1/sensors", "getSensors", "Open market and network sensors: Kraken volatility spikes, BTC futures funding, Bitcoin network, ECB rate, euro inflation, stablecoins, German power price, internet outages and blocking, sanctioned ships.", []],
   ["/api/v1/agent-wallet", "getAgentWallet", "Public purchase log of an AI agent that spends a small daily budget (USDC on Base) over x402: rules, caps, every purchase with price, reason, tx hash and outcome.", []],
   ["/api/v1/guests", "getGuests", "Guest cards of AI agents that visited Orb Studio in the last 7 days: self-declared name, what they read, a greeting and what to explore next. From our own counters; names are not verified; no IPs or message texts.", []],
-  ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)")]],
+  ["/api/v1/route", "getRoute", "Free route and surroundings in the Hamburg region: distance, duration and main streets from the open OSM router (OSRM), plus Autobahn GmbH jams, closures and roadworks within 1 km of a car route.", [OA_Q("from", "Start as lat,lon, e.g. 53.5511,9.9937, or a known place: airport, center, hauptbahnhof, finkenwerder, harburg, ..."), OA_Q("to", "End as lat,lon, or a known place name"), OA_Q("mode", "foot, bike or car (default car)"), OA_Q("conditions", "true = add minutes after sunset (with time), worst official air index at 3 route points, DWD warnings for the state"), OA_Q("time", "departure HH:MM Berlin time, for conditions"), OA_Q("date", "departure date YYYY-MM-DD, for conditions"), OA_Q("state", "state code for DWD warnings, default HH")]],
   ["/api/v1/space", "getSpaceWeather", "Free space weather from NOAA SWPC open data: Kp index, G/R/S storm scales, solar wind speed and density, M/X solar flares of the last 24 hours. Observed values only, not a forecast.", []],
   ["/api/v1/brief", "getBrief", "Signed 30-minute brief: topic=news gives the top radar headlines with word-rule passports and radar levels, topic=crypto gives the crypto market regime and ECB EUR/USD. Ed25519 signature and passport_id; check at /api/v1/agents/witness/{id}. format=md returns Markdown. The signature shows the record is unchanged, not that the news is true.", [OA_Q("topic", "news (default) or crypto"), OA_Q("format", "json (default) or md")]],
   ["/api/v1/freshness", "getFreshness", "Reality lag map: for every sensor the time its data refers to, age in hours, the normal age for that source and a status (on_time, late, stale, unknown, no_data, event).", []],
@@ -9194,7 +9205,7 @@ const MCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_route_context", title: "Free route and surroundings in the Hamburg region (OSM router + motorway reports)",
     description: "Free. Route between two points in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9): distance, free-flow duration and main streets from the open OSRM router (OpenStreetMap data), and for car routes the Autobahn GmbH jams, closures and roadworks within 1 km of the route. Duration does not include live traffic; city streets are not covered by the reports. Best effort, nothing is estimated.",
-    inputSchema: { type: "object", properties: { from: { type: "string", description: "Start as lat,lon (e.g. 53.5511,9.9937) or a known place: airport, center, hauptbahnhof, altona, harburg, bergedorf, finkenwerder, elbphilharmonie, hafen, messe, volksparkstadion, buxtehude, stade, luebeck, elbtunnel" }, to: { type: "string", description: "End as lat,lon or a known place name" }, mode: { type: "string", enum: ["foot", "bike", "car"] } }, required: ["from", "to"], additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
+    inputSchema: { type: "object", properties: { from: { type: "string", description: "Start as lat,lon (e.g. 53.5511,9.9937) or a known place: airport, center, hauptbahnhof, altona, harburg, bergedorf, finkenwerder, elbphilharmonie, hafen, messe, volksparkstadion, buxtehude, stade, luebeck, elbtunnel" }, to: { type: "string", description: "End as lat,lon or a known place name" }, mode: { type: "string", enum: ["foot", "bike", "car"] }, conditions: { type: "boolean", description: "true = add conditions on the route: minutes after sunset (needs time), worst official air index at start, middle and end, and official DWD warnings for the state" }, time: { type: "string", description: "Departure time HH:MM Berlin time (for conditions)" }, date: { type: "string", description: "Departure date YYYY-MM-DD (default today)" }, state: { type: "string", description: "German state code for DWD warnings (default HH)" } }, required: ["from", "to"], additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "get_roads", title: "Motorways around Hamburg: jams, closures, roadworks",
     description: "Current traffic jams (with delay in minutes), closures and roadworks on the motorways around Hamburg (A1, A7 incl. Elbtunnel, A23, A24, A25, A26, A39, A253, A255, A261) from the official Autobahn GmbH open data, refreshed every 10 minutes. Use it to answer questions like 'Is there a jam at the Elbtunnel right now?'. City roads such as Köhlbrandbrücke are not included.",
     inputSchema: { type: "object", properties: { road: { type: "string", description: "Optional motorway, e.g. A7" } }, additionalProperties: false }, annotations: { readOnlyHint: true, openWorldHint: false } },
@@ -9460,7 +9471,7 @@ async function mcpTool(name, args, env, ctx, origin, request) {
   }
   if (name === "get_agent_wallet") { const r = await agentWallet(new Request("https://orbstudio.org/api/v1/agent-wallet"), env, { sharedGet, sharedPut }); return { ...(await r.json()), referral: ref }; }
   if (name === "get_agent_guests") return { ...(await guestsData(env, ctx, origin)), referral: ref };
-  if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode }); return { ...d, referral: ref }; }
+  if (name === "get_route_context") { const { http, ...d } = await routeData(env, { from: args.from, to: args.to, mode: args.mode, conditions: args.conditions === true ? "true" : undefined, time: args.time, date: args.date, state: args.state }); return { ...d, referral: ref }; }
   if (name === "get_space_weather") return { ...(await spaceData()), referral: ref };
   if (name === "get_freshness") return { ...(await freshnessData(env, ctx, origin)), referral: ref };
   if (name === "get_party_attention") { const { http, ...d } = await partyAttentionData(); return { ...d, referral: ref }; }

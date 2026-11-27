@@ -252,3 +252,27 @@ test("route: via points on both sides, alternative must differ and not be far lo
   assert.equal(pickAlternative(main, [{ duration: 2000, geometry: { coordinates: north } }]), null, "too slow");
   assert.ok(pickAlternative(main, [{ duration: 1400, geometry: { coordinates: north } }, { duration: 1500, geometry: { coordinates: north } }]));
 });
+
+import { samplePoints, darkMinutes, worstAir, dwdBrief, conditionsSummary } from "../src/route_conditions.js";
+import { sunInfo as sunInfo2 } from "../src/place.js";
+test("route conditions: sample points, dark minutes, worst air, DWD brief", () => {
+  const line = [0, 1, 2, 3, 4].map((i) => ({ lat: 53.5 + i * 0.01, lon: 10 }));
+  const pts = samplePoints(line);
+  assert.equal(pts.length, 3); assert.equal(pts[0].lat, 53.5); assert.equal(pts[2].lat, 53.54); assert.equal(pts[1].lat, 53.52);
+  assert.deepEqual(samplePoints([]), []);
+  const sun = sunInfo2(53.55, 10, "2026-11-27", Date.parse("2026-11-27T10:00:00Z"), "Europe/Berlin", "15:30");
+  assert.ok(Number.isFinite(sun.minutes_to_sunset));
+  const d = darkMinutes({ minutes_to_sunset: 20, at_time: "15:30", sunset: "15:50" }, 50);
+  assert.equal(d.minutes_after_sunset, 30); assert.equal(d.share, 0.6);
+  assert.equal(darkMinutes({ minutes_to_sunset: -10, at_time: "17:00", sunset: "16:50" }, 40).share, 1);
+  assert.equal(darkMinutes({ minutes_to_sunset: 90, at_time: "12:00", sunset: "13:30" }, 40).minutes_after_sunset, 0);
+  assert.equal(darkMinutes(null, 40), null);
+  const w = worstAir([{ status: "ok", index: 2, station: "A" }, null, { status: "ok", index: 4, station: "B", distance_km: 3 }]);
+  assert.equal(w.worst_index, 4); assert.equal(w.station, "B"); assert.equal(w.points_with_index, 2); assert.equal(w.points_checked, 3);
+  assert.equal(worstAir([null, { status: "unavailable" }]).status, "unavailable");
+  assert.equal(dwdBrief(null, "HH").status, "unavailable");
+  const b = dwdBrief({ status: "ok", active_warnings: 5, by_state: [{ max_level: 3, max_level_label: "Severe" }], severe_level3_plus: [{ event: "STURM", level: 3, from: "a", until: "b" }] }, "HH");
+  assert.equal(b.max_level, 3); assert.equal(b.severe_level3_plus.length, 1);
+  const c = conditionsSummary({ sun: null, durationMin: 20, air: [], dwd: null, state: "HH", mode: "bike" });
+  assert.equal(c.dark, null); assert.equal(c.air.status, "unavailable"); assert.match(c.note, /not a forecast/);
+});
