@@ -10136,6 +10136,11 @@ async function handleRequest(request, env, ctx) {
       return cardResponse(request, apiCatalog(url.origin), API_CATALOG_TYPE, { Link: '</.well-known/api-catalog>; rel="api-catalog"' });
     }
     if (url.pathname === "/mcp" || url.pathname === "/mcp/") {
+      // Человек в браузере открыл /mcp по ссылке: вместо пустой 405 — короткая страница. MCP-клиенты (POST, SSE) идут как раньше.
+      if (request.method === "GET" && /text\/html/.test(request.headers.get("accept") || "") && !request.headers.get("mcp-session-id")) {
+        const page = '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MCP · Orb Studio</title><body style="font:16px/1.5 system-ui;background:#0b1220;color:#dbe4f3;max-width:640px;margin:40px auto;padding:0 16px"><h1>Orb Studio · MCP server</h1><p>This address is for AI agents: they connect with a POST request (Streamable HTTP, no key). A browser cannot talk to it, so there is nothing to read here.</p><p>For humans and agents: <a style="color:#7dd3fc" href="/tools">all tools</a> · <a style="color:#7dd3fc" href="/.well-known/mcp/server-card.json">server card (JSON)</a> · <a style="color:#7dd3fc" href="/llms.txt">llms.txt</a> · <a style="color:#7dd3fc" href="/for-agents">for agents</a></p></body>';
+        return new Response(page, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "access-control-allow-origin": "*" } });
+      }
       try { return await handleMcp(request, env, ctx, url.origin); }
       catch (e) { return json({ jsonrpc: "2.0", id: null, error: { code: -32603, message: String(e && e.message || e).slice(0, 200) } }, {}, 500); }
     }
