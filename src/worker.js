@@ -6475,7 +6475,7 @@ async function waitParadoxData(env) {
   if (hit) return hit;
   const base = { experimental: true, area: "Berlin-Brandenburg (VBB)", attribution: WAIT_ATTRIBUTION.text, license: WAIT_ATTRIBUTION.license, license_url: WAIT_ATTRIBUTION.license_url, source_url: WAIT_ATTRIBUTION.url };
   try {
-    const r = await fetch(VBB_RT_URL, { headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/x-protobuf" }, signal: AbortSignal.timeout(12000) });
+    const r = await fetch(VBB_RT_URL, { headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "*/*" }, signal: AbortSignal.timeout(12000) });
     if (!r.ok) throw new Error("http " + r.status);
     const buf = new Uint8Array(await r.arrayBuffer());
     if (buf.length > MAX_FEED_BYTES) throw new Error("feed too large " + buf.length);
