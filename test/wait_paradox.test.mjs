@@ -35,7 +35,7 @@ test("even service gives ratio 1, bunching gives ratio above 1 (1 + CV²)", () =
 
 test("collecting until enough line/stop groups; ok summary lists worst first", () => {
   assert.equal(waitParadox([]).status, "collecting");
-  const ents = []; for (let g = 0; g < MIN_GROUPS; g++) { let t = T0; const gaps = g % 2 ? [2, 18, 2, 18, 2] : [10, 10, 10, 10, 10]; ents.push(entity("g" + g + "x", "R" + g, 0, [["A", t]])); gaps.forEach((d, i) => { t += d * 60; ents.push(entity("g" + g + "y" + i, "R" + g, 0, [["A", t]])); }); }
+  const ents = []; for (let g = 0; g < MIN_GROUPS; g++) { let t = T0; const gaps = g % 2 ? [2, 18, 2, 18, 2, 18, 2, 18] : [10, 10, 10, 10, 10, 10, 10, 10]; ents.push(entity("g" + g + "x", "R" + g, 0, [["A", t]])); gaps.forEach((d, i) => { t += d * 60; ents.push(entity("g" + g + "y" + i, "R" + g, 0, [["A", t]])); }); }
   const r = waitParadox(decodeTripUpdates(feed(ents)));
   assert.equal(r.status, "ok"); assert.equal(r.groups, MIN_GROUPS);
   assert.ok(r.worst[0].ratio >= r.worst[r.worst.length - 1].ratio && r.worst[0].ratio > 1.5);
