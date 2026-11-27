@@ -149,3 +149,18 @@ test("check_place: namesakes come from Wikidata entities with the same label, ne
   const h = w.slice(w.indexOf("async function wikidataPlaces"), w.indexOf("async function placeAnswer"));
   assert.match(h, /User-Agent/); assert.ok(!/DB\.|prepare\(|console\.|sharedPut|caches\./.test(h), "namesake lookup must not store or cache place names");
 });
+
+import { parseAirStations as parseStations, nearestAirStation as nearestStation, parseAirQuality, airSummary } from "../src/airde.js";
+test("air: stations and hourly index are read from UBA arrays, nearest station only within 25 km, flag from class 3", () => {
+  const st = parseStations({ stations: { 1: [1, "DEHH081", "Hamburg Hafen", "Hamburg", "", 9.96, 53.54, 3], 2: [2, "DEBY001", "München", "München", 11.57, 48.14] , 3: [3, "bad", "x"] } });
+  assert.equal(st.length, 2); assert.equal(st[0].code, "DEHH081"); assert.equal(st[0].lat, 53.54);
+  assert.equal(parseStations({}), null);
+  const n = nearestStation(st, 53.55, 9.99); assert.equal(n.code, "DEHH081"); assert.ok(n.distance_km < 5);
+  const aq = parseAirQuality({ data: { 143: { "2026-11-27 07:00:00": ["2026-11-27 08:00:00", 1, 0, [5, 21, 1, 0.4], [1, 12, 0, 0.2]], "2026-11-27 08:00:00": ["2026-11-27 09:00:00", 3, 1, [9, 30, 3, 1.1], [5, 20, 1, 0.4]] } } });
+  assert.equal(aq.index, 3); assert.equal(aq.incomplete, true); assert.equal(aq.pollutants[0].pollutant, "PM2.5");
+  const sum = airSummary(n, aq); assert.equal(sum.index_class.en, "poor"); assert.deepEqual(sum.worst_pollutants, ["PM2.5"]); assert.equal(sum.provisional, true); assert.match(sum.source, /Umweltbundesamt/);
+  assert.equal(airSummary(null, null).status, "no_station"); assert.equal(airSummary(n, null).status, "unavailable"); assert.equal(parseAirQuality({ data: {} }), null);
+  const r = checkPlace({ name: "Stadtpark" }, NOW, { air: sum });
+  assert.ok(r.flags.some((f) => /Air quality index/.test(f.en))); assert.equal(r.air.station, "Hamburg Hafen");
+  assert.ok(!checkPlace({ name: "Stadtpark" }, NOW, { air: airSummary(n, { ...aq, index: 1 }) }).flags.some((f) => /Air quality/.test(f.en)));
+});

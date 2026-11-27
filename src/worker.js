@@ -91,6 +91,7 @@ import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { thinkItThrough } from "./think.js";
 import { checkPlace, normState, normRoads } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
+import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
 import { duckworthReport } from "./duckworth.js";
 import { trevisanReport } from "./trevisan.js";
@@ -4280,6 +4281,12 @@ async function handleApi(url, request, env, ctx) {
     if (url.searchParams.get("format") === "md") return new Response(briefMarkdown(b), { headers: { "Content-Type": "text/markdown; charset=utf-8", "Cache-Control": "public, max-age=300", ...H } });
     return json(b, { "Cache-Control": "public, max-age=300", ...H });
   }
+  if (p === "/api/v1/air-de") { // Luftindex der nächsten UBA-Station; lat/lon in Deutschland
+    const la = Number(url.searchParams.get("lat")), lo = Number(url.searchParams.get("lon"));
+    if (!(la > 47 && la < 55.5 && lo > 5.5 && lo < 15.5)) return json({ error: "lat_lon_germany", note: "lat and lon inside Germany are required, e.g. lat=53.55&lon=10.0." }, { "Access-Control-Allow-Origin": "*" }, 400);
+    try { return json(await airData(env, la, lo), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" }); }
+    catch (e) { return json({ status: "unavailable", source: "Umweltbundesamt", detail: String(e && e.message || e).slice(0, 400) }, { "Access-Control-Allow-Origin": "*" }, 502); }
+  }
   if (p === "/api/v1/place") { // check_place: параметры из строки запроса; hours — JSON-массив, review_dates и roads — через запятую
     let hours = null; try { const h = url.searchParams.get("hours"); if (h) hours = JSON.parse(h.slice(0, 1500)); } catch {}
     const rd = url.searchParams.get("review_dates"); const g = (k) => url.searchParams.get(k);
@@ -6446,6 +6453,29 @@ async function roadsData(env) {
 
 // check_place: живые данные подмешиваем здесь (DWD по земле, паводки LHP, автобаны по названиям из запроса); сам модуль place.js чистый.
 // Координаты и названия мест нигде не пишем: ни в базу, ни в журнал.
+// Luftindex (UBA): Stationsliste einmal am Tag im gemeinsamen Cache (öffentliche Metadaten, keine Nutzerdaten), Index der nächsten Station live.
+async function airData(env, lat, lon) {
+  const H = { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/json" };
+  const base = "https://luftdaten.umweltbundesamt.de/api-proxy/";
+  const day = new Date(Date.now() + 3600e3).toISOString().slice(0, 10), hour = Math.max(2, Math.min(24, new Date(Date.now() + 3600e3).getUTCHours() + 1));
+  let stations = await sharedGet(env, "uba-stations-v1", 24 * 3600e3);
+  if (!stations) {
+    const r = await fetch(`${base}meta/json?use=airquality&date_from=${day}&date_to=${day}&time_from=1&time_to=2&lang=de`, { headers: H, signal: AbortSignal.timeout(9000) });
+    if (!r.ok) throw new Error("uba meta http " + r.status);
+    const j = await r.json();
+    stations = parseAirStations(j);
+    if (!stations) throw new Error("uba meta shape: keys=" + Object.keys(j || {}).join(",") + " stations=" + JSON.stringify((j && (j.stations || j.data)) ? Object.values(j.stations || j.data)[0] : null).slice(0, 300));
+    await sharedPut(env, "uba-stations-v1", stations);
+  }
+  const near = nearestAirStation(stations, lat, lon);
+  if (!near || near.distance_km > AIR_MAX_KM) return airSummary(null, null);
+  const r2 = await fetch(`${base}airquality/json?date_from=${day}&date_to=${day}&time_from=${Math.max(1, hour - 4)}&time_to=${hour}&station=${near.code}`, { headers: H, signal: AbortSignal.timeout(9000) });
+  if (!r2.ok) throw new Error("uba airquality http " + r2.status);
+  const j2 = await r2.json();
+  const aq = parseAirQuality(j2);
+  if (!aq && j2 && j2.data && Object.keys(j2.data).length) throw new Error("uba airquality shape: " + JSON.stringify(Object.values(j2.data)[0]).slice(0, 300));
+  return airSummary(near, aq);
+}
 // Тёзки места из Wikidata (CC0): поиск по названию + координаты P625. Идентифицируемся по правилам Wikimedia, параллельных запросов ≤2, ничего не кэшируем и не пишем.
 async function wikidataPlaces(name) {
   const H = { "User-Agent": "OrbStudio/1.0 (https://orbstudio.org/llms.txt; place-namesake check)", Accept: "application/json" };
@@ -6470,9 +6500,11 @@ async function placeAnswer(env, a) {
   const inDe = Number.isFinite(lat) && Number.isFinite(lon) && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5;
   const wantRoads = normRoads(input.roads).length > 0;
   const wantNames = Number.isFinite(lat) && Number.isFinite(lon) && String(input.name || "").trim().length >= 3;
-  const [dwd, flood, roads, names] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null, wantNames ? race(wikidataPlaces(String(input.name).trim())) : null]);
+  const wantAir = inDe;
+  const [dwd, flood, roads, names, air] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null, wantNames ? race(wikidataPlaces(String(input.name).trim())) : null, wantAir ? race(airData(env, lat, lon)) : null]);
   const extra = {}; if (dwd) extra.dwd = dwd; if (flood) extra.flood = flood; if (wantRoads) extra.roads = roads;
   if (wantNames) extra.namesakes = names;
+  if (wantAir) extra.air = air || { status: "unavailable", note: "Air index did not answer in time." };
   if (st && !dwd) extra.dwd = { status: "unavailable" };
   if (inDe && !flood) extra.flood = { status: "unavailable" };
   return checkPlace(input, Date.now(), extra);
