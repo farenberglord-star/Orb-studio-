@@ -206,6 +206,9 @@ outlets_agree_on_act | one_model | sensor | Согласны ли издания
 saturated_not_settled | rumour_vs_fact | sensor | Перестала расти — не значит подтверждена
 sticky_series | stale_data | sensor | Липкий ряд кажется спокойнее, чем есть
 story_spread_decay | stale_data | waiting | История ещё растёт или угасает
+stale_apparent_vs_real | stale_data | waiting | Список источников истории правда старый или только выглядит старым
+independent_or_same_root | one_model | idea | Два издания согласны: независимо или у них один первоисточник
+claimed_vs_found_complete | answer_cost | idea | Ответ, который кажется полным, против проверенной выборки
 quiet_or_broken | stale_data | sensor | Тихий час или сломанная лента
 aftershock_not_new | look_alike | sensor | Афтершок — не новое землетрясение
 loud_chorus_not_majority | rumour_vs_fact | covered | Громкий хор — не большинство
@@ -226,7 +229,7 @@ place_name_in_two_cities | look_alike | sensor | Одно название ме�
 place_air_nearest_station | stale_data | sensor | Место и индекс воздуха ближайшей официальной станции
 place_charger_register_nearby | stale_data | sensor | Место зарядки сверено с официальным реестром зарядок
 airport_way_there_now | stale_data | ready | Дорога до аэропорта сейчас: сообщения по трассам, время маршрута и предупреждения погоды вместе
-airport_dark_or_icy_arrival | side_effects | ready | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и голо
+airport_dark_or_icy_arrival | side_effects | ready | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и гололёде
 airport_parking_gap | stale_data | idea | Парковка и зарядка у терминала там, где у нас есть данные
 route_when_jammed_equal_times | own_limits | sensor | Пробка на маршруте и «свободная» альтернатива: оба времени сейчас, а не обещанная экономия
 terminal_landmarks_check | look_alike | idea | Как найти вход на вокзале или в аэропорту: по ориентирам и входам, с проверкой, что назван именно тот объект

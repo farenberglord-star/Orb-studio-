@@ -15216,6 +15216,42 @@ export const CRYSTALS = [
 "note": "the wait-paradox sensor (/api/v1/wait-paradox) already gives 1 + CV² of the gaps at a stop, which is the Pollaczek-Khinchine factor",
 "covered_by": "terada"
 }
+},
+{
+"id": "griffith_b",
+"name": "Belver Griffith",
+"name_ru": "Бельвер Гриффит",
+"years": "1931–1999",
+"wiki": "https://en.wikipedia.org/wiki/Belver_C._Griffith",
+"zone": "one_model",
+"idea": {
+"en": "With Howard White, 'Author cocitation: a literature measure of intellectual structure' (1981): two works that keep being cited together share a hidden basis, so count them as related, not as independent.",
+"ru": "С Говардом Уайтом, «Совместное цитирование авторов: мера интеллектуальной структуры по литературе» (1981): две работы, которые постоянно цитируют вместе, имеют скрытую общую основу, поэтому считай их связанными, а не независимыми.",
+"de": "Mit Howard White, „Author cocitation: a literature measure of intellectual structure“ (1981): zwei Werke, die ständig zusammen zitiert werden, teilen eine verborgene Grundlage; sie gelten als verwandt, nicht als unabhängig."
+},
+"rule": "Do not count two outlets as independent confirmation if they lean on the same first source: ask what they share.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: share of outlet pairs whose headlines lean on the same first source (agency or named original); needs a marker list of first sources; not computed yet"
+}
+},
+{
+"id": "maron_me",
+"name": "Melvin Earl Maron",
+"name_ru": "Мелвин Эрл Марон",
+"years": "1924–2016",
+"wiki": "https://en.wikipedia.org/wiki/Melvin_Earl_Maron",
+"zone": "answer_cost",
+"idea": {
+"en": "With David Blair, 'An evaluation of retrieval effectiveness for a full-text document-retrieval system' (1985, a civil lawsuit case): the searchers were sure they had found nearly everything relevant, and a check showed they had found only a small part.",
+"ru": "С Дэвидом Блэром, «Оценка эффективности поиска в полнотекстовой системе» (1985, материалы гражданского дела): искавшие были уверены, что нашли почти всё нужное, а проверка показала, что найдена лишь небольшая часть.",
+"de": "Mit David Blair, „An evaluation of retrieval effectiveness for a full-text document-retrieval system“ (1985, ziviler Rechtsstreit): die Suchenden waren sicher, fast alles Relevante gefunden zu haben; die Prüfung zeigte nur einen kleinen Teil."
+},
+"rule": "Do not say an answer is complete because it feels complete: check a sample against what exists.",
+"needs": {
+"code": "needs_idea",
+"note": "claimed completeness against a checked sample: share of what a tool answer says it covers that a spot check finds; needs a ground-truth sample (spot-check sensor); not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

@@ -527,3 +527,8 @@
 ## 27.11.2026 — блок «ответ» на страницах датчиков
 - tools/honour_pages.py: в каждую страницу датчика (ru/de/en) добавлен статичный блок #answer: вопрос-заголовок, ответ из lead, строка «Сейчас» (JS подставляет статус после загрузки), ссылка на JSON и пометка «не прогноз». Жилое число роботы не видят — для них статичный текст.
 - Идея «датчик калибровки по Брайеру» ждёт «да» владельца и проверки данных: у паспорта новостей нет «правильного ответа», у крипто-паспорта режим можно сверять с реальным ходом рынка.
+
+## 27.11.2026 — партия 56 (Лиана, пересказы Gemini)
+- Карточки: griffith_b (one_model), maron_me (answer_cost, гражданская работа Blair & Maron 1985). Мостики: stale_apparent_vs_real (waiting до 10.12, Line + Brookes + Price), independent_or_same_root (idea, Griffith + Wilson + Kasperson), claimed_vs_found_complete (idea, Maron + Lancaster + Cleverdon + Saracevic).
+- Swanson в docs/memory-waiting.md (медицинская демонстрация), Murphy не добавлен: смерть не подтверждена. Line, Brookes, Price, Wilson, Lancaster F.W. уже были в библиотеке.
+- docs/scanner-bridges-summary.txt обновлён из CRYSTAL_BRIDGES (253 строки); уроки в docs/liana-lessons.md.
