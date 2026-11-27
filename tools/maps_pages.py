@@ -23,7 +23,7 @@ L = {
   ex_h="Пример", ex="Музей в замке Бергедорф (Гамбург): карта дала одни часы, справочник другие. Ответ называет расхождение и подсказывает позвонить в музей перед поездкой.", ex_a="Открыть пример (JSON)",
   lim_h="Границы", lim=["Это не рекомендация «идти» или «не идти» и не оценка места.", "Аптеки, врачи, банки: только заметка и официальный источник (aponet.de, 116 117, сам банк).", "Одноразовые праздники и местные праздники не учитываются; пороги звёзд — рабочее допущение.", "Мы ничего не правим на картах: при расхождении человек сам может сообщить об ошибке в приложении."],
   ag_h="Для агентов", ag="MCP-инструмент check_place и REST /api/v1/place. Бесплатно, без ИИ, без поиска в сети. Передайте название, рейтинг и число оценок, часы по источникам, даты отзывов.",
-  more="Ещё", m1="Праздник сегодня по землям (на немецком)", m2="Библиотека кристаллов: учёные, за которыми стоят проверки", m3="Подумай, прежде чем решить (think_it_through)"),
+  more="Ещё", m1="Праздник сегодня по землям (на немецком)", m2="Библиотека кристаллов: учёные, за которыми стоят проверки", m4="Условия на маршруте: темнота, воздух, предупреждения", m3="Подумай, прежде чем решить (think_it_through)"),
  "de": dict(path="/de/tools/maps", lang="de", file="de/tools/maps.html", loc="de-DE",
   title="Kann man der Karte eines Ortes trauen? · check_place · Orb Studio",
   desc="Ein KI-Assistent beschreibt ein Schloss, Museum oder Geschäft nach einer Kartenkarte. check_place prüft sie: Feiertag, Sterne mit Anzahl der Bewertungen, widersprüchliche Zeiten, Alter der Bewertungen. Nicht mit Google verbunden.",
@@ -40,7 +40,7 @@ L = {
   ex_h="Beispiel", ex="Museum im Bergedorfer Schloss (Hamburg): Die Karte nannte andere Zeiten als ein Verzeichnis. Die Antwort benennt den Widerspruch und rät, vor der Fahrt im Museum anzurufen.", ex_a="Beispiel öffnen (JSON)",
   lim_h="Grenzen", lim=["Keine Empfehlung „hingehen“ oder „nicht hingehen“ und keine Bewertung des Ortes.", "Apotheken, Ärzte, Banken: nur ein Hinweis und die offizielle Quelle (aponet.de, 116 117, die Bank selbst).", "Einmalige und örtliche Feiertage sind nicht eingerechnet; die Schwellen bei den Sternen sind eine Arbeitsannahme.", "Wir ändern nichts auf Karten: Bei einem Widerspruch kann die Person den Fehler selbst in der App melden."],
   ag_h="Für Agenten", ag="MCP-Werkzeug check_place und REST /api/v1/place. Kostenlos, ohne KI, ohne Websuche. Übergib Name, Bewertung und Anzahl, Zeiten je Quelle, Bewertungsdaten.",
-  more="Mehr", m1="Feiertag heute nach Bundesland", m2="Kristall-Bibliothek: die Forschenden hinter den Prüfungen", m3="Think it through (think_it_through)"),
+  more="Mehr", m4="Bedingungen auf der Route: Dunkelheit, Luft, Warnungen", m1="Feiertag heute nach Bundesland", m2="Kristall-Bibliothek: die Forschenden hinter den Prüfungen", m3="Think it through (think_it_through)"),
  "en": dict(path="/en/tools/maps", lang="en", file="en/tools/maps.html", loc="en-GB",
   title="Can you trust a map card for a place? · check_place · Orb Studio",
   desc="An AI assistant describes a castle, museum or shop from a map card. check_place checks it: public holiday, stars with the number of ratings, hours that disagree, review age. Not affiliated with Google.",
@@ -57,7 +57,7 @@ L = {
   ex_h="Example", ex="The museum in Bergedorf Castle (Hamburg): the map gave different hours than a directory. The answer names the disagreement and suggests phoning the museum before travelling.", ex_a="Open the example (JSON)",
   lim_h="Limits", lim=["Not a recommendation to go or not to go, and no rating of the place.", "Pharmacies, doctors, banks: only a note and the official source (aponet.de, 116 117, the bank itself).", "One-off and local holidays are not modelled; the star thresholds are a working assumption.", "We never edit a map: when sources disagree, the person can report the mistake in the app."],
   ag_h="For agents", ag="MCP tool check_place and REST /api/v1/place. Free, no AI, no web search. Pass the name, rating and number of ratings, hours per source, review dates.",
-  more="More", m1="Public holiday today by state (in German)", m2="Crystal Library: the scientists behind the checks", m3="Think it through (think_it_through)"),
+  more="More", m4="Route conditions: darkness, air, warnings", m1="Public holiday today by state (in German)", m2="Crystal Library: the scientists behind the checks", m3="Think it through (think_it_through)"),
 }
 
 CSS = """:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--up:#4fd8a4;--mono:ui-monospace,monospace;color-scheme:dark}
@@ -101,7 +101,7 @@ def page(k):
 <section class="card"><h2>{e(t['ex_h'])}</h2><p>{e(t['ex'])}</p><p><a href="{EX}" rel="nofollow">{e(t['ex_a'])}</a></p></section>
 <section class="card"><h2>{e(t['lim_h'])}</h2><ul>{lim}</ul></section>
 <section class="card"><h2>{e(t['ag_h'])}</h2><p>{e(t['ag'])}</p><p><code>https://orbstudio.org/api/v1/place?name=...</code></p></section>
-<section class="card"><h2>{e(t['more'])}</h2><div class="more"><a href="/de/feiertag-heute">{e(t['m1'])}</a><a href="{pre}/tools/crystals">{e(t['m2'])}</a><a href="/api/v1/think?q=">{e(t['m3'])}</a></div></section>
+<section class="card"><h2>{e(t['more'])}</h2><div class="more"><a href="/de/feiertag-heute">{e(t['m1'])}</a><a href="{pre}/tools/crystals">{e(t['m2'])}</a><a href="{pre}/tools/route-weather">{e(t['m4'])}</a><a href="/api/v1/think?q=">{e(t['m3'])}</a></div></section>
 </main></body>
 </html>
 """

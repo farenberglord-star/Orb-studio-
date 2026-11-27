@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What are the weather, air and darkness on my route? · Route conditions · Orb Studio</title>
+<meta name="description" content="On foot, by bike or by car around Hamburg: how much of the trip is after dark, how the air is along the way and whether official weather warnings apply. Not a forecast.">
+<link rel="canonical" href="https://orbstudio.org/en/tools/route-weather">
+<link rel="alternate" hreflang="ru" href="https://orbstudio.org/tools/route-weather">
+<link rel="alternate" hreflang="de" href="https://orbstudio.org/de/tools/route-weather">
+<link rel="alternate" hreflang="en" href="https://orbstudio.org/en/tools/route-weather">
+<link rel="alternate" hreflang="x-default" href="https://orbstudio.org/en/tools/route-weather">
+<meta property="og:url" content="https://orbstudio.org/en/tools/route-weather">
+<meta property="og:site_name" content="Orb Studio">
+<meta property="og:title" content="What are the weather, air and darkness on my route? · Route conditions · Orb Studio">
+<meta property="og:description" content="On foot, by bike or by car around Hamburg: how much of the trip is after dark, how the air is along the way and whether official weather warnings apply. Not a forecast.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--up:#4fd8a4;--warn:#ffb454;--mono:ui-monospace,monospace;color-scheme:dark}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;margin:0;line-height:1.5}a{color:var(--holo)}
+.wrap{max-width:760px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left,0px)) 28px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:26px;letter-spacing:.03em;margin:4px 0 0}h2{font-size:16px;letter-spacing:.05em;margin:0 0 8px;color:var(--holo)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}.lead{color:var(--dim);margin:2px 0 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.card p{margin:4px 0}.card ul{margin:4px 0;padding-left:20px}
+form{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim);font-family:var(--mono);letter-spacing:.06em}
+select,input,button{font:inherit;font-size:16px;color:var(--fg);background:#050b18;border:1px solid var(--line);border-radius:10px;padding:10px}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 6px;cursor:pointer}.seg button[aria-pressed=true]{border-color:var(--holo);color:var(--holo)}
+.full{grid-column:1/-1}.go{background:var(--holo);color:#05121c;font-weight:600;border:0;cursor:pointer}.go:disabled{opacity:.6}
+.res{display:none;gap:10px;flex-direction:column}.res.on{display:flex}.row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;min-width:110px}
+.big{font-size:22px;font-weight:600}.bar{height:10px;border-radius:6px;background:#12203a;overflow:hidden;flex:1;min-width:140px}.bar i{display:block;height:100%;background:var(--warn)}
+.ok{color:var(--up)}.bad{color:var(--warn)}.msg{color:var(--warn);min-height:1.2em}.small{font-size:12.5px;color:var(--dim)}
+.more{display:flex;gap:8px;flex-wrap:wrap}.more a{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:6px 11px;text-decoration:none}
+@media(max-width:520px){form{grid-template-columns:1fr}}</style>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebPage", "name": "What are the weather, air and darkness on my route? · Route conditions · Orb Studio", "url": "https://orbstudio.org/en/tools/route-weather", "inLanguage": "en", "description": "On foot, by bike or by car around Hamburg: how much of the trip is after dark, how the air is along the way and whether official weather warnings apply. Not a forecast.", "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org"}}</script>
+</head>
+<body><main class="wrap">
+<header><div class="eyebrow">On the road · foot · bike · car</div><h1>Route conditions</h1><p class="lead">Where to and when? We show travel time, how much of the trip falls after sunset, the worst air index at three points on the route and the official warnings of the German Weather Service.</p></header>
+<section class="card"><form id="f">
+<label>From<select id="from"><option value="hauptbahnhof">Hamburg Hauptbahnhof</option><option value="altona">Altona</option><option value="harburg">Harburg</option><option value="bergedorf">Bergedorf</option><option value="center">City centre (Rathaus)</option><option value="airport">Airport</option><option value="finkenwerder">Finkenwerder</option><option value="messe">Messe</option><option value="volksparkstadion">Volksparkstadion</option><option value="hafen">Harbour (Landungsbrücken)</option><option value="buxtehude">Buxtehude</option><option value="stade">Stade</option><option value="luebeck">Lübeck</option></select></label>
+<label>To<select id="to"><option value="hauptbahnhof">Hamburg Hauptbahnhof</option><option value="altona">Altona</option><option value="harburg">Harburg</option><option value="bergedorf">Bergedorf</option><option value="center">City centre (Rathaus)</option><option value="airport">Airport</option><option value="finkenwerder">Finkenwerder</option><option value="messe">Messe</option><option value="volksparkstadion">Volksparkstadion</option><option value="hafen">Harbour (Landungsbrücken)</option><option value="buxtehude">Buxtehude</option><option value="stade">Stade</option><option value="luebeck">Lübeck</option></select></label>
+<label class="full">How<div class="seg"><button type="button" data-m="foot" aria-pressed="false">On foot</button><button type="button" data-m="bike" aria-pressed="true">Bike</button><button type="button" data-m="car" aria-pressed="false">Car</button></div></label>
+<label class="full">Departure (Berlin time)<input id="time" type="time" required></label>
+<button class="go full" id="go" type="submit">Show</button>
+</form><p class="msg" id="msg" role="status"></p></section>
+<section class="card res" id="res" aria-live="polite"></section>
+<section class="card"><h2>Limits</h2><ul><li>Hamburg and surroundings only (free OpenStreetMap router).</li><li>Travel time does not include city traffic; for cars, motorway reports are taken into account.</li><li>This is not advice to go or not to go, and not a safety rating.</li><li>We keep no profile and do not store routes; the request sits in a cache for up to 5 minutes.</li></ul></section>
+<section class="card"><h2>For agents</h2><p>The same comes from REST and the MCP tool get_route_context with the parameter conditions.</p><p><code>https://orbstudio.org/api/v1/route?from=harburg&amp;to=center&amp;mode=bike&amp;conditions=true&amp;time=16:30</code></p></section>
+<section class="card"><h2>More</h2><div class="more"><a href="/en/tools/maps">Can you trust a place card on a map?</a><a href="/en/tools/crystals">Crystal Library</a></div></section>
+</main>
+<script>(function(){var T={"loading": "Working it out…", "err": "That did not work: the source did not answer. Please try again in a minute.", "same": "Please choose two different points.", "r_route": "Route", "r_km": "km", "r_min": "min", "r_dark": "In the dark", "r_dark_none": "The whole trip in daylight (sunset at", "r_dark_all": "The whole trip after sunset (sunset was at", "r_dark_part": "min after sunset (sunset at", "r_air": "Air", "r_air_na": "Air index not available.", "r_warn": "Warnings of the German Weather Service (DWD, state of Hamburg)", "r_warn_none": "No active warnings right now.", "r_warn_n": "active warnings, highest level", "r_note": "Not a forecast: air and warnings are for now, sunset is worked out for your departure time. The route is not matched to warning districts.", "l": "en"},$=function(i){return document.getElementById(i)},mode='bike',busy=false;
+function berlinNow(){try{return new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Berlin'}).format(new Date())}catch(e){return '12:00'}}
+$('time').value=berlinNow();$('to').selectedIndex=4;
+Array.prototype.forEach.call(document.querySelectorAll('.seg button'),function(b){b.addEventListener('click',function(){mode=b.dataset.m;Array.prototype.forEach.call(document.querySelectorAll('.seg button'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false')})})});
+function el(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n}
+function row(k,v){var r=el('div','row');r.appendChild(el('div','k',k));r.appendChild(v);return r}
+$('f').addEventListener('submit',function(ev){ev.preventDefault();if(busy)return;var from=$('from').value,to=$('to').value,msg=$('msg'),res=$('res');msg.textContent='';
+if(from===to){msg.textContent=T.same;return}
+busy=true;$('go').disabled=true;msg.textContent=T.loading;
+fetch('/api/v1/route?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&mode='+mode+'&conditions=true&time='+encodeURIComponent($('time').value||'12:00')).then(function(r){return r.json()}).then(function(d){
+busy=false;$('go').disabled=false;if(d.status!=='ok'||!d.conditions){msg.textContent=T.err;res.className='res';return}msg.textContent='';res.textContent='';
+var c=d.conditions,km=Math.round(d.distance_m/100)/10;
+var big=el('div','big',km+' '+T.r_km+' · '+Math.round(d.duration_min)+' '+T.r_min);res.appendChild(row(T.r_route,big));
+var dk=c.dark;if(dk&&dk.share!=null){var w=el('div','row');var bar=el('div','bar');var i=el('i');i.style.width=Math.round(dk.share*100)+'%';bar.appendChild(i);w.appendChild(bar);
+var tx=dk.share===0?T.r_dark_none+' '+dk.sunset+')':dk.share>=1?T.r_dark_all+' '+dk.sunset+')':Math.round(dk.minutes_after_sunset)+' '+T.r_dark_part+' '+dk.sunset+')';w.appendChild(el('span',dk.share>0?'bad':'ok',tx));res.appendChild(row(T.r_dark,w))}
+var a=c.air,at=el('span',a&&a.status==='ok'&&a.worst_index>=3?'bad':'ok',a&&a.status==='ok'?(a.index_class&&a.index_class[T.l]||('index '+a.worst_index))+' ('+a.worst_index+(a.station?', '+a.station:'')+')':T.r_air_na);res.appendChild(row(T.r_air,at));
+var wr=c.warnings,wt=wr&&wr.status!=='unavailable'?(wr.active_warnings>0?wr.active_warnings+' '+T.r_warn_n+' '+wr.max_level:T.r_warn_none):T.r_air_na;res.appendChild(row(T.r_warn,el('span',wr&&wr.active_warnings>0?'bad':'ok',wt)));
+res.appendChild(el('p','small',T.r_note));res.className='res on'}).catch(function(){busy=false;$('go').disabled=false;msg.textContent=T.err})});})();</script>
+</body>
+</html>

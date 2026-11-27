@@ -18,6 +18,9 @@
   <url><loc>https://orbstudio.org/tools/maps</loc><lastmod>2026-11-26</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/de/tools/maps</loc><lastmod>2026-11-26</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/en/tools/maps</loc><lastmod>2026-11-26</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/tools/route-weather</loc><lastmod>2026-11-27</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://orbstudio.org/de/tools/route-weather</loc><lastmod>2026-11-27</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://orbstudio.org/en/tools/route-weather</loc><lastmod>2026-11-27</lastmod><changefreq>weekly</changefreq><priority>0.5</priority></url>
   <url><loc>https://orbstudio.org/sensors</loc><lastmod>2026-11-20</lastmod><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://orbstudio.org/live</loc><lastmod>2026-11-20</lastmod><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://orbstudio.org/places</loc><lastmod>2026-11-20</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>
