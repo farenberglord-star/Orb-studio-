@@ -239,3 +239,16 @@ test("route: second route and honest comparison (Wardrop, Smeed)", () => {
   assert.match(r.comparison.note, /Wardrop/);
   assert.equal(summarizeRoute({ routes: [mk(10, 9.9)] }, "car", roads).alternative, undefined);
 });
+
+import { viaPoints, pickAlternative } from "../src/route.js";
+test("route: via points on both sides, alternative must differ and not be far longer", () => {
+  const coords = []; for (let i = 0; i <= 20; i++) coords.push([9.9 + i * 0.01, 53.5]);
+  const main = { distance: 14000, duration: 1200, geometry: { coordinates: coords } };
+  const v = viaPoints({ lat: 53.5, lon: 9.9 }, { lat: 53.5, lon: 10.1 }, main);
+  assert.equal(v.length, 2);
+  assert.ok(v[0].lat > 53.5 && v[1].lat < 53.5, JSON.stringify(v));
+  const north = coords.map(([x]) => [x, 53.55]), same = coords.map(([x, y]) => [x, y + 0.0002]);
+  assert.equal(pickAlternative(main, [{ duration: 1300, geometry: { coordinates: same } }]), null, "same road is no alternative");
+  assert.equal(pickAlternative(main, [{ duration: 2000, geometry: { coordinates: north } }]), null, "too slow");
+  assert.ok(pickAlternative(main, [{ duration: 1400, geometry: { coordinates: north } }, { duration: 1500, geometry: { coordinates: north } }]));
+});

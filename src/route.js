@@ -37,6 +37,31 @@ export function incidentsNear(line, roads, maxM = 1000) {
   return out.sort((a, b) => a.distance_from_route_m - b.distance_from_route_m).slice(0, 20);
 }
 
+// Публичный сервер OSRM не отдаёт alternatives, поэтому второй маршрут строим сами: через точку в стороне от середины основного, слева и справа.
+export function viaPoints(a, b, mainRoute) {
+  const c = mainRoute && mainRoute.geometry && mainRoute.geometry.coordinates;
+  if (!c || c.length < 4) return [];
+  const [mlon, mlat] = c[Math.floor(c.length / 2)];
+  const kx = Math.cos((mlat * Math.PI) / 180) * 111.32, ky = 110.57;
+  const dx = (b.lon - a.lon) * kx, dy = (b.lat - a.lat) * ky, len = Math.hypot(dx, dy) || 1;
+  const off = Math.max(2, Math.min(8, 0.25 * (mainRoute.distance / 1000)));
+  const px = -dy / len, py = dx / len;
+  return [1, -1].map((sg) => ({ lat: Math.round((mlat + (sg * py * off) / ky) * 1e5) / 1e5, lon: Math.round((mlon + (sg * px * off) / kx) * 1e5) / 1e5 }));
+}
+// Выбираем из кандидатов самый быстрый, который заметно отличается от основного (меньше 70 % общих точек) и не дольше 1,5 раза.
+export function pickAlternative(main, candidates) {
+  const lineOf = (r) => r.geometry.coordinates.map(([lon, lat]) => ({ lat, lon }));
+  const ml = lineOf(main), ok = [];
+  for (const r of candidates || []) {
+    if (!r || !r.geometry || !r.geometry.coordinates || r.geometry.coordinates.length < 2 || !(r.duration > 0)) continue;
+    if (r.duration > main.duration * 1.5) continue;
+    const al = lineOf(r), step = Math.max(1, Math.floor(al.length / 60));
+    let near = 0, n = 0;
+    for (let i = 0; i < al.length; i += step) { n++; if (distToLine(al[i], ml) <= 150) near++; }
+    if (n && near / n < 0.7) ok.push(r);
+  }
+  return ok.sort((x, y) => x.duration - y.duration)[0] || null;
+}
 function oneRoute(r, mode, roads) {
   if (!r || !r.geometry || !r.geometry.coordinates || !r.geometry.coordinates.length) return null;
   const line = r.geometry.coordinates.map(([lon, lat]) => ({ lat, lon }));

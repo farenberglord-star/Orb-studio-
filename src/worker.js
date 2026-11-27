@@ -44,7 +44,7 @@ import { PARTIES as PA_PARTIES, reduceDaily as paReduce, rowFor as paRow, summar
 import { reduceDawum, summarizePolls, ATTRIBUTION as POLL_ATTRIBUTION, CONTEXT_NOTE as POLL_NOTE } from "./polls.js";
 import { reduceFeed, summarize, parsePointParams, ATTRIBUTION as ODL_ATTRIBUTION, CONTEXT_NOTE as ODL_NOTE } from "./radiation.js";
 import { parseKp, parseScales, parseWind, parseFlares } from "./space.js";
-import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute } from "./route.js";
+import { parsePlaceOrPoint, PLACES, MODES, summarizeRoute, viaPoints, pickAlternative } from "./route.js";
 import { episodeSnapshot } from "./episode-snapshot.js";
 import { fetchUsgs, summarizeQuakes } from "./quakes.js";
 import { GROK_FOLLOW_SYSTEM, grokFollowUser, checkCarousel, GROK_CAROUSEL_SYSTEM, grokCarouselUser } from "./duo.js";
@@ -2668,7 +2668,7 @@ async function routeData(env, params) {
   const a = parsePlaceOrPoint(params.from), b = parsePlaceOrPoint(params.to), mode = MODES[params.mode] ? params.mode : (params.mode ? null : "car");
   if (!a || !b || mode === null) return { status: "bad_request", http: 400, error: "Use from=lat,lon&to=lat,lon&mode=foot|bike|car (default car). from/to also accept a known place name.", known_places: Object.keys(PLACES), example: "https://orbstudio.org/api/v1/route?from=53.5511,9.9937&to=53.5392,9.8386&mode=car" };
   if (a.outside || b.outside) return { status: "bad_request", http: 400, error: "Points must be in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9). The free router is not offered for other areas." };
-  const key = new Request(`https://orbstudio.org/__cache/route-v2/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
+  const key = new Request(`https://orbstudio.org/__cache/route-v3/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
   const hit = await c.match(key);
   let body;
   if (hit) body = await hit.json();
@@ -2679,6 +2679,11 @@ async function routeData(env, params) {
       const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/route)", Accept: "application/json" } });
       if (!r.ok) throw new Error("router http " + r.status);
       osrm = await r.json();
+      if (mode === "car" && osrm.routes && osrm.routes.length === 1) { // второй маршрут: через точки слева и справа от середины
+        const vias = viaPoints(a, b, osrm.routes[0]);
+        const cand = await Promise.all(vias.map(async (v) => { try { const rr = await fetch(`https://routing.openstreetmap.de/${MODES[mode]}/route/v1/driving/${a.lon},${a.lat};${v.lon},${v.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=true`, { signal: AbortSignal.timeout(6000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/route)", Accept: "application/json" } }); const j = rr.ok ? await rr.json() : null; return j && j.routes && j.routes[0]; } catch { return null; } }));
+        const alt = pickAlternative(osrm.routes[0], cand); if (alt) osrm.routes.push(alt);
+      }
     } catch (e) { return { status: "unavailable", http: 503, error: String(e.message || e).slice(0, 80), note: "The free OSM router did not answer. Nothing is estimated.", source: "OSRM / FOSSGIS" }; }
     let roads = null;
     if (mode === "car") { try { const d = await roadsData(env); if (d.sources_ok > 0 && !d.stale) roads = d; } catch (e) {} }
