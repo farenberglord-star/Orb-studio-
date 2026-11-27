@@ -96,3 +96,10 @@ test("task-first titles: sensor pages start with the question, then the name", (
   const e = readFileSync(new URL("../public/en/tools/howard.html", import.meta.url), "utf8");
   assert.match(e, /<title>Retell a story now or wait for confirmation\? · Howard sensor · Orb Studio<\/title>/);
 });
+
+test("news brief items carry one say line from the passport", () => {
+  const b = newsBrief([{ headline: "Minister says tax cuts will come next year", source: "X", confirm: 1 }], [], Date.now());
+  assert.equal(typeof b.items[0].say, "string");
+  assert.ok(b.items[0].say.length > 10 && b.items[0].say.length <= 220);
+  assert.ok(briefMarkdown({ topic: "news", items: b.items, witness_url: "u", rule: "r", passport_id: "orb-wit-x", slot: "2026-11-27T10:00:00Z", signed_at: "2026-11-27T10:00:00Z" }).includes("say: "));
+});

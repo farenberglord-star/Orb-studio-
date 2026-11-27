@@ -29,7 +29,8 @@ export function newsBrief(items, radars, now = Date.now()) {
     const p = newsPassport({ headline: it.headline, published_at: it.published_at, confirm: it.confirm, state_media: it.state_media || null }, now);
     return { headline: String(it.headline || "").slice(0, 200), source: it.source || null, radar: it.radar || null, published_at: it.published_at || null,
       outlets: Number.isFinite(+it.confirm) && it.confirm !== null ? +it.confirm : null,
-      status: p.status, checkability: p.checkability, confidence: p.confidence, fired: p.fired };
+      status: p.status, checkability: p.checkability, confidence: p.confidence, fired: p.fired,
+      say: (p.say && p.say[0]) ? String(p.say[0]).slice(0, 220) : null }; // одна главная строка «как сказать»: агент пересказывает по ней, а не по настроению заголовка
   });
   const rs = (radars || []).filter((r) => r && num(r.lvl) !== null).map((r) => ({ id: r.id, level: r.lvl }));
   const mean = rs.length ? Math.round(rs.reduce((a, r) => a + r.level, 0) / rs.length) : null;
@@ -87,7 +88,7 @@ export function datasetLd(b, origin = ORIGIN) {
 export function briefMarkdown(b) {
   const L = [`# Orb Studio ${b.topic} brief`, "", `> ${stampLine(b, "en")}`, ""];
   if (b.topic === "news") {
-    for (const t of b.items || []) L.push(`- ${t.headline} (${t.source || "?"}; outlets: ${t.outlets ?? "?"}; ${t.status}; checkability: ${t.checkability}; confidence: ${t.confidence}${t.fired && t.fired.length ? "; flags: " + t.fired.join(", ") : ""})`);
+    for (const t of b.items || []) L.push(`- ${t.headline} (${t.source || "?"}; outlets: ${t.outlets ?? "?"}; ${t.status}; checkability: ${t.checkability}; confidence: ${t.confidence}${t.fired && t.fired.length ? "; flags: " + t.fired.join(", ") : ""})${t.say ? "\n  say: " + t.say : ""}`);
   } else {
     L.push(`- regime: ${b.regime}; new trade ${b.new_trade_size_pct_of_plan}% of plan; max risk ${b.max_risk_per_trade_pct_of_capital}% of capital; order: ${b.order}`);
     if (b.ecb_eurusd) L.push(`- ECB EUR/USD: ${b.ecb_eurusd.value} (${b.ecb_eurusd.date})`);
