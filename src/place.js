@@ -178,6 +178,7 @@ export function routeSummary(roads, wanted) {
 }
 
 const TOPIC = /apothek|pharmac|аптек|krankenhaus|klinik|hospital|больниц|клиник|arzt|doctor|врач|bank|geldautomat|atm|банк|банкомат/i;
+const AIRPORT = /flughafen|airport|аэропорт|\bFRA\b|\bMUC\b|\bHAM\b|\bBER\b|\bDUS\b|terminal/i;
 const ROAD = /tankstelle|gas station|fuel|азс|заправк|parkhaus|parking|парковк|ladestation|charging|зарядн/i;
 
 // Восход и закат по формуле NOAA (без внешних источников). Точность ≈ 1–2 мин; гражданские сумерки — солнце на 6° ниже горизонта.
@@ -274,9 +275,12 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   const notes = [];
   if (TOPIC.test(text)) notes.push({ en: "Health and money places: this check never says whether to use them. For opening hours and emergency service use the official source (pharmacy emergency service: aponet.de or 116 117 for medical on-call in Germany; bank: the bank itself).", ru: "Места про здоровье и деньги: проверка не говорит, пользоваться ли ими. Часы и дежурства — только по официальному источнику (аптеки: aponet.de; врачебный дежурный: 116 117; банк: сам банк).", de: "Orte rund um Gesundheit und Geld: diese Prüfung sagt nie, ob man sie nutzen soll. Zeiten und Notdienst nur über die offizielle Quelle (Apotheken: aponet.de; ärztlicher Bereitschaftsdienst: 116 117; Bank: die Bank selbst)." });
   const pointers = [];
+  const isAirport = AIRPORT.test(text);
+  if (isAirport) notes.push({ en: "Airport: this check does not know flight status, gates, tickets, hotels or entry rules. For a flight use the airline and the airport's own departure board. We can add the way there: roads, weather, sunset, charging and parking where we have them. A rule of thumb about arriving early is not a promise.", ru: "Аэропорт: проверка не знает статус рейса, выходы, билеты, отели и правила въезда. По рейсу смотрите авиакомпанию и табло аэропорта. Мы добавляем дорогу: трассы, погоду, закат, зарядки и парковки, где они у нас есть. Совет приехать заранее не является обещанием.", de: "Flughafen: diese Prüfung kennt weder Flugstatus noch Gates, Tickets, Hotels oder Einreiseregeln. Für den Flug die Airline und die Abflugtafel des Flughafens nutzen. Wir ergänzen den Weg dorthin: Straßen, Wetter, Sonnenuntergang, Laden und Parken, wo wir es haben." });
   if (!nearby && hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.push({ tool: "get_dwd_warnings", why: "official weather warnings for the state", url: "https://orbstudio.org/api/v1/weather/warnings-de?state=" + hol.state }); pointers.push({ tool: "get_flood_warnings", why: "flood warnings, relevant for places by a river or the coast", url: "https://orbstudio.org/api/v1/hydro/flood-warnings" }); }
   if (!route && hasPos && lat > 53.3 && lat < 53.8 && lon > 9.6 && lon < 10.4) pointers.push({ tool: "get_roads", why: "jams, closures and roadworks on the motorways around Hamburg", url: "https://orbstudio.org/api/v1/roads" });
   if (ROAD.test(text)) pointers.push({ tool: "get_parking_de", why: "live parking occupancy where we have it (Karlsruhe region, Leipzig P+R)", url: "https://orbstudio.org/api/v1/parking-de" });
+  if (isAirport && hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.unshift({ tool: "get_route", why: "way to the airport by car (Hamburg area only so far), with motorway reports", url: "https://orbstudio.org/api/v1/route?from=LAT,LON&to=" + lat + "," + lon + "&mode=car" }); }
   pointers.push({ tool: "check_claim", why: "for any description claim like 'only', 'oldest', 'best' on the place's page", url: "https://orbstudio.org/api/v1/check-claim?claim=" });
   const report = {
     tool: "check_place", place: name, date, holiday: hol, rating, review_ages: ages, hours,

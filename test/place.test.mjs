@@ -188,3 +188,11 @@ test("chargers: check_place flags empty register, no storage in worker", () => {
   const body = src.slice(src.indexOf("async function chargersData"), src.indexOf("async function wikidataPlaces"));
   assert.ok(body.length > 100 && !/console\.|\.prepare\(|sharedPut|caches\./.test(body));
 });
+
+test("airport: note without flight status promises, route pointer", () => {
+  const r = checkPlace({ name: "Flughafen Hamburg", lat: 53.6304, lon: 9.9882 }, Date.UTC(2026, 10, 27, 10));
+  assert.ok(r.notes.some((n) => /flight status/i.test(n.en)));
+  assert.ok(r.pointers.some((x) => x.tool === "get_route"));
+  const r2 = checkPlace({ name: "Café am Markt", lat: 53.6304, lon: 9.9882 }, Date.UTC(2026, 10, 27, 10));
+  assert.ok(!r2.notes.some((n) => /flight status/i.test(n.en)));
+});
