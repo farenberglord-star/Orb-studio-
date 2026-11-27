@@ -2668,14 +2668,14 @@ async function routeData(env, params) {
   const a = parsePlaceOrPoint(params.from), b = parsePlaceOrPoint(params.to), mode = MODES[params.mode] ? params.mode : (params.mode ? null : "car");
   if (!a || !b || mode === null) return { status: "bad_request", http: 400, error: "Use from=lat,lon&to=lat,lon&mode=foot|bike|car (default car). from/to also accept a known place name.", known_places: Object.keys(PLACES), example: "https://orbstudio.org/api/v1/route?from=53.5511,9.9937&to=53.5392,9.8386&mode=car" };
   if (a.outside || b.outside) return { status: "bad_request", http: 400, error: "Points must be in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9). The free router is not offered for other areas." };
-  const key = new Request(`https://orbstudio.org/__cache/route-v1/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
+  const key = new Request(`https://orbstudio.org/__cache/route-v2/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
   const hit = await c.match(key);
   let body;
   if (hit) body = await hit.json();
   else {
     let osrm;
     try {
-      const u = `https://routing.openstreetmap.de/${MODES[mode]}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=true`;
+      const u = `https://routing.openstreetmap.de/${MODES[mode]}/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=true${mode === "car" ? "&alternatives=true" : ""}`;
       const r = await fetch(u, { signal: AbortSignal.timeout(9000), headers: { "User-Agent": "OrbStudio/1.0 (+https://orbstudio.org/api/v1/route)", Accept: "application/json" } });
       if (!r.ok) throw new Error("router http " + r.status);
       osrm = await r.json();

@@ -225,3 +225,17 @@ test("grok fixes: all absolute words, sunset at given time, charger dedupe, park
   assert.ok(!r.pointers.some((x) => x.tool === "get_parking_de"));
   assert.ok(r.live_data_note);
 });
+
+import { summarizeRoute } from "../src/route.js";
+test("route: second route and honest comparison (Wardrop, Smeed)", () => {
+  const mk = (dur, lon) => ({ distance: dur * 800, duration: dur * 60, geometry: { coordinates: [[lon, 53.5], [lon + 0.01, 53.51]] }, legs: [] });
+  const osrm = { routes: [mk(20, 9.9), mk(24, 10.1)] };
+  const roads = { jams: [{ kind: "jam", road: "A7", title: "Stau", delay_min: 15, lat: 53.505, lon: 9.905 }], closures: [], roadworks: [] };
+  const r = summarizeRoute(osrm, "car", roads);
+  assert.ok(r.alternative && r.comparison);
+  assert.equal(r.comparison.main.reported_jam_delay_min, 15);
+  assert.equal(r.comparison.alternative.reported_jam_delay_min, 0);
+  assert.equal(r.comparison.looks_faster_now, "alternative");
+  assert.match(r.comparison.note, /Wardrop/);
+  assert.equal(summarizeRoute({ routes: [mk(10, 9.9)] }, "car", roads).alternative, undefined);
+});

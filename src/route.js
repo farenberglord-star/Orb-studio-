@@ -37,8 +37,7 @@ export function incidentsNear(line, roads, maxM = 1000) {
   return out.sort((a, b) => a.distance_from_route_m - b.distance_from_route_m).slice(0, 20);
 }
 
-export function summarizeRoute(osrm, mode, roads) {
-  const r = osrm && osrm.routes && osrm.routes[0];
+function oneRoute(r, mode, roads) {
   if (!r || !r.geometry || !r.geometry.coordinates || !r.geometry.coordinates.length) return null;
   const line = r.geometry.coordinates.map(([lon, lat]) => ({ lat, lon }));
   const names = [];
@@ -52,6 +51,28 @@ export function summarizeRoute(osrm, mode, roads) {
     if (roads) { out.motorway_reports_near_route = incidentsNear(line, roads); out.motorway_check = "Autobahn GmbH reports within 1 km of the route (jams, closures, roadworks). City streets are not covered."; }
     else out.motorway_check = "unavailable: the Autobahn feed did not answer, nothing is estimated";
   } else out.motorway_check = "not applicable for this mode (motorway reports are only checked for car routes)";
+  return out;
+}
+// Wardrop (1952) и Смид (1961): быстрая на вид альтернатива заполняется, поэтому честно показываем ОБА времени сейчас, а не «экономию».
+function withReported(o) {
+  const rep = (o.motorway_reports_near_route || []).filter((x) => x.kind === "jam").reduce((m, x) => m + (x.delay_min || 0), 0);
+  const closed = (o.motorway_reports_near_route || []).some((x) => x.kind === "closure" && x.blocked);
+  return { free_flow_min: o.duration_min, reported_jam_delay_min: rep, free_flow_plus_reported_delay_min: Math.round((o.duration_min + rep) * 10) / 10, blocked_by_closure: closed };
+}
+export function summarizeRoute(osrm, mode, roads) {
+  const rs = osrm && osrm.routes;
+  const out = oneRoute(rs && rs[0], mode, roads);
+  if (!out) return null;
+  if (mode === "car" && roads && rs[1]) {
+    const alt = oneRoute(rs[1], mode, roads);
+    if (alt) {
+      const a = withReported(out), b = withReported(alt);
+      const better = b.blocked_by_closure && !a.blocked_by_closure ? "main" : a.blocked_by_closure && !b.blocked_by_closure ? "alternative" : (Math.abs(a.free_flow_plus_reported_delay_min - b.free_flow_plus_reported_delay_min) < 3 ? "about_equal" : (a.free_flow_plus_reported_delay_min < b.free_flow_plus_reported_delay_min ? "main" : "alternative"));
+      out.alternative = alt;
+      out.comparison = { main: a, alternative: b, looks_faster_now: better,
+        note: "Both times are free-flow router times plus the delays that Autobahn GmbH reports near each route (an upper bound: it can count both carriageways, and city streets are not seen). When one route is jammed and the other looks free, drivers move over and the free one fills up (Wardrop 1952, Smeed 1961): treat the gap as what the data show now, not as a saving you can promise; check again before you leave." };
+    }
+  }
   return out;
 }
 
