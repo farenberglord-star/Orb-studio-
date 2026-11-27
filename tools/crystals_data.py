@@ -2097,6 +2097,31 @@ C = [
  'С Максвеллом Маккомбсом, «The Agenda-Setting Function of Mass Media» (1972): порядок тем в СМИ совпадает с порядком, который называют люди; сравнение — по ранговому порядку тем в двух наборах.',
  'Mit Maxwell McCombs, „The Agenda-Setting Function of Mass Media“ (1972): Die Reihenfolge der Themen in den Medien deckt sich mit der, die Menschen nennen; verglichen wird die Rangordnung der Themen in zwei Mengen.',
  'To say two groups of outlets set different agendas, compare the rank order of their topics and give the number.'),
+('hagerstrand_t', 'Torsten Hägerstrand', 'Торстен Хегерстранд', '1916–2004', 'https://en.wikipedia.org/wiki/Torsten_H%C3%A4gerstrand', 'rumour_vs_fact',
+ "'Innovationsförloppet ur korologisk synpunkt' (1953): a new thing spreads by contact, nearby places first, and the lag grows with distance from the source.",
+ '«Innovationsförloppet ur korologisk synpunkt» (1953): новое распространяется через контакты, сначала ближние места, а задержка растёт с расстоянием от источника.',
+ '„Innovationsförloppet ur korologisk synpunkt“ (1953): Neues breitet sich über Kontakte aus, zuerst nahe Orte, und die Verzögerung wächst mit der Entfernung von der Quelle.',
+ 'If a story reached far outlets before near ones, ask why: a normal spread goes by neighbours first, so a jump over distance points to a shared feed.'),
+('kruskal_w', 'William Kruskal', 'Уильям Краскел', '1919–2005', 'https://en.wikipedia.org/wiki/William_Kruskal', 'one_model',
+ "With W. Allen Wallis, 'Use of Ranks in One-Criterion Variance Analysis' (1952): to ask whether several groups differ, compare the ranks of their values, not the size of the numbers.",
+ 'С У. Алленом Уоллисом, «Use of Ranks in One-Criterion Variance Analysis» (1952): чтобы понять, различаются ли несколько групп, сравнивай ранги их значений, а не величину чисел.',
+ 'Mit W. Allen Wallis, „Use of Ranks in One-Criterion Variance Analysis“ (1952): Um zu prüfen, ob mehrere Gruppen sich unterscheiden, vergleiche die Ränge ihrer Werte, nicht die Größe der Zahlen.',
+ 'When outlets give different numbers for one event, say how far apart they are and how many outlets stand behind each; do not average them.'),
+('jaynes_et', 'Edwin T. Jaynes', 'Эдвин Т. Джейнс', '1922–1998', 'https://en.wikipedia.org/wiki/Edwin_Thompson_Jaynes', 'one_model',
+ "'Information Theory and Statistical Mechanics' (1957): among all versions that fit what you know, take the one that assumes the least; do not add certainty the evidence does not give.",
+ '«Information Theory and Statistical Mechanics» (1957): из всех версий, согласных с тем, что известно, бери ту, что предполагает меньше всего; не добавляй уверенности, которой не даёт свидетельство.',
+ '„Information Theory and Statistical Mechanics“ (1957): Unter allen Versionen, die zum Bekannten passen, nimm die, die am wenigsten annimmt; füge keine Sicherheit hinzu, die der Beleg nicht gibt.',
+ 'When versions disagree, keep the spread in your answer and do not pick one version above what the evidence fixes.'),
+('weitzman_ml', 'Martin Weitzman', 'Мартин Вейцман', '1942–2019', 'https://en.wikipedia.org/wiki/Martin_Weitzman', 'answer_cost',
+ "'Optimal Search for the Best Alternative' (Econometrica, 1979): give each unopened option a reservation value, open them in that order, and stop when the best found beats every value that is left.",
+ '«Optimal Search for the Best Alternative» (Econometrica, 1979): дай каждому неоткрытому варианту резервную ценность, открывай по её порядку и остановись, когда лучшее найденное выше всех оставшихся.',
+ '„Optimal Search for the Best Alternative“ (Econometrica, 1979): Gib jeder ungeöffneten Option einen Reservationswert, öffne sie in dieser Reihenfolge und höre auf, wenn das beste Gefundene jeden übrigen Wert übertrifft.',
+ 'Check first the source most likely to change your answer, and stop when the answer in hand beats what the unchecked sources could add.'),
+('mendenhall_tc', 'Thomas Corwin Mendenhall', 'Томас Корвин Менденхолл', '1841–1924', 'https://en.wikipedia.org/wiki/Thomas_Corwin_Mendenhall', 'rumour_vs_fact',
+ "'The Characteristic Curves of Composition' (Science, 1887): count how many words of each length a text uses; the curve of one author stays steady, so a different curve hints at another hand.",
+ '«The Characteristic Curves of Composition» (Science, 1887): считай, сколько слов каждой длины в тексте; кривая одного автора устойчива, поэтому иная кривая намекает на другую руку.',
+ '„The Characteristic Curves of Composition“ (Science, 1887): Zähle, wie viele Wörter jeder Länge ein Text nutzt; die Kurve eines Autors bleibt stabil, eine andere Kurve deutet auf eine andere Hand.',
+ 'A text that does not fit the usual word-length curve of its feed may come from another hand; flag it to check, not as a verdict.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2756,3 +2781,9 @@ NEEDS['ellegard_a'] = ('needs_idea', 'per same-event group: words in a headline 
 NEEDS['svartvik_j'] = ('needs_idea', 'quoted statements: a change of style inside one quote (sentence length, inversion, time format); needs a source with full quotes, radar headlines are too short; joins the copy-trace bridge as a flag to check, not a verdict')
 NEEDS['sutherland_eh'] = ('needs_idea', 'crime-desk items with fraud or embezzlement words matched to earlier items by scheme words (same trick, same kind of victim); needs the crime-desk history to grow; joins the fraud-conditions bridge')
 NEEDS['shaw_dl'] = ('needs_idea', 'a topic label per headline for 7 days; Spearman rank correlation of topic order between state media and the rest; sensor candidate with the Duncan index, needs the owner yes; joins the outlet-topic-gap bridge')
+
+NEEDS['hagerstrand_t'] = ('needs_idea', 'per same-event group: delay of each later outlet after the first, against the home country and language of the outlets; needs a list of outlet countries; joins the copy-wave bridge; not computed yet')
+NEEDS['kruskal_w'] = ('needs_idea', 'per same-event group of 3+ outlets whose headlines carry a number with the same unit (minutes, euros, counts): the spread of the numbers by outlet and how many outlets stand behind each value; no test statistic until we see how often such groups occur; joins the numbers-differ bridge')
+NEEDS['jaynes_et'] = ('needs_idea', 'same groups as the Kruskal card: Shannon entropy of the distribution of reported values across outlets (one value = 0, many values = high); joins the numbers-differ bridge')
+NEEDS['weitzman_ml'] = ('needs_idea', 'per story: how much the answer moved after each added source against the time that source costs; needs the check order stored; joins the when-to-stop-reading bridge; not computed yet')
+NEEDS['mendenhall_tc'] = ('needs_idea', 'per outlet: chi-square distance between the word-length distribution (1-15 letters) of its headlines in the last 24 h and its own 7-day baseline; radar feeds every 30 minutes; flag where one batch departs from the outlet usual hand; sensor candidate, needs the owner yes; joins the wrong-hand bridge')

@@ -15705,6 +15705,96 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "a topic label per headline for 7 days; Spearman rank correlation of topic order between state media and the rest; sensor candidate with the Duncan index, needs the owner yes; joins the outlet-topic-gap bridge"
 }
+},
+{
+"id": "hagerstrand_t",
+"name": "Torsten Hägerstrand",
+"name_ru": "Торстен Хегерстранд",
+"years": "1916–2004",
+"wiki": "https://en.wikipedia.org/wiki/Torsten_H%C3%A4gerstrand",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Innovationsförloppet ur korologisk synpunkt' (1953): a new thing spreads by contact, nearby places first, and the lag grows with distance from the source.",
+"ru": "«Innovationsförloppet ur korologisk synpunkt» (1953): новое распространяется через контакты, сначала ближние места, а задержка растёт с расстоянием от источника.",
+"de": "„Innovationsförloppet ur korologisk synpunkt“ (1953): Neues breitet sich über Kontakte aus, zuerst nahe Orte, und die Verzögerung wächst mit der Entfernung von der Quelle."
+},
+"rule": "If a story reached far outlets before near ones, ask why: a normal spread goes by neighbours first, so a jump over distance points to a shared feed.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: delay of each later outlet after the first, against the home country and language of the outlets; needs a list of outlet countries; joins the copy-wave bridge; not computed yet"
+}
+},
+{
+"id": "kruskal_w",
+"name": "William Kruskal",
+"name_ru": "Уильям Краскел",
+"years": "1919–2005",
+"wiki": "https://en.wikipedia.org/wiki/William_Kruskal",
+"zone": "one_model",
+"idea": {
+"en": "With W. Allen Wallis, 'Use of Ranks in One-Criterion Variance Analysis' (1952): to ask whether several groups differ, compare the ranks of their values, not the size of the numbers.",
+"ru": "С У. Алленом Уоллисом, «Use of Ranks in One-Criterion Variance Analysis» (1952): чтобы понять, различаются ли несколько групп, сравнивай ранги их значений, а не величину чисел.",
+"de": "Mit W. Allen Wallis, „Use of Ranks in One-Criterion Variance Analysis“ (1952): Um zu prüfen, ob mehrere Gruppen sich unterscheiden, vergleiche die Ränge ihrer Werte, nicht die Größe der Zahlen."
+},
+"rule": "When outlets give different numbers for one event, say how far apart they are and how many outlets stand behind each; do not average them.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group of 3+ outlets whose headlines carry a number with the same unit (minutes, euros, counts): the spread of the numbers by outlet and how many outlets stand behind each value; no test statistic until we see how often such groups occur; joins the numbers-differ bridge"
+}
+},
+{
+"id": "jaynes_et",
+"name": "Edwin T. Jaynes",
+"name_ru": "Эдвин Т. Джейнс",
+"years": "1922–1998",
+"wiki": "https://en.wikipedia.org/wiki/Edwin_Thompson_Jaynes",
+"zone": "one_model",
+"idea": {
+"en": "'Information Theory and Statistical Mechanics' (1957): among all versions that fit what you know, take the one that assumes the least; do not add certainty the evidence does not give.",
+"ru": "«Information Theory and Statistical Mechanics» (1957): из всех версий, согласных с тем, что известно, бери ту, что предполагает меньше всего; не добавляй уверенности, которой не даёт свидетельство.",
+"de": "„Information Theory and Statistical Mechanics“ (1957): Unter allen Versionen, die zum Bekannten passen, nimm die, die am wenigsten annimmt; füge keine Sicherheit hinzu, die der Beleg nicht gibt."
+},
+"rule": "When versions disagree, keep the spread in your answer and do not pick one version above what the evidence fixes.",
+"needs": {
+"code": "needs_idea",
+"note": "same groups as the Kruskal card: Shannon entropy of the distribution of reported values across outlets (one value = 0, many values = high); joins the numbers-differ bridge"
+}
+},
+{
+"id": "weitzman_ml",
+"name": "Martin Weitzman",
+"name_ru": "Мартин Вейцман",
+"years": "1942–2019",
+"wiki": "https://en.wikipedia.org/wiki/Martin_Weitzman",
+"zone": "answer_cost",
+"idea": {
+"en": "'Optimal Search for the Best Alternative' (Econometrica, 1979): give each unopened option a reservation value, open them in that order, and stop when the best found beats every value that is left.",
+"ru": "«Optimal Search for the Best Alternative» (Econometrica, 1979): дай каждому неоткрытому варианту резервную ценность, открывай по её порядку и остановись, когда лучшее найденное выше всех оставшихся.",
+"de": "„Optimal Search for the Best Alternative“ (Econometrica, 1979): Gib jeder ungeöffneten Option einen Reservationswert, öffne sie in dieser Reihenfolge und höre auf, wenn das beste Gefundene jeden übrigen Wert übertrifft."
+},
+"rule": "Check first the source most likely to change your answer, and stop when the answer in hand beats what the unchecked sources could add.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: how much the answer moved after each added source against the time that source costs; needs the check order stored; joins the when-to-stop-reading bridge; not computed yet"
+}
+},
+{
+"id": "mendenhall_tc",
+"name": "Thomas Corwin Mendenhall",
+"name_ru": "Томас Корвин Менденхолл",
+"years": "1841–1924",
+"wiki": "https://en.wikipedia.org/wiki/Thomas_Corwin_Mendenhall",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'The Characteristic Curves of Composition' (Science, 1887): count how many words of each length a text uses; the curve of one author stays steady, so a different curve hints at another hand.",
+"ru": "«The Characteristic Curves of Composition» (Science, 1887): считай, сколько слов каждой длины в тексте; кривая одного автора устойчива, поэтому иная кривая намекает на другую руку.",
+"de": "„The Characteristic Curves of Composition“ (Science, 1887): Zähle, wie viele Wörter jeder Länge ein Text nutzt; die Kurve eines Autors bleibt stabil, eine andere Kurve deutet auf eine andere Hand."
+},
+"rule": "A text that does not fit the usual word-length curve of its feed may come from another hand; flag it to check, not as a verdict.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet: chi-square distance between the word-length distribution (1-15 letters) of its headlines in the last 24 h and its own 7-day baseline; radar feeds every 30 minutes; flag where one batch departs from the outlet usual hand; sensor candidate, needs the owner yes; joins the wrong-hand bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

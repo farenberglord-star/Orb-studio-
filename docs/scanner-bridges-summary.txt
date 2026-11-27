@@ -218,7 +218,7 @@ round_numbers_are_estimates | sensor | whipple_gc,newcomb,benford_f
 bias_or_noise | waiting | youden_wj,baird,lyberg
 new_info_not_paraphrase | idea | schreider_ya,flesch_r,searle
 many_checks_some_lucky | idea | spjotvoll_e,schweder,shewhart,cohen
-when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard
+when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard,weitzman_ml
 shelf_price_lags_market | idea | rotemberg_jj,hicks_jr,braudel_f
 map_card_hours_disagree | sensor | rotemberg_jj,garcia_molina_h
 rating_needs_its_count | sensor | cohen,shewhart
@@ -259,4 +259,6 @@ innovators_or_followers | idea | bass_f,naroll_r,kasperson,locard_e
 fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
 detail_not_verdict | idea | undeutsch_u,searle,walton_d
 old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc
-copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g
+numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k
+wrong_hand_in_feed | ready | mendenhall_tc,herdan_g,ellegard_a,mosteller_f
+copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t

@@ -239,3 +239,8 @@ Wardrop (Wikipedia; Transportation 16, 1989); Lynch K (Wikipedia, MIT)
 - Дубли: line_mb, ruge_mh, krippendorff_k уже в библиотеке — добавлены только в мостики.
 - Ошибки/непроверено: правило «семи вопросов» у Гросса не подтверждено (Гросс — в memory-waiting); Hamblin, Perelman, Holsti, Sørensen, Kirk — смерть или правило не подтверждены, не взяты (Holsti — связь с военной разведкой/пропагандой).
 - Итог: 7 карточек, мостик copy_trace стал ready (число: сходство Dice + порядок появления), Shaw перенесён из memory-waiting.
+
+## Партия 66 (13 строк: время и расстояние, числа между изданиями, почерк)
+- Верно: Hägerstrand (†3.5.2004), Kruskal (†21.4.2005), Jaynes (†30.4.1998), Weitzman (†27.8.2019), Mendenhall (†22–23.3.1924; источники расходятся на день) и названия их работ.
+- Ошибки: 4 из 13 имён (Bertillon, Locard, Herdan, Ellegård) уже в библиотеке — список known-names не сверен; Vickery: «кривая устаревания Виккери» не подтверждена (Burton–Kebler, Bradford), Hirshleifer: «эффект» из её строки не совпадает с идеей его статьи 1971 г. (разница частной и общественной ценности информации); Thurstone — нужны парные оценки наблюдателей, у нас их нет; Tikhonov — регуляризация вырастала из обратных задач, а число в строке (сдвиг медианы без издания) — не его правило. Пороги в строках (1440 минут) выдуманы — не брать.
+- Итог: 5 карточек (hagerstrand_t, kruskal_w, jaynes_et, weitzman_ml, mendenhall_tc), 2 новых мостика (numbers_differ — idea; wrong_hand_in_feed — ready, кандидат в датчик), копии: copy_wave +Hägerstrand, when_to_stop_reading +Weitzman.
