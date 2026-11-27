@@ -6446,14 +6446,33 @@ async function roadsData(env) {
 
 // check_place: живые данные подмешиваем здесь (DWD по земле, паводки LHP, автобаны по названиям из запроса); сам модуль place.js чистый.
 // Координаты и названия мест нигде не пишем: ни в базу, ни в журнал.
+// Тёзки места из Wikidata (CC0): поиск по названию + координаты P625. Идентифицируемся по правилам Wikimedia, параллельных запросов ≤2, ничего не кэшируем и не пишем.
+async function wikidataPlaces(name) {
+  const H = { "User-Agent": "OrbStudio/1.0 (https://orbstudio.org/llms.txt; place-namesake check)", Accept: "application/json" };
+  const q = encodeURIComponent(String(name).slice(0, 80));
+  const s = await fetch(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${q}&language=de&uselang=de&type=item&limit=10&format=json`, { headers: H, signal: AbortSignal.timeout(5000) });
+  if (!s.ok) return null;
+  const ids = ((await s.json()).search || []).map((x) => x.id).filter((i) => /^Q\d+$/.test(i));
+  if (!ids.length) return [];
+  const g = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids.join("|")}&props=labels|descriptions|claims&languages=de|en&format=json`, { headers: H, signal: AbortSignal.timeout(5000) });
+  if (!g.ok) return null;
+  const ents = (await g.json()).entities || {};
+  return ids.map((id) => {
+    const e = ents[id] || {}, c = e.claims && e.claims.P625 && e.claims.P625[0] && e.claims.P625[0].mainsnak && e.claims.P625[0].mainsnak.datavalue && e.claims.P625[0].mainsnak.datavalue.value;
+    const L = (o) => (o && (o.de || o.en) && (o.de || o.en).value) || "";
+    return { id, label: L(e.labels), description: L(e.descriptions), lat: c ? c.latitude : NaN, lon: c ? c.longitude : NaN };
+  });
+}
 async function placeAnswer(env, a) {
   const race = (p) => Promise.race([p, new Promise((r) => setTimeout(() => r(null), 7000))]).catch(() => null);
   const input = a && typeof a === "object" ? a : {};
   const st = normState(input.state), lat = Number(input.lat), lon = Number(input.lon);
   const inDe = Number.isFinite(lat) && Number.isFinite(lon) && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5;
   const wantRoads = normRoads(input.roads).length > 0;
-  const [dwd, flood, roads] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null]);
+  const wantNames = Number.isFinite(lat) && Number.isFinite(lon) && String(input.name || "").trim().length >= 3;
+  const [dwd, flood, roads, names] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null, wantNames ? race(wikidataPlaces(String(input.name).trim())) : null]);
   const extra = {}; if (dwd) extra.dwd = dwd; if (flood) extra.flood = flood; if (wantRoads) extra.roads = roads;
+  if (wantNames) extra.namesakes = names;
   if (st && !dwd) extra.dwd = { status: "unavailable" };
   if (inDe && !flood) extra.flood = { status: "unavailable" };
   return checkPlace(input, Date.now(), extra);

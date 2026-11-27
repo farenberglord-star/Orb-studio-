@@ -80,7 +80,7 @@ test("check_place: MCP tool, REST route and announcements are registered", () =>
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"check_place"/);
 });
 
-import { descriptionClaims, nearbySummary, normRoads, routeSummary, sunInfo } from "../src/place.js";
+import { descriptionClaims, nearbySummary, normRoads, routeSummary, sunInfo, namesakeSummary } from "../src/place.js";
 
 test("check_place: absolute claims in a description are listed, a year counts as a visible basis, never a verdict", () => {
   const c = descriptionClaims("Das einzige Schloss Hamburgs. Gebaut 1250. Der beste Park der Stadt, laut Reiseführer.");
@@ -127,4 +127,25 @@ test("check_place: sunset is computed from position and date, flagged within 90 
   const r = checkPlace({ name: "Park", lat: 53.4859, lon: 10.2347, date: "2026-11-27" }, Date.parse("2026-11-27T14:00:00Z"));
   assert.ok(r.flags.some((f) => /Sunset is in/.test(f.en))); assert.match(r.sun.method, /NOAA/);
   assert.equal(checkPlace({ name: "Park" }, NOW).sun, null);
+});
+
+test("check_place: namesakes come from Wikidata entities with the same label, nearest first, flagged when several", () => {
+  const ents = [
+    { id: "Q1", label: "Schloss Bergedorf", description: "castle in Hamburg", lat: 53.4859, lon: 10.2347 },
+    { id: "Q2", label: "Schloß Bergedorf", description: "other place", lat: 50.1, lon: 8.6 },
+    { id: "Q3", label: "Schloss Bergedorf", description: "dup of Q1", lat: 53.4861, lon: 10.2349 },
+    { id: "Q4", label: "Something else", description: "x", lat: 1, lon: 1 }, { id: "bad", label: "Schloss Bergedorf", lat: 1, lon: 1 },
+  ];
+  const n = namesakeSummary("schloss bergedorf", ents, 53.4859, 10.2347);
+  assert.equal(n.same_name_places, 1); assert.equal(n.nearest_is_at_given_position, true); assert.equal(n.places[0].distance_km, 0);
+  const two = namesakeSummary("Schloss Bergedorf", [...ents, { id: "Q9", label: "Schloss Bergedorf", description: "elsewhere", lat: 48.1, lon: 11.5 }], 53.4859, 10.2347);
+  assert.equal(two.same_name_places, 2); assert.ok(two.places[0].distance_km < two.places[1].distance_km);
+  assert.equal(namesakeSummary("Nope", ents, 53, 10).same_name_places, 0);
+  assert.equal(namesakeSummary("x", null, 53, 10).status, "unavailable");
+  const r = checkPlace({ name: "Schloss Bergedorf", lat: 53.4859, lon: 10.2347 }, NOW, { namesakes: [...ents, { id: "Q9", label: "Schloss Bergedorf", description: "e", lat: 48.1, lon: 11.5 }] });
+  assert.ok(r.flags.some((f) => f.zone === "look_alike" && /matches 2 places/.test(f.en)));
+  assert.equal(checkPlace({ name: "Schloss Bergedorf" }, NOW).namesakes, null);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  const h = w.slice(w.indexOf("async function wikidataPlaces"), w.indexOf("async function placeAnswer"));
+  assert.match(h, /User-Agent/); assert.ok(!/DB\.|prepare\(|console\.|sharedPut|caches\./.test(h), "namesake lookup must not store or cache place names");
 });

@@ -210,6 +210,23 @@ export function sunInfo(lat, lon, date, now = Date.now(), tz = "Europe/Berlin") 
   return out;
 }
 
+// Тёзки места: сущности Wikidata (CC0) с координатами и тем же названием. Чистая функция: запрос делает воркер, ничего не сохраняется.
+const normLabel = (x) => String(x || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+export function namesakeSummary(name, entities, lat, lon) {
+  if (!Array.isArray(entities)) return { status: "unavailable", note: "Namesake lookup did not answer in time." };
+  const want = normLabel(name), seen = new Set(), hits = [];
+  const hasPos = Number.isFinite(lat) && Number.isFinite(lon);
+  const dist = (e) => { const R = 6371, r = Math.PI / 180, dl = (e.lat - lat) * r, dn = (e.lon - lon) * r; const h = Math.sin(dl / 2) ** 2 + Math.cos(lat * r) * Math.cos(e.lat * r) * Math.sin(dn / 2) ** 2; return Math.round(2 * R * Math.asin(Math.sqrt(h)) * 10) / 10; };
+  for (const e of entities) {
+    if (!e || !/^Q\d+$/.test(e.id || "") || !Number.isFinite(e.lat) || !Number.isFinite(e.lon) || normLabel(e.label) !== want) continue;
+    const k = e.lat.toFixed(2) + "," + e.lon.toFixed(2); if (seen.has(k)) continue; seen.add(k);
+    hits.push({ wikidata: "https://www.wikidata.org/wiki/" + e.id, description: String(e.description || "").slice(0, 120) || null, distance_km: hasPos ? dist(e) : null });
+  }
+  if (hasPos) hits.sort((a, b) => a.distance_km - b.distance_km);
+  const near = hasPos && hits.length ? hits[0].distance_km <= 3 : null;
+  return { status: "ok", source: "Wikidata (CC0)", same_name_places: hits.length, nearest_is_at_given_position: near, places: hits.slice(0, 5), note: hits.length > 1 ? "Several places carry this name: the card, the address and the city must agree before the answer is used." : hits.length === 1 ? "One place with this name found in Wikidata; Wikidata does not list every shop or restaurant." : "No place with exactly this name in Wikidata; that is normal for small businesses, it says nothing against the place." };
+}
+
 export function checkPlace(input, now = Date.now(), extra = {}) {
   const a = input && typeof input === "object" ? input : {};
   const name = String(a.name || "").replace(/[\u0000-\u001f​-‏‪-‮⁦-⁩]/g, "").trim().slice(0, PLACE_MAX_NAME);
@@ -242,6 +259,8 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   if (route && route.per_road) for (const r of route.per_road) if (r.closures > 0 || r.max_delay_min >= 10) say(`${r.road}: ${r.closures} closure(s), longest jam ${r.max_delay_min} min on the stretch our sensor watches.`, `${r.road}: закрытий ${r.closures}, самая долгая пробка ${r.max_delay_min} мин на участке, который видит наш датчик.`, `${r.road}: ${r.closures} Sperrung(en), längster Stau ${r.max_delay_min} Min auf dem Abschnitt, den unser Sensor sieht.`, null, "side_effects");
   const sun = hasPos ? sunInfo(lat, lon, date, now) : null;
   if (sun && sun.minutes_to_sunset != null && sun.minutes_to_sunset < 90) say(sun.minutes_to_sunset > 0 ? `Sunset is in ${sun.minutes_to_sunset} min (${sun.sunset}): for an outdoor place or a hike, plan the way back before dark.` : `The sun has set (${sun.sunset}): an outdoor place may be dark, check lighting and opening hours.`, sun.minutes_to_sunset > 0 ? `Закат через ${sun.minutes_to_sunset} мин (${sun.sunset}): для места на улице или прогулки рассчитайте возвращение до темноты.` : `Солнце уже село (${sun.sunset}): место на улице может быть тёмным, проверьте освещение и часы работы.`, sun.minutes_to_sunset > 0 ? `Sonnenuntergang in ${sun.minutes_to_sunset} Min. (${sun.sunset}): bei Orten im Freien den Rückweg vor Einbruch der Dunkelheit planen.` : `Die Sonne ist untergegangen (${sun.sunset}): Orte im Freien können dunkel sein, Beleuchtung und Öffnungszeiten prüfen.`, null, "side_effects");
+  const namesakes = extra.namesakes !== undefined ? namesakeSummary(name, extra.namesakes, lat, lon) : null;
+  if (namesakes && namesakes.same_name_places > 1) say(`The name '${name}' matches ${namesakes.same_name_places} places in Wikidata: make sure the city and address on the card are the place meant.`, `Название «${name}» совпадает с ${namesakes.same_name_places} местами в Wikidata: убедитесь, что город и адрес на карточке — это нужное место.`, `Der Name „${name}“ passt zu ${namesakes.same_name_places} Orten in Wikidata: Stadt und Adresse auf der Karte müssen zum gemeinten Ort passen.`, "Frege", "look_alike");
   const missing = [];
   if (!a.hours) missing.push("hours per source for the date (source, open, close)");
   if (!ages) missing.push("review dates (up to 60 ISO dates)");
@@ -257,7 +276,7 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   pointers.push({ tool: "check_claim", why: "for any description claim like 'only', 'oldest', 'best' on the place's page", url: "https://orbstudio.org/api/v1/check-claim?claim=" });
   const report = {
     tool: "check_place", place: name, date, holiday: hol, rating, review_ages: ages, hours,
-    position_given: hasPos, sun, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
+    position_given: hasPos, sun, namesakes, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
     report_back: flags.some((f) => f.zone === "stale_data" && /disagree|расходятся|widersprechen/.test(f.en + f.ru + f.de)) ? { en: "If you are sure which version is right, the person can report the mistake in the map app (menu: report a map error or edit the place). We never edit anything.", ru: "Если вы точно знаете, какая версия верна, человек может сообщить об ошибке в самом приложении карт (меню: ошибка на карте или изменить место). Мы сами ничего не правим.", de: "Wenn du sicher weißt, welche Version stimmt, kann die Person den Fehler in der Karten-App melden (Menü: Kartenfehler melden oder Ort bearbeiten). Wir ändern selbst nichts." } : null,
     limits: "Works only on the fields the agent passes; Orb Studio does not read, copy or store Google Maps content. One-off holidays (a single year, a single state) are not modelled. Thresholds for rating size are working assumptions. Not a recommendation to go or not to go.",
     rule: "Show what was checked and what was not; hours and reviews come from the agent, holidays from fixed rules. Orb Studio is not affiliated with Google; Google Maps is a trademark of Google LLC.",
