@@ -535,3 +535,6 @@
 
 ## 27.11.2026 — партия 57 (Лиана)
 - Карточки: hansen_mh, horvitz_dg (answer_cost), оба в мостике claimed_vs_found_complete. Goffman (нет Википедии), Kessler (корни в SAGE, решает владелец), Brier (ждёт «да» на датчик) — в docs/memory-waiting.md. Murphy не добавлен: смерть не подтверждена. Egghe жив, Nakamoto и Sekelj не подтверждены.
+
+## 27.11.2026 — партия 58 (Лиана)
+- Новых имён нет (Garfield, Cochran уже в библиотеке; Small жив/не подтверждён). Garfield добавлен в мостик stale_apparent_vs_real, Cochran в claimed_vs_found_complete.
