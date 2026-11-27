@@ -1,0 +1,1 @@
+{"stand": "2026-11-12", "source": "Bundesnetzagentur.de, Ladesäulenregister", "licence": "CC BY 4.0", "cell_deg": 0.5, "count": 119047, "skipped_no_coords": 1, "record": ["lat", "lon", "kw", "dc", "points", "operator", "plug", "address", "status"], "cells": 230}
