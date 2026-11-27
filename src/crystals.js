@@ -15160,6 +15160,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "smeed",
+"name": "Reuben Smeed",
+"name_ru": "Рубен Смид",
+"years": "1909–1976",
+"wiki": "https://en.wikipedia.org/wiki/Reuben_Smeed",
+"zone": "own_limits",
+"idea": {
+"en": "'The Traffic Problem in Towns' (1961): in a congested city faster flow draws more traffic, so the speed people actually get stays about the same.",
+"ru": "«Транспортная проблема в городах» (1961): в загруженном городе более быстрый поток привлекает больше машин, поэтому реальная скорость почти не растёт.",
+"de": "„The Traffic Problem in Towns“ (1961): in überlasteten Städten zieht schnellerer Verkehr mehr Verkehr an, die tatsächliche Geschwindigkeit bleibt ähnlich."
+},
+"rule": "Do not promise that a new faster road or a cleared jam will stay fast: more traffic fills it, so give the time now, not a saving.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
