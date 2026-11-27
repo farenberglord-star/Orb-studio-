@@ -10788,7 +10788,7 @@ export const CRYSTALS = [
 "name": "Barry A. Turner",
 "name_ru": "Барри Тёрнер",
 "years": "1937–1995",
-"wiki": "https://en.wikipedia.org/wiki/Barry_Turner_(sociologist)",
+"wiki": "https://mdpi.com/2313-576X/9/4/68",
 "zone": "side_effects",
 "idea": {
 "en": "'Man-made Disasters' (1978): a disaster has an incubation period — small signals that contradict the accepted picture pile up unnoticed for months or years.",
@@ -10897,7 +10897,7 @@ export const CRYSTALS = [
 "name": "Gerald J. S. Wilde",
 "name_ru": "Джеральд Уайлд",
 "years": "1932–2019",
-"wiki": "https://en.wikipedia.org/wiki/Gerald_J._S._Wilde",
+"wiki": "https://en.wikipedia.org/wiki/Risk_compensation",
 "zone": "side_effects",
 "idea": {
 "en": "Risk homeostasis ('Target Risk', 1994): people keep a target level of risk; better technology alone shifts behaviour rather than accident rates.",
@@ -14913,7 +14913,7 @@ export const CRYSTALS = [
 "name": "Gideon Schwarz",
 "name_ru": "Гидеон Шварц",
 "years": "1933–2007",
-"wiki": "https://en.wikipedia.org/wiki/Gideon_E._Schwarz",
+"wiki": "https://de.wikipedia.org/wiki/Gideon_E._Schwarz",
 "zone": "one_model",
 "idea": {
 "en": "'Estimating the Dimension of a Model' (Annals of Statistics, 1978): choose among models with a penalty for the number of parameters; a model that fits only slightly better with more parameters is not better.",
