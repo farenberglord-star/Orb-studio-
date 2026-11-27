@@ -96,6 +96,7 @@ import { conditionsSummary } from "./route_conditions.js";
 import { weatherNow, summarizeWeather as summarizeRouteWeather, WEATHER_ATTRIBUTION } from "./weather_now.js";
 import { geocode, GEOCODE_ATTRIBUTION } from "./geocode.js";
 import { decodeTripUpdates, waitParadox, VBB_RT_URL, WAIT_ATTRIBUTION, MAX_FEED_BYTES } from "./wait_paradox.js";
+import { fuelData } from "./fuel.js";
 import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
@@ -4335,6 +4336,10 @@ async function handleApi(url, request, env, ctx) {
   }
   if (p === "/api/v1/wait-paradox") return json(await waitParadoxData(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/roads-inspection") return json(await roadsInspection(env), { "Cache-Control": "public, max-age=900", "Access-Control-Allow-Origin": "*" });
+  if (p === "/api/v1/fuel-hamburg") { // цены на топливо в Гамбурге и пригородах: Tankerkönig (CC BY 4.0) + паспорт данных; общий кэш 6 минут, ключ только на воркере
+    const d = await fuelData(env, { sharedGet, sharedPut });
+    return json(d, { "Cache-Control": d.status === "ok" ? "public, max-age=300" : "no-store", "Access-Control-Allow-Origin": "*" }, d.status === "ok" ? 200 : 503);
+  }
   if (p === "/api/v1/chargers-de") { // ближайшие зарядки из реестра BNetzA; lat/lon в Германии
     const la = Number(url.searchParams.get("lat")), lo = Number(url.searchParams.get("lon"));
     if (!(la > 47 && la < 55.5 && lo > 5.5 && lo < 15.5)) return json({ error: "lat_lon_germany", note: "lat and lon inside Germany are required, e.g. lat=53.55&lon=10.0." }, { "Access-Control-Allow-Origin": "*" }, 400);
@@ -4671,7 +4676,7 @@ function classifyAgent(ua) {
   return null; // обычный браузер
 }
 const AGENT_PATHS = /^\/(api\/|llms(-full)?\.txt$|\.well-known\/|robots\.txt$|mcp\/server-card)/;
-const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin", "searle", "simpson", "trackrecord", "kasperson", "method", "timemachine", "newcomb", "pareto", "pearson", "cohen", "harman", "frege"]);
+const PAGES = new Set(["radio", "studio-listen", "studio-done", "roundtable", "roundtable-listen", "roundtable-done", "world", "ground", "air", "deck", "for-agents", "home", "radar", "anchors", "agents", "orb7", "orbi", "hall", "indices", "music", "prices", "archive", "impulse", "bridge", "quality", "followups", "places", "live", "tariffs", "wallet", "sensors", "violin", "canvas", "tools", "fuel", "court", "clips", "interview", "studio", "hamilton", "mikrin", "polyak", "park", "scientists", "impulse", "kahneman", "ziv", "cox", "halpern", "howard", "leamer", "baird", "lyberg", "hagenauer", "crystals", "frankfurt", "duckworth", "trevisan", "bertsekas", "rabin", "searle", "simpson", "trackrecord", "kasperson", "method", "timemachine", "newcomb", "pareto", "pearson", "cohen", "harman", "frege"]);
 let tableReady = false;
 async function ensureTable(env) {
   if (tableReady) return;
@@ -10040,7 +10045,7 @@ setCourtLangPicker(pickLang); // суд выбирает язык страниц
 // страницы, у которых есть немецкая и английская версии (public/de/<page>.html, public/en/<page>.html; собирает tools/i18n_pages.py)
 // слитые страницы: старый адрес → новое место (раздел на другой странице)
 const MOVED_PAGES = { "/indices": "/sensors#indices", "/tools/cockpit": "/sensors#cockpit", "/map": "/sensors#map", "/guests": "/hall#guest-cards", "/tools/interview": "/tools/clips#interview" };
-const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/searle", "tools/simpson", "tools/trackrecord", "tools/kasperson", "tools/newcomb", "tools/pareto", "tools/pearson", "tools/cohen", "tools/harman", "tools/frege", "tools/method", "tools/timemachine", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
+const TRANSLATED_PAGES = new Set(["world", "ground", "air", "deck", "for-agents", "prices", "bridge", "hall", "radar", "about", "route", "guests", "sensors", "music", "places", "quality", "violin", "tariffs", "tools", "archive", "followups", "live", "canvas", "orbi", "indices", "orb7", "map", "tools/clips", "tools/hamilton", "tools/mikrin", "tools/polyak", "tools/park", "tools/scientists", "tools/impulse", "tools/kahneman", "tools/ziv", "tools/cox", "tools/halpern", "tools/howard", "tools/leamer", "tools/baird", "tools/lyberg", "tools/hagenauer", "tools/crystals", "tools/frankfurt", "tools/duckworth", "tools/trevisan", "tools/bertsekas", "tools/rabin", "tools/searle", "tools/simpson", "tools/trackrecord", "tools/kasperson", "tools/newcomb", "tools/pareto", "tools/pearson", "tools/cohen", "tools/harman", "tools/frege", "tools/fuel", "tools/method", "tools/timemachine", "tools/interview", "tools/court", "podcast", "tools/agent-wallet", "interviews"]); // вложенные: public/de/tools/clips.html и т. п.
 const HTML_PAGES = { "/sensors": "sensors", "/sensors.html": "sensors", "/live": "live", "/live.html": "live", "/places": "places", "/places.html": "places", "/followups": "followups", "/followups.html": "followups", "/": "home", "/index.html": "home", "/ru/": "home", "/de/": "home", "/en/": "home", "/orb7.html": "orb7", "/orb7": "orb7", "/orbi.html": "orbi", "/orbi": "orbi", "/hall.html": "hall", "/hall": "hall", "/indices.html": "indices", "/indices": "indices", "/music.html": "music", "/music": "music", "/violin.html": "violin", "/violin": "violin", "/canvas.html": "canvas", "/canvas": "canvas", "/prices.html": "prices", "/prices": "prices", "/quality.html": "quality", "/quality": "quality", "/archive.html": "archive", "/archive": "archive", "/radar.html": "impulse", "/radar": "impulse", "/bridge.html": "bridge", "/bridge": "bridge", "/map.html": "map", "/map": "map" };
 
 // ================= Защитные заголовки для всех ответов воркера =================
