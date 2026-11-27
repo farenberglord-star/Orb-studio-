@@ -46,6 +46,26 @@ def src_label(url, wiki_label, lg):
     """Подпись к ссылке на биографию: «Википедия» — только для адресов Википедии, иначе честное «источник»."""
     return wiki_label if "wikipedia.org" in url else {"ru": "источник", "de": "Quelle", "en": "source"}[lg]
 
+# Блок «ответ»: вопросы, которые люди задают поисковикам и Gemini, с коротким ответом из правил карточек (идея Gemini-вопросов, docs/gemini-questions.md)
+QA = [
+ ("one_model", ("Are several sources independent, or do they copy one?", "Sind mehrere Quellen unabhängig oder schreiben sie voneinander ab?", "Независимы ли несколько источников или они переписывают одно?"),
+  ("Count how many trace back to different first sources, not how many outlets carry the story. Ten retellings of one report are still one voice (Kasperson, Griffith).", "Zähle, wie viele auf verschiedene Erstquellen zurückgehen, nicht wie viele Medien die Meldung bringen. Zehn Nacherzählungen eines Berichts bleiben eine Stimme (Kasperson, Griffith).", "Посчитайте, сколько из них восходит к разным первоисточникам, а не сколько изданий несут новость. Десять пересказов одного сообщения остаются одним голосом (Каспёрсон, Гриффит).")),
+ ("rumour_vs_fact", ("Is this a confirmed fact or a rumour?", "Ist das eine bestätigte Tatsache oder ein Gerücht?", "Это подтверждённый факт или слух?"),
+  ("A grave topic, few outlets and unclear facts is how rumours are born (importance times ambiguity, Allport and Postman). Say what is confirmed and what is not known yet.", "Ein ernstes Thema, wenige Medien und unklare Fakten: so entstehen Gerüchte (Wichtigkeit mal Mehrdeutigkeit, Allport und Postman). Sage, was bestätigt ist und was noch unbekannt ist.", "Серьёзная тема, мало изданий и неясные факты — так рождаются слухи (важность × неясность, Олпорт и Постман). Скажите, что подтверждено и что пока неизвестно.")),
+ ("look_alike", ("Do two polls with different wording show one trend?", "Zeigen zwei Umfragen mit anderem Wortlaut einen gemeinsamen Trend?", "Показывают ли два опроса с разной формулировкой один тренд?"),
+  ("No. The form, wording and order of a question change the answers, so first check that both polls asked the same question with the same options (Schuman).", "Nein. Form, Wortlaut und Reihenfolge einer Frage verändern die Antworten; prüfe zuerst, ob beide Umfragen dieselbe Frage mit denselben Optionen stellten (Schuman).", "Нет. Форма, формулировка и порядок вопроса меняют ответы, поэтому сначала проверьте, что оба опроса задали один вопрос с теми же вариантами (Шуман).")),
+ ("own_limits", ("A dash or star in a table: is it zero?", "Ein Strich oder Stern in der Tabelle: ist das null?", "Прочерк или звёздочка в таблице: это ноль?"),
+  ("Not necessarily. Official tables may hide small counts on purpose so nobody can be identified. Find out which it is before using the figure (Dalenius).", "Nicht unbedingt. Amtliche Tabellen verbergen kleine Zahlen oft absichtlich, damit niemand erkennbar wird. Kläre das, bevor du die Zahl nutzt (Dalenius).", "Не обязательно. В официальных таблицах малые числа часто скрывают намеренно, чтобы никого нельзя было опознать. Выясните, что это, прежде чем использовать цифру (Далениус).")),
+ ("look_alike", ("Did something really change over the years, or are these just different groups?", "Hat sich wirklich etwas über die Jahre geändert oder sind das nur verschiedene Gruppen?", "Что-то действительно изменилось за годы или это просто разные группы?"),
+  ("Differences between age groups at one moment are not yet change over time. Real change needs the same group measured twice (Labov).", "Unterschiede zwischen Altersgruppen zu einem Zeitpunkt sind noch kein Wandel. Echter Wandel braucht dieselbe Gruppe, zweimal gemessen (Labov).", "Различия между возрастными группами в один момент ещё не изменение во времени. Для реального изменения нужно измерить ту же группу дважды (Лабов).")),
+ ("stale_data", ("Is this number still current?", "Ist diese Zahl noch aktuell?", "Это число ещё актуально?"),
+  ("Check two dates: when the number was measured and when it was published. A fresh article can carry an old figure, and a quiet feed can simply be repeating its last value.", "Prüfe zwei Daten: wann die Zahl gemessen und wann sie veröffentlicht wurde. Ein frischer Artikel kann eine alte Zahl tragen, und ein stiller Feed kann einfach den letzten Wert wiederholen.", "Проверьте две даты: когда число измерено и когда опубликовано. Свежая статья может нести старую цифру, а тихая лента может просто повторять последнее значение.")),
+ ("rumour_vs_fact", ("Is a silent news feed broken or is it just a quiet hour?", "Ist ein stiller Nachrichtenfeed kaputt oder ist es nur eine ruhige Stunde?", "Тихая лента сломана или это обычный тихий час?"),
+  ("Compare the last hours with that outlet's usual pattern for this hour of the week. Silence that matches the pattern is normal; silence far outside it is a reason to check (Shiskin).", "Vergleiche die letzten Stunden mit dem üblichen Muster dieser Quelle für diese Stunde der Woche. Stille im Muster ist normal; Stille weit außerhalb ist ein Grund zu prüfen (Shiskin).", "Сравните последние часы с обычным рисунком этого издания для этого часа недели. Тишина по рисунку нормальна, тишина далеко за ним — повод проверить (Шискин).")),
+]
+idx_lg = {"en": 0, "de": 1, "ru": 2}
+QA_H = {"ru": "Вопросы людей — и ответ в одну строку", "de": "Fragen von Menschen: die Antwort in einem Satz", "en": "What people ask, answered in one line"}
+
 for lg in ("ru", "de", "en"):
     t = T[lg]; pre = "" if lg == "ru" else "/" + lg; B = built(lg)
     groups = []
@@ -63,6 +83,10 @@ for lg in ("ru", "de", "en"):
     cfg = dict(HP.LD[lg], cnt=cnt, loc=HP.LOC[lg])
     s = HP.page("crystals", lg, c, "", 'document.getElementById("hmStatus").textContent=HM.cnt;', cfg, person)
     s = s.replace('<script type="module" src="/share-x.js"></script>', '<script>document.addEventListener("click",(e)=>{const a=e.target.closest&&e.target.closest("li.cr a[href*=\\"wikipedia.org\\"]");if(!a)return;const li=a.closest("li.cr");try{navigator.sendBeacon("/api/v1/crystal-click",new Blob([JSON.stringify({id:li.id})],{type:"application/json"}));}catch(x){}});</script>\n<script type="module" src="/share-x.js"></script>', 1)
-    s = s.replace('<ol class="hm-list" id="hmRows"></ol>', '<div id="hmRows">\n' + "\n".join(groups) + '\n  </div>', 1)
+    k = idx_lg[lg]
+    qa_html = '<section class="panel" id="answers"><h2>%s</h2>' % H.escape(QA_H[lg]) + "".join('<h3>%s</h3><p>%s <a href="#zone-%s">→</a></p>' % (H.escape(q[k]), H.escape(a[k]), z) for z, q, a in QA) + '</section>\n  '
+    faq = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q[k], "acceptedAnswer": {"@type": "Answer", "text": a[k]}} for z, q, a in QA]}
+    s = s.replace('<ol class="hm-list" id="hmRows"></ol>', qa_html + '<div id="hmRows">\n' + "\n".join(groups) + '\n  </div>', 1)
+    s = s.replace('</head>', '<script type="application/ld+json">' + json.dumps(faq, ensure_ascii=False) + '</script>\n</head>', 1)
     s = s.replace('</style>\n</head>', '.crl{list-style:none;padding:0;margin:.4rem 0 1.2rem;display:grid;gap:.6rem}.cr{border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:.6rem .8rem}.cr p{margin:.3rem 0}.cr.has{border-color:rgba(120,220,255,.45)}</style>\n</head>', 1)
     out = ("public/" if lg == "ru" else "public/" + lg + "/") + "tools/crystals.html"; open(out, "w").write(s); print(out, len(cards), len(B))
