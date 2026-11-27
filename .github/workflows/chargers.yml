@@ -1,0 +1,32 @@
+name: Ladesäulen-Import
+
+# Раз в месяц берёт Ladesäulenregister Bundesnetzagentur (CC BY 4.0), режет на клетки 0,5° и коммитит в public/data/chargers/.
+# Сеть воркера и песочницы закрыта, поэтому импорт идёт здесь. Вручную: Run workflow (dry=true — только заголовок CSV в логе).
+on:
+  schedule:
+    - cron: "17 5 3 * *"
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "dry=true: только показать заголовок и первые строки"
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Import
+        run: python3 tools/chargers_import.py ${{ github.event.inputs.dry == 'true' && '--dry' || '' }}
+      - name: Commit
+        if: ${{ github.event.inputs.dry != 'true' }}
+        run: |
+          git config user.name "orb-studio-bot"
+          git config user.email "bot@orbstudio.org"
+          git add public/data/chargers
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "Ladesäulenregister: monthly import"
+          git push origin HEAD:main
