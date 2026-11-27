@@ -592,3 +592,7 @@
 ## Партия 68 (Лиана, 14 строк)
 - 6 карточек: luce_rd, burrows_jf, bar_hillel_y, jost_a, damerau_fj, fano_rm; все NEEDS = needs_idea. Мостики расширены: who_leads_whom, wrong_hand_in_feed, old_story_retold, story_spread_decay, revisions, numbers_differ.
 - Тесты 714/0; docs/scanner-bridges-summary.txt и scanner-known-names.txt обновлены.
+
+## Партия 69 (Лиана, 16 строк)
+- 9 карточек (все needs_idea) и новый мостик grain_changes_the_answer; 6 мостиков расширены. Повторы библиотеки: Hägerstrand, Weitzman, Jaynes, Herdan, Ellegård. Charnes и Vickery — в memory-waiting.
+- Кандидаты в датчики (ждут «да» владельца): доля показаний индекса радара на границах 0/100 (Тобин); индекс Аткинсона при ε 0,5 и 2 по долям изданий (расширение Брэдфорда); Пилу J' по изданиям истории.

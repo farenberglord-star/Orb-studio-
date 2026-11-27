@@ -30,7 +30,7 @@ noise_or_shift | covered | galton,lexis,polyak
 robust_conclusion | covered | lyapunov,duhem,quine,leamer,akaike_h,schwarz_g
 rare_in_clusters | covered | bortkiewicz,mises_r,skinner_bf
 few_data_wide_band | covered | gosset,helmert,neyman,cramer
-model_not_world | covered | whitehead,schumpeter,robinson_j,leamer
+model_not_world | covered | whitehead,schumpeter,robinson_j,leamer,tobin_j
 other_things_equal | covered | marshall_a,simpson,frisch
 index_weights | covered | edgeworth,konus,allen_rgd,kuznets
 prestige_not_quality | covered | veblen,zajonc,kasperson
@@ -196,12 +196,12 @@ earliest_found | covered | murray_jah,paul_h,darmesteter,valla
 company_it_keeps | idea | firth,harris_z,kilgarriff,collins_am
 balanced_sample | covered | kucera,bradford_sc,lyberg,bowley
 meaning_of_its_time | covered | paul_h,koselleck,rey
-outlet_concentration | covered | gini_c,theil_h,herfindahl_oc,renyi_a,simpson,bradford_sc
+outlet_concentration | covered | gini_c,theil_h,herfindahl_oc,renyi_a,simpson,bradford_sc,pielou_ec,atkinson_ab
 pooled_or_split | idea | cochran_wg,leamer,campbell_dt
 economy_of_checking | idea | kotarbinski_t,levi_i,lindley,anscombe_fj,birnbaum_a,robbins_h
 not_yet_true | covered | lukasiewicz_j,searle,belnap
 quiet_shift | sensor | shewhart,nelson_ls,hinkley_dv
-outlets_agree_on_act | sensor | krippendorff_k,cohen,searle,reiss
+outlets_agree_on_act | sensor | krippendorff_k,cohen,searle,reiss,holsti_or
 saturated_not_settled | sensor | kendall_dg,schmidt_j,searle
 sticky_series | sensor | durbin_j,watson_gs,shewhart
 story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j,utsu_t,jost_a
@@ -210,7 +210,7 @@ independent_or_same_root | idea | griffith_b,wilson_p,kasperson
 claimed_vs_found_complete | idea | maron_me,hansen_mh,horvitz_dg,cochran_wg,lancaster_fw,cleverdon,saracevic
 question_wording_shift | idea | schuman_h,binet,lapiere_rt
 small_cell_suppressed | idea | dalenius_t,codd,gosset
-quiet_or_broken | sensor | shiskin_j,cleveland
+quiet_or_broken | sensor | shiskin_j,cleveland,reiter_r,woodbury_ma
 aftershock_not_new | sensor | omori_f,richter_cf,cohen_s,wadati_k
 loud_chorus_not_majority | covered | noelle_neumann_e,krippendorff_k,bradford_sc
 spread_not_level | sensor | smirnov_nv,bradley_ra,shewhart,bhattacharyya_ak
@@ -219,7 +219,7 @@ bias_or_noise | waiting | youden_wj,baird,lyberg
 new_info_not_paraphrase | idea | schreider_ya,flesch_r,searle
 many_checks_some_lucky | idea | spjotvoll_e,schweder,shewhart,cohen
 when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard,weitzman_ml,schlaifer_r
-shelf_price_lags_market | idea | rotemberg_jj,hicks_jr,braudel_f
+shelf_price_lags_market | idea | rotemberg_jj,hicks_jr,braudel_f,nerlove_m
 map_card_hours_disagree | sensor | rotemberg_jj,garcia_molina_h
 rating_needs_its_count | sensor | cohen,shewhart
 review_age_and_bursts | sensor | hinkley_dv,campbell_dt
@@ -244,7 +244,7 @@ details_not_repeats | sensor | flesch_r,searle,austin_jl
 independent_voices | waiting | kish_l,fisher_r,ogburn_wf,hoeffding_w,schmidt_j,naroll_r
 say_not_known | covered | dempster_ap,savage,zellner_a,hagenauer,leamer
 named_or_anonymous | sensor | chafe_w,shibutani_t,voloshinov_vn,searle,wilson_p
-hedged_not_stated | sensor | palmer_fr,chafe_w,searle
+hedged_not_stated | sensor | palmer_fr,chafe_w,searle,vendler_z
 if_is_not_did | sensor | adams_ew,lewis_d,searle
 number_from_another_time | sensor | prior_an,reichenbach,searle
 how_rare_is_this_quake | sensor | gutenberg_b,aki_k,richter_cf,omori_f,cohen_s
@@ -260,6 +260,7 @@ fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
 detail_not_verdict | idea | undeutsch_u,searle,walton_d
 old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc,lempel_a,bar_hillel_y
 numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k,wilcoxon_f,fano_rm
+grain_changes_the_answer | idea | simpson,openshaw_s,theil_h
 wrong_hand_in_feed | sensor | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c,burrows_jf
 borrowed_text_in_feed | idea | dice_lr,mendenhall_tc,guiraud_p
 copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t,markov_a,mansfield_e

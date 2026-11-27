@@ -16066,6 +16066,168 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per same-event group with numbers of the same unit: entropy of the reported values gives the lower bound on the error of a guess; joins the numbers-differ bridge; not computed yet"
 }
+},
+{
+"id": "nerlove_m",
+"name": "Marc Nerlove",
+"name_ru": "Марк Нерлов",
+"years": "1933–2024",
+"wiki": "https://en.wikipedia.org/wiki/Marc_Nerlove",
+"zone": "stale_data",
+"idea": {
+"en": "'The Dynamics of Supply' (1958): a series moves toward its desired level only a fraction of the gap each period, so today's value still carries yesterday's shock.",
+"ru": "«The Dynamics of Supply» (1958): ряд движется к желаемому уровню лишь на долю разрыва за период, поэтому сегодняшнее значение ещё несёт вчерашний шок.",
+"de": "„The Dynamics of Supply“ (1958): Eine Reihe nähert sich ihrem Sollwert pro Periode nur um einen Bruchteil der Lücke, der heutige Wert trägt also noch den gestrigen Schock."
+},
+"rule": "A slow series (a tariff, a price on a sign) shows only part of a fresh shock; say how fast it usually catches up before you call it current.",
+"needs": {
+"code": "needs_idea",
+"note": "per bank or energy tariff: share of the gap to the market price closed between weekly checks (delta of the partial-adjustment model); needs a market price series and the tariffs history to grow; joins the shelf-price bridge; not computed yet"
+}
+},
+{
+"id": "reiter_r",
+"name": "Raymond Reiter",
+"name_ru": "Рэймонд Рейтер",
+"years": "1939–2002",
+"wiki": "https://en.wikipedia.org/wiki/Raymond_Reiter",
+"zone": "stale_data",
+"idea": {
+"en": "'On Closed World Data Bases' (1978) and 'A Logic for Default Reasoning' (1980): reading a missing report as 'nothing changed' is a default assumption, dropped as soon as a contradicting fact appears.",
+"ru": "«On Closed World Data Bases» (1978) и «A Logic for Default Reasoning» (1980): читать отсутствие сообщения как «ничего не изменилось» - допущение по умолчанию, оно снимается с первым противоречащим фактом.",
+"de": "„On Closed World Data Bases“ (1978) und „A Logic for Default Reasoning“ (1980): Das Fehlen einer Meldung als „nichts hat sich geändert“ zu lesen ist eine Standardannahme, die beim ersten widersprechenden Fakt fällt."
+},
+"rule": "No new report is not proof that the old status holds; say how long ago the last confirmed reading was.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet or sensor: hours since the last confirmed non-empty reading, shown next to the status; radar feeds every 30 minutes; joins the quiet-or-broken bridge next to the Shiskin sensor; not computed yet"
+}
+},
+{
+"id": "woodbury_ma",
+"name": "Max A. Woodbury",
+"name_ru": "Макс А. Вудбери",
+"years": "1917–2010",
+"wiki": "https://en.wikipedia.org/wiki/Max_A._Woodbury",
+"zone": "stale_data",
+"idea": {
+"en": "'A Missing Information Principle: Theory and Applications' (1972, with T. Orchard): the information in what you observed equals the information in the complete data minus the information lost to the gaps.",
+"ru": "«A Missing Information Principle: Theory and Applications» (1972, с Т. Орчардом): информация в наблюдаемом равна информации в полных данных минус информация, потерянная в пропусках.",
+"de": "„A Missing Information Principle: Theory and Applications“ (1972, mit T. Orchard): Die Information im Beobachteten ist die der vollständigen Daten minus die in den Lücken verlorene."
+},
+"rule": "Filling a gap with the last known value hides what the gap cost; report the share of missing readings next to the number.",
+"needs": {
+"code": "needs_idea",
+"note": "per series: share of empty readings in the last 24 h (null is not zero) and the share of information left, 1 minus that share; radar feeds every 30 minutes; joins the quiet-or-broken bridge; not computed yet"
+}
+},
+{
+"id": "pielou_ec",
+"name": "E. C. Pielou",
+"name_ru": "Э. К. Пилу",
+"years": "1924–2016",
+"wiki": "https://en.wikipedia.org/wiki/Evelyn_Chrystalla_Pielou",
+"zone": "one_model",
+"idea": {
+"en": "'The measurement of diversity in different types of biological collections' (Journal of Theoretical Biology, 1966): evenness J' = H' / ln S separates an even spread over S kinds from the dominance of one.",
+"ru": "«The measurement of diversity in different types of biological collections» (Journal of Theoretical Biology, 1966): выровненность J' = H' / ln S отделяет равномерный разброс по S видам от господства одного.",
+"de": "„The measurement of diversity in different types of biological collections“ (Journal of Theoretical Biology, 1966): Die Gleichverteilung J' = H' / ln S trennt eine gleichmäßige Verteilung auf S Arten von der Dominanz einer einzigen."
+},
+"rule": "Many headlines from few outlets look like many voices; give the evenness of the outlets behind a story, not only their count.",
+"needs": {
+"code": "needs_idea",
+"note": "per radar story: evenness J = H / ln S of the outlet shares of its headlines, S outlets; radar feeds every 30 minutes; joins the outlet-concentration bridge, whose Bradford sensor already counts the largest outlets; not computed yet"
+}
+},
+{
+"id": "openshaw_s",
+"name": "Stan Openshaw",
+"name_ru": "Стэн Опеншоу",
+"years": "1946–2022",
+"wiki": "https://en.wikipedia.org/wiki/Stan_Openshaw",
+"zone": "one_model",
+"idea": {
+"en": "'The Modifiable Areal Unit Problem' (1984): the same data summed into different zones or at different scales give different correlations and levels, so a result is checked at more than one grid.",
+"ru": "«The Modifiable Areal Unit Problem» (1984): одни и те же данные, сложенные в разные зоны или в другом масштабе, дают разные корреляции и уровни, поэтому результат проверяют минимум на двух сетках.",
+"de": "„The Modifiable Areal Unit Problem“ (1984): Dieselben Daten, in andere Zonen oder in anderem Maßstab zusammengefasst, ergeben andere Korrelationen und Niveaus; ein Ergebnis wird auf mehr als einem Raster geprüft."
+},
+"rule": "A relation seen at 30 minutes may vanish at 6 hours; state the grid you used.",
+"needs": {
+"code": "needs_idea",
+"note": "per radar index pair: correlation or mean at the 30-minute grid against the 2 h and 6 h grids; radar feeds every 30 minutes; joins the grain-changes-the-answer bridge next to the Simpson sensor; not computed yet"
+}
+},
+{
+"id": "atkinson_ab",
+"name": "Anthony B. Atkinson",
+"name_ru": "Энтони Б. Аткинсон",
+"years": "1944–2017",
+"wiki": "https://en.wikipedia.org/wiki/Tony_Atkinson",
+"zone": "one_model",
+"idea": {
+"en": "'On the Measurement of Inequality' (Journal of Economic Theory, 1970): an index with a parameter of aversion to inequality shows which end of the distribution drives the picture.",
+"ru": "«On the Measurement of Inequality» (Journal of Economic Theory, 1970): индекс с параметром неприятия неравенства показывает, какой конец распределения определяет картину.",
+"de": "„On the Measurement of Inequality“ (Journal of Economic Theory, 1970): Ein Index mit einem Ungleichheitsaversions-Parameter zeigt, welches Ende der Verteilung das Bild bestimmt."
+},
+"rule": "Say whether the concentration of sources is driven by the few big outlets or by the long tail of small ones.",
+"needs": {
+"code": "needs_idea",
+"note": "per 7 days of radar headlines: Atkinson index at epsilon 0.5 and 2 over the outlet shares, to show whether the big or the small outlets drive the concentration; joins the outlet-concentration bridge; not computed yet"
+}
+},
+{
+"id": "tobin_j",
+"name": "James Tobin",
+"name_ru": "Джеймс Тобин",
+"years": "1918–2002",
+"wiki": "https://en.wikipedia.org/wiki/James_Tobin",
+"zone": "one_model",
+"idea": {
+"en": "'Estimation of Relationships for Limited Dependent Variables' (Econometrica, 1958): when a measure is cut off at the ends of its scale, an ordinary straight-line fit gives a biased slope and mean.",
+"ru": "«Estimation of Relationships for Limited Dependent Variables» (Econometrica, 1958): когда мера обрезана краями шкалы, обычная прямая даёт смещённые наклон и среднее.",
+"de": "„Estimation of Relationships for Limited Dependent Variables“ (Econometrica, 1958): Ist ein Maß an den Skalenenden abgeschnitten, liefert eine gewöhnliche Gerade eine verzerrte Steigung und einen verzerrten Mittelwert."
+},
+"rule": "An index stuck at 0 or 100 says \"at least\", not \"exactly\"; count how often it sits on the edge.",
+"needs": {
+"code": "needs_idea",
+"note": "per radar: share of 30-minute index readings sitting at 0 or at 100 over the last 24 h; needs the stored index values; joins the model-not-world bridge; not computed yet"
+}
+},
+{
+"id": "vendler_z",
+"name": "Zeno Vendler",
+"name_ru": "Зено Вендлер",
+"years": "1921–2004",
+"wiki": "https://en.wikipedia.org/wiki/Zeno_Vendler",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Verbs and Times' (The Philosophical Review, 1957): verbs fall into states, activities, accomplishments and achievements; only the last two name a reached endpoint.",
+"ru": "«Verbs and Times» (The Philosophical Review, 1957): глаголы делятся на состояния, деятельности, свершения и достижения; конечную точку называют только два последних класса.",
+"de": "„Verbs and Times“ (The Philosophical Review, 1957): Verben teilen sich in Zustände, Tätigkeiten, Abschlüsse und Erreichungen; nur die letzten beiden nennen einen erreichten Endpunkt."
+},
+"rule": "\"Is negotiating\" or \"is expected to leave\" names a process, not a result; do not report it as done.",
+"needs": {
+"code": "needs_idea",
+"note": "per live radar headline: whether its main verb names a reached endpoint (accomplishment, achievement) or a process or state; splits the hedge share of the Searle sensor; word lists in de/en/ru needed; not computed yet"
+}
+},
+{
+"id": "holsti_or",
+"name": "Ole R. Holsti",
+"name_ru": "Оле Р. Холсти",
+"years": "1933–2020",
+"wiki": "https://en.wikipedia.org/wiki/Ole_Holsti",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Content Analysis for the Social Sciences and Humanities' (1969): the agreement of two coders is CR = 2M / (N1 + N2), M being the judgements they share.",
+"ru": "«Content Analysis for the Social Sciences and Humanities» (1969): согласие двух кодировщиков CR = 2M / (N1 + N2), где M - общие суждения.",
+"de": "„Content Analysis for the Social Sciences and Humanities“ (1969): Die Übereinstimmung zweier Codierer ist CR = 2M / (N1 + N2), M sind die gemeinsamen Urteile."
+},
+"rule": "Count how often two outlets put the same story in the same class; the raw agreement comes first, chance correction after.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: raw share of outlet pairs that give the story the same speech-act label (2M / (N1 + N2)) next to the Krippendorff alpha; radar feeds every 30 minutes; joins the outlets-agree bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
