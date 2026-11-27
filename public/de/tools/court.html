@@ -299,8 +299,29 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <div id="invOut" class="inv-out" aria-live="polite"></div>
   </section>
 
-  <section class="panel">
-    <h2>VERHANDLUNGEN</h2>
+<style>
+#hearings{position:relative;overflow:hidden;padding:8px 10px;border-color:#1b2a55;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
+#hearings:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,240,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+#hearings h2{margin:0 0 6px;font-size:12px;letter-spacing:.14em;color:#00f0ff;text-shadow:0 0 6px #00f0ff,0 0 14px rgba(0,240,255,.5)}
+#hearings #cases{gap:0!important}
+#hearings .case{background:transparent;border:0;border-left:2px solid #00f0ff;border-radius:0;padding:3px 0 3px 8px;margin:5px 0;box-shadow:-6px 0 10px -8px #00f0ff}
+#hearings .case:target{border-left-color:#ff2bd6;box-shadow:-6px 0 10px -8px #ff2bd6}
+#hearings .case-head{justify-content:flex-start;gap:8px}
+#hearings .case-id,#hearings .case-time{font-size:10px;color:#6f86c9}
+#hearings .case h3{margin:1px 0;font-size:12px;color:#fff;font-weight:400;text-shadow:0 0 5px rgba(0,240,255,.6)}
+#hearings .verdict{font-size:10px;padding:0 5px;border:1px solid #fff200;color:#fff200;border-radius:3px;background:transparent;text-shadow:0 0 5px #fff200;margin-left:4px}
+#hearings .charge{margin:0;font-size:11px;color:#6f86c9}
+#hearings .ts{margin-top:2px}
+#hearings .line{font-size:11px;line-height:1.3;gap:6px;margin:1px 0;color:#9fb2e6;display:flex}
+#hearings .line>span:last-child{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+#hearings .line:hover>span:last-child{-webkit-line-clamp:unset}
+#hearings .who{font-size:10px;flex:none;min-width:22px}
+#hearings .share{font-size:10px;margin-top:2px;opacity:.7}
+#hearings .share svg{width:10px;height:10px}
+#hearings .more{display:block;margin:6px 0 0;background:transparent;border:1px solid #00f0ff;color:#00f0ff;border-radius:3px;font:10px ui-monospace,monospace;padding:1px 8px;cursor:pointer;text-shadow:0 0 5px #00f0ff}
+</style>
+  <section class="panel" id="hearings">
+    <h2>▍VERHANDLUNGEN</h2>
     <div id="cases" class="grid" style="grid-template-columns:1fr"><p class="empty">Lade Fälle…</p></div>
   </section>
 
@@ -432,6 +453,13 @@ function render(cases,demo){
 <p class="charge">${esc(F.art(c))}</p>
 <div class="ts">${lines.map(l=>{const w=l.role==='prosecutor'?'p':l.role==='defense'?'d':l.role==='appeal'?'a':'j';return `<div class="line"><span class="who ${w}">${T.who[l.role]||l.role}</span><span>${esc((x=>x.charAt(0).toUpperCase()+x.slice(1))(String(l.x).replace(STRIP,'')))}</span></div>`}).join('')}</div>${demo?'':`<a class="share" href="${esc(shareX(c))}" target="_blank" rel="noopener" aria-label="${T.shareL}${esc(c.case_id)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.8l-5.3-6.9L4.8 22H1.7l8.1-9.3L1 2h7l4.8 6.3zm-1.2 18h1.9L6.4 4H4.4z"/></svg>${T.share}</a>`}</article>`;
   }).join('');
+  const all=[...document.querySelectorAll('#cases .case')],MAXV=5;
+  if(all.length>MAXV){const tgt=location.hash?document.getElementById(location.hash.slice(1)):null;
+    const hide=(on)=>all.forEach((el,i)=>{if(i>=MAXV)el.style.display=on?'none':'';});
+    const showAll=tgt&&all.indexOf(tgt)>=MAXV;hide(!showAll);
+    const b=document.createElement('button');b.type='button';b.className='more';let open=!!showAll;
+    const lab=()=>{b.textContent=open?'▲':'▼ +'+(all.length-MAXV);};lab();
+    b.onclick=()=>{open=!open;hide(!open);lab();};$('cases').appendChild(b);}
   if(location.hash){const el=document.getElementById(location.hash.slice(1));if(el)el.scrollIntoView();}
 }
 function stats(cases,last7){
