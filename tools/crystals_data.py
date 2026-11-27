@@ -2002,6 +2002,66 @@ C = [
 ('dalenius_t', 'Tore Dalenius', 'Туре Далениус', '1917–2002', 'https://en.wikipedia.org/wiki/Tore_Dalenius', 'own_limits', "'Towards a methodology for statistical disclosure control' (1977): a published table may hide small cells on purpose, so that nobody can be identified from it.", '«К методологии контроля раскрытия статистических данных» (1977): в опубликованной таблице малые ячейки могут быть скрыты намеренно, чтобы по ней нельзя было опознать человека.', '„Towards a methodology for statistical disclosure control“ (1977): Eine veröffentlichte Tabelle kann kleine Zellen absichtlich verbergen, damit niemand erkennbar wird.', 'A dash, star or blank in a table may be a deliberately hidden small count, not a zero; say which it is before using the figure.'),
 ('labov_w', 'William Labov', 'Уильям Лабов', '1927–2024', 'https://en.wikipedia.org/wiki/William_Labov', 'look_alike', "Martha's Vineyard study (1963) and New York City study (1966): differences between age groups at one moment (apparent time) are not yet change over time; real time needs the same group measured again.", 'Исследование Мартас-Винъярд (1963) и нью-йоркское (1966): различия между возрастными группами в один момент («кажущееся время») ещё не изменение во времени; для реального времени ту же группу нужно измерить снова.', 'Martha’s-Vineyard-Studie (1963) und New-York-Studie (1966): Unterschiede zwischen Altersgruppen zu einem Zeitpunkt (scheinbare Zeit) sind noch kein Wandel; echte Zeit braucht eine erneute Messung derselben Gruppe.', 'Before writing that something changed over years, check that the same group was measured twice, not two different groups once.'),
 ('dornbusch_r', 'Rudi Dornbusch', 'Рюдигер Дорнбуш', '1942–2002', 'https://en.wikipedia.org/wiki/Rudi_Dornbusch', 'side_effects', "'Expectations and Exchange-Rate Dynamics' (1976): after a shock, a fast-moving price (an exchange rate) first overshoots its final level and then drifts back while slow prices (goods, wages) catch up.", '«Ожидания и динамика обменного курса» (1976): после шока быстро меняющаяся цена (курс) сначала перелетает свой итоговый уровень и затем возвращается, пока медленные цены (товары, зарплаты) догоняют.', '„Expectations and Exchange-Rate Dynamics“ (1976): Nach einem Schock schießt ein schneller Preis (Wechselkurs) über sein Endniveau hinaus und läuft zurück, während langsame Preise nachziehen.', 'A big first move in a fast number may be an overshoot; wait for the slow numbers before calling it the new level.'),
+('locard_e', 'Edmond Locard', 'Эдмон Локар', '1877–1966', 'https://en.wikipedia.org/wiki/Edmond_Locard', 'one_model',
+ "'L'enquête criminelle et les méthodes scientifiques' (1920): every contact leaves a trace, so whoever copies something carries a trace of what was copied.",
+ '«L\'enquête criminelle et les méthodes scientifiques» (1920): каждый контакт оставляет след, поэтому тот, кто копирует, уносит след того, что скопировал.',
+ '„L\'enquête criminelle et les méthodes scientifiques“ (1920): Jeder Kontakt hinterlässt eine Spur; wer etwas übernimmt, trägt eine Spur des Übernommenen.',
+ 'When several outlets say the same thing, look for the trace of the copy (shared wording, shared first source) before counting them as independent.'),
+('bertillon_a', 'Alphonse Bertillon', 'Альфонс Бертильон', '1853–1914', 'https://en.wikipedia.org/wiki/Alphonse_Bertillon', 'look_alike',
+ "'Identification anthropométrique' (1893): one measurement is not enough to tell two people apart; a combination of several independent measurements is.",
+ '«Identification anthropométrique» (1893): одного измерения мало, чтобы отличить двоих; различает сочетание нескольких независимых измерений.',
+ '„Identification anthropométrique“ (1893): Ein einzelnes Maß reicht nicht, um zwei Personen zu unterscheiden; erst die Kombination mehrerer unabhängiger Maße.',
+ 'Do not call two reports the same (or different) on one feature; compare several independent ones: time, wording, first source.'),
+('herdan_g', 'Gustav Herdan', 'Густав Хердан', '1897–1968', 'https://de.wikipedia.org/wiki/Gustav_Herdan', 'look_alike',
+ "'Type-Token Mathematics' (1960): the number of different words grows with text length by a power law (later called Heaps' or Herdan's law); a text with fewer different words than its length predicts is repeating itself.",
+ '«Type-Token Mathematics» (1960): число разных слов растёт с длиной текста по степенному закону (позже — закон Хипса, или Хердана); текст с меньшим числом разных слов, чем даёт длина, повторяет сам себя.',
+ '„Type-Token Mathematics“ (1960): Die Zahl verschiedener Wörter wächst mit der Textlänge nach einem Potenzgesetz (später Heaps- oder Herdan-Gesetz); wenig verschiedene Wörter für die Länge bedeuten Wiederholung.',
+ 'If many headlines about one event use far fewer different words than their number predicts, say they look like copies.'),
+('undeutsch_u', 'Udo Undeutsch', 'Удо Ундойч', '1917–2013', 'https://de.wikipedia.org/wiki/Udo_Undeutsch', 'rumour_vs_fact',
+ "'Forensische Psychologie' (1967): the Undeutsch hypothesis: an account of something really experienced differs in quality (concrete detail, context, unexpected particulars) from an invented one.",
+ '«Forensische Psychologie» (1967): гипотеза Ундойча: рассказ о действительно пережитом отличается по качеству (конкретные детали, контекст, неожиданные частности) от выдуманного.',
+ '„Forensische Psychologie“ (1967): Undeutsch-Hypothese: Der Bericht über Erlebtes unterscheidet sich in der Qualität (konkrete Einzelheiten, Zusammenhang, unerwartete Details) vom erfundenen.',
+ 'Count concrete checkable details (who, where, when, how much) and say it as a count, never as a verdict that someone lies.'),
+('le_bon_g', 'Gustave Le Bon', 'Гюстав Лебон', '1841–1931', 'https://en.wikipedia.org/wiki/Gustave_Le_Bon', 'rumour_vs_fact',
+ "'Psychologie des foules' (1895): a crowd takes a claim on through bare affirmation, repetition and contagion, not through proof.",
+ '«Psychologie des foules» (1895): толпа принимает утверждение через простое утверждение, повторение и заражение, а не через доказательства.',
+ '„Psychologie des foules“ (1895): Eine Menge übernimmt eine Behauptung durch bloße Behauptung, Wiederholung und Ansteckung, nicht durch Beweis.',
+ 'Repetition across outlets is not proof: ask what was added between the first and the tenth telling.'),
+('walton_d', 'Douglas Walton', 'Дуглас Уолтон', '1942–2020', 'https://en.wikipedia.org/wiki/Douglas_N._Walton', 'one_model',
+ "'Appeal to Expert Opinion' (1997): an argument from an expert is presumptive and is tested with critical questions: is the expert named, in this field, do other experts agree, is there evidence.",
+ '«Appeal to Expert Opinion» (1997): довод «так сказал эксперт» — презумпция, которую проверяют критическими вопросами: назван ли эксперт, его ли это область, согласны ли другие, есть ли доказательства.',
+ '„Appeal to Expert Opinion“ (1997): Das Expertenargument ist eine Vermutung und wird mit kritischen Fragen geprüft: Ist der Experte genannt, im Fach, stimmen andere zu, gibt es Belege.',
+ 'When the only support is "an expert says", name what is missing: the name, the field, the second opinion, the evidence.'),
+('tullock_g', 'Gordon Tullock', 'Гордон Таллок', '1922–2014', 'https://en.wikipedia.org/wiki/Gordon_Tullock', 'side_effects',
+ "'The Politics of Bureaucracy' (1965): in a chain of levels, information is changed a little at each step, so what reaches the top differs from what was said at the bottom.",
+ '«The Politics of Bureaucracy» (1965): в цепочке ступеней сведения чуть меняются на каждом шаге, поэтому до верха доходит не то, что сказали внизу.',
+ '„The Politics of Bureaucracy“ (1965): In einer Kette von Ebenen verändert sich die Information bei jedem Schritt etwas; oben kommt nicht an, was unten gesagt wurde.',
+ 'The longer the chain of retellings, the less the last version says about the first; go back to the first one.'),
+('duncan_od', 'Otis Dudley Duncan', 'Отис Дадли Дункан', '1921–2004', 'https://en.wikipedia.org/wiki/Otis_Dudley_Duncan', 'one_model',
+ "With Beverly Duncan, 'A Methodological Analysis of Segregation Indices' (1955): the index of dissimilarity D is the share of one group that would have to move to make two distributions equal.",
+ 'С Беверли Дункан, «A Methodological Analysis of Segregation Indices» (1955): индекс несходства D — доля одной группы, которую пришлось бы переместить, чтобы два распределения стали одинаковыми.',
+ 'Mit Beverly Duncan, „A Methodological Analysis of Segregation Indices“ (1955): Der Unähnlichkeitsindex D ist der Anteil einer Gruppe, der umziehen müsste, damit zwei Verteilungen gleich werden.',
+ 'To say two groups of outlets cover different things, give D: the share of attention that would have to move to make them equal.'),
+('bass_f', 'Frank Bass', 'Фрэнк Басс', '1926–2006', 'https://en.wikipedia.org/wiki/Frank_Bass', 'side_effects',
+ "'A New Product Growth Model for Consumer Durables' (1969): spread has two parts, those who act on their own (innovation) and those who follow others already acting (imitation); the curve shows which dominates.",
+ '«A New Product Growth Model for Consumer Durables» (1969): распространение складывается из тех, кто действует сам (новаторы), и тех, кто идёт за уже действующими (подражатели); кривая показывает, что преобладает.',
+ '„A New Product Growth Model for Consumer Durables“ (1969): Die Verbreitung besteht aus Eigenhandelnden (Innovation) und Nachahmern; die Kurve zeigt, was überwiegt.',
+ 'For a story that spread fast, say how many outlets found it themselves and how many followed.'),
+('cressey_d', 'Donald Cressey', 'Дональд Крессей', '1919–1987', 'https://en.wikipedia.org/wiki/Donald_Cressey', 'rumour_vs_fact',
+ "'Other People's Money' (1953): interviews with embezzlers: trusted people steal when three things meet — a pressure they cannot share, an opportunity and a way to justify it (later called the fraud triangle).",
+ '«Other People\'s Money» (1953): интервью с растратчиками: доверенные люди воруют, когда сходятся три вещи — давление, которым не с кем поделиться, возможность и способ оправдать себя (позже «треугольник мошенничества»).',
+ '„Other People\'s Money“ (1953): Interviews mit Veruntreuern: Vertrauenspersonen stehlen, wenn drei Dinge zusammenkommen — ein nicht teilbarer Druck, eine Gelegenheit und eine Rechtfertigung (später „Betrugsdreieck“).',
+ 'A fraud story is plausible only if it names pressure, opportunity and excuse; say which of the three the article gives and which is missing.'),
+('vansina_j', 'Jan Vansina', 'Ян Вансина', '1929–2017', 'https://en.wikipedia.org/wiki/Jan_Vansina', 'stale_data',
+ "'De la tradition orale' (1961), later 'Oral Tradition as History' (1985): an oral tale is shaped by the present of the teller and its listeners; to use it as a source, ask who told it, when, and what the present needed from it.",
+ '«De la tradition orale» (1961), позже «Oral Tradition as History» (1985): устный рассказ формируется настоящим рассказчика и слушателей; чтобы взять его как источник, спроси, кто рассказал, когда и что было нужно настоящему.',
+ '„De la tradition orale“ (1961), später „Oral Tradition as History“ (1985): Eine mündliche Erzählung wird von der Gegenwart von Erzähler und Hörern geformt; als Quelle fragt man, wer sie wann erzählte und was die Gegenwart brauchte.',
+ 'An old story retold today is a story shaped by today: ask when it was first told and what has changed around it.'),
+('goody_j', 'Jack Goody', 'Джек Гуди', '1919–2015', 'https://en.wikipedia.org/wiki/Jack_Goody', 'stale_data',
+ "With Ian Watt, 'The Consequences of Literacy' (1963): in oral cultures what no longer suits the present is forgotten and the rest is told as if it had always been so; writing lets a later reader check what was said before.",
+ 'С Иэном Уоттом, «The Consequences of Literacy» (1963): в устных культурах то, что не подходит настоящему, забывается, а остальное рассказывают так, будто так было всегда; письмо позволяет позднему читателю сверить с тем, что говорили раньше.',
+ 'Mit Ian Watt, „The Consequences of Literacy“ (1963): In mündlichen Kulturen wird vergessen, was nicht zur Gegenwart passt; der Rest wird erzählt, als sei es immer so gewesen; Schrift erlaubt späteren Lesern den Abgleich.',
+ 'Check the retelling against the written first version; do not trust that it has always been told this way.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2640,3 +2700,16 @@ NEEDS['schuman_h'] = ('needs_idea', 'a list of poll-based headlines with the que
 NEEDS['dalenius_t'] = ('needs_idea', 'which of our official tables carry suppression marks (Destatis, Eurostat) and how a parser reads them; joins the suppressed small cell bridge')
 NEEDS['labov_w'] = ('needs_idea', 'headlines that infer a trend from one cross-section of groups; joins the apparent versus real bridge with the source-ageing check; no number yet')
 NEEDS['dornbusch_r'] = ('needs_idea', 'a fast series (radar index) and a slow series for the same topic to see overshoot then return; joins the spiral or bounce bridge, waits for its history from 14.12')
+
+NEEDS['locard_e'] = ('needs_idea', 'per same-event group of 3+ headlines: rare words or word pairs that two outlets share beyond what the topic needs, with the order of first appearance; radar feeds, every 30 minutes; joins the copy-trace bridge; not computed yet')
+NEEDS['bertillon_a'] = ('needs_idea', 'a match of two headlines on several independent features at once (publication time, shared rare words, first source named); joins the copy-trace bridge; not computed yet')
+NEEDS['herdan_g'] = ('needs_idea', 'per same-event group: distinct words against all words, compared with the fitted power law of all radar headlines (Herdan-Heaps); joins the same-words bridge; not computed yet')
+NEEDS['undeutsch_u'] = ('needs_idea', 'per headline: count of concrete details (named person, place, time, figure) against vague wording; may already be partly covered by the checkability line of the passport (Frankfurt): compare first; never a verdict that someone lies')
+NEEDS['le_bon_g'] = ('covered', 'the Kasperson sensor already shows which stories were repeated by many outlets; the rule adds: repetition is not proof; bridge familiar_true', None, 'kasperson')
+NEEDS['walton_d'] = ('needs_idea', 'headlines that rest on "an expert / analyst / official says" without a name: share of them, by outlet; extends the evidential word rules of the Searle sensor; joins the expert-questions bridge; not computed yet')
+NEEDS['tullock_g'] = ('covered', 'the Kasperson sensor already counts retellings of a story; the rule adds: the longer the chain, the more the last version drifts from the first; bridge amplification', None, 'kasperson')
+NEEDS['duncan_od'] = ('needs_idea', 'a topic label per headline (feed section or keyword groups) for 7 days; D = half the sum of absolute differences of topic shares between two groups of outlets (state media against the rest); radar feeds, daily; sensor candidate, needs the owner yes')
+NEEDS['bass_f'] = ('needs_idea', 'per fast-spreading story: outlets in order of first appearance; share that appeared after the first three (followers) against the first three; radar feeds, every 30 minutes; not computed yet')
+NEEDS['cressey_d'] = ('needs_idea', 'crime-desk items with fraud or embezzlement words: which of pressure, opportunity and excuse the text names (word rules in English, German, Russian); not computed yet')
+NEEDS['vansina_j'] = ('needs_idea', 'first appearance of a story in our radar history against today, and what changed around it; needs the history to grow; joins the old-story-retold bridge')
+NEEDS['goody_j'] = ('needs_idea', 'a retelling compared with the first written version (first-seen headline of the same story); needs the history to grow; joins the old-story-retold bridge')

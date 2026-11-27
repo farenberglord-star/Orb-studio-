@@ -15360,6 +15360,224 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "a fast series (radar index) and a slow series for the same topic to see overshoot then return; joins the spiral or bounce bridge, waits for its history from 14.12"
 }
+},
+{
+"id": "locard_e",
+"name": "Edmond Locard",
+"name_ru": "Эдмон Локар",
+"years": "1877–1966",
+"wiki": "https://en.wikipedia.org/wiki/Edmond_Locard",
+"zone": "one_model",
+"idea": {
+"en": "'L'enquête criminelle et les méthodes scientifiques' (1920): every contact leaves a trace, so whoever copies something carries a trace of what was copied.",
+"ru": "«L'enquête criminelle et les méthodes scientifiques» (1920): каждый контакт оставляет след, поэтому тот, кто копирует, уносит след того, что скопировал.",
+"de": "„L'enquête criminelle et les méthodes scientifiques“ (1920): Jeder Kontakt hinterlässt eine Spur; wer etwas übernimmt, trägt eine Spur des Übernommenen."
+},
+"rule": "When several outlets say the same thing, look for the trace of the copy (shared wording, shared first source) before counting them as independent.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group of 3+ headlines: rare words or word pairs that two outlets share beyond what the topic needs, with the order of first appearance; radar feeds, every 30 minutes; joins the copy-trace bridge; not computed yet"
+}
+},
+{
+"id": "bertillon_a",
+"name": "Alphonse Bertillon",
+"name_ru": "Альфонс Бертильон",
+"years": "1853–1914",
+"wiki": "https://en.wikipedia.org/wiki/Alphonse_Bertillon",
+"zone": "look_alike",
+"idea": {
+"en": "'Identification anthropométrique' (1893): one measurement is not enough to tell two people apart; a combination of several independent measurements is.",
+"ru": "«Identification anthropométrique» (1893): одного измерения мало, чтобы отличить двоих; различает сочетание нескольких независимых измерений.",
+"de": "„Identification anthropométrique“ (1893): Ein einzelnes Maß reicht nicht, um zwei Personen zu unterscheiden; erst die Kombination mehrerer unabhängiger Maße."
+},
+"rule": "Do not call two reports the same (or different) on one feature; compare several independent ones: time, wording, first source.",
+"needs": {
+"code": "needs_idea",
+"note": "a match of two headlines on several independent features at once (publication time, shared rare words, first source named); joins the copy-trace bridge; not computed yet"
+}
+},
+{
+"id": "herdan_g",
+"name": "Gustav Herdan",
+"name_ru": "Густав Хердан",
+"years": "1897–1968",
+"wiki": "https://de.wikipedia.org/wiki/Gustav_Herdan",
+"zone": "look_alike",
+"idea": {
+"en": "'Type-Token Mathematics' (1960): the number of different words grows with text length by a power law (later called Heaps' or Herdan's law); a text with fewer different words than its length predicts is repeating itself.",
+"ru": "«Type-Token Mathematics» (1960): число разных слов растёт с длиной текста по степенному закону (позже — закон Хипса, или Хердана); текст с меньшим числом разных слов, чем даёт длина, повторяет сам себя.",
+"de": "„Type-Token Mathematics“ (1960): Die Zahl verschiedener Wörter wächst mit der Textlänge nach einem Potenzgesetz (später Heaps- oder Herdan-Gesetz); wenig verschiedene Wörter für die Länge bedeuten Wiederholung."
+},
+"rule": "If many headlines about one event use far fewer different words than their number predicts, say they look like copies.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: distinct words against all words, compared with the fitted power law of all radar headlines (Herdan-Heaps); joins the same-words bridge; not computed yet"
+}
+},
+{
+"id": "undeutsch_u",
+"name": "Udo Undeutsch",
+"name_ru": "Удо Ундойч",
+"years": "1917–2013",
+"wiki": "https://de.wikipedia.org/wiki/Udo_Undeutsch",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Forensische Psychologie' (1967): the Undeutsch hypothesis: an account of something really experienced differs in quality (concrete detail, context, unexpected particulars) from an invented one.",
+"ru": "«Forensische Psychologie» (1967): гипотеза Ундойча: рассказ о действительно пережитом отличается по качеству (конкретные детали, контекст, неожиданные частности) от выдуманного.",
+"de": "„Forensische Psychologie“ (1967): Undeutsch-Hypothese: Der Bericht über Erlebtes unterscheidet sich in der Qualität (konkrete Einzelheiten, Zusammenhang, unerwartete Details) vom erfundenen."
+},
+"rule": "Count concrete checkable details (who, where, when, how much) and say it as a count, never as a verdict that someone lies.",
+"needs": {
+"code": "needs_idea",
+"note": "per headline: count of concrete details (named person, place, time, figure) against vague wording; may already be partly covered by the checkability line of the passport (Frankfurt): compare first; never a verdict that someone lies"
+}
+},
+{
+"id": "le_bon_g",
+"name": "Gustave Le Bon",
+"name_ru": "Гюстав Лебон",
+"years": "1841–1931",
+"wiki": "https://en.wikipedia.org/wiki/Gustave_Le_Bon",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Psychologie des foules' (1895): a crowd takes a claim on through bare affirmation, repetition and contagion, not through proof.",
+"ru": "«Psychologie des foules» (1895): толпа принимает утверждение через простое утверждение, повторение и заражение, а не через доказательства.",
+"de": "„Psychologie des foules“ (1895): Eine Menge übernimmt eine Behauptung durch bloße Behauptung, Wiederholung und Ansteckung, nicht durch Beweis."
+},
+"rule": "Repetition across outlets is not proof: ask what was added between the first and the tenth telling.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor already shows which stories were repeated by many outlets; the rule adds: repetition is not proof; bridge familiar_true",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "walton_d",
+"name": "Douglas Walton",
+"name_ru": "Дуглас Уолтон",
+"years": "1942–2020",
+"wiki": "https://en.wikipedia.org/wiki/Douglas_N._Walton",
+"zone": "one_model",
+"idea": {
+"en": "'Appeal to Expert Opinion' (1997): an argument from an expert is presumptive and is tested with critical questions: is the expert named, in this field, do other experts agree, is there evidence.",
+"ru": "«Appeal to Expert Opinion» (1997): довод «так сказал эксперт» — презумпция, которую проверяют критическими вопросами: назван ли эксперт, его ли это область, согласны ли другие, есть ли доказательства.",
+"de": "„Appeal to Expert Opinion“ (1997): Das Expertenargument ist eine Vermutung und wird mit kritischen Fragen geprüft: Ist der Experte genannt, im Fach, stimmen andere zu, gibt es Belege."
+},
+"rule": "When the only support is \"an expert says\", name what is missing: the name, the field, the second opinion, the evidence.",
+"needs": {
+"code": "needs_idea",
+"note": "headlines that rest on \"an expert / analyst / official says\" without a name: share of them, by outlet; extends the evidential word rules of the Searle sensor; joins the expert-questions bridge; not computed yet"
+}
+},
+{
+"id": "tullock_g",
+"name": "Gordon Tullock",
+"name_ru": "Гордон Таллок",
+"years": "1922–2014",
+"wiki": "https://en.wikipedia.org/wiki/Gordon_Tullock",
+"zone": "side_effects",
+"idea": {
+"en": "'The Politics of Bureaucracy' (1965): in a chain of levels, information is changed a little at each step, so what reaches the top differs from what was said at the bottom.",
+"ru": "«The Politics of Bureaucracy» (1965): в цепочке ступеней сведения чуть меняются на каждом шаге, поэтому до верха доходит не то, что сказали внизу.",
+"de": "„The Politics of Bureaucracy“ (1965): In einer Kette von Ebenen verändert sich die Information bei jedem Schritt etwas; oben kommt nicht an, was unten gesagt wurde."
+},
+"rule": "The longer the chain of retellings, the less the last version says about the first; go back to the first one.",
+"needs": {
+"code": "covered",
+"note": "the Kasperson sensor already counts retellings of a story; the rule adds: the longer the chain, the more the last version drifts from the first; bridge amplification",
+"covered_by": "kasperson"
+}
+},
+{
+"id": "duncan_od",
+"name": "Otis Dudley Duncan",
+"name_ru": "Отис Дадли Дункан",
+"years": "1921–2004",
+"wiki": "https://en.wikipedia.org/wiki/Otis_Dudley_Duncan",
+"zone": "one_model",
+"idea": {
+"en": "With Beverly Duncan, 'A Methodological Analysis of Segregation Indices' (1955): the index of dissimilarity D is the share of one group that would have to move to make two distributions equal.",
+"ru": "С Беверли Дункан, «A Methodological Analysis of Segregation Indices» (1955): индекс несходства D — доля одной группы, которую пришлось бы переместить, чтобы два распределения стали одинаковыми.",
+"de": "Mit Beverly Duncan, „A Methodological Analysis of Segregation Indices“ (1955): Der Unähnlichkeitsindex D ist der Anteil einer Gruppe, der umziehen müsste, damit zwei Verteilungen gleich werden."
+},
+"rule": "To say two groups of outlets cover different things, give D: the share of attention that would have to move to make them equal.",
+"needs": {
+"code": "needs_idea",
+"note": "a topic label per headline (feed section or keyword groups) for 7 days; D = half the sum of absolute differences of topic shares between two groups of outlets (state media against the rest); radar feeds, daily; sensor candidate, needs the owner yes"
+}
+},
+{
+"id": "bass_f",
+"name": "Frank Bass",
+"name_ru": "Фрэнк Басс",
+"years": "1926–2006",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Bass",
+"zone": "side_effects",
+"idea": {
+"en": "'A New Product Growth Model for Consumer Durables' (1969): spread has two parts, those who act on their own (innovation) and those who follow others already acting (imitation); the curve shows which dominates.",
+"ru": "«A New Product Growth Model for Consumer Durables» (1969): распространение складывается из тех, кто действует сам (новаторы), и тех, кто идёт за уже действующими (подражатели); кривая показывает, что преобладает.",
+"de": "„A New Product Growth Model for Consumer Durables“ (1969): Die Verbreitung besteht aus Eigenhandelnden (Innovation) und Nachahmern; die Kurve zeigt, was überwiegt."
+},
+"rule": "For a story that spread fast, say how many outlets found it themselves and how many followed.",
+"needs": {
+"code": "needs_idea",
+"note": "per fast-spreading story: outlets in order of first appearance; share that appeared after the first three (followers) against the first three; radar feeds, every 30 minutes; not computed yet"
+}
+},
+{
+"id": "cressey_d",
+"name": "Donald Cressey",
+"name_ru": "Дональд Крессей",
+"years": "1919–1987",
+"wiki": "https://en.wikipedia.org/wiki/Donald_Cressey",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Other People's Money' (1953): interviews with embezzlers: trusted people steal when three things meet — a pressure they cannot share, an opportunity and a way to justify it (later called the fraud triangle).",
+"ru": "«Other People's Money» (1953): интервью с растратчиками: доверенные люди воруют, когда сходятся три вещи — давление, которым не с кем поделиться, возможность и способ оправдать себя (позже «треугольник мошенничества»).",
+"de": "„Other People's Money“ (1953): Interviews mit Veruntreuern: Vertrauenspersonen stehlen, wenn drei Dinge zusammenkommen — ein nicht teilbarer Druck, eine Gelegenheit und eine Rechtfertigung (später „Betrugsdreieck“)."
+},
+"rule": "A fraud story is plausible only if it names pressure, opportunity and excuse; say which of the three the article gives and which is missing.",
+"needs": {
+"code": "needs_idea",
+"note": "crime-desk items with fraud or embezzlement words: which of pressure, opportunity and excuse the text names (word rules in English, German, Russian); not computed yet"
+}
+},
+{
+"id": "vansina_j",
+"name": "Jan Vansina",
+"name_ru": "Ян Вансина",
+"years": "1929–2017",
+"wiki": "https://en.wikipedia.org/wiki/Jan_Vansina",
+"zone": "stale_data",
+"idea": {
+"en": "'De la tradition orale' (1961), later 'Oral Tradition as History' (1985): an oral tale is shaped by the present of the teller and its listeners; to use it as a source, ask who told it, when, and what the present needed from it.",
+"ru": "«De la tradition orale» (1961), позже «Oral Tradition as History» (1985): устный рассказ формируется настоящим рассказчика и слушателей; чтобы взять его как источник, спроси, кто рассказал, когда и что было нужно настоящему.",
+"de": "„De la tradition orale“ (1961), später „Oral Tradition as History“ (1985): Eine mündliche Erzählung wird von der Gegenwart von Erzähler und Hörern geformt; als Quelle fragt man, wer sie wann erzählte und was die Gegenwart brauchte."
+},
+"rule": "An old story retold today is a story shaped by today: ask when it was first told and what has changed around it.",
+"needs": {
+"code": "needs_idea",
+"note": "first appearance of a story in our radar history against today, and what changed around it; needs the history to grow; joins the old-story-retold bridge"
+}
+},
+{
+"id": "goody_j",
+"name": "Jack Goody",
+"name_ru": "Джек Гуди",
+"years": "1919–2015",
+"wiki": "https://en.wikipedia.org/wiki/Jack_Goody",
+"zone": "stale_data",
+"idea": {
+"en": "With Ian Watt, 'The Consequences of Literacy' (1963): in oral cultures what no longer suits the present is forgotten and the rest is told as if it had always been so; writing lets a later reader check what was said before.",
+"ru": "С Иэном Уоттом, «The Consequences of Literacy» (1963): в устных культурах то, что не подходит настоящему, забывается, а остальное рассказывают так, будто так было всегда; письмо позволяет позднему читателю сверить с тем, что говорили раньше.",
+"de": "Mit Ian Watt, „The Consequences of Literacy“ (1963): In mündlichen Kulturen wird vergessen, was nicht zur Gegenwart passt; der Rest wird erzählt, als sei es immer so gewesen; Schrift erlaubt späteren Lesern den Abgleich."
+},
+"rule": "Check the retelling against the written first version; do not trust that it has always been told this way.",
+"needs": {
+"code": "needs_idea",
+"note": "a retelling compared with the first written version (first-seen headline of the same story); needs the history to grow; joins the old-story-retold bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

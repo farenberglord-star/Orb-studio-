@@ -253,3 +253,11 @@ elite_lens | one_model | idea | Освещение идёт за элитным�
 same_words_many_copies | look_alike | idea | Мало слов — много копий
 poll_fast_enough | stale_data | sensor | Опрос достаточно частый для того, как меняется
 calque_not_report | rumour_vs_fact | idea | Переводная калька — не второе сообщение
+copy_trace | one_model | idea | Каждая копия оставляет след
+expert_questions | one_model | idea | «Эксперт говорит»: имя, область, второе мнение
+outlet_topic_gap | one_model | idea | Две группы изданий — разная повестка
+innovators_or_followers | side_effects | idea | Нашли сами или пошли следом
+fraud_three_conditions | rumour_vs_fact | idea | История о мошенничестве: давление, возможность, оправдание
+detail_not_verdict | rumour_vs_fact | idea | Конкретные детали: счёт, не вердикт
+old_story_retold | stale_data | idea | Старая история в пересказе сегодня
+copy_wave | one_model | idea | Волна копий: кто первый, насколько похоже, чья повестка
