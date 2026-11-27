@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Зив</h1>
     <p class="lead">Повтор сжимается почти в ноль, место занимает только новое. Датчик сжимает вчерашние заголовки радаров, потом вчерашние вместе с сегодняшними: то, что добавили сегодняшние, и есть новое. 100 % — всё новое, 0 % — повтор вчерашнего. Без языковой модели, только сжатие.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Сколько в новостях сегодня действительно нового</h2>
+    <p>Повтор сжимается почти в ноль, место занимает только новое. Датчик сжимает вчерашние заголовки радаров, потом вчерашние вместе с сегодняшними: то, что добавили сегодняшние, и есть новое. 100 % — всё новое, 0 % — повтор вчерашнего. Без языковой модели, только сжатие.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/ziv">/api/v1/ziv</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Новизна заголовков сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_ziv")){sessionStorage.setItem("orbCou
 fetch("/api/v1/ziv",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.radars)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=d.novelty_all==null?HM.wait:HM.sum.replace("{x}",d.novelty_all);
   const rs=[...d.radars].sort((a,b)=>(b.novelty??-1)-(a.novelty??-1));
-  document.getElementById("hmRows").innerHTML=rs.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+(r.novelty==null?esc(HM.nodata):r.novelty+" %")+"</span><span class=\"u\">"+esc(HM.heads)+": "+r.headlines+"</span></li>").join("")+(d.compared_with?"<li style=\"display:block;border:0\"><small>"+esc(HM.cmp)+": "+esc(tm(d.compared_with))+"</small></li>":"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=rs.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+(r.novelty==null?esc(HM.nodata):r.novelty+" %")+"</span><span class=\"u\">"+esc(HM.heads)+": "+r.headlines+"</span></li>").join("")+(d.compared_with?"<li style=\"display:block;border:0\"><small>"+esc(HM.cmp)+": "+esc(tm(d.compared_with))+"</small></li>":"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Polyak sensor</h1>
     <p class="lead">One sharp reading is not yet a change. The sensor compares the last reading of each index with the 24-hour average and with the average of the last three hours, and says it in one word: calm, one-off jump or sustained shift. Past readings only, no forecasts.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>One-off jump or lasting shift in an index</h2>
+    <p>One sharp reading is not yet a change. The sensor compares the last reading of each index with the 24-hour average and with the average of the last three hours, and says it in one word: calm, one-off jump or sustained shift. Past readings only, no forecasts.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/polyak">/api/v1/polyak</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Indices now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/polyak",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   const f=(x)=>x==null?HM.nodata:Number(x).toLocaleString(HM.loc,{maximumFractionDigits:1});
   document.getElementById("hmRows").innerHTML=d.series.map((s,i)=>{const v=(HM.verdict[s.verdict]||s.verdict)+(s.direction?" "+(s.direction==="up"?"↑":"↓"):"");
     const w=s.verdict==="unknown"?esc(HM.few)+": "+s.readings_24h:esc(HM.last)+": "+esc(f(s.last))+" · "+esc(HM.avg)+": "+esc(f(s.polyak_average_24h))+" · "+esc(HM.avg3)+": "+esc(f(s.average_last_3h))+"<br>"+esc(HM.inertia)+": "+esc((s.inertia_per_6h>0?"+":"")+f(s.inertia_per_6h))+" · "+esc(HM.thr)+": ±"+esc(f(s.noise_threshold));
-    return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.comp[s.id]||s.id)+"</b><span class=\"s\">"+esc(v)+"</span><span class=\"w\">"+w+"</span><span class=\"u\">"+esc(HM.readings)+": "+s.readings_24h+"</span></li>";}).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+    return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.comp[s.id]||s.id)+"</b><span class=\"s\">"+esc(v)+"</span><span class=\"w\">"+w+"</span><span class=\"u\">"+esc(HM.readings)+": "+s.readings_24h+"</span></li>";}).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

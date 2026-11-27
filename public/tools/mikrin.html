@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Микрин</h1>
     <p class="lead">Чем короче путь, тем свежее новость. Датчик меряет, сколько времени новость идёт от публикации у источника до текста Давида и от текста до голоса, отдельно для каждого блока эфира.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Как быстро новость доходит до эфира</h2>
+    <p>Чем короче путь, тем свежее новость. Датчик меряет, сколько времени новость идёт от публикации у источника до текста Давида и от текста до голоса, отдельно для каждого блока эфира.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/mikrin">/api/v1/mikrin</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Путь новости сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/mikrin",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
     const range=s1.minutes_median==null||s1.minutes_min===s1.minutes_max?"":" ("+HM.range+" "+dur(s1.minutes_min)+" – "+dur(s1.minutes_max)+")";
     return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.comp[b.id]||b.id)+"</b><span class=\"s\">"+esc(dur(s1.minutes_median))+"</span>"+
       "<span class=\"w\">"+esc(HM.s1)+": "+esc(dur(s1.minutes_median)+range)+"<br>"+esc(HM.s2)+": "+esc(s2.minutes!=null?dur(s2.minutes):s2.measured===false?HM.nodata:HM.notyet)+"<br>"+esc(HM.age)+": "+esc(dur(b.newest_news_age_minutes))+"</span>"+
-      "<span class=\"u\">"+esc(HM.timed)+": "+b.items_with_source_time+" / "+b.items+" · "+esc(HM.upd)+": "+esc(tm(b.written_at))+"</span></li>";}).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+      "<span class=\"u\">"+esc(HM.timed)+": "+b.items_with_source_time+" / "+b.items+" · "+esc(HM.upd)+": "+esc(tm(b.written_at))+"</span></li>";}).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

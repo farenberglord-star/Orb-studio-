@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Kahneman-Sensor</h1>
     <p class="lead">Drei KI-Gäste des Runden Tisches – Gemini, Grok und DeepSeek – beantworten dieselbe Frage zu einer echten Nachricht und vergeben zwei Werte von 0 bis 10: wie wichtig das für Menschen in Europa ist und wie sicher sie sich bei den Fakten sind. Der Sensor misst, wie weit ihre Werte auseinanderliegen – das ist das Rauschen. Wer recht hat, sagt er nicht.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Bewerten KI-Modelle dieselbe Nachricht gleich?</h2>
+    <p>Drei KI-Gäste des Runden Tisches – Gemini, Grok und DeepSeek – beantworten dieselbe Frage zu einer echten Nachricht und vergeben zwei Werte von 0 bis 10: wie wichtig das für Menschen in Europa ist und wie sicher sie sich bei den Fakten sind. Der Sensor misst, wie weit ihre Werte auseinanderliegen – das ist das Rauschen. Wer recht hat, sagt er nicht.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/kahneman">/api/v1/kahneman</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Rauschen der letzten 14 Tage</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/kahneman",{headers:{accept:"application/json"}}).then((r)=>r.ok?r
   const f=(x)=>x==null?HM.nodata:Number(x).toLocaleString(HM.loc,{maximumFractionDigits:1}),lv=(o)=>o?Object.entries(o).map(([g,v])=>(HM.g[g]||g)+" "+(v>0?"+":"")+f(v)).join(" · "):HM.nodata;
   const row=(i,name,x)=>"<li><span class=\"n\">"+i+"</span><b>"+esc(name)+"</b><span class=\"s\">"+esc(f(x.system_noise))+"</span><span class=\"w\">"+esc(HM.lvl)+": "+esc(f(x.level_noise))+" · "+esc(HM.pat)+": "+esc(f(x.pattern_noise))+"<br>"+esc(HM.who)+": "+esc(lv(x.level_by_guest))+"</span><span class=\"u\">"+esc(HM.topics)+": "+x.topics+"</span></li>";
   const tl=(t)=>"<li><span class=\"n\">·</span><b>"+esc(t.headline||"")+"</b><span class=\"s\">±"+t.spread+"</span><span class=\"w\">"+esc(Object.entries(t.importance).map(([g,v])=>(HM.g[g]||g)+" "+v).join(" · "))+"</span><span class=\"u\">"+esc(tm(t.at))+"</span></li>";
-  document.getElementById("hmRows").innerHTML=row(1,HM.imp,a)+row(2,HM.conf,c)+((d.loudest_topics||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.loud)+"</b></li>"+d.loudest_topics.map(tl).join(""):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=row(1,HM.imp,a)+row(2,HM.conf,c)+((d.loudest_topics||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.loud)+"</b></li>"+d.loudest_topics.map(tl).join(""):"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

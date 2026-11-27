@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Simpson-Sensor</h1>
     <p class="lead">Das Einigkeitsbarometer ist in 6 Stunden gestiegen – einigt sich die Welt? Nicht unbedingt: die Einigkeit kann in jedem Radar gefallen sein, und der Gesamtanstieg kam nur von mehr Schlagzeilen eines „friedlichen“ Radars. Der Sensor zerlegt die Änderung jedes Index in „in den Radaren“ und „veränderte Mischung“ und warnt, wenn beide in verschiedene Richtungen zeigen.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Hat sich der Index geändert oder nur die Mischung?</h2>
+    <p>Das Einigkeitsbarometer ist in 6 Stunden gestiegen – einigt sich die Welt? Nicht unbedingt: die Einigkeit kann in jedem Radar gefallen sein, und der Gesamtanstieg kam nur von mehr Schlagzeilen eines „friedlichen“ Radars. Der Sensor zerlegt die Änderung jedes Index in „in den Radaren“ und „veränderte Mischung“ und warnt, wenn beide in verschiedene Richtungen zeigen.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/simpson">/api/v1/simpson</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Änderung in 6 Stunden: Radare und Mischung</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/simpson",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=HM.v[d.verdict]||d.verdict;
   const sg=(x)=>x==null?"—":(x>0?"+":"")+x;
   document.getElementById("hmRows").innerHTML=(d.indices||[]).filter((x)=>x.change!=null).map((x,i)=>li(i+1,(HM.ix[x.id]||x.id)+": "+x.then+" → "+x.now,HM.v[x.verdict]||x.verdict,HM.split.replace("{c}",sg(x.change)).replace("{w}",sg(x.within_radars)).replace("{m}",sg(x.mix_of_radars)))
-   +x.radars.filter((r)=>r.n_now||r.n_then).map((r)=>li("·",HM.r[r.id]||r.id,(r.share_then??"—")+" → "+(r.share_now??"—"),HM.w.replace("{a}",r.weight_then_pct).replace("{b}",r.weight_now_pct))).join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +x.radars.filter((r)=>r.n_now||r.n_then).map((r)=>li("·",HM.r[r.id]||r.id,(r.share_then??"—")+" → "+(r.share_now??"—"),HM.w.replace("{a}",r.weight_then_pct).replace("{b}",r.weight_now_pct))).join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

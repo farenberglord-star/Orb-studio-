@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Leamer sensor</h1>
     <p class="lead">An index is not a fact but the result of our choices: which radars count, which words mean “agreement” or “conflict”. The sensor recomputes each index dozens of times – without one radar, without one word, with only the top headlines – and shows the range. A narrow range means the number holds; a wide one means quote the range, not one number.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>How fragile is an index?</h2>
+    <p>An index is not a fact but the result of our choices: which radars count, which words mean “agreement” or “conflict”. The sensor recomputes each index dozens of times – without one radar, without one word, with only the top headlines – and shows the range. A narrow range means the number holds; a wide one means quote the range, not one number.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/leamer">/api/v1/leamer</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Bounds of the indices now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/leamer",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines).replace("{s}",d.indices[0].specifications);
   const dl=(x)=>esc((HM.k[x.kind]||x.kind).replace("{id}",HM.r[x.id]||x.id))+" → "+x.value+" ("+(x.delta>0?"+":"")+x.delta+")";
   document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.ix[x.id]||x.id)+": "+x.value+"</b><span class=\"s\">"+x.low+"–"+x.high+"</span><span class=\"w\">"+esc(HM.v[x.verdict]||x.verdict)+"</span></li>"
-   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

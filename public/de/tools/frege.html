@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Frege-Sensor</h1>
     <p class="lead">In der Schlagzeile steht „John Smith“ – aber welcher? Der Sensor nimmt Personennamen aus den Radar-Schlagzeilen der letzten 48 Stunden und fragt Wikidata (offene Datenbank, CC0), wie viele verschiedene Personen mit genau diesem Namen sie kennt. Sind es zwei oder mehr, verrät der Name allein nicht, wer gemeint ist: zuerst Land, Amt oder Lebensdaten klären, dann Fakten der Person zuordnen.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Namensvetter in den Nachrichten: wer ist gemeint?</h2>
+    <p>In der Schlagzeile steht „John Smith“ – aber welcher? Der Sensor nimmt Personennamen aus den Radar-Schlagzeilen der letzten 48 Stunden und fragt Wikidata (offene Datenbank, CC0), wie viele verschiedene Personen mit genau diesem Namen sie kennt. Sind es zwei oder mehr, verrät der Name allein nicht, wer gemeint ist: zuerst Land, Amt oder Lebensdaten klären, dann Fakten der Person zuordnen.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/frege">/api/v1/frege</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Namen mit Namensvettern in den Schlagzeilen</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_frege")){sessionStorage.setItem("orbCounted_frege","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"frege",lang:"de",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/frege",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.ambiguous_names)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.people_names).replace("{a}",d.ambiguous).replace("{p}",d.ambiguous_pct??"—").replace("{w}",d.names_waiting??0);
-  document.getElementById("hmRows").innerHTML=d.ambiguous_names.map((x,i)=>li(i+1,x.name,HM.ppl.replace("{k}",x.people),(x.examples||[]).map((e)=>e.description).join(" · "))).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.rule||"")+" "+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.ambiguous_names.map((x,i)=>li(i+1,x.name,HM.ppl.replace("{k}",x.people),(x.examples||[]).map((e)=>e.description).join(" · "))).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.rule||"")+" "+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

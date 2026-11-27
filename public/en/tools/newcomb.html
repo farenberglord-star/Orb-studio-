@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Newcomb sensor</h1>
     <p class="lead">In real numbers that span many orders of magnitude (prices, sums, counts of people) the first digit is 1 about 30% of the time and 9 less than 5%. The sensor takes the numbers from the headlines of all radars over 30 days (no years, dates or names like G7), counts their first digits and compares them with the law. A strong departure is a reason to look closer at where the numbers come from, not proof of an error: headlines round numbers and like round figures.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Do numbers in headlines follow Benford&#x27;s law?</h2>
+    <p>In real numbers that span many orders of magnitude (prices, sums, counts of people) the first digit is 1 about 30% of the time and 9 less than 5%. The sensor takes the numbers from the headlines of all radars over 30 days (no years, dates or names like G7), counts their first digits and compares them with the law. A strong departure is a reason to look closer at where the numbers come from, not proof of an error: headlines round numbers and like round figures.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/newcomb">/api/v1/newcomb</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>First digits of the numbers in headlines</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/newcomb",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.numbers).replace("{h}",d.headlines).replace("{m}",d.mad==null?"—":d.mad);
   document.getElementById("hmRows").innerHTML=(d.digits||[]).map((x)=>li(x.digit,HM.dg.replace("{d}",x.digit),(x.observed_pct==null?"—":x.observed_pct+" %"),HM.exp.replace("{b}",x.benford_pct)+" · "+HM.cnt.replace("{c}",x.count))).join("")
    +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.rad_h)+"</b></li>"+(d.radars||[]).map((r)=>li("·",HM.r[r.id]||r.id,r.fit?(HM.v[r.fit]||r.fit):HM.few,HM.cnt.replace("{c}",r.numbers)+(r.mad==null?"":" · MAD "+r.mad))).join("")
-   +"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

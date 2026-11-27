@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Leamer-Sensor</h1>
     <p class="lead">Ein Index ist keine Tatsache, sondern das Ergebnis unserer Entscheidungen: welche Radare zählen, welche Wörter als „Einigung“ oder „Konflikt“ gelten. Der Sensor berechnet jeden Index dutzendfach neu – ohne ein Radar, ohne ein Wort, nur mit den obersten Schlagzeilen – und zeigt die Spanne. Schmale Spanne – die Zahl trägt; breite Spanne – nennen Sie die Spanne, nicht eine Zahl.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Wie fragil ist ein Index?</h2>
+    <p>Ein Index ist keine Tatsache, sondern das Ergebnis unserer Entscheidungen: welche Radare zählen, welche Wörter als „Einigung“ oder „Konflikt“ gelten. Der Sensor berechnet jeden Index dutzendfach neu – ohne ein Radar, ohne ein Wort, nur mit den obersten Schlagzeilen – und zeigt die Spanne. Schmale Spanne – die Zahl trägt; breite Spanne – nennen Sie die Spanne, nicht eine Zahl.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/leamer">/api/v1/leamer</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Spanne der Indizes jetzt</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/leamer",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines).replace("{s}",d.indices[0].specifications);
   const dl=(x)=>esc((HM.k[x.kind]||x.kind).replace("{id}",HM.r[x.id]||x.id))+" → "+x.value+" ("+(x.delta>0?"+":"")+x.delta+")";
   document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.ix[x.id]||x.id)+": "+x.value+"</b><span class=\"s\">"+x.low+"–"+x.high+"</span><span class=\"w\">"+esc(HM.v[x.verdict]||x.verdict)+"</span></li>"
-   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

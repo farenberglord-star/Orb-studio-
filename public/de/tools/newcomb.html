@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Newcomb-Sensor</h1>
     <p class="lead">In echten Zahlen, die viele Größenordnungen umfassen (Preise, Beträge, Personenzahlen), ist die erste Ziffer in rund 30 % der Fälle eine 1 und in weniger als 5 % eine 9. Der Sensor nimmt die Zahlen aus den Schlagzeilen aller Radare der letzten 30 Tage (ohne Jahreszahlen, Daten und Namen wie G7), zählt die ersten Ziffern und vergleicht sie mit dem Gesetz. Eine starke Abweichung ist ein Grund, genauer hinzusehen, woher die Zahlen kommen – kein Beweis für einen Fehler: Schlagzeilen runden und mögen runde Zahlen.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Folgen Zahlen in Schlagzeilen dem Benford-Gesetz?</h2>
+    <p>In echten Zahlen, die viele Größenordnungen umfassen (Preise, Beträge, Personenzahlen), ist die erste Ziffer in rund 30 % der Fälle eine 1 und in weniger als 5 % eine 9. Der Sensor nimmt die Zahlen aus den Schlagzeilen aller Radare der letzten 30 Tage (ohne Jahreszahlen, Daten und Namen wie G7), zählt die ersten Ziffern und vergleicht sie mit dem Gesetz. Eine starke Abweichung ist ein Grund, genauer hinzusehen, woher die Zahlen kommen – kein Beweis für einen Fehler: Schlagzeilen runden und mögen runde Zahlen.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/newcomb">/api/v1/newcomb</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Erste Ziffern der Zahlen in Schlagzeilen</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/newcomb",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.numbers).replace("{h}",d.headlines).replace("{m}",d.mad==null?"—":d.mad);
   document.getElementById("hmRows").innerHTML=(d.digits||[]).map((x)=>li(x.digit,HM.dg.replace("{d}",x.digit),(x.observed_pct==null?"—":x.observed_pct+" %"),HM.exp.replace("{b}",x.benford_pct)+" · "+HM.cnt.replace("{c}",x.count))).join("")
    +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.rad_h)+"</b></li>"+(d.radars||[]).map((r)=>li("·",HM.r[r.id]||r.id,r.fit?(HM.v[r.fit]||r.fit):HM.few,HM.cnt.replace("{c}",r.numbers)+(r.mad==null?"":" · MAD "+r.mad))).join("")
-   +"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

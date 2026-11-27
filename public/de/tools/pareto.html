@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Pareto-Sensor</h1>
     <p class="lead">Wenn ein Radar im Monat hundert Punkte zurücklegt und fünf Sprünge davon achtzig tragen, sagt die „typische“ halbe Stunde wenig, und die durchschnittliche Änderung führt in die Irre. Der Sensor nimmt die Halbstundenwerte des Konsens-Index und der acht Radare der letzten 30 Tage und berechnet, welcher Anteil der gesamten Bewegung auf die größten 20 % der Sprünge entfällt. Ab 80 % spricht er von schweren Rändern: auf die großen Sprünge und ihre Ursachen achten und eine ruhige Strecke nicht in die Zukunft verlängern.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Tragen wenige seltene Sprünge fast die ganze Bewegung?</h2>
+    <p>Wenn ein Radar im Monat hundert Punkte zurücklegt und fünf Sprünge davon achtzig tragen, sagt die „typische“ halbe Stunde wenig, und die durchschnittliche Änderung führt in die Irre. Der Sensor nimmt die Halbstundenwerte des Konsens-Index und der acht Radare der letzten 30 Tage und berechnet, welcher Anteil der gesamten Bewegung auf die größten 20 % der Sprünge entfällt. Ab 80 % spricht er von schweren Rändern: auf die großen Sprünge und ihre Ursachen achten und eine ruhige Strecke nicht in die Zukunft verlängern.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/pareto">/api/v1/pareto</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Anteil der Bewegung bei den größten 20 % der Sprünge</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_pareto")){sessionStorage.setItem("orb
 fetch("/api/v1/pareto",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";const row=(x)=>li("·",HM.r[x.id]||HM.ix,x.tail==="collecting"?HM.few:(HM.t[x.tail]||x.tail)+" · "+Math.round(100*x.top20_share)+" %",HM.det.replace("{b}",x.biggest_jump??"—").replace("{m}",x.median_jump??"—").replace("{s}",x.still_pct??"—"));
   document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum;
-  document.getElementById("hmRows").innerHTML=(d.index?row(d.index):"")+(d.radars||[]).map(row).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=(d.index?row(d.index):"")+(d.radars||[]).map(row).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

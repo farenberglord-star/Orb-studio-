@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Касперсон</h1>
     <p class="lead">История начиналась с одного издания, а через несколько часов её несут шесть. Стало ли от этого больше фактов? Нет: шире пересказ. Датчик показывает, сколько изданий несли каждую историю в первый раз и на пике, во сколько раз она выросла и что это было по смыслу: событие, угроза, обещание или чьё-то заявление.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Какие истории расходятся далеко от первоисточника</h2>
+    <p>История начиналась с одного издания, а через несколько часов её несут шесть. Стало ли от этого больше фактов? Нет: шире пересказ. Датчик показывает, сколько изданий несли каждую историю в первый раз и на пике, во сколько раз она выросла и что это было по смыслу: событие, угроза, обещание или чьё-то заявление.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/kasperson">/api/v1/kasperson</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Самые раздутые истории за 7 дней</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/kasperson",{headers:{accept:"application/json"}}).then((r)=>r.ok?
   const st=(x)=>x.outlets_first+" → "+x.outlets_peak+" ("+x.factor+"×)";
   document.getElementById("hmRows").innerHTML=(d.most_amplified||[]).map((x,i)=>li(i+1,x.headline,st(x),(HM.r[x.radar]||x.radar)+" · "+(HM.act[x.speech_act]||x.speech_act)+" · "+(x.source||"")))
    +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.acts_h)+"</b></li>"+(d.by_speech_act||[]).map((a)=>li("·",HM.act[a.act]||a.act,a.amplified_pct==null?"—":a.amplified_pct+" %",HM.of.replace("{a}",a.amplified).replace("{n}",a.stories))).join("")
-   +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.rad_h)+"</b></li>"+(d.radars||[]).map((r)=>li("·",HM.r[r.id]||r.id,r.amplified_pct==null?"—":r.amplified_pct+" %",HM.of.replace("{a}",r.amplified).replace("{n}",r.stories))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.rad_h)+"</b></li>"+(d.radars||[]).map((r)=>li("·",HM.r[r.id]||r.id,r.amplified_pct==null?"—":r.amplified_pct+" %",HM.of.replace("{a}",r.amplified).replace("{n}",r.stories))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

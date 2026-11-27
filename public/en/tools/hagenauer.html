@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Hagenauer sensor</h1>
     <p class="lead">The word “OK” on a weighbridge is the same at 6 tonnes and at 9.9 out of 10. Our sensors also hand out words – “calm”, “robust”, “fresh”, “confirmed”. The sensor shows the number behind each word and the margin to the next label: what is firm and what flips with the next headline or within the hour. Shakiest first.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>How close a published label is to flipping</h2>
+    <p>The word “OK” on a weighbridge is the same at 6 tonnes and at 9.9 out of 10. Our sensors also hand out words – “calm”, “robust”, “fresh”, “confirmed”. The sensor shows the number behind each word and the margin to the next label: what is firm and what flips with the next headline or within the hour. Shakiest first.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/hagenauer">/api/v1/hagenauer</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>The site&#x27;s labels now: shakiest to firmest</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/hagenauer",{headers:{accept:"application/json"}}).then((r)=>r.ok?
   const lb=(l)=>HM.l[l]||String(l).replace(/_/g," ");
   const rows=d.labels.filter((x)=>x.softness!=="firm").concat(d.labels.filter((x)=>x.softness==="firm").slice(0,6));
   document.getElementById("hmRows").innerHTML=rows.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(nm(x.id))+": "+esc(lb(x.label))+"</b><span class=\"w\">"+esc(HM.v[x.softness])+"</span><span class=\"u\">"+esc(x.margin==null?HM.nomargin:HM.m.replace("{v}",x.value).replace("{m}",x.margin).replace("{u}",(HM.u&&Object.keys(HM.u).reduce((t,k)=>t.replace(k,HM.u[k]),x.unit))||x.unit).replace("{t}",lb(x.flips_to)))+"</span></li>").join("")
-   +((d.headlines_one_outlet_from_confirmed||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.near)+"</b></li>"+d.headlines_one_outlet_from_confirmed.slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"u\">"+esc((HM.r[h.radar]||h.radar)+" · "+(h.source||""))+"</span></li>").join(""):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +((d.headlines_one_outlet_from_confirmed||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.near)+"</b></li>"+d.headlines_one_outlet_from_confirmed.slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"u\">"+esc((HM.r[h.radar]||h.radar)+" · "+(h.source||""))+"</span></li>").join(""):"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

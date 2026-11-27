@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Searle sensor</h1>
     <p class="lead">“Threatens tariffs” does not mean “imposed tariffs”. The sensor labels what each radar headline reports: an event that happened, someone&#x27;s claim, a promise or plan, a threat or warning, a demand or call – and shows what share of the news has not happened yet. No AI, word rules in three languages.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Did it happen, or is it a promise, threat or demand?</h2>
+    <p>“Threatens tariffs” does not mean “imposed tariffs”. The sensor labels what each radar headline reports: an event that happened, someone&#x27;s claim, a promise or plan, a threat or warning, a demand or call – and shows what share of the news has not happened yet. No AI, word rules in three languages.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/searle">/api/v1/searle</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Event or only words</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/searle",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";const sh=d.shares;document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines).replace("{x}",d.not_yet_happened_pct).replace("{e}",sh.event).replace("{c}",sh.claim).replace("{p}",sh.promise).replace("{t}",sh.threat).replace("{d}",sh.demand);
   const ex=(k)=>(d.examples[k]||[]).map((x)=>li("·",x.headline,HM.a[x.act],(HM.r[x.radar]||x.radar)+(x.source?" · "+x.source:""))).join("");
   document.getElementById("hmRows").innerHTML=d.radars.map((r,i)=>li(i+1,HM.r[r.id]||r.id,r.event+" / "+r.headlines,HM.row.replace("{c}",r.claim).replace("{p}",r.promise).replace("{t}",r.threat).replace("{d}",r.demand))).join("")
-   +["threat","promise","demand"].map((k)=>(d.examples[k]||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.a[k])+"</b></li>"+ex(k):"").join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +["threat","promise","demand"].map((k)=>(d.examples[k]||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.a[k])+"</b></li>"+ex(k):"").join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

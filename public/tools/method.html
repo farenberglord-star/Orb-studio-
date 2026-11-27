@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Как Orb Studio проверяет новости</h1>
     <p class="lead">Мы открыто показываем, по каким правилам работаем. Три слоя идут конвейером: отбор учёных, превращение их идей в инструменты и проверка каждой новости перед эфиром. Внизу — живые паспорта сегодняшних главных заголовков: ровно то, что получают ведущие студии.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Как Orb Studio проверяет новости</h2>
+    <p>Мы открыто показываем, по каким правилам работаем. Три слоя идут конвейером: отбор учёных, превращение их идей в инструменты и проверка каждой новости перед эфиром. Внизу — живые паспорта сегодняшних главных заголовков: ровно то, что получают ведущие студии.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/method">/api/v1/method</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Паспорта главных заголовков сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_method")){sessionStorage.setItem("orbCounted_method","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"method",lang:"ru",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/method",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.live_passports)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.live_passports.length);
-  document.getElementById("hmRows").innerHTML=d.live_passports.map((p,i)=>li(i+1,p.what,HM.c[p.confidence]||p.confidence,(HM.st[p.status]||p.status)+" · "+HM.out.replace("{n}",p.voices==null?"—":p.voices)+" · "+HM.age.replace("{h}",p.age_hours==null?"—":p.age_hours)+(p.amplified?" · "+HM.amp.replace("{a}",p.amplified.from).replace("{b}",p.amplified.to):"")+" · "+(p.source||""))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.live_passports.map((p,i)=>li(i+1,p.what,HM.c[p.confidence]||p.confidence,(HM.st[p.status]||p.status)+" · "+HM.out.replace("{n}",p.voices==null?"—":p.voices)+" · "+HM.age.replace("{h}",p.age_hours==null?"—":p.age_hours)+(p.amplified?" · "+HM.amp.replace("{a}",p.amplified.from).replace("{b}",p.amplified.to):"")+" · "+(p.source||""))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

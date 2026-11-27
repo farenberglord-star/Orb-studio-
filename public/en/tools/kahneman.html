@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Kahneman sensor</h1>
     <p class="lead">Three AI guests of the Round Table – Gemini, Grok and DeepSeek – answer the same question about a real news story and give two numbers from 0 to 10: how much it matters for ordinary people in Europe and how sure they are about the facts. The sensor measures how far their numbers scatter – that is the noise. It does not say who is right.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Do AI models judge the same news alike?</h2>
+    <p>Three AI guests of the Round Table – Gemini, Grok and DeepSeek – answer the same question about a real news story and give two numbers from 0 to 10: how much it matters for ordinary people in Europe and how sure they are about the facts. The sensor measures how far their numbers scatter – that is the noise. It does not say who is right.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/kahneman">/api/v1/kahneman</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Noise of the last 14 days</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/kahneman",{headers:{accept:"application/json"}}).then((r)=>r.ok?r
   const f=(x)=>x==null?HM.nodata:Number(x).toLocaleString(HM.loc,{maximumFractionDigits:1}),lv=(o)=>o?Object.entries(o).map(([g,v])=>(HM.g[g]||g)+" "+(v>0?"+":"")+f(v)).join(" · "):HM.nodata;
   const row=(i,name,x)=>"<li><span class=\"n\">"+i+"</span><b>"+esc(name)+"</b><span class=\"s\">"+esc(f(x.system_noise))+"</span><span class=\"w\">"+esc(HM.lvl)+": "+esc(f(x.level_noise))+" · "+esc(HM.pat)+": "+esc(f(x.pattern_noise))+"<br>"+esc(HM.who)+": "+esc(lv(x.level_by_guest))+"</span><span class=\"u\">"+esc(HM.topics)+": "+x.topics+"</span></li>";
   const tl=(t)=>"<li><span class=\"n\">·</span><b>"+esc(t.headline||"")+"</b><span class=\"s\">±"+t.spread+"</span><span class=\"w\">"+esc(Object.entries(t.importance).map(([g,v])=>(HM.g[g]||g)+" "+v).join(" · "))+"</span><span class=\"u\">"+esc(tm(t.at))+"</span></li>";
-  document.getElementById("hmRows").innerHTML=row(1,HM.imp,a)+row(2,HM.conf,c)+((d.loudest_topics||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.loud)+"</b></li>"+d.loudest_topics.map(tl).join(""):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=row(1,HM.imp,a)+row(2,HM.conf,c)+((d.loudest_topics||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.loud)+"</b></li>"+d.loudest_topics.map(tl).join(""):"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

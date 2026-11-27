@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Hamilton sensor</h1>
     <p class="lead">An overloaded system must not crash: the most important work keeps running, the rest is set aside, and people are told honestly what was set aside. This sensor shows that for Orb Studio itself, in order of priority.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>What works and what is paused on the site</h2>
+    <p>An overloaded system must not crash: the most important work keeps running, the rest is set aside, and people are told honestly what was set aside. This sensor shows that for Orb Studio itself, in order of priority.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/hamilton">/api/v1/hamilton</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>State now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_hamilton")){sessionStorage.setItem("o
 fetch("/api/v1/hamilton",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.components)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=HM.status_h[d.status]||d.status;
   document.getElementById("hmRows").innerHTML=d.components.map((c)=>{const what=(c.dropped||[]).map((x)=>HM.topic[x]||x).join(", "),why=(c.why||[]).map((x)=>HM.why[x]||x).join("; ");
-    return "<li><span class=\"n\">"+c.priority+"</span><b>"+esc(HM.comp[c.id]||c.id)+"</b><span class=\"s\">"+esc(HM.state[c.state]||c.state)+"</span>"+(what||why?"<span class=\"w\">"+esc(what)+(what&&why?" — ":"")+esc(why)+"</span>":"")+"<span class=\"u\">"+esc(HM.upd)+": "+esc(tm(c.updated))+"</span></li>";}).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+    return "<li><span class=\"n\">"+c.priority+"</span><b>"+esc(HM.comp[c.id]||c.id)+"</b><span class=\"s\">"+esc(HM.state[c.state]||c.state)+"</span>"+(what||why?"<span class=\"w\">"+esc(what)+(what&&why?" — ":"")+esc(why)+"</span>":"")+"<span class=\"u\">"+esc(HM.upd)+": "+esc(tm(c.updated))+"</span></li>";}).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Рабин</h1>
     <p class="lead">Проверить каждый заголовок у источника дорого, а несколько случайных проверок говорят почти то же. Раз в час датчик берёт случайные заголовки радаров, открывает страницу источника и сравнивает: совпадает ли заголовок со страницей, изменился ли он, жива ли ссылка. Это проверка верности ленты, а не правды новости.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Выборочная проверка: совпадает ли заголовок с источником</h2>
+    <p>Проверить каждый заголовок у источника дорого, а несколько случайных проверок говорят почти то же. Раз в час датчик берёт случайные заголовки радаров, открывает страницу источника и сравнивает: совпадает ли заголовок со страницей, изменился ли он, жива ли ссылка. Это проверка верности ленты, а не правды новости.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/rabin">/api/v1/rabin</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Последние случайные проверки</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_rabin")){sessionStorage.setItem("orbCounted_rabin","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"rabin",lang:"ru",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/rabin",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";const sh=d.shares||{};document.getElementById("hmStatus").textContent=d.verdict==="collecting"&&!d.checks?HM.wait:HM.sum.replace("{n}",d.checks).replace("{m}",sh.matches??"—").replace("{p}",sh.partly??"—").replace("{d}",sh.differs??"—").replace("{u}",sh.unreachable??"—");
-  document.getElementById("hmRows").innerHTML=(d.recent||[]).map((x,i)=>li(i+1,x.headline,HM.v[x.verdict]||x.verdict,(x.match_pct==null?"":x.match_pct+" % · ")+(HM.r[x.radar]||x.radar)+" · "+(x.source||"")+" · "+tm(x.at))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=(d.recent||[]).map((x,i)=>li(i+1,x.headline,HM.v[x.verdict]||x.verdict,(x.match_pct==null?"":x.match_pct+" % · ")+(HM.r[x.radar]||x.radar)+" · "+(x.source||"")+" · "+tm(x.at))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

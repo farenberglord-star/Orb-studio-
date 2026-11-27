@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Park sensor</h1>
     <p class="lead">Every 6 hours Claude reads science and health headlines and marks only the warning signs of bogus science that are visible in the headline itself, with the exact quote. A flag is a reason to check a story before retelling it, not a verdict.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Warning signs of bogus science in headlines</h2>
+    <p>Every 6 hours Claude reads science and health headlines and marks only the warning signs of bogus science that are visible in the headline itself, with the exact quote. A flag is a reason to check a story before retelling it, not a verdict.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/park">/api/v1/park</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Headlines now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/park",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.jso
   document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines_checked).replace("{m}",d.headlines_with_signs)+(d.stale?" · "+HM.stale:"");
   const signs=Object.keys(HM.sign).map((id,i)=>{const n=d.by_sign[id];return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.sign[id])+"</b><span class=\"s\">"+(n==null?esc(HM.invisible):n)+"</span></li>";}).join("");
   const fl=(d.flagged||[]).map((f)=>"<li><span class=\"n\">!</span><b>"+(f.link?"<a href=\""+esc(f.link)+"\" rel=\"noopener nofollow\">"+esc(f.headline)+"</a>":esc(f.headline))+"</b><span class=\"s\"></span><span class=\"w\">"+esc(f.signs.map((s)=>HM.sign[s]||s).join(", "))+" — «"+esc(f.quote)+"»</span><span class=\"u\">"+esc(f.source||"")+" · "+esc(tm(f.published_at))+"</span></li>").join("");
-  document.getElementById("hmRows").innerHTML=signs+(fl?"<li class=\"w\" style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.flagged)+"</b></li>"+fl:"<li style=\"display:block\"><small>"+esc(HM.noflags)+"</small></li>")+"<li style=\"display:block;border:0\"><small>"+esc(HM.upd)+": "+esc(tm(d.generated_at))+"</small></li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=signs+(fl?"<li class=\"w\" style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.flagged)+"</b></li>"+fl:"<li style=\"display:block\"><small>"+esc(HM.noflags)+"</small></li>")+"<li style=\"display:block;border:0\"><small>"+esc(HM.upd)+": "+esc(tm(d.generated_at))+"</small></li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

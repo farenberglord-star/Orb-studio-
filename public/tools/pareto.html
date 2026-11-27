@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Парето</h1>
     <p class="lead">Если радар за месяц прошёл сто пунктов, а восемьдесят из них дали пять скачков, то «обычный» получас ничего не говорит, а среднее изменение вводит в заблуждение. Датчик берёт получасовые значения индекса согласия и восьми радаров за 30 дней и считает, какая доля всего движения приходится на 20 % самых крупных скачков. 80 % и выше — тяжёлые хвосты: смотрите на крупные скачки и их причины, а спокойный отрезок не продлевайте в будущее.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Несколько редких скачков дают почти всё движение?</h2>
+    <p>Если радар за месяц прошёл сто пунктов, а восемьдесят из них дали пять скачков, то «обычный» получас ничего не говорит, а среднее изменение вводит в заблуждение. Датчик берёт получасовые значения индекса согласия и восьми радаров за 30 дней и считает, какая доля всего движения приходится на 20 % самых крупных скачков. 80 % и выше — тяжёлые хвосты: смотрите на крупные скачки и их причины, а спокойный отрезок не продлевайте в будущее.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/pareto">/api/v1/pareto</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Доля движения у 20 % крупнейших скачков</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_pareto")){sessionStorage.setItem("orb
 fetch("/api/v1/pareto",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";const row=(x)=>li("·",HM.r[x.id]||HM.ix,x.tail==="collecting"?HM.few:(HM.t[x.tail]||x.tail)+" · "+Math.round(100*x.top20_share)+" %",HM.det.replace("{b}",x.biggest_jump??"—").replace("{m}",x.median_jump??"—").replace("{s}",x.still_pct??"—"));
   document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum;
-  document.getElementById("hmRows").innerHTML=(d.index?row(d.index):"")+(d.radars||[]).map(row).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=(d.index?row(d.index):"")+(d.radars||[]).map(row).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

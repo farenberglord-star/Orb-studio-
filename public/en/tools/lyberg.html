@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Lyberg sensor</h1>
     <p class="lead">The radars are not the whole world but our feeds. The sensor honestly shows their total error: which languages the headlines are in, which world regions appear and which are missing right now, which feeds did not answer and how many headlines were dropped as duplicates, too old or off topic. Agents get a ready caveat for their answer.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>What the news radars do not see</h2>
+    <p>The radars are not the whole world but our feeds. The sensor honestly shows their total error: which languages the headlines are in, which world regions appear and which are missing right now, which feeds did not answer and how many headlines were dropped as duplicates, too old or off topic. Agents get a ready caveat for their answer.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/lyberg">/api/v1/lyberg</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Total error of the radars now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -149,7 +155,7 @@ fetch("/api/v1/lyberg",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
    +li("4",HM.h_state,(c.state_media_pct||0)+" %",Object.entries(c.state_media||{}).map(([k,v])=>k+" "+v).join(", ")||HM.none_state)
    +li(5,HM.h_nr,nr.answered+" / "+nr.feeds,nr.silent_feeds.map((f)=>(HM.r[f.radar]||f.radar)+": "+f.feed).join(", "))
    +li(6,HM.h_proc,HM.proc.replace("{r}",pc.items_received).replace("{d}",pc.duplicates_removed).replace("{o}",pc.older_than_72h_removed).replace("{t}",pc.off_topic_removed).replace("{k}",pc.kept))
-   +d.radars.map((r)=>li("·",HM.r[r.id]||r.id,r.answered+" / "+r.feeds,HM.out.replace("{n}",r.outlets))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +d.radars.map((r)=>li("·",HM.r[r.id]||r.id,r.answered+" / "+r.feeds,HM.out.replace("{n}",r.outlets))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Бертсекас</h1>
     <p class="lead">Каждый ответ инструмента агент оплачивает токенами. Датчик измеряет, сколько стоит ответ каждого нашего инструмента, и для типовых вопросов сравнивает дешёвую цепочку вызовов с наивной «прочитать всё». Дешевле всего не каждый шаг, а вся цепочка целиком.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Сколько токенов стоит ответ каждого инструмента</h2>
+    <p>Каждый ответ инструмента агент оплачивает токенами. Датчик измеряет, сколько стоит ответ каждого нашего инструмента, и для типовых вопросов сравнивает дешёвую цепочку вызовов с наивной «прочитать всё». Дешевле всего не каждый шаг, а вся цепочка целиком.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/bertsekas">/api/v1/bertsekas</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Цена ответов и дешёвые цепочки</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_bertsekas")){sessionStorage.setItem("
 fetch("/api/v1/bertsekas",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.tools)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=d.verdict==="no_data"?HM.err:HM.sum.replace("{n}",d.tools.length);
   document.getElementById("hmRows").innerHTML=d.recipes.map((r,i)=>li(i+1,HM.q[r.id]||r.question,r.saved_pct==null?"—":"−"+r.saved_pct+" %",HM.chain.replace("{c}",r.cheap.join(" → ")).replace("{a}",r.cheap_tokens).replace("{n}",r.naive.join(" + ")).replace("{b}",r.naive_tokens))).join("")
-   +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.tools)+"</b></li>"+d.tools.map((t)=>li("·",t.tool,t.tokens+" "+HM.t,"")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.tools)+"</b></li>"+d.tools.map((t)=>li("·",t.tool,t.tokens+" "+HM.t,"")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

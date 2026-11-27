@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Ziv sensor</h1>
     <p class="lead">Repetition compresses to almost nothing; only the new part takes space. The sensor compresses yesterday&#x27;s radar headlines, then yesterday&#x27;s together with today&#x27;s: what today&#x27;s add is what is new. 100 % – all new, 0 % – a repeat of yesterday. No language model, only compression.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>How much of today&#x27;s news is really new</h2>
+    <p>Repetition compresses to almost nothing; only the new part takes space. The sensor compresses yesterday&#x27;s radar headlines, then yesterday&#x27;s together with today&#x27;s: what today&#x27;s add is what is new. 100 % – all new, 0 % – a repeat of yesterday. No language model, only compression.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/ziv">/api/v1/ziv</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Novelty of the headlines now</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_ziv")){sessionStorage.setItem("orbCou
 fetch("/api/v1/ziv",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.radars)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=d.novelty_all==null?HM.wait:HM.sum.replace("{x}",d.novelty_all);
   const rs=[...d.radars].sort((a,b)=>(b.novelty??-1)-(a.novelty??-1));
-  document.getElementById("hmRows").innerHTML=rs.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+(r.novelty==null?esc(HM.nodata):r.novelty+" %")+"</span><span class=\"u\">"+esc(HM.heads)+": "+r.headlines+"</span></li>").join("")+(d.compared_with?"<li style=\"display:block;border:0\"><small>"+esc(HM.cmp)+": "+esc(tm(d.compared_with))+"</small></li>":"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=rs.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+(r.novelty==null?esc(HM.nodata):r.novelty+" %")+"</span><span class=\"u\">"+esc(HM.heads)+": "+r.headlines+"</span></li>").join("")+(d.compared_with?"<li style=\"display:block;border:0\"><small>"+esc(HM.cmp)+": "+esc(tm(d.compared_with))+"</small></li>":"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

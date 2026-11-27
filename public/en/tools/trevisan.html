@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Trevisan sensor</h1>
     <p class="lead">An agent does not need to read every headline to get the picture. The sensor draws hundreds of random samples and recomputes the index on each: from how many headlines the answer is almost always the same as with all of them, within ±5 points. No AI.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>How few headlines give the same index</h2>
+    <p>An agent does not need to read every headline to get the picture. The sensor draws hundreds of random samples and recomputes the index on each: from how many headlines the answer is almost always the same as with all of them, within ±5 points. No AI.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/trevisan">/api/v1/trevisan</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>How many headlines are enough</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_trevisan")){sessionStorage.setItem("orbCounted_trevisan","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"trevisan",lang:"en",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/trevisan",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.indices)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines);
-  document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>li(i+1,(HM.ix[x.id]||x.id)+": "+x.value,HM.enough.replace("{k}",x.enough_headlines).replace("{n}",x.of),HM.tok.replace("{a}",x.tokens_enough).replace("{b}",x.tokens_full))+x.curve.map((c)=>li("·",HM.k.replace("{k}",c.headlines),c.within_tolerance_pct+" %","")).join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>li(i+1,(HM.ix[x.id]||x.id)+": "+x.value,HM.enough.replace("{k}",x.enough_headlines).replace("{n}",x.of),HM.tok.replace("{a}",x.tokens_enough).replace("{b}",x.tokens_full))+x.curve.map((c)=>li("·",HM.k.replace("{k}",c.headlines),c.within_tolerance_pct+" %","")).join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

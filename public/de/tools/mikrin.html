@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Mikrin-Sensor</h1>
     <p class="lead">Je kürzer der Weg, desto frischer die Nachricht. Der Sensor misst, wie lange eine Nachricht von der Veröffentlichung bei der Quelle bis zu Davids Text und vom Text bis zur Stimme braucht – für jeden Teil der Sendung einzeln.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Wie schnell Nachrichten im Sendebetrieb ankommen</h2>
+    <p>Je kürzer der Weg, desto frischer die Nachricht. Der Sensor misst, wie lange eine Nachricht von der Veröffentlichung bei der Quelle bis zu Davids Text und vom Text bis zur Stimme braucht – für jeden Teil der Sendung einzeln.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/mikrin">/api/v1/mikrin</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Weg der Nachricht jetzt</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/mikrin",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
     const range=s1.minutes_median==null||s1.minutes_min===s1.minutes_max?"":" ("+HM.range+" "+dur(s1.minutes_min)+" – "+dur(s1.minutes_max)+")";
     return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.comp[b.id]||b.id)+"</b><span class=\"s\">"+esc(dur(s1.minutes_median))+"</span>"+
       "<span class=\"w\">"+esc(HM.s1)+": "+esc(dur(s1.minutes_median)+range)+"<br>"+esc(HM.s2)+": "+esc(s2.minutes!=null?dur(s2.minutes):s2.measured===false?HM.nodata:HM.notyet)+"<br>"+esc(HM.age)+": "+esc(dur(b.newest_news_age_minutes))+"</span>"+
-      "<span class=\"u\">"+esc(HM.timed)+": "+b.items_with_source_time+" / "+b.items+" · "+esc(HM.upd)+": "+esc(tm(b.written_at))+"</span></li>";}).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+      "<span class=\"u\">"+esc(HM.timed)+": "+b.items_with_source_time+" / "+b.items+" · "+esc(HM.upd)+": "+esc(tm(b.written_at))+"</span></li>";}).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

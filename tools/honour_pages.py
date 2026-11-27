@@ -28,12 +28,19 @@ def page(sid, lg, c, wiki, render_js, cfg, person):
                          "distribution": {"@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://orbstudio.org/api/v1/" + sid}}}
     head = head.replace('</head>', alt + '<meta property="og:locale" content="' + OG_LOCALE[lg] + '">\n<script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>\n<style>' + CSS + '</style>\n</head>', 1)
     st = STRIP[lg]
+    question = c["title"].split(" · ")[0] if sid in TASK_TITLE else c["h1"]
     body = f'''<div class="wrap">
   <div>
     <div class="eyebrow">{H.escape(c["eye"])}</div>
     <h1>{H.escape(c["h1"])}</h1>
     <p class="lead">{H.escape(c["lead"])}</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>{H.escape(question)}</h2>
+    <p>{H.escape(c["lead"])}</p>
+    <p><b>{H.escape(ANS[lg][0])}:</b> <span id="ansLive">{H.escape(ANS[lg][1])}</span></p>
+    <p><small>{H.escape(ANS[lg][2])} <a href="/api/v1/{sid}">/api/v1/{sid}</a> · {H.escape(ANS[lg][3])}</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>{H.escape(c["now_h"])}</h2>
     <p class="hm-st" id="hmStatus">{H.escape(cfg["loading"])}</p>
@@ -54,7 +61,7 @@ const esc=(t)=>String(t==null?"":t).replace(/[&<>"]/g,(m)=>({{"&":"&amp;","<":"&
 const tm=(iso)=>{{if(!iso)return"—";const d=new Date(iso);return d.toLocaleString(HM.loc,{{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}});}};
 const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m%60?" "+(m%60)+" "+HM.min:""));
 try{{if(!sessionStorage.getItem("orbCounted_{sid}")){{sessionStorage.setItem("orbCounted_{sid}","1");fetch("/api/v1/hit",{{method:"POST",headers:{{"content-type":"application/json"}},body:JSON.stringify({{page:"{sid}",lang:"{lg}",auto:!!navigator.webdriver}})}}).catch(()=>{{}});}}}}catch(e){{}}
-fetch("/api/v1/{sid}",{{headers:{{accept:"application/json"}}}}).then((r)=>r.ok?r.json():null).then((d)=>{{{render_js}}}).catch(()=>{{document.getElementById("hmStatus").textContent=HM.err;}});
+fetch("/api/v1/{sid}",{{headers:{{accept:"application/json"}}}}).then((r)=>r.ok?r.json():null).then((d)=>{{{render_js};try{{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}}catch(e){{}}}}).catch(()=>{{document.getElementById("hmStatus").textContent=HM.err;}});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>
@@ -63,6 +70,11 @@ fetch("/api/v1/{sid}",{{headers:{{accept:"application/json"}}}}).then((r)=>r.ok?
 '''
     return head + body
 
+ANS = {
+    "ru": ("Сейчас", "Загружаем текущее значение…", "Данные в JSON, свободно, с источником и временем проверки:", "Это запись измеренного, не прогноз и не совет."),
+    "de": ("Jetzt", "Aktueller Wert wird geladen …", "Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit:", "Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat."),
+    "en": ("Now", "Loading the current value…", "Data as JSON, free to use, with source and check time:", "A record of measured values, not a forecast and not advice."),
+}
 # ---------------- Датчики ----------------
 # Заголовки по задаче: поисковик и агент ищут по вопросу, а не по имени учёного; имя остаётся в заголовке после задачи.
 TASK_TITLE = {

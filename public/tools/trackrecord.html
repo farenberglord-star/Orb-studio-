@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Счёт попаданий крипто-радара</h1>
     <p class="lead">Радар за сутки упал на 3 пункта — что обычно было с BTC, ETH и XRP на следующие сутки? Датчик берёт одну точку в день в один и тот же час, сравнивает изменение крипто-радара с движением цены на Kraken за следующие 24 часа и группирует дни по силе изменения: 0, 1–2, 3–5, 6 и больше пунктов. При каждой доле — число дней и интервал 90 %.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Счёт попаданий крипто-радара</h2>
+    <p>Радар за сутки упал на 3 пункта — что обычно было с BTC, ETH и XRP на следующие сутки? Датчик берёт одну точку в день в один и тот же час, сравнивает изменение крипто-радара с движением цены на Kraken за следующие 24 часа и группирует дни по силе изменения: 0, 1–2, 3–5, 6 и больше пунктов. При каждой доле — число дней и интервал 90 %.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/trackrecord">/api/v1/trackrecord</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Последние 30 дней</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/trackrecord",{headers:{accept:"application/json"}}).then((r)=>r.o
   const pc=(x)=>x==null?"—":Math.round(x*100)+" %",sg=(x)=>x==null?"—":(x>0?"+":"")+Number(x).toLocaleString(HM.loc,{maximumFractionDigits:2})+" %";
   document.getElementById("hmRows").innerHTML=Object.entries(d.coins).map(([c,x])=>li(c,HM.days.replace("{n}",x.days),HM.rose.replace("{x}",pc(x.share_days_price_rose)),"")
    +x.buckets.map((b)=>li("·",HM.b.replace("{g}",b.bucket)+": "+HM.v[b.verdict],b.bucket==="0"?HM.dn.replace("{n}",b.days):HM.ag.replace("{a}",b.against_radar).replace("{w}",b.with_radar),
-     b.bucket==="0"?HM.mu.replace("{x}",sg(b.mean_next_day_pct_when_unchanged)):HM.ci.replace("{lo}",b.interval_90?pc(b.interval_90[0]):"—").replace("{hi}",b.interval_90?pc(b.interval_90[1]):"—")+" · "+HM.mf.replace("{x}",sg(b.mean_next_day_pct_when_radar_fell))+" · "+HM.mr.replace("{x}",sg(b.mean_next_day_pct_when_radar_rose)))).join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+     b.bucket==="0"?HM.mu.replace("{x}",sg(b.mean_next_day_pct_when_unchanged)):HM.ci.replace("{lo}",b.interval_90?pc(b.interval_90[0]):"—").replace("{hi}",b.interval_90?pc(b.interval_90[1]):"—")+" · "+HM.mf.replace("{x}",sg(b.mean_next_day_pct_when_radar_fell))+" · "+HM.mr.replace("{x}",sg(b.mean_next_day_pct_when_radar_rose)))).join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

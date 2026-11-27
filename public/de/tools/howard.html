@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Howard-Sensor</h1>
     <p class="lead">Eine Nachricht steht bisher nur in ein oder zwei Medien. Jetzt weitererzählen oder warten? Der Sensor schaut in unseren Verlauf: welcher Anteil solcher Nachrichten später in drei oder mehr Medien stand und wie viele Stunden das dauerte – getrennt nach dem Alter der Nachricht. Statistik der Vergangenheit, keine Prognose und keine Wahrheitsprüfung.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Jetzt weitererzählen oder auf Bestätigung warten?</h2>
+    <p>Eine Nachricht steht bisher nur in ein oder zwei Medien. Jetzt weitererzählen oder warten? Der Sensor schaut in unseren Verlauf: welcher Anteil solcher Nachrichten später in drei oder mehr Medien stand und wie viele Stunden das dauerte – getrennt nach dem Alter der Nachricht. Statistik der Vergangenheit, keine Prognose und keine Wahrheitsprüfung.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/howard">/api/v1/howard</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Warten oder sagen: nach Alter der Nachricht</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_howard")){sessionStorage.setItem("orb
 fetch("/api/v1/howard",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.by_age)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const b0=d.by_age[0];document.getElementById("hmStatus").textContent=d.verdict==="collecting"?HM.wait.replace("{n}",d.started_unconfirmed||0):HM.sum.replace("{p}",b0.p_confirm).replace("{w}",b0.median_wait_h==null?"—":b0.median_wait_h);
   document.getElementById("hmRows").innerHTML=d.by_age.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.age.replace("{a}",x.age_h))+"</b><span class=\"s\">"+esc(x.p_confirm==null?"—":x.p_confirm+" %")+"</span><span class=\"w\">"+esc(HM.v[x.advice]||x.advice)+"</span><span class=\"u\">"+esc(HM.wt.replace("{w}",x.median_wait_h==null?"—":x.median_wait_h).replace("{n}",x.decided))+"</span></li>").join("")
-   +"<li style=\"display:block;border:0\"><small>"+esc(HM.tr.replace("{t}",d.stories_tracked).replace("{u}",d.started_unconfirmed))+"</small></li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +"<li style=\"display:block;border:0\"><small>"+esc(HM.tr.replace("{t}",d.stories_tracked).replace("{u}",d.started_unconfirmed))+"</small></li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

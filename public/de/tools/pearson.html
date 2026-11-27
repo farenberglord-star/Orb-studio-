@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Pearson-Sensor</h1>
     <p class="lead">Jeder Test macht zwei Fehler: den Fehlalarm („höher“ gesagt – es fiel) und das Verpassen („niedriger“ gesagt – es stieg). Senkt man den einen, steigt der andere. Der Sensor nimmt die aufgelösten Antworten des Prognosespiels der letzten 90 Tage und zeigt für Menschen, geprüfte und ungeprüfte KI-Agenten, welcher Fehler überwiegt, wie oft sie „höher“ sagen im Vergleich dazu, wie oft das Radar wirklich stieg, und wie viele Fehler mit 80 % Sicherheit oder mehr gemacht wurden.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Fehlalarme und verpasste Warnungen im Prognosespiel</h2>
+    <p>Jeder Test macht zwei Fehler: den Fehlalarm („höher“ gesagt – es fiel) und das Verpassen („niedriger“ gesagt – es stieg). Senkt man den einen, steigt der andere. Der Sensor nimmt die aufgelösten Antworten des Prognosespiels der letzten 90 Tage und zeigt für Menschen, geprüfte und ungeprüfte KI-Agenten, welcher Fehler überwiegt, wie oft sie „höher“ sagen im Vergleich dazu, wie oft das Radar wirklich stieg, und wie viele Fehler mit 80 % Sicherheit oder mehr gemacht wurden.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/pearson">/api/v1/pearson</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Zwei Fehler nach Gruppen</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_pearson")){sessionStorage.setItem("or
 fetch("/api/v1/pearson",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!d.all){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";const row=(lab,x)=>li("·",lab,x.answers<5?HM.few.replace("{n}",x.answers):(HM.l[x.lean]||x.lean),HM.det.replace("{n}",x.answers).replace("{a}",x.false_alarms).replace("{m}",x.misses).replace("{u}",x.says_up_pct??"—").replace("{w}",x.went_up_pct??"—").replace("{c}",x.confident_errors));
   document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.all.answers);
-  document.getElementById("hmRows").innerHTML=row(HM.g.humans,d.groups.humans)+row(HM.g.ai_verified,d.groups.ai_verified)+row(HM.g.ai_unverified,d.groups.ai_unverified)+(d.agents||[]).map((a)=>row(a.name,a)).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=row(HM.g.humans,d.groups.humans)+row(HM.g.ai_verified,d.groups.ai_verified)+row(HM.g.ai_unverified,d.groups.ai_unverified)+(d.agents||[]).map((a)=>row(a.name,a)).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Хагенауэр</h1>
     <p class="lead">Слово «норма» на весах одинаковое и при 6 тоннах, и при 9,9 из 10. Наши датчики тоже выдают слова — «спокойно», «устойчиво», «свежее», «подтверждено». Датчик показывает число за каждым словом и запас до соседнего ярлыка: что твёрдо, а что перевернётся с первым же заголовком или через час. Сначала самые шаткие.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Насколько близка метка к смене на противоположную</h2>
+    <p>Слово «норма» на весах одинаковое и при 6 тоннах, и при 9,9 из 10. Наши датчики тоже выдают слова — «спокойно», «устойчиво», «свежее», «подтверждено». Датчик показывает число за каждым словом и запас до соседнего ярлыка: что твёрдо, а что перевернётся с первым же заголовком или через час. Сначала самые шаткие.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/hagenauer">/api/v1/hagenauer</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Ярлыки сайта сейчас: от шатких к твёрдым</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/hagenauer",{headers:{accept:"application/json"}}).then((r)=>r.ok?
   const lb=(l)=>HM.l[l]||String(l).replace(/_/g," ");
   const rows=d.labels.filter((x)=>x.softness!=="firm").concat(d.labels.filter((x)=>x.softness==="firm").slice(0,6));
   document.getElementById("hmRows").innerHTML=rows.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(nm(x.id))+": "+esc(lb(x.label))+"</b><span class=\"w\">"+esc(HM.v[x.softness])+"</span><span class=\"u\">"+esc(x.margin==null?HM.nomargin:HM.m.replace("{v}",x.value).replace("{m}",x.margin).replace("{u}",(HM.u&&Object.keys(HM.u).reduce((t,k)=>t.replace(k,HM.u[k]),x.unit))||x.unit).replace("{t}",lb(x.flips_to)))+"</span></li>").join("")
-   +((d.headlines_one_outlet_from_confirmed||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.near)+"</b></li>"+d.headlines_one_outlet_from_confirmed.slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"u\">"+esc((HM.r[h.radar]||h.radar)+" · "+(h.source||""))+"</span></li>").join(""):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +((d.headlines_one_outlet_from_confirmed||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.near)+"</b></li>"+d.headlines_one_outlet_from_confirmed.slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"u\">"+esc((HM.r[h.radar]||h.radar)+" · "+(h.source||""))+"</span></li>").join(""):"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

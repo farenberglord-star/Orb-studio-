@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Франкфурт</h1>
     <p class="lead">Ложь можно опровергнуть, болтовню — нет: в ней нечего проверить. Датчик ищет в каждом заголовке радаров опоры для проверки — кто, когда, сколько, где — и размытые формулы вроде «эксперты считают», «якобы», «может». Заголовок без опор и с размытыми словами агенту не стоит пересказывать как новость. Это мера проверяемости, а не правды.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Есть ли в заголовке что проверять</h2>
+    <p>Ложь можно опровергнуть, болтовню — нет: в ней нечего проверить. Датчик ищет в каждом заголовке радаров опоры для проверки — кто, когда, сколько, где — и размытые формулы вроде «эксперты считают», «якобы», «может». Заголовок без опор и с размытыми словами агенту не стоит пересказывать как новость. Это мера проверяемости, а не правды.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/frankfurt">/api/v1/frankfurt</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Проверяемость заголовков сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -146,7 +152,7 @@ fetch("/api/v1/frankfurt",{headers:{accept:"application/json"}}).then((r)=>r.ok?
   const ex=(k)=>(d.examples[k]||[]).map((x)=>li("·",x.headline,HM.c[x.class],HM.anch+": "+an(x.anchors)+(x.vague_words.length?" · "+HM.vg+": "+x.vague_words.join(", "):"")+" · "+(HM.r[x.radar]||x.radar)+(x.source?" · "+x.source:""))).join("");
   document.getElementById("hmRows").innerHTML=d.radars.map((r,i)=>li(i+1,HM.r[r.id]||r.id,r.checkable+" / "+r.headlines,HM.row.replace("{h}",r.hedged).replace("{t}",r.thin).replace("{x}",r.nothing_to_check))).join("")
    +((d.examples.nothing_to_check||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.c.nothing_to_check)+"</b></li>"+ex("nothing_to_check"):"")
-   +((d.examples.hedged||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.c.hedged)+"</b></li>"+ex("hedged"):"");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +((d.examples.hedged||[]).length?"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.c.hedged)+"</b></li>"+ex("hedged"):"");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Trevisan-Sensor</h1>
     <p class="lead">Ein Agent muss nicht alle Schlagzeilen lesen, um das Bild zu erfassen. Der Sensor zieht hunderte Zufallsstichproben und berechnet den Index neu: ab wie vielen Schlagzeilen die Antwort fast immer dieselbe ist wie mit allen, auf ±5 Punkte. Ohne KI.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Wie wenige Schlagzeilen reichen für denselben Index</h2>
+    <p>Ein Agent muss nicht alle Schlagzeilen lesen, um das Bild zu erfassen. Der Sensor zieht hunderte Zufallsstichproben und berechnet den Index neu: ab wie vielen Schlagzeilen die Antwort fast immer dieselbe ist wie mit allen, auf ±5 Punkte. Ohne KI.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/trevisan">/api/v1/trevisan</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Wie viele Schlagzeilen genügen</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_trevisan")){sessionStorage.setItem("orbCounted_trevisan","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"trevisan",lang:"de",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/trevisan",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.indices)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines);
-  document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>li(i+1,(HM.ix[x.id]||x.id)+": "+x.value,HM.enough.replace("{k}",x.enough_headlines).replace("{n}",x.of),HM.tok.replace("{a}",x.tokens_enough).replace("{b}",x.tokens_full))+x.curve.map((c)=>li("·",HM.k.replace("{k}",c.headlines),c.within_tolerance_pct+" %","")).join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>li(i+1,(HM.ix[x.id]||x.id)+": "+x.value,HM.enough.replace("{k}",x.enough_headlines).replace("{n}",x.of),HM.tok.replace("{a}",x.tokens_enough).replace("{b}",x.tokens_full))+x.curve.map((c)=>li("·",HM.k.replace("{k}",c.headlines),c.within_tolerance_pct+" %","")).join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

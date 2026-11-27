@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Park-Sensor</h1>
     <p class="lead">Alle 6 Stunden liest Claude Wissenschafts- und Gesundheitsschlagzeilen und markiert nur die Warnzeichen für Pseudowissenschaft, die in der Schlagzeile selbst zu sehen sind – mit wörtlichem Zitat. Eine Markierung ist ein Grund, die Meldung vor dem Weitererzählen zu prüfen, kein Urteil.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Warnzeichen für Pseudowissenschaft in Schlagzeilen</h2>
+    <p>Alle 6 Stunden liest Claude Wissenschafts- und Gesundheitsschlagzeilen und markiert nur die Warnzeichen für Pseudowissenschaft, die in der Schlagzeile selbst zu sehen sind – mit wörtlichem Zitat. Eine Markierung ist ein Grund, die Meldung vor dem Weitererzählen zu prüfen, kein Urteil.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/park">/api/v1/park</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Schlagzeilen jetzt</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -144,7 +150,7 @@ fetch("/api/v1/park",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.jso
   document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines_checked).replace("{m}",d.headlines_with_signs)+(d.stale?" · "+HM.stale:"");
   const signs=Object.keys(HM.sign).map((id,i)=>{const n=d.by_sign[id];return "<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.sign[id])+"</b><span class=\"s\">"+(n==null?esc(HM.invisible):n)+"</span></li>";}).join("");
   const fl=(d.flagged||[]).map((f)=>"<li><span class=\"n\">!</span><b>"+(f.link?"<a href=\""+esc(f.link)+"\" rel=\"noopener nofollow\">"+esc(f.headline)+"</a>":esc(f.headline))+"</b><span class=\"s\"></span><span class=\"w\">"+esc(f.signs.map((s)=>HM.sign[s]||s).join(", "))+" — «"+esc(f.quote)+"»</span><span class=\"u\">"+esc(f.source||"")+" · "+esc(tm(f.published_at))+"</span></li>").join("");
-  document.getElementById("hmRows").innerHTML=signs+(fl?"<li class=\"w\" style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.flagged)+"</b></li>"+fl:"<li style=\"display:block\"><small>"+esc(HM.noflags)+"</small></li>")+"<li style=\"display:block;border:0\"><small>"+esc(HM.upd)+": "+esc(tm(d.generated_at))+"</small></li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=signs+(fl?"<li class=\"w\" style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.flagged)+"</b></li>"+fl:"<li style=\"display:block\"><small>"+esc(HM.noflags)+"</small></li>")+"<li style=\"display:block;border:0\"><small>"+esc(HM.upd)+": "+esc(tm(d.generated_at))+"</small></li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

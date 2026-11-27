@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Frege sensor</h1>
     <p class="lead">The headline says &#x27;John Smith&#x27; — but which one? The sensor takes person names from radar headlines of the last 48 hours and asks Wikidata (open database, CC0) how many different people with exactly that name it knows. Two or more, and the name alone does not tell who is meant: confirm the country, role or dates first, then link facts to the person.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Namesakes in the news: who is meant?</h2>
+    <p>The headline says &#x27;John Smith&#x27; — but which one? The sensor takes person names from radar headlines of the last 48 hours and asks Wikidata (open database, CC0) how many different people with exactly that name it knows. Two or more, and the name alone does not tell who is meant: confirm the country, role or dates first, then link facts to the person.</p>
+    <p><b>Now:</b> <span id="ansLive">Loading the current value…</span></p>
+    <p><small>Data as JSON, free to use, with source and check time: <a href="/api/v1/frege">/api/v1/frege</a> · A record of measured values, not a forecast and not advice.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Names with namesakes in the headlines</h2>
     <p class="hm-st" id="hmStatus">Loading…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_frege")){sessionStorage.setItem("orbCounted_frege","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"frege",lang:"en",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/frege",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.ambiguous_names)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.people_names).replace("{a}",d.ambiguous).replace("{p}",d.ambiguous_pct??"—").replace("{w}",d.names_waiting??0);
-  document.getElementById("hmRows").innerHTML=d.ambiguous_names.map((x,i)=>li(i+1,x.name,HM.ppl.replace("{k}",x.people),(x.examples||[]).map((e)=>e.description).join(" · "))).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.rule||"")+" "+esc(d.caveat||"")+"</li>";}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.ambiguous_names.map((x,i)=>li(i+1,x.name,HM.ppl.replace("{k}",x.people),(x.examples||[]).map((e)=>e.description).join(" · "))).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.rule||"")+" "+esc(d.caveat||"")+"</li>";;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

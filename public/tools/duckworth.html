@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Дакворт</h1>
     <p class="lead">Утром новостей меньше, вечером больше — поэтому индекс в 9 утра нельзя честно сравнивать со средним за сутки. Датчик сравнивает значение «сейчас» с тем же временем суток вчера и с медианой того же часа за неделю и показывает, какая часть «роста» — просто суточный ритм.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Индекс действительно выше или ниже обычного?</h2>
+    <p>Утром новостей меньше, вечером больше — поэтому индекс в 9 утра нельзя честно сравнивать со средним за сутки. Датчик сравнивает значение «сейчас» с тем же временем суток вчера и с медианой того же часа за неделю и показывает, какая часть «роста» — просто суточный ритм.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/duckworth">/api/v1/duckworth</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Индексы против того же времени суток</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_duckworth")){sessionStorage.setItem("
 fetch("/api/v1/duckworth",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.series)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=HM.v[d.verdict]||d.verdict;
   const sg=(x)=>x==null?"—":(x>0?"+":"")+x;
-  document.getElementById("hmRows").innerHTML=d.series.map((x,i)=>x.verdict==="no_data"?"":li(i+1,(HM.ix[x.id]||x.id)+": "+x.now,HM.fair.replace("{f}",sg(x.vs_same_time_median_7d)),x.verdict==="collecting"?HM.wait.replace("{n}",x.days_with_same_time):HM.naive.replace("{n}",sg(x.vs_average_last_24h)).replace("{r}",sg(x.rhythm_effect)).replace("{y}",sg(x.vs_same_time_yesterday)))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.series.map((x,i)=>x.verdict==="no_data"?"":li(i+1,(HM.ix[x.id]||x.id)+": "+x.now,HM.fair.replace("{f}",sg(x.vs_same_time_median_7d)),x.verdict==="collecting"?HM.wait.replace("{n}",x.days_with_same_time):HM.naive.replace("{n}",sg(x.vs_average_last_24h)).replace("{r}",sg(x.rhythm_effect)).replace("{y}",sg(x.vs_same_time_yesterday)))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

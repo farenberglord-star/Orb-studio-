@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Cox-Sensor</h1>
     <p class="lead">Eine Geschichte beginnt, wenn ihre Schlagzeile zum ersten Mal auf einem Radar erscheint, und endet, wenn sie zwei Stunden lang fehlt. Der Sensor zeigt, wie lange Geschichten auf jedem Radar üblicherweise leben und wo sie schneller verschwinden oder länger bleiben als auf den anderen. Geschichten, die noch auf dem Radar sind, zählen als „noch lebend“. Nur vergangene Daten.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Wie lange eine Nachricht lebt</h2>
+    <p>Eine Geschichte beginnt, wenn ihre Schlagzeile zum ersten Mal auf einem Radar erscheint, und endet, wenn sie zwei Stunden lang fehlt. Der Sensor zeigt, wie lange Geschichten auf jedem Radar üblicherweise leben und wo sie schneller verschwinden oder länger bleiben als auf den anderen. Geschichten, die noch auf dem Radar sind, zählen als „noch lebend“. Nur vergangene Daten.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/cox">/api/v1/cox</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Lebensdauer der Nachrichten in 14 Tagen</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -142,7 +148,7 @@ try{if(!sessionStorage.getItem("orbCounted_cox")){sessionStorage.setItem("orbCou
 fetch("/api/v1/cox",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.radars)){document.getElementById("hmStatus").textContent=HM.err;return;}
   document.getElementById("hmStatus").textContent=d.ended<5?HM.wait.replace("{n}",d.stories):HM.sum.replace("{x}",d.median_hours_all==null?HM.nodata:d.median_hours_all).replace("{n}",d.stories);
   const f=(x)=>x==null?HM.nodata:Number(x).toLocaleString(HM.loc,{maximumFractionDigits:2});
-  document.getElementById("hmRows").innerHTML=d.radars.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+esc(HM.v[r.verdict]||r.verdict)+"</span><span class=\"w\">"+esc(HM.med)+": "+esc(r.median_hours==null?HM.nodata:f(r.median_hours)+" "+HM.h)+(r.hazard_ratio?" · "+esc(HM.hr)+": "+esc(f(r.hazard_ratio.hr))+" ("+esc(f(r.hazard_ratio.low))+"–"+esc(f(r.hazard_ratio.high))+")":"")+"</span><span class=\"u\">"+esc(HM.st)+": "+r.stories+" · "+esc(HM.end)+": "+r.ended+"</span></li>").join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.radars.map((r,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.r[r.id]||r.id)+"</b><span class=\"s\">"+esc(HM.v[r.verdict]||r.verdict)+"</span><span class=\"w\">"+esc(HM.med)+": "+esc(r.median_hours==null?HM.nodata:f(r.median_hours)+" "+HM.h)+(r.hazard_ratio?" · "+esc(HM.hr)+": "+esc(f(r.hazard_ratio.hr))+" ("+esc(f(r.hazard_ratio.low))+"–"+esc(f(r.hazard_ratio.high))+")":"")+"</span><span class=\"u\">"+esc(HM.st)+": "+r.stories+" · "+esc(HM.end)+": "+r.ended+"</span></li>").join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

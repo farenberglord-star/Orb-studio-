@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Коэн</h1>
     <p class="lead">Датчик говорит «связи нет». Это может значить, что связи правда нет, а может — что данных пока так мало, что увидеть можно только очень сильную связь. Датчик считает для каждой проверки сайта, сколько у неё данных и какой наименьший эффект она способна заметить (уровень 5 %, мощность 80 %), и ставит оценку: точно, грубо или слепо. Так любое «ничего не нашли» читается вместе с его настоящей точностью.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Наименьшее изменение, которое видит датчик</h2>
+    <p>Датчик говорит «связи нет». Это может значить, что связи правда нет, а может — что данных пока так мало, что увидеть можно только очень сильную связь. Датчик считает для каждой проверки сайта, сколько у неё данных и какой наименьший эффект она способна заметить (уровень 5 %, мощность 80 %), и ставит оценку: точно, грубо или слепо. Так любое «ничего не нашли» читается вместе с его настоящей точностью.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/cohen">/api/v1/cohen</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Точность проверок сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -141,7 +147,7 @@ const dur=(m)=>m==null?HM.nodata:(m<60?m+" "+HM.min:Math.floor(m/60)+" "+HM.h+(m
 try{if(!sessionStorage.getItem("orbCounted_cohen")){sessionStorage.setItem("orbCounted_cohen","1");fetch("/api/v1/hit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({page:"cohen",lang:"ru",auto:!!navigator.webdriver})}).catch(()=>{});}}catch(e){}
 fetch("/api/v1/cohen",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.json():null).then((d)=>{if(!d||!Array.isArray(d.checks)){document.getElementById("hmStatus").textContent=HM.err;return;}
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum;
-  document.getElementById("hmRows").innerHTML=d.checks.map((c,i)=>li(i+1,(HM.s[c.sensor]||c.sensor)+" · "+c.what,(HM.g[c.grade]||c.grade)+" · "+(c.smallest_detectable??"—"),HM.n.replace("{n}",c.n).replace("{u}",HM.u[c.unit]||c.unit)+" · "+c.plain)).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  document.getElementById("hmRows").innerHTML=d.checks.map((c,i)=>li(i+1,(HM.s[c.sensor]||c.sensor)+" · "+c.what,(HM.g[c.grade]||c.grade)+" · "+(c.smallest_detectable??"—"),HM.n.replace("{n}",c.n).replace("{u}",HM.u[c.unit]||c.unit)+" · "+c.plain)).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

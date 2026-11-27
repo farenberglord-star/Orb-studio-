@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Лимер</h1>
     <p class="lead">Индекс — это не факт, а результат наших решений: какие радары считать, какие слова считать «согласием» или «конфликтом». Датчик пересчитывает каждый индекс десятки раз — без одного радара, без одного слова, только по верхним заголовкам — и показывает вилку. Узкая вилка — числу можно доверять, широкая — называйте вилку, а не одно число.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Насколько хрупок индекс</h2>
+    <p>Индекс — это не факт, а результат наших решений: какие радары считать, какие слова считать «согласием» или «конфликтом». Датчик пересчитывает каждый индекс десятки раз — без одного радара, без одного слова, только по верхним заголовкам — и показывает вилку. Узкая вилка — числу можно доверять, широкая — называйте вилку, а не одно число.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/leamer">/api/v1/leamer</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Вилка индексов сейчас</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/leamer",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   document.getElementById("hmStatus").textContent=HM.sum.replace("{n}",d.headlines).replace("{s}",d.indices[0].specifications);
   const dl=(x)=>esc((HM.k[x.kind]||x.kind).replace("{id}",HM.r[x.id]||x.id))+" → "+x.value+" ("+(x.delta>0?"+":"")+x.delta+")";
   document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.ix[x.id]||x.id)+": "+x.value+"</b><span class=\"s\">"+x.low+"–"+x.high+"</span><span class=\"w\">"+esc(HM.v[x.verdict]||x.verdict)+"</span></li>"
-   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +(x.drivers||[]).slice(0,3).map((c)=>"<li><span class=\"n\">·</span><b>"+dl(c)+"</b></li>").join("")).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

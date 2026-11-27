@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Датчик Харман</h1>
     <p class="lead">Этот датчик проверяет не новости, а нас самих. Паспорт ставит каждой истории уверенность — высокую, среднюю или низкую — в момент, когда она впервые появляется на радаре. Через 72 часа датчик смотрит, появилось ли на радарах опровержение или поправка той же истории. Если «высокую уверенность» опровергают так же часто, как «низкую», паспорт переоценивает себя и его правила надо ужесточить.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Честна ли уверенность паспорта новости</h2>
+    <p>Этот датчик проверяет не новости, а нас самих. Паспорт ставит каждой истории уверенность — высокую, среднюю или низкую — в момент, когда она впервые появляется на радаре. Через 72 часа датчик смотрит, появилось ли на радарах опровержение или поправка той же истории. Если «высокую уверенность» опровергают так же часто, как «низкую», паспорт переоценивает себя и его правила надо ужесточить.</p>
+    <p><b>Сейчас:</b> <span id="ansLive">Загружаем текущее значение…</span></p>
+    <p><small>Данные в JSON, свободно, с источником и временем проверки: <a href="/api/v1/harman">/api/v1/harman</a> · Это запись измеренного, не прогноз и не совет.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Уверенность паспорта и что стало потом</h2>
     <p class="hm-st" id="hmStatus">Загружаем…</p>
@@ -143,7 +149,7 @@ fetch("/api/v1/harman",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
   const li=(n,b,s,u)=>"<li><span class=\"n\">"+n+"</span><b>"+esc(b)+"</b><span class=\"s\">"+esc(s==null?"—":s)+"</span>"+(u?"<span class=\"u\">"+esc(u)+"</span>":"")+"</li>";document.getElementById("hmStatus").textContent=(HM.v[d.verdict]||d.verdict)+" "+HM.sum.replace("{n}",d.stories_resolved).replace("{w}",d.stories_waiting).replace("{c}",d.corrections_seen);
   document.getElementById("hmRows").innerHTML=d.levels.map((x)=>li("·",HM.c[x.confidence]||x.confidence,x.challenged_pct==null?"—":x.challenged_pct+" %",HM.det.replace("{s}",x.stories).replace("{h}",x.challenged).replace("{w}",x.widened_pct??"—"))).join("")+(d.examples||[]).map((e,i)=>li(i+1,e.headline,HM.c[e.confidence]||e.confidence,HM.later+" "+e.later)).join("")+"<li style=\"display:block;border:0;padding-top:1rem\">"+esc(d.caveat||"")+"</li>";
   if(d.cry_wolf&&d.cry_wolf.alarm_rate_pct!=null){const w=d.cry_wolf,q=(v)=>v==null?"—":v+" %";document.getElementById("hmRows").insertAdjacentHTML("beforeend",li("!",HM.wolf+(w.crying_wolf?" · "+HM.wolfOn:""),q(w.alarm_rate_pct),HM.wolfDet.replace("{n}",w.stories).replace("{w}",q(w.challenged_when_warned_pct)).replace("{q}",q(w.challenged_when_silent_pct))));}
-  if(d.telemetry&&Array.isArray(d.telemetry.checks)){const T=d.telemetry,q=(v)=>v==null?"—":v+" %";document.getElementById("hmRows").insertAdjacentHTML("beforeend",li("≈",HM.tele,T.verdict==="measured"?"✓":"…",HM.teleDet.replace("{c}",T.challenged).replace("{m}",T.min_challenged))+T.checks.slice(0,14).map((c)=>li("·",c.check+" · "+(HM.grp[c.group]||c.group),q(c.trigger_rate_pct),HM.eff[c.confidence_effect]+" · "+HM.teleRow.replace("{w}",q(c.challenged_when_fired_pct)).replace("{q}",q(c.challenged_when_not_fired_pct)))).join("")+"<li style=\"display:block;border:0;padding-top:.6rem\">"+esc(HM.teleNo)+"</li>");}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+  if(d.telemetry&&Array.isArray(d.telemetry.checks)){const T=d.telemetry,q=(v)=>v==null?"—":v+" %";document.getElementById("hmRows").insertAdjacentHTML("beforeend",li("≈",HM.tele,T.verdict==="measured"?"✓":"…",HM.teleDet.replace("{c}",T.challenged).replace("{m}",T.min_challenged))+T.checks.slice(0,14).map((c)=>li("·",c.check+" · "+(HM.grp[c.group]||c.group),q(c.trigger_rate_pct),HM.eff[c.confidence_effect]+" · "+HM.teleRow.replace("{w}",q(c.challenged_when_fired_pct)).replace("{q}",q(c.challenged_when_not_fired_pct)))).join("")+"<li style=\"display:block;border:0;padding-top:.6rem\">"+esc(HM.teleNo)+"</li>");};try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Lyberg-Sensor</h1>
     <p class="lead">Die Radare sind nicht die ganze Welt, sondern unsere Feeds. Der Sensor zeigt ehrlich ihren Gesamtfehler: in welchen Sprachen die Schlagzeilen sind, welche Weltregionen vorkommen und welche gerade ganz fehlen, welche Feeds nicht geantwortet haben und wie viele Schlagzeilen als Dubletten, zu alt oder themenfremd wegfielen. Agenten bekommen einen fertigen Vorbehalt für ihre Antwort.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Was die Nachrichten-Radare nicht sehen</h2>
+    <p>Die Radare sind nicht die ganze Welt, sondern unsere Feeds. Der Sensor zeigt ehrlich ihren Gesamtfehler: in welchen Sprachen die Schlagzeilen sind, welche Weltregionen vorkommen und welche gerade ganz fehlen, welche Feeds nicht geantwortet haben und wie viele Schlagzeilen als Dubletten, zu alt oder themenfremd wegfielen. Agenten bekommen einen fertigen Vorbehalt für ihre Antwort.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/lyberg">/api/v1/lyberg</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Gesamtfehler der Radare jetzt</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -149,7 +155,7 @@ fetch("/api/v1/lyberg",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.j
    +li("4",HM.h_state,(c.state_media_pct||0)+" %",Object.entries(c.state_media||{}).map(([k,v])=>k+" "+v).join(", ")||HM.none_state)
    +li(5,HM.h_nr,nr.answered+" / "+nr.feeds,nr.silent_feeds.map((f)=>(HM.r[f.radar]||f.radar)+": "+f.feed).join(", "))
    +li(6,HM.h_proc,HM.proc.replace("{r}",pc.items_received).replace("{d}",pc.duplicates_removed).replace("{o}",pc.older_than_72h_removed).replace("{t}",pc.off_topic_removed).replace("{k}",pc.kept))
-   +d.radars.map((r)=>li("·",HM.r[r.id]||r.id,r.answered+" / "+r.feeds,HM.out.replace("{n}",r.outlets))).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +d.radars.map((r)=>li("·",HM.r[r.id]||r.id,r.answered+" / "+r.feeds,HM.out.replace("{n}",r.outlets))).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

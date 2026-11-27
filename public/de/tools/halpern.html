@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Halpern-Sensor</h1>
     <p class="lead">Der Poljak-Sensor sieht, dass sich ein Index verschoben hat. Der Halpern-Sensor nennt die Ursache: die kleinste Menge an Schlagzeilen, ohne die der Index geblieben wäre, wo er war (oder verschwundene Schlagzeilen, die ihn gehalten haben). Dazu: aus welchen Schlagzeilen der Index gerade besteht.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Warum sich ein Index bewegt hat: welche Meldungen</h2>
+    <p>Der Poljak-Sensor sieht, dass sich ein Index verschoben hat. Der Halpern-Sensor nennt die Ursache: die kleinste Menge an Schlagzeilen, ohne die der Index geblieben wäre, wo er war (oder verschwundene Schlagzeilen, die ihn gehalten haben). Dazu: aus welchen Schlagzeilen der Index gerade besteht.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/halpern">/api/v1/halpern</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Ursachen der Verschiebung in 6 Stunden</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/halpern",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.
   document.getElementById("hmRows").innerHTML=d.indices.map((x,i)=>{const head="<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.ix[x.id]||x.id)+"</b><span class=\"s\">"+esc(x.value_then==null?String(x.value_now):x.value_then+" → "+x.value_now)+"</span><span class=\"w\">"+esc(HM.v[x.verdict]||x.verdict)+"</span></li>";
     const cs=(x.causes||[]).map((c)=>"<li><span class=\"n\">!</span><b>"+esc(c.headline)+"</b><span class=\"s\">"+esc(role(c.role))+"</span><span class=\"w\">"+esc(kind(c.kind))+" · "+esc(c.source||"")+" · "+esc(HM.r[c.radar]||c.radar||"")+"</span></li>").join("");
     const mo=(x.made_of_now||[]).slice(0,6).map((h)=>"<li><span class=\"n\">·</span><b>"+esc(h.headline)+"</b><span class=\"s\">"+esc(kind(h.kind))+"</span><span class=\"u\">"+esc(h.source||"")+"</span></li>").join("");
-    return head+(cs?"<li style=\"display:block;border:0\"><small>"+esc(HM.why)+"</small></li>"+cs:"")+(mo?"<li style=\"display:block;border:0\"><small>"+esc(HM.made)+"</small></li>"+mo:"");}).join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+    return head+(cs?"<li style=\"display:block;border:0\"><small>"+esc(HM.why)+"</small></li>"+cs:"")+(mo?"<li style=\"display:block;border:0\"><small>"+esc(HM.made)+"</small></li>"+mo:"");}).join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>

@@ -119,6 +119,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <h1>Baird-Sensor</h1>
     <p class="lead">Eine Zahl ohne Quelle, Zeit und Einheit ist ein Gerücht. Der Sensor gibt jeder Zahl der Website-Sensoren einen Pass: woher sie stammt, wann sie gemessen wurde, ob sie veraltet ist, in welcher Einheit und ob sie im plausiblen Bereich liegt. Dieselbe Größe gleicht er auf zwei unabhängigen Wegen ab: Weichen sie ab, steckt irgendwo ein Fehler bei Kurs, Einheit oder Zeit.</p>
   </div>
+  <section class="panel" id="answer">
+    <h2>Quelle, Alter und Gegenprüfung für jede Sensorzahl</h2>
+    <p>Eine Zahl ohne Quelle, Zeit und Einheit ist ein Gerücht. Der Sensor gibt jeder Zahl der Website-Sensoren einen Pass: woher sie stammt, wann sie gemessen wurde, ob sie veraltet ist, in welcher Einheit und ob sie im plausiblen Bereich liegt. Dieselbe Größe gleicht er auf zwei unabhängigen Wegen ab: Weichen sie ab, steckt irgendwo ein Fehler bei Kurs, Einheit oder Zeit.</p>
+    <p><b>Jetzt:</b> <span id="ansLive">Aktueller Wert wird geladen …</span></p>
+    <p><small>Daten als JSON, frei nutzbar, mit Quelle und Prüfzeit: <a href="/api/v1/baird">/api/v1/baird</a> · Eine Aufzeichnung gemessener Werte, keine Vorhersage und kein Rat.</small></p>
+  </section>
   <section class="panel" id="now">
     <h2>Pässe der Zahlen jetzt</h2>
     <p class="hm-st" id="hmStatus">Wird geladen…</p>
@@ -145,7 +151,7 @@ fetch("/api/v1/baird",{headers:{accept:"application/json"}}).then((r)=>r.ok?r.js
   const fv=(v)=>v==null?"—":Math.abs(v)>=1e9?(v/1e9).toFixed(1)+" "+HM.bn:String(+(+v).toPrecision(6));
   document.getElementById("hmRows").innerHTML=d.numbers.map((x,i)=>"<li><span class=\"n\">"+(i+1)+"</span><b>"+esc(HM.id[x.id]||x.id)+": "+esc(fv(x.value))+" <small>"+esc(x.unit)+"</small></b><span class=\"w\">"+esc(st(x))+"</span><span class=\"u\">"+esc((x.age_h==null?"":HM.age.replace("{a}",x.age_h)+" · ")+(x.source||"")+(pr(x)?" · "+pr(x):""))+"</span></li>").join("")
    +"<li style=\"display:block;border:0;padding-top:1rem\"><b>"+esc(HM.cross)+"</b></li>"
-   +d.cross_checks.map((c)=>"<li><span class=\"n\">=</span><b>"+esc(HM.cx[c.id]||c.what)+"</b><span class=\"w\">"+esc(HM.st[c.status]||c.status)+"</span><span class=\"u\">"+esc(c.diff_pct==null?"":HM.diff.replace("{d}",c.diff_pct).replace("{t}",c.tolerance_pct))+"</span></li>").join("");}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
+   +d.cross_checks.map((c)=>"<li><span class=\"n\">=</span><b>"+esc(HM.cx[c.id]||c.what)+"</b><span class=\"w\">"+esc(HM.st[c.status]||c.status)+"</span><span class=\"u\">"+esc(c.diff_pct==null?"":HM.diff.replace("{d}",c.diff_pct).replace("{t}",c.tolerance_pct))+"</span></li>").join("");;try{const t=document.getElementById("hmStatus").textContent;if(t)document.getElementById("ansLive").textContent=t;}catch(e){}}).catch(()=>{document.getElementById("hmStatus").textContent=HM.err;});
 </script>
 <script type="module" src="/share-x.js"></script>
 <script src="/backnav.js" defer></script>
