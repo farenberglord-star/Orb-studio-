@@ -547,3 +547,5 @@
 Файлы для Лианы загружены на Google Диск (папка «Orb Studio — для Лианы»). Добавлены карточки schuman_h, dalenius_t; мостики question_wording_shift, small_cell_suppressed (idea). Стоун, Champernowne, Томсон — в docs/memory-waiting.md. Тесты 703/0.
 
 ## 27.11.2026 партия 61: добавлен labov_w в мостик stale_apparent_vs_real; Стоуффер, Валд, Хильгард — в memory-waiting.
+
+## 27.11.2026 партия 62: взят dornbusch_r (мостик spiral_or_bounce); Sudman, Lebergott, Mitchell, Fabricant, Katona в memory-waiting; Skinner дубль.

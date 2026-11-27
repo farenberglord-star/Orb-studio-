@@ -50,3 +50,11 @@
 - Champernowne (1912–2000): годы от Лианы, смерть не сверена; ждёт проверки. Thomson (Downs–Thomson): годы не найдены; закон покрыт карточкой downs_a. Braess: по данным Лианы жив, не берём.
 
 - Stouffer (1900–1960), Wald (1902–1950): работы выросли из военных исследований (Research Branch армии США; Statistical Research Group, контроль боеприпасов) — не берём по правилу отбора. Hilgard (1904–2001): гипноз и обезболивание (медицинская тема), «реминисценция» — не его правило.
+
+Партия 62 (27.11.2026):
+- Seymour Sudman (1928 – 2.5.2000, Univ. of Illinois news bureau; AAPOR in memoriam), зона look_alike: «Asking Questions» (1982, с Брэдберном) — формулировка вопроса. Мешает: страницы в Википедии не нашли (тест требует), ранняя работа статистиком в Army Ordnance Ammunition Command (правило гражданское). Мостик question_wording_shift.
+- Stanley Lebergott (22.7.1918 – 24.7.2009, Wesleyan, Wikipedia): ряды безработицы 1900–1954. Мешает: «проверяй винтаж ревизии» — перефраз Лианы, у Лебергота не найден; ждёт источника правила. Мостик revisions.
+- Wesley Clair Mitchell (5.8.1874 – 29.10.1948, NBER): «The Making and Using of Index Numbers» (BLS 656). Мешает: номер бюллетеня и правило у Лианы не подтверждены; во время WWI возглавлял Price Section Совета военной промышленности. Мостик source_change_moves_index.
+- Solomon Fabricant (15.8.1906 – 1989, NBER): выпуск обрабатывающей промышленности. Мешает: правило «3–5 компонент» не подтверждено, служил в War Production Board.
+- George Katona (6.11.1901 – 18.6.1981, West Berlin): индекс потребительских настроений. Мешает: вырос из правительственной работы против военной инфляции; тема прогнозов; решает владелец. Мостики radar_moves_market, believed_so_it_moves.
+- Skinner: дубль (skinner, Chris Skinner 1953–2020 уже в библиотеке, small_cell_suppressed можно связать).

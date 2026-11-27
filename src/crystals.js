@@ -15342,6 +15342,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "headlines that infer a trend from one cross-section of groups; joins the apparent versus real bridge with the source-ageing check; no number yet"
 }
+},
+{
+"id": "dornbusch_r",
+"name": "Rudi Dornbusch",
+"name_ru": "Рюдигер Дорнбуш",
+"years": "1942–2002",
+"wiki": "https://en.wikipedia.org/wiki/Rudi_Dornbusch",
+"zone": "side_effects",
+"idea": {
+"en": "'Expectations and Exchange-Rate Dynamics' (1976): after a shock, a fast-moving price (an exchange rate) first overshoots its final level and then drifts back while slow prices (goods, wages) catch up.",
+"ru": "«Ожидания и динамика обменного курса» (1976): после шока быстро меняющаяся цена (курс) сначала перелетает свой итоговый уровень и затем возвращается, пока медленные цены (товары, зарплаты) догоняют.",
+"de": "„Expectations and Exchange-Rate Dynamics“ (1976): Nach einem Schock schießt ein schneller Preis (Wechselkurs) über sein Endniveau hinaus und läuft zurück, während langsame Preise nachziehen."
+},
+"rule": "A big first move in a fast number may be an overshoot; wait for the slow numbers before calling it the new level.",
+"needs": {
+"code": "needs_idea",
+"note": "a fast series (radar index) and a slow series for the same topic to see overshoot then return; joins the spiral or bounce bridge, waits for its history from 14.12"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
