@@ -92,6 +92,7 @@ import { thinkItThrough } from "./think.js";
 import { checkPlace, normState, normRoads } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
 import { inspectionStats } from "./roads_inspection.js";
+import { decodeTripUpdates, waitParadox, VBB_RT_URL, WAIT_ATTRIBUTION, MAX_FEED_BYTES } from "./wait_paradox.js";
 import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
@@ -4298,6 +4299,7 @@ async function handleApi(url, request, env, ctx) {
     try { return json(await airData(env, la, lo), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" }); }
     catch (e) { return json({ status: "unavailable", source: "Umweltbundesamt", detail: String(e && e.message || e).slice(0, 400) }, { "Access-Control-Allow-Origin": "*" }, 502); }
   }
+  if (p === "/api/v1/wait-paradox") return json(await waitParadoxData(env), { "Cache-Control": "public, max-age=300", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/roads-inspection") return json(await roadsInspection(env), { "Cache-Control": "public, max-age=900", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/chargers-de") { // ближайшие зарядки из реестра BNetzA; lat/lon в Германии
     const la = Number(url.searchParams.get("lat")), lo = Number(url.searchParams.get("lon"));
@@ -6466,6 +6468,21 @@ async function roadsSnapshot(env) {
   await env.DB.prepare("CREATE TABLE IF NOT EXISTS roads_snap (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, jams INTEGER, closures INTEGER, max_delay INTEGER, list TEXT)").run();
   await env.DB.prepare("INSERT OR REPLACE INTO roads_snap (slot, ts, jams, closures, max_delay, list) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(Math.floor(Date.now() / 18e5), Date.now(), d.summary.jams, d.summary.closures, d.summary.max_delay_min, JSON.stringify((d.jams || []).slice(0, 40).map((i) => [String(i.id).slice(0, 40), i.delay_min || 0]))).run();
   await env.DB.prepare("DELETE FROM roads_snap WHERE ts < ?1").bind(Date.now() - 120 * 864e5).run();
+}
+// Парадокс ожидания на остановках VBB (GTFS-Realtime, CC BY 4.0). Пока не в OpenAPI/llms: сначала проверка на живом потоке.
+async function waitParadoxData(env) {
+  const hit = await sharedGet(env, "wait-paradox-vbb-v1", 5 * 60e3);
+  if (hit) return hit;
+  const base = { experimental: true, area: "Berlin-Brandenburg (VBB)", attribution: WAIT_ATTRIBUTION.text, license: WAIT_ATTRIBUTION.license, license_url: WAIT_ATTRIBUTION.license_url, source_url: WAIT_ATTRIBUTION.url };
+  try {
+    const r = await fetch(VBB_RT_URL, { headers: { "User-Agent": "Orb Studio (https://orbstudio.org)", Accept: "application/x-protobuf" }, signal: AbortSignal.timeout(12000) });
+    if (!r.ok) throw new Error("http " + r.status);
+    const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.length > MAX_FEED_BYTES) throw new Error("feed too large " + buf.length);
+    const t0 = Date.now(), trips = decodeTripUpdates(buf), d = { ...base, ...waitParadox(trips), checked_at: new Date().toISOString(), trips_in_feed: trips.length, feed_bytes: buf.length, decode_ms: Date.now() - t0 };
+    await sharedPut(env, "wait-paradox-vbb-v1", d);
+    return d;
+  } catch (e) { return { ...base, status: "unavailable", detail: String(e && e.message || e).slice(0, 120) }; }
 }
 async function roadsInspection(env) {
   let rows = [];
