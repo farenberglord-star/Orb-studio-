@@ -91,6 +91,7 @@ import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { thinkItThrough } from "./think.js";
 import { checkPlace, normState, normRoads } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
+import { inspectionStats } from "./roads_inspection.js";
 import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
@@ -4288,6 +4289,7 @@ async function handleApi(url, request, env, ctx) {
     try { return json(await airData(env, la, lo), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" }); }
     catch (e) { return json({ status: "unavailable", source: "Umweltbundesamt", detail: String(e && e.message || e).slice(0, 400) }, { "Access-Control-Allow-Origin": "*" }, 502); }
   }
+  if (p === "/api/v1/roads-inspection") return json(await roadsInspection(env), { "Cache-Control": "public, max-age=900", "Access-Control-Allow-Origin": "*" });
   if (p === "/api/v1/chargers-de") { // ближайшие зарядки из реестра BNetzA; lat/lon в Германии
     const la = Number(url.searchParams.get("lat")), lo = Number(url.searchParams.get("lon"));
     if (!(la > 47 && la < 55.5 && lo > 5.5 && lo < 15.5)) return json({ error: "lat_lon_germany", note: "lat and lon inside Germany are required, e.g. lat=53.55&lon=10.0." }, { "Access-Control-Allow-Origin": "*" }, 400);
@@ -6447,6 +6449,19 @@ async function roadsCompute() {
       elbtunnel: now.filter((i) => i.elbtunnel).map((i) => ({ kind: i.kind, title: i.title, direction: i.direction, delay_min: i.delay_min, blocked: i.blocked })) },
     jams, closures, roadworks: works,
   };
+}
+// Снимок трасс Гамбурга раз в 30 минут (id пробок и задержки) — история для «парадокса инспекции»; координат людей тут нет.
+async function roadsSnapshot(env) {
+  const d = await roadsData(env);
+  if (!d || !d.sources_ok || d.stale) return;
+  await env.DB.prepare("CREATE TABLE IF NOT EXISTS roads_snap (slot INTEGER PRIMARY KEY, ts INTEGER NOT NULL, jams INTEGER, closures INTEGER, max_delay INTEGER, list TEXT)").run();
+  await env.DB.prepare("INSERT OR REPLACE INTO roads_snap (slot, ts, jams, closures, max_delay, list) VALUES (?1, ?2, ?3, ?4, ?5, ?6)").bind(Math.floor(Date.now() / 18e5), Date.now(), d.summary.jams, d.summary.closures, d.summary.max_delay_min, JSON.stringify((d.jams || []).slice(0, 40).map((i) => [String(i.id).slice(0, 40), i.delay_min || 0]))).run();
+  await env.DB.prepare("DELETE FROM roads_snap WHERE ts < ?1").bind(Date.now() - 120 * 864e5).run();
+}
+async function roadsInspection(env) {
+  let rows = [];
+  try { rows = ((await env.DB.prepare("SELECT ts, list FROM roads_snap WHERE ts > ?1 ORDER BY ts").bind(Date.now() - 60 * 864e5).all()).results || []).map((r) => ({ ts: r.ts, jams: JSON.parse(r.list || "[]") })); } catch {}
+  return { ...inspectionStats(rows), snapshots: rows.length, area: "Hamburg and surroundings motorways" };
 }
 async function roadsData(env) {
   const c = await sharedGet(env, "roads-hh-v1", 10 * 60e3);
@@ -10009,7 +10024,7 @@ export default {
     if (EMO_RETIRED) env = { ...env, EMO_RELAY: RETIRED_RELAY };
     // EMO и радар: своё расписание раз в 2 часа; ежедневные задачи (торговля, скрипка и т. д.) — только по своему расписанию, как раньше
     if (event.cron === AVI_CRON) { ctx.waitUntil(freshnessData(env, ctx, "https://orbstudio.org").catch(() => null)); // карта задержек: перепроверка по очереди и без заходов на страницу
-      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(schelerTick(env).catch(() => null)); ctx.waitUntil(cryptoPassportRecord(env, ctx).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rinneTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(rqTick(env, rqDeps(env)).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
+      ctx.waitUntil(ixRecord(env, ctx).catch(() => null)); ctx.waitUntil(schelerTick(env).catch(() => null)); ctx.waitUntil(cryptoPassportRecord(env, ctx).catch(() => null)); ctx.waitUntil(roadsSnapshot(env).catch(() => null)); ctx.waitUntil(pulseRefresh(env, false).catch(() => null)); ctx.waitUntil(aviationPoll(env, ctx).catch(() => null)); ctx.waitUntil(duoWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRegionWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioSensorsWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioRadarWarm(env, ctx).catch(() => null)); ctx.waitUntil(radioHealthTick(env, ctx).catch(() => null)); ctx.waitUntil(parkWarm(env, ctx).catch(() => null)); ctx.waitUntil(zivTick(env, ctx).catch(() => null)); ctx.waitUntil(coxTick(env, ctx).catch(() => null)); ctx.waitUntil(rabinTick(env, ctx).catch(() => null)); ctx.waitUntil(rinneTick(env, ctx).catch(() => null)); ctx.waitUntil(rtWarm(env, ctx, rtDeps("https://" + (env.MAIN_HOST || "orbstudio.org"))).catch(() => null)); ctx.waitUntil(rqTick(env, rqDeps(env)).catch(() => null)); ctx.waitUntil(usdcPoll(env).catch(() => null)); ctx.waitUntil(purgeInbox(env).catch(() => null)); ctx.waitUntil(voiceWarm(env, ctx).catch((e) => sharedPut(env, "voice-last-error", { at: new Date().toISOString(), error: "warm: " + String(e && e.message || e).slice(0, 300) }))); if (!EMO_RETIRED) ctx.waitUntil(emoDiagnostic(env).catch(() => null)); return; }
     if (event.cron === EMO_RADAR_CRON) {
       ctx.waitUntil(podcastTick(env, ctx).catch(() => null));   // подкаст для агентов: одна новая тема за тик
       ctx.waitUntil(anomalyRecord(env).catch(() => null));   // детектор аномалий интереса агентов

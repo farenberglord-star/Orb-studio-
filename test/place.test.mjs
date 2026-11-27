@@ -196,3 +196,19 @@ test("airport: note without flight status promises, route pointer", () => {
   const r2 = checkPlace({ name: "Café am Markt", lat: 53.6304, lon: 9.9882 }, Date.UTC(2026, 10, 27, 10));
   assert.ok(!r2.notes.some((n) => /flight status/i.test(n.en)));
 });
+
+import { inspectionStats } from "../src/roads_inspection.js";
+test("roads inspection: collecting, then ratio >= 1 for uneven jams", () => {
+  assert.equal(inspectionStats([]).status, "collecting");
+  const S = 30 * 60e3, t0 = 1e12, rows = [];
+  // 40 jams: 30 short (1 snapshot) and 10 long (6 snapshots); snapshots every 30 min
+  let t = t0; const snaps = new Map();
+  let id = 0;
+  for (let k = 0; k < 40; k++) { const len = k % 4 === 3 ? 6 : 1; const jid = "j" + id++; for (let i = 0; i < len; i++) { const ts = t + i * S; (snaps.get(ts) || snaps.set(ts, []).get(ts)).push([jid, 5]); } t += (len + 1) * S; }
+  for (const [ts, jams] of [...snaps].sort((a, b) => a[0] - b[0])) rows.push({ ts, jams });
+  rows.push({ ts: t + 5 * S, jams: [] });
+  const r = inspectionStats(rows);
+  assert.equal(r.status, "ok");
+  assert.ok(r.ratio > 1, "ratio " + r.ratio);
+  assert.ok(r.mean_seen_at_random_min > r.mean_duration_min);
+});

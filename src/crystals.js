@@ -15070,6 +15070,60 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per story: which next outlet adds the most new information per cost and the point where the story index is steady; radar feeds, every 30 minutes; not computed yet"
 }
+},
+{
+"id": "terada",
+"name": "Torahiko Terada",
+"name_ru": "Торахико Терада",
+"years": "1878–1935",
+"wiki": "https://en.wikipedia.org/wiki/Torahiko_Terada",
+"zone": "measurement_error",
+"idea": {
+"en": "Essay on Tokyo trams (1922): a passenger arriving at a random moment waits longer than half the average gap, because long gaps are hit more often (English translation: arXiv 2004.14081).",
+"ru": "Эссе о токийских трамваях (1922): пассажир, пришедший в случайный момент, ждёт дольше половины среднего интервала, потому что в длинные интервалы попадают чаще (английский перевод: arXiv 2004.14081).",
+"de": "Essay über Tokioter Straßenbahnen (1922): wer zufällig ankommt, wartet länger als die halbe mittlere Lücke, weil man häufiger in lange Lücken gerät."
+},
+"rule": "A jam you see by chance lasts longer than the average jam: set the buffer by the long ones, not the mean.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "feller_w",
+"name": "William Feller",
+"name_ru": "Уильям Феллер",
+"years": "1906–1970",
+"wiki": "https://en.wikipedia.org/wiki/William_Feller",
+"zone": "measurement_error",
+"idea": {
+"en": "'An Introduction to Probability Theory and Its Applications', vol. 2 (1966): a random moment falls more often into a long interval, so the interval you observe is longer than the average one.",
+"ru": "«Введение в теорию вероятностей и её приложения», т. 2 (1966): случайный момент чаще попадает в длинный интервал, поэтому наблюдаемый интервал длиннее среднего.",
+"de": "„An Introduction to Probability Theory and Its Applications“, Bd. 2 (1966): ein zufälliger Zeitpunkt fällt häufiger in ein langes Intervall."
+},
+"rule": "What you observe at a random moment is biased towards the long cases; ask how it was sampled before trusting the average.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "little_jdc",
+"name": "John D. C. Little",
+"name_ru": "Джон Литтл",
+"years": "1928–2024",
+"wiki": "https://en.wikipedia.org/wiki/John_Little_(academic)",
+"zone": "own_limits",
+"idea": {
+"en": "'A Proof for the Queuing Formula: L = λW' (Operations Research, 1961): in a stable system the average number inside equals the arrival rate times the average time spent.",
+"ru": "«Доказательство формулы очередей L = λW» (Operations Research, 1961): в устойчивой системе среднее число внутри равно темпу прихода на среднее время пребывания.",
+"de": "„A Proof for the Queuing Formula: L = λW“ (Operations Research, 1961): im stabilen System gilt mittlere Anzahl = Ankunftsrate mal mittlere Verweilzeit."
+},
+"rule": "If two of the three numbers (count inside, arrival rate, time spent) are known, the third is fixed: check that they agree.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
