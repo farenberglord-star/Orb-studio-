@@ -10189,7 +10189,7 @@ async function handleRequest(request, env, ctx) {
       } catch (e) { return json({ error: "crypto history error", detail: String(e && e.message || e).slice(0, 200) }, { "Cache-Control": "no-store" }, 500); }
     }
     // Сводка для LLM: бесплатно до часа давности, свежая за 0,01 USDC (x402). Модулю передаются только настройки продажи.
-    if (url.pathname === "/api/v1/brief" || url.pathname === "/api/v1/brief/fresh") {
+    if ((url.pathname === "/api/v1/brief" && !url.searchParams.get("topic")) || url.pathname === "/api/v1/brief/fresh") { // с ?topic= — подписанный бриф (witness.js), без него — бесплатная мировая сводка
       try {
         return await handleBrief(request, saleConfig(env), {
           ctx, agent: classifyAgent(request.headers.get("user-agent")) || agentName(request) || "human/unknown",
