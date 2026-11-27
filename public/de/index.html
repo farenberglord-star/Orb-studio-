@@ -411,6 +411,22 @@ details.machine a{color:var(--holo)}
     if(m)rows.push(["Im Trend",m.id]);if(ax!=null)rows.push(["Neue arXiv-Arbeiten",String(ax)]);if(p)rows.push(["Paper des Tages",p.title]);if(d.releases_24h!=null)rows.push(["Releases in 24 h",String(d.releases_24h)]);
     if(!rows.length)return;ul.textContent="";rows.forEach(function(x){var li=document.createElement("li"),b=document.createElement("b");li.textContent=x[0]+": ";b.textContent=x[1];li.appendChild(b);ul.appendChild(li)});
   }).catch(function(){})})();</script>
+<style>.fuelc{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;text-decoration:none;color:var(--fg,#e4ebf8);border:1px solid rgba(0,240,255,.5);border-radius:14px;padding:9px 12px;margin:12px 0;background:linear-gradient(135deg,rgba(0,240,255,.09),rgba(255,43,214,.07));box-shadow:inset 0 0 14px rgba(0,240,255,.1)}
+.fuelc:hover,.fuelc:focus-visible{border-color:#00f0ff;outline:none;box-shadow:0 0 0 1px rgba(0,240,255,.4),inset 0 0 14px rgba(0,240,255,.14)}
+.fuelc .fp{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:16px;background:rgba(0,240,255,.12);box-shadow:0 0 10px rgba(0,240,255,.45);animation:fuelBeat 2.2s ease-in-out infinite}
+.fuelc .e{font-family:var(--mono,ui-monospace,monospace);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#5fe3ff}
+.fuelc h3{margin:0;font-size:16px;line-height:1.25;color:#fff}
+.fuelc .fr{display:flex;flex-wrap:wrap;gap:2px 12px;font:600 12.5px/1.35 var(--mono,ui-monospace,monospace);color:#cfd9ea;font-variant-numeric:tabular-nums}
+.fuelc .fr b{color:#39ff88;font-weight:700}
+.fuelc .go{font-size:12px;font-weight:700;color:#5fe3ff;white-space:nowrap}
+@keyframes fuelBeat{50%{box-shadow:0 0 16px rgba(0,240,255,.8);transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.fuelc .fp{animation:none}}
+@media (max-width:420px){.fuelc{grid-template-columns:30px 1fr}.fuelc .go{display:none}}
+</style>
+  <a class="fuelc" id="fuelc" href="/de/tools/fuel"><span class="fp" aria-hidden="true">⛽</span>
+    <div><div class="e">Sensor · Hamburg und Umland</div><h3>Spritpreise</h3><div class="fr" id="fuelR"><span>Diesel · E5 · E10 — jetzt an den Tankstellen</span></div></div>
+    <span class="go">Öffnen →</span></a>
+  <script>(function(){fetch("/api/v1/fuel-hamburg").then(function(r){return r.ok?r.json():null}).then(function(d){if(!d||d.status!=="ok")return;var box=document.getElementById("fuelR"),fm=function(x){return x==null?"–":x.toLocaleString("de-DE",{minimumFractionDigits:3,maximumFractionDigits:3})+" €"};box.textContent="";["diesel","e5","e10"].forEach(function(k){var f=d.fuels[k];if(!f)return;var sp=document.createElement("span"),b=document.createElement("b");sp.textContent=k.toUpperCase()+" ";b.textContent=fm(f.lowest);sp.appendChild(b);box.appendChild(sp)})}).catch(function(){})})();</script>
   <div class="sec" id="sensorMapSec"><div id="sensorMap"></div></div>
   <script>
   /* Карта датчиков: грузится, только когда секция почти в зоне видимости, чтобы не тормозить главную */
