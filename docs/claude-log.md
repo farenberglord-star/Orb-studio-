@@ -551,3 +551,5 @@
 ## 27.11.2026 партия 62: взят dornbusch_r (мостик spiral_or_bounce); Sudman, Lebergott, Mitchell, Fabricant, Katona в memory-waiting; Skinner дубль.
 
 ## 27.11.2026 партия 63: новых нет; morgenstern_o→revisions, allen_rgd→source_change_moves_index; исправлено: зона measurement_error существует.
+
+## 27.11.2026 решение владельца: поиск учёных для question_wording_shift, revisions, source_change_moves_index, spiral_or_bounce отложен до 14–21.12 (появится история данных). До этой даты новых заданий Лиане не даём; открытые решения: Катона, Митчелл (если правило подтвердится по тексту), Садман (нет страницы в Википедии), Леберготт, Фабрикант — в docs/memory-waiting.md.
