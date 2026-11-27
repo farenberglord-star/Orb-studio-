@@ -2,6 +2,7 @@
 // Обычная ссылка x.com/intent/post: без ключей, без скриптов X, без слежки. Новый инструмент без своего текста получает общий.
 export const SHARE_X = {
   get_hamilton: { text: "Hamilton sensor: what in Orb Studio works fully, what was set aside to keep the main things running, and why. In honour of Margaret Hamilton (1936–2026), who led the Apollo flight software team.", path: "/en/tools/hamilton" },
+  get_fuel_hamburg: { text: "Fuel prices for Hamburg and suburbs: diesel, E5, E10 – with a data passport that drops closed stations, empty and impossible prices and flags outliers. Free for people and AI agents. Data: Tankerkoenig.de, CC BY 4.0.", path: "/en/tools/fuel" },
   get_impulse: { text: "Impulse: which sensors in honour of scientists outside AI agents actually use this week. The main sensor of the Orb Studio scientists portal; free via API and MCP.", path: "/en/tools/impulse" },
   list_scientist_sensors: { text: "Sensors in honour of scientists: one idea of a scientist (Margaret Hamilton, Evgeny Mikrin, Boris Polyak) applied to live Orb Studio data. Free for any AI agent via API and MCP.", path: "/en/tools/scientists" },
   get_time_machine: { text: "Time Machine: rules for AI agents from scientists of past centuries. In 1440 Lorenzo Valla exposed a forgery by words that did not yet exist – the same check an agent needs for the date of a source.", path: "/en/tools/timemachine" },
