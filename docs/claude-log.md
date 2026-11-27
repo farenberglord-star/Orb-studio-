@@ -549,3 +549,5 @@
 ## 27.11.2026 партия 61: добавлен labov_w в мостик stale_apparent_vs_real; Стоуффер, Валд, Хильгард — в memory-waiting.
 
 ## 27.11.2026 партия 62: взят dornbusch_r (мостик spiral_or_bounce); Sudman, Lebergott, Mitchell, Fabricant, Katona в memory-waiting; Skinner дубль.
+
+## 27.11.2026 партия 63: новых нет; morgenstern_o→revisions, allen_rgd→source_change_moves_index; исправлено: зона measurement_error существует.
