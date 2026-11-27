@@ -413,10 +413,10 @@ const DEMO=L!=='ru'?[]:[
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
 (function(){
-  const LV={"thin": "СЛАБАЯ", "medium": "СРЕДНЯЯ", "good": "ХОРОШАЯ"},el=document.getElementById('crimeOut');if(!el)return;let n=30;
+  const RS={crime:'КРИМИНАЛ',fake_or_propaganda:'ФЕЙК/ПРОПАГАНДА',state_media:'ГОСМЕДИА',single_source_loud_tone:'ОДИН ИСТОЧНИК, ГРОМКИЙ ТОН'},LV={"thin": "СЛАБАЯ", "medium": "СРЕДНЯЯ", "good": "ХОРОШАЯ"},el=document.getElementById('crimeOut');if(!el)return;let n=30;
   function show(c){
     if(!c.length){el.innerHTML='<div class="m">сейчас нет свежих новостей про криминал</div>';return;}
-    el.innerHTML=c.slice(0,3).map(x=>'<div class="row"><div class="t"></div><div class="m">'+esc(x.source)+' · '+esc(x.age_hours)+' ч · '+esc(x.outlets)+' изд. · '+esc(x.status)+'</div><div><span class="tag'+(x.checkability==='good'?'':' w')+'">ПРОВЕРЯЕМОСТЬ: '+esc(LV[x.checkability]||x.checkability)+'</span><span class="m">'+esc((x.say||[])[0]||'')+'</span></div></div>').join('');
+    el.innerHTML=c.slice(0,3).map(x=>'<div class="row"><div class="t"></div><div class="m">'+esc(x.source)+' · '+esc(x.age_hours)+' ч · '+esc(x.outlets)+' изд. · '+esc(x.status)+'</div><div><span class="tag w">'+esc(RS[x.reason]||'')+'</span><span class="tag'+(x.checkability==='good'?'':' w')+'">ПРОВЕРЯЕМОСТЬ: '+esc(LV[x.checkability]||x.checkability)+'</span><span class="m">'+esc((x.say||[])[0]||'')+'</span></div></div>').join('');
     [...el.querySelectorAll('.row')].forEach((r,i)=>{const t=r.querySelector('.t'),h=String(c[i].headline);let k=0;setTimeout(function f(){t.textContent=h.slice(0,++k);if(k<h.length)setTimeout(f,14);else r.classList.add('done');},i*400);});
   }
   function load(){fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{if(b)show(b.crime_report||[]);}).catch(()=>{});}

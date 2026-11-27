@@ -25,18 +25,22 @@ export async function sha256hex(text) {
 
 // Новостной бриф: главные заголовки радаров, для каждого — паспорт по словам (статус, проверяемость, уверенность, сработавшие правила)
 
-// «Следователь»: короткий отчёт по криминальным новостям радара через паспорт. Отбор по словам, без ИИ; не приговор и не оценка вины.
+// «Следователь»: короткий отчёт по новостям радара через паспорт. Берёт криминальные новости и подозрительные по признакам (фейк, пропаганда, один источник с громким тоном). Отбор по словам и правилам паспорта, без ИИ; не приговор и не оценка вины.
 export const CRIME_RE = /\b(police|arrest(ed|s)?|murder(ed|s)?|court|trial|fraud|jailed|sentenced|prosecut\w*|charged|convict\w*|suspect(s|ed)?|theft|robbery|smuggl\w*|indict\w*)\b/i;
-export function crimeReport(items, now = Date.now(), max = 2) {
+export const FAKE_RE = /\b(fake|hoax|disinformation|misinformation|propaganda|deepfake|scam|forged|fabricated|rumou?rs?|unverified|debunk\w*|false claim\w*)\b/i;
+export function crimeReport(items, now = Date.now(), max = 3) {
   const seen = new Set(), out = [];
-  const list = (items || []).filter((it) => it && it.headline && CRIME_RE.test(String(it.headline)))
+  const list = (items || []).filter((it) => it && it.headline)
     .sort((a, b) => (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0));
   for (const it of list) {
-    const key = String(it.headline).toLowerCase().slice(0, 60); if (seen.has(key)) continue; seen.add(key);
+    const key = String(it.headline).toLowerCase().slice(0, 60); if (seen.has(key)) continue;
     const p = newsPassport({ headline: it.headline, published_at: it.published_at, confirm: it.confirm, state_media: it.state_media || null }, now);
-    out.push({ headline: String(it.headline).slice(0, 200), source: it.source || null, published_at: it.published_at || null, age_hours: p.age_hours ?? null,
-      outlets: Number.isFinite(+it.confirm) && it.confirm !== null ? +it.confirm : null, status: p.status, checkability: p.checkability, confidence: p.confidence, fired: p.fired || [],
-      say: (p.say || []).slice(0, 2).map((x) => String(x).slice(0, 220)), not_a_verdict: "The passport checks words and numbers. It does not say who is guilty: a charge, an arrest or a suspicion is not a verdict." });
+    const fired = p.fired || [], h = String(it.headline);
+    const reason = CRIME_RE.test(h) ? "crime" : FAKE_RE.test(h) ? "fake_or_propaganda" : (fired.includes("state_media") ? "state_media" : (fired.includes("few_voices") && fired.includes("tone") ? "single_source_loud_tone" : null));
+    if (!reason) continue; seen.add(key);
+    out.push({ headline: h.slice(0, 200), source: it.source || null, published_at: it.published_at || null, age_hours: p.age_hours ?? null, reason,
+      outlets: Number.isFinite(+it.confirm) && it.confirm !== null ? +it.confirm : null, status: p.status, checkability: p.checkability, confidence: p.confidence, fired,
+      say: (p.say || []).slice(0, 2).map((x) => String(x).slice(0, 220)), not_a_verdict: "The passport checks words and numbers. It does not say who is guilty or who is lying: a charge, a suspicion or a sign of a fake is not a verdict." });
     if (out.length >= max) break;
   }
   return out;
@@ -107,7 +111,7 @@ export function briefMarkdown(b) {
   const L = [`# Orb Studio ${b.topic} brief`, "", `> ${stampLine(b, "en")}`, ""];
   if (b.topic === "news") {
     for (const t of b.items || []) L.push(`- ${t.headline} (${t.source || "?"}; outlets: ${t.outlets ?? "?"}; ${t.status}; checkability: ${t.checkability}; confidence: ${t.confidence}${t.fired && t.fired.length ? "; flags: " + t.fired.join(", ") : ""})${t.say ? "\n  say: " + t.say : ""}`);
-    if ((b.crime_report || []).length) { L.push("", "Crime desk (word-rule passport, not a verdict):"); for (const c of b.crime_report) L.push(`- ${c.headline} (${c.source || "?"}; outlets: ${c.outlets ?? "?"}; ${c.status}; confidence: ${c.confidence})${c.say && c.say[0] ? "\n  say: " + c.say[0] : ""}`); }
+    if ((b.crime_report || []).length) { L.push("", "Crime desk (word-rule passport, not a verdict):"); for (const c of b.crime_report) L.push(`- ${c.headline} (${c.source || "?"}; why picked: ${c.reason || "crime"}; outlets: ${c.outlets ?? "?"}; ${c.status}; confidence: ${c.confidence})${c.say && c.say[0] ? "\n  say: " + c.say[0] : ""}`); }
   } else {
     L.push(`- regime: ${b.regime}; new trade ${b.new_trade_size_pct_of_plan}% of plan; max risk ${b.max_risk_per_trade_pct_of_capital}% of capital; order: ${b.order}`);
     if (b.ecb_eurusd) L.push(`- ECB EUR/USD: ${b.ecb_eurusd.value} (${b.ecb_eurusd.date})`);

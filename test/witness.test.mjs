@@ -112,11 +112,23 @@ test("crime desk picks crime headlines, passes them through the passport, and is
     { headline: "Police arrest two suspects after theft", source: "y", confirm: 2, published_at: "2026-11-27T09:00:00Z" },
     { headline: "Third court story", source: "z", confirm: 1, published_at: "2026-11-27T08:00:00Z" },
   ];
-  const r = crimeReport(items, now);
+  const r = crimeReport(items, now, 2);
   assert.equal(r.length, 2);
   assert.ok(r.every((x) => /guilty|verdict/.test(x.not_a_verdict) && Array.isArray(x.say) && typeof x.confidence === "string"));
   assert.ok(!r.some((x) => /Stocks/.test(x.headline)));
   const b = newsBrief(items, [], now);
-  assert.equal(b.crime_report.length, 2);
+  assert.equal(b.crime_report.length, 3);
+  assert.ok(b.crime_report.every((x) => x.reason === "crime"));
   assert.ok(briefMarkdown({ topic: "news", items: b.items, crime_report: b.crime_report, witness_url: "u", rule: "r", passport_id: "orb-wit-x", slot: "2026-11-27T10:00:00Z" }).includes("Crime desk"));
+});
+
+test("investigator also picks fake or propaganda headlines and says why", () => {
+  const now = Date.parse("2026-11-27T12:00:00Z");
+  const items = [
+    { headline: "Officials call viral video a deepfake", source: "a", confirm: 1, published_at: "2026-11-27T11:00:00Z" },
+    { headline: "Stocks rise on earnings", source: "x", confirm: 3, published_at: "2026-11-27T11:30:00Z" },
+  ];
+  const r = crimeReport(items, now);
+  assert.equal(r.length, 1);
+  assert.equal(r[0].reason, "fake_or_propaganda");
 });
