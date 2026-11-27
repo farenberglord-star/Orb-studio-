@@ -180,6 +180,36 @@ export function routeSummary(roads, wanted) {
 const TOPIC = /apothek|pharmac|аптек|krankenhaus|klinik|hospital|больниц|клиник|arzt|doctor|врач|bank|geldautomat|atm|банк|банкомат/i;
 const ROAD = /tankstelle|gas station|fuel|азс|заправк|parkhaus|parking|парковк|ladestation|charging|зарядн/i;
 
+// Восход и закат по формуле NOAA (без внешних источников). Точность ≈ 1–2 мин; гражданские сумерки — солнце на 6° ниже горизонта.
+export function sunInfo(lat, lon, date, now = Date.now(), tz = "Europe/Berlin") {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 66 || !/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return null;
+  const rad = Math.PI / 180, d0 = Date.parse(date + "T00:00:00Z");
+  if (!Number.isFinite(d0)) return null;
+  const jd = d0 / 86400000 + 2440587.5 + 0.5, n = jd - 2451545.0;
+  const L = (280.46 + 0.9856474 * n) % 360, g = ((357.528 + 0.9856003 * n) % 360) * rad;
+  const lam = (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * rad;
+  const eps = 23.439 * rad, dec = Math.asin(Math.sin(eps) * Math.sin(lam));
+  const eqt = 4 * (L - (Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam)) / rad + 360) % 360 + (Math.abs(L - ((Math.atan2(Math.cos(eps) * Math.sin(lam), Math.cos(lam)) / rad + 360) % 360)) > 180 ? 360 : 0)); // минуты
+  const at = (alt) => {
+    const c = (Math.sin(alt * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec));
+    if (c < -1 || c > 1) return null;
+    const ha = Math.acos(c) / rad; // градусы
+    const noon = 720 - 4 * lon - eqt; // минуты UTC
+    return [d0 + (noon - 4 * ha) * 60000, d0 + (noon + 4 * ha) * 60000];
+  };
+  const sun = at(-0.833), civ = at(-6);
+  if (!sun) return { polar: true, note: "Sun does not rise or set on this date at this latitude." };
+  const fmt = (t) => new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(t));
+  const out = { sunrise: fmt(sun[0]), sunset: fmt(sun[1]), civil_dusk_ends: civ ? fmt(civ[1]) : null, daylight_hours: Math.round((sun[1] - sun[0]) / 360000) / 10, time_zone: tz, method: "NOAA solar formula, about ±2 minutes; hills and buildings are not considered", note: null };
+  const today = new Date(now + 3600e3).toISOString().slice(0, 10) === date;
+  if (today) {
+    const m = Math.round((sun[1] - now) / 60000);
+    out.minutes_to_sunset = m;
+    out.note = m > 0 ? `Sunset in ${m} min.` : `Sunset was ${-m} min ago.`;
+  }
+  return out;
+}
+
 export function checkPlace(input, now = Date.now(), extra = {}) {
   const a = input && typeof input === "object" ? input : {};
   const name = String(a.name || "").replace(/[\u0000-\u001f​-‏‪-‮⁦-⁩]/g, "").trim().slice(0, PLACE_MAX_NAME);
@@ -210,6 +240,8 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   if (nearby && nearby.weather && nearby.weather.max_level >= 3) say(`Official weather warning level ${nearby.weather.max_level} (${nearby.weather.max_level_label}) is active in ${hol.state}: check it before an outdoor place or a drive.`, `В земле ${hol.state} действует официальное предупреждение погоды уровня ${nearby.weather.max_level} (${nearby.weather.max_level_label}): проверьте перед местом на открытом воздухе или поездкой.`, `In ${hol.state} gilt eine amtliche Wetterwarnung der Stufe ${nearby.weather.max_level} (${nearby.weather.max_level_label}): vor Orten im Freien oder einer Fahrt prüfen.`, null, "side_effects");
   const route = extra.roads !== undefined ? routeSummary(extra.roads, normRoads(a.roads)) : (normRoads(a.roads).length ? routeSummary(null, normRoads(a.roads)) : null);
   if (route && route.per_road) for (const r of route.per_road) if (r.closures > 0 || r.max_delay_min >= 10) say(`${r.road}: ${r.closures} closure(s), longest jam ${r.max_delay_min} min on the stretch our sensor watches.`, `${r.road}: закрытий ${r.closures}, самая долгая пробка ${r.max_delay_min} мин на участке, который видит наш датчик.`, `${r.road}: ${r.closures} Sperrung(en), längster Stau ${r.max_delay_min} Min auf dem Abschnitt, den unser Sensor sieht.`, null, "side_effects");
+  const sun = hasPos ? sunInfo(lat, lon, date, now) : null;
+  if (sun && sun.minutes_to_sunset != null && sun.minutes_to_sunset < 90) say(sun.minutes_to_sunset > 0 ? `Sunset is in ${sun.minutes_to_sunset} min (${sun.sunset}): for an outdoor place or a hike, plan the way back before dark.` : `The sun has set (${sun.sunset}): an outdoor place may be dark, check lighting and opening hours.`, sun.minutes_to_sunset > 0 ? `Закат через ${sun.minutes_to_sunset} мин (${sun.sunset}): для места на улице или прогулки рассчитайте возвращение до темноты.` : `Солнце уже село (${sun.sunset}): место на улице может быть тёмным, проверьте освещение и часы работы.`, sun.minutes_to_sunset > 0 ? `Sonnenuntergang in ${sun.minutes_to_sunset} Min. (${sun.sunset}): bei Orten im Freien den Rückweg vor Einbruch der Dunkelheit planen.` : `Die Sonne ist untergegangen (${sun.sunset}): Orte im Freien können dunkel sein, Beleuchtung und Öffnungszeiten prüfen.`, null, "side_effects");
   const missing = [];
   if (!a.hours) missing.push("hours per source for the date (source, open, close)");
   if (!ages) missing.push("review dates (up to 60 ISO dates)");
@@ -225,7 +257,7 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   pointers.push({ tool: "check_claim", why: "for any description claim like 'only', 'oldest', 'best' on the place's page", url: "https://orbstudio.org/api/v1/check-claim?claim=" });
   const report = {
     tool: "check_place", place: name, date, holiday: hol, rating, review_ages: ages, hours,
-    position_given: hasPos, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
+    position_given: hasPos, sun, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
     report_back: flags.some((f) => f.zone === "stale_data" && /disagree|расходятся|widersprechen/.test(f.en + f.ru + f.de)) ? { en: "If you are sure which version is right, the person can report the mistake in the map app (menu: report a map error or edit the place). We never edit anything.", ru: "Если вы точно знаете, какая версия верна, человек может сообщить об ошибке в самом приложении карт (меню: ошибка на карте или изменить место). Мы сами ничего не правим.", de: "Wenn du sicher weißt, welche Version stimmt, kann die Person den Fehler in der Karten-App melden (Menü: Kartenfehler melden oder Ort bearbeiten). Wir ändern selbst nichts." } : null,
     limits: "Works only on the fields the agent passes; Orb Studio does not read, copy or store Google Maps content. One-off holidays (a single year, a single state) are not modelled. Thresholds for rating size are working assumptions. Not a recommendation to go or not to go.",
     rule: "Show what was checked and what was not; hours and reviews come from the agent, holidays from fixed rules. Orb Studio is not affiliated with Google; Google Maps is a trademark of Google LLC.",

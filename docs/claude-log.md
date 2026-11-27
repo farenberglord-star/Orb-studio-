@@ -498,3 +498,4 @@
 - `placeAnswer` (worker.js) подмешивает DWD по земле, LHP по Германии и ленту автобанов (если агент назвал `roads`); всё с таймаутом 7 с, при сбое «unavailable». Новые поля запроса: `description` (≤1500), `roads` (≤6).
 - В отчёте: `nearby`, `route`, `description_claims`; флаги: уровень DWD ≥3, закрытие/пробка ≥10 мин на названном автобане, абсолютные слова без видимого источника (зона rumour_vs_fact).
 - Мостики: place_with_nearby_warnings (idea→sensor), route_roads_now, description_absolute_claims. Тесты: 660 pass / 0 fail. Данные места не пишутся и не логируются (тест на worker.js).
+- 27.11.2026 (пункт 2): `sunInfo` в place.js — восход, закат, конец гражданских сумерек по формуле NOAA, без внешних данных; флаг «закат менее чем через 90 минут / уже село» при lat+lon. Мостик outdoor_place_before_dark (sensor, number).

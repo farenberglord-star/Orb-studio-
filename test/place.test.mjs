@@ -80,7 +80,7 @@ test("check_place: MCP tool, REST route and announcements are registered", () =>
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"check_place"/);
 });
 
-import { descriptionClaims, nearbySummary, normRoads, routeSummary } from "../src/place.js";
+import { descriptionClaims, nearbySummary, normRoads, routeSummary, sunInfo } from "../src/place.js";
 
 test("check_place: absolute claims in a description are listed, a year counts as a visible basis, never a verdict", () => {
   const c = descriptionClaims("Das einzige Schloss Hamburgs. Gebaut 1250. Der beste Park der Stadt, laut Reiseführer.");
@@ -117,4 +117,14 @@ test("check_place: wiring merges live data in the worker and writes no place dat
   assert.ok(!/DB\.|prepare\(|console\.|sharedPut|logHit|bumpHit/.test(fn), "placeAnswer must not store or log place data");
   const src = readFileSync(new URL("../src/place.js", import.meta.url), "utf8");
   assert.ok(!/fetch\(|DB\.|console\./.test(src), "place.js stays pure");
+});
+
+test("check_place: sunset is computed from position and date, flagged within 90 minutes, silent without position", () => {
+  const s = sunInfo(53.4859, 10.2347, "2026-11-27", Date.parse("2026-11-27T14:00:00Z"));
+  assert.match(s.sunrise, /^0[78]:/); assert.match(s.sunset, /^16:/); assert.ok(s.minutes_to_sunset > 0 && s.minutes_to_sunset < 90);
+  const j = sunInfo(53.4859, 10.2347, "2026-06-21"); assert.match(j.sunset, /^21:/); assert.ok(j.daylight_hours > 16);
+  assert.equal(sunInfo(NaN, 10, "2026-06-21"), null); assert.equal(sunInfo(70, 10, "2026-06-21"), null);
+  const r = checkPlace({ name: "Park", lat: 53.4859, lon: 10.2347, date: "2026-11-27" }, Date.parse("2026-11-27T14:00:00Z"));
+  assert.ok(r.flags.some((f) => /Sunset is in/.test(f.en))); assert.match(r.sun.method, /NOAA/);
+  assert.equal(checkPlace({ name: "Park" }, NOW).sun, null);
 });
