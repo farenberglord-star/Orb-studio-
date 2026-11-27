@@ -15792,8 +15792,9 @@ export const CRYSTALS = [
 },
 "rule": "A text that does not fit the usual word-length curve of its feed may come from another hand; flag it to check, not as a verdict.",
 "needs": {
-"code": "needs_idea",
-"note": "per outlet: chi-square distance between the word-length distribution (1-15 letters) of its headlines in the last 24 h and its own 7-day baseline; radar feeds every 30 minutes; flag where one batch departs from the outlet usual hand; sensor candidate, needs the owner yes; joins the wrong-hand bridge"
+"code": "covered",
+"note": "the Mendenhall sensor (/api/v1/mendenhall) shows, per outlet, the word-length distance of its last 24 h of headlines from its own other days and the ratio to its usual spread",
+"covered_by": "mendenhall"
 }
 },
 {

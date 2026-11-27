@@ -136,6 +136,7 @@
     "scheler": "https://orbstudio.org/api/v1/scheler",
     "dwd_warnings": "https://orbstudio.org/api/v1/weather/warnings-de",
     "shewhart": "https://orbstudio.org/api/v1/shewhart",
+    "mendenhall": "https://orbstudio.org/api/v1/mendenhall",
     "dice": "https://orbstudio.org/api/v1/dice",
     "krippendorff": "https://orbstudio.org/api/v1/krippendorff",
     "nyquist": "https://orbstudio.org/api/v1/nyquist",

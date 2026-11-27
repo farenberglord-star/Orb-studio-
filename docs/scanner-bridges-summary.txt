@@ -260,6 +260,6 @@ fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
 detail_not_verdict | idea | undeutsch_u,searle,walton_d
 old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc,lempel_a
 numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k,wilcoxon_f
-wrong_hand_in_feed | ready | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c
+wrong_hand_in_feed | sensor | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c
 borrowed_text_in_feed | idea | dice_lr,mendenhall_tc,guiraud_p
 copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t,markov_a,mansfield_e

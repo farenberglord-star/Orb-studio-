@@ -300,6 +300,8 @@ PORTAL_RENDER = """if(!d||!Array.isArray(d.sensors))return;for(const s of d.sens
 AGENT_ONLY = [
   ("shewhart", "/api/v1/shewhart", "Walter A. Shewhart (1891–1967)", "https://en.wikipedia.org/wiki/Walter_A._Shewhart",
    {"ru": "Тихо ли сдвинулся уровень радара, шире ли стал разброс, держится ли подъём по инерции?", "de": "Hat sich das Niveau eines Radars still verschoben, ist die Streuung breiter geworden, hält sich ein Anstieg aus Trägheit?", "en": "Has a radar's level quietly shifted, has its spread widened, is a rise held by inertia?"}),
+  ("mendenhall", "/api/v1/mendenhall", "Thomas Corwin Mendenhall (1841–1924)", "https://en.wikipedia.org/wiki/Thomas_Corwin_Mendenhall",
+   {"ru": "Читается ли сегодняшняя пачка заголовков издания, по длинам слов, как его же обычные?", "de": "Liest sich der heutige Schwung an Überschriften eines Mediums, nach Wortlängen, wie seine eigenen üblichen?", "en": "Does an outlet's headline batch today read, by word lengths, like its own usual ones?"}),
   ("dice", "/api/v1/dice", "Lee R. Dice (1887–1977)", "https://en.wikipedia.org/wiki/Lee_R._Dice",
    {"ru": "Не похожи ли заголовки разных изданий об одном событии на один и тот же текст, пересказанный в нескольких местах?", "de": "Sehen Überschriften verschiedener Medien zum selben Ereignis wie ein und derselbe Text aus?", "en": "Do headlines of different outlets on one event look like one text copied between them?"}),
   ("krippendorff", "/api/v1/krippendorff", "Klaus Krippendorff (1932–2022)", "https://en.wikipedia.org/wiki/Klaus_Krippendorff",
