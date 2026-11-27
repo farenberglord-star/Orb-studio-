@@ -56,7 +56,7 @@ purpose_vs_use | idea | beer_s,meadows_d,campbell_dt
 moving_bar | idea | cyert_rm,campbell_dt,march_jg
 same_story_pull | waiting | hotelling_h,schmidt_j,asch,janis_il,haken_h,sherif_m,leibenstein_h,anderson_b
 enough_variety | sensor | ashby_wr,beer_s,luhmann
-cheap_to_say_dear_to_check | idea | baumol_w,coase,mooers,downs_a,williamson_oe,richardson_gb,wieser_f
+cheap_to_say_dear_to_check | idea | baumol_w,coase,mooers,downs_a,williamson_oe,richardson_gb,wieser_f,barzel_y
 metric_resolution | idea | morgenstern_o,rivlin_a,solow_r,bateson_g
 learning_loops | waiting | argyris_c,schon_d,march_jg,weick_ke
 how_many_numbers | waiting | mach_e,das_jp,spearman
@@ -204,7 +204,7 @@ quiet_shift | sensor | shewhart,nelson_ls,hinkley_dv
 outlets_agree_on_act | sensor | krippendorff_k,cohen,searle,reiss
 saturated_not_settled | sensor | kendall_dg,schmidt_j,searle
 sticky_series | sensor | durbin_j,watson_gs,shewhart
-story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j
+story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j,utsu_t
 stale_apparent_vs_real | waiting | line_mb,brookes_bc,price_dds,garfield,labov_w
 independent_or_same_root | idea | griffith_b,wilson_p,kasperson
 claimed_vs_found_complete | idea | maron_me,hansen_mh,horvitz_dg,cochran_wg,lancaster_fw,cleverdon,saracevic
@@ -218,7 +218,7 @@ round_numbers_are_estimates | sensor | whipple_gc,newcomb,benford_f
 bias_or_noise | waiting | youden_wj,baird,lyberg
 new_info_not_paraphrase | idea | schreider_ya,flesch_r,searle
 many_checks_some_lucky | idea | spjotvoll_e,schweder,shewhart,cohen
-when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard,weitzman_ml
+when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard,weitzman_ml,schlaifer_r
 shelf_price_lags_market | idea | rotemberg_jj,hicks_jr,braudel_f
 map_card_hours_disagree | sensor | rotemberg_jj,garcia_molina_h
 rating_needs_its_count | sensor | cohen,shewhart
@@ -258,7 +258,8 @@ outlet_topic_gap | idea | duncan_od,noelle_neumann_e,gini_c,krippendorff_k,ruge_
 innovators_or_followers | idea | bass_f,naroll_r,kasperson,locard_e
 fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
 detail_not_verdict | idea | undeutsch_u,searle,walton_d
-old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc
-numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k
-wrong_hand_in_feed | ready | mendenhall_tc,herdan_g,ellegard_a,mosteller_f
-copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t
+old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc,lempel_a
+numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k,wilcoxon_f
+wrong_hand_in_feed | ready | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c
+borrowed_text_in_feed | idea | dice_lr,mendenhall_tc,guiraud_p
+copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t,markov_a,mansfield_e

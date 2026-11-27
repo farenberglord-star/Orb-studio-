@@ -15795,6 +15795,168 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "per outlet: chi-square distance between the word-length distribution (1-15 letters) of its headlines in the last 24 h and its own 7-day baseline; radar feeds every 30 minutes; flag where one batch departs from the outlet usual hand; sensor candidate, needs the owner yes; joins the wrong-hand bridge"
 }
+},
+{
+"id": "markov_a",
+"name": "Andrey Markov",
+"name_ru": "Андрей Марков",
+"years": "1856–1922",
+"wiki": "https://en.wikipedia.org/wiki/Andrey_Markov",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "Markov chains (from 1906; 1913 study of the text of 'Eugene Onegin'): in a chain the next state depends on the present one, and the transitions between states can be counted as a matrix.",
+"ru": "Цепи Маркова (с 1906; исследование текста «Евгения Онегина», 1913): в цепи следующее состояние зависит от нынешнего, а переходы между состояниями считаются матрицей.",
+"de": "Markow-Ketten (ab 1906; Untersuchung des Textes „Eugen Onegin“, 1913): In einer Kette hängt der nächste Zustand vom jetzigen ab, die Übergänge lassen sich als Matrix zählen."
+},
+"rule": "To see who follows whom, count how often outlet B comes right after outlet A across many events, not only who was first once.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: the order of outlets by first-seen time; the matrix of how often outlet B follows outlet A directly over 30 days; needs the history to grow; joins the copy-wave bridge; not computed yet"
+}
+},
+{
+"id": "mansfield_e",
+"name": "Edwin Mansfield",
+"name_ru": "Эдвин Мэнсфилд",
+"years": "1930–1997",
+"wiki": "https://en.wikipedia.org/wiki/Edwin_Mansfield",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Technical Change and the Rate of Imitation' (Econometrica, 1961): imitation speeds up as more have already adopted, and slows when adopting is costly.",
+"ru": "«Technical Change and the Rate of Imitation» (Econometrica, 1961): подражание ускоряется, чем больше уже переняли, и замедляется, когда перенимать дорого.",
+"de": "„Technical Change and the Rate of Imitation“ (Econometrica, 1961): Nachahmung beschleunigt sich, je mehr schon übernommen haben, und bremst, wenn die Übernahme teuer ist."
+},
+"rule": "A story picked up by almost every outlet within hours is spreading by imitation: do not count each pick-up as new evidence.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group of 4+ outlets: share of outlets that had picked up the story against hours since the first outlet; fit of a logistic curve; joins the copy-wave bridge; not computed yet"
+}
+},
+{
+"id": "guiraud_p",
+"name": "Pierre Guiraud",
+"name_ru": "Пьер Гиро",
+"years": "1912–1983",
+"wiki": "https://fr.wikipedia.org/wiki/Pierre_Guiraud",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Les caractères statistiques du vocabulaire' (1954): richness of vocabulary is the number of different words divided by the square root of the text length, so texts of different length can be compared.",
+"ru": "«Les caractères statistiques du vocabulaire» (1954): богатство словаря — число разных слов, делённое на корень из длины текста, так что тексты разной длины можно сравнивать.",
+"de": "„Les caractères statistiques du vocabulaire“ (1954): Wortschatzreichtum ist die Zahl verschiedener Wörter geteilt durch die Wurzel der Textlänge, so sind Texte verschiedener Länge vergleichbar."
+},
+"rule": "Compare vocabulary richness with V over the square root of length, not V over length, so a short batch can be set beside a long one.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet: R = distinct words / square root of all words in the headlines of the last 24 h, against the same outlet 7-day baseline; radar feeds every 30 minutes; joins the wrong-hand bridge next to the Mendenhall distance"
+}
+},
+{
+"id": "muller_c",
+"name": "Charles Muller",
+"name_ru": "Шарль Мюллер",
+"years": "1909–2015",
+"wiki": "https://de.wikipedia.org/wiki/Charles_Muller_(Romanist)",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'Initiation à la statistique linguistique' (1968): to compare the vocabulary of texts of different length, reduce them to one length with the expected number of distinct words (binomial reduction).",
+"ru": "«Initiation à la statistique linguistique» (1968): чтобы сравнить словарь текстов разной длины, приведи их к одной длине через ожидаемое число разных слов (биномиальная редукция).",
+"de": "„Initiation à la statistique linguistique“ (1968): Um den Wortschatz verschieden langer Texte zu vergleichen, bringe sie über die erwartete Zahl verschiedener Wörter auf eine Länge (binomiale Reduktion)."
+},
+"rule": "Before you say one batch uses fewer different words than another, bring both to the same length.",
+"needs": {
+"code": "needs_idea",
+"note": "per outlet: expected number of distinct words at a fixed length (binomial reduction) of the last 24 h against its 7-day baseline; needs the stored word counts; joins the wrong-hand bridge; not computed yet"
+}
+},
+{
+"id": "wilcoxon_f",
+"name": "Frank Wilcoxon",
+"name_ru": "Фрэнк Уилкоксон",
+"years": "1892–1965",
+"wiki": "https://en.wikipedia.org/wiki/Frank_Wilcoxon",
+"zone": "one_model",
+"idea": {
+"en": "'Individual Comparisons by Ranking Methods' (Biometrics Bulletin, 1945): to compare two groups of numbers, rank all values together and add up the ranks of one group; no assumption about the shape of the numbers.",
+"ru": "«Individual Comparisons by Ranking Methods» (Biometrics Bulletin, 1945): чтобы сравнить две группы чисел, ранжируй все значения вместе и сложи ранги одной группы; о форме распределения ничего не предполагается.",
+"de": "„Individual Comparisons by Ranking Methods“ (Biometrics Bulletin, 1945): Um zwei Zahlengruppen zu vergleichen, ordne alle Werte gemeinsam und addiere die Ränge einer Gruppe; über die Form der Verteilung wird nichts angenommen."
+},
+"rule": "When primary sources and re-reporters give different numbers, compare their ranks and say so; with few numbers say that the sample is small.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group with numbers of the same unit from a primary source and from re-reporting outlets: rank-sum statistic; needs groups of 3+ numbers per side; joins the numbers-differ bridge; not computed yet"
+}
+},
+{
+"id": "lempel_a",
+"name": "Abraham Lempel",
+"name_ru": "Авраам Лемпель",
+"years": "1936–2023",
+"wiki": "https://en.wikipedia.org/wiki/Abraham_Lempel",
+"zone": "stale_data",
+"idea": {
+"en": "With Jacob Ziv, 'A Universal Algorithm for Sequential Data Compression' (1977): a text can be written as pointers to what came before plus a few new pieces; the number of new pieces shows how much of it is new.",
+"ru": "С Яковом Зивом, «A Universal Algorithm for Sequential Data Compression» (1977): текст можно записать ссылками на то, что было раньше, и немногими новыми кусками; число новых кусков показывает, сколько в нём нового.",
+"de": "Mit Jacob Ziv, „A Universal Algorithm for Sequential Data Compression“ (1977): Ein Text lässt sich als Verweise auf Früheres plus wenige neue Stücke schreiben; die Zahl neuer Stücke zeigt, wie viel neu ist."
+},
+"rule": "A headline built almost only from phrases the archive already holds adds little that is new: say it repeats earlier reports.",
+"needs": {
+"code": "needs_idea",
+"note": "per new headline: share of its phrases (word 3-grams) already in the radar archive of the last 30 days; radar feeds every 30 minutes; joins the old-story-retold bridge; not computed yet"
+}
+},
+{
+"id": "utsu_t",
+"name": "Tokuji Utsu",
+"name_ru": "Токудзи Уцу",
+"years": "1928–2004",
+"wiki": "https://en.wikipedia.org/wiki/Tokuji_Utsu",
+"zone": "stale_data",
+"idea": {
+"en": "'A Statistical Study on the Occurrence of Aftershocks' (1961): the rate of aftershocks falls as K/(t+c)^p after the main shock; the exponent p differs between sequences and is estimated from the data.",
+"ru": "«A Statistical Study on the Occurrence of Aftershocks» (1961): частота афтершоков падает как K/(t+c)^p после главного толчка; показатель p различается между сериями и оценивается по данным.",
+"de": "„A Statistical Study on the Occurrence of Aftershocks“ (1961): Die Rate der Nachbeben fällt nach dem Hauptbeben wie K/(t+c)^p; der Exponent p unterscheidet sich je Serie und wird aus den Daten geschätzt."
+},
+"rule": "Fit the decay of a story to its own exponent; a rise that breaks that decay without a new main event is a new cause, not an echo.",
+"needs": {
+"code": "needs_idea",
+"note": "per live story with 3+ outlets: count of new headlines per 30 minutes from the first one, fitted to K/(t+c)^p; needs 48 h of per-story counts; joins the story-spread-decay bridge, which waits for the Weibull history"
+}
+},
+{
+"id": "schlaifer_r",
+"name": "Robert Schlaifer",
+"name_ru": "Роберт Шлейфер",
+"years": "1914–1994",
+"wiki": "https://en.wikipedia.org/wiki/Robert_Schlaifer",
+"zone": "answer_cost",
+"idea": {
+"en": "'Probability and Statistics for Business Decisions' (1959; with H. Raiffa, 'Applied Statistical Decision Theory', 1961): ask for more data only when the expected drop in loss from the answer is larger than the cost of asking.",
+"ru": "«Probability and Statistics for Business Decisions» (1959; с Г. Райфой, «Applied Statistical Decision Theory», 1961): запрашивай больше данных, только когда ожидаемое снижение потерь от ответа больше цены вопроса.",
+"de": "„Probability and Statistics for Business Decisions“ (1959; mit H. Raiffa, „Applied Statistical Decision Theory“, 1961): Frage nur dann nach mehr Daten, wenn der erwartete Verlustrückgang größer ist als die Kosten der Frage."
+},
+"rule": "Ask one more source only if what it could change in your answer is worth more than the time it costs.",
+"needs": {
+"code": "needs_idea",
+"note": "per story: the change of the answer after each added source against the time that source costs; needs the check order stored; joins the when-to-stop-reading bridge; not computed yet"
+}
+},
+{
+"id": "barzel_y",
+"name": "Yoram Barzel",
+"name_ru": "Йорам Барцель",
+"years": "1931–2022",
+"wiki": "https://en.wikipedia.org/wiki/Yoram_Barzel",
+"zone": "answer_cost",
+"idea": {
+"en": "'Measurement Cost and the Organization of Markets' (Journal of Law and Economics, 1982): where a quality is costly to measure, people rely on guarantees, brands and reputation instead of measuring it themselves.",
+"ru": "«Measurement Cost and the Organization of Markets» (Journal of Law and Economics, 1982): где качество дорого измерять, люди полагаются на гарантии, марки и репутацию вместо собственного измерения.",
+"de": "„Measurement Cost and the Organization of Markets“ (Journal of Law and Economics, 1982): Wo eine Qualität teuer zu messen ist, verlässt man sich auf Garantien, Marken und Ruf statt selbst zu messen."
+},
+"rule": "A source you cannot check cheaply is weighed by its track record; say that you rely on its record, not on a check.",
+"needs": {
+"code": "needs_idea",
+"note": "per source: share of its claims later confirmed (track record) against how cheaply its claims can be checked; needs the follow-up history to grow; joins the cheap-to-say bridge; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

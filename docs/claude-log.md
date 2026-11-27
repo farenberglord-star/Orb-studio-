@@ -582,3 +582,6 @@
 
 ## Партия 66 Лианы (27.11.2026)
 - Карточки: hagerstrand_t, kruskal_w, jaynes_et, weitzman_ml, mendenhall_tc. Мостики: numbers_differ (idea), wrong_hand_in_feed (ready: расстояние распределения длин слов заголовков до собственной нормы издания; ждёт «да» владельца), copy_wave и when_to_stop_reading расширены. Не взяты: Vickery, Thurstone, Tikhonov, Hirshleifer (причины в liana-lessons).
+
+## Партия 67 Лианы (27.11.2026)
+- Карточки: markov_a, mansfield_e, guiraud_p, muller_c, wilcoxon_f, lempel_a, utsu_t, schlaifer_r, barzel_y. Новый мостик borrowed_text_in_feed (Дайс + Менденхолл + Гиро: заголовок не в духе издания и похож на другое). Расширены copy_wave, wrong_hand_in_feed, numbers_differ, old_story_retold, story_spread_decay, when_to_stop_reading, cheap_to_say_dear_to_check. Не взяты Fréchet, Hausdorff, Anderson, Telser (docs/memory-waiting.md).
