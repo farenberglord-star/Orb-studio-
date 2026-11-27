@@ -269,10 +269,26 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-top:10px;font-size:13px">Grundsätze des Gerichts: Niemand wird gesperrt, es gibt keine Strafen, keine KI wird aufgerufen – das Urteil kommt aus einer Tabelle. IP-Adressen werden nicht gespeichert, nur ein 8-stelliger Fingerabdruck, der sich täglich ändert. Normales Crawlen (Googlebot, ClaudeBot, GPTBot, Grok und alle Gäste) wird nicht verhandelt.</p>
   </section>
 
-  <section class="panel" id="crimedesk">
-    <h2>KRIMINALBERICHT · NACHRICHTENPASS</h2>
-    <p class="lead" style="font-size:13px;margin-bottom:8px">Der Ermittler wählt aus den Live-Radaren selbst Meldungen zu Polizei, Festnahmen, Gerichten und Betrug und prüft sie mit dem Nachrichtenpass. Der Pass prüft Wörter und Zahlen, nicht Schuld: Anklage, Festnahme oder Verdacht ist kein Urteil.</p>
-    <div id="crimeOut"><p class="empty">…</p></div>
+<style>
+#crimedesk{position:relative;overflow:hidden;padding:8px 10px;font:12px/1.35 ui-monospace,Menlo,Consolas,monospace;border-color:#1b2a55}
+#crimedesk:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,240,255,.035) 0 1px,transparent 1px 3px);pointer-events:none}
+#crimedesk .sweep{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#00f0ff,transparent);opacity:.7;animation:cdsw 4s linear infinite;pointer-events:none}
+@keyframes cdsw{from{top:-2px}to{top:100%}}@keyframes cdbl{50%{opacity:.25}}
+#crimedesk h2{margin:0 0 6px;font-size:12px;letter-spacing:.14em;color:#00f0ff;text-shadow:0 0 6px #00f0ff,0 0 14px rgba(0,240,255,.5);display:flex;justify-content:space-between;align-items:center}
+#crimedesk .live{font-size:10px;color:#ff2bd6;text-shadow:0 0 6px #ff2bd6;animation:cdbl 1.2s steps(2) infinite}
+#crimedesk .row{border-left:2px solid #00f0ff;padding:3px 0 3px 8px;margin:5px 0;box-shadow:-6px 0 10px -8px #00f0ff}
+#crimedesk .t{color:#fff;text-shadow:0 0 5px rgba(0,240,255,.6);min-height:16px}
+#crimedesk .row:not(.done) .t:after{content:"▌";color:#00f0ff;animation:cdbl .8s steps(2) infinite}
+#crimedesk .m{color:#6f86c9;font-size:11px}
+#crimedesk .tag{display:inline-block;padding:0 5px;border:1px solid #00f0ff;color:#00f0ff;border-radius:3px;font-size:10px;margin-right:4px;text-shadow:0 0 5px #00f0ff}
+#crimedesk .tag.w{border-color:#fff200;color:#fff200;text-shadow:0 0 5px #fff200}
+#crimedesk .nv{color:#6f86c9;font-size:10px;margin-top:6px;border-top:1px dashed #1b2a55;padding-top:4px}
+@media (prefers-reduced-motion:reduce){#crimedesk .sweep,#crimedesk .live{animation:none}}
+</style>
+  <section class="panel" id="crimedesk"><div class="sweep"></div>
+    <h2><span>▍KRIMINALBERICHT</span><span class="live">● LIVE <span id="cdn">30</span>s</span></h2>
+    <div id="crimeOut"></div>
+    <div class="nv">der Pass prüft Wörter und Zahlen, nicht Schuld · Anklage ≠ Urteil</div>
   </section>
 
   <section class="panel" id="investigator">
@@ -375,12 +391,16 @@ const DEMO=L!=='ru'?[]:[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
-fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{
-  const el=document.getElementById('crimeOut');if(!el)return;
-  const c=(b&&b.crime_report)||[];
-  if(!c.length){el.innerHTML='<p class="empty">Im Moment gibt es in den Radaren keine frischen Kriminalmeldungen.</p>';return;}
-  el.innerHTML=c.map(x=>`<div class="inv-find"><b>${esc(x.headline)}</b><br><span style="color:var(--dim);font-size:12px">${esc(x.source)} · Alter ${esc(x.age_hours)} Std. · Medien ${esc(x.outlets)} · Status ${esc(x.status)} · Prüfbarkeit ${esc(x.checkability)}</span>`+(x.say||[]).map(t=>`<br>· ${esc(t)}`).join('')+`<br><i style="color:var(--dim);font-size:12px">${esc(x.not_a_verdict)}</i></div>`).join('');
-}).catch(()=>{const el=document.getElementById('crimeOut');if(el)el.innerHTML='';});
+(function(){
+  const LV={"thin": "SCHWACH", "medium": "MITTEL", "good": "GUT"},el=document.getElementById('crimeOut');if(!el)return;let n=30;
+  function show(c){
+    if(!c.length){el.innerHTML='<div class="m">gerade keine frischen Kriminalmeldungen</div>';return;}
+    el.innerHTML=c.slice(0,3).map(x=>'<div class="row"><div class="t"></div><div class="m">'+esc(x.source)+' · '+esc(x.age_hours)+' Std. · '+esc(x.outlets)+' Med. · '+esc(x.status)+'</div><div><span class="tag'+(x.checkability==='good'?'':' w')+'">PRÜFBARKEIT: '+esc(LV[x.checkability]||x.checkability)+'</span><span class="m">'+esc((x.say||[])[0]||'')+'</span></div></div>').join('');
+    [...el.querySelectorAll('.row')].forEach((r,i)=>{const t=r.querySelector('.t'),h=String(c[i].headline);let k=0;setTimeout(function f(){t.textContent=h.slice(0,++k);if(k<h.length)setTimeout(f,14);else r.classList.add('done');},i*400);});
+  }
+  function load(){fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{if(b)show(b.crime_report||[]);}).catch(()=>{});}
+  load();setInterval(()=>{n--;if(n<=0){n=30;load();}const q=document.getElementById('cdn');if(q)q.textContent=n;},1000);
+})();
 $('invGo').onclick=async()=>{
   const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">'+T.need10+'</p>';return;}
   $('invOut').innerHTML='<p class="empty">'+T.inv+'</p>';
