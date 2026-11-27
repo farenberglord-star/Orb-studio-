@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { slotStart, newsBrief, cryptoBrief, assembleBrief, stampLine, stampHtml, datasetLd, briefMarkdown, sitemapFresh, llmsFull, ID_RE } from "../src/witness.js";
+import { slotStart, newsBrief, crimeReport, cryptoBrief, assembleBrief, stampLine, stampHtml, datasetLd, briefMarkdown, sitemapFresh, llmsFull, ID_RE } from "../src/witness.js";
 
 const NOW = Date.parse("2026-11-25T08:41:00Z");
 const radars = [{ id: "geo", lvl: 40 }, { id: "crypto", lvl: 44 }];
@@ -102,4 +102,21 @@ test("news brief items carry one say line from the passport", () => {
   assert.equal(typeof b.items[0].say, "string");
   assert.ok(b.items[0].say.length > 10 && b.items[0].say.length <= 220);
   assert.ok(briefMarkdown({ topic: "news", items: b.items, witness_url: "u", rule: "r", passport_id: "orb-wit-x", slot: "2026-11-27T10:00:00Z", signed_at: "2026-11-27T10:00:00Z" }).includes("say: "));
+});
+
+test("crime desk picks crime headlines, passes them through the passport, and is not a verdict", () => {
+  const now = Date.parse("2026-11-27T12:00:00Z");
+  const items = [
+    { headline: "Ex-governor jailed for 25 years over murder", source: "bbc", confirm: 1, published_at: "2026-11-27T10:00:00Z" },
+    { headline: "Stocks rise on earnings", source: "x", confirm: 3, published_at: "2026-11-27T11:00:00Z" },
+    { headline: "Police arrest two suspects after theft", source: "y", confirm: 2, published_at: "2026-11-27T09:00:00Z" },
+    { headline: "Third court story", source: "z", confirm: 1, published_at: "2026-11-27T08:00:00Z" },
+  ];
+  const r = crimeReport(items, now);
+  assert.equal(r.length, 2);
+  assert.ok(r.every((x) => /guilty|verdict/.test(x.not_a_verdict) && Array.isArray(x.say) && typeof x.confidence === "string"));
+  assert.ok(!r.some((x) => /Stocks/.test(x.headline)));
+  const b = newsBrief(items, [], now);
+  assert.equal(b.crime_report.length, 2);
+  assert.ok(briefMarkdown({ topic: "news", items: b.items, crime_report: b.crime_report, witness_url: "u", rule: "r", passport_id: "orb-wit-x", slot: "2026-11-27T10:00:00Z" }).includes("Crime desk"));
 });
