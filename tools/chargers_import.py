@@ -68,10 +68,9 @@ def main():
         if lat is None or lon is None or not (47 < lat < 55.5 and 5.5 < lon < 15.5): bad += 1; continue
         kw = num(g(r, "kw")); art = g(r, "art").lower(); pts = num(g(r, "pts"))
         street = (g(r, "str") + " " + g(r, "nr")).strip()
-        rec = [round(lat, 4), round(lon, 4), int(kw) if kw is not None else None, 1 if "schnell" in art else 0, int(pts) if pts else 1,
-               g(r, "op")[:34], g(r, "plug")[:40], (street[:34] + ", " + g(r, "plz") + " " + g(r, "ort")[:22]).strip(", ")]
-        st = g(r, "status")
-        if st: rec.append(st[:20])
+        rec = [round(lat, 3), round(lon, 3), int(kw) if kw is not None else None, 1 if "schnell" in art else 0, int(pts) if pts else 1,
+               g(r, "op")[:26], (street[:28] + ", " + g(r, "ort")[:18]).strip(", ")]
+        if g(r, "status") and "betrieb" not in g(r, "status").lower(): continue  # только «In Betrieb»
         key = "%d_%d" % (math.floor(lat / CELL), math.floor(lon / CELL))
         cells.setdefault(key, []).append(rec); n += 1
     os.makedirs(OUT, exist_ok=True)
@@ -79,7 +78,7 @@ def main():
     for key, recs in cells.items():
         with open(os.path.join(OUT, key + ".json"), "w", encoding="utf-8") as f: json.dump(recs, f, ensure_ascii=False, separators=(",", ":"))
     meta = {"stand": stand, "source": "Bundesnetzagentur.de, Ladesäulenregister", "licence": "CC BY 4.0", "cell_deg": CELL, "count": n, "skipped_no_coords": bad,
-            "record": ["lat", "lon", "kw", "dc", "points", "operator", "plug", "address"] + (["status"] if ix["status"] is not None else []), "cells": len(cells)}
+            "record": ["lat", "lon", "kw", "dc", "points", "operator", "address"], "cells": len(cells)}
     with open(os.path.join(OUT, "meta.json"), "w", encoding="utf-8") as f: json.dump(meta, f, ensure_ascii=False)
     print("OK", meta)
 

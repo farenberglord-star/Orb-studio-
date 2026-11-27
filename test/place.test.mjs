@@ -164,3 +164,27 @@ test("air: stations and hourly index are read from UBA arrays, nearest station o
   assert.ok(r.flags.some((f) => /Air quality index/.test(f.en))); assert.equal(r.air.station, "Hamburg Hafen");
   assert.ok(!checkPlace({ name: "Stadtpark" }, NOW, { air: airSummary(n, { ...aq, index: 1 }) }).flags.some((f) => /Air quality/.test(f.en)));
 });
+
+// ---------- зарядки (реестр BNetzA) ----------
+import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_ATTRIBUTION } from "../src/chargers.js";
+import { readFileSync as _rf } from "node:fs";
+test("chargers: cells, nearest, summary", () => {
+  const keys = chargerCellKeys(53.55, 10.0);
+  assert.ok(keys.length >= 1 && keys.every((k) => /^\d+_\d+$/.test(k)));
+  const recs = [[53.5501, 10.0001, 22, 0, 2, "A", "Weg 1, Hamburg"], [53.56, 10.0, 150, 1, 4, "B", "Str 2, Hamburg"], [54.5, 10.0, 50, 1, 1, "C", "far"]];
+  const f = nearestChargers(recs, 53.55, 10.0);
+  assert.equal(f.length, 2);
+  assert.equal(f[0].operator, "A");
+  assert.equal(f[1].dc_fast, true);
+  const s = chargersSummary(f, { stand: "2026-11-12" });
+  assert.equal(s.stations_found, 2); assert.equal(s.dc_fast_among_them, 1);
+  assert.match(s.source, /Bundesnetzagentur/); assert.equal(chargersSummary(null).status, "unavailable");
+  assert.match(CHARGERS_ATTRIBUTION, /CC BY 4\.0/);
+});
+test("chargers: check_place flags empty register, no storage in worker", () => {
+  const r = checkPlace({ name: "Ladestation Testweg", lat: 53.55, lon: 10.0 }, Date.UTC(2026, 10, 27, 10), { chargers: { status: "ok", stations_found: 0, radius_km: 2, register_date: "2026-11-12" } });
+  assert.ok(r.flags.some((f) => f.zone === "stale_data" && /Bundesnetzagentur/.test(f.en)));
+  const src = _rf(new URL("../src/worker.js", import.meta.url), "utf8");
+  const body = src.slice(src.indexOf("async function chargersData"), src.indexOf("async function wikidataPlaces"));
+  assert.ok(body.length > 100 && !/console\.|\.prepare\(|sharedPut|caches\./.test(body));
+});

@@ -91,6 +91,7 @@ import { crystalsReport, crystalsRemembered, CRYSTALS } from "./crystals.js";
 import { thinkItThrough } from "./think.js";
 import { checkPlace, normState, normRoads } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
+import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
 import { frankfurtReport, frankfurtHeadline, FRANKFURT_EXPLAIN } from "./frankfurt.js";
 import { duckworthReport } from "./duckworth.js";
@@ -4287,6 +4288,11 @@ async function handleApi(url, request, env, ctx) {
     try { return json(await airData(env, la, lo), { "Cache-Control": "public, max-age=600", "Access-Control-Allow-Origin": "*" }); }
     catch (e) { return json({ status: "unavailable", source: "Umweltbundesamt", detail: String(e && e.message || e).slice(0, 400) }, { "Access-Control-Allow-Origin": "*" }, 502); }
   }
+  if (p === "/api/v1/chargers-de") { // ближайшие зарядки из реестра BNetzA; lat/lon в Германии
+    const la = Number(url.searchParams.get("lat")), lo = Number(url.searchParams.get("lon"));
+    if (!(la > 47 && la < 55.5 && lo > 5.5 && lo < 15.5)) return json({ error: "lat_lon_germany", note: "lat and lon inside Germany are required, e.g. lat=53.55&lon=10.0." }, { "Access-Control-Allow-Origin": "*" }, 400);
+    return json(await chargersData(env, la, lo), { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" });
+  }
   if (p === "/api/v1/place") { // check_place: параметры из строки запроса; hours — JSON-массив, review_dates и roads — через запятую
     let hours = null; try { const h = url.searchParams.get("hours"); if (h) hours = JSON.parse(h.slice(0, 1500)); } catch {}
     const rd = url.searchParams.get("review_dates"); const g = (k) => url.searchParams.get(k);
@@ -6476,6 +6482,14 @@ async function airData(env, lat, lon) {
   if (!aq && j2 && j2.data && Object.keys(j2.data).length) throw new Error("uba airquality shape: " + JSON.stringify(Object.values(j2.data)[0]).slice(0, 300));
   return airSummary(near, aq);
 }
+// Зарядки из реестра BNetzA: клетки лежат в public/data/chargers, читаем через ASSETS; ничего не пишем.
+async function chargersData(env, lat, lon) {
+  if (!env.ASSETS) return chargersSummary(null);
+  const get = async (name) => { const r = await env.ASSETS.fetch(new Request("https://assets.local/data/chargers/" + name + ".json")); return r.ok ? r.json() : null; };
+  const [meta, ...cells] = await Promise.all([get("meta"), ...chargerCellKeys(lat, lon).map(get)]);
+  if (!meta) return chargersSummary(null);
+  return chargersSummary(nearestChargers(cells.flat().filter(Boolean), lat, lon), meta, CHARGERS_RADIUS_KM);
+}
 // Тёзки места из Wikidata (CC0): поиск по названию + координаты P625. Идентифицируемся по правилам Wikimedia, параллельных запросов ≤2, ничего не кэшируем и не пишем.
 async function wikidataPlaces(name) {
   const H = { "User-Agent": "OrbStudio/1.0 (https://orbstudio.org/llms.txt; place-namesake check)", Accept: "application/json" };
@@ -6501,10 +6515,12 @@ async function placeAnswer(env, a) {
   const wantRoads = normRoads(input.roads).length > 0;
   const wantNames = Number.isFinite(lat) && Number.isFinite(lon) && String(input.name || "").trim().length >= 3;
   const wantAir = inDe;
-  const [dwd, flood, roads, names, air] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null, wantNames ? race(wikidataPlaces(String(input.name).trim())) : null, wantAir ? race(airData(env, lat, lon)) : null]);
+  const wantChargers = inDe && (input.chargers === true || /ladestation|ladesäule|charging|зарядн|\bev\b|tesla|tankstelle|rastst|autohof|parkplatz|parkhaus|parking|парковк|азс|заправк/i.test([input.name, input.category].filter(Boolean).join(" ")));
+  const [dwd, flood, roads, names, air, chargers] = await Promise.all([st ? race(dwdWarnData(env, st)) : null, inDe ? race(lhpData()) : null, wantRoads ? race(roadsData(env)) : null, wantNames ? race(wikidataPlaces(String(input.name).trim())) : null, wantAir ? race(airData(env, lat, lon)) : null, wantChargers ? race(chargersData(env, lat, lon)) : null]);
   const extra = {}; if (dwd) extra.dwd = dwd; if (flood) extra.flood = flood; if (wantRoads) extra.roads = roads;
   if (wantNames) extra.namesakes = names;
   if (wantAir) extra.air = air || { status: "unavailable", note: "Air index did not answer in time." };
+  if (wantChargers) extra.chargers = chargers || { status: "unavailable" };
   if (st && !dwd) extra.dwd = { status: "unavailable" };
   if (inDe && !flood) extra.flood = { status: "unavailable" };
   return checkPlace(input, Date.now(), extra);
