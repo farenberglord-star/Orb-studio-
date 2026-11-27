@@ -269,6 +269,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-top:10px;font-size:13px">Grundsätze des Gerichts: Niemand wird gesperrt, es gibt keine Strafen, keine KI wird aufgerufen – das Urteil kommt aus einer Tabelle. IP-Adressen werden nicht gespeichert, nur ein 8-stelliger Fingerabdruck, der sich täglich ändert. Normales Crawlen (Googlebot, ClaudeBot, GPTBot, Grok und alle Gäste) wird nicht verhandelt.</p>
   </section>
 
+  <section class="panel" id="crimedesk">
+    <h2>KRIMINALBERICHT · NACHRICHTENPASS</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:8px">Der Ermittler wählt aus den Live-Radaren selbst Meldungen zu Polizei, Festnahmen, Gerichten und Betrug und prüft sie mit dem Nachrichtenpass. Der Pass prüft Wörter und Zahlen, nicht Schuld: Anklage, Festnahme oder Verdacht ist kein Urteil.</p>
+    <div id="crimeOut"><p class="empty">…</p></div>
+  </section>
+
   <section class="panel" id="investigator">
     <h2>ERMITTLER · TEXTPRÜFUNG</h2>
     <p class="lead" style="font-size:13px;margin-bottom:8px">Füge Text von einer Seite, aus einer E-Mail oder einem Dokument ein. Der Ermittler sucht nach Prompt-Injections (Rollenwechsel, gefälschtes Chat-Markup, versteckter Text, base64, unsichtbare Zeichen) und infodemischem Druck („an alle weiterleiten“). Ohne KI, der Text wird nicht gespeichert – nur ein Hash. Eine eindeutige Injection kommt ins Register des Gerichts.</p>
@@ -369,6 +375,12 @@ const DEMO=L!=='ru'?[]:[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
+fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{
+  const el=document.getElementById('crimeOut');if(!el)return;
+  const c=(b&&b.crime_report)||[];
+  if(!c.length){el.innerHTML='<p class="empty">Im Moment gibt es in den Radaren keine frischen Kriminalmeldungen.</p>';return;}
+  el.innerHTML=c.map(x=>`<div class="inv-find"><b>${esc(x.headline)}</b><br><span style="color:var(--dim);font-size:12px">${esc(x.source)} · Alter ${esc(x.age_hours)} Std. · Medien ${esc(x.outlets)} · Status ${esc(x.status)} · Prüfbarkeit ${esc(x.checkability)}</span>`+(x.say||[]).map(t=>`<br>· ${esc(t)}`).join('')+`<br><i style="color:var(--dim);font-size:12px">${esc(x.not_a_verdict)}</i></div>`).join('');
+}).catch(()=>{const el=document.getElementById('crimeOut');if(el)el.innerHTML='';});
 $('invGo').onclick=async()=>{
   const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">'+T.need10+'</p>';return;}
   $('invOut').innerHTML='<p class="empty">'+T.inv+'</p>';

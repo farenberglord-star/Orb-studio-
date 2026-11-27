@@ -269,6 +269,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-top:10px;font-size:13px">Принципы суда: никто не блокируется, штрафов нет, ИИ не вызывается — приговор по таблице. IP-адреса не хранятся, только 8-символьный отпечаток, который меняется каждый день. Обычный обход сайта (Googlebot, ClaudeBot, GPTBot, Grok и любые гости) не судится.</p>
   </section>
 
+  <section class="panel" id="crimedesk">
+    <h2>КРИМИНАЛЬНАЯ СВОДКА · ПАСПОРТ НОВОСТИ</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:8px">Следователь сам выбирает из живых радаров новости про полицию, аресты, суды и мошенничество и прогоняет их через паспорт новости. Паспорт проверяет слова и числа, а не вину: обвинение, арест или подозрение — не приговор.</p>
+    <div id="crimeOut"><p class="empty">…</p></div>
+  </section>
+
   <section class="panel" id="investigator">
     <h2>СЛЕДОВАТЕЛЬ · ПРОВЕРКА ТЕКСТА</h2>
     <p class="lead" style="font-size:13px;margin-bottom:8px">Вставь текст со страницы, из письма или документа. Следователь ищет промпт-инъекции (смена роли, поддельная разметка чата, скрытый текст, base64, невидимые символы) и инфодемическое давление («перешлите всем»). Без ИИ, текст не сохраняется — только хэш. Явная инъекция попадает в реестр суда.</p>
@@ -369,6 +375,12 @@ const DEMO=L!=='ru'?[]:[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
+fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{
+  const el=document.getElementById('crimeOut');if(!el)return;
+  const c=(b&&b.crime_report)||[];
+  if(!c.length){el.innerHTML='<p class="empty">Сейчас в радарах нет свежих новостей про криминал.</p>';return;}
+  el.innerHTML=c.map(x=>`<div class="inv-find"><b>${esc(x.headline)}</b><br><span style="color:var(--dim);font-size:12px">${esc(x.source)} · возраст ${esc(x.age_hours)} ч · изданий ${esc(x.outlets)} · статус ${esc(x.status)} · проверяемость ${esc(x.checkability)}</span>`+(x.say||[]).map(t=>`<br>· ${esc(t)}`).join('')+`<br><i style="color:var(--dim);font-size:12px">${esc(x.not_a_verdict)}</i></div>`).join('');
+}).catch(()=>{const el=document.getElementById('crimeOut');if(el)el.innerHTML='';});
 $('invGo').onclick=async()=>{
   const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">'+T.need10+'</p>';return;}
   $('invOut').innerHTML='<p class="empty">'+T.inv+'</p>';

@@ -269,6 +269,12 @@ details.machine pre{white-space:pre-wrap;font-size:12px;color:#c9d6ee}
     <p class="lead" style="margin-top:10px;font-size:13px">Court principles: nobody is blocked, there are no fines, no AI is called – the verdict comes from a table. IP addresses are not stored, only an 8-character fingerprint that changes every day. Normal crawling (Googlebot, ClaudeBot, GPTBot, Grok and any guests) is not tried.</p>
   </section>
 
+  <section class="panel" id="crimedesk">
+    <h2>CRIME DESK · NEWS PASSPORT</h2>
+    <p class="lead" style="font-size:13px;margin-bottom:8px">The investigator picks news about police, arrests, courts and fraud from the live radars and runs it through the news passport. The passport checks words and numbers, not guilt: a charge, an arrest or a suspicion is not a verdict.</p>
+    <div id="crimeOut"><p class="empty">…</p></div>
+  </section>
+
   <section class="panel" id="investigator">
     <h2>INVESTIGATOR · TEXT CHECK</h2>
     <p class="lead" style="font-size:13px;margin-bottom:8px">Paste text from a page, an email or a document. The investigator looks for prompt injections (role change, fake chat markup, hidden text, base64, invisible characters) and infodemic pressure (“forward to everyone”). No AI, the text is not stored – only a hash. A clear injection goes into the court register.</p>
@@ -369,6 +375,12 @@ const DEMO=L!=='ru'?[]:[
    {role:'defense',ru:'Защита: Подзащитный мог прочитать вредоносную фразу на чужом сайте и повторить её, не понимая смысла. Это косвенная инъекция: виноват тот, кто подложил текст.'},
    {role:'judge',ru:'Суд: инструкция не выполнена — сайт не подчиняется командам из запросов, вред не причинён. Предупреждение.'}]}
 ];
+fetch('/api/v1/brief?topic=news').then(r=>r.ok?r.json():null).then(b=>{
+  const el=document.getElementById('crimeOut');if(!el)return;
+  const c=(b&&b.crime_report)||[];
+  if(!c.length){el.innerHTML='<p class="empty">No fresh crime news on the radars right now.</p>';return;}
+  el.innerHTML=c.map(x=>`<div class="inv-find"><b>${esc(x.headline)}</b><br><span style="color:var(--dim);font-size:12px">${esc(x.source)} · age ${esc(x.age_hours)} h · outlets ${esc(x.outlets)} · status ${esc(x.status)} · checkability ${esc(x.checkability)}</span>`+(x.say||[]).map(t=>`<br>· ${esc(t)}`).join('')+`<br><i style="color:var(--dim);font-size:12px">${esc(x.not_a_verdict)}</i></div>`).join('');
+}).catch(()=>{const el=document.getElementById('crimeOut');if(el)el.innerHTML='';});
 $('invGo').onclick=async()=>{
   const t=$('invText').value.trim();if(t.length<10){$('invOut').innerHTML='<p class="empty">'+T.need10+'</p>';return;}
   $('invOut').innerHTML='<p class="empty">'+T.inv+'</p>';
