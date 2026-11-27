@@ -252,7 +252,7 @@ elite_lens | idea | ruge_mh,galtung,bradford_sc
 same_words_many_copies | idea | sichel_h,mosteller_f,wallace_dl,zipf,yule_gu,altmann_g,tuldava_j,herdan_g
 poll_fast_enough | sensor | nyquist_h,shannon,mikrin
 calque_not_report | idea | weinreich_u,reiss,nida
-copy_trace | ready | locard_e,bertillon_a,mosteller_f,naroll_r,maas_p,ellegard_a,svartvik_j,dice_lr
+copy_trace | sensor | locard_e,bertillon_a,mosteller_f,naroll_r,maas_p,ellegard_a,svartvik_j,dice_lr
 expert_questions | idea | walton_d,searle,shibutani_t,downs_a
 outlet_topic_gap | idea | duncan_od,noelle_neumann_e,gini_c,krippendorff_k,ruge_mh,shaw_dl
 innovators_or_followers | idea | bass_f,naroll_r,kasperson,locard_e

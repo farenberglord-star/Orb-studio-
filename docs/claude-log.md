@@ -578,3 +578,4 @@
 
 ## Партия 65 Лианы (27.11.2026)
 - Карточки: halbwachs_m, wagenaar_wa, maas_p, ellegard_a, svartvik_j, sutherland_eh, shaw_dl. Мостики: copy_trace → ready (кандидат в датчик, ждёт «да» владельца), outlet_topic_gap, old_story_retold, fraud_three_conditions расширены. Gross записан в docs/memory-waiting.md.
+- 27.11.2026, по «да» владельца: датчик «Дайс» (src/dice.js, /api/v1/dice, get_dice) — сходство заголовков разных изданий об одном событии (Dice по основам слов, редкие общие основы, кто раньше). Мостик copy_trace → sensor, карточка dice_lr → covered. Порог 0,75 — рабочее допущение. Внесён в NEW_TOOLS, llms.txt, agent.json, MCP_INSTRUCTIONS, honour_pages (AGENT_ONLY). Упоминание в эфире — только с отдельным «да».

@@ -13885,8 +13885,9 @@ export const CRYSTALS = [
 },
 "rule": "Say which similarity measure you used; short texts score high on overlap measures.",
 "needs": {
-"code": "needs_idea",
-"note": "same pairs as jaccard_p with the Dice weighting (2 x shared / sum); useful only if it ranks pairs differently from Jaccard"
+"code": "covered",
+"note": "the Dice sensor (/api/v1/dice) scores headline pairs of different outlets on one event by Dice similarity and rare shared words",
+"covered_by": "dice"
 }
 },
 {
