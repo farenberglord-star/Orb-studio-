@@ -212,3 +212,16 @@ test("roads inspection: collecting, then ratio >= 1 for uneven jams", () => {
   assert.ok(r.ratio > 1, "ratio " + r.ratio);
   assert.ok(r.mean_seen_at_random_min > r.mean_duration_min);
 });
+
+test("grok fixes: all absolute words, sunset at given time, charger dedupe, parking pointer, live note", () => {
+  const c = descriptionClaims("Das ist der einzige und älteste Ort, der niemals schließt und immer beste Qualität bietet.");
+  assert.ok(c.absolute_claims[0].words.length >= 3, JSON.stringify(c.absolute_claims[0].words));
+  const sun = sunInfo(53.55, 10.0, "2026-12-15", Date.UTC(2026, 10, 27, 10), "Europe/Berlin", "15:30");
+  assert.equal(sun.at_time, "15:30");
+  assert.ok(sun.minutes_to_sunset > 20 && sun.minutes_to_sunset < 60, "m=" + sun.minutes_to_sunset);
+  const f = nearestChargers([[53.5, 10, 22, 0, 1, "A", "S 30, Hamburg"], [53.5, 10, 22, 0, 1, "A", "S 30, Hamburg"]], 53.5, 10);
+  assert.equal(f.length, 1); assert.equal(f[0].points, 2);
+  const r = checkPlace({ name: "Parkhaus Mitte", lat: 53.55, lon: 10.0, date: "2026-12-25" }, Date.UTC(2026, 10, 27, 10), { air: { status: "ok" } });
+  assert.ok(!r.pointers.some((x) => x.tool === "get_parking_de"));
+  assert.ok(r.live_data_note);
+});

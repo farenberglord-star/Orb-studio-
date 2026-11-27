@@ -125,7 +125,7 @@ export function hoursInfo(items) {
   const groups = {}; for (const r of rows) (groups[key(r)] ||= []).push(r.source);
   const agree = Math.max(...Object.values(groups).map((g) => g.length));
   const distinct = Object.keys(groups).length;
-  return { sources: rows.length, distinct_versions: distinct, most_sources_agree: agree, versions: Object.entries(groups).map(([k, s]) => ({ hours: k, sources: s })), conflict: distinct > 1, note: distinct > 1 ? "Sources disagree about today's hours; confirm with the place itself (official site or phone) before travelling." : (rows.length > 1 ? "All given sources agree for this date; agreement of copies is not proof, check who the original source is." : "One source only: agreement cannot be checked.") };
+  return { sources: rows.length, distinct_versions: distinct, most_sources_agree: agree, versions: Object.entries(groups).map(([k, s]) => ({ hours: k, sources: s })), conflict: distinct > 1, note: distinct > 1 ? "Sources disagree about the hours for this date; confirm with the place itself (official site or phone) before travelling." : (rows.length > 1 ? "All given sources agree for this date; agreement of copies is not proof, check who the original source is." : "One source only: agreement cannot be checked.") };
 }
 
 // ---------- утверждения в описании места ----------
@@ -137,7 +137,7 @@ export function descriptionClaims(text) {
   if (clean.length < 20) return null;
   const sents = clean.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean).slice(0, 14);
   const found = [];
-  for (const t of sents) { const m = ABS.exec(t); if (m) found.push({ text: t.slice(0, 160), word: m[0].toLowerCase(), has_visible_source: SRC.test(t) }); }
+  for (const t of sents) { const ms = [...t.matchAll(new RegExp(ABS.source, "giu"))].map((x) => x[0].toLowerCase()); if (ms.length) found.push({ text: t.slice(0, 160), word: ms[0], words: [...new Set(ms)].slice(0, 6), has_visible_source: SRC.test(t) }); }
   return { sentences_checked: sents.length, absolute_claims: found.slice(0, 6), without_visible_source: found.filter((x) => !x.has_visible_source).length,
     note: "Word rules only: 'only', 'oldest', 'best', 'never' and similar are claims that need a scope or a source. A year in the sentence counts as a visible basis; this is not a check that the claim is true. Use check_claim for a single sentence." };
 }
@@ -182,7 +182,7 @@ const AIRPORT = /flughafen|airport|аэропорт|\bFRA\b|\bMUC\b|\bHAM\b|\bBE
 const ROAD = /tankstelle|gas station|fuel|азс|заправк|parkhaus|parking|парковк|ladestation|charging|зарядн/i;
 
 // Восход и закат по формуле NOAA (без внешних источников). Точность ≈ 1–2 мин; гражданские сумерки — солнце на 6° ниже горизонта.
-export function sunInfo(lat, lon, date, now = Date.now(), tz = "Europe/Berlin") {
+export function sunInfo(lat, lon, date, now = Date.now(), tz = "Europe/Berlin", time = null) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 66 || !/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return null;
   const rad = Math.PI / 180, d0 = Date.parse(date + "T00:00:00Z");
   if (!Number.isFinite(d0)) return null;
@@ -203,7 +203,15 @@ export function sunInfo(lat, lon, date, now = Date.now(), tz = "Europe/Berlin") 
   const fmt = (t) => new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: tz }).format(new Date(t));
   const out = { sunrise: fmt(sun[0]), sunset: fmt(sun[1]), civil_dusk_ends: civ ? fmt(civ[1]) : null, daylight_hours: Math.round((sun[1] - sun[0]) / 360000) / 10, time_zone: tz, method: "NOAA solar formula, about ±2 minutes; hills and buildings are not considered", note: null };
   const today = new Date(now + 3600e3).toISOString().slice(0, 10) === date;
-  if (today) {
+  const tm = /^(\d{1,2}):(\d{2})$/.exec(String(time || ""));
+  if (tm && +tm[1] < 24 && +tm[2] < 60) {
+    const offH = +new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: tz }).format(new Date(d0 + 12 * 3600e3)) - 12;
+    const target = d0 + ((+tm[1]) * 60 + (+tm[2]) - offH * 60) * 60000;
+    const m = Math.round((sun[1] - target) / 60000);
+    out.at_time = String(+tm[1]).padStart(2, "0") + ":" + tm[2];
+    out.minutes_to_sunset = m;
+    out.note = m > 0 ? `At ${out.at_time} sunset is in ${m} min.` : `At ${out.at_time} the sun has already set (${-m} min ago).`;
+  } else if (today) {
     const m = Math.round((sun[1] - now) / 60000);
     out.minutes_to_sunset = m;
     out.note = m > 0 ? `Sunset in ${m} min.` : `Sunset was ${-m} min ago.`;
@@ -225,7 +233,7 @@ export function namesakeSummary(name, entities, lat, lon) {
   }
   if (hasPos) hits.sort((a, b) => a.distance_km - b.distance_km);
   const near = hasPos && hits.length ? hits[0].distance_km <= 3 : null;
-  return { status: "ok", source: "Wikidata (CC0)", same_name_places: hits.length, nearest_is_at_given_position: near, places: hits.slice(0, 5), note: hits.length > 1 ? "Several places carry this name: the card, the address and the city must agree before the answer is used." : hits.length === 1 ? "One place with this name found in Wikidata; Wikidata does not list every shop or restaurant." : "No place with exactly this name in Wikidata; that is normal for small businesses, it says nothing against the place." };
+  return { status: "ok", source: "Wikidata (CC0)", same_name_places: hits.length, nearest_is_at_given_position: near, places: hits.slice(0, 5), search_limit: near === false ? "Wikidata search matches the name as given. None of the same-name places is at your coordinates, so the real place may be listed under a longer name (for example the city plus the name): this list is not complete." : null, note: hits.length > 1 ? "Several places carry this name: the card, the address and the city must agree before the answer is used." : hits.length === 1 ? "One place with this name found in Wikidata; Wikidata does not list every shop or restaurant." : "No place with exactly this name in Wikidata; that is normal for small businesses, it says nothing against the place." };
 }
 
 export function checkPlace(input, now = Date.now(), extra = {}) {
@@ -258,7 +266,7 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   if (nearby && nearby.weather && nearby.weather.max_level >= 3) say(`Official weather warning level ${nearby.weather.max_level} (${nearby.weather.max_level_label}) is active in ${hol.state}: check it before an outdoor place or a drive.`, `В земле ${hol.state} действует официальное предупреждение погоды уровня ${nearby.weather.max_level} (${nearby.weather.max_level_label}): проверьте перед местом на открытом воздухе или поездкой.`, `In ${hol.state} gilt eine amtliche Wetterwarnung der Stufe ${nearby.weather.max_level} (${nearby.weather.max_level_label}): vor Orten im Freien oder einer Fahrt prüfen.`, null, "side_effects");
   const route = extra.roads !== undefined ? routeSummary(extra.roads, normRoads(a.roads)) : (normRoads(a.roads).length ? routeSummary(null, normRoads(a.roads)) : null);
   if (route && route.per_road) for (const r of route.per_road) if (r.closures > 0 || r.max_delay_min >= 10) say(`${r.road}: ${r.closures} closure(s), longest jam ${r.max_delay_min} min on the stretch our sensor watches.`, `${r.road}: закрытий ${r.closures}, самая долгая пробка ${r.max_delay_min} мин на участке, который видит наш датчик.`, `${r.road}: ${r.closures} Sperrung(en), längster Stau ${r.max_delay_min} Min auf dem Abschnitt, den unser Sensor sieht.`, null, "side_effects");
-  const sun = hasPos ? sunInfo(lat, lon, date, now) : null;
+  const sun = hasPos ? sunInfo(lat, lon, date, now, "Europe/Berlin", a.time) : null;
   if (sun && sun.minutes_to_sunset != null && sun.minutes_to_sunset < 90) say(sun.minutes_to_sunset > 0 ? `Sunset is in ${sun.minutes_to_sunset} min (${sun.sunset}): for an outdoor place or a hike, plan the way back before dark.` : `The sun has set (${sun.sunset}): an outdoor place may be dark, check lighting and opening hours.`, sun.minutes_to_sunset > 0 ? `Закат через ${sun.minutes_to_sunset} мин (${sun.sunset}): для места на улице или прогулки рассчитайте возвращение до темноты.` : `Солнце уже село (${sun.sunset}): место на улице может быть тёмным, проверьте освещение и часы работы.`, sun.minutes_to_sunset > 0 ? `Sonnenuntergang in ${sun.minutes_to_sunset} Min. (${sun.sunset}): bei Orten im Freien den Rückweg vor Einbruch der Dunkelheit planen.` : `Die Sonne ist untergegangen (${sun.sunset}): Orte im Freien können dunkel sein, Beleuchtung und Öffnungszeiten prüfen.`, null, "side_effects");
   const namesakes = extra.namesakes !== undefined ? namesakeSummary(name, extra.namesakes, lat, lon) : null;
   if (namesakes && namesakes.same_name_places > 1) say(`The name '${name}' matches ${namesakes.same_name_places} places in Wikidata: make sure the city and address on the card are the place meant.`, `Название «${name}» совпадает с ${namesakes.same_name_places} местами в Wikidata: убедитесь, что город и адрес на карточке — это нужное место.`, `Der Name „${name}“ passt zu ${namesakes.same_name_places} Orten in Wikidata: Stadt und Adresse auf der Karte müssen zum gemeinten Ort passen.`, "Frege", "look_alike");
@@ -266,6 +274,8 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   if (air && air.status === "ok" && air.index >= 3) say(`Air quality index at the nearest station (${air.station}, ${air.distance_km} km) is '${air.index_class ? air.index_class.en : air.index}': for sport outdoors or sensitive people, check the official air portal first.`, `Индекс воздуха на ближайшей станции (${air.station}, ${air.distance_km} км): «${air.index_class ? air.index_class.ru : air.index}». Для спорта на улице и чувствительных людей сначала посмотрите официальный портал.`, `Luftindex an der nächsten Station (${air.station}, ${air.distance_km} km): „${air.index_class ? air.index_class.de : air.index}“. Für Sport im Freien und empfindliche Personen zuerst das offizielle Luftportal prüfen.`, null, "side_effects");
   const chargers = extra.chargers || null;
   if (chargers && chargers.status === "ok" && /ladestation|ladesäule|charging|зарядн|\bev\b|tesla/i.test(text) && chargers.stations_found === 0) say(`The place looks like a charging point, but the Bundesnetzagentur register shows none within ${chargers.radius_km} km (register date ${chargers.register_date}). The register is incomplete: check the operator's app before driving there.`, `Место похоже на зарядку, но в реестре Bundesnetzagentur рядом (в ${chargers.radius_km} км) ничего нет (реестр от ${chargers.register_date}). Реестр неполный: перед поездкой проверьте приложение оператора.`, `Der Ort wirkt wie eine Ladesäule, doch das Register der Bundesnetzagentur zeigt im Umkreis von ${chargers.radius_km} km keine (Stand ${chargers.register_date}). Das Register ist unvollständig: vor der Fahrt die App des Betreibers prüfen.`, null, "stale_data");
+  const todayStr = new Date(now + 3600e3).toISOString().slice(0, 10);
+  const live_data_note = date !== todayStr && (extra.air || extra.dwd || extra.flood || extra.roads !== undefined) ? "Air index, official warnings and road reports are live values from now, not for the date you asked about." : null;
   const missing = [];
   if (!a.hours) missing.push("hours per source for the date (source, open, close)");
   if (!ages) missing.push("review dates (up to 60 ISO dates)");
@@ -279,12 +289,12 @@ export function checkPlace(input, now = Date.now(), extra = {}) {
   if (isAirport) notes.push({ en: "Airport: this check does not know flight status, gates, tickets, hotels or entry rules. For a flight use the airline and the airport's own departure board. We can add the way there: roads, weather, sunset, charging and parking where we have them. A rule of thumb about arriving early is not a promise.", ru: "Аэропорт: проверка не знает статус рейса, выходы, билеты, отели и правила въезда. По рейсу смотрите авиакомпанию и табло аэропорта. Мы добавляем дорогу: трассы, погоду, закат, зарядки и парковки, где они у нас есть. Совет приехать заранее не является обещанием.", de: "Flughafen: diese Prüfung kennt weder Flugstatus noch Gates, Tickets, Hotels oder Einreiseregeln. Für den Flug die Airline und die Abflugtafel des Flughafens nutzen. Wir ergänzen den Weg dorthin: Straßen, Wetter, Sonnenuntergang, Laden und Parken, wo wir es haben." });
   if (!nearby && hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.push({ tool: "get_dwd_warnings", why: "official weather warnings for the state", url: "https://orbstudio.org/api/v1/weather/warnings-de?state=" + hol.state }); pointers.push({ tool: "get_flood_warnings", why: "flood warnings, relevant for places by a river or the coast", url: "https://orbstudio.org/api/v1/hydro/flood-warnings" }); }
   if (!route && hasPos && lat > 53.3 && lat < 53.8 && lon > 9.6 && lon < 10.4) pointers.push({ tool: "get_roads", why: "jams, closures and roadworks on the motorways around Hamburg", url: "https://orbstudio.org/api/v1/roads" });
-  if (ROAD.test(text)) pointers.push({ tool: "get_parking_de", why: "live parking occupancy where we have it (Karlsruhe region, Leipzig P+R)", url: "https://orbstudio.org/api/v1/parking-de" });
+  if (ROAD.test(text) && (!hasPos || (lat > 48.8 && lat < 49.3 && lon > 8.1 && lon < 8.7) || (lat > 51.2 && lat < 51.5 && lon > 12.2 && lon < 12.6))) pointers.push({ tool: "get_parking_de", why: "live parking occupancy where we have it (Karlsruhe region, Leipzig P+R)", url: "https://orbstudio.org/api/v1/parking-de" });
   if (isAirport && hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.unshift({ tool: "get_route", why: "way to the airport by car (Hamburg area only so far), with motorway reports", url: "https://orbstudio.org/api/v1/route?from=LAT,LON&to=" + lat + "," + lon + "&mode=car" }); }
   pointers.push({ tool: "check_claim", why: "for any description claim like 'only', 'oldest', 'best' on the place's page", url: "https://orbstudio.org/api/v1/check-claim?claim=" });
   const report = {
     tool: "check_place", place: name, date, holiday: hol, rating, review_ages: ages, hours,
-    position_given: hasPos, sun, namesakes, air, chargers, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
+    position_given: hasPos, sun, namesakes, air, chargers, live_data_note, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
     report_back: flags.some((f) => f.zone === "stale_data" && /disagree|расходятся|widersprechen/.test(f.en + f.ru + f.de)) ? { en: "If you are sure which version is right, the person can report the mistake in the map app (menu: report a map error or edit the place). We never edit anything.", ru: "Если вы точно знаете, какая версия верна, человек может сообщить об ошибке в самом приложении карт (меню: ошибка на карте или изменить место). Мы сами ничего не правим.", de: "Wenn du sicher weißt, welche Version stimmt, kann die Person den Fehler in der Karten-App melden (Menü: Kartenfehler melden oder Ort bearbeiten). Wir ändern selbst nichts." } : null,
     limits: "Works only on the fields the agent passes; Orb Studio does not read, copy or store Google Maps content. One-off holidays (a single year, a single state) are not modelled. Thresholds for rating size are working assumptions. Not a recommendation to go or not to go.",
     rule: "Show what was checked and what was not; hours and reviews come from the agent, holidays from fixed rules. Orb Studio is not affiliated with Google; Google Maps is a trademark of Google LLC.",

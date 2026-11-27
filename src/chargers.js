@@ -21,7 +21,9 @@ export function nearestChargers(records, lat, lon, r = CHARGERS_RADIUS_KM, limit
     const d = km(lat, lon, x[0], x[1]);
     if (d <= r) out.push({ distance_m: Math.round(d * 1000), kw: x[2], dc_fast: x[3] === 1, points: x[4], operator: x[5], address: x[6] });
   }
-  return out.sort((p, q) => p.distance_m - q.distance_m).slice(0, limit);
+  const merged = new Map(); // одна и та же площадка может стоять в реестре несколько раз: склеиваем по адресу, оператору и мощности
+  for (const x of out) { const k = [x.operator, x.address, x.kw].join("|"), e = merged.get(k); if (e) e.points += x.points || 0; else merged.set(k, { ...x }); }
+  return [...merged.values()].sort((p, q) => p.distance_m - q.distance_m).slice(0, limit);
 }
 export function chargersSummary(found, meta, radius = CHARGERS_RADIUS_KM) {
   if (!found) return { status: "unavailable", source: CHARGERS_ATTRIBUTION };
