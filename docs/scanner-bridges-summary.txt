@@ -1,0 +1,250 @@
+# Мостики Orb Studio на 27.11.2026 (id | зона | статус | название)
+amplification | side_effects | sensor | Усиление при пересказе
+first_digit | measurement_error | sensor | Закон первой цифры
+heavy_tails | measurement_error | sensor | Тяжёлые хвосты
+cost_of_error | measurement_error | sensor | Цена ошибки
+not_significant | answer_cost | sensor | Незначимо ≠ нет эффекта
+own_confidence | own_limits | sensor | Честна ли наша уверенность
+radar_noise | measurement_error | sensor | Шум радара
+familiar_true | rumour_vs_fact | line | Привычное кажется правдой
+smooth_not_understanding | own_limits | line | Гладкость ≠ понимание
+false_premise | rumour_vs_fact | line | Ложная посылка
+quote_context | look_alike | line | Цитата вне контекста
+found_document | rumour_vs_fact | line | Подделку ловят словами
+extraordinary | rumour_vs_fact | line | Необычное требует большего
+metaphor | look_alike | line | Метафора ≠ факт
+who_else_pays | side_effects | line | Кто ещё платит
+rumour_risk | rumour_vs_fact | line | Слух = важность × неясность
+first_source | rumour_vs_fact | line | Первоисточник, а не число пересказов
+rule_conflict | own_limits | line | Конфликт правил: побеждает осторожное
+knowledge_dispersed | own_limits | line | Знание рассеяно: говори «неизвестно»
+several_hypotheses | one_model | line | Несколько гипотез
+honest_answer_pays | answer_cost | line | Честный ответ выгоден
+witness_question | rumour_vs_fact | line | Свидетель и вопрос
+instrument_limit | measurement_error | covered | Предел прибора
+random_is_a_model | one_model | covered | «Наугад» — тоже модель
+empty_cell | own_limits | covered | Пустая клетка
+difference_without_difference | look_alike | covered | Разница без разницы
+scale_decides | measurement_error | covered | Шкала решает арифметику
+net_decides_catch | measurement_error | covered | Сеть решает улов
+noise_or_shift | measurement_error | covered | Шум или сдвиг
+robust_conclusion | one_model | covered | Устойчивость вывода
+rare_in_clusters | measurement_error | covered | Редкое кучками
+few_data_wide_band | measurement_error | covered | Мало данных — шире границы
+model_not_world | one_model | covered | Модель ≠ мир
+other_things_equal | one_model | covered | При прочих равных
+index_weights | measurement_error | covered | Веса индекса
+prestige_not_quality | look_alike | covered | Престиж ≠ качество
+unanimity | rumour_vs_fact | covered | Единогласие ≠ доказательство
+formal_limit | own_limits | covered | Граница формализации
+calm_breeds_risk | side_effects | covered | Стабильность растит риск
+message_functions | rumour_vs_fact | covered | Три функции сообщения
+test_before_data | measurement_error | covered | Тест до данных
+not_confirmed | rumour_vs_fact | covered | Не подтверждено ≠ опровергнуто
+verb_aspect | rumour_vs_fact | covered | Вид глагола
+index_not_living | measurement_error | covered | Индекс ≠ стоимость жизни
+who_leads_whom | one_model | waiting | Кто кого ведёт
+forecast_horizon | one_model | waiting | Горизонт прогноза
+spill_over | side_effects | waiting | Перенос между радарами
+radar_moves_market | side_effects | waiting | Радар меняет рынок
+revisions | stale_data | waiting | Правки чисел
+tone | rumour_vs_fact | line | Тон в трёх измерениях
+namesakes | look_alike | sensor | Тёзки в новостях
+tree_or_wave | rumour_vs_fact | sensor | Дерево или волна
+log_step | measurement_error | sensor | Шаг на логарифмической шкале — это кратность
+extra_pass | answer_cost | covered | Цена лишнего прохода
+purpose_vs_use | side_effects | idea | Инструмент — это то, что он делает
+moving_bar | own_limits | idea | Планка, которая движется за результатами
+same_story_pull | look_alike | waiting | Издания тянутся к одной истории
+enough_variety | own_limits | sensor | Достаточно видов ответа
+cheap_to_say_dear_to_check | answer_cost | idea | Говорить дёшево, проверять дорого
+metric_resolution | measurement_error | idea | Что умеет видеть показатель
+learning_loops | own_limits | waiting | Контуры обучения: чинить правило, а не только поступок
+how_many_numbers | answer_cost | waiting | Сколько чисел на самом деле нужно
+spiral_or_bounce | side_effects | waiting | Сдвиг подпитывает себя или отскакивает
+fast_ripple_slow_tide | stale_data | covered | Быстрая рябь или медленный прилив
+wicked_steps | side_effects | idea | Нет правила остановки: малые шаги со следами
+sum_of_reasonable_choices | side_effects | idea | Никто не хотел такого исхода
+survivors_look_wise | look_alike | idea | Выжившие выглядят мудрыми
+rule_vs_behaviour | stale_data | idea | Правило — ещё не поведение
+copy_of_copy | own_limits | idea | Копии копий
+real_alternative | one_model | idea | Сравнивай с возможным
+price_next_to_cost | measurement_error | idea | Движение цены рядом с причиной
+order_before_cause | look_alike | idea | Порядок прежде причины
+growth_outruns_control | side_effects | waiting | Рост обгоняет управление
+sure_thing_weight | own_limits | idea | Гарантия весит слишком много
+view_from_inside | own_limits | idea | Первое сообщение — взгляд изнутри
+smooth_drift_sudden_jump | look_alike | idea | Внезапный скачок, медленный дрейф до него
+word_gets_stretched | look_alike | idea | Слово растянуто на слишком много случаев
+conflict_after_quiet | side_effects | idea | Тишина, потом громче; внешний враг сплачивает
+old_reading_lingers | stale_data | idea | Старое прочтение переживает свои доказательства
+meaning_in_the_reply | rumour_vs_fact | idea | Ответ определяет поступок
+believed_so_it_moves | side_effects | idea | Поверили — и это двигает
+more_rules_new_gaps | side_effects | idea | Больше правил — новые пробелы
+more_flow_less_response | answer_cost | sensor | Больше потока — слабее отклик
+measured_but_unreported | own_limits | sensor | Измерено, но не сообщено
+copy_has_no_time | stale_data | idea | У копии нет времени и места
+said_then_did_otherwise | own_limits | covered | Сказали одно, сделали другое
+one_index_hides_places | side_effects | idea | Один индекс прячет места
+setting_shapes_the_act | own_limits | idea | Ситуация задаёт поступок
+independent_voices_average_out | answer_cost | idea | Усредняются только независимые голоса
+reply_takes_time | answer_cost | idea | Ответ требует времени
+ratchet_up_slow_down | stale_data | sensor | Вверх быстро, вниз медленно
+small_steps_large_sum | side_effects | sensor | Мелкие шаги, большая сумма
+present_tense_past_event | stale_data | waiting | Настоящее время о прошедшем событии
+core_and_penumbra | own_limits | idea | Ядро и полутень
+same_words_other_thing | look_alike | idea | Те же слова, другое дело
+same_message_read_differently | look_alike | idea | Одно сообщение, разные прочтения
+same_story_measures | look_alike | idea | Насколько похожи две новости
+same_form_three_layers | look_alike | idea | Одна форма, три слоя
+word_has_birth_date | stale_data | source | У слова есть дата рождения
+next_headline_yield | answer_cost | idea | Что добавит следующий заголовок
+shock_settles | own_limits | waiting | Затухает ли толчок
+load_makes_waiting | answer_cost | waiting | У полной загрузки ожидание взлетает
+model_vs_world | own_limits | idea | Модель против того, что она замещает
+source_change_moves_index | own_limits | idea | Новый источник двигает число
+who_knows_this_topic | own_limits | waiting | Кто знает именно эту тему
+lottery_of_confirmed | own_limits | idea | Каждое вероятно, все вместе нет
+first_look_is_obstacle | own_limits | idea | Первый взгляд — препятствие
+exit_or_voice | own_limits | idea | Выход или голос: молчание — не согласие
+check_the_die | measurement_error | idea | Проверь кость
+reference_class | one_model | idea | Референтный класс
+own_yardstick | look_alike | idea | Своя мерка
+halo | look_alike | idea | Ореол
+fact_or_value | rumour_vs_fact | idea | Факт или оценка
+context_not_meaning | look_alike | idea | Контекст ≠ смысл
+word_hides_danger | look_alike | idea | Слово прячет опасность
+explanation_vs_understanding | look_alike | idea | Объяснение ≠ понимание
+measure_depends_on_set | measurement_error | line | Мерка зависит от набора
+holes_in_layers | side_effects | sensor | Дыры в слоях
+off_the_question | own_limits | line | Ушёл от вопроса
+cry_wolf | answer_cost | sensor | Крик «волк»: слишком частые тревоги
+one_number_or_several | one_model | waiting | Одно число или несколько
+reward_changes_answer | side_effects | waiting | Награда меняет ответ
+carrier_or_condition | look_alike | waiting | Через что или при каком условии
+not_found_not_absent | own_limits | idea | Не найдено ≠ нет
+mixture_not_source | rumour_vs_fact | covered | Смесь — не один источник
+flicker_or_shift | measurement_error | covered | Колебание или сдвиг
+one_turn_not_end | rumour_vs_fact | covered | Реплика, а не конец разговора
+gist_drifts | rumour_vs_fact | covered | Пересказ сползает к сценарию
+age_or_generation | stale_data | covered | Возраст или поколение
+many_readings | one_model | line | Сначала много прочтений
+looks_vs_is | look_alike | line | Видимость ≠ суть
+rule_without_words | own_limits | line | Правило без слов
+worth_checking | answer_cost | covered | Стоит ли проверка усилий
+neighbour_not_same | look_alike | idea | Соседнее ≠ то же
+correction_not_erase | own_limits | sensor | Опровержение не стирает
+confidence_not_accuracy | own_limits | covered | Уверенность ≠ точность
+lens_of_warnings | measurement_error | covered | Линза тревог
+chain_retelling | rumour_vs_fact | covered | Цепочка пересказа
+hint_starts_rumour | rumour_vs_fact | line | Намёк запускает слух
+question_innuendo | rumour_vs_fact | line | Вопрос в заголовке обвиняет
+crowd_draws_crowd | look_alike | covered | Толпа притягивает толпу
+who_chose_the_news | stale_data | covered | Кто выбрал новости
+panel_drifts | one_model | idea | Обсуждение сползает к краю
+what_most_think | look_alike | idea | «Большинство считает» — нужен опрос
+poll_is_estimate | measurement_error | line | Опрос — оценка, а не результат
+news_filter | stale_data | covered | Радар показывает фильтр новостей
+coverage_not_importance | look_alike | covered | Охват ≠ важность
+frame_choice | one_model | line | Какую рамку выбрали
+relay_of_influence | side_effects | covered | Влияние идёт через передатчиков
+correction_prominence | own_limits | covered | Поправка так же громко, как ошибка
+moral_panic | side_effects | sensor | Размер случая и размер тревоги
+pseudo_event | rumour_vs_fact | idea | Устроено для камер
+mean_world | measurement_error | idea | Поток кажется опаснее, чем по статистике
+impossible_at_date | stale_data | line | Невозможно на заявленную дату
+remains_vs_tradition | rumour_vs_fact | line | Документ или пересказ
+translation_shift | look_alike | line | Смысл сдвигается при переводе
+one_story_three_languages | look_alike | line | Одна новость на трёх языках
+self_declared_sound | measurement_error | line | «Признано надёжным» — это заявление
+skill_not_hits | answer_cost | covered | Мастерство, а не доля попаданий
+chart_honesty | measurement_error | covered | Где ноль на графике
+witness_in_spite | rumour_vs_fact | idea | Свидетели поневоле
+incubation | side_effects | idea | Инкубация «внезапного» кризиса
+drift_to_edge | side_effects | covered | Дрейф к границе
+cobra_effect | side_effects | line | Эффект кобры
+risk_thermostat | side_effects | covered | Мера объявлена ≠ риск снижен
+chosen_vs_imposed | answer_cost | idea | Риск выбранный или навязанный
+no_memory | look_alike | covered | У организаций нет памяти
+special_cause | measurement_error | covered | Шум или особая причина
+run_rule | measurement_error | line | Длинная серия — тоже сигнал
+tampering | side_effects | covered | Подкрутка растит разброс
+vital_few | answer_cost | covered | Немногие важные
+cause_classes | one_model | covered | Несколько классов причин
+loss_off_target | measurement_error | covered | Потери начинаются у цели
+catch_at_source | rumour_vs_fact | covered | Лови у источника
+proxy_not_need | side_effects | waiting | Показатель ≠ потребность
+bradford_scatter | own_limits | sensor | Ядро и хвост изданий
+rare_anchor_weighs | look_alike | line | Редкое общее слово весит больше
+recall_vs_precision | answer_cost | covered | Меньше пропусков или меньше ложных тревог
+fact_with_source | rumour_vs_fact | covered | Факт хранит свой источник
+facets_not_tree | one_model | idea | Фасеты, а не одно дерево
+evidence_chain | rumour_vs_fact | line | Цепочка от увиденного до сказанного
+qualifier_and_rebuttal | own_limits | covered | Оговорка и опровержение
+tests_survived | own_limits | covered | Выдержанные проверки, а не повторы
+evidence_scale | measurement_error | idea | Слабое свидетельство называй слабым
+conflicting_sources | one_model | covered | Кто за какую версию
+surprising_confirmation | rumour_vs_fact | idea | Неожиданное подтверждение весит больше
+ruin_vs_share | answer_cost | line | Разорение растёт с долей под риском
+longer_record_bigger_extreme | measurement_error | covered | Длиннее история — больше крайний случай
+edge_of_the_table | measurement_error | covered | Край таблицы
+null_not_zero | measurement_error | covered | Нет данных ≠ ноль
+all_or_nothing | rumour_vs_fact | covered | Всё или ничего
+record_linkage | look_alike | covered | Та же запись или похожая?
+certain_answers | own_limits | covered | Достоверный ответ
+word_climbs_rank | measurement_error | sensor | Слово поднялось в своём ранге
+earliest_found | stale_data | covered | Самое раннее найденное ≠ первое
+company_it_keeps | look_alike | idea | Слово по его соседям
+balanced_sample | one_model | covered | Считай по всем жанрам
+meaning_of_its_time | stale_data | covered | Значение своего времени
+outlet_concentration | one_model | covered | Много заголовков — мало изданий
+pooled_or_split | one_model | idea | Одно число или несколько
+economy_of_checking | answer_cost | idea | Достаточно проверки
+not_yet_true | rumour_vs_fact | covered | Ещё не истина и не ложь
+quiet_shift | stale_data | sensor | Тихий сдвиг
+outlets_agree_on_act | one_model | sensor | Согласны ли издания, что это за новость
+saturated_not_settled | rumour_vs_fact | sensor | Перестала расти — не значит подтверждена
+sticky_series | stale_data | sensor | Липкий ряд кажется спокойнее, чем есть
+story_spread_decay | stale_data | waiting | История ещё растёт или угасает
+quiet_or_broken | stale_data | sensor | Тихий час или сломанная лента
+aftershock_not_new | look_alike | sensor | Афтершок — не новое землетрясение
+loud_chorus_not_majority | rumour_vs_fact | covered | Громкий хор — не большинство
+spread_not_level | stale_data | sensor | Изменился разброс, а не уровень
+round_numbers_are_estimates | rumour_vs_fact | sensor | Круглое число — оценка
+bias_or_noise | stale_data | waiting | Сдвиг или шум
+new_info_not_paraphrase | rumour_vs_fact | idea | Новое сведение, а не пересказ
+many_checks_some_lucky | answer_cost | idea | Много проверок разом: часть выглядит сигналом по случайности
+when_to_stop_reading | answer_cost | idea | Когда прекратить добавлять источники
+shelf_price_lags_market | stale_data | idea | Цена на полке отстаёт от рынка
+map_card_hours_disagree | stale_data | sensor | Часы на карточке места против других источников и календаря праздников
+rating_needs_its_count | measurement_error | sensor | Звёзды стоят ровно столько, сколько оценок за ними
+review_age_and_bursts | stale_data | sensor | Возраст отзывов и не пришли ли многие за одну неделю
+typical_is_not_now | stale_data | idea | «Обычно мало людей» — типичный час, а не людно ли сейчас
+place_with_nearby_warnings | side_effects | sensor | Место вместе с официальными предупреждениями рядом
+outdoor_place_before_dark | side_effects | sensor | Место на улице и минуты до заката
+place_name_in_two_cities | look_alike | sensor | Одно название места в нескольких городах
+place_air_nearest_station | stale_data | sensor | Место и индекс воздуха ближайшей официальной станции
+place_charger_register_nearby | stale_data | sensor | Место зарядки сверено с официальным реестром зарядок
+airport_way_there_now | stale_data | ready | Дорога до аэропорта сейчас: сообщения по трассам, время маршрута и предупреждения погоды вместе
+airport_dark_or_icy_arrival | side_effects | ready | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и голо
+airport_parking_gap | stale_data | idea | Парковка и зарядка у терминала там, где у нас есть данные
+route_when_jammed_equal_times | own_limits | sensor | Пробка на маршруте и «свободная» альтернатива: оба времени сейчас, а не обещанная экономия
+terminal_landmarks_check | look_alike | idea | Как найти вход на вокзале или в аэропорту: по ориентирам и входам, с проверкой, что назван именно тот объект
+road_jam_inspection_paradox | measurement_error | sensor | Запас на дорогу: пробка, которую вы встретите, длится дольше средней
+stop_wait_inspection_paradox | measurement_error | ready | Ожидание на остановке: при неровном движении случайный приход стоит дороже половины интервала
+route_roads_now | side_effects | sensor | Автобаны маршрута: пробки, закрытия и стройки прямо сейчас
+description_absolute_claims | rumour_vs_fact | sensor | Абсолютные слова в описании места требуют границ или источника
+report_back_loop | rumour_vs_fact | idea | Когда источники расходятся, человек правит карту: петля от проверки к исправлению
+own_rhythm_of_change | stale_data | idea | У каждого источника свой ритм
+details_not_repeats | rumour_vs_fact | sensor | Подробности, а не повтор
+independent_voices | one_model | waiting | Сколько независимых голосов
+say_not_known | answer_cost | covered | «Не знаю», когда вилка пересекает границу
+named_or_anonymous | rumour_vs_fact | sensor | Названный источник или «источники сообщают»
+hedged_not_stated | rumour_vs_fact | sensor | «Может» — не «сделал»
+if_is_not_did | rumour_vs_fact | sensor | «Если» — не «сделал»
+number_from_another_time | stale_data | sensor | Число из другого периода
+how_rare_is_this_quake | look_alike | sensor | Насколько редок толчок такой силы
+elite_lens | one_model | idea | Освещение идёт за элитными странами, а не за масштабом
+same_words_many_copies | look_alike | idea | Мало слов — много копий
+poll_fast_enough | stale_data | sensor | Опрос достаточно частый для того, как меняется
+calque_not_report | rumour_vs_fact | idea | Переводная калька — не второе сообщение
