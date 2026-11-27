@@ -589,3 +589,6 @@
 
 ## 2026-11-27: цены на топливо (Tankerkönig)
 - /tools/fuel (ru/de/en, генератор tools/fuel_pages.py), API /api/v1/fuel-hamburg (src/fuel.js): паспорт данных (закрыта, нет цены, вне диапазона, выброс >12 % от медианы), общий кэш D1 6 мин, радиус 25 км, секрет TANKERKOENIG_KEY только на воркере, атрибуция CC BY 4.0. Нет отметки времени у цены в list.php, поэтому проверки свежести нет. Баннеры Kraken/Starlink, счётчик (page id fuel), Share on X.
+## Партия 68 (Лиана, 14 строк)
+- 6 карточек: luce_rd, burrows_jf, bar_hillel_y, jost_a, damerau_fj, fano_rm; все NEEDS = needs_idea. Мостики расширены: who_leads_whom, wrong_hand_in_feed, old_story_retold, story_spread_decay, revisions, numbers_differ.
+- Тесты 714/0; docs/scanner-bridges-summary.txt и scanner-known-names.txt обновлены.

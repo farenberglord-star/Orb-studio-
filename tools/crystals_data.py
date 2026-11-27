@@ -2167,6 +2167,36 @@ C = [
  '«Measurement Cost and the Organization of Markets» (Journal of Law and Economics, 1982): где качество дорого измерять, люди полагаются на гарантии, марки и репутацию вместо собственного измерения.',
  '„Measurement Cost and the Organization of Markets“ (Journal of Law and Economics, 1982): Wo eine Qualität teuer zu messen ist, verlässt man sich auf Garantien, Marken und Ruf statt selbst zu messen.',
  'A source you cannot check cheaply is weighed by its track record; say that you rely on its record, not on a check.'),
+('luce_rd', 'R. Duncan Luce', 'Р. Дункан Льюс', '1925–2012', 'https://en.wikipedia.org/wiki/R._Duncan_Luce', 'one_model',
+ "'Individual Choice Behavior' (1959): the choice axiom - the odds of choosing one option over another do not depend on which other options are on offer.",
+ '«Individual Choice Behavior» (1959): аксиома выбора - шансы выбрать один вариант вместо другого не зависят от того, какие ещё варианты предложены.',
+ '„Individual Choice Behavior“ (1959): Das Wahlaxiom - die Chance, eine Option gegenüber einer anderen zu wählen, hängt nicht davon ab, welche weiteren Optionen angeboten werden.',
+ 'When you rank sources, check whether the order of two of them changes once a third is added; if it does, the ranking is not stable.'),
+('burrows_jf', 'John F. Burrows', 'Джон Ф. Бэрроуз', '1928–2019', 'https://en.wikipedia.org/wiki/John_Burrows_(academic)', 'rumour_vs_fact',
+ "'Delta: a Measure of Stylistic Difference and a Guide to Likely Authorship' (2002): the distance between two texts is the mean absolute difference of standardised frequencies of the most common words.",
+ '«Delta: a Measure of Stylistic Difference and a Guide to Likely Authorship» (2002): расстояние между текстами - средняя абсолютная разница стандартизованных частот самых частых слов.',
+ '„Delta: a Measure of Stylistic Difference and a Guide to Likely Authorship“ (2002): Der Abstand zweier Texte ist die mittlere absolute Differenz standardisierter Häufigkeiten der häufigsten Wörter.',
+ 'A batch that sits far from its outlet\'s usual word habits is a reason to check the source, not a verdict on who wrote it.'),
+('bar_hillel_y', 'Yehoshua Bar-Hillel', 'Иехошуа Бар-Хиллел', '1915–1975', 'https://en.wikipedia.org/wiki/Yehoshua_Bar-Hillel', 'stale_data',
+ "'Semantic Information' (1953, with R. Carnap): a statement carries more information the more possibilities it rules out; a statement that excludes nothing new says nothing.",
+ '«Semantic Information» (1953, с Р. Карнапом): утверждение несёт тем больше информации, чем больше возможностей оно исключает; утверждение, не исключающее ничего нового, ничего не сообщает.',
+ '„Semantic Information“ (1953, mit R. Carnap): Eine Aussage trägt umso mehr Information, je mehr Möglichkeiten sie ausschließt; was nichts Neues ausschließt, sagt nichts.',
+ 'A retold old story that excludes nothing the first telling did not exclude adds no news; say so.'),
+('jost_a', 'Adolf Jost', 'Адольф Йост', '1874–1908', 'https://de.wikipedia.org/wiki/Adolf_Jost', 'stale_data',
+ "Jost's law (dissertation 1897, 'Die Assoziationsfestigkeit in ihrer Abhängigkeit von der Verteilung der Wiederholungen'): of two memories equally strong now, the older one decays more slowly.",
+ 'Закон Йоста (диссертация 1897, «Die Assoziationsfestigkeit in ihrer Abhängigkeit von der Verteilung der Wiederholungen»): из двух одинаково сильных на сегодня следов памяти старый угасает медленнее.',
+ 'Jostsches Gesetz (Dissertation 1897, „Die Assoziationsfestigkeit in ihrer Abhängigkeit von der Verteilung der Wiederholungen“): Von zwei jetzt gleich starken Gedächtnisspuren verblasst die ältere langsamer.',
+ 'A story that has been around for days fades more slowly than one that appeared an hour ago; compare their ages, not only their current counts.'),
+('damerau_fj', 'Fred J. Damerau', 'Фред Дж. Дамерау', '1931–2009', 'https://en.wikipedia.org/wiki/Fred_J._Damerau', 'stale_data',
+ "'A technique for computer detection and correction of spelling errors' (Communications of the ACM, 1964): most misspellings are one insertion, deletion, substitution or swap of two neighbouring letters away from the right word.",
+ '«A technique for computer detection and correction of spelling errors» (Communications of the ACM, 1964): большинство опечаток отстоят от верного слова на одну вставку, удаление, замену или перестановку двух соседних букв.',
+ '„A technique for computer detection and correction of spelling errors“ (Communications of the ACM, 1964): Die meisten Tippfehler liegen eine Einfügung, Löschung, Ersetzung oder Vertauschung zweier Nachbarbuchstaben vom richtigen Wort entfernt.',
+ 'A headline that differs from its earlier version by one edit is a correction, not a new story; count edits before calling it new.'),
+('fano_rm', 'Robert M. Fano', 'Роберт М. Фано', '1917–2016', 'https://en.wikipedia.org/wiki/Robert_Fano', 'answer_cost',
+ "'Transmission of Information' (1961): Fano's inequality - the error probability of any guess of a value is bounded from below by the uncertainty that remains about it after the evidence.",
+ '«Transmission of Information» (1961): неравенство Фано - вероятность ошибки любой догадки о величине ограничена снизу неопределённостью, которая остаётся после свидетельств.',
+ '„Transmission of Information“ (1961): Fanosche Ungleichung - die Fehlerwahrscheinlichkeit jeder Schätzung ist nach unten durch die nach den Belegen verbleibende Unsicherheit begrenzt.',
+ 'When outlets give different values for one number, the leftover spread is the least error to expect in whichever value you pick.'),
 ]
 
 # Что нужно, чтобы карточка ожила (код, пояснение на en, для needs_history — дата, раньше которой истории не хватит).
@@ -2842,3 +2872,10 @@ NEEDS['lempel_a'] = ('needs_idea', 'per new headline: share of its phrases (word
 NEEDS['utsu_t'] = ('needs_idea', 'per live story with 3+ outlets: count of new headlines per 30 minutes from the first one, fitted to K/(t+c)^p; needs 48 h of per-story counts; joins the story-spread-decay bridge, which waits for the Weibull history')
 NEEDS['schlaifer_r'] = ('needs_idea', 'per story: the change of the answer after each added source against the time that source costs; needs the check order stored; joins the when-to-stop-reading bridge; not computed yet')
 NEEDS['barzel_y'] = ('needs_idea', 'per source: share of its claims later confirmed (track record) against how cheaply its claims can be checked; needs the follow-up history to grow; joins the cheap-to-say bridge; not computed yet')
+
+NEEDS['luce_rd'] = ('needs_idea', 'per radar pair of outlets A, B: share of stories where A is first, recomputed with and without a third outlet C; ranking stable if the ratio holds; needs the history; joins the who-leads-whom bridge, which waits for ~14.12')
+NEEDS['burrows_jf'] = ('needs_idea', 'per outlet: Delta between its last 24 h of headlines (z-scored frequencies of its 30 commonest words) and its own 7-day baseline; radar feeds every 30 minutes; joins the wrong-hand bridge next to the Mendenhall sensor; not computed yet')
+NEEDS['bar_hillel_y'] = ('needs_idea', 'per retold headline: whether it excludes anything the first-seen headline of the same story did not (new numbers, names, places); needs the radar history to grow; joins the old-story-retold bridge')
+NEEDS['jost_a'] = ('needs_idea', 'per story: age at first-seen against the pace of new headlines per hour; old stories should fade more slowly; needs 48 h of per-story counts; joins the story-spread-decay bridge, which waits for ~10.12')
+NEEDS['damerau_fj'] = ('needs_idea', 'per same-event pair of headlines: Damerau-Levenshtein edit count between the earlier and the later wording; 1-2 edits = correction; radar feeds every 30 minutes; joins the revisions bridge; not computed yet')
+NEEDS['fano_rm'] = ('needs_idea', 'per same-event group with numbers of the same unit: entropy of the reported values gives the lower bound on the error of a guess; joins the numbers-differ bridge; not computed yet')

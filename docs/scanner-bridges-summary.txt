@@ -42,11 +42,11 @@ test_before_data | covered | fisher_r,skinner_bf
 not_confirmed | covered | greimas,dunn,karpenko
 verb_aspect | covered | maslov,searle,grice
 index_not_living | covered | konus,baird,kuznets
-who_leads_whom | waiting | granger,salmon_w,reichenbach,pearson_k,mill,cournot,manne_hg
+who_leads_whom | waiting | granger,salmon_w,reichenbach,pearson_k,mill,cournot,manne_hg,luce_rd
 forecast_horizon | waiting | lorenz,poincare,mandelbrot,hurst_he
 spill_over | waiting | leontief,walras,kahn_r,quesnay
 radar_moves_market | waiting | rosenthal,keynes,von_neumann,wiener,phillips_w,campbell_dt
-revisions | waiting | rinne,elmasri,morgenstern_o
+revisions | waiting | rinne,elmasri,morgenstern_o,damerau_fj
 tone | line | osgood,elias,wallas,lippmann,weber_m,ossowska_m
 namesakes | sensor | frege,geach,dirichlet,levenshtein
 tree_or_wave | sensor | schmidt_j,schleicher,tarde
@@ -204,7 +204,7 @@ quiet_shift | sensor | shewhart,nelson_ls,hinkley_dv
 outlets_agree_on_act | sensor | krippendorff_k,cohen,searle,reiss
 saturated_not_settled | sensor | kendall_dg,schmidt_j,searle
 sticky_series | sensor | durbin_j,watson_gs,shewhart
-story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j,utsu_t
+story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j,utsu_t,jost_a
 stale_apparent_vs_real | waiting | line_mb,brookes_bc,price_dds,garfield,labov_w
 independent_or_same_root | idea | griffith_b,wilson_p,kasperson
 claimed_vs_found_complete | idea | maron_me,hansen_mh,horvitz_dg,cochran_wg,lancaster_fw,cleverdon,saracevic
@@ -258,8 +258,8 @@ outlet_topic_gap | idea | duncan_od,noelle_neumann_e,gini_c,krippendorff_k,ruge_
 innovators_or_followers | idea | bass_f,naroll_r,kasperson,locard_e
 fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
 detail_not_verdict | idea | undeutsch_u,searle,walton_d
-old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc,lempel_a
-numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k,wilcoxon_f
-wrong_hand_in_feed | sensor | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c
+old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc,lempel_a,bar_hillel_y
+numbers_differ | idea | kruskal_w,jaynes_et,krippendorff_k,wilcoxon_f,fano_rm
+wrong_hand_in_feed | sensor | mendenhall_tc,herdan_g,ellegard_a,mosteller_f,guiraud_p,muller_c,burrows_jf
 borrowed_text_in_feed | idea | dice_lr,mendenhall_tc,guiraud_p
 copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g,hagerstrand_t,markov_a,mansfield_e
