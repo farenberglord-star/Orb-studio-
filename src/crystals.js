@@ -15124,6 +15124,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "wardrop",
+"name": "John Glen Wardrop",
+"name_ru": "Джон Гленн Уордроп",
+"years": "1922–1989",
+"wiki": "https://en.wikipedia.org/wiki/John_Glen_Wardrop",
+"zone": "own_limits",
+"idea": {
+"en": "'Some Theoretical Aspects of Road Traffic Research' (1952): when drivers choose freely, all routes in use end up with equal travel times, and an unused route is no faster.",
+"ru": "«Некоторые теоретические аспекты исследований дорожного движения» (1952): при свободном выборе все используемые маршруты получают одинаковое время в пути, а неиспользуемый не быстрее.",
+"de": "„Some Theoretical Aspects of Road Traffic Research“ (1952): bei freier Routenwahl haben alle genutzten Wege dieselbe Fahrzeit, ein ungenutzter ist nicht schneller."
+},
+"rule": "If one route is jammed and an alternative looks free, the alternative fills up: do not promise the saving, compare both times now.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
+},
+{
+"id": "lynch_k",
+"name": "Kevin Lynch",
+"name_ru": "Кевин Линч",
+"years": "1918–1984",
+"wiki": "https://en.wikipedia.org/wiki/Kevin_A._Lynch",
+"zone": "look_alike",
+"idea": {
+"en": "'The Image of the City' (1960): people hold a place in mind by paths, edges, districts, nodes and landmarks.",
+"ru": "«Образ города» (1960): люди удерживают место в голове через пути, границы, районы, узлы и ориентиры.",
+"de": "„The Image of the City“ (1960): Menschen merken sich einen Ort über Wege, Kanten, Viertel, Knoten und Landmarken."
+},
+"rule": "Give directions by landmarks and entrances a person can see, not by street names alone, and check that the named landmark is the right one.",
+"needs": {
+"code": "needs_idea",
+"note": "no live measurable form found yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
