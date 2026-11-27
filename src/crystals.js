@@ -15178,6 +15178,44 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "no live measurable form found yet"
 }
+},
+{
+"id": "pollaczek_f",
+"name": "Félix Pollaczek",
+"name_ru": "Феликс Поллачек",
+"years": "1892–1981",
+"wiki": "https://en.wikipedia.org/wiki/F%C3%A9lix_Pollaczek",
+"zone": "answer_cost",
+"idea": {
+"en": "'Über eine Aufgabe der Wahrscheinlichkeitstheorie' (Mathematische Zeitschrift 32, 1930): with one server the mean wait grows with the variance of the service time, not only with its average, and rises steeply as the server gets busier.",
+"ru": "«Über eine Aufgabe der Wahrscheinlichkeitstheorie» (Mathematische Zeitschrift 32, 1930): при одном обслуживающем среднее ожидание растёт вместе с разбросом времени обслуживания, а не только со средним, и резко растёт, когда он занят всё больше.",
+"de": "„Über eine Aufgabe der Wahrscheinlichkeitstheorie“ (Mathematische Zeitschrift 32, 1930): bei einem Schalter wächst die mittlere Wartezeit mit der Streuung der Bedienzeit, nicht nur mit ihrem Mittel, und steigt stark, wenn der Schalter fast voll ist."
+},
+"rule": "Do not judge a wait by the average service time: ask how much it varies and how busy the server is.",
+"needs": {
+"code": "covered",
+"note": "the wait-paradox sensor (/api/v1/wait-paradox) already gives 1 + CV² of the gaps at a stop, which is the Pollaczek-Khinchine factor",
+"covered_by": "terada"
+}
+},
+{
+"id": "khinchin_a",
+"name": "Aleksandr Khinchin",
+"name_ru": "Александр Хинчин",
+"years": "1894–1959",
+"wiki": "https://en.wikipedia.org/wiki/Aleksandr_Khinchin",
+"zone": "answer_cost",
+"idea": {
+"en": "Queueing paper of 1932 (title still to be confirmed): the same mean-wait formula derived independently in probabilistic terms; the wait is (1 + CV²)/2 times a busy-factor times the average service time.",
+"ru": "Работа 1932 года об очередях (точное название ещё надо подтвердить): та же формула среднего ожидания, выведенная независимо в вероятностных терминах; ожидание равно (1 + CV²)/2, умноженному на коэффициент занятости и на среднее время обслуживания.",
+"de": "Arbeit von 1932 zur Warteschlangentheorie (genauer Titel noch zu bestätigen): dieselbe Formel der mittleren Wartezeit unabhängig und wahrscheinlichkeitstheoretisch hergeleitet; Wartezeit = (1 + CV²)/2 mal Auslastungsfaktor mal mittlere Bedienzeit."
+},
+"rule": "The spread of times (CV²) multiplies the wait: two lines with the same average can feel very different.",
+"needs": {
+"code": "covered",
+"note": "the wait-paradox sensor (/api/v1/wait-paradox) already gives 1 + CV² of the gaps at a stop, which is the Pollaczek-Khinchine factor",
+"covered_by": "terada"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
