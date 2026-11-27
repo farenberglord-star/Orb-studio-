@@ -37,15 +37,24 @@ def built(lg):
         who, idea, sim, diff, does = HP.PORTAL_ITEMS[sid][lg]
         out.append(dict(id=sid, who=who, idea=idea, zone=BUILT_ZONE.get(sid, "measurement_error"), sensor=sid, wiki=S["wiki"].get(lg) or S["wiki"].get("en") or S["wiki"]["ru"]))
     return out
+import os as _os
+_ROOT = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
+def tool_href(pre, sid):
+    """Страница датчика /tools/<id> есть не у каждого: нет файла — ведём на общий список датчиков в честь учёных."""
+    return "%s/tools/%s" % (pre, sid) if _os.path.exists(_os.path.join(_ROOT, "public", "tools", sid + ".html")) else "%s/tools/scientists" % pre
+def src_label(url, wiki_label, lg):
+    """Подпись к ссылке на биографию: «Википедия» — только для адресов Википедии, иначе честное «источник»."""
+    return wiki_label if "wikipedia.org" in url else {"ru": "источник", "de": "Quelle", "en": "source"}[lg]
+
 for lg in ("ru", "de", "en"):
     t = T[lg]; pre = "" if lg == "ru" else "/" + lg; B = built(lg)
     groups = []
     for z in ZONES:
         items = [b for b in B if b["zone"] == z]
-        li = ['      <li class="cr has"><b>%s</b><p>%s</p><p><a href="%s/tools/%s">%s: get_%s</a> · <a href="%s" rel="noopener">%s</a></p></li>' % (H.escape(b["who"]), H.escape(b["idea"]), pre, b["sensor"], H.escape(t["sensor"]), b["sensor"], b["wiki"], t["wiki"]) for b in items]
+        li = ['      <li class="cr has"><b>%s</b><p>%s</p><p><a href="%s">%s: get_%s</a> · <a href="%s" rel="noopener">%s</a></p></li>' % (H.escape(b["who"]), H.escape(b["idea"]), tool_href(pre, b["sensor"]), H.escape(t["sensor"]), b["sensor"], b["wiki"], src_label(b["wiki"], t["wiki"], lg)) for b in items]
         for c in [c for c in cards if c["zone"] == z]:
             nm = c["name_ru"] if lg == "ru" else c["name"]
-            li.append('      <li class="cr" id="%s"><b>%s (%s)</b><p>%s</p><p><small>%s: %s</small></p><p><small>%s: %s%s</small> · <a href="%s" rel="noopener">%s</a></p></li>' % (c["id"], H.escape(nm), H.escape(c["years"]), H.escape(c["idea"][lg]), H.escape(t["rule"]), H.escape(c["rule"]), H.escape(t["wait"]), H.escape(t["nd"]["applied" if c["needs"]["code"] == "covered" and not c["needs"].get("covered_by") else c["needs"]["code"]].replace("{d}", c["needs"].get("not_before", ""))), (' <a href="%s/tools/%s">get_%s</a>' % (pre, c["needs"]["covered_by"], c["needs"]["covered_by"])) if c["needs"].get("covered_by") else "", H.escape(c["wiki"]), t["wiki"]))
+            li.append('      <li class="cr" id="%s"><b>%s (%s)</b><p>%s</p><p><small>%s: %s</small></p><p><small>%s: %s%s</small> · <a href="%s" rel="noopener">%s</a></p></li>' % (c["id"], H.escape(nm), H.escape(c["years"]), H.escape(c["idea"][lg]), H.escape(t["rule"]), H.escape(c["rule"]), H.escape(t["wait"]), H.escape(t["nd"]["applied" if c["needs"]["code"] == "covered" and not c["needs"].get("covered_by") else c["needs"]["code"]].replace("{d}", c["needs"].get("not_before", ""))), (' <a href="%s">get_%s</a>' % (tool_href(pre, c["needs"]["covered_by"]), c["needs"]["covered_by"])) if c["needs"].get("covered_by") else "", H.escape(c["wiki"]), src_label(c["wiki"], t["wiki"], lg)))
         groups.append('    <h3 id="zone-%s">%s</h3>\n    <ul class="crl">\n%s\n    </ul>' % (z, H.escape(Z[lg][z]), "\n".join(li)))
     cnt = t["count"].format(n=len(cards) + len(B), s=len(B))
     c = dict(title=t["title"], desc=t["desc"], eye=t["eye"], h1=t["h1"], lead=t["lead"], now_h=t["now_h"], honour_h=t["honour_h"], honour=H.escape(t["honour"]), note=t["note"],

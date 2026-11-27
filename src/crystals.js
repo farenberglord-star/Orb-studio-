@@ -7097,7 +7097,7 @@ export const CRYSTALS = [
 "name": "Alexander Konüs",
 "name_ru": "Александр Конюс",
 "years": "1895–1990",
-"wiki": "https://en.wikipedia.org/wiki/Alexander_Kon%C3%BCs",
+"wiki": "https://bigenc.ru/c/konius-aleksandr-aleksandrovich-db98fc",
 "zone": "measurement_error",
 "idea": {
 "en": "The Konüs true cost-of-living index: a price index measures the cost of keeping the same standard of living, which a fixed basket only approximates.",
@@ -7152,7 +7152,7 @@ export const CRYSTALS = [
 "name": "Yuri Maslov",
 "name_ru": "Юрий Маслов",
 "years": "1914–1990",
-"wiki": "https://en.wikipedia.org/wiki/Yuri_Maslov",
+"wiki": "https://www.krugosvet.ru/enc/gumanitarnye_nauki/lingvistika/MASLOV_YURI_SERGEEVICH.html",
 "zone": "rumour_vs_fact",
 "idea": {
 "en": "Theory of verbal aspect: a completed action and an ongoing or planned one are different, and languages mark the difference.",
@@ -10128,7 +10128,7 @@ export const CRYSTALS = [
 "name": "David Manning White",
 "name_ru": "Дэвид Мэннинг Уайт",
 "years": "1917–1993",
-"wiki": "https://en.wikipedia.org/wiki/David_Manning_White",
+"wiki": "https://journalism.uiowa.edu/node/2066",
 "zone": "stale_data",
 "idea": {
 "en": "'The \"Gate Keeper\": A Case Study in the Selection of News' (1950): one wire editor's choices decided which stories readers ever saw.",
@@ -14932,7 +14932,7 @@ export const CRYSTALS = [
 "name": "John J. McCall",
 "name_ru": "Джон Дж. Маккол",
 "years": "1933–2018",
-"wiki": "https://en.wikipedia.org/wiki/John_J._McCall",
+"wiki": "https://economics.ucla.edu/person/john-j-mccall",
 "zone": "answer_cost",
 "idea": {
 "en": "'The Economics of Information and Optimal Stopping Rules' (Journal of Business, 1965): stop collecting when the expected gain from one more look is lower than its cost.",
@@ -14968,7 +14968,7 @@ export const CRYSTALS = [
 "name": "Juhan Tuldava",
 "name_ru": "Юхан Тулдава",
 "years": "1922–2003",
-"wiki": "https://ru.wikipedia.org/wiki/Тулдава,_Юхан",
+"wiki": "https://dspace.ut.ee/bitstreams/beb261cb-b0a1-4406-9f04-a17f4e1624d5/download",
 "zone": "look_alike",
 "idea": {
 "en": "'Quantitative Relations between the Size of Text and the Size of Vocabulary' (Tartu school of quantitative linguistics, 1970s): the richness of a vocabulary depends on text length, so compare texts only at equal length or through the length-adjusted relation.",
