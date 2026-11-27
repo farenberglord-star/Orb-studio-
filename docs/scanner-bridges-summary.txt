@@ -209,6 +209,8 @@ story_spread_decay | stale_data | waiting | История ещё растёт �
 stale_apparent_vs_real | stale_data | waiting | Список источников истории правда старый или только выглядит старым
 independent_or_same_root | one_model | idea | Два издания согласны: независимо или у них один первоисточник
 claimed_vs_found_complete | answer_cost | idea | Ответ, который кажется полным, против проверенной выборки
+question_wording_shift | look_alike | idea | Два опроса с разной формулировкой — не один тренд
+small_cell_suppressed | own_limits | idea | Прочерк в таблице: скрытая малая ячейка, а не ноль
 quiet_or_broken | stale_data | sensor | Тихий час или сломанная лента
 aftershock_not_new | look_alike | sensor | Афтершок — не новое землетрясение
 loud_chorus_not_majority | rumour_vs_fact | covered | Громкий хор — не большинство

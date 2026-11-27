@@ -15288,6 +15288,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "inverse-probability weighting of spot checks across rare and frequent feeds; same ground-truth sample as the Hansen card; not computed yet"
 }
+},
+{
+"id": "schuman_h",
+"name": "Howard Schuman",
+"name_ru": "Говард Шуман",
+"years": "1928–2021",
+"wiki": "https://en.wikipedia.org/wiki/Howard_Schuman",
+"zone": "look_alike",
+"idea": {
+"en": "With Stanley Presser, 'Questions and Answers in Attitude Surveys' (1981): experiments showed that the form, wording and order of a question change the answers, so two surveys with different wording cannot be compared as one trend.",
+"ru": "С Стэнли Прессером, «Вопросы и ответы в опросах об установках» (1981): эксперименты показали, что форма, формулировка и порядок вопроса меняют ответы, поэтому два опроса с разной формулировкой нельзя сравнивать как один тренд.",
+"de": "Mit Stanley Presser, „Questions and Answers in Attitude Surveys“ (1981): Form, Wortlaut und Reihenfolge einer Frage verändern die Antworten; zwei Umfragen mit anderem Wortlaut sind kein gemeinsamer Trend."
+},
+"rule": "Before saying a poll figure rose or fell, check that the question text and answer options are the same in both polls.",
+"needs": {
+"code": "needs_idea",
+"note": "a list of poll-based headlines with the question text of each poll; our data has headlines only, not poll questions; joins the question wording bridge"
+}
+},
+{
+"id": "dalenius_t",
+"name": "Tore Dalenius",
+"name_ru": "Туре Далениус",
+"years": "1917–2002",
+"wiki": "https://en.wikipedia.org/wiki/Tore_Dalenius",
+"zone": "own_limits",
+"idea": {
+"en": "'Towards a methodology for statistical disclosure control' (1977): a published table may hide small cells on purpose, so that nobody can be identified from it.",
+"ru": "«К методологии контроля раскрытия статистических данных» (1977): в опубликованной таблице малые ячейки могут быть скрыты намеренно, чтобы по ней нельзя было опознать человека.",
+"de": "„Towards a methodology for statistical disclosure control“ (1977): Eine veröffentlichte Tabelle kann kleine Zellen absichtlich verbergen, damit niemand erkennbar wird."
+},
+"rule": "A dash, star or blank in a table may be a deliberately hidden small count, not a zero; say which it is before using the figure.",
+"needs": {
+"code": "needs_idea",
+"note": "which of our official tables carry suppression marks (Destatis, Eurostat) and how a parser reads them; joins the suppressed small cell bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
