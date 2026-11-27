@@ -20,6 +20,7 @@ T = {
   src="Цены:", vis="Визитов:", share="Поделиться в X", agents="Для агентов", agents_t="То же отдаёт API: GET /api/v1/fuel-hamburg. Бесплатно, без ключа. Не финансовый и не маршрутный совет: цена на колонке может отличаться.",
   partners="Партнёры Orb Studio · реферальные ссылки", kr="Kraken — криптобиржа ↗", sl="Starlink — интернет везде ↗", unit="€/л", loc="ru-RU",
   more="Ещё", m1="Условия на маршруте", m1u="/tools/route-weather", m2="Все инструменты",
+  kbs="криптобиржа", sbs="интернет везде",
   h1a="Проверено {n} станций.", h1b="Показываем {m}.", sub="Остальные не годятся для сравнения. Ниже, почему.", lg_ok="показано", lg_cl="закрыто", lg_odd="необычная цена", w_ok="В списке", p_ok="Открыты и дают нормальную цену. Из них мы берём самые дешёвые.", w_closed="Закрыты сейчас", p_closed="В базе осталась их последняя цена, но заправиться там нельзя. Поэтому их нет в списке.", w_no_price="Нет цены на этот вид топлива", p_no_price="Станция открыта, но цену на это топливо не передала.", w_out_of_range="Невозможная цена", p_out_of_range="Цена вне разумных пределов, похоже на ошибку ввода.", w_outlier="Цена сильно отличается от района", p_outlier="Дороже или дешевле обычной больше чем на 12 % (сейчас это выше {hi} € или ниже {lo} €). Часто это заправки на автобане: там топливо дороже всего. Такие цены мы не прячем и не правим, просто не ставим в «самые дешёвые».", note="Цены сайт не меняет. Он только решает, какие станции показывать в списке.", sum="Показать, кто именно отсеян", foot="Данные получены {t} · обновляются не чаще раза в 5 минут"),
  "de": dict(path="/de/tools/fuel", pre="/de", file="de/tools/fuel.html", lang="de",
   title="Wo tanke ich gerade am günstigsten in Hamburg und Umland? · Spritpreise · Orb Studio",
@@ -34,6 +35,7 @@ T = {
   src="Preise:", vis="Besuche:", share="Auf X teilen", agents="Für Agenten", agents_t="Dasselbe liefert die API: GET /api/v1/fuel-hamburg. Kostenlos, ohne Schlüssel. Keine Finanz- oder Routenberatung: Der Preis an der Säule kann abweichen.",
   partners="Orb-Studio-Partner · Empfehlungslinks", kr="Kraken — Krypto-Börse ↗", sl="Starlink — Internet überall ↗", unit="€/l", loc="de-DE",
   more="Mehr", m1="Bedingungen auf der Route", m1u="/de/tools/route-weather", m2="Alle Werkzeuge",
+  kbs="Krypto-Börse", sbs="Internet überall",
   h1a="{n} Tankstellen geprüft.", h1b="Gezeigt werden {m}.", sub="Die übrigen taugen nicht für den Vergleich. Unten steht, warum.", lg_ok="gezeigt", lg_cl="geschlossen", lg_odd="auffälliger Preis", w_ok="In der Liste", p_ok="Geöffnet und mit normalem Preis. Daraus nehmen wir die günstigsten.", w_closed="Gerade geschlossen", p_closed="In der Datenbank steht noch ihr letzter Preis, aber tanken kann man dort nicht. Deshalb fehlen sie in der Liste.", w_no_price="Kein Preis für diese Sorte", p_no_price="Die Station ist offen, hat aber für diese Sorte keinen Preis gemeldet.", w_out_of_range="Unmöglicher Preis", p_out_of_range="Preis außerhalb jeder Vernunft, wohl ein Eingabefehler.", w_outlier="Preis weicht stark vom Umfeld ab", p_outlier="Mehr als 12 % teurer oder billiger als üblich (jetzt über {hi} € oder unter {lo} €). Oft sind das Tankstellen an der Autobahn: Dort ist Sprit am teuersten. Solche Preise verstecken und ändern wir nicht, sie kommen nur nicht in die „günstigsten“.", note="Die Seite ändert keine Preise. Sie entscheidet nur, welche Stationen in der Liste gezeigt werden.", sum="Zeigen, wer genau aussortiert wurde", foot="Daten abgerufen {t} · Aktualisierung höchstens alle 5 Minuten"),
  "en": dict(path="/en/tools/fuel", pre="/en", file="en/tools/fuel.html", lang="en",
   title="Where is fuel cheapest right now in Hamburg and the suburbs? · Fuel prices · Orb Studio",
@@ -48,6 +50,7 @@ T = {
   src="Prices:", vis="Visits:", share="Share on X", agents="For agents", agents_t="The same data via API: GET /api/v1/fuel-hamburg. Free, no key. Not financial or route advice: the price at the pump may differ.",
   partners="Orb Studio partners · referral links", kr="Kraken — crypto exchange ↗", sl="Starlink — internet anywhere ↗", unit="€/l", loc="en-GB",
   more="More", m1="Route conditions", m1u="/en/tools/route-weather", m2="All tools",
+  kbs="crypto exchange", sbs="internet anywhere",
   h1a="{n} stations checked.", h1b="Showing {m}.", sub="The rest are not fit for comparison. Here is why.", lg_ok="shown", lg_cl="closed", lg_odd="unusual price", w_ok="In the list", p_ok="Open and with a normal price. We take the cheapest from these.", w_closed="Closed right now", p_closed="Their last price is still in the database, but you cannot fill up there. So they are not in the list.", w_no_price="No price for this fuel", p_no_price="The station is open but did not report a price for this fuel.", w_out_of_range="Impossible price", p_out_of_range="A price outside any sensible range, most likely a typing error.", w_outlier="Price far from the area norm", p_outlier="More than 12% above or below the usual price (right now above {hi} € or below {lo} €). Often these are motorway stations, where fuel is the most expensive. We do not hide or edit such prices; they just do not enter the “cheapest” list.", note="The site never changes prices. It only decides which stations to show in the list.", sum="Show who exactly was filtered out", foot="Data fetched {t} · refreshed at most every 5 minutes"),
 }
 
@@ -87,6 +90,16 @@ CSS = """<style>
 .fx-row h3{font:700 13.5px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.04em;color:#fff;margin:0}.fx-row p{font-size:12.5px;color:#9aa4d4;margin:2px 0 0}
 .fx-note{margin-top:12px;padding:10px 12px;border-left:3px solid var(--cy);background:rgba(0,240,255,.05);font-size:12.5px}
 .fx-det{margin-top:12px;border:1px solid #1b2145;padding:10px 12px}.fx-det summary{cursor:pointer;color:var(--cy);font-size:12.5px}.fx-det ul{margin:10px 0 0}
+.fx-pb{display:flex;gap:8px;margin:10px 0}
+.fx-pb a{flex:1;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 10px;text-decoration:none;color:#fff;font:700 12px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.12em;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.fx-pb a:before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;box-shadow:0 0 8px currentColor,0 0 16px currentColor;animation:fxp 1.8s ease-in-out infinite}
+.fx-pb a:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);transform:translateX(-120%);animation:fxs 4.5s linear infinite;pointer-events:none}
+.fx-pb small{display:block;font:400 10px ui-monospace,monospace;letter-spacing:.04em;color:rgba(255,255,255,.62);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-pb .k{background:linear-gradient(120deg,#1a0f3d,#3b1f8f);box-shadow:inset 0 0 0 1px #8f7dff,inset 0 0 14px rgba(143,125,255,.35);color:#b9aeff}
+.fx-pb .s{background:linear-gradient(120deg,#06142a,#0b3a5c);box-shadow:inset 0 0 0 1px #00d4ff,inset 0 0 14px rgba(0,212,255,.3);color:#5fe3ff}
+.fx-pb b{color:#fff;font-weight:700}
+@keyframes fxp{50%{opacity:.35}}@keyframes fxs{to{transform:translateX(120%)}}
+@media (prefers-reduced-motion:reduce){.fx-pb a:before,.fx-pb a:after{animation:none}}
 .fx-st{min-height:1.4em;color:var(--am);font-size:12.5px}
 .fx-foot{margin-top:16px;font-size:11.5px;color:#8a92b8;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
 .fx-share{border:1px solid var(--cy);color:var(--cy);padding:6px 12px;text-decoration:none;font-size:12px}
@@ -129,7 +142,7 @@ def build(code):
 <body>{nav}
 <main class="wrap fx">
 <header><div class="eyebrow">{E(t['eyebrow'])}</div><h1>{E(t['h1'])}</h1><p class="lead">{E(t['lead'])}</p></header>
-<div class="fx-ban" aria-label="{E(t['partners'])}"><a href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener">{E(t['kr'])}</a><a href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener">{E(t['sl'])}</a></div>
+<div class="fx-pb" aria-label="{E(t['partners'])}"><a class="k" href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener"><span><b>KRAKEN</b><small>{E(t['kbs'])}</small></span></a><a class="s" href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener"><span><b>STARLINK</b><small>{E(t['sbs'])}</small></span></a></div>
 <div class="fx-sel" role="group" id="sel"><button type="button" data-f="diesel" aria-pressed="true">DIESEL</button><button type="button" data-f="e5" aria-pressed="false">E5</button><button type="button" data-f="e10" aria-pressed="false">E10</button></div>
 <div class="fx-st" id="st" role="status">{E(t['loading'])}</div>
 <div class="fx-stat"><div><small>{E(t['lowest'])}</small><strong id="smin">–</strong></div><div><small>{E(t['median'])}</small><strong id="smed">–</strong></div><div><small>{E(t['passed'])}</small><strong id="sok">–</strong></div></div>
@@ -140,6 +153,7 @@ def build(code):
 <details class="fx-det"><summary>{E(t['sum'])}</summary><ul id="plog"></ul></details>
 <p class="fx-rules">{E(t['rules'])}</p></section>
 <section class="fx-pass" style="border-color:#1b2145;background:none"><h2 style="color:var(--holo)">{E(t['agents'])}</h2><p class="fx-rules" style="margin:0">{E(t['agents_t'])}</p></section>
+<div class="fx-pb" style="margin-top:16px" aria-label="{E(t['partners'])}"><a class="k" href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener"><span><b>KRAKEN</b><small>{E(t['kbs'])}</small></span></a><a class="s" href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener"><span><b>STARLINK</b><small>{E(t['sbs'])}</small></span></a></div>
 <div class="fx-foot"><span>{E(t['src'])} <a href="https://www.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig.de</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · <span id="when"></span></span><span>{E(t['vis'])} <b id="vc">—</b></span><a class="fx-share" href="{share}" target="_blank" rel="noopener">{E(t['share'])}</a></div>
 <div class="fx-ban" style="margin-top:14px"><a href="{t['m1u']}">{E(t['m1'])}</a><a href="{t['pre']}/tools">{E(t['m2'])}</a></div>
 </main>

@@ -54,6 +54,16 @@
 .fx-row h3{font:700 13.5px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.04em;color:#fff;margin:0}.fx-row p{font-size:12.5px;color:#9aa4d4;margin:2px 0 0}
 .fx-note{margin-top:12px;padding:10px 12px;border-left:3px solid var(--cy);background:rgba(0,240,255,.05);font-size:12.5px}
 .fx-det{margin-top:12px;border:1px solid #1b2145;padding:10px 12px}.fx-det summary{cursor:pointer;color:var(--cy);font-size:12.5px}.fx-det ul{margin:10px 0 0}
+.fx-pb{display:flex;gap:8px;margin:10px 0}
+.fx-pb a{flex:1;min-width:0;position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 10px;text-decoration:none;color:#fff;font:700 12px 'Chakra Petch',system-ui,sans-serif;letter-spacing:.12em;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.fx-pb a:before{content:"";width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;box-shadow:0 0 8px currentColor,0 0 16px currentColor;animation:fxp 1.8s ease-in-out infinite}
+.fx-pb a:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,rgba(255,255,255,.18) 50%,transparent 60%);transform:translateX(-120%);animation:fxs 4.5s linear infinite;pointer-events:none}
+.fx-pb small{display:block;font:400 10px ui-monospace,monospace;letter-spacing:.04em;color:rgba(255,255,255,.62);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-pb .k{background:linear-gradient(120deg,#1a0f3d,#3b1f8f);box-shadow:inset 0 0 0 1px #8f7dff,inset 0 0 14px rgba(143,125,255,.35);color:#b9aeff}
+.fx-pb .s{background:linear-gradient(120deg,#06142a,#0b3a5c);box-shadow:inset 0 0 0 1px #00d4ff,inset 0 0 14px rgba(0,212,255,.3);color:#5fe3ff}
+.fx-pb b{color:#fff;font-weight:700}
+@keyframes fxp{50%{opacity:.35}}@keyframes fxs{to{transform:translateX(120%)}}
+@media (prefers-reduced-motion:reduce){.fx-pb a:before,.fx-pb a:after{animation:none}}
 .fx-st{min-height:1.4em;color:var(--am);font-size:12.5px}
 .fx-foot{margin-top:16px;font-size:11.5px;color:#8a92b8;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
 .fx-share{border:1px solid var(--cy);color:var(--cy);padding:6px 12px;text-decoration:none;font-size:12px}
@@ -83,7 +93,7 @@
 <body><!--orb-nav--><header class="onav"><div class="onav-in"><a class="onav-brand" href="/" aria-label="Orb Studio — главная"><i></i><span>ORB STUDIO</span></a><nav class="onav-tabs" aria-label="Разделы Orb Studio"><a href="/">Главная</a><a href="/world">Мир сейчас</a><a href="/ground">С земли</a><a href="/air">Эфир</a><a href="/deck">Рубка</a><a href="/for-agents" class="on" aria-current="page">Агентам</a></nav><!--orb-lang--><div class="onav-lang" role="group" aria-label="Language / Sprache / Язык"><a href="/ru/tools/fuel" hreflang="ru" lang="ru" class="on" aria-current="true">RU</a><a href="/de/tools/fuel" hreflang="de" lang="de">DE</a><a href="/en/tools/fuel" hreflang="en" lang="en">EN</a></div><!--/orb-lang--></div></header><script>(function(){var a=document.querySelector(".onav-tabs a.on");if(a)a.scrollIntoView({block:"nearest",inline:"center"})})()</script><!--/orb-nav-->
 <main class="wrap fx">
 <header><div class="eyebrow">Orb Studio · дорога · цены</div><h1>Цены на топливо: Гамбург и пригороды</h1><p class="lead">Дизель, E5 и E10 в радиусе 25 км вокруг центра Гамбурга и его южных пригородов. Перед показом каждая цена проходит паспорт данных: закрытые станции, пустые и невозможные цены отсеиваются, выбросы помечаются. Цены паспорт не меняет.</p></header>
-<div class="fx-ban" aria-label="Партнёры Orb Studio · реферальные ссылки"><a href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener">Kraken — криптобиржа ↗</a><a href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener">Starlink — интернет везде ↗</a></div>
+<div class="fx-pb" aria-label="Партнёры Orb Studio · реферальные ссылки"><a class="k" href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener"><span><b>KRAKEN</b><small>криптобиржа</small></span></a><a class="s" href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener"><span><b>STARLINK</b><small>интернет везде</small></span></a></div>
 <div class="fx-sel" role="group" id="sel"><button type="button" data-f="diesel" aria-pressed="true">DIESEL</button><button type="button" data-f="e5" aria-pressed="false">E5</button><button type="button" data-f="e10" aria-pressed="false">E10</button></div>
 <div class="fx-st" id="st" role="status">Загружаем цены…</div>
 <div class="fx-stat"><div><small>минимум</small><strong id="smin">–</strong></div><div><small>медиана</small><strong id="smed">–</strong></div><div><small>прошли паспорт</small><strong id="sok">–</strong></div></div>
@@ -94,6 +104,7 @@
 <details class="fx-det"><summary>Показать, кто именно отсеян</summary><ul id="plog"></ul></details>
 <p class="fx-rules">Паспорт только фильтрует и помечает. Цены он не меняет: это данные Tankerkönig/MTS-K как есть. В списке нет отметки времени у каждой цены, поэтому проверки свежести здесь нет: мы показываем время получения списка (кэш до 6 минут).</p></section>
 <section class="fx-pass" style="border-color:#1b2145;background:none"><h2 style="color:var(--holo)">Для агентов</h2><p class="fx-rules" style="margin:0">То же отдаёт API: GET /api/v1/fuel-hamburg. Бесплатно, без ключа. Не финансовый и не маршрутный совет: цена на колонке может отличаться.</p></section>
+<div class="fx-pb" style="margin-top:16px" aria-label="Партнёры Orb Studio · реферальные ссылки"><a class="k" href="/go/kraken?from=fuel" target="_blank" rel="sponsored noopener"><span><b>KRAKEN</b><small>криптобиржа</small></span></a><a class="s" href="/go/starlink?from=fuel" target="_blank" rel="sponsored noopener"><span><b>STARLINK</b><small>интернет везде</small></span></a></div>
 <div class="fx-foot"><span>Цены: <a href="https://www.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig.de</a> · <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> · <span id="when"></span></span><span>Визитов: <b id="vc">—</b></span><a class="fx-share" href="https://x.com/intent/post?text=Hamburg%20fuel%20prices,%20filtered%20by%20a%20data%20passport%20(closed%20stations,%20empty%20and%20impossible%20prices%20dropped,%20nothing%20altered)%20-%20ORB%20Fuel%20Radar.%20Data:%20Tankerkoenig.de%20CC%20BY%204.0&url=https://orbstudio.org/en/tools/fuel" target="_blank" rel="noopener">Поделиться в X</a></div>
 <div class="fx-ban" style="margin-top:14px"><a href="/tools/route-weather">Условия на маршруте</a><a href="/tools">Все инструменты</a></div>
 </main>
