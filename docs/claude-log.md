@@ -575,3 +575,6 @@
 - Кандидат в датчик (нужно «да» владельца): индекс несходства Дункана между государственными изданиями и остальными по темам заголовков (нужна метка темы на заголовок).
 - Тесты 706/0; docs/scanner-bridges-summary.txt обновлён.
 - 27.11.2026 владелец дал «да» на три «готовых» датчика. Проверка вживую: /api/v1/route?from=airport&conditions=true&time=HH:MM уже даёт время маршрута, сообщения автобанов, минуты после заката и уровень DWD; check_place для аэропорта даёт рассвет/закат и DWD. Мостики airport_way_there_now и airport_dark_or_icy_arrival переведены в covered (новый код не нужен). stop_wait_inspection_paradox: /api/v1/wait-paradox уже есть (экспериментальный, VBB Берлин, не анонсирован), остаётся «ready» до решения об анонсе и охвате Гамбурга.
+
+## Партия 65 Лианы (27.11.2026)
+- Карточки: halbwachs_m, wagenaar_wa, maas_p, ellegard_a, svartvik_j, sutherland_eh, shaw_dl. Мостики: copy_trace → ready (кандидат в датчик, ждёт «да» владельца), outlet_topic_gap, old_story_retold, fraud_three_conditions расширены. Gross записан в docs/memory-waiting.md.

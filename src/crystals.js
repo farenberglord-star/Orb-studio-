@@ -15578,6 +15578,132 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "a retelling compared with the first written version (first-seen headline of the same story); needs the history to grow; joins the old-story-retold bridge"
 }
+},
+{
+"id": "halbwachs_m",
+"name": "Maurice Halbwachs",
+"name_ru": "Морис Хальбвакс",
+"years": "1877–1945",
+"wiki": "https://en.wikipedia.org/wiki/Maurice_Halbwachs",
+"zone": "stale_data",
+"idea": {
+"en": "'Les cadres sociaux de la mémoire' (1925): memory of the past is rebuilt inside the frames of the present; an old event is retold in today's names and concerns, and the marks of its own time drop out.",
+"ru": "«Les cadres sociaux de la mémoire» (1925): память о прошлом перестраивается в рамках настоящего; старое событие пересказывают сегодняшними названиями и заботами, а приметы его времени выпадают.",
+"de": "„Les cadres sociaux de la mémoire“ (1925): Die Erinnerung wird im Rahmen der Gegenwart neu gebaut; ein altes Ereignis wird mit heutigen Namen und Anliegen erzählt, die Merkmale seiner Zeit fallen weg."
+},
+"rule": "A retold old story may carry today's names for things that did not exist then: look for the anachronism before you trust the date.",
+"needs": {
+"code": "needs_idea",
+"note": "names of institutions, tariffs, currencies or routes in a retold story that did not exist on the date of its first appearance; needs the first-seen record and a list of dated names; joins the old-story-retold bridge; not computed yet"
+}
+},
+{
+"id": "wagenaar_wa",
+"name": "Willem Albert Wagenaar",
+"name_ru": "Виллем Альберт Вагенаар",
+"years": "1941–2011",
+"wiki": "https://en.wikipedia.org/wiki/Willem_Albert_Wagenaar",
+"zone": "stale_data",
+"idea": {
+"en": "Study of his own autobiographical memory over six years (1986): of what, who, where and when, the date of an event was the detail least often kept; a retelling without a document may carry a wrong date.",
+"ru": "Исследование собственной автобиографической памяти за шесть лет (1986): из «что, кто, где, когда» хуже всего сохранялась дата события; пересказ без документа может нести неверную дату.",
+"de": "Studie zum eigenen autobiografischen Gedächtnis über sechs Jahre (1986): Von Was, Wer, Wo und Wann blieb das Datum am schlechtesten erhalten; eine Nacherzählung ohne Dokument kann ein falsches Datum tragen."
+},
+"rule": "When a retelling has no dated document behind it, say the date is the weakest part and check it against the first record.",
+"needs": {
+"code": "needs_idea",
+"note": "a retelling that gives a date: difference between that date and the date of the first-seen record of the same story; needs the history to grow; joins the old-story-retold bridge"
+}
+},
+{
+"id": "maas_p",
+"name": "Paul Maas",
+"name_ru": "Пауль Маас",
+"years": "1880–1964",
+"wiki": "https://en.wikipedia.org/wiki/Paul_Maas_(classical_scholar)",
+"zone": "one_model",
+"idea": {
+"en": "'Textkritik' (1927): when two texts share the same specific error, they come from one common source; shared errors, not shared correct wording, show kinship, and a copy adds errors of its own.",
+"ru": "«Textkritik» (1927): когда у двух текстов одна и та же частная ошибка, они восходят к общему источнику; родство показывают общие ошибки, а не общие верные слова, и копия добавляет собственные.",
+"de": "„Textkritik“ (1927): Teilen zwei Texte denselben besonderen Fehler, stammen sie aus einer gemeinsamen Quelle; Verwandtschaft zeigen gemeinsame Fehler, nicht gemeinsame richtige Wörter; die Kopie fügt eigene hinzu."
+},
+"rule": "Five sites with the same typo are one source, not five: count shared errors before you count confirmations.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: odd spellings, wrong numbers or wrong names that two or more outlets share, with the earliest outlet; radar feeds, every 30 minutes; joins the copy-trace bridge; not computed yet"
+}
+},
+{
+"id": "ellegard_a",
+"name": "Alvar Ellegård",
+"name_ru": "Альвар Эллегорд",
+"years": "1919–2008",
+"wiki": "https://en.wikipedia.org/wiki/Alvar_Elleg%C3%A5rd",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'A Statistical Method for Determining Authorship: The Junius Letters, 1769–1772' (1962): an author or a source shows in words he uses much more (plus words) or much less (minus words) than a reference body of texts.",
+"ru": "«A Statistical Method for Determining Authorship: The Junius Letters, 1769–1772» (1962): автора или источник выдают слова, которые он употребляет заметно чаще (плюс-слова) или реже (минус-слова), чем эталонный корпус текстов.",
+"de": "„A Statistical Method for Determining Authorship: The Junius Letters, 1769–1772“ (1962): Ein Autor oder eine Quelle verrät sich durch Wörter, die er viel öfter (Plus-Wörter) oder viel seltener (Minus-Wörter) nutzt als ein Vergleichskorpus."
+},
+"rule": "If several reports share unusual words that the rest of the news does not use, say they probably come from one text.",
+"needs": {
+"code": "needs_idea",
+"note": "per same-event group: words in a headline much more frequent than in all radar headlines (ratio above 2); two outlets sharing several such words are flagged as one text; joins the copy-trace bridge; not computed yet"
+}
+},
+{
+"id": "svartvik_j",
+"name": "Jan Svartvik",
+"name_ru": "Ян Свартвик",
+"years": "1931–2024",
+"wiki": "https://en.wikipedia.org/wiki/Jan_Svartvik",
+"zone": "look_alike",
+"idea": {
+"en": "'The Evans Statements: A Case for Forensic Linguistics' (1968): the grammar of a statement can show that parts of it were written by another hand than the person it is attributed to.",
+"ru": "«The Evans Statements: A Case for Forensic Linguistics» (1968): по грамматике показания можно увидеть, что часть написана другой рукой, а не тем, кому её приписывают.",
+"de": "„The Evans Statements: A Case for Forensic Linguistics“ (1968): An der Grammatik einer Aussage lässt sich erkennen, dass Teile von anderer Hand stammen als von der Person, der sie zugeschrieben werden."
+},
+"rule": "When a quoted statement changes style inside, say that parts may come from another writer; it is a sign to check, not a verdict.",
+"needs": {
+"code": "needs_idea",
+"note": "quoted statements: a change of style inside one quote (sentence length, inversion, time format); needs a source with full quotes, radar headlines are too short; joins the copy-trace bridge as a flag to check, not a verdict"
+}
+},
+{
+"id": "sutherland_eh",
+"name": "Edwin Sutherland",
+"name_ru": "Эдвин Сазерленд",
+"years": "1883–1950",
+"wiki": "https://en.wikipedia.org/wiki/Edwin_Sutherland",
+"zone": "rumour_vs_fact",
+"idea": {
+"en": "'White Collar Crime' (1949): offences by people in respected jobs follow learned, repeated patterns, so a new case is best read against the known earlier cases.",
+"ru": "«White Collar Crime» (1949): правонарушения людей на уважаемых должностях идут по выученным, повторяющимся схемам, поэтому новый случай лучше читать на фоне известных прежних.",
+"de": "„White Collar Crime“ (1949): Delikte von Personen in angesehenen Berufen folgen gelernten, wiederholten Mustern; ein neuer Fall wird am besten an bekannten früheren gelesen."
+},
+"rule": "Say which earlier case this one resembles and how; do not call a scheme new before you have looked for the old one.",
+"needs": {
+"code": "needs_idea",
+"note": "crime-desk items with fraud or embezzlement words matched to earlier items by scheme words (same trick, same kind of victim); needs the crime-desk history to grow; joins the fraud-conditions bridge"
+}
+},
+{
+"id": "shaw_dl",
+"name": "Donald Lewis Shaw",
+"name_ru": "Дональд Льюис Шоу",
+"years": "1936–2021",
+"wiki": "https://en.wikipedia.org/wiki/Donald_Lewis_Shaw",
+"zone": "one_model",
+"idea": {
+"en": "With Maxwell McCombs, 'The Agenda-Setting Function of Mass Media' (1972): the order of topics in the media matches the order that people give; compared as rank order of topics between two sets.",
+"ru": "С Максвеллом Маккомбсом, «The Agenda-Setting Function of Mass Media» (1972): порядок тем в СМИ совпадает с порядком, который называют люди; сравнение — по ранговому порядку тем в двух наборах.",
+"de": "Mit Maxwell McCombs, „The Agenda-Setting Function of Mass Media“ (1972): Die Reihenfolge der Themen in den Medien deckt sich mit der, die Menschen nennen; verglichen wird die Rangordnung der Themen in zwei Mengen."
+},
+"rule": "To say two groups of outlets set different agendas, compare the rank order of their topics and give the number.",
+"needs": {
+"code": "needs_idea",
+"note": "a topic label per headline for 7 days; Spearman rank correlation of topic order between state media and the rest; sensor candidate with the Duncan index, needs the owner yes; joins the outlet-topic-gap bridge"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)

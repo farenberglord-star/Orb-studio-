@@ -1,263 +1,262 @@
-# Мостики Orb Studio на 27.11.2026 (id | зона | статус | название)
-amplification | side_effects | sensor | Усиление при пересказе
-first_digit | measurement_error | sensor | Закон первой цифры
-heavy_tails | measurement_error | sensor | Тяжёлые хвосты
-cost_of_error | measurement_error | sensor | Цена ошибки
-not_significant | answer_cost | sensor | Незначимо ≠ нет эффекта
-own_confidence | own_limits | sensor | Честна ли наша уверенность
-radar_noise | measurement_error | sensor | Шум радара
-familiar_true | rumour_vs_fact | line | Привычное кажется правдой
-smooth_not_understanding | own_limits | line | Гладкость ≠ понимание
-false_premise | rumour_vs_fact | line | Ложная посылка
-quote_context | look_alike | line | Цитата вне контекста
-found_document | rumour_vs_fact | line | Подделку ловят словами
-extraordinary | rumour_vs_fact | line | Необычное требует большего
-metaphor | look_alike | line | Метафора ≠ факт
-who_else_pays | side_effects | line | Кто ещё платит
-rumour_risk | rumour_vs_fact | line | Слух = важность × неясность
-first_source | rumour_vs_fact | line | Первоисточник, а не число пересказов
-rule_conflict | own_limits | line | Конфликт правил: побеждает осторожное
-knowledge_dispersed | own_limits | line | Знание рассеяно: говори «неизвестно»
-several_hypotheses | one_model | line | Несколько гипотез
-honest_answer_pays | answer_cost | line | Честный ответ выгоден
-witness_question | rumour_vs_fact | line | Свидетель и вопрос
-instrument_limit | measurement_error | covered | Предел прибора
-random_is_a_model | one_model | covered | «Наугад» — тоже модель
-empty_cell | own_limits | covered | Пустая клетка
-difference_without_difference | look_alike | covered | Разница без разницы
-scale_decides | measurement_error | covered | Шкала решает арифметику
-net_decides_catch | measurement_error | covered | Сеть решает улов
-noise_or_shift | measurement_error | covered | Шум или сдвиг
-robust_conclusion | one_model | covered | Устойчивость вывода
-rare_in_clusters | measurement_error | covered | Редкое кучками
-few_data_wide_band | measurement_error | covered | Мало данных — шире границы
-model_not_world | one_model | covered | Модель ≠ мир
-other_things_equal | one_model | covered | При прочих равных
-index_weights | measurement_error | covered | Веса индекса
-prestige_not_quality | look_alike | covered | Престиж ≠ качество
-unanimity | rumour_vs_fact | covered | Единогласие ≠ доказательство
-formal_limit | own_limits | covered | Граница формализации
-calm_breeds_risk | side_effects | covered | Стабильность растит риск
-message_functions | rumour_vs_fact | covered | Три функции сообщения
-test_before_data | measurement_error | covered | Тест до данных
-not_confirmed | rumour_vs_fact | covered | Не подтверждено ≠ опровергнуто
-verb_aspect | rumour_vs_fact | covered | Вид глагола
-index_not_living | measurement_error | covered | Индекс ≠ стоимость жизни
-who_leads_whom | one_model | waiting | Кто кого ведёт
-forecast_horizon | one_model | waiting | Горизонт прогноза
-spill_over | side_effects | waiting | Перенос между радарами
-radar_moves_market | side_effects | waiting | Радар меняет рынок
-revisions | stale_data | waiting | Правки чисел
-tone | rumour_vs_fact | line | Тон в трёх измерениях
-namesakes | look_alike | sensor | Тёзки в новостях
-tree_or_wave | rumour_vs_fact | sensor | Дерево или волна
-log_step | measurement_error | sensor | Шаг на логарифмической шкале — это кратность
-extra_pass | answer_cost | covered | Цена лишнего прохода
-purpose_vs_use | side_effects | idea | Инструмент — это то, что он делает
-moving_bar | own_limits | idea | Планка, которая движется за результатами
-same_story_pull | look_alike | waiting | Издания тянутся к одной истории
-enough_variety | own_limits | sensor | Достаточно видов ответа
-cheap_to_say_dear_to_check | answer_cost | idea | Говорить дёшево, проверять дорого
-metric_resolution | measurement_error | idea | Что умеет видеть показатель
-learning_loops | own_limits | waiting | Контуры обучения: чинить правило, а не только поступок
-how_many_numbers | answer_cost | waiting | Сколько чисел на самом деле нужно
-spiral_or_bounce | side_effects | waiting | Сдвиг подпитывает себя или отскакивает
-fast_ripple_slow_tide | stale_data | covered | Быстрая рябь или медленный прилив
-wicked_steps | side_effects | idea | Нет правила остановки: малые шаги со следами
-sum_of_reasonable_choices | side_effects | idea | Никто не хотел такого исхода
-survivors_look_wise | look_alike | idea | Выжившие выглядят мудрыми
-rule_vs_behaviour | stale_data | idea | Правило — ещё не поведение
-copy_of_copy | own_limits | idea | Копии копий
-real_alternative | one_model | idea | Сравнивай с возможным
-price_next_to_cost | measurement_error | idea | Движение цены рядом с причиной
-order_before_cause | look_alike | idea | Порядок прежде причины
-growth_outruns_control | side_effects | waiting | Рост обгоняет управление
-sure_thing_weight | own_limits | idea | Гарантия весит слишком много
-view_from_inside | own_limits | idea | Первое сообщение — взгляд изнутри
-smooth_drift_sudden_jump | look_alike | idea | Внезапный скачок, медленный дрейф до него
-word_gets_stretched | look_alike | idea | Слово растянуто на слишком много случаев
-conflict_after_quiet | side_effects | idea | Тишина, потом громче; внешний враг сплачивает
-old_reading_lingers | stale_data | idea | Старое прочтение переживает свои доказательства
-meaning_in_the_reply | rumour_vs_fact | idea | Ответ определяет поступок
-believed_so_it_moves | side_effects | idea | Поверили — и это двигает
-more_rules_new_gaps | side_effects | idea | Больше правил — новые пробелы
-more_flow_less_response | answer_cost | sensor | Больше потока — слабее отклик
-measured_but_unreported | own_limits | sensor | Измерено, но не сообщено
-copy_has_no_time | stale_data | idea | У копии нет времени и места
-said_then_did_otherwise | own_limits | covered | Сказали одно, сделали другое
-one_index_hides_places | side_effects | idea | Один индекс прячет места
-setting_shapes_the_act | own_limits | idea | Ситуация задаёт поступок
-independent_voices_average_out | answer_cost | idea | Усредняются только независимые голоса
-reply_takes_time | answer_cost | idea | Ответ требует времени
-ratchet_up_slow_down | stale_data | sensor | Вверх быстро, вниз медленно
-small_steps_large_sum | side_effects | sensor | Мелкие шаги, большая сумма
-present_tense_past_event | stale_data | waiting | Настоящее время о прошедшем событии
-core_and_penumbra | own_limits | idea | Ядро и полутень
-same_words_other_thing | look_alike | idea | Те же слова, другое дело
-same_message_read_differently | look_alike | idea | Одно сообщение, разные прочтения
-same_story_measures | look_alike | idea | Насколько похожи две новости
-same_form_three_layers | look_alike | idea | Одна форма, три слоя
-word_has_birth_date | stale_data | source | У слова есть дата рождения
-next_headline_yield | answer_cost | idea | Что добавит следующий заголовок
-shock_settles | own_limits | waiting | Затухает ли толчок
-load_makes_waiting | answer_cost | waiting | У полной загрузки ожидание взлетает
-model_vs_world | own_limits | idea | Модель против того, что она замещает
-source_change_moves_index | own_limits | idea | Новый источник двигает число
-who_knows_this_topic | own_limits | waiting | Кто знает именно эту тему
-lottery_of_confirmed | own_limits | idea | Каждое вероятно, все вместе нет
-first_look_is_obstacle | own_limits | idea | Первый взгляд — препятствие
-exit_or_voice | own_limits | idea | Выход или голос: молчание — не согласие
-check_the_die | measurement_error | idea | Проверь кость
-reference_class | one_model | idea | Референтный класс
-own_yardstick | look_alike | idea | Своя мерка
-halo | look_alike | idea | Ореол
-fact_or_value | rumour_vs_fact | idea | Факт или оценка
-context_not_meaning | look_alike | idea | Контекст ≠ смысл
-word_hides_danger | look_alike | idea | Слово прячет опасность
-explanation_vs_understanding | look_alike | idea | Объяснение ≠ понимание
-measure_depends_on_set | measurement_error | line | Мерка зависит от набора
-holes_in_layers | side_effects | sensor | Дыры в слоях
-off_the_question | own_limits | line | Ушёл от вопроса
-cry_wolf | answer_cost | sensor | Крик «волк»: слишком частые тревоги
-one_number_or_several | one_model | waiting | Одно число или несколько
-reward_changes_answer | side_effects | waiting | Награда меняет ответ
-carrier_or_condition | look_alike | waiting | Через что или при каком условии
-not_found_not_absent | own_limits | idea | Не найдено ≠ нет
-mixture_not_source | rumour_vs_fact | covered | Смесь — не один источник
-flicker_or_shift | measurement_error | covered | Колебание или сдвиг
-one_turn_not_end | rumour_vs_fact | covered | Реплика, а не конец разговора
-gist_drifts | rumour_vs_fact | covered | Пересказ сползает к сценарию
-age_or_generation | stale_data | covered | Возраст или поколение
-many_readings | one_model | line | Сначала много прочтений
-looks_vs_is | look_alike | line | Видимость ≠ суть
-rule_without_words | own_limits | line | Правило без слов
-worth_checking | answer_cost | covered | Стоит ли проверка усилий
-neighbour_not_same | look_alike | idea | Соседнее ≠ то же
-correction_not_erase | own_limits | sensor | Опровержение не стирает
-confidence_not_accuracy | own_limits | covered | Уверенность ≠ точность
-lens_of_warnings | measurement_error | covered | Линза тревог
-chain_retelling | rumour_vs_fact | covered | Цепочка пересказа
-hint_starts_rumour | rumour_vs_fact | line | Намёк запускает слух
-question_innuendo | rumour_vs_fact | line | Вопрос в заголовке обвиняет
-crowd_draws_crowd | look_alike | covered | Толпа притягивает толпу
-who_chose_the_news | stale_data | covered | Кто выбрал новости
-panel_drifts | one_model | idea | Обсуждение сползает к краю
-what_most_think | look_alike | idea | «Большинство считает» — нужен опрос
-poll_is_estimate | measurement_error | line | Опрос — оценка, а не результат
-news_filter | stale_data | covered | Радар показывает фильтр новостей
-coverage_not_importance | look_alike | covered | Охват ≠ важность
-frame_choice | one_model | line | Какую рамку выбрали
-relay_of_influence | side_effects | covered | Влияние идёт через передатчиков
-correction_prominence | own_limits | covered | Поправка так же громко, как ошибка
-moral_panic | side_effects | sensor | Размер случая и размер тревоги
-pseudo_event | rumour_vs_fact | idea | Устроено для камер
-mean_world | measurement_error | idea | Поток кажется опаснее, чем по статистике
-impossible_at_date | stale_data | line | Невозможно на заявленную дату
-remains_vs_tradition | rumour_vs_fact | line | Документ или пересказ
-translation_shift | look_alike | line | Смысл сдвигается при переводе
-one_story_three_languages | look_alike | line | Одна новость на трёх языках
-self_declared_sound | measurement_error | line | «Признано надёжным» — это заявление
-skill_not_hits | answer_cost | covered | Мастерство, а не доля попаданий
-chart_honesty | measurement_error | covered | Где ноль на графике
-witness_in_spite | rumour_vs_fact | idea | Свидетели поневоле
-incubation | side_effects | idea | Инкубация «внезапного» кризиса
-drift_to_edge | side_effects | covered | Дрейф к границе
-cobra_effect | side_effects | line | Эффект кобры
-risk_thermostat | side_effects | covered | Мера объявлена ≠ риск снижен
-chosen_vs_imposed | answer_cost | idea | Риск выбранный или навязанный
-no_memory | look_alike | covered | У организаций нет памяти
-special_cause | measurement_error | covered | Шум или особая причина
-run_rule | measurement_error | line | Длинная серия — тоже сигнал
-tampering | side_effects | covered | Подкрутка растит разброс
-vital_few | answer_cost | covered | Немногие важные
-cause_classes | one_model | covered | Несколько классов причин
-loss_off_target | measurement_error | covered | Потери начинаются у цели
-catch_at_source | rumour_vs_fact | covered | Лови у источника
-proxy_not_need | side_effects | waiting | Показатель ≠ потребность
-bradford_scatter | own_limits | sensor | Ядро и хвост изданий
-rare_anchor_weighs | look_alike | line | Редкое общее слово весит больше
-recall_vs_precision | answer_cost | covered | Меньше пропусков или меньше ложных тревог
-fact_with_source | rumour_vs_fact | covered | Факт хранит свой источник
-facets_not_tree | one_model | idea | Фасеты, а не одно дерево
-evidence_chain | rumour_vs_fact | line | Цепочка от увиденного до сказанного
-qualifier_and_rebuttal | own_limits | covered | Оговорка и опровержение
-tests_survived | own_limits | covered | Выдержанные проверки, а не повторы
-evidence_scale | measurement_error | idea | Слабое свидетельство называй слабым
-conflicting_sources | one_model | covered | Кто за какую версию
-surprising_confirmation | rumour_vs_fact | idea | Неожиданное подтверждение весит больше
-ruin_vs_share | answer_cost | line | Разорение растёт с долей под риском
-longer_record_bigger_extreme | measurement_error | covered | Длиннее история — больше крайний случай
-edge_of_the_table | measurement_error | covered | Край таблицы
-null_not_zero | measurement_error | covered | Нет данных ≠ ноль
-all_or_nothing | rumour_vs_fact | covered | Всё или ничего
-record_linkage | look_alike | covered | Та же запись или похожая?
-certain_answers | own_limits | covered | Достоверный ответ
-word_climbs_rank | measurement_error | sensor | Слово поднялось в своём ранге
-earliest_found | stale_data | covered | Самое раннее найденное ≠ первое
-company_it_keeps | look_alike | idea | Слово по его соседям
-balanced_sample | one_model | covered | Считай по всем жанрам
-meaning_of_its_time | stale_data | covered | Значение своего времени
-outlet_concentration | one_model | covered | Много заголовков — мало изданий
-pooled_or_split | one_model | idea | Одно число или несколько
-economy_of_checking | answer_cost | idea | Достаточно проверки
-not_yet_true | rumour_vs_fact | covered | Ещё не истина и не ложь
-quiet_shift | stale_data | sensor | Тихий сдвиг
-outlets_agree_on_act | one_model | sensor | Согласны ли издания, что это за новость
-saturated_not_settled | rumour_vs_fact | sensor | Перестала расти — не значит подтверждена
-sticky_series | stale_data | sensor | Липкий ряд кажется спокойнее, чем есть
-story_spread_decay | stale_data | waiting | История ещё растёт или угасает
-stale_apparent_vs_real | stale_data | waiting | Список источников истории правда старый или только выглядит старым
-independent_or_same_root | one_model | idea | Два издания согласны: независимо или у них один первоисточник
-claimed_vs_found_complete | answer_cost | idea | Ответ, который кажется полным, против проверенной выборки
-question_wording_shift | look_alike | idea | Два опроса с разной формулировкой — не один тренд
-small_cell_suppressed | own_limits | idea | Прочерк в таблице: скрытая малая ячейка, а не ноль
-quiet_or_broken | stale_data | sensor | Тихий час или сломанная лента
-aftershock_not_new | look_alike | sensor | Афтершок — не новое землетрясение
-loud_chorus_not_majority | rumour_vs_fact | covered | Громкий хор — не большинство
-spread_not_level | stale_data | sensor | Изменился разброс, а не уровень
-round_numbers_are_estimates | rumour_vs_fact | sensor | Круглое число — оценка
-bias_or_noise | stale_data | waiting | Сдвиг или шум
-new_info_not_paraphrase | rumour_vs_fact | idea | Новое сведение, а не пересказ
-many_checks_some_lucky | answer_cost | idea | Много проверок разом: часть выглядит сигналом по случайности
-when_to_stop_reading | answer_cost | idea | Когда прекратить добавлять источники
-shelf_price_lags_market | stale_data | idea | Цена на полке отстаёт от рынка
-map_card_hours_disagree | stale_data | sensor | Часы на карточке места против других источников и календаря праздников
-rating_needs_its_count | measurement_error | sensor | Звёзды стоят ровно столько, сколько оценок за ними
-review_age_and_bursts | stale_data | sensor | Возраст отзывов и не пришли ли многие за одну неделю
-typical_is_not_now | stale_data | idea | «Обычно мало людей» — типичный час, а не людно ли сейчас
-place_with_nearby_warnings | side_effects | sensor | Место вместе с официальными предупреждениями рядом
-outdoor_place_before_dark | side_effects | sensor | Место на улице и минуты до заката
-place_name_in_two_cities | look_alike | sensor | Одно название места в нескольких городах
-place_air_nearest_station | stale_data | sensor | Место и индекс воздуха ближайшей официальной станции
-place_charger_register_nearby | stale_data | sensor | Место зарядки сверено с официальным реестром зарядок
-airport_way_there_now | stale_data | covered | Дорога до аэропорта сейчас: сообщения по трассам, время маршрута и предупреждения погоды вместе
-airport_dark_or_icy_arrival | side_effects | covered | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и гололёде
-airport_parking_gap | stale_data | idea | Парковка и зарядка у терминала там, где у нас есть данные
-route_when_jammed_equal_times | own_limits | sensor | Пробка на маршруте и «свободная» альтернатива: оба времени сейчас, а не обещанная экономия
-terminal_landmarks_check | look_alike | idea | Как найти вход на вокзале или в аэропорту: по ориентирам и входам, с проверкой, что назван именно тот объект
-road_jam_inspection_paradox | measurement_error | sensor | Запас на дорогу: пробка, которую вы встретите, длится дольше средней
-stop_wait_inspection_paradox | measurement_error | ready | Ожидание на остановке: при неровном движении случайный приход стоит дороже половины интервала
-route_roads_now | side_effects | sensor | Автобаны маршрута: пробки, закрытия и стройки прямо сейчас
-description_absolute_claims | rumour_vs_fact | sensor | Абсолютные слова в описании места требуют границ или источника
-report_back_loop | rumour_vs_fact | idea | Когда источники расходятся, человек правит карту: петля от проверки к исправлению
-own_rhythm_of_change | stale_data | idea | У каждого источника свой ритм
-details_not_repeats | rumour_vs_fact | sensor | Подробности, а не повтор
-independent_voices | one_model | waiting | Сколько независимых голосов
-say_not_known | answer_cost | covered | «Не знаю», когда вилка пересекает границу
-named_or_anonymous | rumour_vs_fact | sensor | Названный источник или «источники сообщают»
-hedged_not_stated | rumour_vs_fact | sensor | «Может» — не «сделал»
-if_is_not_did | rumour_vs_fact | sensor | «Если» — не «сделал»
-number_from_another_time | stale_data | sensor | Число из другого периода
-how_rare_is_this_quake | look_alike | sensor | Насколько редок толчок такой силы
-elite_lens | one_model | idea | Освещение идёт за элитными странами, а не за масштабом
-same_words_many_copies | look_alike | idea | Мало слов — много копий
-poll_fast_enough | stale_data | sensor | Опрос достаточно частый для того, как меняется
-calque_not_report | rumour_vs_fact | idea | Переводная калька — не второе сообщение
-copy_trace | one_model | idea | Каждая копия оставляет след
-expert_questions | one_model | idea | «Эксперт говорит»: имя, область, второе мнение
-outlet_topic_gap | one_model | idea | Две группы изданий — разная повестка
-innovators_or_followers | side_effects | idea | Нашли сами или пошли следом
-fraud_three_conditions | rumour_vs_fact | idea | История о мошенничестве: давление, возможность, оправдание
-detail_not_verdict | rumour_vs_fact | idea | Конкретные детали: счёт, не вердикт
-old_story_retold | stale_data | idea | Старая история в пересказе сегодня
-copy_wave | one_model | idea | Волна копий: кто первый, насколько похоже, чья повестка
+amplification | sensor | kasperson,toffler,howard,searle,tullock_g
+first_digit | sensor | newcomb,bessel,baird,rabin
+heavy_tails | sensor | pareto,mandelbrot,chebyshev,lorenz
+cost_of_error | sensor | pearson,savage,snedecor,wedderburn_r,levi_i
+not_significant | sensor | cohen,mooers,gosset,howard
+own_confidence | sensor | harman,festinger,lindley,burkov
+radar_noise | sensor | griliches,polyak,trackrecord
+familiar_true | line | zajonc,kasperson,galbraith,le_bon_g
+smooth_not_understanding | line | weizenbaum,dreyfus,naur,stebbing_ls
+false_premise | line | strawson,nozick,schopenhauer,bentham
+quote_context | line | derrida,koselleck,schleiermacher
+found_document | line | valla,casaubon,dobrovsky,chasles
+extraordinary | line | hume,laplace,borel
+metaphor | line | max_mueller,condillac
+who_else_pays | line | sidgwick,bastiat,powell,tinbergen,barnard_ci
+rumour_risk | line | allport,cantril,tarde
+first_source | line | tannery,stephen_l,schleicher,shakhmatov
+rule_conflict | line | bobbio,neurath
+knowledge_dispersed | line | hayek,weizenbaum,polanyi_m
+several_hypotheses | line | chamberlin,peirce,duhem
+honest_answer_pays | line | vickrey,burkov,ramsey_f,de_finetti
+witness_question | line | binet,muensterberg,strawson
+instrument_limit | covered | abbe,gibbs,fechner
+random_is_a_model | covered | bertrand,leamer,breiman
+empty_cell | covered | mendeleev,lyberg,halley
+difference_without_difference | covered | james_w,levenshtein
+scale_decides | covered | stevens_ss,baird,richardson_lf,kendall
+net_decides_catch | covered | eddington,lyberg,bowley
+noise_or_shift | covered | galton,lexis,polyak
+robust_conclusion | covered | lyapunov,duhem,quine,leamer,akaike_h,schwarz_g
+rare_in_clusters | covered | bortkiewicz,mises_r,skinner_bf
+few_data_wide_band | covered | gosset,helmert,neyman,cramer
+model_not_world | covered | whitehead,schumpeter,robinson_j,leamer
+other_things_equal | covered | marshall_a,simpson,frisch
+index_weights | covered | edgeworth,konus,allen_rgd,kuznets
+prestige_not_quality | covered | veblen,zajonc,kasperson
+unanimity | covered | asch,condorcet,hempel
+formal_limit | covered | goedel,tarski,polanyi_m,ryle
+calm_breeds_risk | covered | minsky_h,pareto,mandelbrot
+message_functions | covered | buehler,searle,goffman,pelc_j,jakobson_r
+test_before_data | covered | fisher_r,skinner_bf
+not_confirmed | covered | greimas,dunn,karpenko
+verb_aspect | covered | maslov,searle,grice
+index_not_living | covered | konus,baird,kuznets
+who_leads_whom | waiting | granger,salmon_w,reichenbach,pearson_k,mill,cournot,manne_hg
+forecast_horizon | waiting | lorenz,poincare,mandelbrot,hurst_he
+spill_over | waiting | leontief,walras,kahn_r,quesnay
+radar_moves_market | waiting | rosenthal,keynes,von_neumann,wiener,phillips_w,campbell_dt
+revisions | waiting | rinne,elmasri,morgenstern_o
+tone | line | osgood,elias,wallas,lippmann,weber_m,ossowska_m
+namesakes | sensor | frege,geach,dirichlet,levenshtein
+tree_or_wave | sensor | schmidt_j,schleicher,tarde
+log_step | sensor | richter_cf,cohen_s
+extra_pass | covered | stigler_gj,raiffa,coase,howard
+purpose_vs_use | idea | beer_s,meadows_d,campbell_dt
+moving_bar | idea | cyert_rm,campbell_dt,march_jg
+same_story_pull | waiting | hotelling_h,schmidt_j,asch,janis_il,haken_h,sherif_m,leibenstein_h,anderson_b
+enough_variety | sensor | ashby_wr,beer_s,luhmann
+cheap_to_say_dear_to_check | idea | baumol_w,coase,mooers,downs_a,williamson_oe,richardson_gb,wieser_f
+metric_resolution | idea | morgenstern_o,rivlin_a,solow_r,bateson_g
+learning_loops | waiting | argyris_c,schon_d,march_jg,weick_ke
+how_many_numbers | waiting | mach_e,das_jp,spearman
+spiral_or_bounce | waiting | myrdal_g,kaldor_n,hurst_he,mandelbrot,dornbusch_r
+fast_ripple_slow_tide | covered | braudel_f,hicks_jr,simon_j,kalman,gibbs,black_f
+wicked_steps | idea | rittel_h,lindblom_c,simon_ha
+sum_of_reasonable_choices | idea | boudon_r,polanyi_k,kornai_j
+survivors_look_wise | idea | alchian_a,tversky,campbell_dt
+rule_vs_behaviour | idea | north_dc,innis_h,febvre_l
+copy_of_copy | idea | baudrillard_j,maturana_h,burke_k,benjamin_w
+real_alternative | idea | demsetz_h,lindblom_c,mises_l
+price_next_to_cost | idea | lerner_a,sraffa_p,koopmans_t
+order_before_cause | idea | wold_h,koopmans_t,granger
+growth_outruns_control | waiting | chandler_ad,penrose_e,weaver_w,ashby_wr
+sure_thing_weight | idea | allais_m,tversky,janis_il
+view_from_inside | idea | aron_r,turner_v,maturana_h,schutz_a
+smooth_drift_sudden_jump | idea | thom_r,kaldor_n,hurst_he,lewin_k
+word_gets_stretched | idea | sartori_g,whorf,max_mueller
+conflict_after_quiet | idea | dahrendorf_r,coser_la,kasperson
+old_reading_lingers | idea | planck_m,febvre_l,innis_h
+meaning_in_the_reply | idea | mead_gh,searle,austin_jl
+believed_so_it_moves | idea | thomas_wi,merton,kasperson
+more_rules_new_gaps | idea | crozier_m,argyris_c,ashby_wr
+more_flow_less_response | sensor | simmel_g,simon_ha,becker_gs
+measured_but_unreported | sensor | scheler_m,schutz_a,dahl_ra
+copy_has_no_time | idea | benjamin_w,baudrillard_j,planck_m,hobsbawm_e,chernykh_py
+said_then_did_otherwise | covered | lapiere_rt,prescott_ec,searle,austin_jl,fuller_ll
+one_index_hides_places | idea | lefebvre_h,simpson,baudrillard_j,gellner_e
+setting_shapes_the_act | idea | barker_rg,searle,mead_gh
+independent_voices_average_out | idea | markowitz_hm,michels_r,bradford_sc
+reply_takes_time | idea | mortensen_dt,austin_jl,becker_gs
+ratchet_up_slow_down | sensor | duesenberry_js,hicks_jr,kaldor_n
+small_steps_large_sum | sensor | parfit_d,hurst_he,thom_r
+present_tense_past_event | waiting | prior_an,scheler_m,benjamin_w
+core_and_penumbra | idea | hart_hla,waismann_f,wittgenstein
+same_words_other_thing | idea | korzybski_a,ogden_ck,baudrillard_j,langer_sk,scherba_lv,vinogradov_vv,vasmer_m
+same_message_read_differently | idea | hall,hall_et,whorf
+same_story_measures | idea | jaccard_p,dice_lr,hamming_rw,mahalanobis_pc,levenshtein
+same_form_three_layers | idea | scherba_lv,vinogradov_vv,benveniste_e,searle,korzybski_a
+word_has_birth_date | source | chernykh_py,ushakov_dn,hobsbawm_e,prior_an
+next_headline_yield | idea | wieser_f,downs_a,mooers
+shock_settles | waiting | banach_s,duesenberry_js,hicks_jr
+load_makes_waiting | waiting | erlang_ak,goldratt,forrester
+model_vs_world | idea | craik_kj,ashby_wr,wiener
+source_change_moves_index | idea | roethlisberger_fj,parducci,erlang_ak,allen_rgd
+who_knows_this_topic | waiting | wilson_p,bradford_sc,kasperson
+lottery_of_confirmed | idea | kyburg_hn,levi_i,harman,lindley
+first_look_is_obstacle | idea | bachelard_g,stebbing_ls,zajonc
+exit_or_voice | idea | hirschman,watzlawick,campbell_dt
+check_the_die | idea | weldon,bertrand
+reference_class | idea | venn,bertrand,weldon
+own_yardstick | idea | sumner,bessel,winch
+halo | idea | thorndike,veblen,zajonc
+fact_or_value | idea | weber_m,osgood,elias,bales_rf,arendt_h
+context_not_meaning | idea | harris_z,kilgarriff,levenshtein
+word_hides_danger | idea | whorf,max_mueller
+explanation_vs_understanding | idea | dilthey,searle
+measure_depends_on_set | line | parducci,fechner,edgeworth,naatanen,kondratiev_nd
+holes_in_layers | sensor | reason_j,bobbio,harman
+off_the_question | line | smallwood,grice,weizenbaum
+cry_wolf | sensor | pearson,harman,nesselroade
+one_number_or_several | waiting | das_jp,goldberg_l,spearman,leontief
+reward_changes_answer | waiting | deci,campbell_dt,burkov
+carrier_or_condition | waiting | baron_r,reichenbach,granger
+not_found_not_absent | idea | tulving,frege,levenshtein
+mixture_not_source | covered | bregman,schleicher,condorcet
+flicker_or_shift | covered | nesselroade,griliches,lexis,galton
+one_turn_not_end | covered | markova_i,harman
+gist_drifts | covered | mandler_j,kasperson,derrida
+age_or_generation | covered | schaie,simpson
+many_readings | line | kintsch,klahr,chamberlin
+looks_vs_is | line | flavell,max_mueller,osgood
+rule_without_words | line | reber,polanyi_m,shulman
+worth_checking | covered | vroom,mooers,cohen
+neighbour_not_same | idea | collins_am,harris_z,kilgarriff
+correction_not_erase | sensor | ross_l,kunda,festinger,harman
+confidence_not_accuracy | covered | brown_r,neisser,stern_w,einhorn
+lens_of_warnings | covered | brunswik,reason_j,harman
+chain_retelling | covered | bartlett,schleicher,kasperson
+hint_starts_rumour | line | schachter,cartwright_d,allport,cantril
+question_innuendo | line | wegner,strawson
+crowd_draws_crowd | covered | milgram,asch,darley
+who_chose_the_news | covered | white_dm,lyberg,eddington
+panel_drifts | idea | moscovici,asch
+what_most_think | idea | allport_f,ross_l
+poll_is_estimate | line | huff,meyer_p,bowley,gosset
+news_filter | covered | galtung,luhmann,gans,white_dm,lyberg
+coverage_not_importance | covered | mccombs,merton,milgram
+frame_choice | line | gitlin,gamson,goffman,chamberlin
+relay_of_influence | covered | lazarsfeld,katz_e,greenberg_b,bartlett
+correction_prominence | covered | macdougall,ross_l,harman
+moral_panic | sensor | cohen_s,kasperson,osgood
+pseudo_event | idea | boorstin,searle
+mean_world | idea | gerbner,pareto,laplace
+impossible_at_date | line | mccrone,valla,casaubon,langlois
+remains_vs_tradition | line | bernheim,bartlett,schleicher
+translation_shift | line | nida,newmark,chukovsky
+one_story_three_languages | line | reiss,nida,condorcet
+self_declared_sound | line | montgomery_rh,ripley,briloff
+skill_not_hits | covered | gilbert_gk,burkov,pearson
+chart_honesty | covered | brinton,bertin,stevens_ss
+witness_in_spite | idea | bloch,osborn
+incubation | idea | turner_ba,reason_j,harman
+drift_to_edge | covered | rasmussen_j,minsky_h,pareto
+cobra_effect | line | siebert_h,campbell_dt,sidgwick,bastiat,hood_c
+risk_thermostat | covered | adams_j,wilde_g,white_gf,searle
+chosen_vs_imposed | idea | starr_c,kasperson,douglas_m,wildavsky
+no_memory | covered | kletz,tulving,hume
+special_cause | covered | shewhart,griliches,polyak,trackrecord
+run_rule | line | nelson_ls,shewhart,nesselroade
+tampering | covered | deming,campbell_dt,polyak
+vital_few | covered | juran,pareto,mandelbrot
+cause_classes | covered | ishikawa,chamberlin,duhem
+loss_off_target | covered | taguchi,parducci,fechner
+catch_at_source | covered | shingo,schleicher,tannery
+proxy_not_need | waiting | akao,campbell_dt,deci
+bradford_scatter | sensor | bradford_sc,lotka,pareto,lyberg
+rare_anchor_weighs | line | sparck_jones,salton,luhn,reiss
+recall_vs_precision | covered | cleverdon,lancaster_fw,pearson
+fact_with_source | covered | otlet,baird,tannery
+facets_not_tree | idea | ranganathan,chamberlin,goffman
+evidence_chain | line | wigmore,frank_j,bernheim,otlet
+qualifier_and_rebuttal | covered | toulmin,chamberlin,popper
+tests_survived | covered | cohen_lj,popper,rabin
+evidence_scale | idea | jeffreys,lindley,harman
+conflicting_sources | covered | rescher,condorcet,reiss
+surprising_confirmation | idea | polya,hume,bayes
+ruin_vs_share | line | lundberg_f,cramer,borch
+longer_record_bigger_extreme | covered | gumbel,mandelbrot,pareto
+edge_of_the_table | covered | steffensen,parducci,leamer
+null_not_zero | covered | codd,baird,kelvin,lyberg
+all_or_nothing | covered | gray_j,otlet,wigmore
+record_linkage | covered | newcombe_h,frege,levenshtein
+certain_answers | covered | mendelzon,belnap,carnap
+word_climbs_rank | sensor | zipf,firth,luhn,bradford_sc
+earliest_found | covered | murray_jah,paul_h,darmesteter,valla
+company_it_keeps | idea | firth,harris_z,kilgarriff,collins_am
+balanced_sample | covered | kucera,bradford_sc,lyberg,bowley
+meaning_of_its_time | covered | paul_h,koselleck,rey
+outlet_concentration | covered | gini_c,theil_h,herfindahl_oc,renyi_a,simpson,bradford_sc
+pooled_or_split | idea | cochran_wg,leamer,campbell_dt
+economy_of_checking | idea | kotarbinski_t,levi_i,lindley,anscombe_fj,birnbaum_a,robbins_h
+not_yet_true | covered | lukasiewicz_j,searle,belnap
+quiet_shift | sensor | shewhart,nelson_ls,hinkley_dv
+outlets_agree_on_act | sensor | krippendorff_k,cohen,searle,reiss
+saturated_not_settled | sensor | kendall_dg,schmidt_j,searle
+sticky_series | sensor | durbin_j,watson_gs,shewhart
+story_spread_decay | waiting | weibull_w,omori_f,line_mb,kendall_dg,schmidt_j
+stale_apparent_vs_real | waiting | line_mb,brookes_bc,price_dds,garfield,labov_w
+independent_or_same_root | idea | griffith_b,wilson_p,kasperson
+claimed_vs_found_complete | idea | maron_me,hansen_mh,horvitz_dg,cochran_wg,lancaster_fw,cleverdon,saracevic
+question_wording_shift | idea | schuman_h,binet,lapiere_rt
+small_cell_suppressed | idea | dalenius_t,codd,gosset
+quiet_or_broken | sensor | shiskin_j,cleveland
+aftershock_not_new | sensor | omori_f,richter_cf,cohen_s,wadati_k
+loud_chorus_not_majority | covered | noelle_neumann_e,krippendorff_k,bradford_sc
+spread_not_level | sensor | smirnov_nv,bradley_ra,shewhart,bhattacharyya_ak
+round_numbers_are_estimates | sensor | whipple_gc,newcomb,benford_f
+bias_or_noise | waiting | youden_wj,baird,lyberg
+new_info_not_paraphrase | idea | schreider_ya,flesch_r,searle
+many_checks_some_lucky | idea | spjotvoll_e,schweder,shewhart,cohen
+when_to_stop_reading | idea | mccall_jj,dynkin_eb,degroot_mh,chernoff_h,stigler_gj,howard
+shelf_price_lags_market | idea | rotemberg_jj,hicks_jr,braudel_f
+map_card_hours_disagree | sensor | rotemberg_jj,garcia_molina_h
+rating_needs_its_count | sensor | cohen,shewhart
+review_age_and_bursts | sensor | hinkley_dv,campbell_dt
+typical_is_not_now | idea | kalman,garcia_molina_h
+place_with_nearby_warnings | sensor | kasperson,rotemberg_jj
+outdoor_place_before_dark | sensor | kasperson,kalman
+place_name_in_two_cities | sensor | frege,newcombe_h
+place_air_nearest_station | sensor | kasperson,kalman
+place_charger_register_nearby | sensor | kalman,frege
+airport_way_there_now | covered | kalman,frege
+airport_dark_or_icy_arrival | covered | kalman,kasperson
+airport_parking_gap | idea | frege,kasperson,little_jdc
+route_when_jammed_equal_times | sensor | wardrop,smeed,simon_ha,kahneman
+terminal_landmarks_check | idea | lynch_k,frege
+road_jam_inspection_paradox | sensor | terada,feller_w
+stop_wait_inspection_paradox | ready | terada,feller_w,pollaczek_f,khinchin_a
+route_roads_now | sensor | kasperson,garcia_molina_h
+description_absolute_claims | sensor | naroll_r,kish_l
+report_back_loop | idea | naroll_r,garcia_molina_h
+own_rhythm_of_change | idea | garcia_molina_h,simon_j,kalman
+details_not_repeats | sensor | flesch_r,searle,austin_jl
+independent_voices | waiting | kish_l,fisher_r,ogburn_wf,hoeffding_w,schmidt_j,naroll_r
+say_not_known | covered | dempster_ap,savage,zellner_a,hagenauer,leamer
+named_or_anonymous | sensor | chafe_w,shibutani_t,voloshinov_vn,searle,wilson_p
+hedged_not_stated | sensor | palmer_fr,chafe_w,searle
+if_is_not_did | sensor | adams_ew,lewis_d,searle
+number_from_another_time | sensor | prior_an,reichenbach,searle
+how_rare_is_this_quake | sensor | gutenberg_b,aki_k,richter_cf,omori_f,cohen_s
+elite_lens | idea | ruge_mh,galtung,bradford_sc
+same_words_many_copies | idea | sichel_h,mosteller_f,wallace_dl,zipf,yule_gu,altmann_g,tuldava_j,herdan_g
+poll_fast_enough | sensor | nyquist_h,shannon,mikrin
+calque_not_report | idea | weinreich_u,reiss,nida
+copy_trace | ready | locard_e,bertillon_a,mosteller_f,naroll_r,maas_p,ellegard_a,svartvik_j,dice_lr
+expert_questions | idea | walton_d,searle,shibutani_t,downs_a
+outlet_topic_gap | idea | duncan_od,noelle_neumann_e,gini_c,krippendorff_k,ruge_mh,shaw_dl
+innovators_or_followers | idea | bass_f,naroll_r,kasperson,locard_e
+fraud_three_conditions | idea | cressey_d,newcomb,hume,sutherland_eh
+detail_not_verdict | idea | undeutsch_u,searle,walton_d
+old_story_retold | idea | vansina_j,goody_j,kasperson,halbwachs_m,wagenaar_wa,line_mb,brookes_bc
+copy_wave | idea | locard_e,bass_f,duncan_od,herdan_g
