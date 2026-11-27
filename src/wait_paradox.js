@@ -4,7 +4,7 @@
 // одной линии на одной остановке. Это прогнозы оператора, а не измеренные прибытия; в отчёте так и сказано.
 export const VBB_RT_URL = "https://production.gtfsrt.vbb.de/data";
 export const WAIT_ATTRIBUTION = { text: "VBB Verkehrsverbund Berlin-Brandenburg, GTFS-Realtime, CC BY 4.0", license: "CC BY 4.0", license_url: "https://creativecommons.org/licenses/by/4.0/", url: "https://production.gtfsrt.vbb.de" };
-export const MIN_TRIPS = 4, MIN_GROUPS = 20, MAX_FEED_BYTES = 12e6;
+export const MIN_TRIPS = 4, MIN_GROUPS = 20, MAX_FEED_BYTES = 30e6;
 
 // --- минимальный разбор protobuf (varint, длина-префикс) под gtfs-realtime.proto ---
 function reader(buf, start = 0, end = buf.length) {
@@ -74,7 +74,7 @@ export function waitParadox(trips) {
   if (g.length < MIN_GROUPS) return { status: "collecting", groups: g.length, need: MIN_GROUPS };
   const rs = g.map((x) => x.ratio).sort((a, b) => a - b), med = rs[Math.floor(rs.length / 2)];
   return { status: "ok", groups: g.length, median_ratio: med, share_ratio_over_1_25: r2(rs.filter((x) => x > 1.25).length / rs.length),
-    worst: [...g].sort((a, b) => b.ratio - a.ratio).slice(0, 10),
+    worst: g.filter((x) => x.trips >= 8).sort((a, b) => b.ratio - a.ratio).slice(0, 10),
     note: { en: "If vehicles come unevenly, someone arriving at a random moment waits longer than half the average gap. Ratio 1 = perfectly even; 1.5 = a random arrival waits 50 % longer than the timetable gap suggests. Built from the operator's forecast arrival times, not from measured arrivals.", ru: "Если транспорт идёт неровно, пришедший в случайный момент ждёт дольше половины среднего интервала. Отношение 1 — идеально ровно; 1,5 — ожидание на 50 % больше, чем подсказывает интервал по расписанию. Считано по прогнозным временам оператора, а не по измеренным прибытиям.", de: "Kommen die Fahrzeuge ungleichmäßig, wartet man bei zufälliger Ankunft länger als den halben mittleren Abstand. Verhältnis 1 = ganz gleichmäßig; 1,5 = 50 % längeres Warten als der Fahrplanabstand vermuten lässt. Berechnet aus den Prognosezeiten des Betreibers, nicht aus gemessenen Ankünften." },
     source: WAIT_ATTRIBUTION.text };
 }
