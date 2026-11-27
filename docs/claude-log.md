@@ -532,3 +532,6 @@
 - Карточки: griffith_b (one_model), maron_me (answer_cost, гражданская работа Blair & Maron 1985). Мостики: stale_apparent_vs_real (waiting до 10.12, Line + Brookes + Price), independent_or_same_root (idea, Griffith + Wilson + Kasperson), claimed_vs_found_complete (idea, Maron + Lancaster + Cleverdon + Saracevic).
 - Swanson в docs/memory-waiting.md (медицинская демонстрация), Murphy не добавлен: смерть не подтверждена. Line, Brookes, Price, Wilson, Lancaster F.W. уже были в библиотеке.
 - docs/scanner-bridges-summary.txt обновлён из CRYSTAL_BRIDGES (253 строки); уроки в docs/liana-lessons.md.
+
+## 27.11.2026 — партия 57 (Лиана)
+- Карточки: hansen_mh, horvitz_dg (answer_cost), оба в мостике claimed_vs_found_complete. Goffman (нет Википедии), Kessler (корни в SAGE, решает владелец), Brier (ждёт «да» на датчик) — в docs/memory-waiting.md. Murphy не добавлен: смерть не подтверждена. Egghe жив, Nakamoto и Sekelj не подтверждены.

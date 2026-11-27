@@ -15252,6 +15252,42 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "claimed completeness against a checked sample: share of what a tool answer says it covers that a spot check finds; needs a ground-truth sample (spot-check sensor); not computed yet"
 }
+},
+{
+"id": "hansen_mh",
+"name": "Morris Hansen",
+"name_ru": "Моррис Хансен",
+"years": "1910–1990",
+"wiki": "https://en.wikipedia.org/wiki/Morris_H._Hansen",
+"zone": "answer_cost",
+"idea": {
+"en": "With William Hurwitz and William Madow, 'Sample Survey Methods and Theory' (1953): to know how complete a count is, check a small random sample against it instead of trusting the count's own claim of coverage.",
+"ru": "С Уильямом Гурвицем и Уильямом Мэдоу, «Методы и теория выборочных обследований» (1953): чтобы узнать, насколько полон подсчёт, сверь его с небольшой случайной выборкой, а не верь собственному утверждению подсчёта о полноте.",
+"de": "Mit William Hurwitz und William Madow, „Sample Survey Methods and Theory“ (1953): wie vollständig eine Zählung ist, zeigt der Abgleich mit einer kleinen Zufallsstichprobe, nicht die eigene Behauptung der Zählung."
+},
+"rule": "Check how complete an answer is with a random sample, not with its own claim.",
+"needs": {
+"code": "needs_idea",
+"note": "a random spot-check sample of tool answers against their own stated coverage; needs the spot-check sensor as ground truth; not computed yet"
+}
+},
+{
+"id": "horvitz_dg",
+"name": "Daniel Horvitz",
+"name_ru": "Дэниел Хорвиц",
+"years": "1921–2008",
+"wiki": "https://en.wikipedia.org/wiki/Daniel_G._Horvitz",
+"zone": "answer_cost",
+"idea": {
+"en": "With Donovan Thompson, 'A Generalization of Sampling Without Replacement from a Finite Universe' (1952): when some items are checked more often than others, weight each checked item by the inverse of its chance of being picked, or the easy cases inflate the result.",
+"ru": "С Донованом Томпсоном, «Обобщение выборки без возвращения из конечной совокупности» (1952): если одни элементы проверяют чаще других, вес каждой проверки обратно пропорционален шансу попасть в выборку, иначе лёгкие случаи завышают итог.",
+"de": "Mit Donovan Thompson, „A Generalization of Sampling Without Replacement from a Finite Universe“ (1952): werden manche Elemente öfter geprüft als andere, zählt jede Prüfung mit dem Kehrwert ihrer Auswahlchance, sonst blähen die leichten Fälle das Ergebnis auf."
+},
+"rule": "When spot checks favour some feeds, weight them back, or the share of correct answers looks better than it is.",
+"needs": {
+"code": "needs_idea",
+"note": "inverse-probability weighting of spot checks across rare and frequent feeds; same ground-truth sample as the Hansen card; not computed yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
