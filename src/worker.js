@@ -93,6 +93,8 @@ import { checkPlace, normState, normRoads, sunInfo } from "./place.js";
 import { feiertagModel, feiertagHtml } from "./feiertag.js";
 import { inspectionStats } from "./roads_inspection.js";
 import { conditionsSummary } from "./route_conditions.js";
+import { weatherNow, summarizeWeather as summarizeRouteWeather, WEATHER_ATTRIBUTION } from "./weather_now.js";
+import { geocode, GEOCODE_ATTRIBUTION } from "./geocode.js";
 import { decodeTripUpdates, waitParadox, VBB_RT_URL, WAIT_ATTRIBUTION, MAX_FEED_BYTES } from "./wait_paradox.js";
 import { chargerCellKeys, nearestChargers, chargersSummary, CHARGERS_RADIUS_KM } from "./chargers.js";
 import { parseAirStations, nearestAirStation, parseAirQuality, airSummary, AIR_MAX_KM } from "./airde.js";
@@ -2667,8 +2669,17 @@ async function chokepointsData(env, ctx) {
 // ================= Маршрут + обстановка (бесплатно): /api/v1/route, MCP get_route_context =================
 // Маршрутизатор OSRM (FOSSGIS, данные OpenStreetMap) + сообщения Autobahn GmbH рядом с маршрутом. Бесплатно, как требуют условия OSRM.
 async function routeData(env, params) {
-  const a = parsePlaceOrPoint(params.from), b = parsePlaceOrPoint(params.to), mode = MODES[params.mode] ? params.mode : (params.mode ? null : "car");
-  if (!a || !b || mode === null) return { status: "bad_request", http: 400, error: "Use from=lat,lon&to=lat,lon&mode=foot|bike|car (default car). from/to also accept a known place name.", known_places: Object.keys(PLACES), example: "https://orbstudio.org/api/v1/route?from=53.5511,9.9937&to=53.5392,9.8386&mode=car" };
+  let a = parsePlaceOrPoint(params.from), b = parsePlaceOrPoint(params.to);
+  const mode = MODES[params.mode] ? params.mode : (params.mode ? null : "car");
+  const geo = {}; // ручной ввод адреса: ищем только то, что не место из списка и не координаты
+  for (const [k, v] of [["from", a], ["to", b]]) {
+    if (v) continue;
+    const g = await geocode(params[k]);
+    if (g && g.lat !== undefined) { geo[k] = g.place; if (k === "from") a = { lat: g.lat, lon: g.lon, place: g.place }; else b = { lat: g.lat, lon: g.lon, place: g.place }; }
+    else if (g && g.notfound) return { status: "not_found", http: 404, error: `No address found for "${String(params[k]).slice(0, 60)}" in the Hamburg region. Try street and number, or lat,lon.`, field: k };
+    else if (g && g.unavailable) return { status: "unavailable", http: 503, error: "The address search did not answer. Try a known place name or lat,lon.", field: k };
+  }
+  if (!a || !b || mode === null) return { status: "bad_request", http: 400, error: "Use from=lat,lon&to=lat,lon&mode=foot|bike|car (default car). from/to also accept a known place name or a street address in the Hamburg region.", known_places: Object.keys(PLACES), example: "https://orbstudio.org/api/v1/route?from=53.5511,9.9937&to=53.5392,9.8386&mode=car" };
   if (a.outside || b.outside) return { status: "bad_request", http: 400, error: "Points must be in the Hamburg region (lat 52.9-54.2, lon 8.9-10.9). The free router is not offered for other areas." };
   const key = new Request(`https://orbstudio.org/__cache/route-v3/${mode}/${a.lat},${a.lon}/${b.lat},${b.lon}`), c = caches.default;
   const hit = await c.match(key);
@@ -2700,12 +2711,12 @@ async function routeData(env, params) {
     const st = normState(params.state), pts = body.sample_points || [];
     const date = /^\d{4}-\d{2}-\d{2}$/.test(params.date || "") ? params.date : new Date(Date.now() + 3600e3).toISOString().slice(0, 10);
     const sun = params.time ? sunInfo((a.lat + b.lat) / 2, (a.lon + b.lon) / 2, date, Date.now(), "Europe/Berlin", params.time) : null;
-    const [air, dwd] = await Promise.all([Promise.all(pts.map((p) => race(airData(env, p.lat, p.lon)))), race(dwdWarnData(env, st))]);
-    conditions = conditionsSummary({ sun, durationMin: body.duration_min, air, dwd, state: st, mode });
+    const [air, dwd, wx] = await Promise.all([Promise.all(pts.map((p) => race(airData(env, p.lat, p.lon)))), race(dwdWarnData(env, st)), Promise.all(pts.map((p) => race(weatherNow(p.lat, p.lon))))]);
+    conditions = conditionsSummary({ sun, durationMin: body.duration_min, air, dwd, state: st, mode, weather: summarizeRouteWeather(wx) });
     if (!params.time) conditions.dark = { status: "needs_time", note: "Give time=HH:MM (Berlin time) and optionally date=YYYY-MM-DD to count minutes after sunset." };
   }
   return { status: "ok", from: { lat: a.lat, lon: a.lon, ...(a.place ? { place: a.place } : {}) }, to: { lat: b.lat, lon: b.lon, ...(b.place ? { place: b.place } : {}) }, ...body, ...(conditions ? { conditions } : {}),
-    sources: "Routing: OSRM, FOSSGIS demo server, map data © OpenStreetMap contributors (ODbL, https://www.openstreetmap.org/copyright). Motorway reports: Autobahn GmbH des Bundes, verkehr.autobahn.de.",
+    sources: "Routing: OSRM, FOSSGIS demo server, map data © OpenStreetMap contributors (ODbL, https://www.openstreetmap.org/copyright). Motorway reports: Autobahn GmbH des Bundes, verkehr.autobahn.de." + (Object.keys(geo).length ? " " + GEOCODE_ATTRIBUTION : "") + (conditions && conditions.weather ? " " + WEATHER_ATTRIBUTION : ""),
     free: true, note: "Free to use. Best effort, no guarantee. This is a record of router output and official reports, not a forecast.", page: "https://orbstudio.org/api/v1/route" };
 }
 // ================= Космическая погода (NOAA SWPC, открытые данные): /api/v1/space, MCP get_space_weather =================

@@ -5,40 +5,44 @@ import html, json, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 e = html.escape
+PLACE_VAL = {"hauptbahnhof": "Hauptbahnhof", "altona": "Altona", "harburg": "Harburg", "bergedorf": "Bergedorf", "center": "Rathaus", "airport": "Flughafen", "finkenwerder": "Finkenwerder", "messe": "Messe", "volksparkstadion": "Volksparkstadion", "hafen": "Landungsbrücken", "buxtehude": "Buxtehude", "stade": "Stade", "luebeck": "Lübeck"}
 PLACES = ["hauptbahnhof", "altona", "harburg", "bergedorf", "center", "airport", "finkenwerder", "messe", "volksparkstadion", "hafen", "buxtehude", "stade", "luebeck"]
 L = {
  "ru": dict(path="/tools/route-weather", lang="ru", file="tools/route-weather.html", pre="",
   title="Какая погода, воздух и темнота на моём маршруте? · Условия на маршруте · Orb Studio",
   desc="Пешком, на велосипеде или на машине по Гамбургу и окрестностям: сколько пути в темноте, какой воздух по дороге и есть ли официальные предупреждения о погоде. Не прогноз.",
-  eye="Дорога · пешком · велосипед · авто", h1="Условия на маршруте", lead="Куда едете и во сколько? Покажем время в пути, сколько пути придётся на тёмное время, худший индекс воздуха по трём точкам маршрута и официальные предупреждения Службы погоды.",
+  eye="Дорога · пешком · велосипед · авто", h1="Условия на маршруте", lead="Куда едете и во сколько? Адреса можно вводить вручную. Покажем время в пути, температуру и ветер, сколько пути придётся на тёмное время, худший индекс воздуха по трём точкам маршрута и официальные предупреждения Службы погоды.",
   places={"hauptbahnhof": "Hamburg Hauptbahnhof", "altona": "Altona", "harburg": "Harburg", "bergedorf": "Bergedorf", "center": "Центр (Ратуша)", "airport": "Аэропорт", "finkenwerder": "Финкенвердер", "messe": "Messe", "volksparkstadion": "Volksparkstadion", "hafen": "Порт (Landungsbrücken)", "buxtehude": "Buxtehude", "stade": "Stade", "luebeck": "Lübeck"},
+  ph1="Адрес или место, напр. Bergedorfer Straße 1", ph2="Напр. Hannoversche Straße 10", nf="Адрес не найден в районе Гамбурга. Уточните поле:", r_found="Найдено", r_temp="Температура", r_wind="Ветер", r_kmh="км/ч", r_gust="порывы",
   f_from="Откуда", f_to="Куда", f_mode="Как", modes={"foot": "Пешком", "bike": "Велосипед", "car": "Авто"}, f_time="Выезд (время по Берлину)", go="Показать",
   loading="Считаем…", err="Не получилось: источник не ответил. Попробуйте через минуту.", same="Выберите разные точки.",
   r_route="Путь", r_km="км", r_min="мин", r_dark="В темноте", r_dark_none="Весь путь при свете (закат в", r_dark_all="Весь путь после заката (закат был в", r_dark_part="мин после заката (закат в", r_air="Воздух", r_air_na="Индекс воздуха недоступен.", r_warn="Предупреждения Службы погоды (DWD, земля Гамбург)", r_warn_none="Сейчас нет активных предупреждений.", r_warn_n="активных предупреждений, высший уровень",
-  r_note="Это не прогноз: воздух и предупреждения показаны на сейчас, время заката считается по часу выезда. Маршрут не привязан к районам предупреждений.",
-  lim_h="Границы", lim=["Только Гамбург и окрестности (бесплатный маршрутизатор OpenStreetMap).", "Время в пути без учёта пробок в городе; для авто учитываются сообщения об автобанах.", "Это не совет ехать или не ехать и не оценка безопасности.", "Мы не ведём профиль и не сохраняем маршруты; запрос хранится в кэше до 5 минут."],
+  r_note="Это не прогноз: температура, ветер, воздух и предупреждения показаны на сейчас, время заката считается по часу выезда. Маршрут не привязан к районам предупреждений.",
+  lim_h="Границы", lim=["Только Гамбург и окрестности (бесплатный маршрутизатор OpenStreetMap).", "Время в пути без учёта пробок в городе; для авто учитываются сообщения об автобанах.", "Это не совет ехать или не ехать и не оценка безопасности.", "Мы не ведём профиль и не сохраняем маршруты. Введённый адрес уходит в поиск адресов Nominatim (© OpenStreetMap); найденная точка хранится в кэше без привязки к вам, маршрут — до 5 минут.", "Температура и ветер: наблюдения Службы погоды (DWD) через Bright Sky."],
   ag_h="Для агентов", ag="То же отдаёт REST и MCP-инструмент get_route_context с параметром conditions.", more="Ещё", m1="Можно ли верить карточке места на карте?", m2="Библиотека кристаллов"),
  "de": dict(path="/de/tools/route-weather", lang="de", file="de/tools/route-weather.html", pre="/de",
   title="Wie sind Wetter, Luft und Dunkelheit auf meiner Route? · Bedingungen auf der Route · Orb Studio",
   desc="Zu Fuß, mit dem Rad oder Auto in Hamburg und Umgebung: wie viel der Strecke im Dunkeln liegt, wie die Luft unterwegs ist und ob amtliche Wetterwarnungen gelten. Keine Vorhersage.",
-  eye="Unterwegs · zu Fuß · Rad · Auto", h1="Bedingungen auf der Route", lead="Wohin und wann? Wir zeigen Fahrzeit, wie viel der Strecke nach Sonnenuntergang liegt, den schlechtesten Luftindex an drei Punkten der Route und die amtlichen Warnungen des Deutschen Wetterdienstes.",
+  eye="Unterwegs · zu Fuß · Rad · Auto", h1="Bedingungen auf der Route", lead="Wohin und wann? Adressen können Sie frei eingeben. Wir zeigen Fahrzeit, Temperatur und Wind, wie viel der Strecke nach Sonnenuntergang liegt, den schlechtesten Luftindex an drei Punkten der Route und die amtlichen Warnungen des Deutschen Wetterdienstes.",
   places={"hauptbahnhof": "Hamburg Hauptbahnhof", "altona": "Altona", "harburg": "Harburg", "bergedorf": "Bergedorf", "center": "Zentrum (Rathaus)", "airport": "Flughafen", "finkenwerder": "Finkenwerder", "messe": "Messe", "volksparkstadion": "Volksparkstadion", "hafen": "Hafen (Landungsbrücken)", "buxtehude": "Buxtehude", "stade": "Stade", "luebeck": "Lübeck"},
+  ph1="Adresse oder Ort, z. B. Bergedorfer Straße 1", ph2="z. B. Hannoversche Straße 10", nf="Adresse in der Region Hamburg nicht gefunden. Bitte Feld prüfen:", r_found="Gefunden", r_temp="Temperatur", r_wind="Wind", r_kmh="km/h", r_gust="Böen",
   f_from="Von", f_to="Nach", f_mode="Wie", modes={"foot": "Zu Fuß", "bike": "Fahrrad", "car": "Auto"}, f_time="Abfahrt (Berliner Zeit)", go="Anzeigen",
   loading="Wird berechnet …", err="Das hat nicht geklappt: die Quelle hat nicht geantwortet. Bitte in einer Minute noch einmal.", same="Bitte zwei verschiedene Punkte wählen.",
   r_route="Strecke", r_km="km", r_min="Min.", r_dark="Im Dunkeln", r_dark_none="Die ganze Strecke bei Tageslicht (Sonnenuntergang um", r_dark_all="Die ganze Strecke nach Sonnenuntergang (Sonnenuntergang war um", r_dark_part="Min. nach Sonnenuntergang (Sonnenuntergang um", r_air="Luft", r_air_na="Luftindex nicht verfügbar.", r_warn="Warnungen des Deutschen Wetterdienstes (DWD, Land Hamburg)", r_warn_none="Derzeit keine aktiven Warnungen.", r_warn_n="aktive Warnungen, höchste Stufe",
-  r_note="Keine Vorhersage: Luft und Warnungen gelten für jetzt, der Sonnenuntergang wird für die Abfahrtszeit berechnet. Die Route ist nicht den Warngebieten zugeordnet.",
-  lim_h="Grenzen", lim=["Nur Hamburg und Umgebung (kostenloser OpenStreetMap-Router).", "Fahrzeit ohne Stau in der Stadt; beim Auto werden Meldungen zu Autobahnen berücksichtigt.", "Das ist keine Empfehlung zu fahren oder nicht zu fahren und keine Sicherheitsbewertung.", "Wir führen kein Profil und speichern keine Routen; die Anfrage liegt bis zu 5 Minuten im Zwischenspeicher."],
+  r_note="Keine Vorhersage: Temperatur, Wind, Luft und Warnungen gelten für jetzt, der Sonnenuntergang wird für die Abfahrtszeit berechnet. Die Route ist nicht den Warngebieten zugeordnet.",
+  lim_h="Grenzen", lim=["Nur Hamburg und Umgebung (kostenloser OpenStreetMap-Router).", "Fahrzeit ohne Stau in der Stadt; beim Auto werden Meldungen zu Autobahnen berücksichtigt.", "Das ist keine Empfehlung zu fahren oder nicht zu fahren und keine Sicherheitsbewertung.", "Wir führen kein Profil und speichern keine Routen. Eine eingegebene Adresse geht an die Adresssuche Nominatim (© OpenStreetMap); der gefundene Punkt liegt ohne Bezug zu Ihnen im Zwischenspeicher, die Route bis zu 5 Minuten.", "Temperatur und Wind: Beobachtungen des Deutschen Wetterdienstes (DWD) über Bright Sky."],
   ag_h="Für Agenten", ag="Dasselbe liefern REST und das MCP-Werkzeug get_route_context mit dem Parameter conditions.", more="Mehr", m1="Kann man der Ortskarte trauen?", m2="Kristall-Bibliothek"),
  "en": dict(path="/en/tools/route-weather", lang="en", file="en/tools/route-weather.html", pre="/en",
   title="What are the weather, air and darkness on my route? · Route conditions · Orb Studio",
   desc="On foot, by bike or by car around Hamburg: how much of the trip is after dark, how the air is along the way and whether official weather warnings apply. Not a forecast.",
-  eye="On the road · foot · bike · car", h1="Route conditions", lead="Where to and when? We show travel time, how much of the trip falls after sunset, the worst air index at three points on the route and the official warnings of the German Weather Service.",
+  eye="On the road · foot · bike · car", h1="Route conditions", lead="Where to and when? You can type addresses freely. We show travel time, temperature and wind, how much of the trip falls after sunset, the worst air index at three points on the route and the official warnings of the German Weather Service.",
   places={"hauptbahnhof": "Hamburg Hauptbahnhof", "altona": "Altona", "harburg": "Harburg", "bergedorf": "Bergedorf", "center": "City centre (Rathaus)", "airport": "Airport", "finkenwerder": "Finkenwerder", "messe": "Messe", "volksparkstadion": "Volksparkstadion", "hafen": "Harbour (Landungsbrücken)", "buxtehude": "Buxtehude", "stade": "Stade", "luebeck": "Lübeck"},
+  ph1="Address or place, e.g. Bergedorfer Straße 1", ph2="e.g. Hannoversche Straße 10", nf="Address not found in the Hamburg region. Please check the field:", r_found="Found", r_temp="Temperature", r_wind="Wind", r_kmh="km/h", r_gust="gusts",
   f_from="From", f_to="To", f_mode="How", modes={"foot": "On foot", "bike": "Bike", "car": "Car"}, f_time="Departure (Berlin time)", go="Show",
   loading="Working it out…", err="That did not work: the source did not answer. Please try again in a minute.", same="Please choose two different points.",
   r_route="Route", r_km="km", r_min="min", r_dark="In the dark", r_dark_none="The whole trip in daylight (sunset at", r_dark_all="The whole trip after sunset (sunset was at", r_dark_part="min after sunset (sunset at", r_air="Air", r_air_na="Air index not available.", r_warn="Warnings of the German Weather Service (DWD, state of Hamburg)", r_warn_none="No active warnings right now.", r_warn_n="active warnings, highest level",
-  r_note="Not a forecast: air and warnings are for now, sunset is worked out for your departure time. The route is not matched to warning districts.",
-  lim_h="Limits", lim=["Hamburg and surroundings only (free OpenStreetMap router).", "Travel time does not include city traffic; for cars, motorway reports are taken into account.", "This is not advice to go or not to go, and not a safety rating.", "We keep no profile and do not store routes; the request sits in a cache for up to 5 minutes."],
+  r_note="Not a forecast: temperature, wind, air and warnings are for now, sunset is worked out for your departure time. The route is not matched to warning districts.",
+  lim_h="Limits", lim=["Hamburg and surroundings only (free OpenStreetMap router).", "Travel time does not include city traffic; for cars, motorway reports are taken into account.", "This is not advice to go or not to go, and not a safety rating.", "We keep no profile and do not store routes. A typed address goes to the Nominatim address search (© OpenStreetMap); the found point is cached with no link to you, the route for up to 5 minutes.", "Temperature and wind: observations of the German Weather Service (DWD) via Bright Sky."],
   ag_h="For agents", ag="The same comes from REST and the MCP tool get_route_context with the parameter conditions.", more="More", m1="Can you trust a place card on a map?", m2="Crystal Library"),
 }
 CSS = """:root{--bg:#05070e;--panel:#0b1222;--line:#1b2944;--fg:#e4ebf8;--dim:#8796b6;--holo:#6fe6ff;--up:#4fd8a4;--warn:#ffb454;--mono:ui-monospace,monospace;color-scheme:dark}
@@ -58,17 +62,19 @@ select,input,button{font:inherit;font-size:16px;color:var(--fg);background:#050b
 @media(max-width:520px){form{grid-template-columns:1fr}}"""
 JS = """(function(){var T=%s,$=function(i){return document.getElementById(i)},mode='bike',busy=false;
 function berlinNow(){try{return new Intl.DateTimeFormat('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Europe/Berlin'}).format(new Date())}catch(e){return '12:00'}}
-$('time').value=berlinNow();$('to').selectedIndex=4;
+$('time').value=berlinNow();
 Array.prototype.forEach.call(document.querySelectorAll('.seg button'),function(b){b.addEventListener('click',function(){mode=b.dataset.m;Array.prototype.forEach.call(document.querySelectorAll('.seg button'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false')})})});
 function el(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n}
 function row(k,v){var r=el('div','row');r.appendChild(el('div','k',k));r.appendChild(v);return r}
-$('f').addEventListener('submit',function(ev){ev.preventDefault();if(busy)return;var from=$('from').value,to=$('to').value,msg=$('msg'),res=$('res');msg.textContent='';
-if(from===to){msg.textContent=T.same;return}
+$('f').addEventListener('submit',function(ev){ev.preventDefault();if(busy)return;var from=$('from').value.trim(),to=$('to').value.trim(),msg=$('msg'),res=$('res');msg.textContent='';
+if(!from||!to||from.toLowerCase()===to.toLowerCase()){msg.textContent=T.same;return}
 busy=true;$('go').disabled=true;msg.textContent=T.loading;
 fetch('/api/v1/route?from='+encodeURIComponent(from)+'&to='+encodeURIComponent(to)+'&mode='+mode+'&conditions=true&time='+encodeURIComponent($('time').value||'12:00')).then(function(r){return r.json()}).then(function(d){
-busy=false;$('go').disabled=false;if(d.status!=='ok'||!d.conditions){msg.textContent=T.err;res.className='res';return}msg.textContent='';res.textContent='';
+busy=false;$('go').disabled=false;if(d.status==='not_found'){msg.textContent=T.nf+' '+(d.field==='from'?T.f_from:T.f_to);res.className='res';return}if(d.status!=='ok'||!d.conditions){msg.textContent=T.err;res.className='res';return}msg.textContent='';res.textContent='';
 var c=d.conditions,km=Math.round(d.distance_m/100)/10;
-var big=el('div','big',km+' '+T.r_km+' · '+Math.round(d.duration_min)+' '+T.r_min);res.appendChild(row(T.r_route,big));
+var big=el('div','big',km+' '+T.r_km+' · '+Math.round(d.duration_min)+' '+T.r_min);res.appendChild(row(T.r_route,big));if(d.from&&d.from.place&&d.to&&d.to.place){res.appendChild(row(T.r_found,el('span','small',d.from.place+' → '+d.to.place)))}
+var wx=c.weather;if(wx&&wx.status==='ok'){var tt=wx.temperature_min_c==null?T.r_air_na:(wx.temperature_min_c===wx.temperature_max_c?wx.temperature_min_c+' °C':wx.temperature_min_c+' … '+wx.temperature_max_c+' °C');res.appendChild(row(T.r_temp,el('span','big',tt)));
+var wt2=wx.wind_max_kmh==null?T.r_air_na:Math.round(wx.wind_max_kmh)+' '+T.r_kmh+(wx.gust_max_kmh!=null?', '+T.r_gust+' '+Math.round(wx.gust_max_kmh)+' '+T.r_kmh:'');res.appendChild(row(T.r_wind,el('span',wx.wind_max_kmh>=40?'bad big':'big',wt2)))}else{res.appendChild(row(T.r_temp,el('span','small',T.r_air_na)))}
 var dk=c.dark;if(dk&&dk.share!=null){var w=el('div','row');var bar=el('div','bar');var i=el('i');i.style.width=Math.round(dk.share*100)+'%%';bar.appendChild(i);w.appendChild(bar);
 var tx=dk.share===0?T.r_dark_none+' '+dk.sunset+')':dk.share>=1?T.r_dark_all+' '+dk.sunset+')':Math.round(dk.minutes_after_sunset)+' '+T.r_dark_part+' '+dk.sunset+')';w.appendChild(el('span',dk.share>0?'bad':'ok',tx));res.appendChild(row(T.r_dark,w))}
 var a=c.air,at=el('span',a&&a.status==='ok'&&a.worst_index>=3?'bad':'ok',a&&a.status==='ok'?(a.index_class&&a.index_class[T.l]||('index '+a.worst_index))+' ('+a.worst_index+(a.station?', '+a.station:'')+')':T.r_air_na);res.appendChild(row(T.r_air,at));
@@ -79,9 +85,9 @@ def page(k):
     t = L[k]; url = "https://orbstudio.org" + t["path"]
     alts = "\n".join(f'<link rel="alternate" hreflang="{x}" href="https://orbstudio.org{L[x]["path"]}">' for x in ("ru", "de", "en")) + f'\n<link rel="alternate" hreflang="x-default" href="https://orbstudio.org{L["en"]["path"]}">'
     ld = {"@context": "https://schema.org", "@type": "WebPage", "name": t["title"], "url": url, "inLanguage": t["lang"], "description": t["desc"], "isPartOf": {"@type": "WebSite", "name": "Orb Studio", "url": "https://orbstudio.org"}}
-    opts = lambda: "".join(f'<option value="{p}">{e(t["places"][p])}</option>' for p in PLACES)
+    opts = lambda: "".join(f'<option value="{PLACE_VAL[p]}" label="{e(t["places"][p])}"></option>' for p in PLACES)
     modes = "".join(f'<button type="button" data-m="{m}" aria-pressed="{"true" if m == "bike" else "false"}">{e(t["modes"][m])}</button>' for m in ("foot", "bike", "car"))
-    tj = json.dumps({"loading": t["loading"], "err": t["err"], "same": t["same"], "r_route": t["r_route"], "r_km": t["r_km"], "r_min": t["r_min"], "r_dark": t["r_dark"], "r_dark_none": t["r_dark_none"], "r_dark_all": t["r_dark_all"], "r_dark_part": t["r_dark_part"], "r_air": t["r_air"], "r_air_na": t["r_air_na"], "r_warn": t["r_warn"], "r_warn_none": t["r_warn_none"], "r_warn_n": t["r_warn_n"], "r_note": t["r_note"], "l": t["lang"]}, ensure_ascii=False).replace("</", "<\\/")
+    tj = json.dumps({"loading": t["loading"], "err": t["err"], "same": t["same"], "r_route": t["r_route"], "r_km": t["r_km"], "r_min": t["r_min"], "r_dark": t["r_dark"], "r_dark_none": t["r_dark_none"], "r_dark_all": t["r_dark_all"], "r_dark_part": t["r_dark_part"], "r_air": t["r_air"], "r_air_na": t["r_air_na"], "r_warn": t["r_warn"], "r_warn_none": t["r_warn_none"], "r_warn_n": t["r_warn_n"], "r_note": t["r_note"], "nf": t["nf"], "r_found": t["r_found"], "r_temp": t["r_temp"], "r_wind": t["r_wind"], "r_kmh": t["r_kmh"], "r_gust": t["r_gust"], "f_from": t["f_from"], "f_to": t["f_to"], "l": t["lang"]}, ensure_ascii=False).replace("</", "<\\/")
     lim = "".join(f"<li>{e(x)}</li>" for x in t["lim"])
     return f"""<!doctype html>
 <html lang="{t['lang']}">
@@ -103,8 +109,9 @@ def page(k):
 <body><main class="wrap">
 <header><div class="eyebrow">{e(t['eye'])}</div><h1>{e(t['h1'])}</h1><p class="lead">{e(t['lead'])}</p></header>
 <section class="card"><form id="f">
-<label>{e(t['f_from'])}<select id="from">{opts()}</select></label>
-<label>{e(t['f_to'])}<select id="to">{opts()}</select></label>
+<label>{e(t['f_from'])}<input id="from" list="pl" autocomplete="off" maxlength="100" required placeholder="{e(t['ph1'])}"></label>
+<label>{e(t['f_to'])}<input id="to" list="pl" autocomplete="off" maxlength="100" required placeholder="{e(t['ph2'])}"></label>
+<datalist id="pl">{opts()}</datalist>
 <label class="full">{e(t['f_mode'])}<div class="seg">{modes}</div></label>
 <label class="full">{e(t['f_time'])}<input id="time" type="time" required></label>
 <button class="go full" id="go" type="submit">{e(t['go'])}</button>

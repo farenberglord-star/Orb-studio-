@@ -33,7 +33,7 @@ export function dwdBrief(d, state) {
     severe_level3_plus: (d.severe_level3_plus || []).slice(0, 3).map((x) => ({ event: x.event, level: x.level, from: x.from, until: x.until })),
     note: "Official DWD warnings for the whole state, as published; the route is not matched to warning districts." };
 }
-export function conditionsSummary({ sun, durationMin, air, dwd, state, mode }) {
-  return { mode, dark: darkMinutes(sun, durationMin), air: worstAir(air), warnings: dwdBrief(dwd, state),
-    note: "Dark share is for the departure time you gave. Air index and warnings are live values from now, not for later hours. This is a record of official values, not a forecast." };
+export function conditionsSummary({ sun, durationMin, air, dwd, state, mode, weather }) {
+  return { mode, dark: darkMinutes(sun, durationMin), air: worstAir(air), warnings: dwdBrief(dwd, state), ...(weather ? { weather } : {}),
+    note: "Dark share is for the departure time you gave. Temperature, wind, air index and warnings are live values from now, not for later hours. This is a record of official values, not a forecast." };
 }
