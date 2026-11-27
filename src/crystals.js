@@ -15324,6 +15324,24 @@ export const CRYSTALS = [
 "code": "needs_idea",
 "note": "which of our official tables carry suppression marks (Destatis, Eurostat) and how a parser reads them; joins the suppressed small cell bridge"
 }
+},
+{
+"id": "labov_w",
+"name": "William Labov",
+"name_ru": "Уильям Лабов",
+"years": "1927–2024",
+"wiki": "https://en.wikipedia.org/wiki/William_Labov",
+"zone": "look_alike",
+"idea": {
+"en": "Martha's Vineyard study (1963) and New York City study (1966): differences between age groups at one moment (apparent time) are not yet change over time; real time needs the same group measured again.",
+"ru": "Исследование Мартас-Винъярд (1963) и нью-йоркское (1966): различия между возрастными группами в один момент («кажущееся время») ещё не изменение во времени; для реального времени ту же группу нужно измерить снова.",
+"de": "Martha’s-Vineyard-Studie (1963) und New-York-Studie (1966): Unterschiede zwischen Altersgruppen zu einem Zeitpunkt (scheinbare Zeit) sind noch kein Wandel; echte Zeit braucht eine erneute Messung derselben Gruppe."
+},
+"rule": "Before writing that something changed over years, check that the same group was measured twice, not two different groups once.",
+"needs": {
+"code": "needs_idea",
+"note": "headlines that infer a trend from one cross-section of groups; joins the apparent versus real bridge with the source-ageing check; no number yet"
+}
 }
 ];
 // Ответ API/MCP: карточки ожидающих учёных + учёные с живыми датчиками (из реестра SCIENTISTS)
