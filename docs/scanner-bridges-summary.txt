@@ -230,8 +230,8 @@ outdoor_place_before_dark | side_effects | sensor | Место на улице �
 place_name_in_two_cities | look_alike | sensor | Одно название места в нескольких городах
 place_air_nearest_station | stale_data | sensor | Место и индекс воздуха ближайшей официальной станции
 place_charger_register_nearby | stale_data | sensor | Место зарядки сверено с официальным реестром зарядок
-airport_way_there_now | stale_data | ready | Дорога до аэропорта сейчас: сообщения по трассам, время маршрута и предупреждения погоды вместе
-airport_dark_or_icy_arrival | side_effects | ready | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и гололёде
+airport_way_there_now | stale_data | covered | Дорога до аэропорта сейчас: сообщения по трассам, время маршрута и предупреждения погоды вместе
+airport_dark_or_icy_arrival | side_effects | covered | Ранняя или поздняя поездка в аэропорт: время рассвета и заката плюс официальные предупреждения о морозе и гололёде
 airport_parking_gap | stale_data | idea | Парковка и зарядка у терминала там, где у нас есть данные
 route_when_jammed_equal_times | own_limits | sensor | Пробка на маршруте и «свободная» альтернатива: оба времени сейчас, а не обещанная экономия
 terminal_landmarks_check | look_alike | idea | Как найти вход на вокзале или в аэропорту: по ориентирам и входам, с проверкой, что назван именно тот объект
