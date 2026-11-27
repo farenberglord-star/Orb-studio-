@@ -79,3 +79,42 @@ test("check_place: MCP tool, REST route and announcements are registered", () =>
   assert.match(readFileSync(new URL("../public/llms.txt", import.meta.url), "utf8"), /\(check_place\)/);
   assert.match(readFileSync(new URL("../public/.well-known/agent.json", import.meta.url), "utf8"), /"check_place"/);
 });
+
+import { descriptionClaims, nearbySummary, normRoads, routeSummary } from "../src/place.js";
+
+test("check_place: absolute claims in a description are listed, a year counts as a visible basis, never a verdict", () => {
+  const c = descriptionClaims("Das einzige Schloss Hamburgs. Gebaut 1250. Der beste Park der Stadt, laut Reiseführer.");
+  assert.equal(c.absolute_claims.length, 2); assert.equal(c.without_visible_source, 1);
+  assert.ok(c.absolute_claims.find((x) => x.word === "beste").has_visible_source);
+  assert.match(c.note, /not a check that the claim is true/);
+  assert.equal(descriptionClaims("short"), null); assert.equal(descriptionClaims(42), null);
+  assert.equal(descriptionClaims("Единственный замок города. Построен в 1250 году.").without_visible_source, 1);
+});
+test("check_place: nearby warnings are passed through and flagged only from level 3", () => {
+  const dwd = { status: "ok", issued_at: "2026-11-27T08:00:00Z", active_warnings: 4, levels: [{ level: 3, label: "Unwetter", warnings: 1 }, { level: 1, label: "Wetterwarnung", warnings: 3 }], severe_level3_plus: [{ event: "STURM", level: 3, level_label: "Unwetter", regions: 2 }] };
+  const n = nearbySummary(dwd, { stand: "t", active_count: 2, highest_class: 1, highest_class_name: "Hinweis" }, "HH");
+  assert.equal(n.weather.max_level, 3); assert.equal(n.weather.severe[0].event, "STURM"); assert.match(n.flood.note, /all of Germany/);
+  const r = checkPlace({ name: "Strandcafé", state: "HH" }, NOW, { dwd });
+  assert.ok(r.flags.some((f) => /weather warning level 3/.test(f.en))); assert.equal(r.nearby.state, "HH");
+  assert.ok(!checkPlace({ name: "Strandcafé", state: "HH" }, NOW, { dwd: { ...dwd, levels: [{ level: 2, label: "Markante", warnings: 1 }] } }).flags.some((f) => /weather warning/.test(f.en)));
+  assert.equal(nearbySummary({ status: "unavailable" }, null, "HH").weather.status, "unavailable");
+});
+test("check_place: motorways named by the agent are looked up, others are called not covered", () => {
+  assert.deepEqual(normRoads("A7, a 1,x9,A7,B75"), ["A7", "A1", "B75"]);
+  const feed = { roads: ["A7"], updated: "t", jams: [{ road: "A7", delay_min: 25, title: "Stau Elbtunnel", direction: "S" }], closures: [{ road: "A7", title: "Sperrung", direction: "N", blocked: true }], roadworks: [] };
+  const rt = routeSummary(feed, ["A7", "A1"]);
+  assert.equal(rt.per_road[0].jams, 1); assert.equal(rt.per_road[0].max_delay_min, 25); assert.deepEqual(rt.not_covered, ["A1"]);
+  assert.match(rt.note, /whole route are not seen/);
+  assert.equal(routeSummary(null, ["A7"]).status, "unavailable"); assert.equal(routeSummary(feed, []), null);
+  const r = checkPlace({ name: "Museum", roads: "A7" }, NOW, { roads: feed });
+  assert.ok(r.flags.some((f) => /A7: 1 closure/.test(f.en)));
+  assert.equal(checkPlace({ name: "Museum", roads: "A7" }, NOW, {}).route.per_road, undefined);
+});
+test("check_place: wiring merges live data in the worker and writes no place data anywhere", () => {
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.match(w, /async function placeAnswer\(env, a\)/); assert.match(w, /await placeAnswer\(env, args\)/); assert.match(w, /await placeAnswer\(env, \{ name: g\("name"\)/);
+  const fn = w.slice(w.indexOf("async function placeAnswer"), w.indexOf("// ================= Капитанская рубка"));
+  assert.ok(!/DB\.|prepare\(|console\.|sharedPut|logHit|bumpHit/.test(fn), "placeAnswer must not store or log place data");
+  const src = readFileSync(new URL("../src/place.js", import.meta.url), "utf8");
+  assert.ok(!/fetch\(|DB\.|console\./.test(src), "place.js stays pure");
+});

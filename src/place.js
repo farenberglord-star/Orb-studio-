@@ -128,10 +128,59 @@ export function hoursInfo(items) {
   return { sources: rows.length, distinct_versions: distinct, most_sources_agree: agree, versions: Object.entries(groups).map(([k, s]) => ({ hours: k, sources: s })), conflict: distinct > 1, note: distinct > 1 ? "Sources disagree about today's hours; confirm with the place itself (official site or phone) before travelling." : (rows.length > 1 ? "All given sources agree for this date; agreement of copies is not proof, check who the original source is." : "One source only: agreement cannot be checked.") };
 }
 
+// ---------- утверждения в описании места ----------
+const ABS = /\b(only|oldest|first|best|largest|biggest|unique|famous|most (?:beautiful|popular|visited)|finest|greatest|never|always|every)\b|единственн|старейш|древнейш|перв(?:ый|ая|ое|ые)\b|лучш|крупнейш|уникальн|знаменит|самый|самая|самое|самые|никогда|всегда|\beinzig|älteste|ältesten|erste[rn]?\b|beste[rn]?\b|größte[rn]?|einzigartig|berühmt|schönste[rn]?|nie\b|immer\b/iu;
+const SRC = /\b(according to|source|per )\b|\blaut\b|nach angaben|quelle|по данным|согласно|источник|https?:\/\/|\(\d{4}\)|\b1[0-9]{3}\b|\b20[0-2][0-9]\b/iu;
+export function descriptionClaims(text) {
+  if (typeof text !== "string") return null;
+  const clean = text.replace(/[\u0000-\u001f​-‏‪-‮⁦-⁩]/g, " ").trim().slice(0, 1500);
+  if (clean.length < 20) return null;
+  const sents = clean.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean).slice(0, 14);
+  const found = [];
+  for (const t of sents) { const m = ABS.exec(t); if (m) found.push({ text: t.slice(0, 160), word: m[0].toLowerCase(), has_visible_source: SRC.test(t) }); }
+  return { sentences_checked: sents.length, absolute_claims: found.slice(0, 6), without_visible_source: found.filter((x) => !x.has_visible_source).length,
+    note: "Word rules only: 'only', 'oldest', 'best', 'never' and similar are claims that need a scope or a source. A year in the sentence counts as a visible basis; this is not a check that the claim is true. Use check_claim for a single sentence." };
+}
+
+// ---------- предупреждения рядом (данные приносит воркер, здесь только свёртка) ----------
+export function nearbySummary(dwd, flood, state) {
+  const out = { state };
+  if (dwd && dwd.status && dwd.status !== "unavailable" && Array.isArray(dwd.levels)) {
+    const top = dwd.levels[0] || null;
+    out.weather = { source: "Deutscher Wetterdienst (DWD)", issued_at: dwd.issued_at || null, active_warnings: dwd.active_warnings || 0, max_level: top ? top.level : 0, max_level_label: top ? top.label : null,
+      severe: (dwd.severe_level3_plus || []).slice(0, 3).map((g) => ({ event: g.event, level: g.level, level_label: g.level_label, regions: g.regions, from: g.from || null, until: g.until || null })),
+      note: "Level 3 and higher are listed; counted for the whole state, not for the exact spot. DWD levels and texts are passed through, no rating and no forecast by us." };
+  } else out.weather = { status: "unavailable", note: "DWD did not answer; nothing is estimated." };
+  if (flood && flood.status !== "unavailable" && flood.ok !== false) {
+    out.flood = { source: "LHP, hochwasserzentralen.de, CC BY 4.0", stand: flood.stand || null, active_count: flood.active_count != null ? flood.active_count : null, highest_class: flood.highest_class != null ? flood.highest_class : null, highest_class_name: flood.highest_class_name || null,
+      note: "Count for all of Germany, not filtered to the place; for a river or coast place look up the river by name on the LHP page. Warnings and classes only, no water levels." };
+  } else out.flood = { status: "unavailable", note: "LHP did not answer; nothing is estimated." };
+  return out;
+}
+
+// ---------- что на маршруте: автобаны, названные агентом ----------
+export function normRoads(list) {
+  const arr = Array.isArray(list) ? list : typeof list === "string" ? list.split(",") : [];
+  const out = []; for (const x of arr.slice(0, 6)) { const m = /^\s*([AB])\s?(\d{1,3})\s*$/i.exec(String(x)); if (m) { const r = m[1].toUpperCase() + m[2]; if (!out.includes(r)) out.push(r); } }
+  return out;
+}
+export function routeSummary(roads, wanted) {
+  if (!wanted.length) return null;
+  if (!roads || !Array.isArray(roads.jams)) return { requested: wanted, status: "unavailable", note: "The motorway feed did not answer; nothing is estimated." };
+  const covered = new Set(roads.roads || []);
+  const per = wanted.filter((r) => covered.has(r)).map((r) => {
+    const j = roads.jams.filter((i) => i.road === r), c = roads.closures.filter((i) => i.road === r), w = roads.roadworks.filter((i) => i.road === r);
+    const ex = (a) => a.slice(0, 3).map((i) => ({ title: String(i.title || "").slice(0, 120), direction: i.direction || null, delay_min: i.delay_min != null ? i.delay_min : null, blocked: !!i.blocked }));
+    return { road: r, jams: j.length, closures: c.length, roadworks: w.length, max_delay_min: j.reduce((m, i) => Math.max(m, i.delay_min || 0), 0), jam_examples: ex(j), closure_examples: ex(c), roadwork_examples: ex(w) };
+  });
+  return { requested: wanted, covered: per.map((x) => x.road), not_covered: wanted.filter((r) => !covered.has(r)), per_road: per, updated: roads.updated || null, source: "Autobahn GmbH des Bundes, verkehr.autobahn.de (open data)",
+    note: "Only the motorways and the box around Hamburg that our sensor watches; other roads and the whole route are not seen. Passed through, not a route plan." };
+}
+
 const TOPIC = /apothek|pharmac|аптек|krankenhaus|klinik|hospital|больниц|клиник|arzt|doctor|врач|bank|geldautomat|atm|банк|банкомат/i;
 const ROAD = /tankstelle|gas station|fuel|азс|заправк|parkhaus|parking|парковк|ladestation|charging|зарядн/i;
 
-export function checkPlace(input, now = Date.now()) {
+export function checkPlace(input, now = Date.now(), extra = {}) {
   const a = input && typeof input === "object" ? input : {};
   const name = String(a.name || "").replace(/[\u0000-\u001f​-‏‪-‮⁦-⁩]/g, "").trim().slice(0, PLACE_MAX_NAME);
   if (name.length < 2) return { error: "name_required", note: "Give the place name (2–120 characters)." };
@@ -155,21 +204,28 @@ export function checkPlace(input, now = Date.now()) {
   if (ages && ages.share_last_12_months < 0.5) say("Fewer than half of the review dates given are from the last 12 months: the place may have changed since.", "Меньше половины переданных дат отзывов приходится на последние 12 месяцев: место могло измениться.", "Weniger als die Hälfte der genannten Bewertungsdaten liegt in den letzten 12 Monaten: der Ort kann sich verändert haben.", "Hinkley", "stale_data");
   if (ages && ages.burst_sign) say("Many of the review dates fall in one week: a sign to look closer (campaign, event, or an ordinary busy week), not a verdict.", "Много переданных дат отзывов приходится на одну неделю: повод присмотреться (кампания, событие или просто оживлённая неделя), а не вердикт.", "Viele der genannten Bewertungsdaten liegen in einer Woche: ein Anlass genauer hinzusehen, kein Urteil.", "Campbell", "rumour_vs_fact");
   if (a.crowd_text) say("A line like 'usually not busy' is the typical level for this hour, not how busy it is now.", "Строка вроде «обычно невысокая загруженность» — типичный уровень на этот час, а не то, как людно сейчас.", "Eine Zeile wie „meist wenig los“ ist der typische Wert für diese Stunde, nicht der aktuelle Andrang.", "Kalman", "stale_data");
+  const claims = descriptionClaims(a.description);
+  if (claims && claims.without_visible_source > 0) say(`${claims.without_visible_source} sentence(s) of the description make an absolute claim ('only', 'oldest', 'best', 'never'...) with no visible source: say it as 'described as', or check it.`, `В ${claims.without_visible_source} предложении(ях) описания есть абсолютное утверждение («единственный», «старейший», «лучший», «никогда»...) без видимого источника: пишите «описывается как» или проверьте.`, `In ${claims.without_visible_source} Satz/Sätzen der Beschreibung steht eine absolute Behauptung („einzig“, „älteste“, „beste“, „nie“...) ohne sichtbare Quelle: als „wird beschrieben als“ wiedergeben oder prüfen.`, null, "rumour_vs_fact");
+  const nearby = extra.dwd || extra.flood ? nearbySummary(extra.dwd, extra.flood, hol.state) : null;
+  if (nearby && nearby.weather && nearby.weather.max_level >= 3) say(`Official weather warning level ${nearby.weather.max_level} (${nearby.weather.max_level_label}) is active in ${hol.state}: check it before an outdoor place or a drive.`, `В земле ${hol.state} действует официальное предупреждение погоды уровня ${nearby.weather.max_level} (${nearby.weather.max_level_label}): проверьте перед местом на открытом воздухе или поездкой.`, `In ${hol.state} gilt eine amtliche Wetterwarnung der Stufe ${nearby.weather.max_level} (${nearby.weather.max_level_label}): vor Orten im Freien oder einer Fahrt prüfen.`, null, "side_effects");
+  const route = extra.roads !== undefined ? routeSummary(extra.roads, normRoads(a.roads)) : (normRoads(a.roads).length ? routeSummary(null, normRoads(a.roads)) : null);
+  if (route && route.per_road) for (const r of route.per_road) if (r.closures > 0 || r.max_delay_min >= 10) say(`${r.road}: ${r.closures} closure(s), longest jam ${r.max_delay_min} min on the stretch our sensor watches.`, `${r.road}: закрытий ${r.closures}, самая долгая пробка ${r.max_delay_min} мин на участке, который видит наш датчик.`, `${r.road}: ${r.closures} Sperrung(en), längster Stau ${r.max_delay_min} Min auf dem Abschnitt, den unser Sensor sieht.`, null, "side_effects");
   const missing = [];
   if (!a.hours) missing.push("hours per source for the date (source, open, close)");
   if (!ages) missing.push("review dates (up to 60 ISO dates)");
   if (rating && rating.reviews == null) missing.push("number of ratings");
   if (!a.rating) missing.push("rating and number of ratings");
+  if (!a.description) missing.push("description text (to check absolute claims)");
   const notes = [];
   if (TOPIC.test(text)) notes.push({ en: "Health and money places: this check never says whether to use them. For opening hours and emergency service use the official source (pharmacy emergency service: aponet.de or 116 117 for medical on-call in Germany; bank: the bank itself).", ru: "Места про здоровье и деньги: проверка не говорит, пользоваться ли ими. Часы и дежурства — только по официальному источнику (аптеки: aponet.de; врачебный дежурный: 116 117; банк: сам банк).", de: "Orte rund um Gesundheit und Geld: diese Prüfung sagt nie, ob man sie nutzen soll. Zeiten und Notdienst nur über die offizielle Quelle (Apotheken: aponet.de; ärztlicher Bereitschaftsdienst: 116 117; Bank: die Bank selbst)." });
   const pointers = [];
-  if (hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.push({ tool: "get_dwd_warnings", why: "official weather warnings for the state", url: "https://orbstudio.org/api/v1/weather/warnings-de?state=" + hol.state }); pointers.push({ tool: "get_flood_warnings", why: "flood warnings, relevant for places by a river or the coast", url: "https://orbstudio.org/api/v1/hydro/flood-warnings" }); }
-  if (hasPos && lat > 53.3 && lat < 53.8 && lon > 9.6 && lon < 10.4) pointers.push({ tool: "get_roads", why: "jams, closures and roadworks on the motorways around Hamburg", url: "https://orbstudio.org/api/v1/roads" });
+  if (!nearby && hasPos && lat > 47 && lat < 55.5 && lon > 5.5 && lon < 15.5) { pointers.push({ tool: "get_dwd_warnings", why: "official weather warnings for the state", url: "https://orbstudio.org/api/v1/weather/warnings-de?state=" + hol.state }); pointers.push({ tool: "get_flood_warnings", why: "flood warnings, relevant for places by a river or the coast", url: "https://orbstudio.org/api/v1/hydro/flood-warnings" }); }
+  if (!route && hasPos && lat > 53.3 && lat < 53.8 && lon > 9.6 && lon < 10.4) pointers.push({ tool: "get_roads", why: "jams, closures and roadworks on the motorways around Hamburg", url: "https://orbstudio.org/api/v1/roads" });
   if (ROAD.test(text)) pointers.push({ tool: "get_parking_de", why: "live parking occupancy where we have it (Karlsruhe region, Leipzig P+R)", url: "https://orbstudio.org/api/v1/parking-de" });
   pointers.push({ tool: "check_claim", why: "for any description claim like 'only', 'oldest', 'best' on the place's page", url: "https://orbstudio.org/api/v1/check-claim?claim=" });
   const report = {
     tool: "check_place", place: name, date, holiday: hol, rating, review_ages: ages, hours,
-    position_given: hasPos, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
+    position_given: hasPos, description_claims: claims, nearby, route, flags, flag_count: flags.length, not_provided: missing, notes, pointers: pointers.slice(0, 5),
     report_back: flags.some((f) => f.zone === "stale_data" && /disagree|расходятся|widersprechen/.test(f.en + f.ru + f.de)) ? { en: "If you are sure which version is right, the person can report the mistake in the map app (menu: report a map error or edit the place). We never edit anything.", ru: "Если вы точно знаете, какая версия верна, человек может сообщить об ошибке в самом приложении карт (меню: ошибка на карте или изменить место). Мы сами ничего не правим.", de: "Wenn du sicher weißt, welche Version stimmt, kann die Person den Fehler in der Karten-App melden (Menü: Kartenfehler melden oder Ort bearbeiten). Wir ändern selbst nichts." } : null,
     limits: "Works only on the fields the agent passes; Orb Studio does not read, copy or store Google Maps content. One-off holidays (a single year, a single state) are not modelled. Thresholds for rating size are working assumptions. Not a recommendation to go or not to go.",
     rule: "Show what was checked and what was not; hours and reviews come from the agent, holidays from fixed rules. Orb Studio is not affiliated with Google; Google Maps is a trademark of Google LLC.",
