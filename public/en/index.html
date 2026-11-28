@@ -290,6 +290,83 @@ details.machine a{color:var(--holo)}
     </div>
   </div>
 
+  <!--orb-laser-ticker-->
+  <style>
+  .lz{position:relative;display:flex;align-items:stretch;margin:12px 0 4px;border:1px solid rgba(111,230,255,.35);border-radius:12px;overflow:hidden;background:#050912}
+  .lz::before,.lz::after{content:"";position:absolute;left:0;right:0;height:2px;z-index:3;pointer-events:none;background:linear-gradient(90deg,transparent,#6fe6ff 30%,#ff40c8 70%,transparent);background-size:200% 100%;animation:lzsweep 3.2s linear infinite;box-shadow:0 0 10px #6fe6ff,0 0 18px rgba(255,64,200,.6)}
+  .lz::before{top:0}.lz::after{bottom:0;animation-direction:reverse}
+  .lz .lb{flex:none;display:flex;align-items:center;gap:7px;padding:0 12px;font:11px/1 var(--mono,monospace);letter-spacing:.16em;text-transform:uppercase;color:#6fe6ff;background:#050912;position:relative;z-index:2;text-shadow:0 0 8px #6fe6ff;border-right:1px solid rgba(111,230,255,.25)}
+  .lz .lb i{width:7px;height:7px;border-radius:50%;background:#ff40c8;box-shadow:0 0 8px #ff40c8;animation:lzpulse 1.4s ease-in-out infinite}
+  .lz .vp{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+  .lz .trk{display:flex;gap:10px;width:max-content;padding:9px 0;animation:lzrun 120s linear infinite}
+  .lz:hover .trk,.lz:focus-within .trk,.lz:active .trk{animation-play-state:paused}
+  .lz a{white-space:nowrap;text-decoration:none;font:13px/1 var(--mono,monospace);color:#cfe9f5;padding:5px 12px;border-radius:999px;border:1px solid rgba(111,230,255,.4);text-shadow:0 0 8px rgba(111,230,255,.55);background:rgba(111,230,255,.04)}
+  .lz a:nth-child(even){border-color:rgba(255,64,200,.45);text-shadow:0 0 8px rgba(255,64,200,.5);background:rgba(255,64,200,.04)}
+  .lz a:hover,.lz a:focus{color:#fff;box-shadow:0 0 12px rgba(111,230,255,.7);outline:0}
+  @keyframes lzrun{to{transform:translateX(-50%)}}@keyframes lzsweep{to{background-position:-200% 0}}@keyframes lzpulse{50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){.lz .trk{animation:none}.lz .vp{overflow-x:auto}.lz::before,.lz::after,.lz .lb i{animation:none}.lz a[aria-hidden]{display:none}}
+  </style>
+  <div class="lz" id="laserTicker" role="navigation" aria-label="Sensors"><span class="lb"><i></i>Sensors</span><div class="vp"><div class="trk" id="laserTrk"></div></div></div>
+  <script>
+  (function(){var lang=(document.documentElement.lang||'ru').slice(0,2);if(!{ru:1,de:1,en:1}[lang])lang='ru';
+  var trk=document.getElementById('laserTrk');if(!trk)return;
+  function openSensor(id,list){if(window.__laserOpen)window.__laserOpen(list,id)}
+  fetch('/data/sensor-map.json').then(function(r){return r.json()}).then(function(m){var s=(m&&m.sensors)||[];if(!s.length)return;
+  for(var k=0;k<2;k++)s.forEach(function(x){var a=document.createElement('a');a.href='#sensorMapSec';a.textContent=(x.ico||'')+' '+((x.name&&x.name[lang])||x.id);a.title='Open sensor';
+  if(k){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
+  a.onclick=function(e){e.preventDefault();openSensor(x.id,s.map(function(q){return q.id}))};trk.appendChild(a)});
+  trk.style.animationDuration=Math.max(60,s.length*6)+'s'}).catch(function(){var b=document.getElementById('laserTicker');if(b)b.remove()})})();
+  </script>
+
+  <style>
+  .lzm{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(2,5,12,.78);backdrop-filter:blur(3px)}
+  .lzm.on{display:flex}
+  .lzm .bx{position:relative;width:min(560px,100%);max-height:88vh;display:flex;flex-direction:column;background:#070d1a;border:1px solid rgba(111,230,255,.5);border-radius:14px;box-shadow:0 0 28px rgba(111,230,255,.25),0 0 60px rgba(255,64,200,.15);overflow:hidden}
+  .lzm .bx::before{content:"";height:2px;background:linear-gradient(90deg,transparent,#6fe6ff 30%,#ff40c8 70%,transparent);background-size:200% 100%;animation:lzsweep 3.2s linear infinite}
+  .lzm .hd{display:flex;justify-content:flex-end;padding:8px 10px 0}
+  .lzm .x{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,64,200,.55);background:#0b1224;color:#ff80dc;font-size:18px;line-height:1;cursor:pointer}
+  .lzm .x:hover,.lzm .x:focus{box-shadow:0 0 12px rgba(255,64,200,.7);outline:0;color:#fff}
+  .lzm .body{padding:0 16px 10px;overflow:auto;-webkit-overflow-scrolling:touch}
+  .lzm .body h4{font:700 18px 'Chakra Petch',sans-serif;letter-spacing:.05em;margin:0 0 6px;color:#e8f6ff}
+  .lzm .body p,.lzm .body dd,.lzm .body dt{font-size:14px;line-height:1.5;color:#b8c9dc;margin:6px 0}
+  .lzm .body dt{color:#6fe6ff;font:11px var(--mono,monospace);letter-spacing:.1em;text-transform:uppercase;margin-top:10px}
+  .lzm .body dd{margin:2px 0;word-break:break-word}.lzm .body a{color:#6fe6ff}
+  .lzm .ft{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid rgba(111,230,255,.2);background:#050912}
+  .lzm .ft button{height:38px;border-radius:999px;border:1px solid rgba(111,230,255,.45);background:rgba(111,230,255,.06);color:#cfe9f5;font:13px var(--mono,monospace);padding:0 14px;cursor:pointer}
+  .lzm .ft button:hover,.lzm .ft button:focus{box-shadow:0 0 12px rgba(111,230,255,.7);outline:0;color:#fff}
+  .lzm .ft .nx{margin-left:auto;display:flex;align-items:center;gap:8px;border-color:rgba(255,64,200,.55);background:rgba(255,64,200,.07)}
+  .lzm .ring{position:relative;width:26px;height:26px;flex:none}
+  .lzm .ring svg{width:26px;height:26px;transform:rotate(-90deg)}
+  .lzm .ring circle{fill:none;stroke-width:3}
+  .lzm .ring .bg{stroke:rgba(255,255,255,.15)}.lzm .ring .fg{stroke:#ff40c8;stroke-linecap:round;stroke-dasharray:62.8;stroke-dashoffset:0;filter:drop-shadow(0 0 3px #ff40c8)}
+  .lzm .ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 12px var(--mono,monospace);color:#fff}
+  .lzm .cnt{font:11px var(--mono,monospace);color:#8aa0b8;margin-right:2px}
+  @media (max-width:520px){.lzm .cnt{display:none}.lzm .ft button{padding:0 11px}}
+  </style>
+  <script>
+  (function(){var lang=(document.documentElement.lang||'ru').slice(0,2);var X={en:{next:'Next',back:'Back',close:'Close',pause:'Pause',resume:'Resume',cnt:'Next sensor in'}}[lang]||{};
+  var order=[],idx=-1,secs=10,left=0,timer=0,paused=false,obs=null,mm=null,loadT=0;
+  var m=document.createElement('div');m.className='lzm';m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');
+  m.innerHTML='<div class="bx"><div class="hd"><button class="x" type="button" aria-label="'+X.close+'">✕</button></div><div class="body" id="lzBody"></div><div class="ft"><button type="button" class="pv">◂ '+X.back+'</button><button type="button" class="ps">⏸ '+X.pause+'</button><span class="cnt">'+X.cnt+'</span><button type="button" class="nx"><span class="ring"><svg viewBox="0 0 24 24"><circle class="bg" cx="12" cy="12" r="10"/><circle class="fg" cx="12" cy="12" r="10"/></svg><b>10</b></span>'+X.next+' ▸</button></div></div>';
+  document.body.appendChild(m);
+  var body=m.querySelector('#lzBody'),fg=m.querySelector('.fg'),num=m.querySelector('.ring b'),ps=m.querySelector('.ps');
+  function stop(){clearInterval(timer);timer=0}
+  function paint(){num.textContent=Math.max(1,Math.ceil(left));fg.style.strokeDashoffset=String(62.8*(1-left/secs))}
+  function start(){stop();if(paused||!m.classList.contains('on'))return;left=secs;paint();var t0=Date.now();timer=setInterval(function(){left-=.1;if(left<=0){stop();go(1)}else paint()},100)}
+  function mirror(){var c=document.getElementById('osm-card');if(!c)return;body.textContent='';Array.prototype.forEach.call(c.childNodes,function(n){body.appendChild(n.cloneNode(true))});
+    if(c.querySelector('dl')&&!timer&&!paused&&m.classList.contains('on')&&!m.dataset.ready){m.dataset.ready='1';start()}}
+  function show(i){idx=(i+order.length)%order.length;m.dataset.ready='';stop();left=secs;paint();body.textContent='';
+    var id=order[idx],n=0;clearInterval(loadT);if(window.__loadSensorMap)window.__loadSensorMap();
+    loadT=setInterval(function(){var c=document.querySelector('#sensorMapSec .chip[data-id="'+id+'"]');if(c){clearInterval(loadT);c.click();var card=document.getElementById('osm-card');if(obs)obs.disconnect();obs=new MutationObserver(mirror);obs.observe(card,{childList:true,subtree:true,characterData:true});mirror();setTimeout(function(){if(m.classList.contains('on')&&!m.dataset.ready){m.dataset.ready='1';start()}},7000)}else if(++n>60){clearInterval(loadT);body.textContent='…'}},150)}
+  function go(d){show(idx+d)}
+  function open(list,id){order=list;m.classList.add('on');paused=false;ps.textContent='⏸ '+X.pause;show(order.indexOf(id));m.querySelector('.x').focus()}
+  function close(){m.classList.remove('on');stop();clearInterval(loadT);if(obs)obs.disconnect()}
+  m.querySelector('.x').onclick=close;m.onclick=function(e){if(e.target===m)close()};
+  m.querySelector('.pv').onclick=function(){go(-1)};m.querySelector('.nx').onclick=function(){go(1)};
+  ps.onclick=function(){paused=!paused;ps.textContent=paused?'▶ '+X.resume:'⏸ '+X.pause;if(paused)stop();else start()};
+  document.addEventListener('keydown',function(e){if(!m.classList.contains('on'))return;if(e.key==='Escape')close();else if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1)});
+  window.__laserOpen=open})();
+  </script>
   <!--orb-news-passport-->
   <section class="np" id="npBox" aria-labelledby="npT">
     <span class="eyebrow">Check a news story · for people and AI agents</span>
@@ -431,7 +508,7 @@ details.machine a{color:var(--holo)}
   <script>
   /* Карта датчиков: грузится, только когда секция почти в зоне видимости, чтобы не тормозить главную */
   (function(){var sec=document.getElementById('sensorMapSec'),done=0;function go(){if(done)return;done=1;var s=document.createElement('script');s.src='/sensor-map.js';s.onload=function(){try{OrbSensorMap.mount(document.getElementById('sensorMap'),{compact:true,noLang:true})}catch(e){}};document.head.appendChild(s)}
-  if('IntersectionObserver' in window){var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){io.disconnect();go()}},{rootMargin:'400px'});io.observe(sec)}else go()})();
+  window.__loadSensorMap=go;if('IntersectionObserver' in window){var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){io.disconnect();go()}},{rootMargin:'400px'});io.observe(sec)}else go()})();
   </script>
 
   <section class="vote" id="voteBox" aria-label="Top story of the day: AI vs humans">
