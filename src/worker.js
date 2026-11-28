@@ -4026,6 +4026,8 @@ const OA_GET = [
   ["/api/v1/experiment", "getExperiment", "Experiment: Claude trades the site author's real Kraken account by the site's radars and sensors (no withdrawal rights). Wallet, comparison with doing nothing, decisions and trades.", []],
   ["/api/v1/timeline", "getChangesSince", "What changed since a date: radars from → to with peak and low, headlines then and now, outcomes of the period, daily sensor digests and the AI trading experiment.", [{ ...OA_Q("since", "YYYY-MM-DD", { pattern: "^\\d{4}-\\d{2}-\\d{2}$" }), required: true }, OA_Q("until", "YYYY-MM-DD, default today", { pattern: "^\\d{4}-\\d{2}-\\d{2}$" })]],
   ["/api/v1/place", "checkPlace", "Check a map card before you describe the place: holiday or Sunday, rating weighed by count, hours that disagree, review age, absolute claims in the description, sunset (time=HH:MM), nearest UBA air index, nearby charging stations (chargers=true, or a name about charging, parking or airport), official warnings, motorway reports (roads=A7,A1). We read no Google Maps content; not affiliated with Google.", [{ ...OA_Q("name", "Place name as on the card"), required: true }, OA_Q("lat", "Latitude"), OA_Q("lon", "Longitude"), OA_Q("rating", "Star average"), OA_Q("reviews", "Number of ratings"), OA_Q("date", "YYYY-MM-DD, default today"), OA_Q("time", "HH:MM local time of the visit"), OA_Q("state", "German state code, default HH"), OA_Q("hours", "JSON array of {source, open, close}"), OA_Q("review_dates", "ISO dates, comma separated"), OA_Q("roads", "Motorways, comma separated, e.g. A7,A1"), OA_Q("description", "Description text of the place"), OA_Q("chargers", "true: add nearby charging stations")]],
+  ["/api/v1/news", "getNewsByTopic", "News by topic with a passport per headline: GET ?topic= (or q=). Each headline carries how many independent outlets reported it, age, tone and what is checked or not. Measures spread of a story, not truth; an empty result is reported as empty, never filled.", [{ ...OA_Q("topic", "Topic, e.g. Hormuz or Bundestag (q= also works)"), required: true }]],
+  ["/api/v1/check-claim", "checkClaim", "Free word-rule passport of a claim or headline: GET ?claim= (or headline=). Facts vs opinions by word rules, number checked against our own sensors when it matches one, and, if the headline is on our radars, outlets, age and amplification. Not a truth verdict.", [{ ...OA_Q("claim", "Claim or headline, at least 8 characters (headline= also works)"), required: true }]],
   ["/api/v1/air-de", "getAirDe", "Air quality index of the nearest official UBA station within 25 km in Germany (lat, lon); provisional values, Umweltbundesamt, dl-de/by-2-0.", [{ ...OA_Q("lat", "Latitude in Germany"), required: true }, { ...OA_Q("lon", "Longitude in Germany"), required: true }]],
   ["/api/v1/chargers-de", "getChargersDe", "Charging stations within 2 km from the Bundesnetzagentur Ladesäulenregister (CC BY 4.0, monthly register date): distance, kW, DC fast, operator. The register is incomplete and has no live availability.", [{ ...OA_Q("lat", "Latitude in Germany"), required: true }, { ...OA_Q("lon", "Longitude in Germany"), required: true }]],
   ["/api/v1/roads-inspection", "getRoadsInspection", "Hamburg motorways: mean length of finished jams vs the jam seen at a random moment (Terada 1922, Feller 1966); collecting until 30 jams are finished.", []],
@@ -6577,12 +6579,21 @@ async function airData(env, lat, lon) {
   }
   const near = nearestAirStation(stations, lat, lon);
   if (!near || near.distance_km > AIR_MAX_KM) return airSummary(null, null);
-  const r2 = await fetch(`${base}airquality/json?date_from=${day}&date_to=${day}&time_from=${Math.max(1, hour - 4)}&time_to=${hour}&station=${near.code}`, { headers: H, signal: AbortSignal.timeout(9000) });
-  if (!r2.ok) throw new Error("uba airquality http " + r2.status);
-  const j2 = await r2.json();
-  const aq = parseAirQuality(j2);
-  if (!aq && j2 && j2.data && Object.keys(j2.data).length) throw new Error("uba airquality shape: " + JSON.stringify(Object.values(j2.data)[0]).slice(0, 300));
-  return airSummary(near, aq);
+  const ck = "uba-air-" + near.code;
+  try {
+    const r2 = await fetch(`${base}airquality/json?date_from=${day}&date_to=${day}&time_from=${Math.max(1, hour - 4)}&time_to=${hour}&station=${near.code}`, { headers: H, signal: AbortSignal.timeout(5500) });
+    if (!r2.ok) throw new Error("uba airquality http " + r2.status);
+    const j2 = await r2.json();
+    const aq = parseAirQuality(j2);
+    if (!aq && j2 && j2.data && Object.keys(j2.data).length) throw new Error("uba airquality shape: " + JSON.stringify(Object.values(j2.data)[0]).slice(0, 300));
+    const out = airSummary(near, aq);
+    if (out.status === "ok") await sharedPut(env, ck, { ...out, saved_at: Date.now() }).catch(() => {});
+    return out;
+  } catch (e) { // UBA медленный: отдаём последнее удачное значение этой станции (не старше 6 часов) с честной пометкой, а не «нет данных»
+    const old = await sharedGet(env, ck, 6 * 3600e3).catch(() => null);
+    if (old && old.status === "ok") return { ...old, status: "degraded", stale_minutes: Math.round((Date.now() - (old.saved_at || Date.now())) / 60e3), error: String(e.message || e).slice(0, 80), note: "UBA did not answer now; this is the last good value of the same station, not a live one." };
+    throw e;
+  }
 }
 // Зарядки из реестра BNetzA: клетки лежат в public/data/chargers, читаем через ASSETS; ничего не пишем.
 async function chargersData(env, lat, lon) {

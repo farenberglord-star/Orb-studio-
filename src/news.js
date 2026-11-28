@@ -12,7 +12,7 @@ export const PASSPORT_TABLE = [
   { line: "checkability", scope: "per_headline", status: "live", sensor: { tool: "get_frankfurt", page: "/tools/frankfurt" }, crystals: ["frankfurt"], note: "who / when / how many / where, and vague words" },
   { line: "state_media", scope: "per_headline", status: "live", sensor: { tool: "get_lyberg", page: "/tools/lyberg" }, crystals: ["lyberg"], note: "source is state media, named as such" },
   { line: "retellings_vs_first_source", scope: "per_headline", status: "live", sensor: { tool: "get_kasperson", page: "/tools/kasperson" }, crystals: ["kasperson", "zajonc", "howard"], note: "outlets at first and at the peak; first source on our radars" },
-  { line: "independent_voices", scope: "per_headline", status: "live", sensor: { tool: "check_headline", page: "/api/v1/check-headline" }, crystals: ["howard"], note: "how many outlets carry it on the radars" },
+  { line: "independent_voices", scope: "per_headline", status: "live", sensor: { tool: "check_headline", page: "/api/v1/check" }, crystals: ["howard"], note: "how many outlets carry it on the radars" },
   { line: "freshness", scope: "per_headline", status: "partial", sensor: { tool: "get_mikrin", page: "/tools/mikrin" }, crystals: ["mikrin", "cox"], note: "age from the source's publication time; Mikrin measures our own path to air for the broadcast blocks, not each headline" },
   { line: "extraordinary_claim", scope: "per_headline", status: "live", sensor: null, crystals: ["hume", "laplace"], note: "record / unprecedented / first ever with few outlets" },
   { line: "quoted_words", scope: "per_headline", status: "live", sensor: null, crystals: ["derrida", "schleiermacher"], note: "someone's words in the headline; say whose and where" },

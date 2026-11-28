@@ -44,3 +44,11 @@ test("disclaimer exists in three languages and the result carries ODbL attributi
   assert.match(r.attribution, /dawum\.de/); assert.match(r.attribution, /ODbL|Open Database/);
   assert.match(r.disclaimer, /Не рекомендация, не прогноз, не призыв/);
 });
+
+import { readFileSync } from "node:fs";
+test("check_place says chargers 'not_requested' instead of a bare null, and /news, /check-claim are in the OpenAPI list", () => {
+  assert.match(readFileSync(new URL("../src/place.js", import.meta.url), "utf8"), /status: "not_requested"/);
+  const w = readFileSync(new URL("../src/worker.js", import.meta.url), "utf8");
+  assert.ok(w.includes('"/api/v1/news", "getNewsByTopic"') && w.includes('"/api/v1/check-claim", "checkClaim"'));
+  assert.ok(!readFileSync(new URL("../src/news.js", import.meta.url), "utf8").includes("check-headline"));
+});
