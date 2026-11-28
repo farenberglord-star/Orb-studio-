@@ -1,5 +1,7 @@
 # Orb Studio — MCP server for live news radars
 
+**English** · [Deutsch](README.de.md)
+
 **Remote MCP server:** `https://orbstudio.org/mcp` (Streamable HTTP, no API key)
 **Website:** https://orbstudio.org · **Hall of fame:** https://orbstudio.org/hall
 
