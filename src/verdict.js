@@ -10,7 +10,7 @@ export const hostOf = (link) => { try { return new URL(String(link)).hostname.to
 export const isDebunkText = (s) => DEBUNK.test(String(s || ""));
 
 const COINS = [["BTC", /биткоин\p{L}*|bitcoin|(?<![\p{L}])btc(?![\p{L}])/iu], ["ETH", /эфир\p{L}*|ethereum|(?<![\p{L}])eth(?![\p{L}])/iu], ["XRP", /(?<![\p{L}])xrp(?![\p{L}])|ripple/iu], ["SOL", /solana|(?<![\p{L}])sol(?![\p{L}])/iu]];
-const PRICE_WORDS = /курс|цена|стоит|стоимост|price|trad(?:es|ing) at|kurs|kostet|за один|per (?:one )?(?:coin|bitcoin)|сейчас|now/iu;
+const PRICE_WORDS = /курс|цена|стоит|стоимост|price|costs?\b|trad(?:es|ing) at|kurs|kostet|за один|per (?:one )?(?:coin|bitcoin)|сейчас|now/iu;
 const SCALE = /^\s*(?:млн|млрд|million|billion|mn|bn|тыс|thousand|k\b)/iu;
 export function parseNum(s) { let t = String(s).replace(/[\s  ]/g, ""); if (/^\d{1,3}([.,]\d{3})+$/.test(t) && !/^0[.,]/.test(t)) t = t.replace(/[.,]/g, ""); else t = t.replace(",", "."); const n = parseFloat(t); return Number.isFinite(n) ? n : null; }
 // Сверка названной цены монеты с нашим датчиком (/api/v1/sensors: часовая цена в EUR с Kraken, EUR/USD от ЕЦБ).

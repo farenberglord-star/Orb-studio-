@@ -16,7 +16,7 @@ const age = (iso) => { const t = Date.parse(iso); return Number.isFinite(t) ? Da
 export const MEASURANDS = [
   { id: "btc_funding", label: "BTC funding rate", unit: "%", topic: /funding|фандинг/iu, needs: /bitcoin|биткоин|btc|perp/iu,
     get: (s) => s.derivatives && Number.isFinite(+s.derivatives.funding_relative_pct) ? { value: +s.derivatives.funding_relative_pct, at: s.derivatives.at, source: s.derivatives.source, url: s.derivatives.source_url, maxAgeMs: 3 * 3600e3 } : null,
-    claim: (t) => first(t, [new RegExp(NUMB + "\\s?%", "iu")]), judge: (c, o) => judge(c, o, 0.002, 0.01) },
+    claim: (t) => first(t, [new RegExp(NUMB + "\\s?(?:%|per\\s?cent|процент\\p{L}*|prozent)", "iu")]), judge: (c, o) => judge(c, o, 0.002, 0.01) },
   { id: "btc_open_interest_usd", label: "BTC open interest (USD)", unit: "USD", topic: /open interest|открыт\p{L}* интерес/iu,
     get: (s) => s.derivatives && Number.isFinite(+s.derivatives.open_interest_usd) ? { value: +s.derivatives.open_interest_usd, at: s.derivatives.at, source: s.derivatives.source, url: s.derivatives.source_url, maxAgeMs: 3 * 3600e3 } : null,
     claim: (t) => { const m = String(t).match(new RegExp(NUMB + "\\s?(млрд|billion|bn|млн|million|mn)", "iu")); if (!m) return null; const v = parseNum(m[1]); return v == null ? null : { v: v * (/млрд|billion|bn/i.test(m[2]) ? 1e9 : 1e6) }; }, judge: (c, o) => judge(c, o, null, null, 0.1, 0.25) },
@@ -25,7 +25,7 @@ export const MEASURANDS = [
     claim: (t) => first(t, [new RegExp(NUMB + "\\s?sat", "iu")]), judge: (c, o) => judge(c, o, 1, 8) },
   { id: "ecb_deposit_rate", label: "ECB deposit rate (%)", unit: "%", topic: /ставк\p{L}* по депозит|deposit (?:facility )?rate|einlagesatz|ecb|ЕЦБ|ezb/iu, needs: /ставк|rate|satz|зин/iu,
     get: (s) => s.ecb && s.ecb.deposit_rate_pct && Number.isFinite(+s.ecb.deposit_rate_pct.value) ? { value: +s.ecb.deposit_rate_pct.value, at: s.ecb.deposit_rate_pct.date || s.ecb.deposit_rate_pct.at || null, source: s.ecb.source, url: s.ecb.source_url, maxAgeMs: 10 * 864e5 } : null,
-    claim: (t) => first(t, [new RegExp(NUMB + "\\s?%", "iu")]), judge: (c, o) => judge(c, o, 0.05, 0.25) },
+    claim: (t) => first(t, [new RegExp(NUMB + "\\s?(?:%|per\\s?cent|процент\\p{L}*|prozent)", "iu")]), judge: (c, o) => judge(c, o, 0.05, 0.25) },
   { id: "eurusd", label: "EUR/USD (ECB reference)", unit: "USD per EUR", topic: /eur\s?\/\s?usd|евро к доллар|euro (?:to|vs\.?) (?:the )?dollar|euro.{0,20}dollar/iu,
     get: (s) => s.ecb && s.ecb.eurusd && Number.isFinite(+s.ecb.eurusd.value) ? { value: +s.ecb.eurusd.value, at: s.ecb.eurusd.date || s.ecb.eurusd.at || null, source: s.ecb.source, url: s.ecb.source_url, maxAgeMs: 5 * 864e5 } : null,
     claim: (t) => { const m = String(t).match(/(?<![\d.,])(1[.,]\d{2,4})(?!\d)/u); return m ? { v: parseFloat(m[1].replace(",", ".")) } : null; }, judge: (c, o) => judge(c, o, null, null, 0.01, 0.03) },
