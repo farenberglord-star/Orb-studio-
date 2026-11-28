@@ -56,6 +56,8 @@ export const CATALOG = [
     name: { ru: "Погода Австрии", de: "Wetter Österreich", en: "Austria weather" }, get: (d) => d && d.observed_at },
   { id: "gas_storage", src: "gas", endpoint: "/api/v1/gas/storage", expect_h: 72, kind: "measure", source: "GIE AGSI+",
     name: { ru: "Газовые хранилища", de: "Gasspeicher", en: "Gas storage" }, get: (d) => d && d.gas_day },
+  { id: "party_polls", src: "parties", endpoint: "/api/v1/party-polls", expect_h: 7 * 24, kind: "measure", source: "DAWUM",
+    name: { ru: "Parteien-Radar (опросы по партиям)", de: "Parteien-Radar (Umfragen je Partei)", en: "Parteien-Radar (polls per party)" }, get: (d) => d && d.database_updated_at },
   { id: "polls_de", src: "polls", endpoint: "/api/v1/polls", expect_h: 7 * 24, kind: "measure", source: "DAWUM",
     name: { ru: "Опросы (Sonntagsfrage)", de: "Umfragen (Sonntagsfrage)", en: "Polls (Sonntagsfrage)" }, get: (d) => d && d.database_updated_at },
   { id: "party_attention", src: "party", endpoint: "/api/v1/polls/attention", expect_h: 48, kind: "measure", source: "Wikimedia Pageviews",

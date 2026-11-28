@@ -2,6 +2,7 @@
 (function () {
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
+  var PR = { ru: { rng: "Опросы", mean: "среднее", src: "ист.", shift: "сдвиг 7 дн.", nd: "н/д", used: "Источники", attr: "Данные: dawum.de (ODbL)" }, de: { rng: "Umfragen", mean: "Mittel", src: "Quellen", shift: "7-Tage-Änderung", nd: "k. A.", used: "Quellen", attr: "Daten: dawum.de (ODbL)" }, en: { rng: "Polls", mean: "mean", src: "sources", shift: "7-day shift", nd: "n/a", used: "Sources", attr: "Data: dawum.de (ODbL)" } };
   var T = {
     ru: { eyebrow: "Живая карта источников", title: "Карта датчиков", lead: "Только живые датчики с настоящим местом или охватом. Метка стоит там, где измеряется явление, или там, где сидит учреждение-источник. Статус проверяется запросом к нашему API в момент клика.",
       world: "Мир", dach: "Германия · Австрия · Швейцария", map_label: "Карта датчиков", scope_de: "По всей Германии", scope_world: "По всему миру", pin_point: "Точка измерения", pin_area: "Район", pin_source: "Место источника (учреждение)",
@@ -32,7 +33,8 @@
     ".osm .pin{cursor:pointer;outline:none}.osm .pin .pd{fill:var(--up);stroke:#04110c;stroke-width:1.5}.osm .pin.src .pd{fill:var(--warm)}.osm .pin .ph{fill:none;stroke:var(--up);stroke-width:1.2;opacity:.6}.osm .pin.src .ph{stroke:var(--warm)}" +
     ".osm .pin:hover .ph,.osm .pin:focus-visible .ph,.osm .pin.on .ph{opacity:1;stroke-width:2.2}.osm .pin.on .pd{stroke:#fff}.osm .ld2{stroke:#3a5486;stroke-width:1;stroke-dasharray:2 2}" +
     "@media(prefers-reduced-motion:no-preference){.osm .pin .ph{animation:osmp 2.6s ease-out infinite}@keyframes osmp{0%{r:8;opacity:.8}100%{r:15;opacity:0}}}" +
-    ".osm .tickw{margin-top:12px}.osm .tickw b{font:11px 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--holo,#6fe6ff);font-weight:400}.osm .tick{overflow:hidden;margin-top:6px;border-top:1px solid rgba(111,230,255,.3);border-bottom:1px solid rgba(255,64,200,.3);background:#070b16;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}.osm .tick .trk{display:flex;gap:10px;width:max-content;padding:7px 0;animation:osmtick 40s linear infinite}.osm .tick.rev .trk{animation-direction:reverse}.osm .tick:hover .trk,.osm .tick:focus-within .trk,.osm .tick:active .trk{animation-play-state:paused}.osm .tick .chip{white-space:nowrap;font-size:13px;text-shadow:0 0 8px rgba(111,230,255,.55);border-color:rgba(111,230,255,.45)}.osm .tick.rev .chip{text-shadow:0 0 8px rgba(255,64,200,.55);border-color:rgba(255,64,200,.45)}@keyframes osmtick{to{transform:translateX(-50%)}}@media (prefers-reduced-motion:reduce){.osm .tick .trk{animation:none;flex-wrap:wrap;width:auto;padding:7px}.osm .tick .chip[aria-hidden]{display:none}}" +
+    ".osm .pr{margin-top:10px}.osm .prd{font-size:12px;color:var(--dim);margin:6px 0}.osm .prc{border-top:1px solid var(--line);padding:6px 0}.osm .prc summary{cursor:pointer;display:grid;grid-template-columns:70px 1fr;gap:2px 8px;font-size:13px}.osm .prc summary b{font-weight:500;color:var(--holo,#6fe6ff)}.osm .prc summary em{grid-column:2;font-style:normal;color:var(--dim);font-size:12px}.osm .prc p{font-size:12px;margin:4px 0 0}" +
+      ".osm .tickw{margin-top:12px}.osm .tickw b{font:11px 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--holo,#6fe6ff);font-weight:400}.osm .tick{overflow:hidden;margin-top:6px;border-top:1px solid rgba(111,230,255,.3);border-bottom:1px solid rgba(255,64,200,.3);background:#070b16;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}.osm .tick .trk{display:flex;gap:10px;width:max-content;padding:7px 0;animation:osmtick 40s linear infinite}.osm .tick.rev .trk{animation-direction:reverse}.osm .tick:hover .trk,.osm .tick:focus-within .trk,.osm .tick:active .trk{animation-play-state:paused}.osm .tick .chip{white-space:nowrap;font-size:13px;text-shadow:0 0 8px rgba(111,230,255,.55);border-color:rgba(111,230,255,.45)}.osm .tick.rev .chip{text-shadow:0 0 8px rgba(255,64,200,.55);border-color:rgba(255,64,200,.45)}@keyframes osmtick{to{transform:translateX(-50%)}}@media (prefers-reduced-motion:reduce){.osm .tick .trk{animation:none;flex-wrap:wrap;width:auto;padding:7px}.osm .tick .chip[aria-hidden]{display:none}}" +
       ".osm .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}.osm .chips b{font:11px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:400;margin-right:2px}" +
     ".osm .chip{font:12px 'JetBrains Mono',monospace;color:var(--fg);background:#0f1a30;border:1px solid var(--line);border-radius:999px;padding:6px 11px;cursor:pointer}.osm .chip:hover,.osm .chip:focus-visible,.osm .chip.on{border-color:var(--holo);color:var(--holo);outline:none}" +
     ".osm .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim);margin-top:8px}.osm .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--up);margin-right:5px;vertical-align:-1px}.osm .legend i.s{background:var(--warm)}" +
@@ -96,6 +98,20 @@
       root.appendChild(el("div", { "class": "foot" }, [el("a", { href: "/sensors", text: tx("sensors_page") }), el("a", { href: "/llms.txt", text: tx("llms") }), el("span", { text: tx("credit") })]));
       card.appendChild(el("p", { text: tx("pick") }));
     }
+
+    function partyBlock(d, lang) {
+      var L = PR[lang] || PR.en, f = function (x) { return String(Math.round(x * 100) / 100).replace(".", lang === "en" ? "." : ","); }, box = el("div", { "class": "pr" });
+      box.appendChild(el("p", { "class": "prd", text: (d.disclaimer_i18n && d.disclaimer_i18n[lang]) || d.disclaimer || "" }));
+      (d.cards || []).forEach(function (c) {
+        var r = c.n ? (c.min === c.max ? f(c.min) : f(c.min) + "–" + f(c.max)) + " % · " + L.mean + " " + f(c.mean) + " % · " + c.n + " " + L.src : L.nd;
+        var sh = c.shift_pp == null ? L.nd : (c.shift_pp > 0 ? "+" : c.shift_pp < 0 ? "−" : "±") + f(Math.abs(c.shift_pp)) + " pp";
+        var det = el("details", { "class": "prc" }, [el("summary", null, [el("b", { text: c.party }), el("span", { text: r }), el("em", { text: L.shift + ": " + sh })])]);
+        if (c.sources && c.sources.length) det.appendChild(el("p", { text: L.used + ": " + c.sources.map(function (x) { return x.institute.split(" (")[0] + " " + x.date + " " + f(x.value) + " %"; }).join("; ") }));
+        box.appendChild(det);
+      });
+      box.appendChild(el("p", { "class": "prd" }, [el("a", { href: "https://dawum.de", target: "_blank", rel: "noopener", text: L.attr })]));
+      return box;
+    }
     function mark(id) { Object.keys(pinEls).forEach(function (k) { pinEls[k].forEach(function (g) { g.classList.toggle("on", k === id); }); }); root.querySelectorAll(".chip").forEach(function (c) { c.classList.toggle("on", c.getAttribute("data-id") === id); }); }
     function select(id, quiet) {
       sel = id; var s = man.sensors.filter(function (x) { return x.id === id; })[0]; if (!s) return; mark(id);
@@ -107,7 +123,7 @@
           row("status", el("span", { "class": cls, text: tx("status_" + stt) })); var tm = s.time_key ? fmtTime(dd && dd[s.time_key], lang, s.time_kind) : null; if (tm) row("time_" + s.time_kind, tm);
           if (dd && typeof dd === "object") { row("source", typeof dd.source === "string" ? dd.source : null); row("licence", typeof dd.licence === "string" ? dd.licence : typeof dd.license === "string" ? dd.license : null); } }
         var ap = (s.pins || []).concat(s.wpins || []); var loc = ap.length ? ap.map(function (p) { return p.label; }).join(", ") + " · " + tx("loc_" + (ap[0].kind === "source" ? "source" : ap[0].kind)) : tx("loc_" + s.scope); row("where", loc);
-        row("api", el("a", { href: s.api, target: "_blank", rel: "noopener", text: s.api })); row("mcp", el("code", { text: s.mcp })); card.appendChild(dl); };
+        row("api", el("a", { href: s.api, target: "_blank", rel: "noopener", text: s.api })); row("mcp", el("code", { text: s.mcp })); card.appendChild(dl); if (s.id === "parties" && !err && d && d.cards) card.appendChild(partyBlock(d, lang)); };
       fetch(s.api, { headers: { Accept: "application/json" } }).then(function (r) { return r.json().then(function (j) { return j; }); }).then(function (d) { done(d, false); }).catch(function () { done(null, true); });
     }
     return Promise.all([fetch("/data/map-geo.json").then(function (r) { return r.json(); }), fetch("/data/sensor-map.json").then(function (r) { return r.json(); })]).then(function (r) { geo = r[0]; man = r[1]; render(); }).catch(function () { root.textContent = T[lang].fail; });
